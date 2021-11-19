@@ -135,8 +135,8 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        snapshots && snapshots.length > 0 ?
-          await Promise.allSettled(
+        if (snapshots?.length > 0) {
+          const responses = await Promise.allSettled(
             _.map(({ title, id, description }) => {
               // Normalize the title:
               // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
@@ -145,26 +145,28 @@ const ImportData = () => {
               const normalizedTitle = title.replace(/\s/g, '_').replace(/[^A-Za-z0-9\s-_]/g, '')
               return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
             }, snapshots)
-          ).then(async responses => {
-            if (_.some(({ status }) => status === 'rejected', responses)) {
-              const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
-                const reasonJson = reason ? await reason.json() : '{}'
-                const message = JSON.parse(reasonJson.message || '{}').message
-                return { status, message }
-              }, responses))
-              setSnapshotResponses(normalizedResponses)
+          )
 
-              // Consolidate the multiple errors into a single error message
-              throw new Error(_.flow(
-                _.filter(({ status }) => status === 'rejected'),
-                _.map('message'),
-                _.join(', ')
-              )(normalizedResponses))
-            }
-          }) :
+          if (_.some(({ status }) => status === 'rejected', responses)) {
+            const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
+              const reasonJson = reason ? await reason.json() : '{}'
+              const message = JSON.parse(reasonJson.message || '{}').message
+              return { status, message }
+            }, responses))
+            setSnapshotResponses(normalizedResponses)
+
+            // Consolidate the multiple errors into a single error message
+            const numFailures = _.flow(
+              _.filter(({ status }) => status === 'rejected'),
+              _.size
+            )(normalizedResponses)
+            throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`)
+          }
+        } else {
           await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName).then(() => {
             notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
           })
+        }
       }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
