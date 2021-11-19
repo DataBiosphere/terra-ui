@@ -15,33 +15,23 @@ export const snapshotAccessTypes = {
   PENDING: 'Pending'
 }
 
-/*
-  It's necessary to add the release policy prefix because of how the filters work.
-  Filters will grab from an array of values without differentiating which filter it belongs to
-
-  For example:
-  if the user decides to filter by "data release policy = 'other'", it will filter the data
-  based off "{any filter field} = 'other'". Adding the prefix forces the filtering to recognize
-  which field is being filtered on.
-*/
-const releasePolicyPrefix = 'releasepolicytag_'
 export const snapshotReleasePolicies = {
-  'TerraCore:NoRestriction': { tag: `${releasePolicyPrefix}NRES`, label: 'NRES', desc: 'No restrictions' },
-  'TerraCore:GeneralResearchUse': { tag: `${releasePolicyPrefix}GRU`, label: 'GRU', desc: 'General research use' },
-  'TerraCore:NPOA': { tag: `${releasePolicyPrefix}NPOA`, label: 'NPOA', desc: 'No population origins or ancestry research' },
-  'TerraCore:NMDS': { tag: `${releasePolicyPrefix}NMDS`, label: 'NMDS', desc: 'No general methods research' },
-  'TerraCore:GSO': { tag: `${releasePolicyPrefix}GSO`, label: 'GSO', desc: 'Genetic studies only' },
-  'TerraCore:CC': { tag: `${releasePolicyPrefix}CC`, label: 'CC', desc: 'Clinical care use' },
-  'TerraCore:PUB': { tag: `${releasePolicyPrefix}PUB`, label: 'PUB', desc: 'Publication required' },
-  'TerraCore:COL': { tag: `${releasePolicyPrefix}COL`, label: 'COL', desc: 'Collaboration required' },
-  'TerraCore:IRB': { tag: `${releasePolicyPrefix}IRB`, label: 'IRB', desc: 'Ethics approval required' },
-  'TerraCore:GS': { tag: `${releasePolicyPrefix}GS`, label: 'GS', desc: 'Geographical restriction' },
-  'TerraCore:MOR': { tag: `${releasePolicyPrefix}MOR`, label: 'MOR', desc: 'Publication moratorium' },
-  'TerraCore:RT': { tag: `${releasePolicyPrefix}RT`, label: 'RT', desc: 'Return to database/resource' },
-  'TerraCore:NCU': { tag: `${releasePolicyPrefix}NCU`, label: 'NCU', desc: 'Non commercial use only' },
-  'TerraCore:NPC': { tag: `${releasePolicyPrefix}NPC`, label: 'NPC', desc: 'Not-for-profit use only' },
-  'TerraCore:NPC2': { tag: `${releasePolicyPrefix}NPC2`, label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
-  releasepolicy_other: { tag: `${releasePolicyPrefix}OTHER`, label: 'Other', desc: 'Misc release policies' }
+  'TerraCore:NoRestriction': { label: 'NRES', desc: 'No restrictions' },
+  'TerraCore:GeneralResearchUse': { label: 'GRU', desc: 'General research use' },
+  'TerraCore:NPOA': { label: 'NPOA', desc: 'No population origins or ancestry research' },
+  'TerraCore:NMDS': { label: 'NMDS', desc: 'No general methods research' },
+  'TerraCore:GSO': { label: 'GSO', desc: 'Genetic studies only' },
+  'TerraCore:CC': { label: 'CC', desc: 'Clinical care use' },
+  'TerraCore:PUB': { label: 'PUB', desc: 'Publication required' },
+  'TerraCore:COL': { label: 'COL', desc: 'Collaboration required' },
+  'TerraCore:IRB': { label: 'IRB', desc: 'Ethics approval required' },
+  'TerraCore:GS': { label: 'GS', desc: 'Geographical restriction' },
+  'TerraCore:MOR': { label: 'MOR', desc: 'Publication moratorium' },
+  'TerraCore:RT': { label: 'RT', desc: 'Return to database/resource' },
+  'TerraCore:NCU': { label: 'NCU', desc: 'Non commercial use only' },
+  'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
+  'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
+  releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
 const normalizeSnapshot = snapshot => {
@@ -67,14 +57,15 @@ const normalizeSnapshot = snapshot => {
     _.uniqBy(_.toLower)
   )(snapshot['prov:wasGeneratedBy'])
 
-  const dataReleasePolicy = _.getOr(
+  const dataReleasePolicy = _.has(snapshot['TerraDCAT_ap:hasDataUsePermission'], snapshotReleasePolicies) ?
+    { ...snapshotReleasePolicies[snapshot['TerraDCAT_ap:hasDataUsePermission']], policy: snapshot['TerraDCAT_ap:hasDataUsePermission'] } :
     {
       ...snapshotReleasePolicies.releasepolicy_other,
       desc: _.flow(
         _.replace('TerraCore:', ''),
         _.startCase
       )(snapshot['TerraDCAT_ap:hasDataUsePermission'])
-    }, snapshot['TerraDCAT_ap:hasDataUsePermission'], snapshotReleasePolicies)
+    }
 
   return {
     ...snapshot,
@@ -99,7 +90,7 @@ const extractTags = snapshot => {
       snapshot.dataType,
       snapshot.dataModality,
       _.map('dcat:mediaType', snapshot.files),
-      snapshot.dataReleasePolicy.tag
+      snapshot.dataReleasePolicy.policy
     ])
   }
 }

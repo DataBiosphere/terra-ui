@@ -41,36 +41,27 @@ const getUnique = (prop, data) => _.flow(
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
-  const accessArray = _.values(snapshotAccessTypes)
-  const releasePolicyArray = _.map('tag', snapshotReleasePolicies)
-
   return [{
     name: 'Access type',
-    labels: accessArray,
-    labelDisplays: _.flow(
-      _.map(accessKey => {
-        const lowerKey = _.toLower(accessKey)
-        return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-          icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
-            style: { color: styles.access[lowerKey], marginRight: 5 }
-          }),
-          div([snapshotAccessTypes[accessKey]])
-        ])]
-      }),
-      _.zipObject(accessArray)
-    )(_.keys(snapshotAccessTypes))
+    labels: _.keys(snapshotAccessTypes),
+    labelRenderer: accessKey => {
+      const lowerKey = _.toLower(accessKey)
+      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
+      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+        icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+        div([snapshotAccessTypes[accessKey]])
+      ])]
+    }
   }, {
     name: 'Data use policy',
-    labels: releasePolicyArray,
-    labelDisplays: _.flow(
-      _.map(({ label, tag, desc }) => {
-        return [div({ key: `releasePolicy-filter-${tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
-          label,
-          desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
-        ])]
-      }),
-      _.zipObject(releasePolicyArray)
-    )(snapshotReleasePolicies)
+    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
+    labelRenderer: rawPolicy => {
+      const { label, desc } = snapshotReleasePolicies[rawPolicy] || snapshotReleasePolicies.releasepolicy_other
+      return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
+        label ? label : rawPolicy,
+        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+      ])]
+    }
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
