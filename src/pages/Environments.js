@@ -5,6 +5,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -79,7 +80,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
   ])
 }
 
-const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, onSuccess }) => {
+const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteApp = _.flow(
@@ -102,7 +103,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveFilesHelpGalaxy)
+      appType === tools.galaxy.appType && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])

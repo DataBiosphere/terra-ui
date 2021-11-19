@@ -47,7 +47,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
 
     const getEnvMessageBasedOnStatus = app => {
       const waitMessage = 'This process will take up to a few minutes.'
-      const nonStatusSpecificMessage = 'A cloud environment for Cromwell consists of application configuration, cloud compute and persistent disk(s).'
+      const nonStatusSpecificMessage = 'Create a Cromwell environment to run workflows in your current workspace?'
 
       return !app ?
         nonStatusSpecificMessage :
@@ -67,7 +67,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
       return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
-          title: 'Cloud Environment',
+          title: 'Cromwell Cloud Environment',
           hideCloseButton: isAnalysisMode,
           style: { marginBottom: '0.5rem' },
           onDismiss,
