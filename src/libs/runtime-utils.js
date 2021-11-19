@@ -253,8 +253,8 @@ export const isCurrentGalaxyDiskDetaching = apps => {
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
-export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
-  const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+export const getGalaxyCostTextChildren = (app, appDataDisks) => {
+  const dataDisk = currentAttachedDataDisk(app, appDataDisks)
   return app ?
     [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }

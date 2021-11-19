@@ -69,7 +69,7 @@ const WorkspaceTabs = ({
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType, children
+  runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -101,7 +101,7 @@ const WorkspaceContainer = ({
       h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
-        apps, galaxyDataDisks, workspace, refreshApps, location, locationType
+        apps, appDataDisks, workspace, refreshApps, location, locationType
       })
     ]),
     showTabBar && h(WorkspaceTabs, {
@@ -118,7 +118,7 @@ const WorkspaceContainer = ({
           ]),
           workspace && h(ContextBar, {
             workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            apps, galaxyDataDisks, refreshApps,
+            apps, appDataDisks, refreshApps,
             runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
@@ -169,7 +169,7 @@ const useCloudEnvironmentPolling = googleProject => {
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
-  const [galaxyDataDisks, setGalaxyDataDisks] = useState()
+  const [appDataDisks, setAppDataDisks] = useState()
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -177,15 +177,17 @@ const useCloudEnvironmentPolling = googleProject => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes, galaxyDisks] = googleProject ? await Promise.all([
+      const [newDisks, newRuntimes, galaxyDisks, cromwellDisks] = googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: 'galaxy' })
-      ]) : [[], [], []]
-      const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.label }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.label })
+      ]) : [[], [], [], []]
+      const appDisks = _.concat(galaxyDisks, cromwellDisks)
+      const appDiskNames = _.map(disk => disk.name, appDisks)
       setRuntimes(newRuntimes)
-      setGalaxyDataDisks(galaxyDisks)
-      setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
+      setAppDataDisks(appDisks)
+      setPersistentDisks(_.remove(disk => _.includes(disk.name, appDiskNames), newDisks))
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?
@@ -202,7 +204,7 @@ const useCloudEnvironmentPolling = googleProject => {
     refreshRuntimes()
     return () => clearTimeout(timeout.current)
   })
-  return { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks }
+  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
 const useAppPolling = (googleProject, workspaceName) => {
@@ -255,7 +257,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [location, setLocation] = useState(defaultLocation)
     const [locationType, setLocationType] = useState(locationTypes.default)
     const prevGoogleProject = Utils.usePrevious(googleProject)
-    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     if (googleProject !== prevGoogleProject) {
       refreshRuntimes()
@@ -319,7 +321,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType,
+        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -333,7 +335,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks, apps,
+          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, appDataDisks, apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay

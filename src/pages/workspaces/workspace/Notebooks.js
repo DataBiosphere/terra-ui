@@ -227,7 +227,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  apps, appDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
 }, ref) => {
   // State
@@ -322,12 +322,12 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const getGalaxyText = (app, galaxyDataDisks) => app ?
+    const getGalaxyText = (app, appDataDisks) => app ?
       div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
         div(['Galaxy Interactive']),
         div(['Environment']),
         div({ style: { fontSize: 12, marginTop: 6 } },
-          getGalaxyCostTextChildren(app, galaxyDataDisks)),
+          getGalaxyCostTextChildren(app, appDataDisks)),
         icon('trash', { size: 21 })
       ]) :
       div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
@@ -373,7 +373,7 @@ const Notebooks = _.flow(
               'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
-            getGalaxyText(galaxyApp, galaxyDataDisks)
+            getGalaxyText(galaxyApp, appDataDisks)
           ])
         ]),
         h(Clickable, {
@@ -476,7 +476,7 @@ const Notebooks = _.flow(
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,
-          appDataDisks: galaxyDataDisks,
+          appDataDisks,
           onDismiss: () => setOpenGalaxyConfigDrawer(false),
           onSuccess: () => {
             setOpenGalaxyConfigDrawer(false)
