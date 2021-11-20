@@ -260,7 +260,6 @@ const Environments = () => {
     )
 
     return h(Link, {
-      style: { marginLeft: '1rem' },
       disabled: !isDeletable,
       tooltip: isDeletable ?
         'Delete cloud environment' :
@@ -275,6 +274,7 @@ const Environments = () => {
     const app = _.find(tool => tool.appType && tool.appType === compute.appType)(tools)
 
     return !app?.isPauseUnsupported && h(Link, {
+      style: { marginRight: '1rem' },
       disabled: !isPausable,
       tooltip: isPausable ?
         'Pause cloud environment' :
@@ -406,7 +406,7 @@ const Environments = () => {
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              const computeType = !!cloudEnvironment.appName ? 'app' : 'runtime'
+              const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
               return h(Fragment, [
                 renderPauseButton(computeType, cloudEnvironment),
                 renderDeleteButton(computeType, cloudEnvironment)

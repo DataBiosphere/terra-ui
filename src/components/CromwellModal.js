@@ -24,7 +24,7 @@ const titleId = 'cromwell-modal-title'
 // (or find another way to reduce code duplication).
 export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
   ({
-    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     const app = getCurrentAppForType(tools.cromwell.appType)(apps)

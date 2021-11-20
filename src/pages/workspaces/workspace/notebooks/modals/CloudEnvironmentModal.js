@@ -87,8 +87,6 @@ export const CloudEnvironmentModal = ({
       onDismiss()
     }
   })
-  const renderGalaxyModal = () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)
-  const renderCromwellModal = () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
     _.map(tool => renderToolButtons(tool.label))(getToolsToDisplay)
@@ -128,7 +126,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
   const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
-  const showPause = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
+  const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -174,7 +172,7 @@ export const CloudEnvironmentModal = ({
     executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
   }])
 
-  const defaultIcon = toolLabel => showPause(toolLabel) && h(RuntimeIcon, {
+  const defaultIcon = toolLabel => isPauseSupported(toolLabel) && h(RuntimeIcon, {
     shape: 'pause',
     toolLabel,
     disabled: true,
@@ -206,7 +204,7 @@ export const CloudEnvironmentModal = ({
           tooltip: canCompute ? 'Resume Environment' : noCompute
         })
       case 'Running':
-        return showPause(toolLabel) && h(RuntimeIcon, {
+        return isPauseSupported(toolLabel) && h(RuntimeIcon, {
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
@@ -275,7 +273,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isToolAnApp(toolLabel), () => !canCompute || busy || isCurrentGalaxyDiskDetaching(apps) || getIsAppBusy(currentApp(toolLabel))],
+    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
       return runtime ?
@@ -402,8 +400,8 @@ export const CloudEnvironmentModal = ({
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, renderGalaxyModal],
-    [NEW_CROMWELL_MODE, renderCromwellModal],
+    [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
+    [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
