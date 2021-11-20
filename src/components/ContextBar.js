@@ -106,12 +106,12 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
       div({ style: contextBarStyles.contextBarContainer }, [
         h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
           h(Clickable, {
-            'aria-label': 'Workspace menu',
             style: contextBarStyles.contextBarButton,
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            tooltip: 'Menu',
-            tooltipDelay: 100
+            tooltip: 'Workspace menu',
+            tooltipDelay: 100,
+            useTooltipAsLabel: true
           }, [icon('ellipsis-v', { size: 24 })])
         ]),
         h(Clickable, {
@@ -136,7 +136,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : undefined,
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
           tooltipDelay: 100,
-          useTooltipAsLabel: true,
+          useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 24 })])
       ])
