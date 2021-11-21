@@ -363,7 +363,7 @@ export const CloudEnvironmentModal = ({
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
           h(Clickable, {
-            'aria-label': `${toolLabel} Env`,
+            'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
               color: !isCloudEnvForToolDisabled ? colors.accent() : colors.dark(0.7)
