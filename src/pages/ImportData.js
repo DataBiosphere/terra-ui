@@ -151,8 +151,8 @@ const ImportData = () => {
 
           if (_.some({ status: 'rejected' }, responses)) {
             const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
-              const reasonJson = reason ? await reason.json() : '{}'
-              const message = JSON.parse(reasonJson.message || '{}').message
+              const reasonJson = await reason?.json()
+              const { message } = JSON.parse(reasonJson?.message || '{}')
               return { status, message }
             }, responses))
             setSnapshotResponses(normalizedResponses)
