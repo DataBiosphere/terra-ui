@@ -142,7 +142,10 @@ const ImportData = () => {
               // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
               // Replace all whitespace characters with _
               // Then replace all non alphanumeric characters with nothing
-              const normalizedTitle = title.replace(/\s/g, '_').replace(/[^A-Za-z0-9\s-_]/g, '')
+              const normalizedTitle = _.flow(
+                _.replace(/\s/g, '_'),
+                _.replace(/[^A-Za-z0-9\s-_]/g, '')
+              )(title)
               return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
             }, snapshots)
           )
