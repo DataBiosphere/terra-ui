@@ -121,8 +121,7 @@ const ImportData = () => {
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
   )(async workspace => {
-    const namespace = workspace.namespace
-    const name = workspace.name
+    const { namespace, name } = workspace
 
     await Utils.switchCase(format,
       ['PFB', async () => {
