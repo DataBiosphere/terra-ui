@@ -117,11 +117,11 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       persistentDisks,
       location,
       onDismiss: () => {
-        setViewMode(undefined)
+        resetView()
         onDismiss()
       },
       onSuccess: () => {
-        setViewMode(undefined)
+        resetView()
         onDismiss()
       }
     })
@@ -133,11 +133,11 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        setViewMode(undefined)
+        resetView()
         onDismiss()
       },
       onSuccess: () => {
-        setViewMode(undefined)
+        resetView()
         onDismiss()
       }
     })
