@@ -159,7 +159,7 @@ const ImportData = () => {
 
             // Consolidate the multiple errors into a single error message
             const numFailures = _.flow(
-              _.filter(({ status }) => status === 'rejected'),
+              _.filter({ status: 'rejected' }),
               _.size
             )(normalizedResponses)
             throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`)
