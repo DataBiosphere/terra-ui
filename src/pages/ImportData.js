@@ -69,7 +69,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   return h(Fragment, [
     icon(iconKey, { size: 18, style: { position: 'absolute', left: 0, color } }),
     title,
-    children && children.length && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, children)
+    children?.length && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, children)
   ])
 }
 
