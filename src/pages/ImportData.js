@@ -121,8 +121,7 @@ const ImportData = () => {
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
   )(async workspace => {
-    const namespace = workspace.namespace
-    const name = workspace.name
+    const { namespace, name } = workspace
 
     await Utils.switchCase(format,
       ['PFB', async () => {
@@ -135,7 +134,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        if (snapshots?.length > 0) {
+        if (!_.isEmpty(snapshots)) {
           const responses = await Promise.allSettled(
             _.map(({ title, id, description }) => {
               // Normalize the title:
@@ -185,7 +184,7 @@ const ImportData = () => {
       backgroundLogo,
       div({ style: styles.card }, [
         h2({ style: styles.title }, [header]),
-        snapshots && snapshots.length > 0 ?
+        !_.isEmpty(snapshots) ?
           div({ style: { marginTop: 20, marginBottom: 60 } }, [
             'Dataset(s):',
             ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
