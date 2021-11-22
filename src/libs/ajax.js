@@ -235,6 +235,11 @@ const User = signal => ({
     }
   },
 
+  getTos: async () => {
+    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
+    return response.text()
+  },
+
   acceptTos: async () => {
     await fetchOk(
       `${getConfig().tosUrlRoot}/user/response`,
