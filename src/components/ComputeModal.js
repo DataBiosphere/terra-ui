@@ -176,7 +176,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [sparkMode, setSparkMode] = useState(false)
-  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -588,22 +587,18 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     // bucketLocation === 'US' means the bucket is US multi-regional.
     // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
     // Currently, US is the only multi-region supported in Terra
-    if (bucketLocation === defaultLocation) {
+    if (location === defaultLocation) {
       return computeConfig.computeRegion !== defaultComputeRegion
     } else {
-      return computeConfig.computeRegion !== bucketLocation
+      return computeConfig.computeRegion !== location
     }
   }
 
-  const getLocationTooltip = (computeExists, bucketLocation) => {
-    if (computeExists) {
-      return 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'
-    } else if (isUSLocation(bucketLocation)) {
-      return 'Currently US workspaces can only have US cloud environments.'
-    } else {
-      return 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
-    }
-  }
+  const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
+    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
+    [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
+  )
   // Helper functions -- end
 
   // Lifecycle
@@ -661,7 +656,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
-      setBucketLocation(location)
 
       const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
@@ -1022,7 +1016,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
             betaVersionTag,
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              getLocationTooltip(computeExists, bucketLocation)
+              getLocationTooltip(computeExists, location)
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
@@ -1030,11 +1024,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 // Location dropdown is disabled for:
                 // 1) If editing an existing environment (can't update location of existing environments)
                 // 2) Workspace buckets that are either us-central1 or us multi-regional
-                isDisabled: computeExists || isUSLocation(bucketLocation),
+                isDisabled: computeExists || isUSLocation(location),
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation))
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(location))
               })
             ])
           ])
@@ -1114,7 +1108,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           'This cloud environment will be created in the region ',
           strong([`${computeConfig.computeRegion.toLowerCase()}.`]),
           ' Copying data from your workspace bucket in ',
-          strong([`${bucketLocation.toLowerCase()}`]),
+          strong([`${location.toLowerCase()}`]),
           ' may incur network egress charges. Note that network egress charges are not accounted for in cost estimates.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [

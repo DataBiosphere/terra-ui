@@ -44,17 +44,13 @@ export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocM
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
 export const getRegionFromZone = zone => zone.slice(0, -2)
 
-export const normalizeComputeRegion = (region, zone) => {
+export const normalizeComputeRegion = (region, zone) => Utils.cond(
   // The config that is returned by Leonardo is in lowercase, but GCP returns regions in uppercase.
   // PF-692 will have Leonardo return locations in uppercase.
-  if (region) {
-    return region.toUpperCase()
-  } else if (zone) {
-    return getRegionFromZone(zone).toUpperCase()
-  } else {
-    return defaultComputeRegion
-  }
-}
+  [!!region, () => region.toUpperCase()],
+  [!!zone, () => getRegionFromZone(zone).toUpperCase()],
+  [Utils.DEFAULT, () => defaultComputeRegion]
+)
 
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
