@@ -12,7 +12,7 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataBrowserVisible } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -69,7 +69,7 @@ const ImportData = () => {
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
 
-  const { dataCatalog } = useDataCatalog()
+  const { dataCatalog } = isDataBrowserVisible() ? useDataCatalog() : { dataCatalog: [] }
   const snapshots = _.flow(
     _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
     _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'] }))
