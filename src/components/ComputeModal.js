@@ -594,15 +594,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
   }
 
-  const getLocationTooltip = (computeExists, bucketLocation) => {
-    if (computeExists) {
-      return 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'
-    } else if (isUSLocation(bucketLocation)) {
-      return 'Currently US workspaces can only have US cloud environments.'
-    } else {
-      return 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
-    }
-  }
+  const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
+    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
+    [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
+  )
   // Helper functions -- end
 
   // Lifecycle
