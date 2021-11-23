@@ -183,6 +183,10 @@ const useCloudEnvironmentPolling = googleProject => {
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.appType }),
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.appType })
       ]) : [[], [], [], []]
+      _.forEach(disk => disk.appType = tools.galaxy.appType)(galaxyDisks)
+      _.forEach(disk => disk.appType = tools.cromwell.appType)(cromwellDisks)
+      galaxyDisks.appType = tools.galaxy.appType
+      cromwellDisks.appType = tools.cromwell.appType
       const appDisks = _.concat(galaxyDisks, cromwellDisks)
       const appDiskNames = _.map(disk => disk.name, appDisks)
       setRuntimes(newRuntimes)

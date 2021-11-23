@@ -258,17 +258,19 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentGalaxyPersistentDisk = (apps, appDataDisks) => {
+export const currentPersistentDisk = (appType, apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
-  const currentDataDiskName = currentGalaxyApp?.diskName
+  const currentApp = currentAppIncludingDeleting(appType)(apps)
+  const currentDataDiskName = currentApp?.diskName
   const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
-  // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
-  // return the newest galaxy disk that the user has unattached to an app
+  // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
+  // return the newest unattached disk that was provisioned by the desired appType.
+  const desiredAppType = appType
   return currentDataDiskName ?
     _.find({ name: currentDataDiskName }, appDataDisks) :
     _.last(_.sortBy('auditInfo.createdDate',
-      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), appDataDisks)))
+      _.filter(({ name, status, appType }) => appType === desiredAppType && status !== 'Deleting' && !_.includes(name, attachedDataDiskNames),
+        appDataDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {

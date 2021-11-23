@@ -16,7 +16,7 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   computeStyles,
-  currentAttachedDataDisk, currentGalaxyPersistentDisk, findMachineType, getCurrentAppForType, getGalaxyComputeCost,
+  currentAttachedDataDisk, currentPersistentDisk, findMachineType, getCurrentAppForType, getGalaxyComputeCost,
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -46,7 +46,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentGalaxyPersistentDisk(apps, appDataDisks)
+    const currentDataDisk = currentPersistentDisk(tools.galaxy.appType, apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
