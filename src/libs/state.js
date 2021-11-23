@@ -41,8 +41,6 @@ export const knownBucketRequesterPaysStatuses = Utils.atom({})
 
 export const requesterPaysProjectStore = Utils.atom()
 
-export const workspaceBucketLocationStore = Utils.atom()
-
 export const workflowSelectionStore = Utils.atom({
   key: undefined,
   entityType: undefined,

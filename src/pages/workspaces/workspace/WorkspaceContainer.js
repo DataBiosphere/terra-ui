@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { locationTypes } from 'src/components/region-common'
 import { analysisTabName, contextBarTabs } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
@@ -19,8 +20,8 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
-import { workspaceBucketLocationStore, workspaceStore } from 'src/libs/state'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -246,16 +247,19 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       cachedWorkspace :
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
+    const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
-    const cachedLocation = Utils.useStore(workspaceBucketLocationStore)
-    const location = cachedLocation?.location
-    const locationType = cachedLocation?.locationType
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     if (googleProject !== prevGoogleProject) {
       refreshRuntimes()
       refreshApps()
+    }
+
+    const loadBucketLocation = async (googleProject, bucketName) => {
+      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+      setBucketLocation(bucketLocation)
     }
 
     const refreshWorkspace = _.flow(
@@ -271,10 +275,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
 
-        const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-        workspaceBucketLocationStore.set({ location, locationType })
+        const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
 
-        const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
+        loadBucketLocation(googleProject, bucketName)
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
