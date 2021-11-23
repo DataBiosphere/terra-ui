@@ -1393,7 +1393,7 @@ const Apps = signal => ({
             name: diskName,
             size: diskSize,
             labels: {
-              saturnApplication: 'galaxy',
+              saturnApplication: appType,
               saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }
