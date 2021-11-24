@@ -71,7 +71,6 @@ const extractTags = snapshot => {
 }
 
 export const useDataCatalog = () => {
-  const skip = !isDataBrowserVisible()
   const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
   const dataCatalog = Utils.useStore(dataCatalogStore)
@@ -80,7 +79,7 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = skip ? {} : await Ajax(signal).DataRepo.getMetadata()
+    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
