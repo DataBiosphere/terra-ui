@@ -10,6 +10,7 @@ export const getConfig = () => {
 
 export const isAnvil = () => (window.location.hostname === 'anvil.terra.bio') || getConfig().isAnvil
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
+export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 // configOverridesStore.set({ isDataBrowserVisible: true }) in browser console to enable
 export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
 export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline

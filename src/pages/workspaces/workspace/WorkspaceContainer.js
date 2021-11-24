@@ -7,6 +7,7 @@ import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import { tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { locationTypes } from 'src/components/region-common'
 import { analysisTabName, contextBarTabs } from 'src/components/runtime-common'
@@ -20,7 +21,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentAppForType, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -68,7 +69,7 @@ const WorkspaceTabs = ({
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType, children
+  runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -100,7 +101,7 @@ const WorkspaceContainer = ({
       h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
-        apps, galaxyDataDisks, workspace, refreshApps, location, locationType
+        apps, appDataDisks, workspace, refreshApps, location, locationType
       })
     ]),
     showTabBar && h(WorkspaceTabs, {
@@ -117,7 +118,7 @@ const WorkspaceContainer = ({
           ]),
           workspace && h(ContextBar, {
             workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            apps, galaxyDataDisks, refreshApps,
+            apps, appDataDisks, refreshApps,
             runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
@@ -168,7 +169,7 @@ const useCloudEnvironmentPolling = googleProject => {
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
-  const [galaxyDataDisks, setGalaxyDataDisks] = useState()
+  const [appDataDisks, setAppDataDisks] = useState()
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -176,15 +177,17 @@ const useCloudEnvironmentPolling = googleProject => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes, galaxyDisks] = googleProject ? await Promise.all([
+      const [newDisks, newRuntimes, galaxyDisks, cromwellDisks] = googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: 'galaxy' })
-      ]) : [[], [], []]
-      const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.appType }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.appType })
+      ]) : [[], [], [], []]
+      const appDisks = _.concat(galaxyDisks, cromwellDisks)
+      const appDiskNames = _.map(disk => disk.name, appDisks)
       setRuntimes(newRuntimes)
-      setGalaxyDataDisks(galaxyDisks)
-      setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
+      setAppDataDisks(appDisks)
+      setPersistentDisks(_.remove(disk => _.includes(disk.name, appDiskNames), newDisks))
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?
@@ -201,7 +204,7 @@ const useCloudEnvironmentPolling = googleProject => {
     refreshRuntimes()
     return () => clearTimeout(timeout.current)
   })
-  return { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks }
+  return { runtimes, refreshRuntimes, persistentDisks, appDataDisks }
 }
 
 const useAppPolling = (googleProject, workspaceName) => {
@@ -218,8 +221,12 @@ const useAppPolling = (googleProject, workspaceName) => {
         await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) :
         []
       setApps(newApps)
-      const app = getCurrentApp(newApps)
-      reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
+      _.forOwn(tool => {
+        if (tool.appType) {
+          const app = getCurrentAppForType(tool.appType)(newApps)
+          reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
+        }
+      })(tools)
     } catch (error) {
       reschedule(30000)
       throw error
@@ -250,7 +257,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = Utils.usePrevious(googleProject)
-    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     if (googleProject !== prevGoogleProject) {
       refreshRuntimes()
@@ -320,7 +327,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType,
+        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -334,7 +341,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks, apps,
+          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, appDataDisks, apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
