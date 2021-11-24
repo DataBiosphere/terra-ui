@@ -143,6 +143,7 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
 // The data below comes from Google's pricing API: https://cloud.google.com/billing/v1/how-tos/caltalog-api
 // There is a script available in https://gist.github.com/wnojopra/be5be3ab7e6a09a351b89085992a940d
 // that parses the API and outputs this data.
+// TODO: Update the above URL in the comment to the proper script location
 export const regionToPrices = [
   {
     name: 'ASIA-EAST1', monthlyDiskPrice: 0.04,
