@@ -312,7 +312,7 @@ const Environments = () => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: _.some({ appType: tools.galaxy.appType }, appDisks),
+      isGalaxyDisk: _.some({ appType: tools.galaxy.appType, name: disk.name }, appDisks),
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -439,7 +439,7 @@ const Environments = () => {
               }
               const hasMultipleAppDisks = diskName => {
                 const desiredAppType = getAppType(diskName)
-                const disks = _.remove(disk => getAppType(disk.name) !== desiredAppType || disk.status === 'DELETING',
+                const disks = _.remove(disk => getAppType(disk.name) !== desiredAppType || disk.status === 'Deleting',
                   disksByProject[disk.googleProject])
                 return disks.length > 1
               }
