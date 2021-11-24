@@ -16,11 +16,12 @@ import {
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
-import rstudioLogo from 'src/images/rstudio-logo.svg'
+import rstudioBioLogo from 'src/images/r-bio-logo.png'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -73,12 +74,12 @@ const AnalysisCard = ({
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name: wsName, analysisName: getFileName(name) })
+  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: wsName, analysisName: getFileName(name) })
   const toolLabel = getTool(name)
 
   const currentRuntimeTool = getToolFromRuntime(currentRuntime)
 
-  const rstudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
+  const rstudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
   const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: 'playground' })}`
 
@@ -216,12 +217,13 @@ const Analyses = _.flow(
   }),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Analyses', activeTab: 'analyses'
+    title: 'Analyses',
+    activeTab: analysisTabName
   }),
   withViewToggle('analysesTab')
 )(({
   apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, galaxyDataDisks
+  refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, appDataDisks
 }, ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -311,17 +313,16 @@ const Analyses = _.flow(
 
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row' } }, [
-      img({ src: jupyterLogo, style: { height: 150, width: 100, marginRight: '12rem' } }),
-      img({ src: rstudioLogo, style: { height: 150, width: 170, marginRight: '10rem' } }),
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
+      img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
+      img({ src: rstudioBioLogo, style: { width: 406, height: 75, marginRight: '1rem' } }),
       div([
-        img({ src: galaxyLogo, style: { height: 75, width: 260, marginTop: '2.5rem' } })
+        img({ src: galaxyLogo, style: { height: 60, width: 208 } })
         // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
       ])
     ]),
-    //TODO, check with Joy, wording change (it may not be their first, just first in this workspace)
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
-      `Select one of the applications above to create an analysis.`
+      `Click the button above to create an analysis.`
     ])
   ])
 
@@ -398,7 +399,7 @@ const Analyses = _.flow(
           runtimes,
           persistentDisks,
           refreshRuntimes,
-          galaxyDataDisks,
+          appDataDisks,
           refreshAnalyses,
           analyses,
           apps,
@@ -458,7 +459,7 @@ const Analyses = _.flow(
 
 export const navPaths = [
   {
-    name: 'workspace-analyses',
+    name: analysisTabName,
     path: '/workspaces/:namespace/:name/analyses',
     component: Analyses,
     title: ({ name }) => `${name} - Analysis`

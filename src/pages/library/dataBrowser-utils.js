@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataBrowserVisible } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { dataCatalogStore } from 'src/libs/state'
@@ -104,7 +104,7 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = await Ajax(signal).DataRepo.getMetadata()
+    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)

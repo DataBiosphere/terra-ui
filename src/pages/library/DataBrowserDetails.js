@@ -165,7 +165,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Ajax().Metrics.captureEvent(`${Events.catalogWorkSpaceLink}:detailsView`, {
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
           snapshotId: id,
           snapshotName: snapshot['dct:title']
         })

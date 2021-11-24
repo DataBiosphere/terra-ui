@@ -5,6 +5,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -17,7 +18,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentAppForType, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
   isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -79,7 +80,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
   ])
 }
 
-const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, onSuccess }) => {
+const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteApp = _.flow(
@@ -102,7 +103,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveFilesHelpGalaxy)
+      appType === tools.galaxy.appType && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -207,7 +208,7 @@ const Environments = () => {
 
   const renderBillingProjectApp = app => {
     const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(appsByProject[app.googleProject]) !== app
+      getCurrentAppForType(app.appType)(appsByProject[app.googleProject]) !== app
     return h(Fragment, [
       app.googleProject,
       inactive && h(TooltipTrigger, {
@@ -259,7 +260,6 @@ const Environments = () => {
     )
 
     return h(Link, {
-      style: { marginLeft: '1rem' },
       disabled: !isDeletable,
       tooltip: isDeletable ?
         'Delete cloud environment' :
@@ -271,8 +271,10 @@ const Environments = () => {
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
     const isPausable = isComputePausable(computeType, compute)
+    const app = _.find(tool => tool.appType && tool.appType === compute.appType)(tools)
 
-    return h(Link, {
+    return !app?.isPauseUnsupported && h(Link, {
+      style: { marginRight: '1rem' },
       disabled: !isPausable,
       tooltip: isPausable ?
         'Pause cloud environment' :
@@ -339,7 +341,7 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return isApp(cloudEnvironment) ?
-                (cloudEnvironment.appType ? _.capitalize(cloudEnvironment.appType) : 'Galaxy') :
+                _.capitalize(cloudEnvironment.appType) :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
@@ -404,7 +406,7 @@ const Environments = () => {
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              const computeType = !!cloudEnvironment.appName ? 'app' : 'runtime'
+              const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
               return h(Fragment, [
                 renderPauseButton(computeType, cloudEnvironment),
                 renderDeleteButton(computeType, cloudEnvironment)
@@ -453,7 +455,7 @@ const Environments = () => {
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
                   app && div([
                     span({ style: { fontWeight: 600 } },
-                      [app.appType ? `${_.capitalize(app.appType)}: ` : 'Galaxy: ']
+                      [`${_.capitalize(app.appType)}: `]
                     ), app.appName
                   ])
                 ])

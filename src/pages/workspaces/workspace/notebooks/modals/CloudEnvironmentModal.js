@@ -3,26 +3,29 @@ import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
 import { Clickable, spinnerOverlay } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
+import { CromwellModalBase } from 'src/components/CromwellModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { tools } from 'src/components/notebook-utils'
+import { getAppType, getToolsToDisplay, isToolAnApp, tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
+import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
+import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentApp,
+  getCurrentAppForType,
   getCurrentRuntime,
   getGalaxyCostTextChildren,
   getIsAppBusy,
@@ -38,7 +41,7 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
-  isOpen, onDismiss, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+  isOpen, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
   workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -63,55 +66,67 @@ export const CloudEnvironmentModal = ({
       setViewMode(undefined)
       onDismiss()
     },
-    onSuccess: _.flow(
-      withErrorReporting('Error creating cloud compute'),
-      Utils.withBusyState(setBusy)
-    )(async () => {
+    onSuccess: () => {
       setViewMode(undefined)
-      await refreshRuntimes(true)
-    })
+      onDismiss()
+    }
   })
 
-  const renderGalaxyModal = () => h(GalaxyModalBase, {
-    isOpen: viewMode === NEW_GALAXY_MODE,
+  const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
+    isOpen: viewMode === appMode,
     isAnalysisMode: true,
     workspace,
     apps,
-    galaxyDataDisks,
+    appDataDisks,
     onDismiss: () => {
       setViewMode(undefined)
       onDismiss()
     },
-    onSuccess: _.flow(
-      withErrorReporting('Error creating app'),
-      Utils.withBusyState(setBusy)
-    )(async () => {
+    onSuccess: () => {
       setViewMode(undefined)
-      await refreshApps(true)
-    })
+      onDismiss()
+    }
   })
 
-  const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
-    renderToolButtons(tools.Jupyter.label),
-    renderToolButtons(tools.RStudio.label),
-    renderToolButtons(tools.galaxy.label)
-  ])
+  const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
+    _.map(tool => renderToolButtons(tool.label))(getToolsToDisplay)
+  )
 
   const toolPanelStyles = {
-    backgroundColor: 'white', margin: '0 1.5rem 1rem 1.5rem', padding: '0 1rem 1rem 1rem', display: 'flex', flexDirection: 'column'
+    backgroundColor: 'white',
+    margin: '0 1.5rem 1rem 1.5rem',
+    padding: '0 1rem 1rem 1rem',
+    display: 'flex',
+    flexDirection: 'column'
   }
-  const toolLabelStyles = { margin: '1rem 0 0.5rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
+  const toolLabelStyles = {
+    margin: '1rem 0 0.5rem 0',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  }
   const toolButtonDivStyles = { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }
   const toolButtonStyles = {
-    flex: '1 1 0%', maxWidth: 105, display: 'flex', flexDirection: 'column', border: '.5px solid grey', borderRadius: 16, padding: '.5rem .75rem',
-    alignItems: 'center', fontWeight: 550, fontSize: 11, color: colors.accent()
+    flex: '1 1 0%',
+    maxWidth: 105,
+    display: 'flex',
+    flexDirection: 'column',
+    border: '.5px solid grey',
+    borderRadius: 16,
+    padding: '.5rem .75rem',
+    alignItems: 'center',
+    fontWeight: 550,
+    fontSize: 11,
+    color: colors.accent()
   }
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
-  const currentApp = getCurrentApp(apps)
+  const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
+  const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -130,7 +145,7 @@ export const CloudEnvironmentModal = ({
     try {
       setBusy(true)
       await promise
-      await toolLabel === tools.galaxy.label ? refreshApps() : refreshRuntimes()
+      await isToolAnApp(toolLabel) ? refreshApps() : refreshRuntimes()
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -138,9 +153,9 @@ export const CloudEnvironmentModal = ({
     }
   }
 
-  // We assume here that button disabling is working properly, so the only thing to check is whether it's a Galaxy app or the current (assumed to be existing) runtime
-  const startApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
-    const { googleProject, appName } = currentApp
+  // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
+  const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+    const { googleProject, appName } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(googleProject, appName).resume())
   }], [Utils.DEFAULT, () => {
@@ -149,15 +164,15 @@ export const CloudEnvironmentModal = ({
       Ajax().Runtimes.runtime(googleProject, runtimeName).start())
   }])
 
-  const stopApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
-    const { googleProject, appName } = currentApp
+  const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+    const { googleProject, appName } = currentApp(toolLabel)
     executeAndRefresh(toolLabel, Ajax().Apps.app(googleProject, appName).pause())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
   }])
 
-  const defaultIcon = toolLabel => h(RuntimeIcon, {
+  const defaultIcon = toolLabel => isPauseSupported(toolLabel) && h(RuntimeIcon, {
     shape: 'pause',
     toolLabel,
     disabled: true,
@@ -168,8 +183,8 @@ export const CloudEnvironmentModal = ({
 
   const renderStatusClickable = toolLabel => Utils.cond(
     [toolLabel === currentRuntimeTool, () => getIconFromStatus(toolLabel, currentRuntimeStatus)],
-    [toolLabel === tools.galaxy.label, () => {
-      const normalizedAppStatus = _.capitalize(currentApp?.status)
+    [isToolAnApp(toolLabel), () => {
+      const normalizedAppStatus = _.capitalize(currentApp(toolLabel)?.status)
       return getIconFromStatus(toolLabel, normalizedAppStatus)
     }],
     [Utils.DEFAULT, () => defaultIcon(toolLabel)]
@@ -189,7 +204,7 @@ export const CloudEnvironmentModal = ({
           tooltip: canCompute ? 'Resume Environment' : noCompute
         })
       case 'Running':
-        return h(RuntimeIcon, {
+        return isPauseSupported(toolLabel) && h(RuntimeIcon, {
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
@@ -212,8 +227,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span('Environment'),
-            span(toolLabel === tools.galaxy.label ? getComputeStatusForDisplay(status) : getComputeStatusForDisplay(status))]
+          messageChildren: [span('Environment'), span(getComputeStatusForDisplay(status))]
         })
       case 'Error':
         return h(RuntimeIcon, {
@@ -222,7 +236,7 @@ export const CloudEnvironmentModal = ({
           style: { color: colors.danger(0.9) },
           onClick: () => {
             Utils.cond(
-              [toolLabel === tools.galaxy.label, () => setErrorAppId(currentApp?.appName)],
+              [isToolAnApp(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
               [Utils.DEFAULT, () => setErrorRuntimeId(currentRuntime?.id)]
             )
           },
@@ -243,11 +257,13 @@ export const CloudEnvironmentModal = ({
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.galaxy.label, () => galaxyLogo],
-    [tools.RStudio.label, () => rstudioLogo])
+    [tools.RStudio.label, () => rstudioLogo],
+    [tools.cromwell.label, () => cromwellImg])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp, galaxyDataDisks)],
+    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
+    [toolLabel === tools.cromwell.label, () => ''], // We will determine what to put here later
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -257,7 +273,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => !canCompute || busy || isCurrentGalaxyDiskDetaching(apps) || getIsAppBusy(currentApp)],
+    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
       return runtime ?
@@ -267,10 +283,11 @@ export const CloudEnvironmentModal = ({
   )
 
   const getToolLaunchClickableProps = toolLabel => {
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
+    const app = currentApp(toolLabel)
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
-    const isToolBusy = toolLabel === tools.galaxy.label ?
-      getIsAppBusy(currentApp) || currentApp?.status === 'STOPPED' || currentApp?.status === 'ERROR' :
+    const isToolBusy = isToolAnApp(toolLabel) ?
+      getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label
     const baseProps = {
@@ -283,27 +300,38 @@ export const CloudEnvironmentModal = ({
       hover: { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Please wait until Galaxy is running'],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
           () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
-
     return Utils.switchCase(toolLabel,
       [tools.galaxy.label, () => {
         return {
           ...baseProps,
-          href: currentApp?.proxyUrls?.galaxy,
+          href: app?.proxyUrls?.galaxy,
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
-      }], [Utils.DEFAULT, () => {
+      }],
+      [tools.cromwell.label, () => {
+        return {
+          ...baseProps,
+          href: app?.proxyUrls['cromwell-service'],
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.cromwell.appType })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
+      [Utils.DEFAULT, () => {
         // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
-        const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name: workspaceName, application: toolLabel })
+        const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel })
         return {
           ...baseProps,
           href: applicationLaunchLink,
@@ -318,9 +346,9 @@ export const CloudEnvironmentModal = ({
     )
   }
 
-
   const renderToolButtons = toolLabel => {
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
+    const app = currentApp(toolLabel)
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
     return h(Fragment, [
       div({ style: toolPanelStyles }, [
@@ -335,7 +363,7 @@ export const CloudEnvironmentModal = ({
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
           h(Clickable, {
-            'aria-label': `${toolLabel} Env`,
+            'aria-label': `${toolLabel} Environment`,
             style: {
               ...toolButtonStyles,
               color: !isCloudEnvForToolDisabled ? colors.accent() : colors.dark(0.7)
@@ -347,7 +375,7 @@ export const CloudEnvironmentModal = ({
             disabled: isCloudEnvForToolDisabled,
             onClick: () => setViewMode(toolLabel)
           }, [
-            img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }), //TODO: why doesn't this icon disable properly color-wise?
+            img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }),
             span('Cloud'),
             span('Environment')
           ]),
@@ -367,11 +395,13 @@ export const CloudEnvironmentModal = ({
   const NEW_JUPYTER_MODE = tools.Jupyter.label
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.galaxy.label
+  const NEW_CROMWELL_MODE = tools.cromwell.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, renderGalaxyModal],
+    [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
+    [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
@@ -379,6 +409,7 @@ export const CloudEnvironmentModal = ({
     [NEW_JUPYTER_MODE, () => 675],
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
+    [NEW_CROMWELL_MODE, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 
