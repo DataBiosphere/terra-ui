@@ -117,10 +117,10 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
     !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
-      .then(locationResponse => {
+      .then(({ location }) => {
         // For current phased regionality release, we only allow US workspace buckets.
-        isUSLocation(locationResponse.location) ? setBucketLocation(locationResponse.location) : setBucketLocation(defaultLocation)
-        setSourceWorkspaceLocation(locationResponse.location)
+        setBucketLocation(isUSLocation(location) ? location : defaultLocation)
+        setSourceWorkspaceLocation(location)
       })
   ]))
 

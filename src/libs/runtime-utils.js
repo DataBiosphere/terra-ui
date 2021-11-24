@@ -97,20 +97,15 @@ const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => 
   const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes)
   const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
     regionToPrices)
-  return !isPreemptible ?
-    (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice) :
-    (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice)
+  return isPreemptible ?
+    (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice) :
+    (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice)
 }
 
 const getGpuCost = (gpuType, numGpus, region) => {
   const prices = _.find({ name: region }, regionToPrices)
-  const price = Utils.switchCase(gpuType,
-    ['nvidia-tesla-t4', () => prices.t4HourlyPrice],
-    ['nvidia-tesla-k80', () => prices.k80HourlyPrice],
-    ['nvidia-tesla-p4', () => prices.p4HourlyPrice],
-    ['nvidia-tesla-v100', () => prices.v100HourlyPrice],
-    ['nvidia-tesla-p100', () => prices.p100HourlyPrice]
-  )
+  // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
+  const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`]
   return price * numGpus
 }
 

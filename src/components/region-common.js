@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 // When updating region list, please also update the list in
 // https://github.com/DataBiosphere/leonardo/blob/develop/http/src/main/resources/reference.conf
-export const unknownRegionFlag = '❓'
+const unknownRegionFlag = '❓'
 export const getRegionInfo = (location, locationType) => {
   const regionDescription = locationType === locationTypes.multiRegion ?
     `${location} (${locationTypes.multiRegion})` :
@@ -62,7 +62,7 @@ export const locationTypes = {
   default: 'multi-region'
 }
 
-export const allRegions = [
+const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
@@ -89,7 +89,7 @@ export const allRegions = [
 ]
 
 // For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
-export const availableBucketRegions = _.slice(0, 2, allRegions)
+export const availableBucketRegions = _.filter(({ value }) => _.startsWith('US', value), allRegions)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
 // and the same region as your workspace bucket.
