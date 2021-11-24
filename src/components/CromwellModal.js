@@ -33,7 +33,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
       withErrorReportingInModal('Error creating Cromwell', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        defaultKubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
+        defaultKubernetesRuntimeConfig, diskName: currentDataDisk?.name ?? Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
         appType: tools.cromwell.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: tools.cromwell.appType, ...extractWorkspaceDetails(workspace) })
