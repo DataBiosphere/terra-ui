@@ -61,15 +61,15 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   const { status, message } = snapshotResponses ? snapshotResponses[responseIndex] : {}
   const [color, iconKey, children] = Utils.switchCase(status,
-    ['fulfilled', () => [colors.primary(), 'success-standard', [strong(['Success: ']), 'Snapshot successfully imported']]],
-    ['rejected', () => [colors.danger(), 'warning-standard', [strong(['Error: ']), message]]],
+    ['fulfilled', () => [colors.primary(), 'success-standard', h(Fragment, [strong(['Success: ']), 'Snapshot successfully imported'])]],
+    ['rejected', () => [colors.danger(), 'warning-standard', h(Fragment, [strong(['Error: ']), message])]],
     [Utils.DEFAULT, () => [colors.primary(), `success-standard`]]
   )
 
   return h(Fragment, [
     icon(iconKey, { size: 18, style: { position: 'absolute', left: 0, color } }),
     title,
-    children?.length && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, children)
+    children && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, [children])
   ])
 }
 
@@ -143,7 +143,7 @@ const ImportData = () => {
               // Then replace all non alphanumeric characters with nothing
               const normalizedTitle = _.flow(
                 _.replace(/\s/g, '_'),
-                _.replace(/[^A-Za-z0-9\s-_]/g, '')
+                _.replace(/[^A-Za-z0-9-_]/g, '')
               )(title)
               return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
             }, snapshots)
