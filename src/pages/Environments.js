@@ -114,7 +114,7 @@ const Environments = () => {
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
-  const [galaxyDisks, setGalaxyDisks] = useState()
+  const [appDisks, setAppDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState()
   const getErrorRuntimeId = Utils.useGetter(errorRuntimeId)
@@ -129,16 +129,20 @@ const Environments = () => {
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
-    const [newRuntimes, newDisks, galaxyDisks, newApps] = await Promise.all([
+    const [newRuntimes, newDisks, galaxyDisks, cromwellDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
       Ajax(signal).Disks.list({ creator }),
-      Ajax(signal).Disks.list({ creator, saturnApplication: 'galaxy' }),
+      Ajax(signal).Disks.list({ creator, saturnApplication: tools.galaxy.appType }),
+      Ajax(signal).Disks.list({ creator, saturnApplication: tools.cromwell.appType }),
       Ajax(signal).Apps.listWithoutProject({ creator })
     ])
     setRuntimes(newRuntimes)
     setDisks(newDisks)
-    setGalaxyDisks(galaxyDisks)
     setApps(newApps)
+
+    _.forEach(disk => disk.appType = tools.galaxy.appType)(galaxyDisks)
+    _.forEach(disk => disk.appType = tools.cromwell.appType)(cromwellDisks)
+    setAppDisks(_.concat(galaxyDisks, cromwellDisks))
 
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined)
@@ -306,10 +310,9 @@ const Environments = () => {
   }
 
   const renderDeleteDiskModal = disk => {
-    const diskName = disk.name
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: _.some({ name: diskName }, galaxyDisks),
+      isGalaxyDisk: _.some({ appType: tools.galaxy.appType }, appDisks),
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -426,16 +429,23 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
-              const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
-              const runtimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames), disks)
-              const runtimeDiskNames = _.map(disk => disk.name, runtimeDisks)
-              const multipleRuntimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames) || disk.status === 'Deleting',
+              const appDiskNames = _.map(disk => disk.name, appDisks)
+              const multipleRuntimeDisks = _.remove(disk => _.includes(disk.name, appDiskNames) || disk.status === 'Deleting',
                 disksByProject[disk.googleProject]).length > 1
-              const multipleGalaxyDisks = _.remove(disk => _.includes(disk.name, runtimeDiskNames) || disk.status === 'DELETING',
-                disksByProject[disk.googleProject]).length > 1
+              const getAppType = diskName => {
+                // appDisks has appType populated on it if the disk was related to an app, but
+                // disksByProject (which is populated from disks) does not.
+                return _.find(disk => disk.name === diskName)(appDisks)?.appType
+              }
+              const hasMultipleAppDisks = diskName => {
+                const desiredAppType = getAppType(diskName)
+                const disks = _.remove(disk => getAppType(disk.name) !== desiredAppType || disk.status === 'DELETING',
+                  disksByProject[disk.googleProject])
+                return disks.length > 1
+              }
               return h(Fragment, [
                 disk.googleProject,
-                disk.status !== 'Deleting' && (_.includes(disk.name, galaxyDiskNames) ? multipleGalaxyDisks : multipleRuntimeDisks) &&
+                disk.status !== 'Deleting' && (_.includes(disk.name, appDiskNames) ? hasMultipleAppDisks(disk.name) : multipleRuntimeDisks) &&
                 h(TooltipTrigger, {
                   content: 'This billing project has multiple active persistent disks. Only one will be used.'
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
