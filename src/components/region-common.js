@@ -1,3 +1,5 @@
+import _ from 'lodash/fp'
+import { defaultComputeRegion } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 // Get a { flag: ..., countryName: ... } object representing a google locationType/location input.
@@ -9,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 // When updating region list, please also update the list in
 // https://github.com/DataBiosphere/leonardo/blob/develop/http/src/main/resources/reference.conf
-export const unknownRegionFlag = '❓'
+const unknownRegionFlag = '❓'
 export const getRegionInfo = (location, locationType) => {
   const regionDescription = locationType === locationTypes.multiRegion ?
     `${location} (${locationTypes.multiRegion})` :
@@ -60,30 +62,42 @@ export const locationTypes = {
   default: 'multi-region'
 }
 
-export const allRegions = [
+const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
-  // For more information, see https://docs.google.com/document/d/1RMu8bxXAyP2q_85UHkPARW1Xpt_G_662pRi0LCML4yA/edit#heading=h.53j9ueoid5vt
-  // TODO(wnojopra): Replace the above link with the Terra support article link once published
+  // For more information, see https://support.terra.bio/hc/en-us/articles/360060777272-US-regional-versus-Multi-regional-US-buckets-trade-offs
   { value: 'US', label: 'US multi-regional (default)', locationType: locationTypes.multiRegion },
-  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region }
-  // Initially releasing regionality with just US-CENTRAL1 region. Overtime, will introduce more regions.
-  // { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: 'region' },
-  // { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: 'region' },
-  // { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: 'region' },
-  // { value: 'EUROPE-NORTH1', label: 'europe-north1 (Finland)', locationType: 'region' },
-  // { value: 'EUROPE-WEST1', label: 'europe-west1 (Belgium)', locationType: 'region' },
-  // { value: 'EUROPE-WEST2', label: 'europe-west2 (London)', locationType: 'region' },
-  // { value: 'EUROPE-WEST3', label: 'europe-west3 (Frankfurt)', locationType: 'region' },
-  // { value: 'EUROPE-WEST4', label: 'europe-west4 (Netherlands)', locationType: 'region' },
-  // { value: 'EUROPE-WEST6', label: 'europe-west6 (Zurich)', locationType: 'region' },
-  // { value: 'ASIA-EAST1', label: 'asia-east1 (Taiwan)', locationType: 'region' },
-  // { value: 'ASIA-EAST2', label: 'asia-east2 (Hong Kong)', locationType: 'region' },
-  // { value: 'ASIA-NORTHEAST1', label: 'asia-northeast1 (Tokyo)', locationType: 'region' },
-  // { value: 'ASIA-NORTHEAST3', label: 'asia-northeast3 (Seoul)', locationType: 'region' },
-  // { value: 'ASIA-SOUTH1', label: 'asia-south1 (Mumbai)', locationType: 'region' },
-  // { value: 'ASIA-SOUTHEAST1', label: 'asia-southeast1 (Singapore)', locationType: 'region' },
-  // { value: 'ASIA-SOUTHEAST2', label: 'asia-southeast2 (Jakarta)', locationType: 'region' },
-  // { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: 'region' }
+  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region },
+  { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
+  { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: locationTypes.region },
+  { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: locationTypes.region },
+  { value: 'EUROPE-NORTH1', label: 'europe-north1 (Finland)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST1', label: 'europe-west1 (Belgium)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST2', label: 'europe-west2 (London)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST3', label: 'europe-west3 (Frankfurt)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST4', label: 'europe-west4 (Netherlands)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST6', label: 'europe-west6 (Zurich)', locationType: locationTypes.region },
+  { value: 'ASIA-EAST1', label: 'asia-east1 (Taiwan)', locationType: locationTypes.region },
+  { value: 'ASIA-EAST2', label: 'asia-east2 (Hong Kong)', locationType: locationTypes.region },
+  { value: 'ASIA-NORTHEAST1', label: 'asia-northeast1 (Tokyo)', locationType: locationTypes.region },
+  { value: 'ASIA-NORTHEAST3', label: 'asia-northeast3 (Seoul)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTH1', label: 'asia-south1 (Mumbai)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTHEAST1', label: 'asia-southeast1 (Singapore)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTHEAST2', label: 'asia-southeast2 (Jakarta)', locationType: locationTypes.region },
+  { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
+
+// For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
+export const availableBucketRegions = _.filter(({ value }) => _.startsWith('US', value), allRegions)
+
+// For current phased release of regionality only supporting compute region in US-CENTRAL1
+// and the same region as your workspace bucket.
+export const getAvailableComputeRegions = location => {
+  const usCentralRegion = _.find({ value: defaultComputeRegion }, allRegions)
+  return isUSLocation(location) ? [usCentralRegion] : [usCentralRegion, _.find({ value: location }, allRegions)]
+}
+
+export const isUSLocation = location => {
+  return _.includes(location, ['US', defaultComputeRegion])
+}

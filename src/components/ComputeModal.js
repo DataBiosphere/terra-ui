@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
 } from 'src/components/common'
@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -19,7 +19,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { versionTag } from 'src/libs/logos'
+import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import {
   computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize,
@@ -176,7 +176,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [sparkMode, setSparkMode] = useState(false)
-  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -404,6 +403,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               zone: computeConfig.computeZone,
+              region: computeConfig.computeRegion,
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
@@ -461,6 +461,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
+        region: desiredRuntime.region,
         zone: desiredRuntime.zone,
         ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
         ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
@@ -586,12 +587,18 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     // bucketLocation === 'US' means the bucket is US multi-regional.
     // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
     // Currently, US is the only multi-region supported in Terra
-    if (bucketLocation === defaultLocation) {
+    if (location === defaultLocation) {
       return computeConfig.computeRegion !== defaultComputeRegion
     } else {
-      return computeConfig.computeRegion !== bucketLocation
+      return computeConfig.computeRegion !== location
     }
   }
+
+  const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
+    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
+    [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
+  )
   // Helper functions -- end
 
   // Lifecycle
@@ -649,12 +656,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
-      setBucketLocation(location)
 
-      // For initial regionality release, compute zone and region is limited to
-      // us-central1. In later releases, we should pass in bucket location and
-      // bucket locationType here instead of defaultLocation and locationTypes.default
-      const { computeZone, computeRegion } = getRegionInfo(defaultLocation, locationTypes.default)
+      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
@@ -740,6 +744,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ], [
         canShowWarning && isDifferentLocation(),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+      ], [
+        canShowWarning && !isUSLocation(computeConfig.computeRegion),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
         ...commonButtonProps,
@@ -817,7 +824,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
     const enableGpusSpan = span(
-      ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
+      ['Enable GPUs ', betaVersionTag])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -1006,19 +1013,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
         h(IdContainer, [
           id => div({ style: { gridColumnEnd: 'span 3' } }, [
-            label({ htmlFor: id, style: computeStyles.label }, ['Location']),
+            label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
+            betaVersionTag,
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              'Cloud environments run in the same region as the workspace bucket and cannot be changed at this time.'
+              getLocationTooltip(computeExists, location)
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
                 id,
-                isDisabled: true, // Initially releasing regionality supporting only us-central1 region
-                // isDisabled: computeExists, // Can't update location of existing environments
+                // Location dropdown is disabled for:
+                // 1) If editing an existing environment (can't update location of existing environments)
+                // 2) Workspace buckets that are either us-central1 or us multi-regional
+                isDisabled: computeExists || isUSLocation(location),
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(allRegions)
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(location))
               })
             ])
           ])
@@ -1095,14 +1105,45 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       }),
       div({ style: { lineHeight: 1.5 } }, [
         p([
-          `This cloud environment will be created in the region ${computeConfig.computeRegion.toLowerCase()}. `,
-          `Copying data from your workspace bucket in ${bucketLocation.toLowerCase()} may incur network egress charges.`
+          'This cloud environment will be created in the region ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}.`]),
+          ' Copying data from your workspace bucket in ',
+          strong([`${location.toLowerCase()}`]),
+          ' may incur network egress charges. Note that network egress charges are not accounted for in cost estimates.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
           'For more information please read the documentation.',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
-        p([`If you want your VM in ${computeConfig.computeRegion.toLowerCase()} continue. Otherwise, go back to select another location.`])
+        p(['If you want your VM in ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
+          ', continue. Otherwise, go back to select another location.'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+  const renderNonUSLocationWarning = () => {
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
+      h(TitleBar, {
+        id: titleId,
+        hideCloseButton: isAnalysisMode,
+        style: computeStyles.titleBar,
+        title: h(WarningTitle, ['Non-US Compute Location']),
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { lineHeight: 1.5 } }, [
+        p(['Having a Cloud Environment outside of the US is currently a beta feature.']),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+          'For more information please read the documentation.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        p(['If you want your VM in ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
+          ', continue. Otherwise, go back to select a US location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1411,8 +1452,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 li({ style: { marginTop: '1rem' } }, [
                   p([
                     'This cloud environment will be created in the region ',
-                    span({ style: { fontWeight: 600 } }, [computeConfig.computeRegion.toLowerCase()]), '. ',
+                    strong([computeConfig.computeRegion.toLowerCase()]), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
+                    'Note that network egress charges are not accounted for in cost estimates. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
                     h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
                       'documentation.',
@@ -1534,6 +1576,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
       ['differentLocationWarning', renderDifferentLocationWarning],
+      ['nonUSLocationWarning', renderNonUSLocationWarning],
       ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
       [Utils.DEFAULT, renderMainForm]
     ),

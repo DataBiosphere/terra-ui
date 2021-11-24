@@ -254,14 +254,19 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       cachedWorkspace :
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
-    const [location, setLocation] = useState(defaultLocation)
-    const [locationType, setLocationType] = useState(locationTypes.default)
+    const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
+
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     if (googleProject !== prevGoogleProject) {
       refreshRuntimes()
       refreshApps()
+    }
+
+    const loadBucketLocation = async (googleProject, bucketName) => {
+      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+      setBucketLocation(bucketLocation)
     }
 
     const refreshWorkspace = _.flow(
@@ -277,11 +282,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
 
-        const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-        setLocation(location)
-        setLocationType(locationType)
+        const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
 
-        const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
+        loadBucketLocation(googleProject, bucketName)
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
@@ -314,6 +317,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     Utils.useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
+      } else {
+        const { workspace: { bucketName, googleProject } } = workspace
+        loadBucketLocation(googleProject, bucketName)
       }
     })
 
