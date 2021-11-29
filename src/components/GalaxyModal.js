@@ -15,9 +15,8 @@ import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  computeStyles,
-  getCurrentAttachedDataDisk, getCurrentPersistentDisk, findMachineType, getCurrentApp, getGalaxyComputeCost,
-  getGalaxyDiskCost, RadioBlock
+  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -53,7 +52,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
       withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        kubernetesRuntimeConfig, diskName: currentDataDisk?.name ?? Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
+        kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
         appType: tools.galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })

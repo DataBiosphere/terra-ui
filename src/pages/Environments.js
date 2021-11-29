@@ -199,7 +199,7 @@ const Environments = () => {
     cost: getGalaxyCost
   }[sort.field]], [sort.direction], apps)
 
-  const hasMultipleAppDisks = diskName => {
+  const hasMultipleAppDisks = (diskName, projectDisks) => {
     const getAppType = diskName => {
       // appDisks has appType populated on it if the disk was related to an app, but
       // disksByProject (which is populated from disks) does not.
@@ -207,7 +207,7 @@ const Environments = () => {
     }
     const desiredAppType = getAppType(diskName)
     const disks = _.remove(({ name, status }) => getAppType(name) !== desiredAppType || status === 'Deleting',
-      disksByProject[googleProject])
+      projectDisks)
     return disks.length > 1
   }
 
@@ -446,7 +446,8 @@ const Environments = () => {
                 disksByProject[googleProject]).length > 1
               return h(Fragment, [
                 googleProject,
-                diskStatus !== 'Deleting' && (_.includes(diskName, appDiskNames) ? hasMultipleAppDisks(diskName) : multipleRuntimeDisks) &&
+                diskStatus !== 'Deleting' &&
+                (_.includes(diskName, appDiskNames) ? hasMultipleAppDisks(diskName, disksByProject[googleProject]) : multipleRuntimeDisks) &&
                 h(TooltipTrigger, {
                   content: 'This billing project has multiple active persistent disks. Only one will be used.'
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])

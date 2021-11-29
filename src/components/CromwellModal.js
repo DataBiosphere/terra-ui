@@ -8,7 +8,7 @@ import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { computeStyles, getCurrentPersistentDisk, getCurrentApp } from 'src/libs/runtime-utils'
+import { computeStyles, getCurrentApp, getCurrentPersistentDisk } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -33,7 +33,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
       withErrorReportingInModal('Error creating Cromwell', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        defaultKubernetesRuntimeConfig, diskName: currentDataDisk?.name ?? Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
+        defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
         appType: tools.cromwell.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: tools.cromwell.appType, ...extractWorkspaceDetails(workspace) })
