@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -117,9 +117,10 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
     !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
-      .then(locationResponse => {
-        setBucketLocation(locationResponse.location)
-        setSourceWorkspaceLocation(locationResponse.location)
+      .then(({ location }) => {
+        // For current phased regionality release, we only allow US workspace buckets.
+        setBucketLocation(isUSLocation(location) ? location : defaultLocation)
+        setSourceWorkspaceLocation(location)
       })
   ]))
 
@@ -219,7 +220,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', allRegions)
+          options: _.sortBy('label', availableBucketRegions)
         })
       ])]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
@@ -230,7 +231,11 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           ` to `,
           strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
           ` may incur network egress charges. `,
-          `To prevent charges, the new bucket location needs to stay in the same region as the original one.`
+          `To prevent charges, the new bucket location needs to stay in the same region as the original one. `,
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+            'For more information please read the documentation.',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+          ])
         ])
       ]),
       h(IdContainer, [id => h(Fragment, [
