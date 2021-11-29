@@ -16,7 +16,7 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   computeStyles,
-  currentAttachedDataDisk, currentPersistentDisk, findMachineType, getCurrentAppForType, getGalaxyComputeCost,
+  getCurrentAttachedDataDisk, getCurrentPersistentDisk, findMachineType, getCurrentApp, getGalaxyComputeCost,
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -37,8 +37,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentAppForType(tools.galaxy.appType)(apps)
-    const attachedDataDisk = currentAttachedDataDisk(app, appDataDisks)
+    const app = getCurrentApp(tools.galaxy.appType)(apps)
+    const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
     const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
@@ -46,7 +46,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentPersistentDisk(tools.galaxy.appType, apps, appDataDisks)
+    const currentDataDisk = getCurrentPersistentDisk(tools.galaxy.appType, apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),

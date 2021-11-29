@@ -246,11 +246,11 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
-export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(app => app.appType === appType), _.last)
+export const getCurrentApp = appType => _.flow(trimAppsOldestFirst, _.filter({ appType }), _.last)
 
-export const currentAppIncludingDeleting = appType => _.flow(_.filter(app => app.appType === appType), _.sortBy('auditInfo.createdDate'), _.last)
+const getCurrentAppIncludingDeleting = appType => _.flow(_.filter({ appType }), _.sortBy('auditInfo.createdDate'), _.last)
 
-export const currentAttachedDataDisk = (app, appDataDisks) => {
+export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)
 }
 
@@ -258,9 +258,9 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentPersistentDisk = (appType, apps, appDataDisks) => {
+export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentApp = currentAppIncludingDeleting(appType)(apps)
+  const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDataDiskName = currentApp?.diskName
   const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
@@ -274,12 +274,12 @@ export const currentPersistentDisk = (appType, apps, appDataDisks) => {
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
+  const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
 export const getGalaxyCostTextChildren = (app, appDataDisks) => {
-  const dataDisk = currentAttachedDataDisk(app, appDataDisks)
+  const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
   return app ?
     [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }

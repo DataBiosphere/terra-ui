@@ -8,7 +8,7 @@ import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { computeStyles, currentPersistentDisk, getCurrentAppForType } from 'src/libs/runtime-utils'
+import { computeStyles, getCurrentPersistentDisk, getCurrentApp } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -24,9 +24,9 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
-    const app = getCurrentAppForType(tools.cromwell.appType)(apps)
+    const app = getCurrentApp(tools.cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
-    const currentDataDisk = currentPersistentDisk(tools.cromwell.appType, apps, appDataDisks)
+    const currentDataDisk = getCurrentPersistentDisk(tools.cromwell.appType, apps, appDataDisks)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
