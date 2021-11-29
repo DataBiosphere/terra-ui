@@ -51,7 +51,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: snapshot.access || snapshotAccessTypes.OPEN
+    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.OPEN : snapshotAccessTypes.CONTROLLED
   }
 }
 
