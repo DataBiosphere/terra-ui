@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
-  OPEN: 'Open',
+  OPEN: 'Granted',
   PENDING: 'Pending'
 }
 

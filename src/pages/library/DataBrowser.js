@@ -203,7 +203,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                 ])],
                 [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
                   icon('unlock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Open Access'])
+                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
                 ])])
             ])
           ])
