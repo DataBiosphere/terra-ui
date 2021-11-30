@@ -101,7 +101,7 @@ const RequestDatasetAccessButton = ({ dataset }) => {
       ]),
       div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
         `Let's continue testing the BETA Data Catalog!`,
-        h(ButtonPrimary, { onClick: () => { setShowWipModal(false) }, style: { padding: '20px 30px'} }, 'OK')
+        h(ButtonPrimary, { onClick: () => { setShowWipModal(false) }, style: { padding: '20px 30px' } }, 'OK')
       ])
     ]),
     h(ButtonPrimary, {
