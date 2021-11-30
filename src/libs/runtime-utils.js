@@ -241,14 +241,15 @@ export const getCurrentRuntime = runtimes => {
   return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 }
 
-export const trimAppsOldestFirst = _.flow(
-  _.remove({ status: 'DELETING' }),
-  _.remove({ status: 'PREDELETING' }),
-  _.sortBy('auditInfo.createdDate'))
+const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
+  _.filter({ appType }),
+  _.remove(app => statuses.includes(app.status)),
+  _.sortBy('auditInfo.createdDate'),
+  _.last
+)
 
-export const getCurrentApp = appType => _.flow(trimAppsOldestFirst, _.filter({ appType }), _.last)
-
-const getCurrentAppIncludingDeleting = appType => _.flow(_.filter({ appType }), _.sortBy('auditInfo.createdDate'), _.last)
+export const getCurrentApp = appType => getCurrentAppExcludingStatuses(appType, ['DELETING', 'PREDELETING'])
+export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingStatuses(appType, [])
 
 export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)
