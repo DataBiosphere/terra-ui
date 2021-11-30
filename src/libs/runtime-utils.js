@@ -195,11 +195,13 @@ export const getGalaxyCost = (app, dataDiskSize) => {
  */
 export const getGalaxyComputeCost = app => {
   const appStatus = app?.status?.toUpperCase()
-  const defaultNodepoolComputeCost = machineCost('n1-standard-1')
+  // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
+  const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false)
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost
-  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
+  const dynamicCost = app.kubernetesRuntimeConfig.numNodes *
+    getHourlyCostForMachineType(app.kubernetesRuntimeConfig.machineType, defaultComputeRegion, false) +
     ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
 
   switch (appStatus) {
@@ -243,10 +245,6 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'DELETING' }),
   _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
-
-export const machineCost = machineType => {
-  return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
-}
 
 export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(app => app.appType === appType), _.last)
 
