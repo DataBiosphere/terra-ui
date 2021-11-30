@@ -153,6 +153,9 @@ describe('getCurrentAppIncludingDeleting', () => {
 })
 
 describe('getCurrentPersistentDisk', () => {
+  it('returns undefined if no disk exists for the given app type', () => {
+    expect(getCurrentPersistentDisk(tools.galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
+  })
   it('returns the newest attached disk, even if app is deleting', () => {
     expect(getCurrentPersistentDisk(tools.galaxy.appType, mockApps, mockAppDisks)).toBe(galaxyDeletingDisk)
     expect(getCurrentPersistentDisk(tools.cromwell.appType, mockApps, mockAppDisks)).toBe(cromwellProvisioningDisk)
