@@ -195,7 +195,8 @@ export const getGalaxyCost = (app, dataDiskSize) => {
  */
 export const getGalaxyComputeCost = app => {
   const appStatus = app?.status?.toUpperCase()
-  const defaultNodepoolComputeCost = getHourlyCostForMachineType('n1-standard-1', defaultComputeRegion, false)
+  // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
+  const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false)
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost
