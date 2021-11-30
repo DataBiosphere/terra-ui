@@ -1,6 +1,10 @@
+import { loadedConfigStore } from 'src/configStore'
 import * as Utils from 'src/libs/utils'
 
 
+jest.mock('src/configStore', () => ({
+  loadedConfigStore: { current: { jest: true } }
+}))
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/auth')
 jest.mock('src/libs/nav')
