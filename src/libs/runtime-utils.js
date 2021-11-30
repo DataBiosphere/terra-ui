@@ -243,7 +243,7 @@ export const getCurrentRuntime = runtimes => {
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
   _.filter({ appType }),
-  _.remove(app => statuses.includes(app.status)),
+  _.remove(({ status }) => _.includes(status, statuses)),
   _.sortBy('auditInfo.createdDate'),
   _.last
 )
@@ -262,16 +262,17 @@ export const appIsSettingUp = app => {
 export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
-  const currentDataDiskName = currentApp?.diskName
-  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
+  const currentDiskName = currentApp?.diskName
+  const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
   // return the newest unattached disk that was provisioned by the desired appType.
-  const desiredAppType = appType
-  return currentDataDiskName ?
-    _.find({ name: currentDataDiskName }, appDataDisks) :
-    _.last(_.sortBy('auditInfo.createdDate',
-      _.filter(({ name, status, appType }) => appType === desiredAppType && status !== 'Deleting' && !_.includes(name, attachedDataDiskNames),
-        appDataDisks)))
+  return !!currentDiskName ?
+    _.find({ name: currentDiskName }, appDataDisks) :
+    _.flow(
+      _.filter(({ name, status, appType: diskAppType }) => diskAppType === appType && status !== 'Deleting' && !_.includes(name, attachedDiskNames)),
+      _.sortBy('auditInfo.createdDate'),
+      _.last
+    )(appDataDisks)
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
