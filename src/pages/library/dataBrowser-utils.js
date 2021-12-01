@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
-  OPEN: 'Open',
+  OPEN: 'Granted',
   PENDING: 'Pending'
 }
 
@@ -51,7 +51,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: snapshot.access || snapshotAccessTypes.OPEN
+    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.OPEN : snapshotAccessTypes.CONTROLLED
   }
 }
 
