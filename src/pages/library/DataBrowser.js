@@ -12,7 +12,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -41,31 +41,38 @@ const getUnique = (prop, data) => _.flow(
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
-  const accessArray = _.values(snapshotAccessTypes)
-
   return [{
-    name: 'Access Type',
-    labels: accessArray,
-    labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
+    name: 'Access type',
+    labels: _.keys(snapshotAccessTypes),
+    labelRenderer: accessKey => {
       const lowerKey = _.toLower(accessKey)
+      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-        icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
-          style: { color: styles.access[lowerKey], marginRight: 5 }
-        }),
+        icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
         div([snapshotAccessTypes[accessKey]])
       ])]
-    }, _.keys(snapshotAccessTypes)))
+    }
+  }, {
+    name: 'Data use policy',
+    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
+    labelRenderer: rawPolicy => {
+      const { label, desc } = snapshotReleasePolicies[rawPolicy] || snapshotReleasePolicies.releasepolicy_other
+      return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
+        label ? label : rawPolicy,
+        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+      ])]
+    }
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
   }, {
-    name: 'Data Modality',
+    name: 'Data modality',
     labels: getUnique('dataModality', dataCatalog)
   }, {
-    name: 'Data Type',
+    name: 'Data type',
     labels: getUnique('dataType', dataCatalog)
   }, {
-    name: 'File Type',
+    name: 'File type',
     labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
   }, {
     name: 'Disease',

@@ -15,6 +15,25 @@ export const snapshotAccessTypes = {
   PENDING: 'Pending'
 }
 
+export const snapshotReleasePolicies = {
+  'TerraCore:NoRestriction': { label: 'NRES', desc: 'No restrictions' },
+  'TerraCore:GeneralResearchUse': { label: 'GRU', desc: 'General research use' },
+  'TerraCore:NPOA': { label: 'NPOA', desc: 'No population origins or ancestry research' },
+  'TerraCore:NMDS': { label: 'NMDS', desc: 'No general methods research' },
+  'TerraCore:GSO': { label: 'GSO', desc: 'Genetic studies only' },
+  'TerraCore:CC': { label: 'CC', desc: 'Clinical care use' },
+  'TerraCore:PUB': { label: 'PUB', desc: 'Publication required' },
+  'TerraCore:COL': { label: 'COL', desc: 'Collaboration required' },
+  'TerraCore:IRB': { label: 'IRB', desc: 'Ethics approval required' },
+  'TerraCore:GS': { label: 'GS', desc: 'Geographical restriction' },
+  'TerraCore:MOR': { label: 'MOR', desc: 'Publication moratorium' },
+  'TerraCore:RT': { label: 'RT', desc: 'Return to database/resource' },
+  'TerraCore:NCU': { label: 'NCU', desc: 'Non commercial use only' },
+  'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
+  'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
+  releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
+}
+
 const normalizeSnapshot = snapshot => {
   const contributors = _.map(_.update('contactName', _.flow(
     _.replace(/,+/g, ' '),
@@ -38,10 +57,15 @@ const normalizeSnapshot = snapshot => {
     _.uniqBy(_.toLower)
   )(snapshot['prov:wasGeneratedBy'])
 
-  const dataReleasePolicy = _.flow(
-    _.replace('TerraCore:', ''),
-    _.startCase
-  )(snapshot['TerraDCAT_ap:hasDataUsePermission'])
+  const dataReleasePolicy = _.has(snapshot['TerraDCAT_ap:hasDataUsePermission'], snapshotReleasePolicies) ?
+    { ...snapshotReleasePolicies[snapshot['TerraDCAT_ap:hasDataUsePermission']], policy: snapshot['TerraDCAT_ap:hasDataUsePermission'] } :
+    {
+      ...snapshotReleasePolicies.releasepolicy_other,
+      desc: _.flow(
+        _.replace('TerraCore:', ''),
+        _.startCase
+      )(snapshot['TerraDCAT_ap:hasDataUsePermission'])
+    }
 
   return {
     ...snapshot,
@@ -65,7 +89,8 @@ const extractTags = snapshot => {
       snapshot.samples?.disease,
       snapshot.dataType,
       snapshot.dataModality,
-      _.map('dcat:mediaType', snapshot.files)
+      _.map('dcat:mediaType', snapshot.files),
+      snapshot.dataReleasePolicy.policy
     ])
   }
 }
