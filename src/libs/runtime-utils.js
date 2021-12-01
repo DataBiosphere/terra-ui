@@ -269,7 +269,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(({ name, status, appType: diskAppType }) => diskAppType === appType && status !== 'Deleting' && !_.includes(name, attachedDiskNames)),
+      _.filter(({ name, status, formattedBy }) => formattedBy === appType && status !== 'Deleting' && !_.includes(name, attachedDiskNames)),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)

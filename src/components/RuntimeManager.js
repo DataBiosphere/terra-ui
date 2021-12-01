@@ -342,7 +342,9 @@ export default class RuntimeManager extends PureComponent {
     const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
 
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
-    const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
+    // While the disk is in Creating, provisionedBy will be null and therefore we do not know if it will later be attached to an app
+    // (and therefore should not be considered a persistent disk).
+    const activeDisks = _.remove(({ status }) => _.includes(status, ['Deleting', 'Creating']), persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, activeRuntimes)
     const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 

@@ -67,7 +67,7 @@ const galaxyDeleting = {
 const mockApps = [cromwellProvisioning, cromwellRunning, galaxyRunning, galaxyDeleting]
 
 const galaxyDisk = {
-  appType: 'GALAXY',
+  formattedBy: 'GALAXY',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
   },
@@ -84,7 +84,7 @@ const galaxyDisk = {
 
 // Newer than galaxyDisk, attached to galaxyDeleting app.
 const galaxyDeletingDisk = {
-  appType: 'GALAXY',
+  formattedBy: 'GALAXY',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
   },
@@ -100,7 +100,7 @@ const galaxyDeletingDisk = {
 }
 
 const cromwellUnattachedDisk = {
-  appType: 'CROMWELL',
+  formattedBy: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
@@ -117,7 +117,7 @@ const cromwellUnattachedDisk = {
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
 const cromwellProvisioningDisk = {
-  appType: 'CROMWELL',
+  formattedBy: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
   },
