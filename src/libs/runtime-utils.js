@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { tools } from 'src/components/notebook-utils'
+import { getAllAppTypes, tools } from 'src/components/notebook-utils'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
@@ -255,6 +255,14 @@ export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)
 }
 
+// If the disk was attached to an app, return the appType. Otherwise return undefined.
+export const getDiskAppType = disk => {
+  const saturnApp = disk.labels.saturnApplication
+  // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
+  const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), getAllAppTypes)
+  return appType
+}
+
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
@@ -269,7 +277,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(({ name, status, formattedBy }) => formattedBy === appType && status !== 'Deleting' && !_.includes(name, attachedDiskNames)),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames)),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)

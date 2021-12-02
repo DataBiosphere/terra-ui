@@ -5,7 +5,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { getAllAppTypes, tools } from 'src/components/notebook-utils'
+import { tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -18,8 +18,8 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
-  isApp, isComputePausable, isResourceDeletable, runtimeCost
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
+  getPersistentDiskCostMonthly, isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -130,7 +130,7 @@ const Environments = () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
-      Ajax(signal).Disks.list({ creator }),
+      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication' }),
       Ajax(signal).Apps.listWithoutProject({ creator })
     ])
     setRuntimes(newRuntimes)
@@ -304,7 +304,7 @@ const Environments = () => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: _.some({ formattedBy: tools.galaxy.appType, name: disk.name }, disks),
+      isGalaxyDisk: getDiskAppType(disk) === tools.galaxy.appType,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -420,15 +420,14 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, formattedBy: diskFormattedBy, googleProject } = filteredDisks[rowIndex]
-              // Currently formattedBy will be null when a disk/environment is in Creating, and we do not want to warn about those.
-              const statusesToIgnore = ['Deleting', 'Creating']
-              const multipleDisksOfType = _.remove(({ status, formattedBy }) => formattedBy !== diskFormattedBy || _.includes(status, statusesToIgnore),
+              const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
+              const appType = getDiskAppType(filteredDisks[rowIndex])
+              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
-              const forAppText = _.includes(diskFormattedBy, getAllAppTypes) ? ` for ${_.capitalize(diskFormattedBy)}` : ''
+              const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               return h(Fragment, [
                 googleProject,
-                !_.includes(diskStatus, statusesToIgnore) && multipleDisksOfType &&
+                diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
                   content: `This billing project has multiple active persistent disks${forAppText}. Only one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])

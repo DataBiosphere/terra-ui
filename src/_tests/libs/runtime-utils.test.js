@@ -1,5 +1,5 @@
 import { tools } from 'src/components/notebook-utils'
-import { getCurrentApp, getCurrentAppIncludingDeleting, getCurrentPersistentDisk } from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentAppIncludingDeleting, getCurrentPersistentDisk, getDiskAppType } from 'src/libs/runtime-utils'
 
 
 const cromwellRunning = {
@@ -75,7 +75,7 @@ const galaxyDisk = {
   diskType: 'pd-standard',
   googleProject: 'terra-test-e4000484',
   id: 10,
-  labels: {},
+  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
@@ -92,7 +92,7 @@ const galaxyDeletingDisk = {
   diskType: 'pd-standard',
   googleProject: 'terra-test-e4000484',
   id: 10,
-  labels: {},
+  labels: { saturnApplication: 'GALAXY' },
   name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
   size: 500,
   status: 'Deleting',
@@ -108,7 +108,7 @@ const cromwellUnattachedDisk = {
   diskType: 'pd-standard',
   googleProject: 'terra-test-e4000484',
   id: 12,
-  labels: {},
+  labels: { saturnApplication: 'CROMWELL' },
   name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
   size: 500,
   status: 'Ready',
@@ -117,7 +117,7 @@ const cromwellUnattachedDisk = {
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
 const cromwellProvisioningDisk = {
-  formattedBy: 'CROMWELL',
+  formattedBy: null, // Note formattedBy is not being populated for 'Creating' status.
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
   },
@@ -125,9 +125,26 @@ const cromwellProvisioningDisk = {
   diskType: 'pd-standard',
   googleProject: 'terra-test-e4000484',
   id: 11,
-  labels: {},
+  labels: { saturnApplication: 'CROMWELL' },
   name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
   size: 500,
+  status: 'Creating',
+  zone: 'us-central1-a'
+}
+
+const jupyterDisk = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', destroyedDate: null, dateAccessed: '2021-12-02T16:40:23.464Z'
+  },
+  blockSize: 4096,
+  cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
+  diskType: 'pd-standard',
+  formattedBy: 'GCE',
+  googleProject: 'terra-test-f828b4cd',
+  id: 29,
+  labels: {},
+  name: 'saturn-pd-bd0d0405-c048-4212-bccf-568435933081',
+  size: 50,
   status: 'Ready',
   zone: 'us-central1-a'
 }
@@ -149,6 +166,16 @@ describe('getCurrentAppIncludingDeleting', () => {
   it('does not filter out deleting', () => {
     expect(getCurrentAppIncludingDeleting(tools.galaxy.appType)(mockApps)).toBe(galaxyDeleting)
     expect(getCurrentAppIncludingDeleting(tools.cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
+  })
+})
+
+describe('getDiskAppType', () => {
+  it('returns the appType for disks attached to apps', () => {
+    expect(getDiskAppType(galaxyDeletingDisk)).toBe(tools.galaxy.appType)
+    expect(getDiskAppType(cromwellProvisioningDisk)).toBe(tools.cromwell.appType)
+  })
+  it('returns undefined for runtime disks', () => {
+    expect(getDiskAppType(jupyterDisk)).toBeUndefined()
   })
 })
 

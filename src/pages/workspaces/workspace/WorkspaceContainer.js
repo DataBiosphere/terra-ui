@@ -7,7 +7,7 @@ import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { getAllAppTypes, tools } from 'src/components/notebook-utils'
+import { tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { locationTypes } from 'src/components/region-common'
 import { analysisTabName, contextBarTabs } from 'src/components/runtime-common'
@@ -21,7 +21,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -178,13 +178,12 @@ const useCloudEnvironmentPolling = googleProject => {
   const load = async maybeStale => {
     try {
       const [newDisks, newRuntimes] = googleProject ? await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
       ]) : [[], []]
       setRuntimes(newRuntimes)
-      setAppDataDisks(_.filter(({ formattedBy }) => _.includes(_.toUpper(formattedBy), getAllAppTypes), newDisks))
-      // Note: formattedBy will be null while the disk is Creating, so we don't actually know yet which type it is.
-      setPersistentDisks(_.remove(({ formattedBy }) => _.includes(_.toUpper(formattedBy), getAllAppTypes), newDisks))
+      setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
+      setPersistentDisks(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?
