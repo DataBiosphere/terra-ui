@@ -27,7 +27,6 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 6 }
 
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
@@ -222,7 +221,7 @@ const User = signal => ({
 
   getTosAccepted: async () => {
     try {
-      const res = await fetchSam('register/user/v2/self/info', _.merge(authOpts(), { signal }))
+      const res = await fetchSam('register/user/v2/self/diagnostics', _.merge(authOpts(), { signal }))
       const { tosAccepted } = await res.json()
       return tosAccepted
     } catch (error) {
@@ -240,9 +239,8 @@ const User = signal => ({
   },
 
   acceptTos: async () => {
-    await fetchOk(
-      `${getConfig().tosUrlRoot}/user/response`,
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    await fetchSam('api/users/v1/tos/accept',
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
     )
   },
 
