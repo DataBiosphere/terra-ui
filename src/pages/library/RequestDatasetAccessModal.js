@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { div, h, label, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { div, h, label, span, strong, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -11,6 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const sendCopyEnabled = false
+const requestAccessEnabled = false
 
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
@@ -74,24 +75,44 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 const RequestDatasetAccessButton = ({ dataset }) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
+  const [showWipModal, setShowWipModal] = useState(false)
   const signal = Utils.useCancellation()
 
   const requestAccess = _.flow(
     Utils.withBusyState(setRequesting),
     withErrorReporting('Error requesting dataset access')
   )(async () => {
-    await Ajax(signal).DataRepo.requestAccess(dataset.id)
+    requestAccessEnabled && await Ajax(signal).DataRepo.requestAccess(dataset.id)
     setRequested(true)
+    setShowWipModal(true)
   })
 
-  return h(ButtonPrimary, {
-    disabled: requesting || requested,
-    onClick: requestAccess
-  }, [
-    Utils.cond(
-      [requested, () => 'Request Sent'],
-      [requesting, () => 'Sending Request...'],
-      () => 'Request Access'
-    )
+  return h(Fragment, [
+    showWipModal && h(Modal, {
+      title: `Keep in mind we're still in BETA`,
+      width: '32rem',
+      showButtons: false,
+      onDismiss: () => {}
+    }, [
+      div({ style: { lineHeight: '1.7rem' } }, [
+        `In the near future, when you click on `, strong(['Request Access']),
+        `, the request will be sent to the appropriate approver and the dataset will be marked as `,
+        strong(['Pending']), `.`
+      ]),
+      div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
+        `Let's continue testing the BETA Data Catalog!`,
+        h(ButtonPrimary, { onClick: () => { setShowWipModal(false) }, style: { padding: '20px 30px' } }, 'OK')
+      ])
+    ]),
+    h(ButtonPrimary, {
+      disabled: requesting || requested,
+      onClick: requestAccess
+    }, [
+      Utils.cond(
+        [requested, () => 'Request Sent'],
+        [requesting, () => 'Sending Request...'],
+        () => 'Request Access'
+      )
+    ])
   ])
 }
