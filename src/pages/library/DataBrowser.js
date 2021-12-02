@@ -7,6 +7,7 @@ import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -15,6 +16,8 @@ import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common
 import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
+
+const acknowledgmentStorageKey = `catalog-beta-acknowledgment`
 
 const styles = {
   ...commonStyles,
@@ -221,11 +224,33 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
+  const [acknowledged, setAcknowledged] = useState(getDynamic(localStorage, acknowledgmentStorageKey))
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
+    !acknowledged && div({
+      style: {
+        border: `1px solid ${colors.accent()}`, borderRadius: 3,
+        backgroundColor: 'rgba(0,0,0,.1)',
+        padding: '5px 20px', margin: 20,
+        fontSize: '.8rem', fontWeight: 'bold',
+        display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+      }
+    }, [
+      div({ style: { lineHeight: '1.4rem' } }, [
+        div(['Thank you for participating in the BETA Catalog test. The HCA data is for the sole use of the BETA testing of the Terra Data Catalog.']),
+        div(['Not for research purposes.'])
+      ]),
+      h(ButtonPrimary, {
+        style: { minWidth: 88, minHeight: 40 },
+        onClick: () => {
+          setAcknowledged(true)
+          setDynamic(localStorage, acknowledgmentStorageKey, true)
+        }
+      }, ['OK'])
+    ]),
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
