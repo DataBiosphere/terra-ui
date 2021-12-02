@@ -21,6 +21,5 @@
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
-  },
-  "tosUrlRoot": "https://us-central1-broad-workbench-tos-dev.cloudfunctions.net/tos"
+  }
 }
