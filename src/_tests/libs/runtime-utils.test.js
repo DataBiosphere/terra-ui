@@ -67,7 +67,6 @@ const galaxyDeleting = {
 const mockApps = [cromwellProvisioning, cromwellRunning, galaxyRunning, galaxyDeleting]
 
 const galaxyDisk = {
-  formattedBy: 'GALAXY',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
   },
@@ -84,7 +83,6 @@ const galaxyDisk = {
 
 // Newer than galaxyDisk, attached to galaxyDeleting app.
 const galaxyDeletingDisk = {
-  formattedBy: 'GALAXY',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
   },
@@ -100,7 +98,6 @@ const galaxyDeletingDisk = {
 }
 
 const cromwellUnattachedDisk = {
-  formattedBy: 'CROMWELL',
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
   },
@@ -117,7 +114,6 @@ const cromwellUnattachedDisk = {
 
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
 const cromwellProvisioningDisk = {
-  formattedBy: null, // Note formattedBy is not being populated for 'Creating' status.
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
   },
@@ -139,7 +135,6 @@ const jupyterDisk = {
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
   diskType: 'pd-standard',
-  formattedBy: 'GCE',
   googleProject: 'terra-test-f828b4cd',
   id: 29,
   labels: {},
