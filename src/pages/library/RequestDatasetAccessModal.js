@@ -6,6 +6,7 @@ import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
@@ -61,7 +62,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           ]),
           td([
             Utils.switchCase(access,
-              ['Controlled', () => h(RequestDatasetAccessButton, { datasetName: title })],
+              ['Controlled', () => h(RequestDatasetAccessButton, datasets[0] )],
               ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
               [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
             )
@@ -72,7 +73,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   ])
 }
 
-const RequestDatasetAccessButton = ({ dataset }) => {
+const RequestDatasetAccessButton = (dataset) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
   const [showWipModal, setShowWipModal] = useState(false)
@@ -106,7 +107,19 @@ const RequestDatasetAccessButton = ({ dataset }) => {
     ]),
     h(ButtonPrimary, {
       disabled: requesting || requested,
-      onClick: requestAccess
+      onClick: () => {
+        _.flow(
+          Utils.withBusyState(setRequesting),
+          withErrorReporting('Error requesting dataset access')
+        )(async () => {
+          await Ajax(signal).DataRepo.requestAccess(dataset.id)
+          setRequested(true)
+        })
+        Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
+          snapshotId: dataset['dct:identifier'],
+          snapshotName: dataset['dct:title']
+        })
+      }
     }, [
       Utils.cond(
         [requested, () => 'Request Sent'],
