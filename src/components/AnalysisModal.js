@@ -133,7 +133,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       },
       onSuccess: () => {
