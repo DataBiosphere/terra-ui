@@ -429,7 +429,7 @@ const Environments = () => {
                 googleProject,
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
-                  content: `This billing project has multiple active persistent disks${forAppText}. Only one will be used.`
+                  content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
             }
