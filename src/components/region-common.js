@@ -62,6 +62,8 @@ export const locationTypes = {
   default: 'multi-region'
 }
 
+export const montrealRegion = 'NORTHAMERICA-NORTHEAST1'
+
 const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
@@ -69,7 +71,7 @@ const allRegions = [
   // For more information, see https://support.terra.bio/hc/en-us/articles/360060777272-US-regional-versus-Multi-regional-US-buckets-trade-offs
   { value: 'US', label: 'US multi-regional (default)', locationType: locationTypes.multiRegion },
   { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region },
-  { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
+  { value: montrealRegion, label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
   { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: locationTypes.region },
   { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: locationTypes.region },
   { value: 'EUROPE-NORTH1', label: 'europe-north1 (Finland)', locationType: locationTypes.region },
@@ -88,8 +90,8 @@ const allRegions = [
   { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
 
-// For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
-export const availableBucketRegions = _.filter(({ value }) => _.startsWith('US', value), allRegions)
+// For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.
+export const availableBucketRegions = _.filter(({ value }) => _.startsWith('US', value) || _.eq(montrealRegion, value), allRegions)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
 // and the same region as your workspace bucket.

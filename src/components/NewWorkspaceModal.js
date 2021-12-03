@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { availableBucketRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getRegionInfo, isUSLocation, locationTypes, montrealRegion } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -118,8 +118,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     Ajax(signal).Groups.list().then(setAllGroups),
     !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
-        // For current phased regionality release, we only allow US workspace buckets.
-        setBucketLocation(isUSLocation(location) ? location : defaultLocation)
+        // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
+        setBucketLocation(isUSLocation(location) || location === montrealRegion ? location : defaultLocation)
         setSourceWorkspaceLocation(location)
       })
   ]))
