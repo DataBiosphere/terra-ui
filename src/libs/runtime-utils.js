@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { getAllAppTypes, tools } from 'src/components/notebook-utils'
+import { allAppTypes, tools } from 'src/components/notebook-utils'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
@@ -259,7 +259,7 @@ export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
 export const getDiskAppType = disk => {
   const saturnApp = disk.labels.saturnApplication
   // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
-  const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), getAllAppTypes)
+  const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes)
   return appType
 }
 
