@@ -104,8 +104,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, renderAppModal(GalaxyModalBase, tools.galaxy.label)],
-      [tools.cromwell.label, renderAppModal(CromwellModalBase, tools.cromwell.label)]
+      [tools.galaxy.label, () => renderAppModal(GalaxyModalBase, tools.galaxy.label)],
+      [tools.cromwell.label, () => renderAppModal(CromwellModalBase, tools.cromwell.label)]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -121,7 +121,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onDismiss()
       },
       onSuccess: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       }
     })
@@ -137,7 +137,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onDismiss()
       },
       onSuccess: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       }
     })
