@@ -32,6 +32,19 @@ export const getStatic = (storage, key) => {
   return maybeParseJSON(storage.getItem(key))
 }
 
+/**
+ * Sets a key/value in browser storage, or removes the key from storage if `value` is undefined.
+ *
+ * Static storage will not be automatically deleted in the case of space overflow. If your storage usage
+ * is transient (for example, navigating between routes and preserving data where the loss of it is not
+ * critical), instead use `setDynamic`.
+ *
+ * See also `staticStorageSlot`, which can be passed to the `useStore` hook function.
+ *
+ * @param storage either `localStorage` or `sessionStorage`
+ * @param key the key for storing the value
+ * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key.
+ */
 export const setStatic = (storage, key, value) => {
   if (value === undefined) {
     storage.removeItem(key)
@@ -54,6 +67,17 @@ export const getDynamic = (storage, key) => {
   return data?.value
 }
 
+/**
+ * Sets a key/value in browser storage, or removes the key from storage if `value` is undefined.
+ *
+ * Dynamic storage will be automatically deleted in the case of space overflow, deleting oldest stored
+ * data first. If your storage usage is not transient, instead use `setStatic`.
+ *
+ * @param storage either `localStorage` or `sessionStorage`
+ * @param key the key for storing the value. Note that it will be prefixed by a value to allow separating
+ * static from dynamic storage.
+ * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key
+ */
 export const setDynamic = (storage, key, value) => {
   const storageKey = `dynamic-storage/${key}`
   if (value === undefined) {
@@ -76,8 +100,11 @@ export const listenDynamic = (storage, key, fn) => {
 /**
  * Returns a stateful object that manages the given storage location.
  * Implements the Store interface, and can be passed to useStore.
+ *
+ * Note that this method will use static storage, meaning that it will not
+ * automatically be deleted in the case of space overflow. If the data you are using
+ * is transient, consider using `setDynamic` instead.
  */
-
 export const staticStorageSlot = (storage, key) => {
   const { subscribe, next } = subscribable()
   const get = () => getStatic(storage, key)
