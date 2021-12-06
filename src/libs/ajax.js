@@ -875,8 +875,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importSnapshot: async (snapshotId, name) => {
-        const res = await fetchRawls(`${root}/snapshots`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name }), { signal, method: 'POST' }]))
+      importSnapshot: async (snapshotId, name, description) => {
+        const res = await fetchRawls(`${root}/snapshots/v2`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }]))
         return res.json()
       },
 
