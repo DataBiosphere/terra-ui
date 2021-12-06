@@ -13,7 +13,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import { getCurrentAppForType, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -75,8 +75,8 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   }
 
   const getEnvironmentStatusIcons = () => {
-    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
-    const cromwellApp = !tools.cromwell.isAppHidden && getCurrentAppForType(tools.cromwell.appType)(apps)
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
+    const cromwellApp = !tools.cromwell.isAppHidden && getCurrentApp(tools.cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(tools.galaxy.label, galaxyApp.status)] : []),

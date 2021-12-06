@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { tools } from 'src/components/notebook-utils'
+import { allAppTypes, tools } from 'src/components/notebook-utils'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
@@ -241,43 +241,55 @@ export const getCurrentRuntime = runtimes => {
   return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 }
 
-export const trimAppsOldestFirst = _.flow(
-  _.remove({ status: 'DELETING' }),
-  _.remove({ status: 'PREDELETING' }),
-  _.sortBy('auditInfo.createdDate'))
+const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
+  _.filter({ appType }),
+  _.remove(({ status }) => _.includes(status, statuses)),
+  _.sortBy('auditInfo.createdDate'),
+  _.last
+)
 
-export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(app => app.appType === appType), _.last)
+export const getCurrentApp = appType => getCurrentAppExcludingStatuses(appType, ['DELETING', 'PREDELETING'])
+export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingStatuses(appType, [])
 
-export const currentAppIncludingDeleting = appType => _.flow(_.filter(app => app.appType === appType), _.sortBy('auditInfo.createdDate'), _.last)
-
-export const currentAttachedDataDisk = (app, appDataDisks) => {
+export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)
+}
+
+// If the disk was attached to an app, return the appType. Otherwise return undefined.
+export const getDiskAppType = disk => {
+  const saturnApp = disk.labels.saturnApplication
+  // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
+  const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes)
+  return appType
 }
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentGalaxyPersistentDisk = (apps, appDataDisks) => {
+export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
-  const currentDataDiskName = currentGalaxyApp?.diskName
-  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
-  // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
-  // return the newest galaxy disk that the user has unattached to an app
-  return currentDataDiskName ?
-    _.find({ name: currentDataDiskName }, appDataDisks) :
-    _.last(_.sortBy('auditInfo.createdDate',
-      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), appDataDisks)))
+  const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
+  const currentDiskName = currentApp?.diskName
+  const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
+  // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
+  // return the newest unattached disk that was provisioned by the desired appType.
+  return !!currentDiskName ?
+    _.find({ name: currentDiskName }, appDataDisks) :
+    _.flow(
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames)),
+      _.sortBy('auditInfo.createdDate'),
+      _.last
+    )(appDataDisks)
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
+  const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
 export const getGalaxyCostTextChildren = (app, appDataDisks) => {
-  const dataDisk = currentAttachedDataDisk(app, appDataDisks)
+  const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
   return app ?
     [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }

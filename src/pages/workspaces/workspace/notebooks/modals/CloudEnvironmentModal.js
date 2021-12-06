@@ -25,7 +25,7 @@ import * as Nav from 'src/libs/nav'
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentAppForType,
+  getCurrentApp,
   getCurrentRuntime,
   getGalaxyCostTextChildren,
   getIsAppBusy,
@@ -125,7 +125,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
-  const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
+  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
   const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {

@@ -29,7 +29,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import {
   appIsSettingUp,
-  getCurrentAppForType,
+  getCurrentApp,
   getGalaxyCostTextChildren,
   isCurrentGalaxyDiskDetaching
 } from 'src/libs/runtime-utils'
@@ -307,7 +307,7 @@ const Notebooks = _.flow(
   // Render helpers
   const renderNotebooks = openUploader => {
     const { field, direction } = sortOrder
-    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
