@@ -3,11 +3,12 @@ import { useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 
@@ -31,20 +32,19 @@ const activeTab = 'browse & explore'
 let metadata
 let tableMap
 
-const selectTable = async ({ id, value, signal, setSelectedTable, setPreviewData, setLoading }) => {
-  setSelectedTable(value)
-  try {
-    setLoading(true)
+const selectTable = ({ id, value, signal, setSelectedTable, setPreviewData, loading, setLoading }) => {
+  const loadTable = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error loading table')
+  )(async () => {
+    setSelectedTable(value)
     const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({
       id, limit: 50, offset: 0,
       table: value
     })
-
     setPreviewData(previewTableData?.result || [])
-    setLoading(false)
-  } catch (err) {
-    console.log('errored table data load', err)
-  }
+  })
+  loadTable()
 }
 
 const DataBrowserPreview = ({ id }) => {
@@ -62,7 +62,7 @@ const DataBrowserPreview = ({ id }) => {
       metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
       tableMap = _.keyBy('name', metadata.tables)
       setTables(_.map('name', metadata.tables))
-      selectTable({ id, value: metadata.tables[0].name, setSelectedTable, setPreviewData, setLoading, signal })
+      selectTable({ id, value: metadata.tables[0].name, setSelectedTable, setPreviewData, loading, setLoading, signal })
     }
     loadData()
   })
@@ -75,18 +75,18 @@ const DataBrowserPreview = ({ id }) => {
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']])
         ]),
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
           h(Select, {
             'aria-label': 'data type',
-            styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
+            styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350 }) },
             isSearchable: true,
             isClearable: false,
             value: selectedTable,
             getOptionLabel: ({ value }) => _.startCase(value),
-            onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, setLoading, signal }),
+            onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, loading, setLoading, signal }),
             options: tables
           }),
-          loading && centeredSpinner()
+          loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
         tableMap && tableMap[selectedTable] && h(SimpleTable, {
           'aria-label': `${_.startCase(selectedTable)} Preview Data`,
@@ -96,11 +96,11 @@ const DataBrowserPreview = ({ id }) => {
               key: col.name
             }
           }, tableMap[selectedTable].columns),
-          // rowStyle: styles.table.row,
           cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all' },
           useHover: false,
           rows: previewData
-        })
+        }),
+        previewData?.length === 0 && div({ style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, ['(No Data)'])
       ])
   ])
 }
