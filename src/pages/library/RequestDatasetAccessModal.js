@@ -12,7 +12,6 @@ import * as Utils from 'src/libs/utils'
 
 
 const sendCopyEnabled = false
-const requestAccessEnabled = false
 
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
@@ -62,7 +61,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           ]),
           td([
             Utils.switchCase(access,
-              ['Controlled', () => h(RequestDatasetAccessButton, { title, id } )],
+              ['Controlled', () => h(RequestDatasetAccessButton, { title, id })],
               ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
               [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
             )
@@ -73,20 +72,11 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   ])
 }
 
-const RequestDatasetAccessButton = ({title, id}) => {
+const RequestDatasetAccessButton = ({ title, id }) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
   const [showWipModal, setShowWipModal] = useState(false)
   const signal = Utils.useCancellation()
-
-  const requestAccess = _.flow(
-    Utils.withBusyState(setRequesting),
-    withErrorReporting('Error requesting dataset access')
-  )(async () => {
-    requestAccessEnabled && await Ajax(signal).DataRepo.requestAccess(dataset.id)
-    setRequested(true)
-    setShowWipModal(true)
-  })
 
   return h(Fragment, [
     showWipModal && h(Modal, {
@@ -108,13 +98,14 @@ const RequestDatasetAccessButton = ({title, id}) => {
     h(ButtonPrimary, {
       disabled: requesting || requested,
       onClick: () => {
-        _.flow(
+        const requestAccess = _.flow(
           Utils.withBusyState(setRequesting),
           withErrorReporting('Error requesting dataset access')
         )(async () => {
-          await Ajax(signal).DataRepo.requestAccess(dataset.id)
+          await Ajax(signal).DataRepo.requestAccess(id)
           setRequested(true)
         })
+        requestAccess()
         Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
           snapshotId: id,
           snapshotName: title
