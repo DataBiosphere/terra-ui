@@ -53,7 +53,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
       ]),
       tbody(
-        _.map(({ 'dct:title': title, access, id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+        _.map(({ 'dct:title': title, access, 'dct:identifier': id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
           td({ style: { paddingRight: 20 } }, [
             title,
             div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
@@ -62,7 +62,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           ]),
           td([
             Utils.switchCase(access,
-              ['Controlled', () => h(RequestDatasetAccessButton, datasets[0] )],
+              ['Controlled', () => h(RequestDatasetAccessButton, { title, id } )],
               ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
               [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
             )
@@ -73,7 +73,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   ])
 }
 
-const RequestDatasetAccessButton = (dataset) => {
+const RequestDatasetAccessButton = ({title, id}) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
   const [showWipModal, setShowWipModal] = useState(false)
@@ -116,8 +116,8 @@ const RequestDatasetAccessButton = (dataset) => {
           setRequested(true)
         })
         Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
-          snapshotId: dataset['dct:identifier'],
-          snapshotName: dataset['dct:title']
+          snapshotId: id,
+          snapshotName: title
         })
       }
     }, [

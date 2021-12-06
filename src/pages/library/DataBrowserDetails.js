@@ -206,7 +206,6 @@ const DataBrowserDetails = ({ id }) => {
           showRequestAccessModal && h(RequestDatasetAccessModal, {
             datasets: [snapshot],
             onDismiss: () => setShowRequestAccessModal(false),
-            isSnapshot: true
           })
         ])
       ])

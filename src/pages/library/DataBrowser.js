@@ -173,6 +173,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
+        datum['access'] = 'Controlled'
         const { project, dataType, access } = datum
 
         return {
