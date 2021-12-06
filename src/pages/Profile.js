@@ -433,5 +433,11 @@ export const navPaths = [
     path: '/fence-callback',
     component: Profile,
     title: 'Profile'
+  },
+  {
+    name: 'ecm-callback',
+    path: '/ecm-callback',
+    component: Profile,
+    title: 'Profile'
   }
 ]

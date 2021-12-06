@@ -42,7 +42,8 @@ const MainContent = ({ snapshot }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        snapshot.dataReleasePolicy
+        snapshot.dataReleasePolicy.label,
+        snapshot.dataReleasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [snapshot.dataReleasePolicy.desc])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -108,7 +109,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
             ])],
             [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
-              'Open Access'
+              'Granted Access'
             ])])
         ])
       ]),
@@ -164,7 +165,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Ajax().Metrics.captureEvent(`${Events.catalogWorkSpaceLink}:detailsView`, {
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
           snapshotId: id,
           snapshotName: snapshot['dct:title']
         })

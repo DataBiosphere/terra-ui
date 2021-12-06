@@ -11,13 +11,20 @@ import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
+import {
+  findPotentialNotebookLockers,
+  NotebookCreator,
+  NotebookDeleter,
+  NotebookDuplicator,
+  notebookLockHash,
+  tools
+} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { versionTag } from 'src/libs/logos'
+import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import {
@@ -220,7 +227,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  apps, appDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
 }, ref) => {
   // State
@@ -300,7 +307,7 @@ const Notebooks = _.flow(
   // Render helpers
   const renderNotebooks = openUploader => {
     const { field, direction } = sortOrder
-    const app = getCurrentApp(apps)
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
@@ -315,18 +322,18 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const getGalaxyText = (app, galaxyDataDisks) => app ?
+    const getGalaxyText = (app, appDataDisks) => app ?
       div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
         div(['Galaxy Interactive']),
         div(['Environment']),
         div({ style: { fontSize: 12, marginTop: 6 } },
-          getGalaxyCostTextChildren(app, galaxyDataDisks)),
+          getGalaxyCostTextChildren(app, appDataDisks)),
         icon('trash', { size: 21 })
       ]) :
       div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
         div(['Create a Cloud']),
         div(['Environment for ']),
-        div(['Galaxy ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
+        div(['Galaxy ', betaVersionTag]),
         icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
       ])
 
@@ -361,12 +368,12 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
-            disabled: appIsSettingUp(app) || isCurrentGalaxyDiskDetaching(apps),
-            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
+            disabled: appIsSettingUp(galaxyApp) || isCurrentGalaxyDiskDetaching(apps),
+            tooltip: (appIsSettingUp(galaxyApp) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
               'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
-            getGalaxyText(app, galaxyDataDisks)
+            getGalaxyText(galaxyApp, appDataDisks)
           ])
         ]),
         h(Clickable, {
@@ -469,7 +476,7 @@ const Notebooks = _.flow(
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,
-          galaxyDataDisks,
+          appDataDisks,
           onDismiss: () => setOpenGalaxyConfigDrawer(false),
           onSuccess: () => {
             setOpenGalaxyConfigDrawer(false)

@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
+import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
@@ -33,11 +34,10 @@ const contextBarStyles = {
   hover: { backgroundColor: colors.accent(0.4) }
 }
 
-export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, galaxyDataDisks, refreshRuntimes, location, locationType, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
 
   const currentRuntime = getCurrentRuntime(runtimes)
-  const currentApp = getCurrentApp(apps)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
@@ -53,6 +53,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 30, width: 30 } })],
     [tools.galaxy.label, () => img({ src: galaxyLogo, style: { height: 12, width: 35 } })],
+    [tools.cromwell.label, () => img({ src: cromwellImg, style: { width: 30 } })],
     [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 30, width: 30 } })]
   )
 
@@ -74,9 +75,12 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   }
 
   const getEnvironmentStatusIcons = () => {
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
+    const cromwellApp = !tools.cromwell.isAppHidden && getCurrentApp(tools.cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
-      ...(currentApp ? [getIconForTool(tools.galaxy.label, currentApp.status)] : [])
+      ...(galaxyApp ? [getIconForTool(tools.galaxy.label, galaxyApp.status)] : []),
+      ...(cromwellApp ? [getIconForTool(tools.cromwell.label, cromwellApp.status)] : [])
     ])
   }
 
@@ -91,7 +95,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
         setCloudEnvOpen(false)
         await refreshRuntimes(true)
       },
-      runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
       workspace,
       canCompute,
       persistentDisks,
@@ -102,16 +106,15 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
       div({ style: contextBarStyles.contextBarContainer }, [
         h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
           h(Clickable, {
-            'aria-label': 'Workspace menu',
             style: contextBarStyles.contextBarButton,
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            tooltip: 'Menu',
-            tooltipDelay: 100
+            tooltip: 'Workspace menu',
+            tooltipDelay: 100,
+            useTooltipAsLabel: true
           }, [icon('ellipsis-v', { size: 24 })])
         ]),
         h(Clickable, {
-          'aria-label': 'Cloud env config',
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,
           tooltipSide: 'left',
@@ -133,7 +136,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : undefined,
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
           tooltipDelay: 100,
-          useTooltipAsLabel: true,
+          useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 24 })])
       ])

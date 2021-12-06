@@ -235,6 +235,11 @@ const User = signal => ({
     }
   },
 
+  getTos: async () => {
+    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
+    return response.text()
+  },
+
   acceptTos: async () => {
     await fetchOk(
       `${getConfig().tosUrlRoot}/user/response`,
@@ -873,8 +878,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importSnapshot: async (snapshotId, name) => {
-        const res = await fetchRawls(`${root}/snapshots`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name }), { signal, method: 'POST' }]))
+      importSnapshot: async (snapshotId, name, description) => {
+        const res = await fetchRawls(`${root}/snapshots/v2`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -1388,7 +1393,7 @@ const Apps = signal => ({
             name: diskName,
             size: diskSize,
             labels: {
-              saturnApplication: 'galaxy',
+              saturnApplication: appType,
               saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }

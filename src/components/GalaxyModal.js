@@ -5,6 +5,7 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverl
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { tools } from 'src/components/notebook-utils'
 import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -14,9 +15,8 @@ import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  computeStyles,
-  currentAttachedDataDisk, currentPersistentDisk, findMachineType, getCurrentApp, getGalaxyComputeCost,
-  getGalaxyDiskCost, RadioBlock
+  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -32,12 +32,12 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentApp(apps)
-    const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+    const app = getCurrentApp(tools.galaxy.appType)(apps)
+    const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
     const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
@@ -45,15 +45,15 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
+    const currentDataDisk = getCurrentPersistentDisk(tools.galaxy.appType, apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
-      await Ajax().Apps.app(googleProject, Utils.generateGalaxyAppName()).create({
-        kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
-        appType: 'GALAXY', namespace, bucketName, workspaceName
+      await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
+        kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
+        appType: tools.galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
@@ -401,7 +401,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([
             div({ style: computeStyles.headerText }, ['Application configuration']),
-            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 21.05']),
+            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 21.09']),
             h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
               'Learn more about Galaxy interactive environments',
               icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })

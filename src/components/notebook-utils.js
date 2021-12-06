@@ -7,6 +7,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
+import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -74,10 +75,23 @@ export const tools = {
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
-  galaxy: { label: 'galaxy' }
+  galaxy: { label: 'galaxy', appType: 'GALAXY' },
+  cromwell: { label: 'cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
 }
 
+// Returns the tools in the order that they should be displayed for Cloud Environment tools
+export const getToolsToDisplay = _.remove(tool => tool.isAppHidden)([tools.Jupyter, tools.RStudio, tools.galaxy, tools.cromwell])
+
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
+
+// Returns appType for app with given label, or undefined if tool is not an app.
+export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
+
+// Does the tool label correspond to an app?
+export const isToolAnApp = label => getAppType(label) !== undefined
+
+// Returns registered appTypes.
+export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
