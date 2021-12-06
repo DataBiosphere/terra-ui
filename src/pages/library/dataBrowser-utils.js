@@ -57,12 +57,6 @@ const normalizeSnapshot = snapshot => {
     _.uniqBy(_.toLower)
   )(snapshot['prov:wasGeneratedBy'])
 
-  //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
-  if (snapshot['dct:title'].length % 2 === 0) {
-    snapshot.roles = ['discoverer']
-    snapshot['TerraDCAT_ap:hasDataUsePermission'] = 'TerraCore:CC'
-  }
-
   const dataReleasePolicy = _.has(snapshot['TerraDCAT_ap:hasDataUsePermission'], snapshotReleasePolicies) ?
     { ...snapshotReleasePolicies[snapshot['TerraDCAT_ap:hasDataUsePermission']], policy: snapshot['TerraDCAT_ap:hasDataUsePermission'] } :
     {
@@ -110,11 +104,11 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
+    const snapshots = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getSnapshots()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-    }, metadata?.result)
+    }, snapshots)
 
     dataCatalogStore.set(normList)
   })

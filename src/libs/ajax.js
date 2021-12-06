@@ -926,9 +926,15 @@ const Workspaces = signal => ({
 
 
 const DataRepo = signal => ({
-  getMetadata: async () => {
+  getSnapshots: async () => {
     const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
-    return res.json()
+    //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
+    return _.map(snapshot => snapshot['dct:title'].length % 2 === 0 ?
+      {
+        ...snapshot,
+        roles: ['discoverer'],
+        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC'
+      } : snapshot, (await res.json())?.result)
   },
 
   snapshot: snapshotId => {
