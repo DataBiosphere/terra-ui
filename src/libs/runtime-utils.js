@@ -26,7 +26,7 @@ export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customiza
 export const defaultGcePersistentDiskSize = 50
 
 export const defaultGceMachineType = 'n1-standard-1'
-export const defaultDataprocMachineType = 'n1-standard-2'
+export const defaultDataprocMachineType = 'n1-standard-4'
 export const defaultNumDataprocWorkers = 2
 export const defaultNumDataprocPreemptibleWorkers = 0
 
