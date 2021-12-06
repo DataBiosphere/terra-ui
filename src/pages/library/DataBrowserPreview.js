@@ -82,7 +82,7 @@ const DataBrowserPreview = ({ id }) => {
             isSearchable: true,
             isClearable: false,
             value: selectedTable,
-            getOptionLabel: ({ value }) => _.startCase(value),
+            getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 && ' (0 Rows)'}`,
             onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, loading, setLoading, signal }),
             options: tables
           }),
