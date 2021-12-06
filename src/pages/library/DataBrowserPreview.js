@@ -31,23 +31,25 @@ const activeTab = 'browse & explore'
 let metadata
 let tableMap
 
-const selectTable = async ({ value, signal, setSelectedTable, setPreviewData }) => {
+const selectTable = async ({ id, value, signal, setSelectedTable, setPreviewData, setLoading }) => {
   setSelectedTable(value)
   try {
-    const test = await Ajax(signal).DataRepo.getPreviewTable({
-      datasetProject: metadata.dataProject,
-      datasetBqSnapshotName: metadata.name,
-      tableName: value
+    setLoading(true)
+    const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({
+      id, limit: 50, offset: 0,
+      table: value
     })
 
-    console.log('test', test)
+    setPreviewData(previewTableData?.result || [])
+    setLoading(false)
   } catch (err) {
-    console.log('errored table data load')
+    console.log('errored table data load', err)
   }
 }
 
 const DataBrowserPreview = ({ id }) => {
   const signal = Utils.useCancellation()
+  const [loading, setLoading] = useState()
   const { dataCatalog } = useDataCatalog()
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const snapshot = dataMap[id]
@@ -55,14 +57,12 @@ const DataBrowserPreview = ({ id }) => {
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
 
-  console.log('logging preview data so it doesnt have a warning', previewData)
-
   Utils.useOnMount(() => {
     const loadData = async () => {
       metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
       tableMap = _.keyBy('name', metadata.tables)
       setTables(_.map('name', metadata.tables))
-      selectTable({ value: metadata.tables[0].name, setSelectedTable, setPreviewData, signal })
+      selectTable({ id, value: metadata.tables[0].name, setSelectedTable, setPreviewData, setLoading, signal })
     }
     loadData()
   })
@@ -75,16 +75,19 @@ const DataBrowserPreview = ({ id }) => {
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']])
         ]),
-        h(Select, {
-          'aria-label': 'data type',
-          styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
-          isSearchable: true,
-          isClearable: false,
-          value: selectedTable,
-          getOptionLabel: ({ value }) => _.startCase(value),
-          onChange: ({ value }) => selectTable({ value, setSelectedTable, setPreviewData, signal }),
-          options: tables
-        }),
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%' } }, [
+          h(Select, {
+            'aria-label': 'data type',
+            styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
+            isSearchable: true,
+            isClearable: false,
+            value: selectedTable,
+            getOptionLabel: ({ value }) => _.startCase(value),
+            onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, setLoading, signal }),
+            options: tables
+          }),
+          loading && centeredSpinner()
+        ]),
         tableMap && tableMap[selectedTable] && h(SimpleTable, {
           'aria-label': `${_.startCase(selectedTable)} Preview Data`,
           columns: _.map(col => {
@@ -93,21 +96,10 @@ const DataBrowserPreview = ({ id }) => {
               key: col.name
             }
           }, tableMap[selectedTable].columns),
-          // columns: [
-          //   { header: 'hello', key: 'hello' },
-          //   { header: 'hello2', key: 'hello2' },
-          //   { header: 'hello3', key: 'hello3' }
-          // ],
-          // columns: [
-          //   {
-          //     header: div({ className: 'sr-only' }, ['Select dataset']),
-          //     key: 'checkbox'
-          //   }
-          // ],
-          rowStyle: styles.table.row,
-          cellStyle: { border: 'none', paddingRight: 15 },
+          // rowStyle: styles.table.row,
+          cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all' },
           useHover: false,
-          rows: []
+          rows: previewData
         })
       ])
   ])

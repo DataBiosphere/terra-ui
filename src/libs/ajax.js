@@ -142,7 +142,6 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
-const fetchBigQuery = _.flow(withUrlPrefix(`https://bigquery.googleapis.com/bigquery/v2`), withAppIdentifier)(fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -952,36 +951,8 @@ const DataRepo = signal => ({
     return res.json()
   },
 
-  getPreviewTable: async ({ datasetProject, datasetBqSnapshotName, tableName }) => {
-    // datasetProject = 'broad-jade-dev-data'
-    // Attempt 1 ----------------------------
-    // const res = await fetchBigQuery(`projects/${encodeURIComponent(datasetProject)}/queries/${encodeURIComponent(datasetBqSnapshotName)}/tables/${encodeURIComponent(tableName)}/data?maxResults=100`, _.merge(authOpts(), { signal }))
-
-    // Attempt 2 ----------------------------
-    // const res = await fetchBigQuery(
-    //   `projects/broad-jade-dev-data/queries`,
-    //   _.merge(authOpts(await saToken(datasetProject)), { signal, method: 'POST' })
-    // )
-    // return res.json()
-
-    // Attempt 3 ----------------------------
-    // const res = await fetchBigQuery(`projects/broad-jade-dev-data/queries`, _.merge(authOpts(), { signal, method: 'POST' }))
-    // return res.json()
-
-    // Attempt 4 ----------------------------
-    const query = `SELECT ${tableName}, COUNT(30) FROM \`${datasetProject}.datarepo_${datasetBqSnapshotName}.${tableName}\``
-    const body = { query, useLegacySql: false }
-    const jbody = jsonBody(body)
-    // const token = await saToken(datasetProject)
-    console.log('body', body)
-
-    const res = await fetchBigQuery(
-      `/projects/${datasetProject}/queries`,
-      {
-        signal, method: 'POST', jbody,
-        headers: { Authorization: `Bearer ${getUser().token}` }
-      }
-    )
+  getPreviewTable: async ({ id, table, offset, limit }) => {
+    const res = await fetchDataRepo(`repository/v1/snapshots/${id}/data/${table}?limit=${limit}&offset=${offset}`, _.merge(authOpts(), { signal }))
     return res.json()
   }
 })
