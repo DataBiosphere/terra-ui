@@ -43,13 +43,13 @@ const getUnique = (prop, data) => _.flow(
 const extractCatalogFilters = dataCatalog => {
   return [{
     name: 'Access type',
-    labels: _.keys(snapshotAccessTypes),
-    labelRenderer: accessKey => {
-      const lowerKey = _.toLower(accessKey)
-      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
+    labels: _.values(snapshotAccessTypes),
+    labelRenderer: accessValue => {
+      const lowerKey = _.toLower(accessValue)
+      const iconKey = accessValue === snapshotAccessTypes.GRANTED ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([snapshotAccessTypes[accessKey]])
+        div([accessValue])
       ])]
     }
   }, {
@@ -208,7 +208,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
-                [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
+                [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
                   icon('unlock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
                 ])])

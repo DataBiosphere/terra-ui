@@ -107,7 +107,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
-            [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
+            [Utils.DEFAULT, () => div({ style: { color: styles.access.granted } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Granted Access'
             ])])
