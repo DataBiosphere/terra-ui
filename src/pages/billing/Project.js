@@ -29,14 +29,14 @@ const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 const billingAccountIconSize = 16
 
-const BillingAccountIcon = {
+const billingAccountIcons = {
   updating: { shape: 'sync', color: colors.warning() },
   done: { shape: 'check', color: colors.accent() },
   error: { shape: 'warning-standard', color: colors.danger() }
 }
 
 const getBillingAccountIcon = status => {
-  const { shape, color } = BillingAccountIcon[status]
+  const { shape, color } = billingAccountIcons[status]
   return icon(shape, { size: billingAccountIconSize, color })
 }
 
@@ -60,7 +60,7 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ needs
   ])
 })
 
-const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, errorMessage }) => {
+const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   const expandedInfoStyles = {
     row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
     title: { fontWeight: 600, width: '20%', padding: '0.5rem 1rem 0 2rem', height: '1rem' },
@@ -76,7 +76,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
     div({ style: expandedInfoStyles.details }, [details]),
     errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage])
   ])
-})
+}
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
@@ -137,7 +137,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   ])
 })
 
-const BillingAccountSummaryPanel = (() => {
+const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
   const StatusAndCount = ({ status, count }) => div({ style: { display: 'float' } }, [
     div({ style: { float: 'left' } }, [getBillingAccountIcon(status)]),
     div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
@@ -147,41 +147,45 @@ const BillingAccountSummaryPanel = (() => {
     h(StatusAndCount, { status, count })
   ])
 
-  return Utils.memoWithName(
-    'BillingAccountSummaryPanel',
-    ({ counts: { done, error, updating } }) => div({
-      style: {
-        padding: '0.5rem 2rem 1rem',
-        position: 'absolute',
-        top: topBarHeight,
-        right: '3rem',
-        width: '30rem',
-        backgroundColor: colors.light(0.5),
-        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
-      }
-    }, [
-      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
-      div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-        maybeAddStatus('updating', updating),
-        maybeAddStatus('done', done),
-        maybeAddStatus('error', error)
-      ]),
-      error > 0 && div({ style: { padding: '1rem 0 0' } }, [
-        'Try again or ',
-        h(Link, { onClick: () => contactUsActive.set(true) }, [
-          'contact us regarding unresolved errors'
-        ]), '.'
-      ])
-    ]))
-})()
+  return div({
+    style: {
+      padding: '0.5rem 2rem 1rem',
+      position: 'absolute',
+      top: topBarHeight,
+      right: '3rem',
+      width: '30rem',
+      backgroundColor: colors.light(0.5),
+      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    }
+  }, [
+    div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+    div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+      maybeAddStatus('updating', updating),
+      maybeAddStatus('done', done),
+      maybeAddStatus('error', error)
+    ]),
+    error > 0 && div({ style: { padding: '1rem 0 0' } }, [
+      'Try again or ',
+      h(Link, { onClick: () => contactUsActive.set(true) }, [
+        'contact us regarding unresolved errors'
+      ]), '.'
+    ])
+  ])
+}
 
 const groupByBillingAccountStatus = (billingProject, workspaces) => {
   const group = workspace => Utils.cond(
     [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
-    ['billingAccountErrorMessage' in workspace, () => 'error'],
+    [!!workspace.billingAccountErrorMessage, () => 'error'],
     [Utils.DEFAULT, () => 'updating']
   )
 
+  // Return Sets to reduce the time complexity of searching for the status of any workspace from
+  // O(N * W) to O(N * 1), where
+  //   N is the number of statuses a billing account change could have,
+  //   W is the number of workspaces in a billing project (can be very large for GP).
+  // Note we need to perform this search W times for each billing project; using a set reduces time
+  // complexity by an order of magnitude.
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
@@ -197,6 +201,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
+  const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
@@ -210,10 +215,10 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  const workspacesInProject = useMemo(() => _.flow(
-    _.map('workspace'),
-    _.filter({ namespace: billingProject.projectName })
-  )(workspaces), [billingProject, workspaces])
+  const workspacesInProject = useMemo(() => _.filter(
+    { namespace: billingProject.projectName },
+    _.map('workspace', workspaces)
+  ), [billingProject, workspaces])
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
@@ -301,6 +306,18 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
     })
   })
 
+  const removeBillingAccount = _.flow(
+    reportErrorAndRethrow('Error removing billing account'),
+    Utils.withBusyState(setUpdating)
+  )(() => {
+    Ajax().Metrics.captureEvent(Events.removeBillingAccount, {
+      billingProject: billingProject.projectName
+    })
+    return Ajax(signal).Billing.removeBillingAccount({
+      billingProjectName: billingProject.projectName
+    })
+  })
+
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
@@ -320,7 +337,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const reloadBillingProjectUsers = _.flow(
     reportErrorAndRethrow('Error loading billing project users list'),
     Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
+  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName)
     .then(collectUserRoles)
     .then(setProjectUsers)
   )
@@ -328,7 +345,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const removeUserFromBillingProject = _.flow(
     reportErrorAndRethrow('Error removing member from billing project'),
     Utils.withBusyState(setUpdating)
-  )(Ajax().Billing.project(billingProject.projectName).removeUser)
+  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]))
 
   // Lifecycle
   Utils.useOnMount(() => { reloadBillingProjectUsers() })
@@ -364,6 +381,21 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
             }
           }
         }, [icon('edit', { size: 12 })]),
+        h(Link, {
+          tooltip: 'Remove Billing Account',
+          style: { marginLeft: '0.5rem' },
+          // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
+          disabled: billingProject.billingAccount === 'null' || billingProject.billingAccount === undefined || billingProject.billingAccount === null,
+          baseColor: colors.danger,
+          onClick: async () => {
+            if (Auth.hasBillingScope()) {
+              setShowBillingRemovalModal(true)
+            } else {
+              await authorizeAndLoadAccounts()
+              setShowBillingRemovalModal(Auth.hasBillingScope())
+            }
+          }
+        }, [icon('times-circle', { size: 12 })]),
         showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
@@ -387,6 +419,19 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
             div({ style: { marginTop: '1rem' } },
               ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
           ])])
+        ]),
+        showBillingRemovalModal && h(Modal, {
+          title: 'Remove Billing Account',
+          onDismiss: () => setShowBillingRemovalModal(false),
+          okButton: h(ButtonPrimary, {
+            onClick: () => {
+              setShowBillingRemovalModal(false)
+              removeBillingAccount(selectedBilling).then(reloadBillingProject)
+            }
+          }, ['Ok'])
+        }, [
+          div({ style: { marginTop: '1rem' } },
+            ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
@@ -466,7 +511,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       userLabel: billingRoles.user,
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-      addFunction: Ajax().Billing.project(billingProject.projectName).addUser,
+      addFunction: _.partial(Ajax().Billing.addProjectUser, [billingProject.projectName]),
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
@@ -477,7 +522,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       adminLabel: billingRoles.owner,
       userLabel: billingRoles.user,
       user: editingUser,
-      saveFunction: Ajax().Billing.project(billingProject.projectName).changeUserRoles,
+      saveFunction: _.partial(Ajax().Billing.changeUserRoles, [billingProject.projectName]),
       onDismiss: () => setEditingUser(false),
       onSuccess: () => {
         setEditingUser(false)

@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
@@ -8,12 +7,13 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -42,7 +42,8 @@ const MainContent = ({ snapshot }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        snapshot.dataReleasePolicy
+        snapshot.dataReleasePolicy.label,
+        snapshot.dataReleasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [snapshot.dataReleasePolicy.desc])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -95,20 +96,20 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
         h3(['Access type']),
         div([
           Utils.switchCase(access,
-            ['Controlled', () => h(ButtonSecondary, {
+            [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            ['Pending', () => div({ style: { color: styles.access.pending } }, [
+            [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
             [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
-              'Open Access'
+              'Granted Access'
             ])])
         ])
       ]),
@@ -148,7 +149,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     ]),
     h(ButtonOutline, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
-      onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+      onClick: () => {
+        Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
+          snapshotId: _.get('dct:identifier', snapshot),
+          snapshotName: snapshot['dct:title']
+        })
+        Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+      }
     }, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
         icon('eye', { size: 22, style: { marginRight: 10 } }),
@@ -158,14 +165,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Nav.history.push({
-          pathname: Nav.getPath('import-data'),
-          search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
-          })
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+          snapshotId: id,
+          snapshotName: snapshot['dct:title']
         })
+        importDataToWorkspace([snapshot])
       }
-    }, ['Save to a workspace'])
+    }, ['Link to a workspace'])
   ])
 }
 

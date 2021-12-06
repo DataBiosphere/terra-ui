@@ -5,6 +5,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -16,8 +17,9 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
-  getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable,
-  isResourceDeletable, persistentDiskCostMonthly, runtimeCost
+  defaultComputeRegion,
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentAppForType, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
+  isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -78,7 +80,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
   ])
 }
 
-const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, onSuccess }) => {
+const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteApp = _.flow(
@@ -101,7 +103,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveFilesHelpGalaxy)
+      appType === tools.galaxy.appType && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -181,7 +183,7 @@ const Environments = () => {
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
-    cost: persistentDiskCostMonthly,
+    cost: getPersistentDiskCostMonthly,
     size: 'size'
   }[diskSort.field]], [diskSort.direction], disks)
 
@@ -198,7 +200,7 @@ const Environments = () => {
   const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
-  const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
+  const totalDiskCost = _.sum(_.map(getPersistentDiskCostMonthly, disks))
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
@@ -206,7 +208,7 @@ const Environments = () => {
 
   const renderBillingProjectApp = app => {
     const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(appsByProject[app.googleProject]) !== app
+      getCurrentAppForType(app.appType)(appsByProject[app.googleProject]) !== app
     return h(Fragment, [
       app.googleProject,
       inactive && h(TooltipTrigger, {
@@ -234,7 +236,7 @@ const Environments = () => {
         div([span({ style: { fontWeight: '600' } }, ['Name: ']), appName]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
-    }, [h(Link, ['details'])])
+    }, [h(Link, ['view'])])
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
@@ -245,7 +247,7 @@ const Environments = () => {
         div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
-    }, [h(Link, ['details'])])
+    }, [h(Link, ['view'])])
   }
 
   const renderDeleteButton = (resourceType, resource) => {
@@ -258,7 +260,6 @@ const Environments = () => {
     )
 
     return h(Link, {
-      style: { marginLeft: '1rem' },
       disabled: !isDeletable,
       tooltip: isDeletable ?
         'Delete cloud environment' :
@@ -270,8 +271,10 @@ const Environments = () => {
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
     const isPausable = isComputePausable(computeType, compute)
+    const app = _.find(tool => tool.appType && tool.appType === compute.appType)(tools)
 
-    return h(Link, {
+    return !app?.isPauseUnsupported && h(Link, {
+      style: { marginRight: '1rem' },
       disabled: !isPausable,
       tooltip: isPausable ?
         'Pause cloud environment' :
@@ -333,13 +336,12 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 90, grow: 0 },
+            size: { basis: 100, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              // TODO: update return logic once we support more app types (will need a backend change to return appType in list apps endpoint as well)
-              return cloudEnvironment.appName ?
-                'Galaxy' :
+              return isApp(cloudEnvironment) ?
+                _.capitalize(cloudEnvironment.appType) :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
@@ -369,7 +371,7 @@ const Environments = () => {
               const region = cloudEnvironment?.runtimeConfig?.region
               // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
               // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
-              return zone || region || 'us-central1-a'
+              return zone || region || defaultComputeZone
             }
           },
           {
@@ -404,7 +406,7 @@ const Environments = () => {
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              const computeType = !!cloudEnvironment.appName ? 'app' : 'runtime'
+              const computeType = isApp(cloudEnvironment) ? 'app' : 'runtime'
               return h(Fragment, [
                 renderPauseButton(computeType, cloudEnvironment),
                 renderDeleteButton(computeType, cloudEnvironment)
@@ -451,9 +453,13 @@ const Environments = () => {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
-                  app && div([span({ style: { fontWeight: 600 } }, ['Galaxy: ']), app.appName])
+                  app && div([
+                    span({ style: { fontWeight: 600 } },
+                      [`${_.capitalize(app.appType)}: `]
+                    ), app.appName
+                  ])
                 ])
-              }, [h(Link, ['details'])])
+              }, [h(Link, ['view'])])
             }
           },
           {
@@ -505,7 +511,7 @@ const Environments = () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return Utils.formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
+              return Utils.formatUSD(getPersistentDiskCostMonthly(filteredDisks[rowIndex], defaultComputeRegion))
             }
           },
           {

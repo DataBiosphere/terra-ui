@@ -86,15 +86,15 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   }
 })
 
-export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, ...props }, ref) => {
+export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
     style: { // 0.72 is the min to meet ANDI's contrast requirement
-      color: disabled ? colors.dark(0.72) : colors.accent(variant === 'light' ? 0.3 : 1),
+      color: disabled ? colors.dark(0.72) : baseColor(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
       fontWeight: 500, display: 'inline'
     },
-    hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) },
+    hover: disabled ? undefined : { color: baseColor(variant === 'light' ? 0.1 : 0.8) },
     disabled
   }, props), [children])
 })
@@ -480,7 +480,7 @@ export const CromwellVersionLink = props => {
       href: `https://github.com/broadinstitute/cromwell/releases/tag/${version}`,
       ...Utils.newTabLinkProps,
       ...props
-    }, ['Cromwell ', version]) :
+    }, ['Cromwell ', version, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) :
     'Cromwell version loading...'
 }
 

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
 } from 'src/components/common'
@@ -10,19 +10,22 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { versionTag } from 'src/libs/logos'
+import { betaVersionTag } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import {
-  defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime,
-  getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize,
+  defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
+  getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -33,15 +36,6 @@ import validate from 'validate.js'
 const showDebugPanel = false
 const titleId = 'cloud-compute-modal-title'
 
-// TODO Factor out common pieces with GalaxyModal.styles into runtime-utils
-const styles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  titleBar: { marginBottom: '1rem' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  warningView: { backgroundColor: colors.warning(0.1) },
-  whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
-}
-
 const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
@@ -50,12 +44,38 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // Distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
+// Enums -- start
+const sparkInterfaces = {
+  yarn: {
+    label: 'yarn',
+    displayName: 'YARN Resource Manager',
+    synopsis: `YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.`
+  },
+  appHistory: {
+    label: 'apphistory',
+    displayName: 'YARN Application Timeline',
+    synopsis: `YARN Application Timeline provides information about current and historic applications executed on the cluster.`
+  },
+  sparkHistory: {
+    label: 'sparkhistory',
+    displayName: 'Spark History Server',
+    synopsis: `Spark History Server provides information about completed Spark applications on the cluster.`
+  },
+  jobHistory: {
+    label: 'jobhistory',
+    displayName: 'MapReduce History Server',
+    synopsis: `MapReduce History Server displays information about completed MapReduce applications on a cluster.`
+  }
+}
+// Enums -- end
+
+// Auxiliary components -- begin
 const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['CPUs']),
+        label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
         div([
           h(Select, {
             id,
@@ -69,7 +89,7 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+        label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
         div([
           h(Select, {
             id,
@@ -87,10 +107,10 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
 const DataprocDiskSelector = ({ value, onChange }) => {
   return h(IdContainer, [
     id => h(Fragment, [
-      label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
+      label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 80, // less than this size causes failures in cluster creation
+        min: 100, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -100,6 +120,29 @@ const DataprocDiskSelector = ({ value, onChange }) => {
     ])
   ])
 }
+
+const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
+  const { label, displayName, synopsis } = sparkInterface
+
+  return div(
+    { style: { ...computeStyles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
+      div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+        div([
+          div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, [displayName]),
+          p([synopsis]),
+          div({ style: { display: 'flex', marginTop: '1rem' } }, [
+            h(ButtonOutline, {
+              href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: label }),
+              style: { marginRight: 'auto' },
+              onClick: onDismiss,
+              ...Utils.newTabLinkProps
+            }, ['Launch', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
+          ])
+        ])
+      ])
+    ])
+}
+// Auxiliary components -- end
 
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
@@ -118,7 +161,7 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 const shouldUsePersistentDisk = (sparkMode, runtimeDetails, upgradeDiskSelected) => !sparkMode &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
-export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
+export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -141,10 +184,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
     workerDiskSize: defaultDataprocDiskSize,
+    componentGatewayEnabled: true, // We enable web interfaces (aka Spark console) for all new Dataproc clusters.
     gpuEnabled: false,
     hasGpu: false,
     gpuType: defaultGpuType,
-    numGpus: defaultNumGpus
+    numGpus: defaultNumGpus,
+    computeRegion: defaultComputeRegion,
+    computeZone: defaultComputeZone
   })
   // State -- end
 
@@ -174,7 +220,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error creating cloud environment')
+    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
@@ -188,10 +234,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
+        zone: desiredRuntime.zone.toLowerCase(),
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
-        } : {
+        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
           persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDiskDetails.name
           } : {
@@ -199,12 +246,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             size: desiredPersistentDisk.size,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
-        }),
+        })),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
+        region: desiredRuntime.region.toLowerCase(),
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
+        componentGatewayEnabled: desiredRuntime.componentGatewayEnabled,
         ...(desiredRuntime.numberOfWorkers && {
           numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
           workerMachineType: desiredRuntime.workerMachineType,
@@ -228,9 +277,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
       await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
-    if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
-    }
     if (shouldUpdateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
     }
@@ -238,7 +284,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
+        labels: {
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: name
+        },
         customEnvironmentVariables: customEnvVars,
         ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
       })
@@ -247,9 +296,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     onSuccess()
   })
 
-  const canUpdateNumberOfWorkers = () => {
-    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
-  }
+  const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
+
+  const shouldDisplaySparkConsoleLink = () => !!sparkMode && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
+
+  const canManageSparkConsole = () => shouldDisplaySparkConsoleLink() && isRuntimeRunning()
+
+  const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
@@ -309,6 +362,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         tool,
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
+          zone: computeConfig.computeZone,
           machineType: runtimeConfig.machineType || defaultGceMachineType,
           ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
@@ -318,9 +372,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             diskSize: runtimeConfig.diskSize
           })
         } : {
+          region: computeConfig.computeRegion,
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
+          componentGatewayEnabled: runtimeConfig.componentGatewayEnabled || !!sparkMode,
           ...(numberOfWorkers && {
             numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
             workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
@@ -346,6 +402,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
+              zone: computeConfig.computeZone,
+              region: computeConfig.computeRegion,
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
@@ -355,9 +413,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 diskSize: computeConfig.masterDiskSize
               })
             } : {
+              region: computeConfig.computeRegion,
               masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
               masterDiskSize: computeConfig.masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
+              componentGatewayEnabled: computeConfig.componentGatewayEnabled,
               ...(desiredNumberOfWorkers && {
                 numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
                 workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
@@ -389,8 +449,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   /**
-   * Transforms the new environment config into the shape of runtime config
-   * returned from leonardo. The cost calculation functions expect that shape,
+   * Transforms the desired environment config into the shape of runtime config
+   * returned from Leonardo. The cost calculation functions expect that shape,
    * so this is necessary to compute the cost for potential new configurations.
    */
   const getPendingRuntimeConfig = () => {
@@ -401,12 +461,16 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
+        region: desiredRuntime.region,
+        zone: desiredRuntime.zone,
         ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
         ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
       } : {
+        region: desiredRuntime.region,
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
+        componentGatewayEnabled: computeConfig.componentGatewayEnabled,
         ...(desiredRuntime.numberOfWorkers && {
           numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
           workerMachineType: desiredRuntime.workerMachineType,
@@ -484,7 +548,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
       existingRuntime_memory: existingRuntime && existingRuntimeMemory,
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(getPendingDisk())),
+      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
       isDefaultConfig: !!simplifiedForm
     })
@@ -511,6 +575,30 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
     return existingRuntime && (!canUpdateRuntime() || isStopRequired())
   }
+
+  const updateComputeLocation = (location, locationType) => {
+    const { computeZone, computeRegion } = getRegionInfo(location, locationType)
+    updateComputeConfig('computeZone', computeZone)
+    updateComputeConfig('computeRegion', computeRegion)
+  }
+
+  const isDifferentLocation = () => {
+    // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
+    // bucketLocation === 'US' means the bucket is US multi-regional.
+    // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
+    // Currently, US is the only multi-region supported in Terra
+    if (location === defaultLocation) {
+      return computeConfig.computeRegion !== defaultComputeRegion
+    } else {
+      return computeConfig.computeRegion !== location
+    }
+  }
+
+  const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
+    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
+    [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
+  )
   // Helper functions -- end
 
   // Lifecycle
@@ -541,67 +629,74 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
       /* eslint-disable indent */
-        // TODO: open to feedback and still thinking about this...
-        // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
-        // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
-        //   user is using custom image
-        // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
-        //   use default image for selected tool
-        // else
-        //   use imageUrl derived from users current runtime
-        /* eslint-disable indent */
-        const getSelectedImage = () => {
-          if (foundImage) {
-            if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
-              return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
-            } else {
-              return imageUrl
-            }
+      // TODO: open to feedback and still thinking about this...
+      // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
+      // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
+      //   user is using custom image
+      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+      //   use default image for selected tool
+      // else
+      //   use imageUrl derived from users current runtime
+      /* eslint-disable indent */
+      const getSelectedImage = () => {
+        if (foundImage) {
+          if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+            return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
           } else {
-            return customMode
+            return imageUrl
           }
+        } else {
+          return customMode
         }
+      }
 
-        setSelectedLeoImage(getSelectedImage())
-        setLeoImages(filteredNewLeoImages)
-        setCurrentRuntimeDetails(currentRuntimeDetails)
-        setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
-        setCustomEnvImage(!foundImage ? imageUrl : '')
-        setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+      setSelectedLeoImage(getSelectedImage())
+      setLeoImages(filteredNewLeoImages)
+      setCurrentRuntimeDetails(currentRuntimeDetails)
+      setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
+      setCustomEnvImage(!foundImage ? imageUrl : '')
+      setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-        const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
-        const runtimeConfig = currentRuntimeDetails?.runtimeConfig
-        const gpuConfig = runtimeConfig?.gpuConfig
+      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
+      const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+      const gpuConfig = runtimeConfig?.gpuConfig
+      const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
+        [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
+        [cloudServices.GCE, () => false],
+        [Utils.DEFAULT, () => false] // for when there's no existing runtime
+      )
+      const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
-        setSparkMode(runtimeConfig?.cloudService === cloudServices.DATAPROC ?
-          (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
-          false)
-        setComputeConfig({
-          selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-          masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-          masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-            (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
-          numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
-          numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
-          workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-          workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
-          gpuEnabled: (!!gpuConfig && !sparkMode) || false,
-          hasGpu: !!gpuConfig,
-          gpuType: gpuConfig?.gpuType || defaultGpuType,
-          numGpus: gpuConfig?.numOfGpus || defaultNumGpus
-        })
+      setSparkMode(newSparkMode)
+      setComputeConfig({
+        selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
+        masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
+          (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
+        numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+        componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!newSparkMode,
+        numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
+        workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
+        workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
+        gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+        hasGpu: !!gpuConfig,
+        gpuType: gpuConfig?.gpuType || defaultGpuType,
+        numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
+        computeZone,
+        computeRegion
       })
+    })
 
-      doUseOnMount()
-    }
-  )
+    doUseOnMount()
+  })
 
   // Render functions -- begin
   const renderAboutPersistentDisk = () => {
-    return div({ style: styles.drawerContent }, [
+    return div({ style: computeStyles.drawerContent }, [
       h(TitleBar, {
         id: titleId,
-        style: styles.titleBar,
+        style: computeStyles.titleBar,
         title: 'About persistent disk',
         hideCloseButton: isAnalysisMode,
         onDismiss,
@@ -625,18 +720,33 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-    const commonButtonProps = hasGpu && viewMode !== 'deleteEnvironmentOptions' ?
-      { disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' } :
-      { disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
-    const canShowCustomImageWarning = viewMode === undefined
+    const commonButtonProps = Utils.cond([
+        hasGpu && viewMode !== 'deleteEnvironmentOptions',
+        () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
+      ], [
+        computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
+        () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
+      ], [
+        !!currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !==
+        'deleteEnvironmentOptions',
+        () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
+      ],
+      () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
+    )
+    const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
-
     return Utils.cond([
-        canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
+        canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
       ], [
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
+      ], [
+        canShowWarning && isDifferentLocation(),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+      ], [
+        canShowWarning && !isUSLocation(computeConfig.computeRegion),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
         ...commonButtonProps,
@@ -654,11 +764,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderApplicationConfigurationSection = () => {
-    return div({ style: styles.whiteBoxContainer }, [
+    return div({ style: computeStyles.whiteBoxContainer }, [
       h(IdContainer, [
         id => h(Fragment, [
           div({ style: { marginBottom: '0.5rem' } }, [
-            label({ htmlFor: id, style: styles.label }, ['Application configuration']),
+            label({ htmlFor: id, style: computeStyles.label }, ['Application configuration']),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
@@ -671,7 +781,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           return h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, ['Container image']),
+                label({ htmlFor: id, style: { ...computeStyles.label, display: 'block', margin: '0.5rem 0' } }, ['Container image']),
                 div({ style: { height: 52 } }, [
                   h(ValidatedInput, {
                     inputProps: {
@@ -705,7 +815,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const renderComputeProfileSection = computeExists => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
-    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
+    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
     const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
       displayNameForGpuType(computeConfig.gpuType) :
@@ -714,17 +824,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
     const enableGpusSpan = span(
-      ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
+      ['Enable GPUs ', betaVersionTag])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
-    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
         div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 4.5rem 1fr 5.5rem 1fr 5rem' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['CPUs']),
+              label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
               div([
                 h(Select, {
                   id,
@@ -739,7 +849,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+              label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
               div([
                 h(Select, {
                   id,
@@ -765,7 +875,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             disabled: gpuCheckboxDisabled,
             onChange: v => updateComputeConfig('gpuEnabled', v || computeConfig.hasGpu)
           }, [
-            span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
+            span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               gpuCheckboxDisabled ?
                 h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
                 enableGpusSpan
@@ -784,7 +894,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['GPU type']),
+                label({ htmlFor: id, style: computeStyles.label }, ['GPU type']),
                 div({ style: { height: 45 } }, [
                   h(Select, {
                     id,
@@ -798,7 +908,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ]),
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['GPUs']),
+                label({ htmlFor: id, style: computeStyles.label }, ['GPUs']),
                 div([
                   h(Select, {
                     id,
@@ -816,7 +926,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div({ style: gridStyle }, [
           h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Startup script']),
+              label({ htmlFor: id, style: computeStyles.label }, ['Startup script']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(TextInput, {
                   id,
@@ -828,32 +938,44 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ])
           ]),
           h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Compute type']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: sparkMode,
-                  onChange: ({ value }) => setSparkMode(value),
-                  options: [
-                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                    { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Spark cluster' }
-                  ]
-                })
+            id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
+              label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
+              div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+                div({ style: { flex: 1, marginRight: '2rem' } }, [
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: sparkMode,
+                    onChange: ({ value }) => {
+                      setSparkMode(value)
+                      updateComputeConfig('componentGatewayEnabled', !!value)
+                    },
+                    options: [
+                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                      { value: 'master', label: 'Spark master node' },
+                      { value: 'cluster', label: 'Spark cluster' }
+                    ]
+                  })
+                ]),
+                shouldDisplaySparkConsoleLink() && span([
+                  h(Link, {
+                    disabled: !canManageSparkConsole(),
+                    tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
+                    onClick: () => setViewMode('sparkConsole')
+                  }, ['Manage and monitor Spark console'])
+                ])
               ])
             ])
           ])
         ])
       ]),
       sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
-        legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
+        legend({ style: { padding: 0, ...computeStyles.label } }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
         div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['Workers']),
+              label({ htmlFor: id, style: computeStyles.label }, ['Workers']),
               h(NumberInput, {
                 id,
                 min: 2,
@@ -868,7 +990,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['Preemptibles']),
+              label({ htmlFor: id, style: computeStyles.label }, ['Preemptibles']),
               h(NumberInput, {
                 id,
                 min: 0,
@@ -887,6 +1009,30 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           }),
           h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: updateComputeConfig('workerDiskSize') })
         ])
+      ]),
+      div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
+        h(IdContainer, [
+          id => div({ style: { gridColumnEnd: 'span 3' } }, [
+            label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
+            betaVersionTag,
+            h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+              getLocationTooltip(computeExists, location)
+            ]),
+            div({ style: { marginTop: '0.5rem' } }, [
+              h(Select, {
+                id,
+                // Location dropdown is disabled for:
+                // 1) If editing an existing environment (can't update location of existing environments)
+                // 2) Workspace buckets that are either us-central1 or us multi-regional
+                isDisabled: computeExists || isUSLocation(location),
+                isSearchable: false,
+                value: computeConfig.computeRegion,
+                onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(location))
+              })
+            ])
+          ])
+        ])
       ])
     ])
   }
@@ -902,7 +1048,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       }
     }, [
       _.map(({ cost, label, unitLabel }) => {
-        return div({ key: label, style: { flex: 1, ...styles.label } }, [
+        return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
           div({ style: { fontSize: 10 } }, [label]),
           div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
             span({ style: { fontSize: 20 } }, [cost]),
@@ -913,7 +1059,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
         {
-          label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(getPendingDisk())) : 'N/A',
+          label: 'Persistent disk cost',
+          cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
           unitLabel: isPersistentDisk ? 'per month' : ''
         }
       ])
@@ -921,11 +1068,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderCustomImageWarning = () => {
-    return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
         hideCloseButton: isAnalysisMode,
-        style: styles.titleBar,
+        style: computeStyles.titleBar,
         title: h(WarningTitle, ['Unverified Docker image']),
         onDismiss,
         onPrevious: () => setViewMode(undefined)
@@ -939,6 +1086,64 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+  const renderDifferentLocationWarning = () => {
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
+      h(TitleBar, {
+        id: titleId,
+        hideCloseButton: isAnalysisMode,
+        style: computeStyles.titleBar,
+        title: h(WarningTitle, ['Compute location differs from workspace bucket location']),
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { lineHeight: 1.5 } }, [
+        p([
+          'This cloud environment will be created in the region ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}.`]),
+          ' Copying data from your workspace bucket in ',
+          strong([`${location.toLowerCase()}`]),
+          ' may incur network egress charges. Note that network egress charges are not accounted for in cost estimates.'
+        ]),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+          'For more information please read the documentation.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        p(['If you want your VM in ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
+          ', continue. Otherwise, go back to select another location.'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+  const renderNonUSLocationWarning = () => {
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
+      h(TitleBar, {
+        id: titleId,
+        hideCloseButton: isAnalysisMode,
+        style: computeStyles.titleBar,
+        title: h(WarningTitle, ['Non-US Compute Location']),
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { lineHeight: 1.5 } }, [
+        p(['Having a Cloud Environment outside of the US is currently a beta feature.']),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+          'For more information please read the documentation.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        p(['If you want your VM in ',
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
+          ', continue. Otherwise, go back to select a US location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -964,7 +1169,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           willRequireDowntime: !!willRequireDowntime()
         })
       ]) :
-      h(Link, { 'aria-label': 'Show debugger', onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
+      h(Link, { 'aria-label': 'Show debugger', onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
+        ['D'])
   }
 
   const renderDeleteDiskChoices = () => {
@@ -985,7 +1191,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month.'])
+          span({ style: { fontWeight: 600 } },
+            [Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)), ' per month.'])
         ])
       ]),
       h(RadioBlock, {
@@ -1008,10 +1215,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const renderDeleteEnvironmentOptions = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        style: styles.titleBar,
+        style: computeStyles.titleBar,
         title: h(WarningTitle, ['Delete environment options']),
         hideCloseButton: isAnalysisMode,
         onDismiss,
@@ -1068,7 +1275,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
                 ])
               ]),
-              existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+              // At this point there is no runtime (we're in the !existingRuntime block) to check the tool
+              h(SaveFilesHelpRStudio)
             ])
           }],
           () => {
@@ -1091,10 +1299,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
 
-    return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        style: styles.titleBar,
+        style: computeStyles.titleBar,
         hideCloseButton: isAnalysisMode,
         title: h(WarningTitle, [
           Utils.cond(
@@ -1157,9 +1365,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       value: selectedLeoImage,
       onChange: ({ value }) => {
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+        const newSparkMode = requiresSpark ? (sparkMode || 'master') : false
         setSelectedLeoImage(value)
         setCustomEnvImage('')
-        setSparkMode(requiresSpark ? (sparkMode || 'master') : false)
+        setSparkMode(newSparkMode)
+        updateComputeConfig('componentGatewayEnabled', !!newSparkMode)
       },
       isSearchable: true,
       isClearable: false,
@@ -1218,9 +1428,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
     }
     return simplifiedForm ?
-      div({ style: styles.drawerContent }, [
+      div({ style: computeStyles.drawerContent }, [
         renderTitleAndTagline(),
-        div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
             div({ style: { marginRight: '2rem' } }, [
               div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
@@ -1238,6 +1448,19 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+                ]),
+                li({ style: { marginTop: '1rem' } }, [
+                  p([
+                    'This cloud environment will be created in the region ',
+                    strong([computeConfig.computeRegion.toLowerCase()]), '. ',
+                    'Copying data from a bucket in a different region may incur network egress charges. ',
+                    'Note that network egress charges are not accounted for in cost estimates. ',
+                    'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
+                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+                      'documentation.',
+                      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+                    ])
+                  ])
                 ])
               ])
             ]),
@@ -1245,7 +1468,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           renderCostBreakdown()
         ]),
-        div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
             div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom environment']),
             h(ButtonOutline, { onClick: () => setSimplifiedForm(false) }, ['Customize'])
@@ -1262,7 +1485,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
           !!isPersistentDisk && renderPersistentDiskSection(),
-          !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+          !sparkMode && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
@@ -1279,10 +1502,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderPackages = () => {
-    return div({ style: styles.drawerContent }, [
+    return div({ style: computeStyles.drawerContent }, [
       h(TitleBar, {
         id: titleId,
-        style: styles.titleBar,
+        style: computeStyles.titleBar,
         title: 'Installed packages',
         hideCloseButton: isAnalysisMode,
         onDismiss,
@@ -1294,11 +1517,36 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     ])
   }
 
+  const renderSparkConsole = () => {
+    const { namespace, name } = getWorkspaceObject()
+
+    return div({ style: computeStyles.drawerContent }, [
+      h(TitleBar, {
+        id: titleId,
+        title: 'Spark Console',
+        style: { marginBottom: '0.5rem' },
+        hideCloseButton: isAnalysisMode,
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      p([
+        `Some of the Spark cluster components such as Apache Hadoop and Apache Spark
+         provide web interfaces. These interfaces can be used to manage and monitor cluster
+         resources and facilities, such as the YARN resource manager, the Hadoop Distributed
+         File System (HDFS), MapReduce, and Spark.`
+      ]),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.yarn, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.appHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.sparkHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.jobHistory, namespace, name, onDismiss })
+    ])
+  }
+
   const renderPersistentDiskSection = () => {
-    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       h(IdContainer, [
         id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk size (GB)']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
@@ -1324,8 +1572,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     Utils.switchCase(viewMode,
       ['packages', renderPackages],
       ['aboutPersistentDisk', renderAboutPersistentDisk],
+      ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
+      ['differentLocationWarning', renderDifferentLocationWarning],
+      ['nonUSLocationWarning', renderNonUSLocationWarning],
       ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
       [Utils.DEFAULT, renderMainForm]
     ),

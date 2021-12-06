@@ -1,19 +1,18 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -33,97 +32,59 @@ const styles = {
   }
 }
 
-// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [{
-  name: 'Access Type',
-  labels: [
-    'Controlled',
-    'Open',
-    'Pending'
-  ],
-  labelDisplays: {
-    Controlled: [
-      div({ style: { display: 'flex' } }, [
-        icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
-        div(['Controlled'])
-      ])
-    ],
-    Open: [
-      div({ style: { display: 'flex' } }, [
-        icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
-        div(['Open'])
-      ])
-    ],
-    Pending: [
-      div({ style: { display: 'flex' } }, [
-        icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
-        div(['Pending'])
-      ])
-    ]
-  }
-}, {
-  name: 'Consortium',
-  labels: [
-    '1000 Genomes',
-    'CCDG',
-    'CMG',
-    'Convergent Neuro',
-    'GTEx (v8)',
-    'HPRC',
-    'PAGE',
-    'WGSPD1',
-    'Human Cell Atlas'
-  ]
-}, {
-  name: 'Data modality',
-  labels: ['Proteomic', 'Transcriptomic', 'Epigenomic', 'Genomic']
-}, {
-  name: 'Data Type',
-  labels: ['scRNA-seq', 'snRNA-seq', 'RNA-seq', 'nuc-seq', 'N/A']
-}, {
-  name: 'File type',
-  labels: [
-    'Rds', 'Robj',
-    'bam', 'csv', 'csv.gz', 'fastq', 'fastq.gz',
-    'h5', 'h5ad', 'loom', 'mtx', 'mtx.gz', 'pdf',
-    'rds', 'rds.gz', 'tar', 'tar.gz', 'tsv',
-    'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
-  ]
-}, {
-  name: 'Disease',
-  labels: [
-    'brain cancer', 'normal', 'cardiovascular disease', 'epilepsy', 'hepatocellular carcinoma',
-    'cystic fibrosis', 'asymptomatic COVID-19 infection', 'critical COVID-19 infection', 'mild COVID-19 infection',
-    'moderate COVID-19 infection', 'severe COVID-19 infection', 'Enterococcus faecalis infection', 'Lyme disease',
-    'acoustic neuroma', 'acute kidney tubular necrosis', 'adrenal cortex adenoma', 'anxiety disorder', 'arthritis',
-    'benign prostatic hyperplasia (disease)', 'depressive disorder', 'diverticulitis', 'essential hypertension',
-    'gastroesophageal reflux disease', 'hereditary hemochromatosis', 'hiatus hernia (disease)', 'hyperlipidemia (disease)',
-    'irritable bowel syndrome', 'kidney cancer', 'non-alcoholic fatty liver disease', 'obstructive sleep apnea syndrome',
-    'pericardial effusion (disease)', 'prostate cancer', 'pure autonomic failure', 'syndromic dyslipidemia',
-    'type 2 diabetes mellitus', 'ventricular tachycardia', 'GATA2 deficiency with susceptibility to MDS/AML',
-    'colitis (disease)', 'ulcerative colitis (disease)', 'allergic asthma', 'hyperlipidemia', 'hypertensive disorder',
-    'atypical chronic myeloid leukemia', 'chronic obstructive pulmonary disease', 'lung cancer', 'measles', 'mumps infectious disease',
-    'tongue cancer', 'Warthin tumor', 'breast cancer', 'oncocytic adenoma', 'cancer', 'Crohn disease', 'cervical cancer',
-    'glaucoma (disease)', 'clear cell renal carcinoma', 'renal pelvis papillary urothelial carcinoma', 'Alzheimer disease',
-    'cognitive impairment with or without cerebellar ataxia', 'glioblastoma (disease)', 'HIV infectious disease',
-    'benign prostatic hyperplasia', 'pericardial effusion', 'type 1 diabetes mellitus', 'plasma cell myeloma', 'end stage renal failure',
-    'hemolytic-uremic syndrome', 'orofaciodigital syndrome VIII', 'asymptomatic dengue', 'multiple sclerosis', 'lupus erythematosus',
-    'melanoma (disease)', 'renal cell carcinoma (disease)', 'colorectal cancer', 'lung adenocarcinoma', 'intracranial hypertension',
-    'atopic eczema', 'psoriasis', 'pulmonary fibrosis', 'osteoarthritis, hip', 'bacterial infectious disease with sepsis',
-    'bronchopneumonia', 'heart failure', 'intestinal obstruction', 'ovarian cancer', 'rheumatoid arthritis', 'tongue squamous cell carcinoma',
-    'cataract (disease)', 'testicular cancer'
-  ]
-}, {
-  name: 'Species',
-  labels: ['Homo sapiens', 'Mus musculus']
-}]
+const getUnique = (prop, data) => _.flow(
+  _.flatMap(prop),
+  _.compact,
+  _.uniq,
+  _.sortBy(_.toLower)
+)(data)
 
+// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
+const extractCatalogFilters = dataCatalog => {
+  return [{
+    name: 'Access type',
+    labels: _.keys(snapshotAccessTypes),
+    labelRenderer: accessKey => {
+      const lowerKey = _.toLower(accessKey)
+      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
+      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+        icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+        div([snapshotAccessTypes[accessKey]])
+      ])]
+    }
+  }, {
+    name: 'Data use policy',
+    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
+    labelRenderer: rawPolicy => {
+      const { label, desc } = snapshotReleasePolicies[rawPolicy] || snapshotReleasePolicies.releasepolicy_other
+      return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
+        label ? label : rawPolicy,
+        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+      ])]
+    }
+  }, {
+    name: 'Consortium',
+    labels: getUnique('project', dataCatalog)
+  }, {
+    name: 'Data modality',
+    labels: getUnique('dataModality', dataCatalog)
+  }, {
+    name: 'Data type',
+    labels: getUnique('dataType', dataCatalog)
+  }, {
+    name: 'File type',
+    labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
+  }, {
+    name: 'Disease',
+    labels: getUnique('samples.disease', dataCatalog)
+  }, {
+    name: 'Species',
+    labels: getUnique('samples.genus', dataCatalog)
+  }]
+}
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
-  const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
-  const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
-  const fileSizeFormatted = filesize(totalBytes)
 
   return !_.isEmpty(selectedData) && div({
     style: {
@@ -136,7 +97,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
+        `${length} dataset${length > 1 ? 's' : ''} selected to be linked to a Terra Workspace`
       ]),
       h(ButtonSecondary, {
         style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
@@ -145,14 +106,13 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
-          Nav.history.push({
-            pathname: Nav.getPath('import-data'),
-            search: qs.stringify({
-              url: getConfig().dataRepoUrlRoot, snapshotId: selectedData[0]['dct:identifier'], snapshotName: selectedData[0]['dct:title'], format: 'snapshot'
-            })
+          Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:tableView`, {
+            snapshotIds: _.map('dct:identifier', selectedData),
+            snapshotName: _.map('dct:title', selectedData)
           })
+          importDataToWorkspace(selectedData)
         }
-      }, ['Save to a workspace'])
+      }, ['Link to a workspace'])
     ])
   ])
 }
@@ -188,7 +148,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   style: { marginRight: 10 },
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
-                  onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
+                  onChange: () => {
+                    Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
+                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                  }
                 }, [tag])
               ])
             }, sections[1].labels))
@@ -219,7 +182,15 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             onChange: () => toggleSelectedData(datum)
           }),
           name: h(Link,
-            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+            {
+              onClick: () => {
+                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
+                  id: datum['dct:identifier'],
+                  title: datum['dct:title']
+                })
+                Nav.goToPath('library-details', { id: datum['dct:identifier'] })
+              }
+            },
             [datum['dct:title']]
           ),
           project,
@@ -229,17 +200,17 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                ['Controlled', () => h(ButtonSecondary, {
-                  style: { height: 'unset', textTransform: 'none' },
+                [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                   onClick: () => setRequestDatasetAccessList([datum])
-                }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                ['Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+                [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
                 [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
                   icon('unlock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Open Access'])
+                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
                 ])])
             ])
           ])
@@ -263,7 +234,7 @@ const Browser = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
-      fullList: dataCatalog, sidebarSections,
+      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),

@@ -8,6 +8,7 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -15,22 +16,10 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const warningStyle = {
-  border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
-  backgroundColor: colors.warning(0.15),
-  padding: '1rem 1.25rem', margin: '0 -1.25rem',
-  fontWeight: 'bold', fontSize: 12
-}
-const errorStyle = {
-  ...warningStyle,
-  border: `1px solid ${colors.danger(0.8)}`,
-  backgroundColor: colors.danger(0.15)
-}
-
 const InfoTile = ({ isError = false, content }) => {
   const [style, shape, color] = isError ?
-    [errorStyle, 'error-standard', colors.danger()] :
-    [warningStyle, 'warning-standard', colors.warning()]
+    [Style.errorStyle, 'error-standard', colors.danger()] :
+    [Style.warningStyle, 'warning-standard', colors.warning()]
 
   return div({ style: { ...style, display: 'flex', alignItems: 'center' } }, [
     icon(shape, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
@@ -92,6 +81,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
         .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
           !!softConflicts.length)
       setCopied(true)
+      Ajax().Metrics.captureEvent(Events.workspaceDataCopy, extractWorkspaceDetails(workspace.workspace))
     } catch (error) {
       switch (error.status) {
         case 409:
@@ -155,7 +145,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
         () => displayEntities(selectedEntities, runningSubmissionsCount, false)
       ),
       div({
-        style: { ...warningStyle, textAlign: 'right', marginTop: !!hardConflicts.length ? '1rem' : undefined }
+        style: { ...Style.warningStyle, textAlign: 'right', marginTop: !!hardConflicts.length ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
       (copying || loading) && spinnerOverlay
     ])

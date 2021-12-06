@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, img, p } from 'react-hyperscript-helpers'
+import { div, h, h2, img, li, p, strong, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
@@ -21,6 +21,7 @@ import { notify } from 'src/libs/notifications'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 
 
 const styles = {
@@ -57,10 +58,25 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
   ])
 }
 
+const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
+  const { status, message } = snapshotResponses ? snapshotResponses[responseIndex] : {}
+  const [color, iconKey, children] = Utils.switchCase(status,
+    ['fulfilled', () => [colors.primary(), 'success-standard', h(Fragment, [strong(['Success: ']), 'Snapshot successfully imported'])]],
+    ['rejected', () => [colors.danger(), 'warning-standard', h(Fragment, [strong(['Error: ']), message])]],
+    [Utils.DEFAULT, () => [colors.primary(), `success-standard`]]
+  )
+
+  return h(Fragment, [
+    icon(iconKey, { size: 18, style: { position: 'absolute', left: 0, color } }),
+    title,
+    children && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, [children])
+  ])
+}
+
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -68,8 +84,20 @@ const ImportData = () => {
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
 
+  const { dataCatalog } = useDataCatalog()
+  const snapshots = _.flow(
+    _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
+    _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'], description: snapshot['dct:description'] }))
+  )(dataCatalog)
+  const [snapshotResponses, setSnapshotResponses] = useState()
+
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+  const [title, header] = Utils.cond(
+    [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
+    [isDataset, () => ['Import Data', `Dataset ${snapshotName}`]],
+    [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
+  )
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
@@ -93,8 +121,8 @@ const ImportData = () => {
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
   )(async workspace => {
-    const namespace = workspace.namespace
-    const name = workspace.name
+    const { namespace, name } = workspace
+
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
@@ -106,8 +134,40 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
-        notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
+        if (!_.isEmpty(snapshots)) {
+          const responses = await Promise.allSettled(
+            _.map(({ title, id, description }) => {
+              // Normalize the title:
+              // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
+              // Replace all whitespace characters with _
+              // Then replace all non alphanumeric characters with nothing
+              const normalizedTitle = _.flow(
+                _.replace(/\s/g, '_'),
+                _.replace(/[^A-Za-z0-9-_]/g, '')
+              )(title)
+              return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
+            }, snapshots)
+          )
+
+          if (_.some({ status: 'rejected' }, responses)) {
+            const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
+              const reasonJson = await reason?.json()
+              const { message } = JSON.parse(reasonJson?.message || '{}')
+              return { status, message }
+            }, responses))
+            setSnapshotResponses(normalizedResponses)
+
+            // Consolidate the multiple errors into a single error message
+            const numFailures = _.flow(
+              _.filter({ status: 'rejected' }),
+              _.size
+            )(normalizedResponses)
+            throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`)
+          }
+        } else {
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+          notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
+        }
       }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
@@ -119,12 +179,32 @@ const ImportData = () => {
   })
 
   return h(FooterWrapper, [
-    h(TopBar, { title: `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
+    h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
       backgroundLogo,
       div({ style: styles.card }, [
-        h2({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
-        div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+        h2({ style: styles.title }, [header]),
+        !_.isEmpty(snapshots) ?
+          div({ style: { marginTop: 20, marginBottom: 60 } }, [
+            'Dataset(s):',
+            ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
+              _.flow(
+                Utils.toIndexPairs,
+                _.map(([mapindex, { title, id }]) => li({
+                  key: `snapshot_${id}`,
+                  style: {
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    marginTop: 20,
+                    paddingTop: mapindex ? 20 : 0,
+                    borderTop: `${mapindex ? 1 : 0}px solid #AAA`
+                  }
+                }, [
+                  h(ResponseFragment, { snapshotResponses, responseIndex: mapindex, title })
+                ])))(snapshots)
+            ])
+          ]) :
+          div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
           'within a workspace of your choice where you can then perform analysis.'

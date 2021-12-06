@@ -5,7 +5,9 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
+import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -71,10 +73,22 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 export const tools = {
   RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
-  galaxy: { label: 'galaxy' }
+  jupyterTerminal: { label: 'terminal' },
+  spark: { label: 'spark' },
+  galaxy: { label: 'galaxy', appType: 'GALAXY' },
+  cromwell: { label: 'cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
 }
 
+// Returns the tools in the order that they should be displayed for Cloud Environment tools
+export const getToolsToDisplay = _.remove(tool => tool.isAppHidden)([tools.Jupyter, tools.RStudio, tools.galaxy, tools.cromwell])
+
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
+
+// Returns appType for app with given label, or undefined if tool is not an app.
+export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
+
+// Does the tool label correspond to an app?
+export const isToolAnApp = label => getAppType(label) !== undefined
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
@@ -205,7 +219,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
           )
           onSuccess()
           if (fromLauncher) {
-            Nav.goToPath('workspace-analysis-launch', {
+            Nav.goToPath(analysisLauncherTabName, {
               namespace, name: wsName, analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`, toolLabel
             })
           }

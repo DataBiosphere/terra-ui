@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -14,7 +14,15 @@ import {
   getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import {
+  analysisLauncherTabName, analysisTabName,
+  appLauncherTabName,
+  ApplicationHeader,
+  PlaygroundHeader,
+  RuntimeKicker,
+  RuntimeStatusMonitor,
+  StatusMessage
+} from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -23,7 +31,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -42,11 +50,12 @@ const AnalysisLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'analyses'),
     title: _.get('analysisName'),
-    showTabBar: false
+    showTabBar: false,
+    activeTab: analysisLauncherTabName
   })
 )(
   ({
-    queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
+    queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
     refreshRuntimes
   },
   ref) => {
@@ -55,9 +64,25 @@ const AnalysisLauncher = _.flow(
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
+    const [location, setLocation] = useState(defaultLocation)
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
     const iframeStyles = { height: '100%', width: '100%' }
+
+    useEffect(() => {
+      const loadBucketLocation = _.flow(
+        Utils.withBusyState(setBusy),
+        withErrorReporting('Error loading bucket location')
+      )(async () => {
+        const { location } = await Ajax()
+          .Workspaces
+          .workspace(namespace, name)
+          .checkBucketLocation(googleProject, bucketName)
+        setLocation(location)
+      })
+      loadBucketLocation()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [googleProject, bucketName])
 
     return h(Fragment, [
 
@@ -83,6 +108,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
@@ -217,7 +243,7 @@ const PreviewHeader = ({
   const runtimeStatus = getConvertedRuntimeStatus(runtime)
   const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
-  const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name, analysisName })
+  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
@@ -268,11 +294,9 @@ const PreviewHeader = ({
               if (currentRuntimeTool !== tools.RStudio.label) {
                 setCreateOpen(true)
               } else {
-                Nav.goToPath('workspace-application-launch', { namespace, name, application: 'RStudio' })
+                runtimeStatus === 'Running' ? Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' }) : setCreateOpen(true)
               }
-            },
-            disabled: runtimeStatus !== 'Running',
-            tooltip: runtimeStatus !== 'Running' ? 'You must have a running cloud environment.' : ''
+            }
           }, [
             makeMenuIcon('rocket'), 'Launch'
           ])
@@ -318,7 +342,7 @@ const PreviewHeader = ({
         'aria-label': 'Exit preview mode',
         style: { opacity: 0.65, marginRight: '1.5rem' },
         hover: { opacity: 1 }, focus: 'hover',
-        onClick: () => Nav.goToPath('workspace-analyses', { namespace, name })
+        onClick: () => Nav.goToPath(analysisTabName, { namespace, name })
       }, [icon('times-circle', { size: 30 })])
     ]),
     editModeDisabledOpen && h(EditModeDisabledModal, {
@@ -518,7 +542,7 @@ const AnalysisEditorFrame = ({
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-analyses', { namespace, name }),
+        onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
         details: { analysisName, name, namespace }
       })
     ]),
@@ -584,7 +608,7 @@ const WelderDisabledNotebookEditorFrame = ({
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-analyses', { namespace, name }),
+        onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
         details: { notebookName, name, namespace }
       })
     ]),
@@ -594,7 +618,7 @@ const WelderDisabledNotebookEditorFrame = ({
 
 export const navPaths = [
   {
-    name: 'workspace-analysis-launch',
+    name: analysisLauncherTabName,
     path: '/workspaces/:namespace/:name/analysis/launch/:analysisName',
     component: AnalysisLauncher,
     title: ({ name, analysisName }) => `${analysisName} - ${name}`

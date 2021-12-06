@@ -1,22 +1,33 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Select, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
+import { CromwellModalBase } from 'src/components/CromwellModal'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { analysisNameInput, analysisNameValidator, getDisplayName, getTool, notebookData, tools } from 'src/components/notebook-utils'
+import {
+  analysisNameInput,
+  analysisNameValidator,
+  getAppType,
+  getDisplayName,
+  getTool,
+  isToolAnApp,
+  notebookData,
+  tools
+} from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
+import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
+import { getCurrentAppForType, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -28,11 +39,10 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
-    analyses, workspace, persistentDisks, workspace: { workspace: { googleProject, bucketName } }
+    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
+    analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
-    const [busy, setBusy] = useState()
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [analysisName, setAnalysisName] = useState('')
     const prevAnalysisName = Utils.usePrevious(analysisName)
@@ -40,7 +50,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = getCurrentApp(apps)
+    const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
 
     const resetView = () => {
       setViewMode(undefined)
@@ -54,7 +64,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
      * step for you. Passing a viewMode is a way to force your next modal.
      */
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
-      const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
+      const app = currentApp(currentTool)
+      const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || app
 
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
@@ -75,10 +86,10 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         }],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
-          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(environmentMode)],
-          [currentTool === tools.galaxy.label && currentApp, () => {
+          [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
+          [isToolAnApp(currentTool) && !!app, () => {
             console.error(
-              'This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
+              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(app.appType)} instance when one exists; the button should be disabled.`)
             resetView()
           }]
         )]
@@ -93,7 +104,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, renderGalaxyModal]
+      [tools.galaxy.label, renderAppModal(GalaxyModalBase, tools.galaxy.label)],
+      [tools.cromwell.label, renderAppModal(CromwellModalBase, tools.cromwell.label)]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -103,38 +115,31 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       tool: currentTool,
       runtimes,
       persistentDisks,
+      location,
       onDismiss: () => {
         resetView()
         onDismiss()
       },
-      onSuccess: _.flow(
-        withErrorReporting('Error creating compute'),
-        Utils.withBusyState(setBusy)
-      )(async () => {
-        setViewMode(undefined)
-        onSuccess()
-        await refreshRuntimes(true)
-      })
+      onSuccess: () => {
+        resetView()
+        onDismiss()
+      }
     })
 
-    const renderGalaxyModal = () => h(GalaxyModalBase, {
-      isOpen: viewMode === tools.galaxy.label,
+    const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
+      isOpen: viewMode === toolLabel,
       isAnalysisMode: true,
       workspace,
       apps,
-      galaxyDataDisks,
+      appDataDisks,
       onDismiss: () => {
-        setViewMode(undefined)
+        resetView()
         onDismiss()
       },
-      onSuccess: _.flow(
-        withErrorReporting('Error creating app'),
-        Utils.withBusyState(setBusy)
-      )(async () => {
-        setViewMode(undefined)
-        onSuccess()
-        await refreshApps(true)
-      })
+      onSuccess: () => {
+        resetView()
+        onDismiss()
+      }
     })
 
     const styles = {
@@ -144,6 +149,9 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       },
       image: { verticalAlign: 'middle', height: '100%', width: '40%' }
     }
+
+    const galaxyApp = currentApp(tools.galaxy.label)
+    const cromwellApp = currentApp(tools.cromwell.label)
 
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
@@ -161,11 +169,17 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         }
       }, [img({ src: rstudioLogo, style: styles.image })]),
       div({
-        style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
+        style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
-        }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
+        }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
+      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
+      !tools.cromwell.isAppHidden && div({
+        style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
+          setCurrentTool(tools.cromwell.label)
+          enterNextViewMode(tools.cromwell.label)
+        }, disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
+      }, [img({ src: cromwellImg, style: styles.image })])
     ])
 
     const renderSelectAnalysisBody = () => div({
@@ -298,8 +312,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onPrevious: () => !!viewMode && resetView()
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
-      getView(),
-      busy && spinnerOverlay
+      getView()
     ])
 
     const modalProps = {

@@ -4,16 +4,32 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
+import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+
+const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
+  console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
+  const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
+  return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
+}
+
+const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
+  return Utils.switchCase(application,
+    [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+    [tools.spark.label, () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
+    [tools.RStudio.label, () => proxyUrl],
+    [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark or ${tools.RStudio.label}.`)]
+  )
+}
 
 const ApplicationLauncher = _.flow(
   Utils.forwardRefWithName('ApplicationLauncher'),
@@ -21,11 +37,12 @@ const ApplicationLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application'),
     activeTab: appLauncherTabName
-  })
-)(({ name: workspaceName, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
+  }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
+)(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [location, setLocation] = useState(defaultLocation)
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
@@ -55,6 +72,19 @@ const ApplicationLauncher = _.flow(
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
     })
 
+    const loadBucketLocation = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading bucket location')
+    )(async () => {
+      const { location } = await Ajax()
+        .Workspaces
+        .workspace(workspace.namespace, workspace.name)
+        .checkBucketLocation(googleProject, bucketName)
+      setLocation(location)
+    })
+
+    loadBucketLocation()
+
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
       setShouldSetupWelder(true)
@@ -76,10 +106,10 @@ const ApplicationLauncher = _.flow(
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
-          src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
+          src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
           style: {
             border: 'none', flex: 1,
-            ...(application === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })
@@ -104,6 +134,7 @@ const ApplicationLauncher = _.flow(
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),
@@ -126,9 +157,15 @@ export const navPaths = [
     component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-application-launch', { ...props, application: 'terminal' }) })
   },
   {
-    name: 'workspace-application-launch',
+    name: appLauncherTabName,
     path: '/workspaces/:namespace/:name/applications/:application',
     component: ApplicationLauncher,
     title: ({ name, application }) => `${name} - ${application}`
+  },
+  {
+    name: 'workspace-spark-interface-launch',
+    path: '/workspaces/:namespace/:name/applications/:application/:sparkInterface',
+    component: ApplicationLauncher,
+    title: ({ name, application, sparkInterface }) => `${name} - ${application} - ${sparkInterface}`
   }
 ]

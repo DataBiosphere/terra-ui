@@ -46,11 +46,11 @@ const styles = {
 }
 
 export const withDebouncedChange = WrappedComponent => {
-  const Wrapper = ({ onChange, value, ...props }) => {
+  const Wrapper = ({ onChange, value, debounceMs, ...props }) => {
     const [internalValue, setInternalValue] = useState()
     const getInternalValue = Utils.useGetter(internalValue)
     const getOnChange = Utils.useGetter(onChange)
-    const updateParent = Utils.useInstance(() => _.debounce(250, () => {
+    const updateParent = Utils.useInstance(() => _.debounce(debounceMs || 250, () => {
       getOnChange()(getInternalValue())
       setInternalValue(undefined)
     }))
@@ -230,15 +230,27 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
-  renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
+  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
+  renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
   Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
 
-  const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
+  const suggestions = _.filter(suggestionFilter(value), rawSuggestions)
+  const controlProps = itemToString ?
+    { itemToString: v => v ? itemToString(v) : value } :
+    { selectedItem: value }
+
+  const inputEl = useRef()
+  const clearSelectionRef = useRef()
+  Utils.useOnMount(() => {
+    inputEl.current?.addEventListener('search', e => {
+      !e.target.value && clearSelectionRef.current?.()
+    })
+  })
 
   return h(Downshift, {
-    selectedItem: value,
+    ...controlProps,
+    initialInputValue: value,
     onSelect: v => !!v && onPick?.(v),
     onInputValueChange: newValue => {
       if (newValue !== value) {
@@ -248,15 +260,20 @@ const withAutocomplete = WrappedComponent => ({
     inputId: id,
     labelId
   }, [
-    ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
+    ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, clearSelection, highlightedIndex }) => {
+      clearSelectionRef.current = clearSelection
       return div({
         onFocus: openOnFocus ? openMenu : undefined,
-        style: { width: '100%', display: 'inline-flex' }
+        style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' }
       }, [
+        inputIcon && icon(inputIcon, {
+          style: { transform: 'translateX(1.5rem)', alignSelf: 'center', color: colors.accent(), position: 'absolute', ...iconStyle },
+          size: 18
+        }),
         h(WrappedComponent, getInputProps({
-          style,
+          style: inputIcon ? { ...style, paddingLeft: '3rem' } : style,
           type: 'search',
-          onKeyDown: e => {
+          onKeyUp: e => {
             if (e.key === 'Escape') {
               (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal
               if (!value || isOpen) { // don't clear if blank (prevent e.g. undefined -> '') or if menu is shown
@@ -268,10 +285,15 @@ const withAutocomplete = WrappedComponent => ({
               e.nativeEvent.preventDownshiftDefault = true
             } else if (e.key === 'Enter') {
               onPick && onPick(value)
+              toggleMenu()
+            } else if (e.key === 'Backspace' && !value) {
+              clearSelection()
+              openMenu()
             }
           },
           nativeOnChange: true,
-          ...props
+          ...props,
+          ref: inputEl
         })),
         isOpen && h(AutocompleteSuggestions, {
           target: getInputProps().id,
@@ -283,7 +305,7 @@ const withAutocomplete = WrappedComponent => ({
           }, [placeholderText])]],
           [!_.isEmpty(suggestions), () => _.map(([index, item]) => {
             return div(getItemProps({
-              item, key: item,
+              item, key: index,
               style: styles.suggestion(highlightedIndex === index)
             }), [renderSuggestion(item)])
           }, Utils.toIndexPairs(suggestions))])
@@ -295,15 +317,18 @@ const withAutocomplete = WrappedComponent => ({
 
 export const AutocompleteTextInput = withAutocomplete(TextInput)
 
-export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
+export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput)
+
+export const TextArea = Utils.forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
   Utils.useLabelAssert('TextArea', { ...props, allowId: true })
 
   return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
+    ref,
     className: 'focus-style',
     style: styles.textarea,
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
-}
+})
 
 /**
  * A TextArea that provides visual and textual indications when the content is invalid.

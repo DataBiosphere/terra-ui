@@ -9,7 +9,9 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
+import { tools } from 'src/components/notebook-utils'
+import { getRegionInfo } from 'src/components/region-common'
+import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
@@ -23,9 +25,9 @@ import {
   appIsSettingUp,
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentApp,
+  getCurrentAppForType,
   getCurrentRuntime,
-  persistentDiskCost,
+  getPersistentDiskCostHourly,
   runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
@@ -174,7 +176,7 @@ export default class RuntimeManager extends PureComponent {
     refreshRuntimes: PropTypes.func.isRequired,
     workspace: PropTypes.object,
     apps: PropTypes.array,
-    galaxyDataDisks: PropTypes.array
+    appDataDisks: PropTypes.array
   }
 
   constructor(props) {
@@ -194,9 +196,9 @@ export default class RuntimeManager extends PureComponent {
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(runtime.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
-    const rStudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
-    const app = getCurrentApp(apps)
-    const prevApp = getCurrentApp(prevProps.apps)
+    const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
+    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
+    const prevGalaxyApp = getCurrentAppForType(tools.galaxy.appType)(prevProps.apps)
 
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -229,21 +231,21 @@ export default class RuntimeManager extends PureComponent {
     } else if (runtime.status === 'Running' && prevRuntime.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
     }
-    if (prevApp && prevApp.status !== 'RUNNING' && app?.status === 'RUNNING') {
+    if (prevGalaxyApp && prevGalaxyApp.status !== 'RUNNING' && galaxyApp?.status === 'RUNNING') {
       const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
         message: h(Fragment, [
           h(GalaxyWarning),
           h(GalaxyLaunchButton, {
-            app,
+            app: galaxyApp,
             onClick: () => clearNotification(galaxyId)
           })
         ])
       })
-    } else if (app?.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
+    } else if (galaxyApp?.status === 'ERROR' && !_.includes(galaxyApp.appName, errorNotifiedApps.get())) {
       notify('error', 'Error Creating Galaxy App', {
-        message: h(AppErrorNotification, { app })
+        message: h(AppErrorNotification, { app: galaxyApp })
       })
-      errorNotifiedApps.update(Utils.append(app.appName))
+      errorNotifiedApps.update(Utils.append(galaxyApp.appName))
     }
   }
 
@@ -285,8 +287,9 @@ export default class RuntimeManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, appDataDisks, refreshApps, location, locationType, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
+    const { computeRegion } = getRegionInfo(location, locationType)
     if (!runtimes || !apps) {
       return null
     }
@@ -336,7 +339,8 @@ export default class RuntimeManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
+
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, activeRuntimes)
@@ -344,17 +348,17 @@ export default class RuntimeManager extends PureComponent {
 
     const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
     const applicationName = isRStudioImage ? 'RStudio' : 'terminal'
-    const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: applicationName })
+    const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: applicationName })
 
-    const app = getCurrentApp(apps)
+    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
 
     return h(Fragment, [
-      app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
+      galaxyApp && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
           'aria-label': 'Galaxy clickable',
           style: { display: 'flex' },
-          disabled: appIsSettingUp(app),
-          tooltip: appIsSettingUp(app) ?
+          disabled: appIsSettingUp(galaxyApp),
+          tooltip: appIsSettingUp(galaxyApp) ?
             'Galaxy app is being created' :
             'View cloud environment',
           onClick: () => {
@@ -364,7 +368,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10 } }, [getComputeStatusForDisplay(app.status)])
+            div({ style: { fontSize: 10 } }, [getComputeStatusForDisplay(galaxyApp.status)])
           ])
         ])
       ]),
@@ -414,6 +418,7 @@ export default class RuntimeManager extends PureComponent {
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => this.setState({ createModalDrawerOpen: false }),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),
@@ -426,7 +431,7 @@ export default class RuntimeManager extends PureComponent {
         h(GalaxyModal, {
           workspace,
           apps,
-          galaxyDataDisks,
+          appDataDisks,
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {

@@ -119,6 +119,7 @@ const ToolDrawer = _.flow(
           const cohortName = _.values(selectedEntities)[0].name
           const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
           await Buckets.notebook(googleProject, bucketName, notebookName).create(JSON.parse(contents))
+          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, extractWorkspaceDetails(workspace.workspace))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
         onDismiss: () => setToolMode(undefined),
@@ -146,7 +147,10 @@ const ToolDrawer = _.flow(
               text: 'Workflow'
             }),
             h(ModalToolButton, {
-              onClick: !openDataExplorerInSameTab ? onDismiss : undefined,
+              onClick: () => {
+                Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithDataExplorer, extractWorkspaceDetails(workspace.workspace))
+                !openDataExplorerInSameTab && onDismiss()
+              },
               href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
               ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
               disabled: !dataExplorerButtonEnabled,
@@ -206,7 +210,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName
+  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -328,7 +332,7 @@ const EntitiesContent = ({
             isSet ?
               FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
               ...extractWorkspaceDetails(workspace.workspace),
               downloadFrom: 'table data',
               fileType: '.tsv'
@@ -383,7 +387,8 @@ const EntitiesContent = ({
             style: { marginRight: '0.5rem' }
           }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
-        ])
+        ]),
+        deleteColumnUpdateMetadata
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),
@@ -391,6 +396,7 @@ const EntitiesContent = ({
           setDeletingEntities(false)
           setSelectedEntities({})
           setRefreshKey(_.add(1))
+          Ajax().Metrics.captureEvent(Events.workspaceDataDelete, extractWorkspaceDetails(workspace.workspace))
           loadMetadata()
         },
         namespace, name,
@@ -409,6 +415,7 @@ const EntitiesContent = ({
           setShowToolSelector(false)
           setIgvFiles(selectedFiles)
           setIgvRefGenome(refGenome)
+          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithIGV, extractWorkspaceDetails(workspace.workspace))
         },
         entityMetadata,
         entityKey,

@@ -236,6 +236,11 @@ const User = signal => ({
     }
   },
 
+  getTos: async () => {
+    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
+    return response.text()
+  },
+
   acceptTos: async () => {
     await fetchOk(
       `${getConfig().tosUrlRoot}/user/response`,
@@ -443,6 +448,12 @@ const Billing = signal => ({
     return res.json()
   },
 
+  getProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }))
+    return res.json()
+  },
+
   listAccounts: async () => {
     const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
     return res.json()
@@ -463,6 +474,12 @@ const Billing = signal => ({
     return res
   },
 
+  removeBillingAccount: async ({ billingProjectName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+      _.merge(authOpts(), { signal, method: 'DELETE' }))
+    return res
+  },
+
   updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
     const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
       _.mergeAll([
@@ -472,43 +489,34 @@ const Billing = signal => ({
     return res
   },
 
-  billingProject: async projectName => {
-    const route = `billing/v2/${projectName}`
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }))
+  listProjectUsers: async projectName => {
+    const res = await fetchRawls(`billing/v2/${projectName}/members`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
-  project: projectName => {
-    const root = `billing/v2/${projectName}/members`
+  addProjectUser: (projectName, roles, email) => {
+    const addRole = role => fetchRawls(
+      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
+      _.merge(authOpts(), { signal, method: 'PUT' })
+    )
 
-    const removeRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    }
+    return Promise.all(_.map(addRole, roles))
+  },
 
-    const addRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
-    }
+  removeProjectUser: (projectName, roles, email) => {
+    const removeRole = role => fetchRawls(
+      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
+      _.merge(authOpts(), { signal, method: 'DELETE' })
+    )
 
-    return {
-      listUsers: async () => {
-        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
+    return Promise.all(_.map(removeRole, roles))
+  },
 
-      addUser: (roles, email) => {
-        return Promise.all(_.map(role => addRole(role, email), roles))
-      },
-
-      removeUser: (roles, email) => {
-        return Promise.all(_.map(role => removeRole(role, email), roles))
-      },
-
-      changeUserRoles: async (email, oldRoles, newRoles) => {
-        if (!_.isEqual(oldRoles, newRoles)) {
-          await Promise.all(_.map(role => addRole(role, email), _.difference(newRoles, oldRoles)))
-          return Promise.all(_.map(role => removeRole(role, email), _.difference(oldRoles, newRoles)))
-        }
-      }
+  changeUserRoles: async (projectName, email, oldRoles, newRoles) => {
+    const billing = Billing()
+    if (!_.isEqual(oldRoles, newRoles)) {
+      await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
+      return billing.removeProjectUser(projectName, _.difference(oldRoles, newRoles), email)
     }
   }
 })
@@ -794,6 +802,10 @@ const Workspaces = signal => ({
           { signal, method: 'PATCH' }]))
       },
 
+      deleteEntityColumn: (type, attributeName) => {
+        return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
+      },
+
       upsertEntities,
 
       paginatedEntitiesOfType: async (type, parameters) => {
@@ -867,8 +879,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importSnapshot: async (snapshotId, name) => {
-        const res = await fetchRawls(`${root}/snapshots`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name }), { signal, method: 'POST' }]))
+      importSnapshot: async (snapshotId, name, description) => {
+        const res = await fetchRawls(`${root}/snapshots/v2`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name, description }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -1204,19 +1216,6 @@ const GoogleBilling = signal => ({
     const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
     const json = await response.json()
     return _.map('projectId', json.projectBillingInfo)
-  },
-  getBillingInfo: async project => {
-    const response = await fetchGoogleBilling(`projects/${project}/billingInfo`, _.merge(authOpts(), { signal }))
-    return response.json()
-  },
-  changeBillingAccount: async ({ projectId, newAccountName }) => {
-    const name = `projects/${projectId}/billingInfo`
-    const response = await fetchGoogleBilling(name,
-      _.mergeAll([
-        authOpts(), { signal, method: 'PUT' },
-        jsonBody({ billingEnabled: true, billingAccountName: newAccountName, name, projectId })
-      ]))
-    return response.json()
   }
 })
 
@@ -1433,7 +1432,7 @@ const Apps = signal => ({
             name: diskName,
             size: diskSize,
             labels: {
-              saturnApplication: 'galaxy',
+              saturnApplication: appType,
               saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }

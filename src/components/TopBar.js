@@ -17,7 +17,7 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { getConfig, isBaseline, isBioDataCatalyst, isDataBrowserVisible, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo, versionTag } from 'src/libs/logos'
@@ -220,6 +220,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: Nav.getLink('library-showcase'),
               onClick: hideNav
             }, ['Showcase']),
+            isDataBrowserVisible() && h(DropDownSubItem, {
+              href: Nav.getLink('library-browser'),
+              onClick: hideNav
+            }, ['Catalog']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: hideNav

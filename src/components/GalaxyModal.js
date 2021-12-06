@@ -5,30 +5,23 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverl
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { tools } from 'src/components/notebook-utils'
 import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentAttachedDataDisk, currentPersistentDisk, findMachineType, getCurrentApp, getGalaxyComputeCost,
+  computeStyles,
+  currentAttachedDataDisk, currentGalaxyPersistentDisk, findMachineType, getCurrentAppForType, getGalaxyComputeCost,
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-// TODO Factor out common pieces with ComputeModal.styles into runtime-utils
-const styles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  value: { fontWeight: 400, whiteSpace: 'pre' },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  headerText: { fontSize: 16, fontWeight: 600 },
-  warningView: { backgroundColor: colors.warning(0.1) }
-}
 
 const defaultDataDiskSize = 500 // GB
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
@@ -40,12 +33,12 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentApp(apps)
-    const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+    const app = getCurrentAppForType(tools.galaxy.appType)(apps)
+    const attachedDataDisk = currentAttachedDataDisk(app, appDataDisks)
 
     const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
@@ -53,15 +46,15 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
+    const currentDataDisk = currentGalaxyPersistentDisk(apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error creating app')
+      withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
-      await Ajax().Apps.app(googleProject, Utils.generateGalaxyAppName()).create({
+      await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
-        appType: 'GALAXY', namespace, bucketName, workspaceName
+        appType: tools.galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
@@ -69,7 +62,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const deleteGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error deleting galaxy instance')
+      withErrorReportingInModal('Error deleting galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
       Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -78,7 +71,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const pauseGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error stopping galaxy instance')
+      withErrorReportingInModal('Error stopping galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).pause()
       Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -87,7 +80,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const resumeGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error starting galaxy instance')
+      withErrorReportingInModal('Error starting galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).resume()
       Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -156,7 +149,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     }
 
     const renderCreateWarning = () => {
-      return div({ style: styles.drawerContent }, [
+      return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
           title: 'Cloud Environment',
@@ -166,11 +159,11 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
           onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
         }),
         div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
-        div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
+        div({ style: { ...computeStyles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
           div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
             span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clockSolid', { size: 25, color: colors.accent() })]),
             div([
-              div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
+              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
               div({ style: { lineHeight: 1.5 } }, [
                 div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
                 div(['You can navigate away, and we will notify you when it\'s ready. '])
@@ -180,7 +173,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
           div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
             span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
             div([
-              div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
+              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
               div({ style: { lineHeight: 1.5 } }, [
                 div(['Please pause or delete the cloud environment when finished; it will']),
                 div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
@@ -194,7 +187,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
           div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
             span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
             div([
-              div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
+              div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
               div({ style: { lineHeight: 1.5 } }, [
                 div(['If you would like to update your compute or disk configuration']),
                 div(['after an environment is created, please delete the environment and']),
@@ -209,9 +202,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
       ])
     }
 
-
     const renderLaunchWarning = () => {
-      return div({ style: styles.drawerContent }, [
+      return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
           title: h(WarningTitle, ['Launch Galaxy']),
@@ -261,7 +253,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
         }
       }, [
         _.map(({ cost, label, unitLabel }) => {
-          return div({ key: label, style: { flex: 1, ...styles.label } }, [
+          return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
             div({ style: { fontSize: 10 } }, [label]),
             div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
               span({ style: { fontSize: 20 } }, [cost]),
@@ -278,8 +270,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const renderComputeProfileSection = () => {
       const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '2rem', alignItems: 'center' }
-      return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div({ style: styles.headerText }, ['Cloud compute profile']),
+      return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div({ style: computeStyles.headerText }, ['Cloud compute profile']),
         div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
           h(MachineSelector, { value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
         ])
@@ -287,8 +279,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     }
 
     const renderPersistentDiskSection = () => {
-      return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div({ style: styles.headerText }, ['Persistent disk']),
+      return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div({ style: computeStyles.headerText }, ['Persistent disk']),
         div({ style: { marginTop: '0.5rem' } }, [
           'Persistent disks store analysis data. ',
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
@@ -306,7 +298,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
         [currentDataDisk, () => {
           return h(Fragment, [
             div({ style: { ...gridStyle, marginTop: '0.5rem' } }, [
-              div({ style: styles.label }, ['Size (GB): ']), h(TooltipTrigger,
+              div({ style: computeStyles.label }, ['Size (GB): ']), h(TooltipTrigger,
                 { content: ['Persistent disk of size ', currentDataDisk.size, ' GB already exists and will be attached upon Galaxy creation'] }, [
                   div([currentDataDisk.size])
                 ])
@@ -317,7 +309,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
           return div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
+                label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
                 div([
                   h(NumberInput, {
                     id,
@@ -338,10 +330,10 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     }
 
     const renderDeleteDiskChoices = () => {
-      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+      return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
         h(TitleBar, {
           id: titleId,
-          style: styles.titleBar,
+          style: computeStyles.titleBar,
           hideCloseButton: isAnalysisMode,
           title: h(WarningTitle, ['Delete environment options']),
           onDismiss,
@@ -392,7 +384,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     }
 
     const renderDefaultCase = () => {
-      return div({ style: styles.drawerContent }, [
+      return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
           title: 'Cloud Environment',
@@ -407,10 +399,10 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
         div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
           renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDiskSize)
         ]),
-        div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([
-            div({ style: styles.headerText }, ['Application configuration']),
-            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 21.05']),
+            div({ style: computeStyles.headerText }, ['Application configuration']),
+            div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 21.09']),
             h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
               'Learn more about Galaxy interactive environments',
               icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })
@@ -437,7 +429,7 @@ const MachineSelector = ({ value, onChange }) => {
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Nodes']),
+        label({ htmlFor: id, style: computeStyles.label }, ['Nodes']),
         div([
           h(NumberInput, {
             id,
@@ -453,7 +445,7 @@ const MachineSelector = ({ value, onChange }) => {
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['CPUs']),
+        label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
         div([
           h(Select, {
             id,
@@ -470,7 +462,7 @@ const MachineSelector = ({ value, onChange }) => {
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+        label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
         div([
           h(Select, {
             id,

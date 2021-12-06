@@ -2,16 +2,27 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
+import { tools } from 'src/components/notebook-utils'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const defaultDataprocDiskSize = 80 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
-export const defaultGceBootDiskSize = 80 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+export const computeStyles = {
+  label: { fontWeight: 600, whiteSpace: 'pre' },
+  value: { fontWeight: 400, whiteSpace: 'pre' },
+  titleBar: { marginBottom: '1rem' },
+  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
+  headerText: { fontSize: 16, fontWeight: 600 },
+  warningView: { backgroundColor: colors.warning(0.1) }
+}
+
+export const defaultDataprocDiskSize = 100 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
 
 export const defaultGceMachineType = 'n1-standard-1'
@@ -22,16 +33,31 @@ export const defaultNumDataprocPreemptibleWorkers = 0
 export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
+export const defaultLocation = 'US'
+
+export const defaultComputeZone = 'US-CENTRAL1-A'
+export const defaultComputeRegion = 'US-CENTRAL1'
+
 export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
 
+// GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
+export const getRegionFromZone = zone => zone.slice(0, -2)
+
+export const normalizeComputeRegion = (region, zone) => Utils.cond(
+  // The config that is returned by Leonardo is in lowercase, but GCP returns regions in uppercase.
+  // PF-692 will have Leonardo return locations in uppercase.
+  [!!region, () => region.toUpperCase()],
+  [!!zone, () => getRegionFromZone(zone).toUpperCase()],
+  [Utils.DEFAULT, () => defaultComputeRegion]
+)
+
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
-  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize
+  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, region, zone
 }) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
-
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
@@ -43,7 +69,8 @@ export const normalizeRuntimeConfig = ({
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
-    bootDiskSize: bootDiskSize || defaultGceBootDiskSize
+    bootDiskSize: bootDiskSize || defaultGceBootDiskSize,
+    computeRegion: normalizeComputeRegion(region, zone)
   }
 }
 
@@ -51,12 +78,15 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-export const getValidGpuTypes = (numCpus, mem) => {
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => numCpus <= maxNumCpus && mem <= maxMem, gpuTypes)
-  return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
+export const getValidGpuTypesForZone = zone => {
+  return _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
 }
 
-const gpuCost = (gpuType, numGpus) => _.find({ type: gpuType, numGpus }, gpuTypes)?.price || NaN
+export const getValidGpuTypes = (numCpus, mem, zone) => {
+  const validGpuTypesForZone = getValidGpuTypesForZone(zone)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type), gpuTypes)
+  return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
+}
 
 const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
@@ -64,26 +94,43 @@ const dataprocCost = (machineType, numInstances) => {
   return cpuPrice * numInstances * dataprocCpuPrice
 }
 
+const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
+  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes)
+  const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
+    regionToPrices)
+  return isPreemptible ?
+    (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice) :
+    (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice)
+}
+
+const getGpuCost = (gpuType, numGpus, region) => {
+  const prices = _.find({ name: region }, regionToPrices)
+  // From a type like 'nvidia-tesla-t4', look up 't4HourlyPrice' in prices
+  const price = prices[`${_.last(_.split('-', gpuType))}HourlyPrice`]
+  return price * numGpus
+}
+
 export const runtimeConfigBaseCost = config => {
   const {
-    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
+    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
   } = normalizeRuntimeConfig(config)
 
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * storagePrice)
+      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion))
   ])
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
+  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
     config)
-  const { price: masterPrice } = findMachineType(masterMachineType)
-  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
+  const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion, false)
+  const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion, false)
+  const preemptiblePrice = getHourlyCostForMachineType(workerMachineType, computeRegion, true)
   const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
   const gpuConfig = config?.gpuConfig
   const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig
@@ -92,19 +139,29 @@ export const runtimeConfigCost = config => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
+    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
-    gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
+    gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
     runtimeConfigBaseCost(config)
   ])
 }
 
-const generateDiskCostFunction = price => ({ size, status }) => {
+// Per GB following https://cloud.google.com/compute/pricing
+const getPersistentDiskPriceForRegionMonthly = computeRegion => {
+  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToPrices)
+}
+const numberOfHoursPerMonth = 730
+const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth
+
+export const getPersistentDiskCostMonthly = ({ size, status }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionMonthly(computeRegion)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
-export const persistentDiskCost = generateDiskCostFunction(storagePrice)
-export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
+export const getPersistentDiskCostHourly = ({ size, status }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionHourly(computeRegion)
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
+}
 
 const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) => {
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
@@ -123,6 +180,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
+export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
+
 export const getGalaxyCost = (app, dataDiskSize) => {
   return getGalaxyDiskCost(dataDiskSize) + getGalaxyComputeCost(app)
 }
@@ -136,11 +195,13 @@ export const getGalaxyCost = (app, dataDiskSize) => {
  */
 export const getGalaxyComputeCost = app => {
   const appStatus = app?.status?.toUpperCase()
-  const defaultNodepoolComputeCost = machineCost('n1-standard-1')
+  // Galaxy uses defaultComputeRegion because we're not yet enabling other locations for Galaxy apps.
+  const defaultNodepoolComputeCost = getHourlyCostForMachineType(defaultGceMachineType, defaultComputeRegion, false)
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost
-  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
+  const dynamicCost = app.kubernetesRuntimeConfig.numNodes *
+    getHourlyCostForMachineType(app.kubernetesRuntimeConfig.machineType, defaultComputeRegion, false) +
     ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
 
   switch (appStatus) {
@@ -164,10 +225,10 @@ export const getGalaxyDiskCost = dataDiskSize => {
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
-  return persistentDiskCost({
+  return getPersistentDiskCostHourly({
     status: 'Running',
     size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
-  })
+  }, defaultComputeRegion)
 }
 
 export const trimRuntimesOldestFirst = _.flow(
@@ -185,42 +246,38 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
-export const machineCost = machineType => {
-  return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
-}
+export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(app => app.appType === appType), _.last)
 
-export const getCurrentApp = _.flow(trimAppsOldestFirst, _.last)
+export const currentAppIncludingDeleting = appType => _.flow(_.filter(app => app.appType === appType), _.sortBy('auditInfo.createdDate'), _.last)
 
-export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
-
-export const currentAttachedDataDisk = (app, galaxyDataDisks) => {
-  return _.find({ name: app?.diskName }, galaxyDataDisks)
+export const currentAttachedDataDisk = (app, appDataDisks) => {
+  return _.find({ name: app?.diskName }, appDataDisks)
 }
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentPersistentDisk = (apps, galaxyDataDisks) => {
+export const currentGalaxyPersistentDisk = (apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
   const currentDataDiskName = currentGalaxyApp?.diskName
   const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
   // return the newest galaxy disk that the user has unattached to an app
   return currentDataDiskName ?
-    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
+    _.find({ name: currentDataDiskName }, appDataDisks) :
     _.last(_.sortBy('auditInfo.createdDate',
-      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), appDataDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
-export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
-  const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+export const getGalaxyCostTextChildren = (app, appDataDisks) => {
+  const dataDisk = currentAttachedDataDisk(app, appDataDisks)
   return app ?
     [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
@@ -260,6 +317,7 @@ export const displayNameForGpuType = type => {
     ['nvidia-tesla-k80', () => 'NVIDIA Tesla K80'],
     ['nvidia-tesla-p4', () => 'NVIDIA Tesla P4'],
     ['nvidia-tesla-v100', () => 'NVIDIA Tesla V100'],
+    ['nvidia-tesla-p100', () => 'NVIDIA Tesla P100'],
     [Utils.DEFAULT, () => 'NVIDIA Tesla T4']
   )
 }
@@ -285,5 +343,8 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
 }
 
 export const getIsAppBusy = app => app?.status !== 'RUNNING' && _.includes('ING', app?.status)
-export const getIsRuntimeBusy = runtime => runtime?.status !== 'Running' && _.includes('ing', runtime?.status)
+export const getIsRuntimeBusy = runtime => {
+  const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, [runtime])
+  return creating || updating || reconfiguring
+}
 
