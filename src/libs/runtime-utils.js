@@ -21,7 +21,8 @@ export const computeStyles = {
   warningView: { backgroundColor: colors.warning(0.1) }
 }
 
-export const defaultDataprocDiskSize = 100 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultDataprocMasterDiskSize = 100 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultDataprocWorkerDiskSize = 150 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
 export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
 
@@ -61,11 +62,11 @@ export const normalizeRuntimeConfig = ({
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
+    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || defaultDataprocDiskSize,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || defaultDataprocWorkerDiskSize,
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
