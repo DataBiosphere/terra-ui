@@ -57,6 +57,12 @@ const normalizeSnapshot = snapshot => {
     _.uniqBy(_.toLower)
   )(snapshot['prov:wasGeneratedBy'])
 
+  //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
+  if (snapshot['dct:title'].length % 2 === 0) {
+    snapshot.roles = ['discoverer']
+    snapshot['TerraDCAT_ap:hasDataUsePermission'] = 'TerraCore:CC'
+  }
+
   const dataReleasePolicy = _.has(snapshot['TerraDCAT_ap:hasDataUsePermission'], snapshotReleasePolicies) ?
     { ...snapshotReleasePolicies[snapshot['TerraDCAT_ap:hasDataUsePermission']], policy: snapshot['TerraDCAT_ap:hasDataUsePermission'] } :
     {
