@@ -242,17 +242,27 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
               },
               ...Utils.newTabLinkProps
-            }, ['Tutorials and Videos']),
+            }, ['Quickstart Guide']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/hc/en-us',
+              href: 'https://support.terra.bio/',
               onClick: hideNav,
               ...Utils.newTabLinkProps
-            }, ['How-to Guides']),
+            }, ['Terra Support Home']),
             isBaseline() && h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/sections/360010495892-Baseline',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Baseline Documentation']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/4408259082139-Tutorials',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Tutorials']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/4408259363739',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Videos']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
               onClick: hideNav,
@@ -275,7 +285,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               }
             }, ['Contact Us']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/hc/en-us/sections/360003424251-Release-Notes',
+              href: 'https://support.terra.bio/hc/en-us/sections/4408360527259',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Release Notes'])
