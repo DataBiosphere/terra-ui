@@ -19,11 +19,6 @@ const styles = {
       color: colors.accent(),
       height: '1rem',
       textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
-    },
-    row: {
-      backgroundColor: '#ffffff',
-      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
-      margin: '0 -1rem 1rem', padding: '1rem'
     }
   }
 }
