@@ -32,9 +32,11 @@ const DataBrowserPreview = ({ id }) => {
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const snapshot = dataMap[id]
   const [tables, setTables] = useState()
-  const [tableMap, setTableMap] = useState()
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
+
+  const tableMap = _.keyBy('name', tables)
+  const tableNames = _.map('name', tables)
 
   const selectTable = ({ value }) => {
     const loadTable = _.flow(
@@ -54,8 +56,7 @@ const DataBrowserPreview = ({ id }) => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
-      setTableMap(_.keyBy('name', metadata.tables))
-      setTables(_.map('name', metadata.tables))
+      setTables(metadata.tables)
       selectTable({ value: metadata.tables[0].name })
     }
     loadData()
@@ -78,7 +79,7 @@ const DataBrowserPreview = ({ id }) => {
             value: selectedTable,
             getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 ? ' (0 Rows)' : ''}`,
             onChange: ({ value }) => selectTable({ value }),
-            options: tables
+            options: tableNames
           }),
           loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
