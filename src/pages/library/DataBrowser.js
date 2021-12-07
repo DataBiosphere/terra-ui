@@ -18,7 +18,7 @@ import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-export const acknowledgmentStore = staticStorageSlot(localStorage, `catalog-beta-acknowledgment-${getUser().id}`)
+export const acknowledgmentStore = staticStorageSlot(localStorage, 'catalog-beta-acknowledgment')
 
 const styles = {
   ...commonStyles,
@@ -225,13 +225,14 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
-  const acknowledged = Utils.useStore(acknowledgmentStore)
+  const acknowledged = Utils.useStore(acknowledgmentStore) || {}
+  const { user: { id } } = Utils.useStore(authStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
-    !acknowledged && div({
+    !acknowledged[id] && div({
       style: {
         border: `1px solid ${colors.accent()}`, borderRadius: 3,
         backgroundColor: 'rgba(0,0,0,.1)',
@@ -246,7 +247,7 @@ const Browser = () => {
       ]),
       h(ButtonPrimary, {
         style: { minWidth: 88, minHeight: 40 },
-        onClick: () => acknowledgmentStore.set(true)
+        onClick: () => acknowledgmentStore.set({ [id]: true })
       }, ['OK'])
     ]),
     h(SearchAndFilterComponent, {
