@@ -41,7 +41,7 @@ export const getStatic = (storage, key) => {
  *
  * See also `staticStorageSlot`, which can be passed to the `useStore` hook function.
  *
- * @param storage either `localStorage` or `sessionStorage`
+ * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
  * @param key the key for storing the value
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key.
  */
@@ -73,7 +73,7 @@ export const getDynamic = (storage, key) => {
  * Dynamic storage will be automatically deleted in the case of space overflow, deleting oldest stored
  * data first. If your storage usage is not transient, instead use `setStatic`.
  *
- * @param storage either `localStorage` or `sessionStorage`
+ * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
  * @param key the key for storing the value. Note that it will be prefixed by a value to allow separating
  * static from dynamic storage.
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key
@@ -98,12 +98,15 @@ export const listenDynamic = (storage, key, fn) => {
 }
 
 /**
- * Returns a stateful object that manages the given storage location.
  * Implements the Store interface, and can be passed to useStore.
  *
  * Note that this method will use static storage, meaning that it will not
  * automatically be deleted in the case of space overflow. If the data you are using
  * is transient, consider using `setDynamic` instead.
+ *
+ * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
+ * @param key the key for storing the value
+ * @returns stateful object that manages the given storage location
  */
 export const staticStorageSlot = (storage, key) => {
   const { subscribe, next } = subscribable()
