@@ -119,7 +119,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
-        setBucketLocation(isUSLocation(location) || location === montrealRegion ? location : defaultLocation)
+        setBucketLocation(isUSLocation(location) || _.eq(montrealRegion, location) ? location : defaultLocation)
         setSourceWorkspaceLocation(location)
       })
   ]))
