@@ -56,7 +56,7 @@ const DataBrowserPreview = ({ id }) => {
       const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
       setTableMap(_.keyBy('name', metadata.tables))
       setTables(_.map('name', metadata.tables))
-      selectTable({ id, value: metadata.tables[0].name, setSelectedTable, setPreviewData, loading, setLoading, signal })
+      selectTable({ value: metadata.tables[0].name })
     }
     loadData()
   })
@@ -77,7 +77,7 @@ const DataBrowserPreview = ({ id }) => {
             isClearable: false,
             value: selectedTable,
             getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 ? ' (0 Rows)' : ''}`,
-            onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, loading, setLoading, signal }),
+            onChange: ({ value }) => selectTable({ value }),
             options: tables
           }),
           loading && spinner({ style: { marginLeft: '1rem' } })
