@@ -7,7 +7,8 @@ import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
-import { getDynamic, setDynamic } from 'src/libs/browser-storage'
+import { getUser } from 'src/libs/auth'
+import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -17,7 +18,7 @@ import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-const acknowledgmentStorageKey = `catalog-beta-acknowledgment`
+export const acknowledgmentStore = staticStorageSlot(localStorage, `catalog-beta-acknowledgment-${getUser().id}`)
 
 const styles = {
   ...commonStyles,
@@ -224,7 +225,7 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
-  const [acknowledged, setAcknowledged] = useState(getDynamic(localStorage, acknowledgmentStorageKey))
+  const acknowledged = Utils.useStore(acknowledgmentStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
@@ -245,10 +246,7 @@ const Browser = () => {
       ]),
       h(ButtonPrimary, {
         style: { minWidth: 88, minHeight: 40 },
-        onClick: () => {
-          setAcknowledged(true)
-          setDynamic(localStorage, acknowledgmentStorageKey, true)
-        }
+        onClick: () => acknowledgmentStore.set(true)
       }, ['OK'])
     ]),
     h(SearchAndFilterComponent, {
