@@ -24,23 +24,6 @@ const styles = {
 }
 
 const activeTab = 'browse & explore'
-let metadata
-let tableMap
-
-const selectTable = ({ id, value, signal, setSelectedTable, setPreviewData, loading, setLoading }) => {
-  const loadTable = _.flow(
-    Utils.withBusyState(setLoading),
-    withErrorReporting('Error loading table')
-  )(async () => {
-    setSelectedTable(value)
-    const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({
-      id, limit: 50, offset: 0,
-      table: value
-    })
-    setPreviewData(previewTableData?.result || [])
-  })
-  loadTable()
-}
 
 const DataBrowserPreview = ({ id }) => {
   const signal = Utils.useCancellation()
@@ -49,13 +32,29 @@ const DataBrowserPreview = ({ id }) => {
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const snapshot = dataMap[id]
   const [tables, setTables] = useState()
+  const [tableMap, setTableMap] = useState()
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
 
+  const selectTable = ({ value }) => {
+    const loadTable = _.flow(
+      Utils.withBusyState(setLoading),
+      withErrorReporting('Error loading table')
+    )(async () => {
+      setSelectedTable(value)
+      const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({
+        id, limit: 50, offset: 0,
+        table: value
+      })
+      setPreviewData(previewTableData?.result || [])
+    })
+    loadTable()
+  }
+
   Utils.useOnMount(() => {
     const loadData = async () => {
-      metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
-      tableMap = _.keyBy('name', metadata.tables)
+      const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
+      setTableMap(_.keyBy('name', metadata.tables))
       setTables(_.map('name', metadata.tables))
       selectTable({ id, value: metadata.tables[0].name, setSelectedTable, setPreviewData, loading, setLoading, signal })
     }
@@ -67,7 +66,7 @@ const DataBrowserPreview = ({ id }) => {
     !snapshot ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: 26 } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']])
         ]),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
