@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { maybeParseJSON, subscribable } from 'src/libs/utils'
 
 
-/*
+/**
  * This library provides a higher level interface on top of localStorage and sessionStorage.
  * Values must be JSON-serializable. The 'dynamic' version is preferred if possible, but dynamic
  * values might be deleted in case of space overflow. For critical data, use the 'static' version.
