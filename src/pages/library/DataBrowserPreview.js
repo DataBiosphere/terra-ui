@@ -67,7 +67,7 @@ const DataBrowserPreview = ({ id }) => {
     !snapshot ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: 26 } }, [
           h1([snapshot['dct:title']])
         ]),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
@@ -77,7 +77,7 @@ const DataBrowserPreview = ({ id }) => {
             isSearchable: true,
             isClearable: false,
             value: selectedTable,
-            getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 && ' (0 Rows)'}`,
+            getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 ? ' (0 Rows)' : ''}`,
             onChange: ({ value }) => selectTable({ id, value, setSelectedTable, setPreviewData, loading, setLoading, signal }),
             options: tables
           }),
@@ -104,6 +104,5 @@ export const navPaths = [{
   name: 'library-catalog-preview',
   path: '/library/browser/:id/preview',
   component: DataBrowserPreview,
-  title: ({ id }) => `Catalog - Dataset Preview`,
-  public: false
+  title: ({ id }) => `Catalog - Dataset Preview`
 }]
