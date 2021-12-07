@@ -366,7 +366,7 @@ const Environments = () => {
               const region = cloudEnvironment?.runtimeConfig?.region
               // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
               // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
-              return zone || region || defaultComputeZone
+              return zone || region || defaultComputeZone.toLowerCase()
             }
           },
           {
