@@ -67,7 +67,7 @@ const DataBrowserPreview = ({ id }) => {
     !snapshot ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: 26 } }, [
           h1([snapshot['dct:title']])
         ]),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
