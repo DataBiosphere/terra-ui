@@ -88,8 +88,10 @@ const allRegions = [
   { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
 
-// For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
-export const availableBucketRegions = _.filter(({ value }) => _.startsWith('US', value), allRegions)
+// For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.
+const supportedBucketLocations = ['US', 'US-CENTRAL1', 'NORTHAMERICA-NORTHEAST1']
+export const isSupportedBucketLocation = location => _.includes(location, supportedBucketLocations)
+export const availableBucketRegions = _.filter(({ value }) => isSupportedBucketLocation(value), allRegions)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
 // and the same region as your workspace bucket.
