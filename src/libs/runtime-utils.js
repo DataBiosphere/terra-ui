@@ -22,7 +22,7 @@ export const computeStyles = {
 }
 
 // Dataproc clusters don't have persistent disks.
-export const defaultDataprocMasterDiskSize = 100 
+export const defaultDataprocMasterDiskSize = 100
 export const defaultDataprocWorkerDiskSize = 150
 export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
@@ -86,7 +86,8 @@ export const getValidGpuTypesForZone = zone => {
 
 export const getValidGpuTypes = (numCpus, mem, zone) => {
   const validGpuTypesForZone = getValidGpuTypesForZone(zone)
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type), gpuTypes)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type),
+    gpuTypes)
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
@@ -128,7 +129,9 @@ export const runtimeConfigBaseCost = config => {
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
+  const {
+    cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
+  } = normalizeRuntimeConfig(
     config)
   const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion, false)
   const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion, false)
