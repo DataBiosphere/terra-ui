@@ -14,7 +14,7 @@ import * as StateHistory from 'src/libs/state-history'
 
 export const commonStyles = {
   access: {
-    open: colors.success(1.5),
+    granted: colors.success(1.5),
     controlled: colors.accent(),
     pending: '#F7981C'
   }
