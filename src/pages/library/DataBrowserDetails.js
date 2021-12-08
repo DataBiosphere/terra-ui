@@ -98,7 +98,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
           Utils.switchCase(access,
             [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-              onClick: () => setShowRequestAccessModal(true)
+              onClick: () => {
+                setShowRequestAccessModal(true)
+                Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                  snapshotId: _.get('dct:identifier', snapshot),
+                  snapshotName: snapshot['dct:title']
+                })
+              }
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'

@@ -202,7 +202,13 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
               Utils.switchCase(access,
                 [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  onClick: () => setRequestDatasetAccessList([datum])
+                  onClick: () => {
+                    setRequestDatasetAccessList([datum])
+                    Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                      snapshotId: _.get('dct:identifier', datum),
+                      snapshotName: datum['dct:title']
+                    })
+                  }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
                 [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
