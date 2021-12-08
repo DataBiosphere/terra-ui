@@ -48,35 +48,22 @@ const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.fromPairs
 )(sidebarSections)
 
-const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
-  const unionSectionWorkspacesCount = ({ tags }) => _.flow(
-    _.flatMap(tag => listDataByTag[tag]),
-    _.uniq,
-    _.size
-  )(tags)
-
+const Sidebar = ({ onTagFilter, sections, selectedTags, listDataByTag }) => {
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      const { keepCollapsed, name, labels, labelRenderer } = section
+      const { hideEmpty, name, labels, labelRenderer } = section
 
-      return keepCollapsed ?
-        h(Clickable, {
-          key: name,
-          onClick: () => onSectionFilter(section),
-          style: { ...styles.sidebarRow, ...styles.nav.navSection, ...styles.nav.title }
-        }, [
-          div({ style: { flex: 1 } }, [name]),
-          div({ style: styles.pill(_.includes(section, selectedSections)) }, [unionSectionWorkspacesCount(section)])
-        ]) :
-        h(Collapse, {
-          key: name,
-          style: styles.nav.navSection,
-          buttonStyle: styles.nav.title,
-          titleFirst: true, initialOpenState: true,
-          title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
-        }, [_.map(label => {
-          const tag = _.toLower(label)
-          return h(Clickable, {
+      return h(Collapse, {
+        key: name,
+        style: styles.nav.navSection,
+        buttonStyle: styles.nav.title,
+        titleFirst: true, initialOpenState: true,
+        title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
+      }, [_.map(label => {
+        const tag = _.toLower(label)
+        const size = _.size(listDataByTag[tag])
+        return (hideEmpty && size === 0) ? null :
+          h(Clickable, {
             key: label,
             style: {
               display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
@@ -85,9 +72,9 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
             onClick: () => onTagFilter(tag)
           }, [
             div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
+            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [size])
           ])
-        }, labels)])
+      }, labels)])
     }, sections)
   ])
 }

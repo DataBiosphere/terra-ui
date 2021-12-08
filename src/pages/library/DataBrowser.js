@@ -240,7 +240,7 @@ const Browser = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
-      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
+      fullList: dataCatalog, sidebarSections: _.map(filter => ({ ...filter, hideEmpty: true }), extractCatalogFilters(dataCatalog)),
       customSort: sort,
       searchType: 'Datasets'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
