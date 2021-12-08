@@ -127,6 +127,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
   return h(ButtonPrimary, _.merge({
+    disabled,
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
       color: colors.accent(),
