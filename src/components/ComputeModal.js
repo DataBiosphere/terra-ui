@@ -22,7 +22,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import {
-  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize,
+  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize, defaultGceBootDiskSize,
   defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
@@ -183,7 +183,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     numberOfWorkers: defaultNumDataprocWorkers,
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
-    workerDiskSize: defaultDataprocDiskSize,
+    workerDiskSize: defaultDataprocWorkerDiskSize,
     componentGatewayEnabled: true, // We enable web interfaces (aka Spark console) for all new Dataproc clusters.
     gpuEnabled: false,
     hasGpu: false,
@@ -673,12 +673,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-          (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
+          (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
         componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!newSparkMode,
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
         workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-        workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
+        workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocWorkerDiskSize,
         gpuEnabled: (!!gpuConfig && !sparkMode) || false,
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
