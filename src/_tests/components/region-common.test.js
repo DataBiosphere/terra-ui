@@ -1,4 +1,4 @@
-import { availableBucketRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
 
 
 const us = {
@@ -36,5 +36,14 @@ describe('getRegionInfo', () => {
 describe('availableBucketRegions', () => {
   it('For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.', () => {
     expect(availableBucketRegions).toStrictEqual(mockAvailableBucketRegions)
+  })
+})
+
+describe('isSupportedBucketLocation', () => {
+  it('Montreal is supported as a bucket location', () => {
+    expect(isSupportedBucketLocation(montreal.value)).toBeTruthy()
+  })
+  it('Australia is NOT yet supported as a bucket location', () => {
+    expect(isSupportedBucketLocation('AUSTRALIA-SOUTHEAST1')).toBeFalsy()
   })
 })
