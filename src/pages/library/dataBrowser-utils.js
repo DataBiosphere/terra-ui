@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
-  OPEN: 'Granted',
+  GRANTED: 'Granted',
   PENDING: 'Pending'
 }
 
@@ -75,7 +75,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.OPEN : snapshotAccessTypes.CONTROLLED
+    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.GRANTED : snapshotAccessTypes.CONTROLLED
   }
 }
 
@@ -104,11 +104,11 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
+    const snapshots = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getSnapshots()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-    }, metadata?.result)
+    }, snapshots)
 
     dataCatalogStore.set(normList)
   })

@@ -27,7 +27,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getCurrentAppForType, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -50,7 +50,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
+    const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
     const resetView = () => {
       setViewMode(undefined)
@@ -104,8 +104,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, renderAppModal(GalaxyModalBase, tools.galaxy.label)],
-      [tools.cromwell.label, renderAppModal(CromwellModalBase, tools.cromwell.label)]
+      [tools.galaxy.label, () => renderAppModal(GalaxyModalBase, tools.galaxy.label)],
+      [tools.cromwell.label, () => renderAppModal(CromwellModalBase, tools.cromwell.label)]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -121,7 +121,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onDismiss()
       },
       onSuccess: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       }
     })
@@ -133,11 +133,11 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       },
       onSuccess: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       }
     })

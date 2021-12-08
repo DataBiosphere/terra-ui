@@ -53,7 +53,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
       ]),
       tbody(
-        _.map(({ 'dct:title': title, access, id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+        _.map(({ 'dct:title': title, access, 'dct:identifier': id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
           td({ style: { paddingRight: 20 } }, [
             title,
             div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [

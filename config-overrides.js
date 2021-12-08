@@ -18,7 +18,10 @@ module.exports = {
   },
   jest(config) {
     return _.merge(config, {
-      moduleDirectories: ['node_modules', ''] // to allow Jest to resolve absolute module paths
+      transformIgnorePatterns: [
+        'node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)'
+      ],
+      moduleDirectories: ['node_modules', 'src'] // to allow Jest to resolve absolute module paths
     })
   }
 }

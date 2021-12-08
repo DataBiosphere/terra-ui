@@ -43,13 +43,13 @@ const getUnique = (prop, data) => _.flow(
 const extractCatalogFilters = dataCatalog => {
   return [{
     name: 'Access type',
-    labels: _.keys(snapshotAccessTypes),
-    labelRenderer: accessKey => {
-      const lowerKey = _.toLower(accessKey)
-      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
+    labels: _.values(snapshotAccessTypes),
+    labelRenderer: accessValue => {
+      const lowerKey = _.toLower(accessValue)
+      const iconKey = accessValue === snapshotAccessTypes.GRANTED ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([snapshotAccessTypes[accessKey]])
+        div([accessValue])
       ])]
     }
   }, {
@@ -202,13 +202,19 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
               Utils.switchCase(access,
                 [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  onClick: () => setRequestDatasetAccessList([datum])
+                  onClick: () => {
+                    setRequestDatasetAccessList([datum])
+                    Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                      snapshotId: _.get('dct:identifier', datum),
+                      snapshotName: datum['dct:title']
+                    })
+                  }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
                 [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
-                [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
+                [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
                   icon('unlock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
                 ])])

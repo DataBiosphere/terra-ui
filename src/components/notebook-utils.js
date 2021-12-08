@@ -90,6 +90,9 @@ export const getAppType = label => _.find(tool => tool.label === label)(tools)?.
 // Does the tool label correspond to an app?
 export const isToolAnApp = label => getAppType(label) !== undefined
 
+// Returns registered appTypes.
+export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
+
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 

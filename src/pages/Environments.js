@@ -18,8 +18,8 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentAppForType, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
-  isApp, isComputePausable, isResourceDeletable, runtimeCost
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
+  getPersistentDiskCostMonthly, isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -114,7 +114,6 @@ const Environments = () => {
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
-  const [galaxyDisks, setGalaxyDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState()
   const getErrorRuntimeId = Utils.useGetter(errorRuntimeId)
@@ -129,17 +128,14 @@ const Environments = () => {
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
-    const [newRuntimes, newDisks, galaxyDisks, newApps] = await Promise.all([
+    const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
-      Ajax(signal).Disks.list({ creator }),
-      Ajax(signal).Disks.list({ creator, saturnApplication: 'galaxy' }),
+      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication' }),
       Ajax(signal).Apps.listWithoutProject({ creator })
     ])
     setRuntimes(newRuntimes)
     setDisks(newDisks)
-    setGalaxyDisks(galaxyDisks)
     setApps(newApps)
-
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined)
     }
@@ -208,7 +204,7 @@ const Environments = () => {
 
   const renderBillingProjectApp = app => {
     const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentAppForType(app.appType)(appsByProject[app.googleProject]) !== app
+      getCurrentApp(app.appType)(appsByProject[app.googleProject]) !== app
     return h(Fragment, [
       app.googleProject,
       inactive && h(TooltipTrigger, {
@@ -306,10 +302,9 @@ const Environments = () => {
   }
 
   const renderDeleteDiskModal = disk => {
-    const diskName = disk.name
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: _.some({ name: diskName }, galaxyDisks),
+      isGalaxyDisk: getDiskAppType(disk) === tools.galaxy.appType,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
@@ -371,7 +366,7 @@ const Environments = () => {
               const region = cloudEnvironment?.runtimeConfig?.region
               // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
               // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
-              return zone || region || defaultComputeZone
+              return zone || region || defaultComputeZone.toLowerCase()
             }
           },
           {
@@ -425,19 +420,16 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const disk = filteredDisks[rowIndex]
-              const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
-              const runtimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames), disks)
-              const runtimeDiskNames = _.map(disk => disk.name, runtimeDisks)
-              const multipleRuntimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames) || disk.status === 'Deleting',
-                disksByProject[disk.googleProject]).length > 1
-              const multipleGalaxyDisks = _.remove(disk => _.includes(disk.name, runtimeDiskNames) || disk.status === 'DELETING',
-                disksByProject[disk.googleProject]).length > 1
+              const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
+              const appType = getDiskAppType(filteredDisks[rowIndex])
+              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
+                disksByProject[googleProject]).length > 1
+              const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               return h(Fragment, [
-                disk.googleProject,
-                disk.status !== 'Deleting' && (_.includes(disk.name, galaxyDiskNames) ? multipleGalaxyDisks : multipleRuntimeDisks) &&
+                googleProject,
+                diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
-                  content: 'This billing project has multiple active persistent disks. Only one will be used.'
+                  content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
             }
