@@ -104,11 +104,11 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
+    const snapshots = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getSnapshots()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-    }, metadata?.result)
+    }, snapshots)
 
     dataCatalogStore.set(normList)
   })

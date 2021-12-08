@@ -25,7 +25,7 @@ import {
   appIsSettingUp,
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentAppForType,
+  getCurrentApp,
   getCurrentRuntime,
   getPersistentDiskCostHourly,
   runtimeCost,
@@ -197,8 +197,8 @@ export default class RuntimeManager extends PureComponent {
     const createdDate = new Date(runtime.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
-    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
-    const prevGalaxyApp = getCurrentAppForType(tools.galaxy.appType)(prevProps.apps)
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
+    const prevGalaxyApp = getCurrentApp(tools.galaxy.appType)(prevProps.apps)
 
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -350,7 +350,7 @@ export default class RuntimeManager extends PureComponent {
     const applicationName = isRStudioImage ? 'RStudio' : 'terminal'
     const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: applicationName })
 
-    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
+    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
 
     return h(Fragment, [
       galaxyApp && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [

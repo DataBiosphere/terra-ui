@@ -15,9 +15,8 @@ import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  computeStyles,
-  currentAttachedDataDisk, currentGalaxyPersistentDisk, findMachineType, getCurrentAppForType, getGalaxyComputeCost,
-  getGalaxyDiskCost, RadioBlock
+  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -37,8 +36,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentAppForType(tools.galaxy.appType)(apps)
-    const attachedDataDisk = currentAttachedDataDisk(app, appDataDisks)
+    const app = getCurrentApp(tools.galaxy.appType)(apps)
+    const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
     const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
@@ -46,14 +45,14 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentGalaxyPersistentDisk(apps, appDataDisks)
+    const currentDataDisk = getCurrentPersistentDisk(tools.galaxy.appType, apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
+        kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
         appType: tools.galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })

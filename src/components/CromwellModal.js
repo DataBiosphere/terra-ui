@@ -8,10 +8,7 @@ import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import {
-  computeStyles,
-  getCurrentAppForType
-} from 'src/libs/runtime-utils'
+import { computeStyles, getCurrentApp, getCurrentPersistentDisk } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -24,18 +21,19 @@ const titleId = 'cromwell-modal-title'
 // (or find another way to reduce code duplication).
 export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
   ({
-    onDismiss, onSuccess, apps, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
-    const app = getCurrentAppForType(tools.cromwell.appType)(apps)
+    const app = getCurrentApp(tools.cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
+    const currentDataDisk = getCurrentPersistentDisk(tools.cromwell.appType, apps, appDataDisks)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating Cromwell', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        defaultKubernetesRuntimeConfig, diskName: Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
+        defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
         appType: tools.cromwell.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: tools.cromwell.appType, ...extractWorkspaceDetails(workspace) })

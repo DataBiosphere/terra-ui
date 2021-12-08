@@ -21,7 +21,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentAppForType, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -177,17 +177,13 @@ const useCloudEnvironmentPolling = googleProject => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes, galaxyDisks, cromwellDisks] = googleProject ? await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
-        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.appType }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.appType })
-      ]) : [[], [], [], []]
-      const appDisks = _.concat(galaxyDisks, cromwellDisks)
-      const appDiskNames = _.map(disk => disk.name, appDisks)
+      const [newDisks, newRuntimes] = googleProject ? await Promise.all([
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication' }),
+        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
+      ]) : [[], []]
       setRuntimes(newRuntimes)
-      setAppDataDisks(appDisks)
-      setPersistentDisks(_.remove(disk => _.includes(disk.name, appDiskNames), newDisks))
+      setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
+      setPersistentDisks(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?
@@ -223,7 +219,7 @@ const useAppPolling = (googleProject, workspaceName) => {
       setApps(newApps)
       _.forOwn(tool => {
         if (tool.appType) {
-          const app = getCurrentAppForType(tool.appType)(newApps)
+          const app = getCurrentApp(tool.appType)(newApps)
           reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
         }
       })(tools)
