@@ -7,12 +7,12 @@ executors:
   node:
     working_directory: /mnt/ramdisk
     docker:
-      - image: node:14
+      - image: node:16
         user: node
   puppeteer:
     working_directory: /mnt/ramdisk
     docker:
-      - image: circleci/node:14-browsers
+      - image: circleci/node:16-browsers
   gcloud:
     working_directory: /mnt/ramdisk
     docker:
