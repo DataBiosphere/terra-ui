@@ -264,7 +264,7 @@ const Browser = () => {
       }, ['OK'])
     ]),
     h(SearchAndFilterComponent, {
-      fullList: dataCatalog, sidebarSections: _.map(filter => ({ ...filter, hideEmpty: true }), extractCatalogFilters(dataCatalog)),
+      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
