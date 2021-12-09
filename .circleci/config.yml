@@ -36,7 +36,7 @@ commands:
                 unless: << parameters.existing >>
                 command: |
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-                  VERSION=$(CIRCLE_PR_NUMBER || << parameters.env >>)
+                  VERSION="$(CIRCLE_PR_NUMBER || << parameters.env >>)"
                   apk add jq
 
                   curl -d "{ \"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" \
