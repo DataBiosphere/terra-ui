@@ -57,7 +57,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      const { keepCollapsed, name, labels, labelRenderer } = section
+      const { keepCollapsed, name, labels, labelRenderer, hideEmpty } = section
 
       return keepCollapsed ?
         h(Clickable, {
@@ -76,17 +76,19 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [_.map(label => {
           const tag = _.toLower(label)
-          return h(Clickable, {
-            key: label,
-            style: {
-              display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
-              paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
-            },
-            onClick: () => onTagFilter(tag)
-          }, [
-            div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
-          ])
+          const size = _.size(listDataByTag[tag])
+          return (hideEmpty && size === 0) ? null :
+            h(Clickable, {
+              key: label,
+              style: {
+                display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+                paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+              },
+              onClick: () => onTagFilter(tag)
+            }, [
+              div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
+              div({ style: styles.pill(_.includes(tag, selectedTags)) }, [size])
+            ])
         }, labels)])
     }, sections)
   ])
