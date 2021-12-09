@@ -244,7 +244,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               ...Utils.newTabLinkProps
             }, ['Quickstart Guide']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/',
+              href: 'https://support.terra.bio/hc/en-us',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Terra Support Home']),
