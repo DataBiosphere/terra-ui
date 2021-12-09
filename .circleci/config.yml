@@ -24,6 +24,9 @@ commands:
       env:
         type: string
         default: ""
+      pr:
+        type: boolean
+        default: false
       existing:
         type: boolean
         default: false
@@ -35,10 +38,12 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
-                  CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-                  VERSION="${CIRCLE_PR_NUMBER:-<< parameters.env >>}"
-                  apk add jq
-
+                  apk add jq -q --no-progress
+                  <<# parameters.pr >>
+                  VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)"
+                  <</ parameters.pr >><<^ parameters.pr >>
+                  VERSION="<< parameters.env >>"
+                  <</ parameters.pr >>
                   curl -d "{ \"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" \
                     -H "Authorization: token $GITHUB_TOKEN" -XPOST \
                     https://api.github.com/repos/databiosphere/terra-ui/deployments | jq .id > /tmp/build_num
@@ -79,6 +84,7 @@ commands:
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
       - notify-github:
           env: << parameters.env >>
+          pr: << parameters.pr >>
       - when:
           condition: << parameters.pr >>
           steps:
