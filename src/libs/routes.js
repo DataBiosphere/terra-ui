@@ -12,6 +12,7 @@ import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
 import * as DataBrowser from 'src/pages/library/DataBrowser'
 import * as DataBrowserDetails from 'src/pages/library/DataBrowserDetails'
+import * as DataBrowserPreview from 'src/pages/library/DataBrowserPreview'
 import * as Datasets from 'src/pages/library/Datasets'
 import * as DataExplorer from 'src/pages/library/datasets/DataExplorer'
 import * as Showcase from 'src/pages/library/Showcase'
@@ -64,6 +65,7 @@ const routes = _.flatten([
   Code.navPaths,
   DataBrowser.navPaths,
   DataBrowserDetails.navPaths,
+  DataBrowserPreview.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
   Showcase.navPaths,

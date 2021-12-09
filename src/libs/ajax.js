@@ -950,6 +950,16 @@ const DataRepo = signal => ({
     //TODO: Update this link to hit the real endpoint
     const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
     return res.json()
+  },
+
+  getPreviewMetadata: async id => {
+    const res = await fetchDataRepo(`repository/v1/snapshots/${id}?include=TABLES,DATA_PROJECT`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getPreviewTable: async ({ id, table, offset, limit }) => {
+    const res = await fetchDataRepo(`repository/v1/snapshots/${id}/data/${table}?limit=${limit}&offset=${offset}`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 

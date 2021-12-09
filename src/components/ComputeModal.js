@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
+  ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
@@ -396,7 +396,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return {
       hasGpu: computeConfig.hasGpu,
       runtime: Utils.cond(
-        [(viewMode !== 'deleteEnvironmentOptions'), () => {
+        [(viewMode !== 'deleteEnvironment'), () => {
           return {
             cloudService,
             toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
@@ -431,7 +431,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ),
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
-        [viewMode !== 'deleteEnvironmentOptions' && shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected),
+        [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected),
           () => ({ size: computeConfig.selectedPersistentDiskSize })],
         () => existingPersistentDisk
       )
@@ -530,7 +530,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { cpu: desiredRuntimeCpus, memory: desiredRuntimeMemory } = findMachineType(desiredMachineType)
     const { cpu: existingRuntimeCpus, memory: existingRuntimeMemory } = findMachineType(existingMachineType)
     const metricsEvent = Utils.cond(
-      [(viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
+      [(viewMode === 'deleteEnvironment'), () => 'cloudEnvironmentDelete'],
       [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
       () => 'cloudEnvironmentCreate'
     )
@@ -721,14 +721,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
     const commonButtonProps = Utils.cond([
-        hasGpu && viewMode !== 'deleteEnvironmentOptions',
+        hasGpu && viewMode !== 'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
       ], [
         computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
         () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
       ], [
         !!currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !==
-        'deleteEnvironmentOptions',
+        'deleteEnvironment',
         () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
       ],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
@@ -755,7 +755,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         }
       }, [
         Utils.cond(
-          [viewMode === 'deleteEnvironmentOptions', () => 'Delete'],
+          [viewMode === 'deleteEnvironment', () => 'Delete'],
           [existingRuntime, () => 'Update'],
           () => 'Create'
         )
@@ -1213,13 +1213,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     ])
   }
 
-  const renderDeleteEnvironmentOptions = () => {
+  const renderDeleteEnvironment = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
         style: computeStyles.titleBar,
-        title: h(WarningTitle, ['Delete environment options']),
+        title: h(WarningTitle, ['Delete environment']),
         hideCloseButton: isAnalysisMode,
         onDismiss,
         onPrevious: () => {
@@ -1411,13 +1411,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
     const renderBottomButtons = () => {
       return div({ style: { display: 'flex', marginTop: '2rem' } }, [
-        (!!existingRuntime || !!existingPersistentDisk) && h(ButtonSecondary, {
-          onClick: () => setViewMode('deleteEnvironmentOptions')
+        (!!existingRuntime || !!existingPersistentDisk) && h(ButtonOutline, {
+          onClick: () => setViewMode('deleteEnvironment')
         }, [
           Utils.cond(
             [!!existingRuntime && !existingPersistentDisk, () => 'Delete Runtime'],
             [!existingRuntime && !!existingPersistentDisk, () => 'Delete Persistent Disk'],
-            () => 'Delete Environment Options'
+            () => 'Delete Environment'
           )
         ]),
         div({ style: { flex: 1 } }),
@@ -1577,7 +1577,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ['environmentWarning', renderEnvironmentWarning],
       ['differentLocationWarning', renderDifferentLocationWarning],
       ['nonUSLocationWarning', renderNonUSLocationWarning],
-      ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+      ['deleteEnvironment', renderDeleteEnvironment],
       [Utils.DEFAULT, renderMainForm]
     ),
     loading && spinnerOverlay,
