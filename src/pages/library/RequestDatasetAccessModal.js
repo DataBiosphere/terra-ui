@@ -94,29 +94,22 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 }
 
 const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
-  const [requesting, setRequesting] = useState(false)
-  const [requested, setRequested] = useState(false)
+  const [status, setStatus] = useState('')
   const signal = Utils.useCancellation()
 
   return h(ButtonPrimary, {
-    disabled: requesting || requested,
+    disabled: status,
     onClick: withErrorReporting('Error requesting dataset access', async () => {
       requestAccessEnabled ?
         await Ajax(signal).DataRepo.requestAccess(id) :
         setShowWipModal(true)
-      setRequested(true)
-      setRequesting(false)
-
+      setStatus('Request Sent')
       Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
         snapshotId: id,
         snapshotName: title
       })
     })
   }, [
-    Utils.cond(
-      [requested, () => 'Request Sent'],
-      [requesting, () => 'Sending Request...'],
-      () => 'Request Access'
-    )
+    status || 'Request Access'
   ])
 }
