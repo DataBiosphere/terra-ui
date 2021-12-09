@@ -19,11 +19,51 @@ executors:
       - image: google/cloud-sdk:alpine
 
 commands:
+  notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
+    parameters:
+      env:
+        type: string
+        default: ""
+      existing:
+        type: boolean
+        default: false
+    steps:
+      - unless:
+          condition: << parameters.existing >>
+          steps:
+            - run:
+                name: Notify Github of deployment
+                unless: << parameters.existing >>
+                command: |
+                  CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
+                  VERSION=$(CIRCLE_PR_NUMBER || << parameters.env >>)
+                  apk add jq
+
+                  curl -d "{ \"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" \
+                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
+                    https://api.github.com/repos/databiosphere/terra-ui/deployments | jq .id > /tmp/build_num
+      - when:
+          condition: << parameters.existing >>
+          steps:
+            - run:
+                name: Update Github deployment status
+                command: |
+                  curl -d "{ \"state\": \"success\" }" \
+                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
+                    https://api.github.com/repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses
+            - run:
+                name: Update Github deployment status
+                when: on_fail
+                command: |
+                  curl -d "{ \"state\": \"failure\" }" \
+                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
+                    https://api.github.com/repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses
+
   deploy-env:
     description: "Deploy to a specific environment"
     parameters:
       sa_key_var:
-        type: string
+        type: env_var_name
         default: "SA_KEY_JSON"
       env:
         type: string
@@ -37,6 +77,8 @@ commands:
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
+      - notify-github:
+          env: << parameters.env >>
       - when:
           condition: << parameters.pr >>
           steps:
@@ -54,6 +96,8 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
+      - notify-github:
+          existing: true
   integration-tests:
     parameters:
       local:
