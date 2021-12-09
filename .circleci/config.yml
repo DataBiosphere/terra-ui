@@ -112,13 +112,13 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps8-
+            - test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps9-
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
       - save_cache:
-          key: test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
             - integration-tests/.yarn/cache
@@ -165,11 +165,11 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps7-
+            - deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps8-
       - run: yarn install --immutable
       - save_cache:
-          key: deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+          key: deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
             - .yarn/cache
