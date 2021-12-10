@@ -77,7 +77,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
         }, [_.map(label => {
           const tag = _.toLower(label)
           const size = _.size(listDataByTag[tag])
-          return size === 0 ? null :
+          return (size > 0) &&
             h(Clickable, {
               key: label,
               style: {
