@@ -57,8 +57,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
-  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
-  const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
+  const [bucketLocation, setBucketLocation] = useState(cloneWorkspace ? (isSupportedBucketLocation(cloneWorkspace.workspace.location) ? cloneWorkspace.workspace : defaultLocation) : defaultLocation)
   const signal = Utils.useCancellation()
 
 
@@ -115,17 +114,11 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         setBillingProjects(projects)
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
-    Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
-      .then(({ location }) => {
-        // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
-        setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
-        setSourceWorkspaceLocation(location)
-      })
+    Ajax(signal).Groups.list().then(setAllGroups)
   ]))
 
   const shouldShowDifferentRegionWarning = () => {
-    return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
+    return !!cloneWorkspace && bucketLocation !== cloneWorkspace.workspace.location
   }
 
   // Lifecycle
@@ -141,7 +134,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
 
-  const sourceLocationType = sourceWorkspaceLocation === defaultLocation ? locationTypes.default : locationTypes.region
+  const sourceLocationType = (!!cloneWorkspace && cloneWorkspace.workspace.location === defaultLocation) ? locationTypes.default : locationTypes.region
   const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
 
   return Utils.cond(
@@ -227,7 +220,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         div({ style: { flex: 1 } }, [
           `Copying data from `,
-          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+          strong([getRegionInfo(cloneWorkspace.workspace.location, sourceLocationType).regionDescription]),
           ` to `,
           strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
           ` may incur network egress charges. `,
