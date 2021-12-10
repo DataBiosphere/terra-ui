@@ -36,7 +36,7 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
-                  apk add github-cli -q --no-progress
+                  apk add github-cli jq -q --no-progress
                   <<# parameters.pr >>
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)"
                   <</ parameters.pr >><<^ parameters.pr >>
@@ -44,7 +44,7 @@ commands:
                   <</ parameters.pr >>
                   gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" \
                     -F ref="$CIRCLE_BRANCH" -F environment="$VERSION" -F auto_merge=false -F required_contexts=[] \
-                    --jq .id > /tmp/build_num
+                    | jq .id > /tmp/build_num
       - when:
           condition: << parameters.existing >>
           steps:
