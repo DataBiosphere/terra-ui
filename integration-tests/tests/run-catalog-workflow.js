@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, waitForNoSpinners } = require('../utils/integration-utils')
+const { signIntoTerra, click, clickable, waitForNoSpinners, findText } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
@@ -9,6 +9,8 @@ const testCatalogFlowFn = _.flow(
 )(async ({ testUrl, page, token }) => {
   await page.goto(testUrl)
   await waitForNoSpinners(page)
+
+  await findText(page, 'Browse Data')
 
   await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
   await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
@@ -23,7 +25,7 @@ const testCatalogFlowFn = _.flow(
 const testCatalog = {
   name: 'run-catalog',
   fn: testCatalogFlowFn,
-  timeout: 15 * 60 * 1000
+  timeout: 2 * 60 * 1000
 }
 
 module.exports = { testCatalog }
