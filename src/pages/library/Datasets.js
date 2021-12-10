@@ -13,6 +13,7 @@ import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
 import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
+import gp2Logo from 'src/images/library/datasets/GP2_logo.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
@@ -68,7 +69,7 @@ const logoBox = ({ src, alt, height }) => div({
 ])
 
 
-const Participant = ({ logo, title, shortDescription, description, sizeText, children }) => {
+const Participant = ({ logo, title, shortDescription, description, sizeText, modalLogoHeight, children }) => {
   const [showingModal, setShowingModal] = useState(false)
 
   const titleElement = div({ style: styles.participant.title }, [title])
@@ -95,7 +96,7 @@ const Participant = ({ logo, title, shortDescription, description, sizeText, chi
       width: 880,
       showCancel: false
     }, [
-      img({ src: logo.src, alt: logo.alt, height: 150, width: 'auto' }),
+      img({ src: logo.src, alt: logo.alt, height: modalLogoHeight || 150, width: 'auto' }),
       titleElement,
       description,
       sizeText && p([sizeText])
@@ -169,7 +170,9 @@ const amppd = () => h(Participant, {
         div({ style: { width: 410 } }, [`• STEADY-PD3 Study`]),
         div(['• SURE-PD3 Study'])
       ])
-    ])
+    ]),
+    p([`Global Parkinson's Genetics Program (GP2) data is accessible through an approved single AMP PD-GP2 DUA, `,
+      h(Link, { href: 'https://www.gp2.org/', ...Utils.newTabLinkProps }, 'here.')])
   ]),
   sizeText: 'Participants: 10,772'
 }, [
@@ -286,6 +289,32 @@ const framingham = () => h(Participant, {
   }, ['Browse data'])
 ])
 
+const gp2 = () => h(Participant, {
+  logo: { src: gp2Logo, alt: `GP2 logo`, height: '40%' },
+  modalLogoHeight: 100,
+  title: `GP2`,
+  shortDescription: `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding 
+    of the genetic basis of Parkinson’s disease (PD) across diverse populations, including those 
+    underserved in biomedical...`,
+  description: h(Fragment, [
+    p([
+      `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding of the genetic 
+    basis of Parkinson’s disease (PD) across diverse populations, including those underserved in 
+    biomedical research. This program includes targeted collection and analysis of data and samples 
+    from Africa, Asia, Europe and the Americas toward genetic insights that will broaden biomarker and 
+    therapeutic discovery and development. GP2 is a resource of the Aligning Science Across 
+    Parkinson’s (ASAP) initiative, which has developed an ambitious roadmap to tackle key scientific 
+    challenges in PD by supporting meaningful, multidisciplinary collaboration; generating 
+    research-enabling resources; and sharing data.`
+    ])
+  ])
+}, [
+  h(ButtonPrimary, {
+    'aria-label': 'Browse GP2 data',
+    href: Nav.getLink('workspace-dashboard', { namespace: 'foo', name: 'bar' })
+  }, ['Browse Data'])
+])
+
 const hca = () => h(Participant, {
   logo: { src: hcaLogo, alt: 'Human Cell Atlas logo' },
   title: 'Human Cell Atlas',
@@ -374,7 +403,7 @@ const Datasets = () => {
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(), hca(),
       nemo(), target(), tcga(), topMed()
     ])
   ])
