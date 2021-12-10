@@ -17,8 +17,7 @@ import { SearchAndFilterComponent } from 'src/pages/library/common'
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
   name: 'Getting Started',
-  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
-  keepCollapsed: true
+  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
 }, {
   name: 'Analysis Tools',
   labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']

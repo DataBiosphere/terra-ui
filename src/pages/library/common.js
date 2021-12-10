@@ -57,7 +57,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      const { keepCollapsed, name, labels, labelRenderer, hideEmpty } = section
+      const { keepCollapsed, name, labels, labelRenderer } = section
 
       return keepCollapsed ?
         h(Clickable, {
@@ -77,7 +77,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
         }, [_.map(label => {
           const tag = _.toLower(label)
           const size = _.size(listDataByTag[tag])
-          return (hideEmpty && size === 0) ? null :
+          return size === 0 ? null :
             h(Clickable, {
               key: label,
               style: {
