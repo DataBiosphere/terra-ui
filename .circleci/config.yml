@@ -54,7 +54,7 @@ commands:
                   <<# parameters.pr >>
                   DEPLOY_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)-dot-"
                   <</ parameters.pr >>
-                  curl -d "{ \"state\": \"success\", \"environment_url\": \"https://${DEPLOY_SLUG}bvdp-saturn-${ENV}.appspot.com\", \"log_url\": \"$CIRCLE_BUILD_URL\" }" \
+                  curl -d "{ \"state\": \"success\", \"environment_url\": \"https://${DEPLOY_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com\", \"log_url\": \"$CIRCLE_BUILD_URL\" }" \
                     -H "Authorization: token $GITHUB_TOKEN" -XPOST \
                     https://api.github.com/repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses
             - run:
