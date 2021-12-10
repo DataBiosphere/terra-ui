@@ -248,8 +248,14 @@ const withAutocomplete = WrappedComponent => ({
     })
   })
 
+  // Unused param denoted as _u
+  const stateReducer = (_u, action) => {
+    return action.type === Downshift.stateChangeTypes.keyDownEscape ? { isOpen: false } : action
+  }
+
   return h(Downshift, {
     ...controlProps,
+    stateReducer,
     initialInputValue: value,
     onSelect: v => !!v && onPick?.(v),
     onInputValueChange: newValue => {
