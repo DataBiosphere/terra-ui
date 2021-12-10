@@ -36,15 +36,16 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
-                  apk add jq -q --no-progress
+                  apk add github-cli -q --no-progress
+                  gh auth login --with-token "$GITHUB_TOKEN"
                   <<# parameters.pr >>
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)"
                   <</ parameters.pr >><<^ parameters.pr >>
                   VERSION="<< parameters.env >>"
                   <</ parameters.pr >>
-                  curl -d "{ \"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" \
-                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
-                    https://api.github.com/repos/databiosphere/terra-ui/deployments | jq .id > /tmp/build_num
+                  gh api repos/databiosphere/terra-ui/deployments \
+                    -F ref="$CIRCLE_BRANCH" -F environment="$VERSION" -F auto_merge=false -F required_contexts=[] \
+                    --jq .id > /tmp/build_num
       - when:
           condition: << parameters.existing >>
           steps:
@@ -52,18 +53,14 @@ commands:
                 name: Update Github deployment status
                 command: |
                   <<# parameters.pr >>
-                  DEPLOY_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)-dot-"
+                  PR_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)-dot-"
                   <</ parameters.pr >>
-                  curl -d "{ \"state\": \"success\", \"environment_url\": \"https://${DEPLOY_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com\", \"log_url\": \"$CIRCLE_BUILD_URL\" }" \
-                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
-                    https://api.github.com/repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses
+                  gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" \
+                    -F state=success -F environment_url="https://${PR_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com" -F log_url="$CIRCLE_BUILD_URL"
             - run:
                 name: Update Github deployment status
                 when: on_fail
-                command: |
-                  curl -d "{ \"state\": \"failure\" }" \
-                    -H "Authorization: token $GITHUB_TOKEN" -XPOST \
-                    https://api.github.com/repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses
+                command: gh api repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses -F state=failure
 
   deploy-env:
     description: "Deploy to a specific environment"
