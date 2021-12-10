@@ -84,6 +84,7 @@ const DataBrowserPreview = ({ id }) => {
           loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
         tableMap && tableMap[selectedTable] && h(SimpleTable, {
+          stripeRows: true,
           'aria-label': `${_.startCase(selectedTable)} Preview Data`,
           columns: _.map(col => {
             return {

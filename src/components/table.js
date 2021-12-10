@@ -563,7 +563,8 @@ GridTable.propTypes = {
 }
 
 export const SimpleTable = ({
-  columns, rows, 'aria-label': ariaLabel, rowStyle = {}, cellStyle: cellStyleOverrides = {}, useHover = true, underRowKey
+  columns, rows, 'aria-label': ariaLabel, rowStyle = {}, cellStyle: cellStyleOverrides = {}, useHover = true, underRowKey,
+  rowStriping
 }) => {
   Utils.useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
@@ -597,6 +598,7 @@ export const SimpleTable = ({
               className: 'table-cell',
               style: {
                 borderTop: `1px solid ${colors.dark(0.2)}`,
+                backgroundColor: rowStriping && (i % 2) && 'white',
                 ...cellStyles, ...styles.flexCell(size)
               }
             }, [row[key]])
