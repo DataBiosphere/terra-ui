@@ -248,8 +248,7 @@ const withAutocomplete = WrappedComponent => ({
     })
   })
 
-  // Unused param denoted as _u
-  const stateReducer = (_u, action) => {
+  const stateReducer = (_unused, action) => {
     return action.type === Downshift.stateChangeTypes.keyDownEscape ? { isOpen: false } : action
   }
 
