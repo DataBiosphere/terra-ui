@@ -105,7 +105,7 @@ const DataBrowserPreview = ({ id }) => {
             useHover: false,
             rows: previewData
           }),
-          h(ColumnSelector, { onSave: setColumnSettings, columnSettings })
+          columnSettings.length > 0 && h(ColumnSelector, { onSave: setColumnSettings, columnSettings })
         ]),
         previewData?.length === 0 && div({ style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, ['(No Data)'])
       ])
