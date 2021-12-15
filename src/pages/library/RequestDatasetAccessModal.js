@@ -9,6 +9,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
+import { snapshotAccessTypes } from 'src/pages/library/dataBrowser-utils'
 
 
 const sendCopyEnabled = false
@@ -64,7 +65,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
             checked: sendCopy,
             onChange: setSendCopy
           }, [
-            label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Also send me a copy`])
+            label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Also send me a copy'])
           ])
         ])
       ])]),
@@ -82,8 +83,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
             ]),
             td([
               Utils.switchCase(access,
-                ['Controlled', () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
-                ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+                [snapshotAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
+                [snapshotAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
                 [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
               )
             ])
