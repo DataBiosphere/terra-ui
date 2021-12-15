@@ -17,6 +17,27 @@ import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
+// Exported for testing
+export const getDisplayedAttribute = arr => {
+  const obj = Object.assign({}, ...arr)
+  return [obj.key, obj.value, obj.description ? obj.description : '']
+}
+
+const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
+const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
+
+// Exported for testing
+export const renameAttribute = attr => {
+  const [k, v] = attr
+  return isDescriptionKey(k) ?
+    {
+      key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
+      description: v
+    } : {
+      key: k,
+      value: v
+    }
+}
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
@@ -52,29 +73,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     setEditType()
   }
 
-  const DESCRIPTION_MAX_LENGTH = 200
-  const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
-
-  const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
-
   const toDescriptionKey = k => k + DESCRIPTION_SUFFIX
-
-  const renameAttribute = attr => {
-    const [k, v] = attr
-    return isDescriptionKey(k) ?
-      {
-        key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
-        description: v
-      } : {
-        key: k,
-        value: v
-      }
-  }
-
-  const getDisplayedAttribute = arr => {
-    const obj = Object.assign({}, ...arr)
-    return [obj.key, obj.value, obj.description]
-  }
 
   const initialAttributes = _.flow(
     _.toPairs,
@@ -93,12 +92,13 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     arr => [...arr, ...(creatingNewVariable ? [['', '', '']] : [])]
   )(initialAttributes)
 
+  const DESCRIPTION_MAX_LENGTH = 200
   const inputErrors = editIndex !== undefined && [
     ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ['Key cannot be \'description\''] : []),
     ...(isDescriptionKey(editKey) ? [`Key cannot end with '${DESCRIPTION_SUFFIX}'`] : []),
-    ...(editDescription.length > DESCRIPTION_MAX_LENGTH ? [`Description cannot be longer than ${DESCRIPTION_MAX_LENGTH} characters`] : []),
+    ...(editDescription && editDescription.length > DESCRIPTION_MAX_LENGTH ? [`Description cannot be longer than ${DESCRIPTION_MAX_LENGTH} characters`] : []),
     ...(editKey.startsWith('referenceData_') ? ['Key cannot start with \'referenceData_\''] : []),
     ...(!editKey ? ['Key is required'] : []),
     ...(!editValue ? ['Value is required'] : []),
@@ -118,13 +118,17 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
       Utils.convertValue(newBaseType, editValue)
 
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
-    if (editDescription) {
+    const originalDescription = attributes[toDescriptionKey(originalKey)]
+    if (originalDescription || editDescription) {
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [toDescriptionKey(editKey)]: editDescription })
+    }
+    if (originalDescription && !editDescription) {
+      await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([toDescriptionKey(originalKey)])
     }
 
     if (editKey !== originalKey) {
       await loadAttributes()
-      const originalDescription = attributes[toDescriptionKey(originalKey)]
+
       await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
       if (originalDescription) {
         await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [toDescriptionKey(editKey)]: originalDescription })
