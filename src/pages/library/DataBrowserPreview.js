@@ -5,7 +5,7 @@ import { Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import { SimpleTable } from 'src/components/table'
+import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -34,6 +34,7 @@ const DataBrowserPreview = ({ id }) => {
   const [tables, setTables] = useState()
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
+  const [columnSettings, setColumnSettings] = useState([])
 
   const tableMap = _.keyBy('name', tables)
   const tableNames = _.map('name', tables)
@@ -49,6 +50,19 @@ const DataBrowserPreview = ({ id }) => {
         table: value
       })
       setPreviewData(previewTableData?.result || [])
+
+      setColumnSettings(
+        _.flow([
+          _.toPairs,
+          _.map(([index, col]) => {
+            return {
+              name: col.name, key: col.name,
+              visible: index < 6,
+              header: div({ style: styles.table.header }, [col.name])
+            }
+          })
+        ])(tableMap[selectedTable]?.columns)
+      )
     })
     loadTable()
   }
@@ -83,18 +97,16 @@ const DataBrowserPreview = ({ id }) => {
           }),
           loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
-        tableMap && tableMap[selectedTable] && h(SimpleTable, {
-          'aria-label': `${_.startCase(selectedTable)} Preview Data`,
-          columns: _.map(col => {
-            return {
-              header: div({ style: styles.table.header }, [col.name]),
-              key: col.name
-            }
-          }, tableMap[selectedTable].columns),
-          cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all' },
-          useHover: false,
-          rows: previewData
-        }),
+        tableMap && tableMap[selectedTable] && div({ style: { position: 'relative' } }, [
+          h(SimpleTable, {
+            'aria-label': `${_.startCase(selectedTable)} Preview Data`,
+            columns: _.filter('visible', columnSettings),
+            cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all' },
+            useHover: false,
+            rows: previewData
+          }),
+          columnSettings.length > 0 && h(ColumnSelector, { onSave: setColumnSettings, columnSettings })
+        ]),
         previewData?.length === 0 && div({ style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, ['(No Data)'])
       ])
   ])
