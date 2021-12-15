@@ -863,7 +863,7 @@ const Workspaces = signal => ({
       },
 
       importPFB: async url => {
-        const res = await fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype: 'pfb' }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -874,7 +874,7 @@ const Workspaces = signal => ({
 
       listImportJobs: async isRunning => {
         // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
-        const res = await fetchOrchestration(`api/${root}/importPFB?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
+        const res = await fetchOrchestration(`api/${root}/importJob?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 

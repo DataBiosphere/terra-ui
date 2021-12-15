@@ -88,7 +88,6 @@ const DataBrowserPreview = ({ id }) => {
     return Utils.cond(
       [!Utils.cantBeNumber(cellContent), () => cellContent],
       [Utils.maybeParseJSON(cellContent), () => {
-        console.log('rowIndex', rowIndex)
         const contentAsJSON = {
           title: `${table}, Row ${rowIndex} - ${cellKey}`,
           cellData: Utils.maybeParseJSON(cellContent)
