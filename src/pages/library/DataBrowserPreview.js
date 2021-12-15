@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
+import { div, h, h1, h2 } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import { ButtonPrimary, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, spinner } from 'src/components/icons'
@@ -56,9 +57,10 @@ const DataBrowserPreview = ({ id }) => {
 
       setPreviewData(_.flow([
         _.getOr([], 'result'),
-        _.map(row => {
+        _.toPairs,
+        _.map(([rowIndex, row]) => {
           return _.reduce((obj, param) => {
-            obj[param] = formatTableCell(row[param])
+            obj[param] = formatTableCell({ cellKey: param, cellContent: row[param], rowIndex, table: value })
             return obj
           }, {}, columnNames)
         })
@@ -82,15 +84,19 @@ const DataBrowserPreview = ({ id }) => {
     loadTable()
   }
 
-  const formatTableCell = cellContent => {
+  const formatTableCell = ({ cellKey, cellContent, rowIndex, table }) => {
     return Utils.cond(
       [!Utils.cantBeNumber(cellContent), () => cellContent],
       [Utils.maybeParseJSON(cellContent), () => {
-        const contentAsJSON = Utils.maybeParseJSON(cellContent)
-        const contentAsPrettyString = JSON.stringify(contentAsJSON, null, 4)
+        console.log('rowIndex', rowIndex)
+        const contentAsJSON = {
+          title: `${table}, Row ${rowIndex} - ${cellKey}`,
+          cellData: Utils.maybeParseJSON(cellContent)
+        }
+
         return h(ButtonPrimary, {
           style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-          onClick: () => { setViewJSON(contentAsPrettyString) }
+          onClick: () => { setViewJSON(contentAsJSON) }
         }, ['View JSON'])
       }],
       [Utils.DEFAULT, () => cellContent]
@@ -142,13 +148,18 @@ const DataBrowserPreview = ({ id }) => {
     viewJSON && h(ModalDrawer, {
       'aria-label': 'View Json', isOpen: true, width: 675,
       onDismiss: () => { setViewJSON() },
-      children: div({
-        style: {
-          margin: 25, padding: 25,
-          backgroundColor: 'white', borderRadius: 3,
-          wordBreak: 'break-word', whiteSpace: 'pre-wrap'
-        }
-      }, [viewJSON])
+      children: div({ style: { padding: '0 25px 25px' } }, [
+        h2([viewJSON.title]),
+        h(ReactJson, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: 'white' },
+          name: false,
+          collapsed: 4,
+          enableClipboard: true,
+          displayDataTypes: false,
+          displayObjectSize: false,
+          src: viewJSON.cellData
+        })
+      ])
     })
   ])
 }
