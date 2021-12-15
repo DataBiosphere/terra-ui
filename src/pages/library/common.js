@@ -120,7 +120,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const filterRegex = new RegExp(`(${searchFilter})`, 'i')
+  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
   const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(fullList, sidebarSections))
 

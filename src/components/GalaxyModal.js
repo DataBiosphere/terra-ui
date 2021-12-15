@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -87,8 +87,8 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     })
 
     const renderActionButton = () => {
-      const deleteButton = h(ButtonSecondary, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') },
-        ['Delete Environment Options'])
+      const deleteButton = h(ButtonOutline, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') },
+        ['Delete Environment'])
       const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: pauseGalaxy }, ['Pause'])
       const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
 
@@ -117,18 +117,18 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
               h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
             ])],
             ['STOPPED', () => h(Fragment, [
-              h(ButtonSecondary, {
+              h(ButtonOutline, {
                 disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.',
                 onClick: () => setViewMode('deleteWarn')
-              }, ['Delete']),
+              }, ['Delete Environment']),
               resumeButton
             ])],
             ['ERROR', () => deleteButton],
             [Utils.DEFAULT, () => {
               return h(Fragment, { tooltip: 'Cloud Compute must be resumed first.' }, [
-                h(ButtonSecondary, {
+                h(ButtonOutline, {
                   disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn')
-                }, ['Delete']),
+                }, ['Delete Environment']),
                 h(ButtonSecondary,
                   { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: pauseGalaxy },
                   ['Pause'])
@@ -334,7 +334,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
           id: titleId,
           style: computeStyles.titleBar,
           hideCloseButton: isAnalysisMode,
-          title: h(WarningTitle, ['Delete environment options']),
+          title: h(WarningTitle, ['Delete environment']),
           onDismiss,
           onPrevious: () => {
             setViewMode(undefined)

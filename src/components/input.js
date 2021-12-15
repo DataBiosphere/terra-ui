@@ -248,8 +248,13 @@ const withAutocomplete = WrappedComponent => ({
     })
   })
 
+  const stateReducer = (_unused, action) => {
+    return action.type === Downshift.stateChangeTypes.keyDownEscape ? { isOpen: false } : action
+  }
+
   return h(Downshift, {
     ...controlProps,
+    stateReducer,
     initialInputValue: value,
     onSelect: v => !!v && onPick?.(v),
     onInputValueChange: newValue => {
@@ -280,7 +285,6 @@ const withAutocomplete = WrappedComponent => ({
                 e.nativeEvent.preventDownshiftDefault = true
                 e.preventDefault()
               }
-              toggleMenu()
             } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
               e.nativeEvent.preventDownshiftDefault = true
             } else if (e.key === 'Enter') {
