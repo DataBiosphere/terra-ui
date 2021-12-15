@@ -55,26 +55,23 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   const DESCRIPTION_MAX_LENGTH = 200
   const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
 
-  function isDescriptionKey(k) {
-    return k.endsWith(DESCRIPTION_SUFFIX)
-  }
+  const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
 
-  function toDescriptionKey(k) {
-    return k + DESCRIPTION_SUFFIX
-  }
+  const toDescriptionKey = k => k + DESCRIPTION_SUFFIX
 
-  function renameAttribute(kv) {
-    const [k, v] = kv
-    if (isDescriptionKey(k)) {
-      return {
+  const renameAttribute = attr => {
+    const [k, v] = attr
+    return isDescriptionKey(k) ?
+      {
         key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
         description: v
+      } : {
+        key: k,
+        value: v
       }
-    }
-    return { key: k, value: v }
   }
 
-  function toDisplayedAttribute(arr) {
+  const getDisplayedAttribute = arr => {
     const obj = Object.assign({}, ...arr)
     return [obj.key, obj.value, obj.description]
   }
@@ -85,7 +82,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     _.map(renameAttribute),
     _.groupBy('key'),
     _.values,
-    _.map(toDisplayedAttribute)
+    _.map(getDisplayedAttribute)
   )(attributes)
 
 
