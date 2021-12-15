@@ -27,17 +27,14 @@ const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
 const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
 
 // Exported for testing
-export const renameAttribute = attr => {
-  const [k, v] = attr
-  return isDescriptionKey(k) ?
-    {
-      key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
-      description: v
-    } : {
-      key: k,
-      value: v
-    }
-}
+export const renameAttribute = ([k, v]) => isDescriptionKey(k) ?
+  {
+    key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
+    description: v
+  } : {
+    key: k,
+    value: v
+  }
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
