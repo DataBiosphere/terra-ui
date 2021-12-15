@@ -141,35 +141,37 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
+const maybeSaveScreenshot = async page => {
+  if( !screenshotDir) { return }
+  try {
+    const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
+
+    await page.screenshot({ path, fullPage: true })
+
+    const errorsPresent = await openError(page)
+
+    if (errorsPresent) {
+      await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
+    }
+
+    if (screenshotBucket) {
+      const storage = new Storage()
+      await storage.bucket(screenshotBucket).upload(path)
+      if (errorsPresent) {
+        await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
+      }
+    }
+  } catch (e) {
+    console.error('Failed to capture screenshot', e)
+  }
+}
+
 const withScreenshot = _.curry((testName, fn) => async options => {
-  const { page } = options
   try {
     return await fn(options)
   } catch (e) {
-    if (screenshotDir) {
-      try {
-        const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
-        const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
-
-        await page.screenshot({ path, fullPage: true })
-
-        const errorsPresent = await openError(page)
-
-        if (errorsPresent) {
-          await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
-        }
-
-        if (screenshotBucket) {
-          const storage = new Storage()
-          await storage.bucket(screenshotBucket).upload(path)
-          if (errorsPresent) {
-            await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
-          }
-        }
-      } catch (e) {
-        console.error('Failed to capture screenshot', e)
-      }
-    }
+    await maybeSaveScreenshot(options.page)
     throw e
   }
 })

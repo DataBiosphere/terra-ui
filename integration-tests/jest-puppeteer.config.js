@@ -15,6 +15,7 @@ const printWarning = message => {
 module.exports = {
   browserContext: 'incognito',
   launch: {
+    executablePath: 'chromium',
     devtools: process.env.DEVTOOLS === 'true',
     headless: process.env.HEADLESS !== 'false',
     slowMo: process.env.SLOW === 'true' ? 250 : undefined,
