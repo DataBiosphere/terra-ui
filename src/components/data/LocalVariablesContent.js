@@ -228,7 +228,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                     options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                   })
                 ]) :
-                div({ className: 'hover-only' }, [])
+                renderDataCell(amendedAttributes[rowIndex][1], googleProject)
             ])
           }
         }, {
