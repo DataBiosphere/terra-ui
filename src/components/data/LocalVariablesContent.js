@@ -110,30 +110,35 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   )(async originalKey => {
     const isList = editType.includes('list')
     const newBaseType = isList ? editType.slice(0, -5) : editType
-
     const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
       Utils.convertValue(newBaseType, editValue)
 
-    await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
-    const originalDescription = attributes[toDescriptionKey(originalKey)]
-    if (originalDescription || editDescription) {
-      await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [toDescriptionKey(editKey)]: editDescription })
-    }
-    if (originalDescription && !editDescription) {
-      await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([toDescriptionKey(originalKey)])
-    }
+    const attributesToDelete = []
+    const attributesToMerge = { [editKey]: parsedValue }
 
     if (editKey !== originalKey) {
-      await loadAttributes()
-
-      await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
-      if (originalDescription) {
-        await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [toDescriptionKey(editKey)]: originalDescription })
-        await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([toDescriptionKey(originalKey)])
-      }
+      // Edit key differs from original key =>
+      // delete original key and delete original description key, if present
+      const originalDescriptionKey = toDescriptionKey(originalKey)
+      attributesToDelete.push(originalKey)
+      attributesToDelete.push(originalDescriptionKey)
     }
 
+    const editDescriptionKey = toDescriptionKey(editKey)
+    if (editDescription) {
+      // New description or change to existing one =>
+      // merge editDescription
+      attributesToMerge.[editDescriptionKey] = editDescription
+    } else {
+      // Change to description resulting in empty description =>
+      // delete description attribute
+      attributesToDelete.push(editDescriptionKey)
+    }
+
+    await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
+    await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge)
     await loadAttributes()
+
     stopEditing()
     setTextFilter('')
   })
@@ -224,8 +229,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                     onChange: ({ value }) => setEditType(value),
                     options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                   })
-                ]) :
-                renderDataCell(amendedAttributes[rowIndex][1], googleProject)
+                ]) : null
             ])
           }
         }, {
