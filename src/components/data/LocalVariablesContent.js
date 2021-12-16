@@ -127,7 +127,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     if (editDescription) {
       // New description or change to existing one =>
       // merge editDescription
-      attributesToMerge.[editDescriptionKey] = editDescription
+      attributesToMerge[editDescriptionKey] = editDescription
     } else {
       // Change to description resulting in empty description =>
       // delete description attribute
