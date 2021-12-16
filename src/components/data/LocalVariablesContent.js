@@ -307,8 +307,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
           Utils.withBusyState(setBusy)
         )(async () => {
           setDeleteIndex()
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([toDescriptionKey(amendedAttributes[deleteIndex][0])])
+          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0],
+            toDescriptionKey(amendedAttributes[deleteIndex][0])])
           await loadAttributes()
         })
       },
