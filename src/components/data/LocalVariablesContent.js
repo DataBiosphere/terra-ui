@@ -17,16 +17,15 @@ import { withErrorReporting } from 'src/libs/error'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
-// Exported for testing
+
 export const getDisplayedAttribute = arr => {
-  const obj = Object.assign({}, ...arr)
-  return [obj.key, obj.value, obj.description ? obj.description : '']
+  const { key, value, description } = _.assign(...arr, {})
+  return [key, value, description ?? '']
 }
 
 const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
 const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
 
-// Exported for testing
 export const renameAttribute = ([k, v]) => isDescriptionKey(k) ?
   {
     key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
@@ -113,26 +112,18 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
       Utils.convertValue(newBaseType, editValue)
 
-    const attributesToDelete = []
-    const attributesToMerge = { [editKey]: parsedValue }
-
-    if (editKey !== originalKey) {
-      // Edit key differs from original key =>
-      // delete original key and delete original description key, if present
-      attributesToDelete.push(originalKey)
-      attributesToDelete.push(toDescriptionKey(originalKey))
-    }
-
     const editDescriptionKey = toDescriptionKey(editKey)
-    if (editDescription) {
-      // New description or change to existing one =>
-      // merge editDescription
-      attributesToMerge[editDescriptionKey] = editDescription
-    } else {
-      // Change to description resulting in empty description =>
-      // delete description attribute
-      attributesToDelete.push(editDescriptionKey)
+
+    const attributesToMerge = {
+      [editKey]: parsedValue,
+      ...(!!editDescription && { [editDescriptionKey]: editDescription })
     }
+
+    const attributesToDelete = _.compact(_.flatten([
+      editKey !== originalKey && [originalKey, toDescriptionKey(originalKey)],
+      !editDescription && [editDescriptionKey]
+    ]
+    ))
 
     await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge)
