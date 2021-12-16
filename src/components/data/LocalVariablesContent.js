@@ -119,9 +119,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     if (editKey !== originalKey) {
       // Edit key differs from original key =>
       // delete original key and delete original description key, if present
-      const originalDescriptionKey = toDescriptionKey(originalKey)
       attributesToDelete.push(originalKey)
-      attributesToDelete.push(originalDescriptionKey)
+      attributesToDelete.push(toDescriptionKey(originalKey))
     }
 
     const editDescriptionKey = toDescriptionKey(editKey)
