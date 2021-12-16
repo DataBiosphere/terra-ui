@@ -114,8 +114,10 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ]
 }
 
-export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, 
-    titleField = 'name', descField = 'description', children }) => {
+export const SearchAndFilterComponent = ({
+  fullList, sidebarSections, customSort, searchType,
+  titleField = 'name', descField = 'description', children
+}) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
