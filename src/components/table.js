@@ -231,6 +231,7 @@ export const FlexTable = ({
   }, [
     div({
       style: {
+        ...styles.headerRow,
         width: width - scrollbarSize,
         height: headerHeight,
         display: 'flex'
@@ -563,7 +564,11 @@ GridTable.propTypes = {
 }
 
 export const SimpleTable = ({
-  columns, rows, 'aria-label': ariaLabel, rowStyle = {}, cellStyle: cellStyleOverrides = {}, useHover = true, underRowKey
+  columns, rows, 'aria-label': ariaLabel,
+  rowStyle = {}, evenRowStyle = {}, oddRowStyle = {},
+  cellStyle: cellStyleOverrides = {},
+  headerRowStyle = {},
+  useHover = true, underRowKey
 }) => {
   Utils.useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
@@ -572,7 +577,7 @@ export const SimpleTable = ({
     role: 'table',
     'aria-label': ariaLabel
   }, [
-    div({ role: 'row', style: { display: 'flex', alignItems: 'center' } }, [
+    !_.isEmpty(columns) && div({ role: 'row', style: { display: 'flex', alignItems: 'center', ...headerRowStyle } }, [
       _.map(({ key, header, size }) => {
         return div({
           key,
@@ -586,7 +591,7 @@ export const SimpleTable = ({
         key: i,
         role: 'row',
         as: 'div',
-        style: rowStyle, className: 'table-row',
+        style: { ...rowStyle, ...(i % 2 ? evenRowStyle : oddRowStyle) }, className: 'table-row',
         hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
         div({ style: { display: 'flex' } }, [
@@ -701,9 +706,10 @@ const SortableHandleDiv = SortableHandle(props => div(props))
  * @param {Object[]} columnSettings - current column list, in order
  * @param {string} columnSettings[].name
  * @param {bool} columnSettings[].visible
+ * @param {bool} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
-export const ColumnSelector = ({ onSave, columnSettings }) => {
+export const ColumnSelector = ({ onSave, columnSettings, style }) => {
   const [open, setOpen] = useState(false)
   const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
 
@@ -727,7 +733,7 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
     h(Clickable, {
       'aria-haspopup': 'dialog',
       'aria-expanded': open,
-      style: styles.columnSelector,
+      style: { ...styles.columnSelector, ...style },
       tooltip: 'Select columns',
       onClick: () => {
         setOpen(true)
