@@ -85,12 +85,13 @@ const DataBrowserPreview = ({ id }) => {
   }
 
   const formatTableCell = ({ cellKey, cellContent, rowIndex, table }) => {
+    const maybeJSON = Utils.maybeParseJSON(cellContent)
     return Utils.cond(
       [!Utils.cantBeNumber(cellContent), () => cellContent],
-      [Utils.maybeParseJSON(cellContent), () => {
+      [maybeJSON, () => {
         const contentAsJSON = {
           title: `${table}, Row ${rowIndex} - ${cellKey}`,
-          cellData: Utils.maybeParseJSON(cellContent)
+          cellData: maybeJSON
         }
 
         return h(ButtonPrimary, {
