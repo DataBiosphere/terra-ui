@@ -114,13 +114,16 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ]
 }
 
-export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, children }) => {
+export const SearchAndFilterComponent = ({
+  fullList, sidebarSections, customSort, searchType,
+  titleField = 'name', descField = 'description', children
+}) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const filterRegex = new RegExp(`(${searchFilter})`, 'i')
+  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
   const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(fullList, sidebarSections))
 
@@ -228,7 +231,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
         placeholder: 'Search Name or Description',
-        itemToString: v => v['dct:title'],
+        itemToString: v => v[titleField],
         onChange: onSearchChange,
         suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
         renderSuggestion: suggestion => {
@@ -239,10 +242,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
               maybeMatch => {
                 return _.size(maybeMatch) < 2 ? [
                   _.truncate({ length: 90 }, _.head(maybeMatch)),
-                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])
+                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
                 ] : maybeMatch
               }
-            )(suggestion['dct:title'])
+            )(suggestion[titleField])
           )
         },
         suggestions: filteredData

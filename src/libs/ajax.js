@@ -627,7 +627,7 @@ const Workspaces = signal => ({
       },
 
       updateAcl: async (aclUpdates, inviteNew = true) => {
-        const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
+        const res = await fetchOrchestration(`api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
         return res.json()
       },

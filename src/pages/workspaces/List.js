@@ -213,7 +213,7 @@ export const WorkspaceList = () => {
               ]),
               div({ style: styles.tableCellContent }, [
                 span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
-                  description?.split('\n')[0] || 'No description added'
+                  description?.toString().split('\n')[0] || 'No description added'
                 ])
               ])
             ])

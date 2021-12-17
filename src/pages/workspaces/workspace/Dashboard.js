@@ -230,7 +230,7 @@ const WorkspaceDashboard = _.flow(
           style: { marginLeft: '0.5rem' },
           disabled: !!Utils.editWorkspaceError(workspace),
           tooltip: Utils.editWorkspaceError(workspace) || 'Edit description',
-          onClick: () => setEditDescription(description)
+          onClick: () => setEditDescription(description?.toString())
         }, [icon('edit')])
       ]),
       Utils.cond(
@@ -248,7 +248,7 @@ const WorkspaceDashboard = _.flow(
             saving && spinnerOverlay
           ])
         ],
-        [!!description, () => h(MarkdownViewer, [description])],
+        [!!description, () => h(MarkdownViewer, [description?.toString()])],
         () => div({ style: { fontStyle: 'italic' } }, ['No description added'])),
       _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Dataset Attributes']),
