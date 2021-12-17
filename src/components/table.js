@@ -706,7 +706,7 @@ const SortableHandleDiv = SortableHandle(props => div(props))
  * @param {Object[]} columnSettings - current column list, in order
  * @param {string} columnSettings[].name
  * @param {bool} columnSettings[].visible
- * @param {bool} style - style override for the button
+ * @param {Object} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
 export const ColumnSelector = ({ onSave, columnSettings, style }) => {

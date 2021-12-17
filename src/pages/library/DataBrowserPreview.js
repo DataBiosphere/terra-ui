@@ -22,16 +22,16 @@ const styles = {
       height: '2rem', lineHeight: '2rem',
       textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
     },
-    headerRow: {
+    headerRowStyle: {
       borderTop: '1px solid rgba(0,0,0,.3)', borderBottom: '1px solid rgba(0,0,0,.3)'
     },
     rowStyle: {
       borderBottom: '1px solid rgba(0,0,0,.1)'
     },
-    evenRow: {
+    evenRowStyle: {
       backgroundColor: 'white'
     },
-    oddRow: {
+    oddRowStyle: {
       backgroundColor: 'rgba(233,233,233,.1)'
     }
   }
@@ -150,10 +150,7 @@ const DataBrowserPreview = ({ id }) => {
             'aria-label': `${_.startCase(selectedTable)} Preview Data`,
             columns: _.filter('visible', columnSettings),
             cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all', display: 'flex', alignItems: 'center' },
-            headerRowStyle: styles.table.headerRow,
-            rowStyle: styles.table.rowStyle,
-            evenRowStyle: styles.table.evenRow,
-            oddRowStyle: styles.table.oddRow,
+            ...styles.table,
             useHover: false,
             rows: previewData
           }),
