@@ -151,10 +151,16 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                 h(LabeledCheckbox, {
                   style: { marginRight: 10 },
                   'aria-label': tag,
-                  checked: _.includes(tag.toLowerCase(), selectedTags),
+                  checked: _.some({ lowerTag: tag.toLowerCase() }, selectedTags),
                   onChange: () => {
                     Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
-                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                    const invertSelection = _.flow(
+                      _.find(({ label }) => _.includes(label, sections[1].labels)),
+                      _.concat([{ label: tag, lowerTag: tag.toLowerCase() }]),
+                      _.compact,
+                      _.xorBy('lowerTag')
+                    )(selectedTags)
+                    setSelectedTags(invertSelection)
                   }
                 }, [tag])
               ])
