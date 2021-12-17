@@ -591,7 +591,7 @@ export const SimpleTable = ({
         key: i,
         role: 'row',
         as: 'div',
-        style: { ...rowStyle, ...(i % 2 ? evenRowStyle : oddRowStyle) }, className: 'table-row',
+        style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) }, className: 'table-row',
         hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
         div({ style: { display: 'flex' } }, [

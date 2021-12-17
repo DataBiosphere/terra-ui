@@ -29,10 +29,10 @@ const styles = {
       borderBottom: '1px solid rgba(0,0,0,.1)'
     },
     evenRow: {
-      backgroundColor: 'rgba(233,233,233,.1)'
+      backgroundColor: 'white',
     },
     oddRow: {
-      backgroundColor: 'white'
+      backgroundColor: 'rgba(233,233,233,.1)'
     }
   }
 }
