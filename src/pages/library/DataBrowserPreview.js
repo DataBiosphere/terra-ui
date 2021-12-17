@@ -52,7 +52,20 @@ const DataBrowserPreview = ({ id }) => {
   const [viewJSON, setViewJSON] = useState()
 
   const tableMap = _.keyBy('name', tables)
-  const tableNames = _.map('name', tables)
+  const selectOptions = _.flow([
+    _.partition(table => table.rowCount > 0),
+    _.toPairs,
+    _.flatMap(([rowIndex, tables]) => {
+      const sortedTables = _.flow([
+        _.sortBy('name'),
+        _.map(({ name, rowCount }) => { return { value: name, rowCount } })
+      ])(tables)
+
+      return rowIndex === '0' ?
+        sortedTables :
+        { label: 'Tables without data', options: sortedTables }
+    })
+  ])(tables)
 
   const selectTable = ({ value }) => {
     const loadTable = _.flow(
@@ -139,9 +152,14 @@ const DataBrowserPreview = ({ id }) => {
             isSearchable: true,
             isClearable: false,
             value: selectedTable,
-            getOptionLabel: ({ value }) => `${_.startCase(value)}${tableMap[value].rowCount === 0 ? ' (0 Rows)' : ''}`,
+            getOptionLabel: ({ rowCount, value }) => {
+              return div({ style: { color: colors.dark(rowCount ? 1 : 0.5) } }, [_.startCase(value)])
+            },
+            formatGroupLabel: ({ label }) => {
+              return div({ style: { marginTop: 5, paddingTop: 15, borderTop: `1px solid ${colors.dark(0.5)}`, color: colors.dark(0.8) } }, label)
+            },
             onChange: ({ value }) => selectTable({ value }),
-            options: tableNames
+            options: selectOptions
           }),
           loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
