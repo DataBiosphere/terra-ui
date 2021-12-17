@@ -301,7 +301,6 @@ export const SearchAndFilterComponent = ({
           onSectionFilter: section => setSelectedSections(_.xor([section])),
           onTagFilter: ({ lowerTag, label }) => {
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            console.log('Selecting: ', lowerTag, label)
             setSelectedTags(_.xorBy('lowerTag', [{ lowerTag, label }]))
           },
           sections,
