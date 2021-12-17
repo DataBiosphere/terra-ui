@@ -23,16 +23,16 @@ const styles = {
       textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
     },
     headerRowStyle: {
-      borderTop: '1px solid rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(0,0,0,0.3)'
+      borderTop: `1px solid ${colors.dark(0.35)}`, borderBottom: `1px solid ${colors.dark(0.35)}`
     },
     rowStyle: {
-      borderBottom: '1px solid rgba(0,0,0,0.1)'
+      borderBottom: `1px solid ${colors.dark(0.2)}`
     },
     evenRowStyle: {
       backgroundColor: 'white'
     },
     oddRowStyle: {
-      backgroundColor: 'rgba(233,233,233,0.1)'
+      backgroundColor: colors.light(0.5)
     }
   }
 }
