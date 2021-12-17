@@ -107,7 +107,7 @@ const DataBrowserPreview = ({ id }) => {
         }
 
         return h(ButtonPrimary, {
-          style: { fontSize: 16, textTransform: 'none', height: 'unset' },
+          style: { fontSize: 16, textTransform: 'none' },
           onClick: () => { setViewJSON(contentAsJSON) }
         }, ['View JSON'])
       }],
