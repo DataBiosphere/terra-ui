@@ -1,4 +1,5 @@
-import { getDisplayedAttribute, renameAttribute } from 'src/components/data/LocalVariablesContent'
+import _ from 'lodash/fp'
+import { convertInitialAttributes, getDisplayedAttribute, renameAttribute } from 'src/components/data/LocalVariablesContent'
 
 
 describe('getDisplayedAttribute', () => {
@@ -34,8 +35,41 @@ describe('renameAttribute', () => {
     expect(renameAttribute(input)).toStrictEqual(expected)
   })
   it('renames a description attribute', () => {
-    const input = ['the_key__DESCRIPTION__', 'the_description']
+    const input = ['__DESCRIPTION__the_key', 'the_description']
     const expected = { key: 'the_key', description: 'the_description' }
     expect(renameAttribute(input)).toStrictEqual(expected)
+  })
+})
+
+describe('convertInitialAttributes', () => {
+  it('removes an attribute with key "description"', () => {
+    expect(convertInitialAttributes({description: 'description'}).toBeFalsy)
+  })
+  it('removes an attribute with key starting with "reference_data_"', () => {
+    expect(convertInitialAttributes({reference_data_FOO: 'FOO'}).toBeFalsy)
+  })
+  it('converts an attribute without a description', () => {
+    const input = {key1: 'value1'}
+    const expected = [['key1', 'value1', '']]
+    expect(convertInitialAttributes(input)).toStrictEqual(expected)
+  })
+  it('converts an attribute with a description', () => {
+    const input = {key1: 'value1', __DESCRIPTION__key1: 'description1'}
+    const expected = [['key1', 'value1', 'description1']]
+    expect(convertInitialAttributes(input)).toStrictEqual(expected)
+  })
+  it('converts all types of attributes at once', () => {
+    const input = {
+      description: 'workspace description',
+      reference_data_FOO: 'FOO',
+      key0: 'value0',
+      key1: 'value1',
+      __DESCRIPTION__key1: 'description1'
+    }
+    const expected = [
+      ['key0', 'value0', ''],
+      ['key1', 'value1', 'description1']
+    ]
+    expect(_.sortBy(convertInitialAttributes(input), _.first)).toStrictEqual(_.sortBy(expected, _.first))
   })
 })

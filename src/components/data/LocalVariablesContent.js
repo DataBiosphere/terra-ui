@@ -19,21 +19,25 @@ import * as Utils from 'src/libs/utils'
 
 
 export const getDisplayedAttribute = arr => {
-  const { key, value, description } = _.assign(...arr, {})
-  return [key, value, description ?? '']
+  const { key, value, description = '' } = _.mergeAll(arr)
+  return [key, value, description]
 }
 
-const DESCRIPTION_SUFFIX = '__DESCRIPTION__'
-const isDescriptionKey = k => k.endsWith(DESCRIPTION_SUFFIX)
+const DESCRIPTION_PREFIX = '__DESCRIPTION__'
+const isDescriptionKey = _.startsWith(DESCRIPTION_PREFIX)
 
 export const renameAttribute = ([k, v]) => isDescriptionKey(k) ?
-  {
-    key: k.substring(0, k.length - DESCRIPTION_SUFFIX.length),
-    description: v
-  } : {
-    key: k,
-    value: v
-  }
+  { key: k.slice(DESCRIPTION_PREFIX.length), description: v } :
+  { key: k, value: v }
+
+export const convertInitialAttributes = _.flow(
+  _.toPairs,
+  _.remove(([key]) => /^description$|:|^referenceData_/.test(key)),
+  _.map(renameAttribute),
+  _.groupBy('key'),
+  _.values,
+  _.map(getDisplayedAttribute)
+)
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
@@ -69,17 +73,9 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     setEditType()
   }
 
-  const toDescriptionKey = k => k + DESCRIPTION_SUFFIX
+  const toDescriptionKey = k => DESCRIPTION_PREFIX + k
 
-  const initialAttributes = _.flow(
-    _.toPairs,
-    _.remove(([key]) => /^description$|:|^referenceData_/.test(key)),
-    _.map(renameAttribute),
-    _.groupBy('key'),
-    _.values,
-    _.map(getDisplayedAttribute)
-  )(attributes)
-
+  const initialAttributes = convertInitialAttributes(attributes)
 
   const creatingNewVariable = editIndex === initialAttributes.length
   const amendedAttributes = _.flow(
@@ -93,8 +89,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ['Key cannot be \'description\''] : []),
-    ...(isDescriptionKey(editKey) ? [`Key cannot end with '${DESCRIPTION_SUFFIX}'`] : []),
-    ...(editDescription && editDescription.length > DESCRIPTION_MAX_LENGTH ? [`Description cannot be longer than ${DESCRIPTION_MAX_LENGTH} characters`] : []),
+    ...(isDescriptionKey(editKey) ? [`Key cannot start with '${DESCRIPTION_PREFIX}'`] : []),
+    ...(editDescription?.length > DESCRIPTION_MAX_LENGTH ? [`Description cannot be longer than ${DESCRIPTION_MAX_LENGTH} characters`] : []),
     ...(editKey.startsWith('referenceData_') ? ['Key cannot start with \'referenceData_\''] : []),
     ...(!editKey ? ['Key is required'] : []),
     ...(!editValue ? ['Value is required'] : []),
@@ -125,8 +121,9 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     ]
     ))
 
-    await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge)
+    await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
+
     await loadAttributes()
 
     stopEditing()
@@ -189,8 +186,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
               onChange: setEditKey
             }) :
             renderDataCell(amendedAttributes[rowIndex][0], googleProject)
-        },
-        {
+        }, {
           size: { grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Value']),
           cellRenderer: ({ rowIndex }) => {
@@ -206,7 +202,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                   }) :
                   renderDataCell(originalValue, googleProject)
               ]),
-              editIndex === rowIndex ?
+              editIndex === rowIndex &&
                 h(Fragment, [
                   h(Select, {
                     'aria-label': 'data type',
@@ -219,7 +215,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                     onChange: ({ value }) => setEditType(value),
                     options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
                   })
-                ]) : null
+                ])
             ])
           }
         }, {
@@ -298,8 +294,9 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
           Utils.withBusyState(setBusy)
         )(async () => {
           setDeleteIndex()
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0],
-            toDescriptionKey(amendedAttributes[deleteIndex][0])])
+          await Ajax().Workspaces.workspace(namespace, name)
+            .deleteAttributes([amendedAttributes[deleteIndex][0],
+              toDescriptionKey(amendedAttributes[deleteIndex][0])])
           await loadAttributes()
         })
       },
