@@ -91,7 +91,7 @@ const ImportData = () => {
   )(dataCatalog)
   const [snapshotResponses, setSnapshotResponses] = useState()
 
-  const isDataset = format !== 'snapshot' && format !== 'tdrexport'
+  const isDataset = !_.includes(format, ['snapshot', 'tdrexport'])
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
   const [title, header] = Utils.cond(
     [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
