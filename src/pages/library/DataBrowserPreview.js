@@ -29,7 +29,7 @@ const styles = {
       borderBottom: '1px solid rgba(0,0,0,.1)'
     },
     evenRow: {
-      backgroundColor: 'white',
+      backgroundColor: 'white'
     },
     oddRow: {
       backgroundColor: 'rgba(233,233,233,.1)'
