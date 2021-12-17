@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
-import { Select } from 'src/components/common'
+import { div, h, h1, h2 } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
+import { ButtonPrimary, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import ModalDrawer from 'src/components/ModalDrawer'
 import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -35,6 +37,7 @@ const DataBrowserPreview = ({ id }) => {
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
   const [columnSettings, setColumnSettings] = useState([])
+  const [viewJSON, setViewJSON] = useState()
 
   const tableMap = _.keyBy('name', tables)
   const tableNames = _.map('name', tables)
@@ -49,13 +52,27 @@ const DataBrowserPreview = ({ id }) => {
         id, limit: 50, offset: 0,
         table: value
       })
-      setPreviewData(previewTableData?.result || [])
+
+      const columnNames = _.map('name', tableMap[selectedTable]?.columns)
+
+      setPreviewData(_.flow([
+        _.getOr([], 'result'),
+        _.toPairs,
+        _.map(([rowIndex, row]) => {
+          return _.reduce((obj, param) => {
+            obj[param] = formatTableCell({ cellKey: param, cellContent: row[param], rowIndex, table: value })
+            return obj
+          }, {}, columnNames)
+        })
+      ])(previewTableData))
 
       setColumnSettings(
         _.flow([
           _.toPairs,
           _.map(([index, col]) => {
             return {
+              // name field is used in the column selector
+              // key field is used in the Simple Table
               name: col.name, key: col.name,
               visible: index < 6,
               header: div({ style: styles.table.header }, [col.name])
@@ -65,6 +82,25 @@ const DataBrowserPreview = ({ id }) => {
       )
     })
     loadTable()
+  }
+
+  const formatTableCell = ({ cellKey, cellContent, rowIndex, table }) => {
+    const maybeJSON = Utils.maybeParseJSON(cellContent)
+    return Utils.cond(
+      [!Utils.cantBeNumber(cellContent), () => cellContent],
+      [maybeJSON, () => {
+        const contentAsJSON = {
+          title: `${table}, Row ${rowIndex} - ${cellKey}`,
+          cellData: maybeJSON
+        }
+
+        return h(ButtonPrimary, {
+          style: { fontSize: 16, textTransform: 'none', height: 'unset' },
+          onClick: () => { setViewJSON(contentAsJSON) }
+        }, ['View JSON'])
+      }],
+      [Utils.DEFAULT, () => cellContent]
+    )
   }
 
   Utils.useOnMount(() => {
@@ -108,7 +144,23 @@ const DataBrowserPreview = ({ id }) => {
           columnSettings.length > 0 && h(ColumnSelector, { onSave: setColumnSettings, columnSettings })
         ]),
         previewData?.length === 0 && div({ style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, ['(No Data)'])
+      ]),
+    viewJSON && h(ModalDrawer, {
+      'aria-label': 'View Json', isOpen: true, width: 675,
+      onDismiss: () => { setViewJSON() },
+      children: div({ style: { padding: '0 25px 25px' } }, [
+        h2([viewJSON.title]),
+        h(ReactJson, {
+          style: { whiteSpace: 'pre-wrap', wordBreak: 'break-word', backgroundColor: 'white' },
+          name: false,
+          collapsed: 4,
+          enableClipboard: true,
+          displayDataTypes: false,
+          displayObjectSize: false,
+          src: viewJSON.cellData
+        })
       ])
+    })
   ])
 }
 
