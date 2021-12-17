@@ -115,11 +115,10 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
       ...(!!editDescription && { [editDescriptionKey]: editDescription })
     }
 
-    const attributesToDelete = _.compact(_.flatten([
-      editKey !== originalKey && [originalKey, toDescriptionKey(originalKey)],
-      !editDescription && [editDescriptionKey]
+    const attributesToDelete = [
+      ...(editKey !== originalKey ? [originalKey, toDescriptionKey(originalKey)] : []),
+      ...(!editDescription ? [editDescriptionKey] : [])
     ]
-    ))
 
     await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge)
     await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
