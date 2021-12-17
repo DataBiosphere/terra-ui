@@ -27,7 +27,8 @@ export const launch = async ({
   try {
     await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(googleProject, bucketName, accessLevel)
   } catch (error) {
-    throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
+    console.error(error)
+    throw new Error(`Error confirming workspace bucket access. This may be a transient problem, please try again in a few minutes. If the problem persists, please contact support and provide this information: status ${error.status}, status text '${error.statusText}'.`)
   }
   const { entityName, processSet = false } = await Utils.cond(
     [isSnapshot || (selectedEntityType === undefined), () => ({})],
