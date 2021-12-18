@@ -70,6 +70,6 @@ describe('convertInitialAttributes', () => {
       ['key0', 'value0', ''],
       ['key1', 'value1', 'description1']
     ]
-    expect(_.sortBy(convertInitialAttributes(input), _.first)).toStrictEqual(_.sortBy(expected, _.first))
+    expect(_.sortBy(convertInitialAttributes(input), _.first)).toStrictEqual(expected)
   })
 })
