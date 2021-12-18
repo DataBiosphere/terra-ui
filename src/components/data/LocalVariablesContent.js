@@ -37,7 +37,7 @@ export const convertInitialAttributes = _.flow(
   _.groupBy('key'),
   _.values,
   _.map(getDisplayedAttribute),
-  // _.sortBy(_.first)
+  _.sortBy(_.first)
 )
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
@@ -81,7 +81,6 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   const creatingNewVariable = editIndex === initialAttributes.length
   const amendedAttributes = _.flow(
     _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
-    _.sortBy(_.first),
     arr => [...arr, ...(creatingNewVariable ? [['', '', '']] : [])]
   )(initialAttributes)
 
