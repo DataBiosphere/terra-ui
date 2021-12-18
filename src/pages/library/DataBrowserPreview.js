@@ -19,8 +19,20 @@ const styles = {
   table: {
     header: {
       color: colors.accent(),
-      height: '1rem',
+      height: '2rem', lineHeight: '2rem',
       textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
+    },
+    headerRowStyle: {
+      borderTop: `1px solid ${colors.dark(0.35)}`, borderBottom: `1px solid ${colors.dark(0.35)}`
+    },
+    rowStyle: {
+      borderBottom: `1px solid ${colors.dark(0.2)}`
+    },
+    evenRowStyle: {
+      backgroundColor: 'white'
+    },
+    oddRowStyle: {
+      backgroundColor: colors.light(0.5)
     }
   }
 }
@@ -95,7 +107,7 @@ const DataBrowserPreview = ({ id }) => {
         }
 
         return h(ButtonPrimary, {
-          style: { fontSize: 16, textTransform: 'none', height: 'unset' },
+          style: { fontSize: 16, textTransform: 'none' },
           onClick: () => { setViewJSON(contentAsJSON) }
         }, ['View JSON'])
       }],
@@ -133,15 +145,16 @@ const DataBrowserPreview = ({ id }) => {
           }),
           loading && spinner({ style: { marginLeft: '1rem' } })
         ]),
-        tableMap && tableMap[selectedTable] && div({ style: { position: 'relative' } }, [
+        tableMap && tableMap[selectedTable] && div({ style: { position: 'relative', padding: '0 15px' } }, [
           h(SimpleTable, {
             'aria-label': `${_.startCase(selectedTable)} Preview Data`,
             columns: _.filter('visible', columnSettings),
-            cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all' },
+            cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all', display: 'flex', alignItems: 'center' },
+            ...styles.table,
             useHover: false,
             rows: previewData
           }),
-          columnSettings.length > 0 && h(ColumnSelector, { onSave: setColumnSettings, columnSettings })
+          columnSettings.length > 0 && h(ColumnSelector, { onSave: setColumnSettings, columnSettings, style: { backgroundColor: 'transparent', height: '2.5rem', width: '2.5rem', border: 0, right: 15 } })
         ]),
         previewData?.length === 0 && div({ style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' } }, ['(No Data)'])
       ]),
