@@ -36,7 +36,8 @@ export const convertInitialAttributes = _.flow(
   _.map(renameAttribute),
   _.groupBy('key'),
   _.values,
-  _.map(getDisplayedAttribute)
+  _.map(getDisplayedAttribute),
+  // _.sortBy(_.first)
 )
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {

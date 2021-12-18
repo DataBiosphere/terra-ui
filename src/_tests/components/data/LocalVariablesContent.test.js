@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { convertInitialAttributes, getDisplayedAttribute, renameAttribute } from 'src/components/data/LocalVariablesContent'
 
 
@@ -43,25 +42,25 @@ describe('renameAttribute', () => {
 
 describe('convertInitialAttributes', () => {
   it('removes an attribute with key "description"', () => {
-    expect(convertInitialAttributes({description: 'description'}).toBeFalsy)
+    expect(convertInitialAttributes({ description: 'description' })).toStrictEqual([])
   })
-  it('removes an attribute with key starting with "reference_data_"', () => {
-    expect(convertInitialAttributes({reference_data_FOO: 'FOO'}).toBeFalsy)
+  it('removes an attribute with key starting with "referenceData_"', () => {
+    expect(convertInitialAttributes({ referenceData_FOO: 'FOO' })).toStrictEqual([])
   })
   it('converts an attribute without a description', () => {
-    const input = {key1: 'value1'}
+    const input = { key1: 'value1' }
     const expected = [['key1', 'value1', '']]
     expect(convertInitialAttributes(input)).toStrictEqual(expected)
   })
   it('converts an attribute with a description', () => {
-    const input = {key1: 'value1', __DESCRIPTION__key1: 'description1'}
+    const input = { key1: 'value1', __DESCRIPTION__key1: 'description1' }
     const expected = [['key1', 'value1', 'description1']]
     expect(convertInitialAttributes(input)).toStrictEqual(expected)
   })
   it('converts all types of attributes at once', () => {
     const input = {
       description: 'workspace description',
-      reference_data_FOO: 'FOO',
+      referenceData_FOO: 'FOO',
       key0: 'value0',
       key1: 'value1',
       __DESCRIPTION__key1: 'description1'
@@ -70,6 +69,6 @@ describe('convertInitialAttributes', () => {
       ['key0', 'value0', ''],
       ['key1', 'value1', 'description1']
     ]
-    expect(_.sortBy(convertInitialAttributes(input), _.first)).toStrictEqual(expected)
+    expect(convertInitialAttributes(input)).toStrictEqual(expected)
   })
 })
