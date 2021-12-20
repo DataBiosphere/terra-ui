@@ -172,7 +172,7 @@ const amppd = () => h(Participant, {
       ])
     ]),
     p([`Global Parkinson's Genetics Program (GP2) data is accessible through an approved single AMP PD-GP2 DUA, `,
-      h(Link, { href: 'https://www.gp2.org/', ...Utils.newTabLinkProps }, 'here.')])
+      h(Link, { href: 'https://www.amp-pd.org/form/update-amp-pd-application', ...Utils.newTabLinkProps }, 'here.')])
   ]),
   sizeText: 'Participants: 10,772'
 }, [
@@ -310,9 +310,16 @@ const gp2 = () => h(Participant, {
   ])
 }, [
   h(ButtonPrimary, {
-    'aria-label': 'Browse GP2 data',
-    href: Nav.getLink('workspace-dashboard', { namespace: 'foo', name: 'bar' })
-  }, ['Browse Data'])
+    'aria-label': 'Browse GP2 Tier 1 data',
+    style: { marginBottom: '1rem' },
+    tooltip: 'Visit the workspace',
+    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier1' })
+  }, ['Browse Tier 1 Data']),
+  h(ButtonPrimary, {
+    'aria-label': 'Browse GP2 Tier 2 data',
+    tooltip: 'Visit the workspace',
+    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier2' })
+  }, ['Browse Tier 2 Data']),
 ])
 
 const hca = () => h(Participant, {
