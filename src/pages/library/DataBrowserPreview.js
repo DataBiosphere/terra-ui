@@ -52,20 +52,20 @@ const DataBrowserPreview = ({ id }) => {
   const [viewJSON, setViewJSON] = useState()
 
   const tableMap = _.keyBy('name', tables)
-  const selectOptions = _.flow([
+  const selectOptions = _.flow(
     _.partition(table => table.rowCount > 0),
     _.toPairs,
     _.flatMap(([rowIndex, tables]) => {
-      const sortedTables = _.flow([
+      const sortedTables = _.flow(
         _.sortBy('name'),
         _.map(({ name, rowCount }) => { return { value: name, rowCount } })
-      ])(tables)
+      )(tables)
 
       return rowIndex === '0' ?
         sortedTables :
         { label: 'Tables without data', options: sortedTables }
     })
-  ])(tables)
+  )(tables)
 
   const selectTable = ({ value }) => {
     const loadTable = _.flow(
