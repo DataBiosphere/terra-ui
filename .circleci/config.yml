@@ -79,11 +79,12 @@ commands:
       - when:
           condition: << parameters.pr >>
           steps:
-            - run: |
-              if [[ -z "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" ]]; then
-                echo "No PR number, not deploying"
-                circleci-agent step halt
-              fi
+            - run:
+                command: |
+                  if [[ -z "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" ]]; then
+                    echo "No PR number, not deploying"
+                    circleci-agent step halt
+                  fi
       - attach_workspace:
           at: .
       - run: cp config/<< parameters.env >>.json build/config.json
