@@ -319,7 +319,7 @@ const gp2 = () => h(Participant, {
     'aria-label': 'Browse GP2 Tier 2 data',
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier2' })
-  }, ['Browse Tier 2 Data']),
+  }, ['Browse Tier 2 Data'])
 ])
 
 const hca = () => h(Participant, {
