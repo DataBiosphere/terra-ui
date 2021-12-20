@@ -24,10 +24,10 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 
 ### Developing
 
-1. We use Node 14 (the current LTS) and Yarn. On Darwin with Homebrew:
+1. We use Node 16 (the current LTS) and Yarn. On Darwin with Homebrew:
 
     ```sh
-    brew install node@14 yarn; brew link node@14 --force --overwrite
+    brew install node@16 yarn; brew link node@16 --force --overwrite
     ```
 2. Install deps:
 
