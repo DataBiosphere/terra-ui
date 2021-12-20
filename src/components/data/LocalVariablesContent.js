@@ -81,7 +81,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   const creatingNewVariable = editIndex === initialAttributes.length
   const amendedAttributes = _.flow(
     _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
-    arr => [...arr, ...(creatingNewVariable ? [['', '', '']] : [])]
+    creatingNewVariable ? Utils.append(['', '', '']) : _.identity
   )(initialAttributes)
 
   const DESCRIPTION_MAX_LENGTH = 200
@@ -293,8 +293,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         )(async () => {
           setDeleteIndex()
           await Ajax().Workspaces.workspace(namespace, name)
-            .deleteAttributes([amendedAttributes[deleteIndex][0],
-              toDescriptionKey(amendedAttributes[deleteIndex][0])])
+            .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])])
           await loadAttributes()
         })
       },
