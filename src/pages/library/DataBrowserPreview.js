@@ -118,7 +118,9 @@ const DataBrowserPreview = ({ id }) => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
-      const searchValues = _.flow(
+
+      setTables(metadata.tables)
+      setSelectOptions(_.flow(
         _.partition(table => table.rowCount > 0),
         _.toPairs,
         _.flatMap(([rowIndex, tables]) => {
@@ -131,12 +133,9 @@ const DataBrowserPreview = ({ id }) => {
             sortedTables :
             { label: 'Tables without data', options: sortedTables }
         })
-      )(metadata.tables)
-
-      setTables(metadata.tables)
-      setSelectOptions(searchValues)
-      selectTable(_.get('0.options.0', searchValues) || _.get('0', searchValues))
+      )(metadata.tables))
     }
+
     loadData()
   })
 
