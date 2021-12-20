@@ -5,6 +5,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig, isDataBrowserVisible } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -96,9 +97,9 @@ const extractTags = snapshot => {
 }
 
 export const useDataCatalog = () => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [loading, setLoading] = useState(false)
-  const dataCatalog = Utils.useStore(dataCatalogStore)
+  const dataCatalog = useStore(dataCatalogStore)
 
   const refresh = _.flow(
     withErrorReporting('Error loading data catalog'),
@@ -112,7 +113,7 @@ export const useDataCatalog = () => {
 
     dataCatalogStore.set(normList)
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }

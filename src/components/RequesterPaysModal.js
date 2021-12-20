@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -23,9 +24,9 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const [workspaceList, setWorkspaceList] = useState([])
   const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get())
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadWorkspaces = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReporting('Error loading workspaces')

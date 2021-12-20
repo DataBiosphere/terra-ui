@@ -22,17 +22,10 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
 import {
-  getComputeStatusForDisplay,
-  getConvertedRuntimeStatus,
-  getCurrentApp,
-  getCurrentRuntime,
-  getGalaxyCostTextChildren,
-  getIsAppBusy,
-  getIsRuntimeBusy,
-  getPersistentDiskCostHourly,
-  isCurrentGalaxyDiskDetaching,
-  runtimeCost
+  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getGalaxyCostTextChildren, getIsAppBusy, getIsRuntimeBusy,
+  getPersistentDiskCostHourly, isCurrentGalaxyDiskDetaching, runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -48,7 +41,7 @@ export const CloudEnvironmentModal = ({
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
 
   const [computeRegion] = useState(getRegionInfo(location, locationType).computeRegion)
 

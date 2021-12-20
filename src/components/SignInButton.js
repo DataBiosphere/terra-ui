@@ -3,12 +3,12 @@ import { h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { isAuthSettled } from 'src/libs/auth'
+import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 const SignInButton = ({ theme = 'light', ...props }) => {
-  const auth = Utils.useStore(authStore)
+  const auth = useStore(authStore)
 
   const isGoogleAuthInitialized = isAuthSettled(auth)
 

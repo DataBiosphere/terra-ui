@@ -28,6 +28,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -211,7 +212,7 @@ const AnalysisCard = ({
 }
 
 const Analyses = _.flow(
-  Utils.forwardRefWithName('Analyses'),
+  forwardRefWithName('Analyses'),
   requesterPaysWrapper({
     onDismiss: () => Nav.history.goBack()
   }),
@@ -240,8 +241,8 @@ const Analyses = _.flow(
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
 
-  const authState = Utils.useStore(authStore)
-  const signal = Utils.useCancellation()
+  const authState = useStore(authStore)
+  const signal = useCancellation()
   const currentRuntime = getCurrentRuntime(runtimes)
 
   // Helpers
@@ -295,7 +296,7 @@ const Analyses = _.flow(
   })
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const load = async () => {
       const [currentUserHash, potentialLockers] = await Promise.all(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])

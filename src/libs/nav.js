@@ -4,12 +4,12 @@ import * as qs from 'qs'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { getAppName } from 'src/libs/logos'
+import { useOnMount, useStore } from 'src/libs/react-utils'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { atom, cond, useOnMount, useStore } from 'src/libs/utils'
 
 
-export const blockNav = atom(() => Promise.resolve())
+export const blockNav = Utils.atom(() => Promise.resolve())
 
 export const history = createHistory({
   hashType: 'noslash',
@@ -84,7 +84,7 @@ export const useRoute = () => {
 
 export const TitleManager = () => {
   const { title, params, query } = useRoute()
-  const newTitle = cond(
+  const newTitle = Utils.cond(
     [_.isFunction(title), () => title({ ...params, queryParams: query })],
     [title, () => title],
     getAppName
@@ -116,7 +116,7 @@ export const updateSearch = (query, params) => {
 }
 
 export const PathHashInserter = () => {
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loc = window.location
     const desiredPath = `${process.env.PUBLIC_URL}/`
     if (loc.pathname !== desiredPath) {

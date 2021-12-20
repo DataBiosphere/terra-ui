@@ -12,6 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -19,9 +20,9 @@ import validate from 'validate.js'
 
 
 export const useWorkspaces = () => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [loading, setLoading] = useState(false)
-  const workspaces = Utils.useStore(workspacesStore)
+  const workspaces = useStore(workspacesStore)
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
@@ -31,14 +32,14 @@ export const useWorkspaces = () => {
     ])
     workspacesStore.set(ws)
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
   })
   return { workspaces, refresh, loading }
 }
 
 export const withWorkspaces = WrappedComponent => {
-  return Utils.withDisplayName('withWorkspaces', props => {
+  return withDisplayName('withWorkspaces', props => {
     const { workspaces, refresh, loading } = useWorkspaces()
     return h(WrappedComponent, {
       ...props,
@@ -84,7 +85,7 @@ export const SnapshotInfo = ({
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -101,7 +102,7 @@ export const SnapshotInfo = ({
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadSnapshotInfo = async () => {
       const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
       setSelectedSnapshotInfo(snapshotInfo)
@@ -246,7 +247,7 @@ export const SnapshotInfo = ({
 }
 
 export const WorkspaceImporter = _.flow(
-  Utils.withDisplayName('WorkspaceImporter'),
+  withDisplayName('WorkspaceImporter'),
   withWorkspaces
 )(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
@@ -293,8 +294,8 @@ export const WorkspaceImporter = _.flow(
 })
 
 export const WorkspaceTagSelect = props => {
-  const signal = Utils.useCancellation()
-  const getTagSuggestions = Utils.useInstance(() => debouncePromise(withErrorReporting('Error loading tags', async text => {
+  const signal = useCancellation()
+  const getTagSuggestions = useInstance(() => debouncePromise(withErrorReporting('Error loading tags', async text => {
     if (text.length > 2) {
       return _.map(({ tag, count }) => {
         return { value: tag, label: `${tag} (${count})` }

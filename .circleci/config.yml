@@ -180,6 +180,7 @@ jobs:
           paths:
             - node_modules
             - .yarn/cache
+      - run: yarn eslint src
       - run: yarn test
       - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config

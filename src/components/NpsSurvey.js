@@ -9,6 +9,7 @@ import Interactive from 'src/components/Interactive'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getAppName } from 'src/libs/logos'
+import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -26,7 +27,7 @@ const NpsSurvey = () => {
   const [reasonComment, setReasonComment] = useState('')
   const [changeComment, setChangeComment] = useState('')
 
-  const { registrationStatus } = Utils.useStore(authStore)
+  const { registrationStatus } = useStore(authStore)
 
   const loadStatus = async () => {
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp

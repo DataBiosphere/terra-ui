@@ -12,6 +12,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -189,9 +190,9 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
   const [processing, setProcessing] = useState(false)
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadNames = async () => {
       const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
       const existingNames = _.map(({ name }) => getDisplayName(name), existingAnalyses)
@@ -276,9 +277,9 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const [nameTouched, setNameTouched] = useState(false)
   const [processing, setProcessing] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadNames = async () => {
       const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
       const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)

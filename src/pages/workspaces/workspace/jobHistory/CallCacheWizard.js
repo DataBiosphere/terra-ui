@@ -10,6 +10,7 @@ import { breadcrumbHistoryCaret } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -31,7 +32,7 @@ const CallCacheWizard = ({
   const [metadataFetchError, setMetadataFetchError] = useState()
   const [diffError, setDiffError] = useState()
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   /*
    * Data Fetchers

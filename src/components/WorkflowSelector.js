@@ -7,18 +7,19 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, useUniqueId } from 'src/libs/react-utils'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 const WorkflowSelector = ({ workspace: { workspace: { namespace, name } }, selectedEntities }) => {
-  const { Workspaces } = Ajax(Utils.useCancellation())
+  const { Workspaces } = Ajax(useCancellation())
   const [loading, setLoading] = useState()
   const [configs, setConfigs] = useState()
-  const selectionKey = Utils.useUniqueId()
+  const selectionKey = useUniqueId()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadWorkflows = _.flow(
       withErrorReporting('Error loading configs'),
       Utils.withBusyState(setLoading)

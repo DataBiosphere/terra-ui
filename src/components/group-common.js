@@ -12,6 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
+import { memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -61,7 +62,7 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
 
 const menuCardSize = 20
 
-export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
+export const MemberCardHeaders = memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
     div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'email'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'email' })
@@ -76,7 +77,7 @@ export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort
   ])
 })
 
-export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
+export const MemberCard = memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
@@ -110,9 +111,9 @@ export const NewUserModal = ({
   const [submitError, setSubmitError] = useState(undefined)
   const [busy, setBusy] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadData = withErrorReporting('Error looking up collaborators', async () => {
       const [shareSuggestions, groups] = await Promise.all([
         Ajax(signal).Workspaces.getShareLog(),

@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { snapshotAccessTypes } from 'src/pages/library/dataBrowser-utils'
 
@@ -96,7 +97,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 
 const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
   const [status, setStatus] = useState('')
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   return h(ButtonPrimary, {
     disabled: status,

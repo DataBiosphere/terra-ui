@@ -12828,17 +12828,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.12.0 || ^17.0.0, react-is@npm:^17.0.1, react-is@npm:^17.0.2":
-  version: 17.0.2
-  resolution: "react-is@npm:17.0.2"
-  checksum: 9d6d111d8990dc98bc5402c1266a808b0459b5d54830bbea24c12d908b536df7883f268a7868cfaedde3dd9d4e0d574db456f84d2e6df9c4526f99bb4b5344d8
-  languageName: node
-  linkType: hard
-
 "react-is@npm:^16.7.0, react-is@npm:^16.8.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: f7a19ac3496de32ca9ae12aa030f00f14a3d45374f1ceca0af707c831b2a6098ef0d6bdae51bd437b0a306d7f01d4677fcc8de7c0d331eb47ad0f46130e53c5f
+  languageName: node
+  linkType: hard
+
+"react-is@npm:^17.0.1, react-is@npm:^17.0.2":
+  version: 17.0.2
+  resolution: "react-is@npm:17.0.2"
+  checksum: 9d6d111d8990dc98bc5402c1266a808b0459b5d54830bbea24c12d908b536df7883f268a7868cfaedde3dd9d4e0d574db456f84d2e6df9c4526f99bb4b5344d8
   languageName: node
   linkType: hard
 
@@ -13014,18 +13014,6 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-shallow-renderer@npm:^16.13.1":
-  version: 16.14.1
-  resolution: "react-shallow-renderer@npm:16.14.1"
-  dependencies:
-    object-assign: ^4.1.1
-    react-is: ^16.12.0 || ^17.0.0
-  peerDependencies:
-    react: ^16.0.0 || ^17.0.0
-  checksum: f344c663c48720d19559b4198b1f63ad47a3f11bedc92ede053a6c0706b5209e6110086f3ccc6db04eda9f0d1a415845956ddfb6ce09a922167d4831fcba9314
-  languageName: node
-  linkType: hard
-
 "react-simplemde-editor@npm:^4.1.5":
   version: 4.1.5
   resolution: "react-simplemde-editor@npm:4.1.5"
@@ -13064,20 +13052,6 @@ fsevents@^1.2.7:
     react: ^15.3.0 || ^16.0.0 || ^17.0.0
     react-dom: ^15.3.0 || ^16.0.0 || ^17.0.0
   checksum: 216f3f7bb6ba367a4e8bba10c823a6269a961fd74a0d49a82460b4cf516567f72344d4222930d7eb2e0e610562fad264dd26c95e32cac1dc553a8b7eed4b43f0
-  languageName: node
-  linkType: hard
-
-"react-test-renderer@npm:17.0.1":
-  version: 17.0.1
-  resolution: "react-test-renderer@npm:17.0.1"
-  dependencies:
-    object-assign: ^4.1.1
-    react-is: ^17.0.1
-    react-shallow-renderer: ^16.13.1
-    scheduler: ^0.20.1
-  peerDependencies:
-    react: 17.0.1
-  checksum: 38613fc094a203d96671e21d9449348ccb8fa5962da6176dcb159500f461158974769e30de22e921ac910a944351e30b5016b7ba1e313155ba40461a8afc8af5
   languageName: node
   linkType: hard
 
@@ -14966,7 +14940,6 @@ resolve@^2.0.0-next.3:
     react-simplemde-editor: ^4.1.5
     react-sortable-hoc: ^2.0.0
     react-switch: ^6.0.0
-    react-test-renderer: 17.0.1
     react-textarea-autosize: ^8.3.3
     react-transition-group: ^4.4.2
     react-virtualized: ^9.22.3

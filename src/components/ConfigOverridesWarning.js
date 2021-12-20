@@ -1,13 +1,13 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import colors from 'src/libs/colors'
+import { useStore } from 'src/libs/react-utils'
 import { ajaxOverridesStore, configOverridesStore } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 const ConfigOverridesWarning = () => {
-  const configOverrides = Utils.useStore(configOverridesStore)
-  const ajaxOverrides = Utils.useStore(ajaxOverridesStore)
+  const configOverrides = useStore(configOverridesStore)
+  const ajaxOverrides = useStore(ajaxOverridesStore)
   return (!!configOverrides || !!ajaxOverrides) && div({
     style: {
       position: 'fixed', bottom: 0, right: 0,

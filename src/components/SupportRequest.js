@@ -10,6 +10,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
+import { useStore } from 'src/libs/react-utils'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -32,7 +33,7 @@ const constraints = {
 
 const SupportRequest = () => {
   // State
-  const { profile: { firstName, lastName, contactEmail, email: profileEmail } } = Utils.useStore(authStore)
+  const { profile: { firstName, lastName, contactEmail, email: profileEmail } } = useStore(authStore)
 
   const [subject, setSubject] = useState('')
   const [description, setDescription] = useState('')
@@ -230,7 +231,7 @@ const SupportRequest = () => {
 }
 
 const SupportRequestWrapper = () => {
-  const isActive = Utils.useStore(contactUsActive)
+  const isActive = useStore(contactUsActive)
 
   return isActive && h(SupportRequest)
 }

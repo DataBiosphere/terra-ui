@@ -12,12 +12,7 @@ import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  findPotentialNotebookLockers,
-  NotebookCreator,
-  NotebookDeleter,
-  NotebookDuplicator,
-  notebookLockHash,
-  tools
+  findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -27,12 +22,8 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import {
-  appIsSettingUp,
-  getCurrentApp,
-  getGalaxyCostTextChildren,
-  isCurrentGalaxyDiskDetaching
-} from 'src/libs/runtime-utils'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { appIsSettingUp, getCurrentApp, getGalaxyCostTextChildren, isCurrentGalaxyDiskDetaching } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -217,7 +208,7 @@ const NotebookCard = ({
 }
 
 const Notebooks = _.flow(
-  Utils.forwardRefWithName('Notebooks'),
+  forwardRefWithName('Notebooks'),
   requesterPaysWrapper({
     onDismiss: () => Nav.history.goBack()
   }),
@@ -244,8 +235,8 @@ const Notebooks = _.flow(
   const [potentialLockers, setPotentialLockers] = useState(undefined)
   const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
 
-  const authState = Utils.useStore(authStore)
-  const signal = Utils.useCancellation()
+  const authState = useStore(authStore)
+  const signal = useCancellation()
 
 
   // Helpers
@@ -288,7 +279,7 @@ const Notebooks = _.flow(
   })
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const load = async () => {
       const [currentUserHash, potentialLockers] = await Promise.all(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])

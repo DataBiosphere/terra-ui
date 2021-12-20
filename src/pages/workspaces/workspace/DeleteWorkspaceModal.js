@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
@@ -20,9 +21,9 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const [loadingApps, setLoadingApps] = useState(true)
   const [apps, setApps] = useState()
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadApps = async workspaceName => {
       const [currentWorkspaceAppList] = await Promise.all([
         Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })

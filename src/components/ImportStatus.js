@@ -4,12 +4,13 @@ import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { useCancellation, usePollingEffect, useStore } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const ImportStatus = () => {
-  const jobs = Utils.useStore(asyncImportJobStore)
+  const jobs = useStore(asyncImportJobStore)
   return h(Fragment, _.map(job => h(ImportStatusItem, {
     job,
     onDone: () => {
@@ -19,9 +20,9 @@ const ImportStatus = () => {
 }
 
 const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.usePollingEffect(
+  usePollingEffect(
     withErrorReporting('Problem checking status of data import', async () => {
       await checkForCompletion(targetWorkspace, jobId)
     }), { ms: 5000 })
@@ -52,7 +53,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     const successNotify = () => notify('success', 'Data imported successfully.',
       {
         message: `Data import to workspace "${namespace} / ${name}" is complete, please refresh the Data view.
-      If your data comes from a PFB, you must include the namespace "pfb:" when referring to attribute names, 
+      If your data comes from a PFB, you must include the namespace "pfb:" when referring to attribute names,
       e.g. "this.pfb:consent_codes" instead of "this.consent_codes."`
       })
 

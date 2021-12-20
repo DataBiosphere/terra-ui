@@ -18,6 +18,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import allProviders from 'src/libs/providers'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -93,12 +94,12 @@ const SpacedSpinner = ({ children }) => {
 
 const NihLink = ({ nihToken }) => {
   // State
-  const { nihStatus } = Utils.useStore(authStore)
+  const { nihStatus } = useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const linkNihAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setIsLinking)
@@ -186,7 +187,7 @@ const NihLink = ({ nihToken }) => {
 
 const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
-  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
+  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
 
 
@@ -195,7 +196,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true })
     const extractedProvider = state ? JSON.parse(atob(state)).provider : ''
     const token = key === extractedProvider ? code : undefined
@@ -252,7 +253,7 @@ const Profile = ({ queryParams = {} }) => {
   const [proxyGroup, setProxyGroup] = useState()
   const [saving, setSaving] = useState()
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -297,7 +298,7 @@ const Profile = ({ queryParams = {} }) => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadProxyGroup = async () => {
       setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
     }

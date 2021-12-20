@@ -6,15 +6,15 @@ import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 export const cookiesAcceptedKey = 'cookiesAccepted'
 
 const CookieWarning = () => {
-  const signal = Utils.useCancellation()
-  const { cookiesAccepted } = Utils.useStore(authStore)
+  const signal = useCancellation()
+  const { cookiesAccepted } = useStore(authStore)
 
   const acceptCookies = acceptedCookies => {
     authStore.update(_.set('cookiesAccepted', acceptedCookies))
