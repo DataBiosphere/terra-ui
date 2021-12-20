@@ -201,20 +201,19 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                   }) :
                   renderDataCell(originalValue, googleProject)
               ]),
-              editIndex === rowIndex &&
-                h(Fragment, [
-                  h(Select, {
-                    'aria-label': 'data type',
-                    styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
-                    isSearchable: false,
-                    isClearable: false,
-                    menuPortalTarget: document.getElementById('root'),
-                    getOptionLabel: ({ value }) => _.startCase(value),
-                    value: editType,
-                    onChange: ({ value }) => setEditType(value),
-                    options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
-                  })
-                ])
+              editIndex === rowIndex && h(Fragment, [
+                h(Select, {
+                  'aria-label': 'data type',
+                  styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
+                  isSearchable: false,
+                  isClearable: false,
+                  menuPortalTarget: document.getElementById('root'),
+                  getOptionLabel: ({ value }) => _.startCase(value),
+                  value: editType,
+                  onChange: ({ value }) => setEditType(value),
+                  options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
+                })
+              ])
             ])
           }
         }, {
