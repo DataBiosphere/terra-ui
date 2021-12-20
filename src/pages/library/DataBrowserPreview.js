@@ -153,7 +153,7 @@ const DataBrowserPreview = ({ id }) => {
             isClearable: false,
             value: selectedTable,
             getOptionLabel: ({ rowCount, value }) => {
-              return div({ style: { color: colors.dark(rowCount ? 1 : 0.5) } }, [_.startCase(value)])
+              return div({ style: { color: colors.dark(!!rowCount ? 1 : 0.5) } }, [_.startCase(value)])
             },
             formatGroupLabel: ({ label }) => {
               return div({ style: { marginTop: 5, paddingTop: 15, borderTop: `1px solid ${colors.dark(0.5)}`, color: colors.dark(0.8) } }, label)
