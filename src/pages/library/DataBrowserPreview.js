@@ -58,7 +58,7 @@ const DataBrowserPreview = ({ id }) => {
     _.flatMap(([rowIndex, tables]) => {
       const sortedTables = _.flow(
         _.sortBy('name'),
-        _.map(({ name, rowCount }) => { return { value: name, rowCount } })
+        _.map(({ name, rowCount }) => ({ value: name, rowCount }))
       )(tables)
 
       return rowIndex === '0' ?
