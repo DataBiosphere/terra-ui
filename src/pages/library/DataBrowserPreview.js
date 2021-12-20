@@ -50,22 +50,9 @@ const DataBrowserPreview = ({ id }) => {
   const [previewData, setPreviewData] = useState()
   const [columnSettings, setColumnSettings] = useState([])
   const [viewJSON, setViewJSON] = useState()
+  const [selectOptions, setSelectOptions] = useState()
 
   const tableMap = _.keyBy('name', tables)
-  const selectOptions = _.flow(
-    _.partition(table => table.rowCount > 0),
-    _.toPairs,
-    _.flatMap(([rowIndex, tables]) => {
-      const sortedTables = _.flow(
-        _.sortBy('name'),
-        _.map(({ name, rowCount }) => ({ value: name, rowCount }))
-      )(tables)
-
-      return rowIndex === '0' ?
-        sortedTables :
-        { label: 'Tables without data', options: sortedTables }
-    })
-  )(tables)
 
   const selectTable = ({ value }) => {
     const loadTable = _.flow(
@@ -78,7 +65,7 @@ const DataBrowserPreview = ({ id }) => {
         table: value
       })
 
-      const columnNames = _.map('name', tableMap[selectedTable]?.columns)
+      const columnNames = _.map('name', tableMap[value]?.columns)
 
       setPreviewData(_.flow([
         _.getOr([], 'result'),
@@ -103,7 +90,7 @@ const DataBrowserPreview = ({ id }) => {
               header: div({ style: styles.table.header }, [col.name])
             }
           })
-        ])(tableMap[selectedTable]?.columns)
+        ])(tableMap[value]?.columns)
       )
     })
     loadTable()
@@ -131,8 +118,24 @@ const DataBrowserPreview = ({ id }) => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
+      const searchValues = _.flow(
+        _.partition(table => table.rowCount > 0),
+        _.toPairs,
+        _.flatMap(([rowIndex, tables]) => {
+          const sortedTables = _.flow(
+            _.sortBy('name'),
+            _.map(({ name, rowCount }) => ({ value: name, rowCount }))
+          )(tables)
+
+          return rowIndex === '0' ?
+            sortedTables :
+            { label: 'Tables without data', options: sortedTables }
+        })
+      )(metadata.tables)
+
       setTables(metadata.tables)
-      selectTable({ value: metadata.tables[0].name })
+      setSelectOptions(searchValues)
+      selectTable(_.get('0.options.0', searchValues) || _.get('0', searchValues))
     }
     loadData()
   })
