@@ -69,7 +69,7 @@ const DataBrowserPreview = ({ id }) => {
 
       setPreviewData(_.flow([
         _.getOr([], 'result'),
-        _.toPairs,
+        Utils.toIndexPairs,
         _.map(([rowIndex, row]) => {
           return _.reduce((obj, param) => {
             obj[param] = formatTableCell({ cellKey: param, cellContent: row[param], rowIndex, table: value })
@@ -80,7 +80,7 @@ const DataBrowserPreview = ({ id }) => {
 
       setColumnSettings(
         _.flow([
-          _.toPairs,
+          Utils.toIndexPairs,
           _.map(([index, col]) => {
             return {
               // name field is used in the column selector
@@ -122,16 +122,16 @@ const DataBrowserPreview = ({ id }) => {
       setTables(metadata.tables)
       setSelectOptions(_.flow(
         _.partition(table => table.rowCount > 0),
-        _.toPairs,
+        Utils.toIndexPairs,
         _.flatMap(([rowIndex, tables]) => {
           const sortedTables = _.flow(
             _.sortBy('name'),
             _.map(({ name, rowCount }) => ({ value: name, rowCount }))
           )(tables)
 
-          return rowIndex === '0' ?
-            sortedTables :
-            { label: 'Tables without data', options: sortedTables }
+          return rowIndex ?
+            { label: 'Tables without data', options: sortedTables } : 
+            sortedTables
         })
       )(metadata.tables))
     }
