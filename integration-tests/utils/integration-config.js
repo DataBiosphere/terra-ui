@@ -18,7 +18,7 @@ const getSecret = async ({ project, secretName }) => {
 const {
   LYLE_URL: lyleUrl = 'https://terra-lyle.appspot.com',
   SCREENSHOT_BUCKET: screenshotBucket,
-  SCREENSHOT_DIR: screenshotDir,
+  SCREENSHOT_DIR: screenshotDirPath,
   TERRA_USER_EMAIL: userEmail = 'Scarlett.Flowerpicker@test.firecloud.org'
 } = process.env
 
@@ -34,6 +34,6 @@ module.exports = {
   getSecrets,
   lyleUrl,
   screenshotBucket,
-  screenshotDir,
+  screenshotDirPath,
   userEmail
 }

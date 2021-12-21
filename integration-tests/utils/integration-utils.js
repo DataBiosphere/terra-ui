@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { Storage } = require('@google-cloud/storage')
-const { screenshotBucket, screenshotDir } = require('../utils/integration-config')
+const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
@@ -142,10 +142,10 @@ const openError = async page => {
 }
 
 const maybeSaveScreenshot = async page => {
-  if( !screenshotDir) { return }
+  if( !screenshotDirPath) { return }
   try {
-    const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
-    const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
+    const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
 
     await page.screenshot({ path, fullPage: true })
 
