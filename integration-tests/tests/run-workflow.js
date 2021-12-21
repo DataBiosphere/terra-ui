@@ -39,16 +39,13 @@ const testRunWorkflowFn = _.flow(
   await click(page, clickable({ text: 'OK' }))
   await click(page, clickable({ text: 'Run analysis' }))
 
-  // Get request status for sporadically failing checkBucketAccess call.
-  const handler = request => {
-    console.log(`${request.url()} : ${request.status()} : ${request.statusText()}`)
-  }
-  page.on('response', handler)
+  // Uncomment the following to get request status for sporadically failing checkBucketAccess call.
+  // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
   await Promise.all([
     page.waitForNavigation(),
     click(page, clickable({ text: 'Launch' }))
   ])
-  page.off('response', handler)
+  // stopLoggingPageAjaxResponses()
 
   await pRetry(async () => {
     try {
