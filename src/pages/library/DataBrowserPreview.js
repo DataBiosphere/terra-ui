@@ -118,10 +118,8 @@ const DataBrowserPreview = ({ id }) => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
-
-      setTables(metadata.tables)
-      setSelectOptions(_.flow(
-        _.partition(table => table.rowCount > 0),
+      const selectColumns = _.flow(
+        _.partition('rowCount'),
         Utils.toIndexPairs,
         _.flatMap(([rowIndex, tables]) => {
           const sortedTables = _.flow(
@@ -133,7 +131,10 @@ const DataBrowserPreview = ({ id }) => {
             { label: 'Tables without data', options: sortedTables } :
             sortedTables
         })
-      )(metadata.tables))
+      )(metadata.tables)
+
+      setTables(metadata.tables)
+      setSelectOptions(selectColumns)
     }
 
     loadData()
