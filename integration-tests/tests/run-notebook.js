@@ -11,7 +11,7 @@ const testRunNotebookFn = _.flow(
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
   await page.goto(testUrl)
-  await click(page, clickable({ textContains: 'View the Singularity' }))
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await findElement(page, clickable({ textContains: workspaceName }))
