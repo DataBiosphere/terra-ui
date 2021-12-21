@@ -68,6 +68,7 @@
   },
   "devDependencies": {
     "babel-plugin-prismjs": "^2.1.0",
+    "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",
     "eslint-plugin-lodash-fp": "^2.2.0-a1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
