@@ -130,7 +130,7 @@ const DataBrowserPreview = ({ id }) => {
           )(tables)
 
           return rowIndex ?
-            { label: 'Tables without data', options: sortedTables } : 
+            { label: 'Tables without data', options: sortedTables } :
             sortedTables
         })
       )(metadata.tables))
