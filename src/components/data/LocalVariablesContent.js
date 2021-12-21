@@ -18,6 +18,28 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
+export const getDisplayedAttribute = arr => {
+  const { key, value, description = '' } = _.mergeAll(arr)
+  return [key, value, description]
+}
+
+const DESCRIPTION_PREFIX = '__DESCRIPTION__'
+const isDescriptionKey = _.startsWith(DESCRIPTION_PREFIX)
+
+export const renameAttribute = ([k, v]) => isDescriptionKey(k) ?
+  { key: k.slice(DESCRIPTION_PREFIX.length), description: v } :
+  { key: k, value: v }
+
+export const convertInitialAttributes = _.flow(
+  _.toPairs,
+  _.remove(([key]) => /^description$|:|^referenceData_/.test(key)),
+  _.map(renameAttribute),
+  _.groupBy('key'),
+  _.values,
+  _.map(getDisplayedAttribute),
+  _.sortBy(_.first)
+)
+
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
 
@@ -25,6 +47,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   const [deleteIndex, setDeleteIndex] = useState()
   const [editKey, setEditKey] = useState()
   const [editValue, setEditValue] = useState()
+  const [editDescription, setEditDescription] = useState()
   const [editType, setEditType] = useState()
   const [textFilter, setTextFilter] = useState('')
 
@@ -47,25 +70,27 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     setEditIndex()
     setEditKey()
     setEditValue()
+    setEditDescription()
     setEditType()
   }
 
-  const initialAttributes = _.flow(
-    _.toPairs,
-    _.remove(([key]) => /^description$|:|^referenceData_/.test(key))
-  )(attributes)
+  const toDescriptionKey = k => DESCRIPTION_PREFIX + k
+
+  const initialAttributes = convertInitialAttributes(attributes)
 
   const creatingNewVariable = editIndex === initialAttributes.length
   const amendedAttributes = _.flow(
-    _.filter(([key, value]) => Utils.textMatch(textFilter, `${key} ${value}`)),
-    _.sortBy(_.first),
-    arr => [...arr, ...(creatingNewVariable ? [['', '']] : [])]
+    _.filter(([key, value, description]) => Utils.textMatch(textFilter, `${key} ${value} ${description}`)),
+    creatingNewVariable ? Utils.append(['', '', '']) : _.identity
   )(initialAttributes)
 
+  const DESCRIPTION_MAX_LENGTH = 200
   const inputErrors = editIndex !== undefined && [
     ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
     ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
     ...(editKey === 'description' ? ['Key cannot be \'description\''] : []),
+    ...(isDescriptionKey(editKey) ? [`Key cannot start with '${DESCRIPTION_PREFIX}'`] : []),
+    ...(editDescription?.length > DESCRIPTION_MAX_LENGTH ? [`Description cannot be longer than ${DESCRIPTION_MAX_LENGTH} characters`] : []),
     ...(editKey.startsWith('referenceData_') ? ['Key cannot start with \'referenceData_\''] : []),
     ...(!editKey ? ['Key is required'] : []),
     ...(!editValue ? ['Value is required'] : []),
@@ -80,17 +105,26 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
   )(async originalKey => {
     const isList = editType.includes('list')
     const newBaseType = isList ? editType.slice(0, -5) : editType
-
     const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
       Utils.convertValue(newBaseType, editValue)
 
-    await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
+    const editDescriptionKey = toDescriptionKey(editKey)
 
-    if (editKey !== originalKey) {
-      await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([originalKey])
+    const attributesToMerge = {
+      [editKey]: parsedValue,
+      ...(!!editDescription && { [editDescriptionKey]: editDescription })
     }
 
+    const attributesToDelete = [
+      ...(editKey !== originalKey ? [originalKey, toDescriptionKey(originalKey)] : []),
+      ...(!editDescription ? [editDescriptionKey] : [])
+    ]
+
+    await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(attributesToMerge)
+    await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(attributesToDelete)
+
     await loadAttributes()
+
     stopEditing()
     setTextFilter('')
   })
@@ -155,7 +189,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
           size: { grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Value']),
           cellRenderer: ({ rowIndex }) => {
-            const [originalKey, originalValue] = amendedAttributes[rowIndex]
+            const originalValue = amendedAttributes[rowIndex][1]
 
             return h(Fragment, [
               div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
@@ -167,19 +201,39 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                   }) :
                   renderDataCell(originalValue, googleProject)
               ]),
+              editIndex === rowIndex && h(Fragment, [
+                h(Select, {
+                  'aria-label': 'data type',
+                  styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
+                  isSearchable: false,
+                  isClearable: false,
+                  menuPortalTarget: document.getElementById('root'),
+                  getOptionLabel: ({ value }) => _.startCase(value),
+                  value: editType,
+                  onChange: ({ value }) => setEditType(value),
+                  options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
+                })
+              ])
+            ])
+          }
+        }, {
+          size: { grow: 1 },
+          headerRenderer: () => h(HeaderCell, ['Description']),
+          cellRenderer: ({ rowIndex }) => {
+            const [originalKey, originalValue, originalDescription] = amendedAttributes[rowIndex]
+
+            return h(Fragment, [
+              div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
+                editIndex === rowIndex ?
+                  h(TextInput, {
+                    'aria-label': 'Workspace data description',
+                    value: editDescription,
+                    onChange: setEditDescription
+                  }) :
+                  renderDataCell(originalDescription, googleProject)
+              ]),
               editIndex === rowIndex ?
                 h(Fragment, [
-                  h(Select, {
-                    'aria-label': 'data type',
-                    styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
-                    isSearchable: false,
-                    isClearable: false,
-                    menuPortalTarget: document.getElementById('root'),
-                    getOptionLabel: ({ value }) => _.startCase(value),
-                    value: editType,
-                    onChange: ({ value }) => setEditType(value),
-                    options: ['string', 'number', 'boolean', 'string list', 'number list', 'boolean list']
-                  }),
                   h(Link, {
                     tooltip: Utils.summarizeErrors(inputErrors) || 'Save changes',
                     disabled: !!inputErrors.length,
@@ -202,6 +256,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                       setEditValue(_.isObject(originalValue) ? originalValue.items.join(', ') : originalValue)
                       setEditKey(originalKey)
                       setEditType(_.isObject(originalValue) ? `${typeof originalValue.items[0]} list` : typeof originalValue)
+                      setEditDescription(originalDescription)
                     }
                   }, [icon('edit', { size: 19 })]),
                   h(Link, {
@@ -221,10 +276,11 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
       label: 'ADD VARIABLE',
       iconShape: 'plus',
       onClick: () => {
-        setEditIndex(initialAttributes.length)
+        setEditIndex(amendedAttributes.length)
         setEditValue('')
         setEditKey('')
         setEditType('string')
+        setEditDescription('')
       }
     }),
     deleteIndex !== undefined && h(Modal, {
@@ -236,7 +292,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
           Utils.withBusyState(setBusy)
         )(async () => {
           setDeleteIndex()
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
+          await Ajax().Workspaces.workspace(namespace, name)
+            .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])])
           await loadAttributes()
         })
       },
