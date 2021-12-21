@@ -128,6 +128,7 @@ export const useCurrentTime = (initialDelay = 250) => {
   })
   return [currentTime, delay => { delayRef.current = delay }]
 }
+
 /**
  * Hook that returns the value of a given store. When the store changes, the component will re-render
  */
