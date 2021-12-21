@@ -95,7 +95,8 @@ const delay = ms => {
 
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+  const notificationCloseButtons = await page.$x(
+    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
 
   await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
@@ -141,8 +142,8 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
-const maybeSaveScreenshot = async page => {
-  if( !screenshotDirPath) { return }
+const maybeSaveScreenshot = async (page, testName) => {
+  if (!screenshotDirPath) { return }
   try {
     const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
