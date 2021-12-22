@@ -6,9 +6,9 @@ import { MarkdownViewer } from 'src/components/markdown'
 import SignInButton from 'src/components/SignInButton'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
+import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
 const signInStyle = {
@@ -28,7 +28,7 @@ const DashboardPublic = ({ namespace, name }) => {
   const stateHistory = StateHistory.get()
   const [showcaseList, setShowcaseList] = useState(stateHistory.featuredList)
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadData = async () => {
       const showcaseList = await Ajax().Buckets.getShowcaseWorkspaces()
 

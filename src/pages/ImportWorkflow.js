@@ -14,6 +14,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { workflowNameValidation } from 'src/libs/workflow-utils'
@@ -41,7 +42,7 @@ const DockstoreImporter = ({ path, version, source }) => {
   const [wdl, setWdl] = useState(undefined)
   const [workflowName, setWorkflowName] = useState('')
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const loadWdl = _.flow(
     withErrorReporting('Error loading WDL'),
@@ -52,7 +53,7 @@ const DockstoreImporter = ({ path, version, source }) => {
     setWorkflowName(_.last(path.split('/')))
   })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadWdl()
   })
 

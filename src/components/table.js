@@ -13,6 +13,7 @@ import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -212,12 +213,12 @@ export const FlexTable = ({
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
   ...props
 }) => {
-  Utils.useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+  useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     body.current.scrollToPosition({ scrollTop: initialY })
   })
 
@@ -340,7 +341,7 @@ FlexTable.propTypes = {
  * since it does not provide scrolling. See FlexTable for prop types.
  */
 export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, 'aria-label': ariaLabel, sort = null, readOnly = false }) => {
-  Utils.useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+  useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   return div({
     role: 'table',
@@ -388,20 +389,20 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
  */
-export const GridTable = Utils.forwardRefWithName('GridTable', ({
+export const GridTable = forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
   noContentMessage, noContentRenderer = _.noop,
   rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
   'aria-label': ariaLabel, sort = null, readOnly = false
 }, ref) => {
-  Utils.useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+  useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
   const body = useRef()
   const scrollSync = useRef()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     if (rowCount > 0) {
       body.current.measureAllCells()
 
@@ -570,7 +571,7 @@ export const SimpleTable = ({
   headerRowStyle = {},
   useHover = true, underRowKey
 }) => {
-  Utils.useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+  useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides }
   return h(div, {

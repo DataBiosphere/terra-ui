@@ -3,8 +3,8 @@ import { div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
+import { useStore, withDisplayName } from 'src/libs/react-utils'
 import { toggleStateAtom } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 const viewToggleStyles = {
@@ -36,12 +36,12 @@ export const ViewToggleButtons = ({ listView, setListView }) => {
 }
 
 export const useViewToggle = key => {
-  const toggleState = Utils.useStore(toggleStateAtom) || {}
+  const toggleState = useStore(toggleStateAtom) || {}
   return [toggleState[key], v => toggleStateAtom.update(_.set(key, v))]
 }
 
 export const withViewToggle = key => WrappedComponent => {
-  return Utils.withDisplayName('withViewToggle', props => {
+  return withDisplayName('withViewToggle', props => {
     const [listView, setListView] = useViewToggle(key)
     return h(WrappedComponent, { ...props, listView, setListView })
   })

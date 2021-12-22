@@ -9,6 +9,7 @@ import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -82,7 +83,7 @@ const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [fullList, setFullList] = useState(stateHistory.featuredWorkspaces)
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadData = async () => {
       const showcase = await Ajax().Buckets.getShowcaseWorkspaces()
 

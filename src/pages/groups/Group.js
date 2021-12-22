@@ -11,6 +11,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -29,7 +30,7 @@ const GroupDetails = ({ groupName }) => {
   const [allowAccessRequests, setAllowAccessRequests] = useState(false)
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -63,7 +64,7 @@ const GroupDetails = ({ groupName }) => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
   })
 

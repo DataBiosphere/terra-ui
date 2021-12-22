@@ -18,6 +18,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { useOnMount } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -107,7 +108,7 @@ const ImportData = () => {
       _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
     )(_.castArray(template))
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
       withErrorReporting('Error loading templates')

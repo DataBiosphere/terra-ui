@@ -7,6 +7,7 @@ import Modal from 'src/components/Modal'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, lastActiveTimeStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -40,7 +41,7 @@ const IdleStatusMonitor = ({
   // State
   const [signOutRequired, setSignOutRequired] = useState(false)
 
-  const { isSignedIn, isTimeoutEnabled, user: { id } } = Utils.useStore(authStore)
+  const { isSignedIn, isTimeoutEnabled, user: { id } } = useStore(authStore)
   const { query } = Nav.useRoute()
 
 
@@ -90,13 +91,13 @@ const CountdownModal = ({ onCancel, countdown }) => {
 }
 
 const InactivityTimer = ({ id, timeout, countdownStart, doSignOut }) => {
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
-  const [currentTime, setDelay] = Utils.useCurrentTime()
+  const { [id]: lastRecordedActivity } = useStore(lastActiveTimeStore) || {}
+  const [currentTime, setDelay] = useCurrentTime()
   const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })
 
   setDelay(showCountdown ? 1000 : Math.max(250, countdown - countdownStart))
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const targetEvents = ['click', 'keydown']
     const updateLastActive = () => setLastActive(Date.now())
 

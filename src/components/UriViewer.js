@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -64,7 +65,7 @@ const getMaxDownloadCostNA = bytes => {
 }
 
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
@@ -78,7 +79,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
       setPreview(null)
     }
   }
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     if (isGs(uri) && isFilePreviewable(metadata)) {
       loadPreview()
     }
@@ -102,7 +103,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
 }
 
 const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
     if (accessUrl?.url) {
@@ -130,7 +131,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
       }
     }
   }
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     getUrl()
   })
   return els.cell([
@@ -165,10 +166,10 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
 }
 
 const UriViewer = _.flow(
-  Utils.withDisplayName('UriViewer'),
+  withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
 )(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
 
@@ -198,7 +199,7 @@ const UriViewer = _.flow(
       setLoadingError(await e.json())
     }
   }
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadMetadata()
   })
 

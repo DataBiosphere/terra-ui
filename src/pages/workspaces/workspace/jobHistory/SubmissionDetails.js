@@ -8,8 +8,7 @@ import { ButtonSecondary, ClipboardButton, Link, Select } from 'src/components/c
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
-  submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
+  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -20,6 +19,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
@@ -27,7 +27,7 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const SubmissionDetails = _.flow(
-  Utils.forwardRefWithName('SubmissionDetails'),
+  forwardRefWithName('SubmissionDetails'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
@@ -46,7 +46,7 @@ const SubmissionDetails = _.flow(
   const [userComment, setUserComment] = useState()
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   /*
    * Data fetchers

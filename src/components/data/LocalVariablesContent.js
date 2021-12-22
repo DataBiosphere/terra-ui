@@ -14,6 +14,7 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
@@ -41,7 +42,7 @@ export const convertInitialAttributes = _.flow(
 )
 
 const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const [editIndex, setEditIndex] = useState()
   const [deleteIndex, setDeleteIndex] = useState()

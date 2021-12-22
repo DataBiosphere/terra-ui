@@ -13,12 +13,13 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
 // TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [workflows, setWorkflows] = useState()
 
@@ -40,7 +41,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   const tabName = tab || 'mine'
   const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' }
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers)
 
     const loadWorkflows = async () => {

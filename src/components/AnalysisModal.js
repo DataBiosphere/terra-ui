@@ -9,14 +9,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput,
-  analysisNameValidator,
-  getAppType,
-  getDisplayName,
-  getTool,
-  isToolAnApp,
-  notebookData,
-  tools
+  analysisNameInput, analysisNameValidator, getAppType, getDisplayName, getTool, isToolAnApp, notebookData, tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
@@ -27,6 +20,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
+import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -37,7 +31,7 @@ const titleId = 'analysis-modal-title'
 const analysisMode = Symbol('artifact')
 const environmentMode = Symbol('environment')
 
-export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
+export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
@@ -45,7 +39,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     const [viewMode, setViewMode] = useState(undefined)
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [analysisName, setAnalysisName] = useState('')
-    const prevAnalysisName = Utils.usePrevious(analysisName)
+    const prevAnalysisName = usePrevious(analysisName)
     const [currentTool, setCurrentTool] = useState(undefined)
 
     const currentRuntime = getCurrentRuntime(runtimes)
