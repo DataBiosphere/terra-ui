@@ -43,7 +43,7 @@ const DataBrowserPreview = ({ id }) => {
   const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
   const { dataCatalog, loading: catalogLoading } = useDataCatalog()
-  const [tables, setTables] = useState()
+  const [tables, setTables] = useState(undefined)
   const [selectedTable, setSelectedTable] = useState()
   const [previewRows, setPreviewRows] = useState()
   const [columns, setColumns] = useState()
@@ -118,7 +118,7 @@ const DataBrowserPreview = ({ id }) => {
       setPreviewRows(newPreviewRows)
     })
 
-    if (!_.isEmpty(tables) && !!selectedTable) {
+    if (!!tables && !!selectedTable) {
       loadTable()
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -127,7 +127,7 @@ const DataBrowserPreview = ({ id }) => {
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
-    catalogLoading || _.isEmpty(tables) ?
+    catalogLoading || !tables ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
         h1({ style: { lineHeight: '26px' } }, [snapshot['dct:title']]),
@@ -166,7 +166,7 @@ const DataBrowserPreview = ({ id }) => {
             }, ['(No Data)'])
           ])
       ]),
-    viewJSON && h(ModalDrawer, {
+    !!viewJSON && h(ModalDrawer, {
       'aria-label': 'View Json', isOpen: true, width: 675,
       onDismiss: () => { setViewJSON() }
     }, [
