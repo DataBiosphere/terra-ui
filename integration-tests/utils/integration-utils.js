@@ -177,6 +177,28 @@ const withScreenshot = _.curry((testName, fn) => async options => {
   }
 })
 
+const logPageConsoleMessages = page => {
+  const handle = msg => console.log('page.console', msg.text(), msg)
+  page.on('console', handle)
+  return () => page.off('console', handle)
+}
+
+const logPageAjaxResponses = page => {
+  const handle = res => {
+    console.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+  }
+  page.on('response', handle)
+  return () => page.off('response', handle)
+}
+
+const withPageLogging = fn => options => {
+  const { page } = options
+  logPageAjaxResponses(page)
+  // Leaving console logging off for now since it is mostly request failures already logged above.
+  // logPageConsoleMessages(page)
+  return fn(options)
+}
+
 module.exports = {
   click,
   clickable,
@@ -197,5 +219,8 @@ module.exports = {
   elementInDataTableRow,
   findInDataTableRow,
   withScreenshot,
+  logPageConsoleMessages,
+  logPageAjaxResponses,
+  withPageLogging,
   openError
 }
