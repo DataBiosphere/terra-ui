@@ -42,13 +42,13 @@ const activeTab = 'browse & explore'
 const DataBrowserPreview = ({ id }) => {
   const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
-  const { dataCatalog } = useDataCatalog()
+  const { dataCatalog, loading: catalogLoading } = useDataCatalog()
   const [tables, setTables] = useState()
-  const [selectOptions, setSelectOptions] = useState()
   const [selectedTable, setSelectedTable] = useState()
   const [previewRows, setPreviewRows] = useState()
   const [columns, setColumns] = useState()
   const [viewJSON, setViewJSON] = useState()
+  const [selectOptions, setSelectOptions] = useState()
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -127,7 +127,7 @@ const DataBrowserPreview = ({ id }) => {
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
-    !snapshot || _.isEmpty(tables) ?
+    catalogLoading || _.isEmpty(tables) ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
         h1({ style: { lineHeight: '26px' } }, [snapshot['dct:title']]),
