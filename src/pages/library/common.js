@@ -112,8 +112,9 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
-        }, [h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })]
-        )
+        }, [
+          h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+        ])
     }, sections)
   ])
 }
