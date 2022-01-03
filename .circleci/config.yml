@@ -44,8 +44,9 @@ commands:
                   VERSION="<< parameters.env >>"
                   <</ parameters.pr >>
                   # until https://github.com/cli/cli/issues/1484 is resolved, pass json input:
-                  echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" | \
-                    gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input - 
+                  echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" > /tmp/out.json
+                  cat /tmp/out.json
+                  gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input /tmp/out.json
       - when:
           condition: << parameters.existing >>
           steps:
