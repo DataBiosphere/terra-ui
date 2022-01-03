@@ -36,7 +36,7 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
-                  set -x
+                  set -xeuo pipefail
                   apk add github-cli --no-progress --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community/
                   <<# parameters.pr >>
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)"
