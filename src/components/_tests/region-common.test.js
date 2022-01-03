@@ -2,34 +2,37 @@ import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locat
 
 
 const us = {
-  label: "US multi-regional (default)",
-  locationType: "multi-region",
-  value: "US",
+  label: 'US multi-regional (default)',
+  locationType: 'multi-region',
+  value: 'US'
 }
 
 const usCentral = {
-  label: "us-central1 (Iowa)",
-  locationType: "region",
-  value: "US-CENTRAL1",
+  label: 'us-central1 (Iowa)',
+  locationType: 'region',
+  value: 'US-CENTRAL1'
 }
 
 const montreal = {
-  label: "northamerica-northeast1 (Montreal)",
-  locationType: "region",
-  value: "NORTHAMERICA-NORTHEAST1",
+  label: 'northamerica-northeast1 (Montreal)',
+  locationType: 'region',
+  value: 'NORTHAMERICA-NORTHEAST1'
 }
 
 const mockAvailableBucketRegions = [us, usCentral, montreal]
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
-    expect(getRegionInfo('US', locationTypes.multiRegion)).toStrictEqual({ flag: '🇺🇸', regionDescription: 'US (multi-region)', computeZone: 'US-CENTRAL1-A', computeRegion: 'US-CENTRAL1' })
+    expect(getRegionInfo('US', locationTypes.multiRegion))
+      .toStrictEqual({ flag: '🇺🇸', regionDescription: 'US (multi-region)', computeZone: 'US-CENTRAL1-A', computeRegion: 'US-CENTRAL1' })
   })
   it('gets a object with UNKNOWNS when region is bad.', () => {
-    expect(getRegionInfo('BAD_REGION', locationTypes.multiRegion)).toStrictEqual({ flag: '❓', regionDescription: 'BAD_REGION (multi-region)', computeZone: 'UNKNOWN', computeRegion: 'UNKNOWN' })
+    expect(getRegionInfo('BAD_REGION', locationTypes.multiRegion))
+      .toStrictEqual({ flag: '❓', regionDescription: 'BAD_REGION (multi-region)', computeZone: 'UNKNOWN', computeRegion: 'UNKNOWN' })
   })
   it('gets a object with UNKNOWNS when locationType is bad is bad.', () => {
-    expect(getRegionInfo('BAD_REGION', 'BAD_LOCATION_TYPE')).toStrictEqual({ flag: '❓', regionDescription: 'bad_region', computeZone: 'UNKNOWN', computeRegion: 'UNKNOWN' })
+    expect(getRegionInfo('BAD_REGION', 'BAD_LOCATION_TYPE'))
+      .toStrictEqual({ flag: '❓', regionDescription: 'bad_region', computeZone: 'UNKNOWN', computeRegion: 'UNKNOWN' })
   })
 })
 

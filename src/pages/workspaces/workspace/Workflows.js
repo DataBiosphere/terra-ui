@@ -3,9 +3,7 @@ import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
-import {
-  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, methodLink, PageBox, Select, spinnerOverlay
-} from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, methodLink, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
@@ -17,6 +15,7 @@ import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -87,7 +86,7 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
+const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const sourceRepoName = sourceRepo === 'agora' ? 'Terra' : Utils.normalizeLabel(sourceRepo)
   const workflowCardMenu = h(MenuTrigger, {
@@ -166,11 +165,11 @@ const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
   const [selectedWorkflowDetails, setSelectedWorkflowDetails] = useState(undefined)
   const [exporting, setExporting] = useState(undefined)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const load = async () => {
       const [featuredList, methods] = await Promise.all([
         fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
@@ -289,7 +288,7 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
 ])
 
 export const Workflows = _.flow(
-  Utils.forwardRefWithName('Workflows'),
+  forwardRefWithName('Workflows'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
@@ -306,7 +305,7 @@ export const Workflows = _.flow(
   const [findingWorkflow, setFindingWorkflow] = useState(false)
 
   const [listView, setListView] = useViewToggle('workflowsTab')
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -322,7 +321,7 @@ export const Workflows = _.flow(
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
   })
 

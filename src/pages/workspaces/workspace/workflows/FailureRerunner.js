@@ -7,12 +7,13 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { useStore } from 'src/libs/react-utils'
 import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const ToastMessageComponent = () => {
-  const { done, text } = Utils.useStore(rerunFailuresStatus)
+  const { done, text } = useStore(rerunFailuresStatus)
   return div({ style: { padding: '0.5rem 0', display: 'flex', alignItems: 'center', fontSize: 14 } }, [
     done ?
       icon('success-standard', { size: 24, style: { color: colors.success(), marginRight: '1rem' } }) :

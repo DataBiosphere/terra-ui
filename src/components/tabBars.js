@@ -5,6 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { HorizontalNavigation } from 'src/components/keyboard-nav'
 import { terraSpecial } from 'src/libs/colors'
+import { useLabelAssert, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -48,7 +49,7 @@ export const TabBar = ({
   activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
   getOnClick = _.noop, tabProps = {}, children, ...props
 }) => {
-  Utils.useLabelAssert('TabBar', props)
+  useLabelAssert('TabBar', props)
 
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
@@ -126,9 +127,9 @@ TabBar.propTypes = {
 export const SimpleTabBar = ({
   value, onChange, tabs, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, children, ...props
 }) => {
-  Utils.useLabelAssert('SimpleTabBar', props)
+  useLabelAssert('SimpleTabBar', props)
 
-  const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
+  const tabIds = _.map(useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
 
   // Determine the index of the selected tab, or choose the first one

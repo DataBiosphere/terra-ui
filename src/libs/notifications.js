@@ -7,6 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { useStore } from 'src/libs/react-utils'
 import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -35,7 +36,7 @@ export const notify = (type, title, props) => {
 export const clearNotification = id => store.removeNotification(id)
 
 const NotificationDisplay = ({ id }) => {
-  const notificationState = Utils.useStore(notificationStore)
+  const notificationState = useStore(notificationStore)
   const [modal, setModal] = useState(false)
   const [notificationNumber, setNotificationNumber] = useState(0)
 

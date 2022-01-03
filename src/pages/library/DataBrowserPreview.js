@@ -11,6 +11,7 @@ import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 
@@ -40,7 +41,7 @@ const styles = {
 const activeTab = 'browse & explore'
 
 const DataBrowserPreview = ({ id }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const { dataCatalog, loading: catalogLoading } = useDataCatalog()
   const [tables, setTables] = useState(undefined)
@@ -50,7 +51,7 @@ const DataBrowserPreview = ({ id }) => {
   const [viewJSON, setViewJSON] = useState()
   const [selectOptions, setSelectOptions] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadData = async () => {
       const { tables: newTables } = await Ajax(signal).DataRepo.getPreviewMetadata(id)
 

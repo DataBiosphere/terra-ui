@@ -8,19 +8,20 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { Ajax, saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = _.flow(
-  Utils.withDisplayName('IGVBrowser'),
+  withDisplayName('IGVBrowser'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
 )(({ selectedFiles, refGenome, workspace, onDismiss, onRequesterPaysError }) => {
   const containerRef = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const igvSetup = async () => {
       const fileBucketExemplars = _.uniqBy(({ filePath }) => /gs:\/\/([^/]+)/.exec(filePath)[1], selectedFiles)
 

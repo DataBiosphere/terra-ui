@@ -11,6 +11,7 @@ import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
@@ -238,8 +239,8 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
-  const acknowledged = Utils.useStore(acknowledgmentStore) || {}
-  const { user: { id } } = Utils.useStore(authStore)
+  const acknowledged = useStore(acknowledgmentStore) || {}
+  const { user: { id } } = useStore(authStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 

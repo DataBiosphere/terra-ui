@@ -22,6 +22,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { HiddenLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, withCancellationSignal } from 'src/libs/react-utils'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -205,7 +206,7 @@ const BucketContentModal = ({ workspace: { workspace: { googleProject, bucketNam
   const [objects, setObjects] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const load = _.flow(
     Utils.withBusyState(setLoading),
@@ -217,7 +218,7 @@ const BucketContentModal = ({ workspace: { workspace: { googleProject, bucketNam
     setPrefix(newPrefix)
   })
 
-  Utils.useOnMount(() => { load() })
+  useOnMount(() => { load() })
 
   useEffect(() => {
     StateHistory.update({ objects, prefix })
@@ -301,7 +302,7 @@ const WorkflowView = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
     title: _.get('workflowName'), activeTab: 'workflows'
   }),
-  Utils.withCancellationSignal
+  withCancellationSignal
 )(class WorkflowView extends Component {
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
     const { workflowName } = this.props

@@ -16,6 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
   getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost
@@ -109,17 +110,17 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
 }
 
 const Environments = () => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState()
-  const getErrorRuntimeId = Utils.useGetter(errorRuntimeId)
+  const getErrorRuntimeId = useGetter(errorRuntimeId)
   const [deleteRuntimeId, setDeleteRuntimeId] = useState()
-  const getDeleteRuntimeId = Utils.useGetter(deleteRuntimeId)
+  const getDeleteRuntimeId = useGetter(deleteRuntimeId)
   const [deleteDiskId, setDeleteDiskId] = useState()
-  const getDeleteDiskId = Utils.useGetter(deleteDiskId)
+  const getDeleteDiskId = useGetter(deleteDiskId)
   const [errorAppId, setErrorAppId] = useState()
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
@@ -162,8 +163,8 @@ const Environments = () => {
     await loadData()
   })
 
-  Utils.useOnMount(() => { loadData() })
-  Utils.usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
+  useOnMount(() => { loadData() })
+  usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const filteredRuntimes = _.orderBy([{
     project: 'googleProject',

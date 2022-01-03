@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -48,9 +49,9 @@ const styles = {
 export const withDebouncedChange = WrappedComponent => {
   const Wrapper = ({ onChange, value, debounceMs, ...props }) => {
     const [internalValue, setInternalValue] = useState()
-    const getInternalValue = Utils.useGetter(internalValue)
-    const getOnChange = Utils.useGetter(onChange)
-    const updateParent = Utils.useInstance(() => _.debounce(debounceMs || 250, () => {
+    const getInternalValue = useGetter(internalValue)
+    const getOnChange = useGetter(onChange)
+    const updateParent = useInstance(() => _.debounce(debounceMs || 250, () => {
       getOnChange()(getInternalValue())
       setInternalValue(undefined)
     }))
@@ -66,8 +67,8 @@ export const withDebouncedChange = WrappedComponent => {
   return Wrapper
 }
 
-export const TextInput = Utils.forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
-  Utils.useLabelAssert('TextInput', { ...props, allowId: true })
+export const TextInput = forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
+  useLabelAssert('TextInput', { ...props, allowId: true })
 
   return input({
     ..._.merge({
@@ -90,7 +91,7 @@ export const ConfirmedSearchInput = ({ defaultValue = '', onChange = _.noop, ...
   const [internalValue, setInternalValue] = useState(defaultValue)
   const inputEl = useRef()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     inputEl.current.addEventListener('search', e => {
       setInternalValue(e.target.value)
       onChange(e.target.value)
@@ -147,7 +148,7 @@ export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }) => {
   // If the user provided a tooltip but no other label, use the tooltip as the label for the input
-  Utils.useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true })
+  useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true })
 
   const [internalValue, setInternalValue] = useState()
 
@@ -233,7 +234,7 @@ const withAutocomplete = WrappedComponent => ({
   instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
-  Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
+  useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
 
   const suggestions = _.filter(suggestionFilter(value), rawSuggestions)
   const controlProps = itemToString ?
@@ -242,7 +243,7 @@ const withAutocomplete = WrappedComponent => ({
 
   const inputEl = useRef()
   const clearSelectionRef = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     inputEl.current?.addEventListener('search', e => {
       !e.target.value && clearSelectionRef.current?.()
     })
@@ -323,8 +324,8 @@ export const AutocompleteTextInput = withAutocomplete(TextInput)
 
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput)
 
-export const TextArea = Utils.forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
-  Utils.useLabelAssert('TextArea', { ...props, allowId: true })
+export const TextArea = forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
+  useLabelAssert('TextArea', { ...props, allowId: true })
 
   return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
     ref,
@@ -354,7 +355,7 @@ export const ValidatedTextArea = ({ inputProps, error }) => {
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea))
 
 export const PasteOnlyInput = ({ onPaste, ...props }) => {
-  Utils.useLabelAssert('PasteOnlyInput', { ...props, allowId: true })
+  useLabelAssert('PasteOnlyInput', { ...props, allowId: true })
 
   return textarea(_.merge({
     className: 'focus-style',

@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { useOnMount } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -19,7 +20,7 @@ const TermsOfServicePage = () => {
   const needToAccept = isSignedIn && !acceptedTos
   const [termsOfService, setTermsOfService] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadTosAndUpdateState = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')

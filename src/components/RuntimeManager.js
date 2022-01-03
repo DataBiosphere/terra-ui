@@ -21,14 +21,9 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { useOnMount } from 'src/libs/react-utils'
 import {
-  appIsSettingUp,
-  getComputeStatusForDisplay,
-  getConvertedRuntimeStatus,
-  getCurrentApp,
-  getCurrentRuntime,
-  getPersistentDiskCostHourly,
-  runtimeCost,
+  appIsSettingUp, getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getPersistentDiskCostHourly, runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
@@ -89,7 +84,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     }
   })
 
-  Utils.useOnMount(() => { loadRuntimeError() })
+  useOnMount(() => { loadRuntimeError() })
 
   return h(Modal, {
     title: `Cloud Environment Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
@@ -133,7 +128,7 @@ export const AppErrorModal = ({ app, onDismiss }) => {
     setError(appErrors[0]?.errorMessage)
   })
 
-  Utils.useOnMount(() => { loadAppError() })
+  useOnMount(() => { loadAppError() })
 
   return h(Modal, {
     title: `Galaxy App Creation Failed`,

@@ -23,6 +23,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -179,7 +180,7 @@ export const DeleteObjectModal = ({ name, workspace: { workspace: { googleProjec
 }
 
 const BucketContent = _.flow(
-  Utils.withDisplayName('BucketContent'),
+  withDisplayName('BucketContent'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
   workspace, workspace: { workspace: { namespace, googleProject, bucketName, name: workspaceName } }, firstRender, refreshKey,
@@ -194,7 +195,7 @@ const BucketContent = _.flow(
   const [deletingName, setDeletingName] = useState(undefined)
   const [viewingName, setViewingName] = useState(undefined)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -361,7 +362,7 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
 ])
 
 const WorkspaceData = _.flow(
-  Utils.forwardRefWithName('WorkspaceData'),
+  forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
@@ -380,8 +381,8 @@ const WorkspaceData = _.flow(
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
 
-  const signal = Utils.useCancellation()
-  const asyncImportJobs = Utils.useStore(asyncImportJobStore)
+  const signal = useCancellation()
+  const asyncImportJobs = useStore(asyncImportJobStore)
 
 
   // Helpers
@@ -470,7 +471,7 @@ const WorkspaceData = _.flow(
   }
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadMetadata()
     setFirstRender(false)
   })

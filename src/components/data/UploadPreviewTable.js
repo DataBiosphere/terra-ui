@@ -12,6 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref } from 'src/libs/prefs'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
@@ -38,7 +39,7 @@ const UploadDataTable = props => {
   const { initialX, initialY } = StateHistory.get() || {}
 
   const table = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   useEffect(() => {
     const loadMetadata = _.flow(
@@ -95,7 +96,7 @@ const UploadDataTable = props => {
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 

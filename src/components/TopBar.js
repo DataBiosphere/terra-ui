@@ -3,9 +3,7 @@ import { Fragment, useRef, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import {
-  Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
-} from 'src/components/common'
+import { Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -22,6 +20,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -119,7 +118,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openSupportMenu, setOpenSupportMenu] = useState(false)
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
-  const authState = Utils.useStore(authStore)
+  const authState = useStore(authStore)
 
   const showNav = () => {
     setNavShown(true)
@@ -417,7 +416,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { email, firstName, lastName } } = Utils.useStore(authStore)
+  const { profile: { email, firstName, lastName } } = useStore(authStore)
   const currUrl = window.location.href
 
   const returnToLegacyFC = _.flow(

@@ -10,17 +10,11 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool,
-  getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
-  analysisLauncherTabName, analysisTabName,
-  appLauncherTabName,
-  ApplicationHeader,
-  PlaygroundHeader,
-  RuntimeKicker,
-  RuntimeStatusMonitor,
+  analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
 } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
@@ -31,6 +25,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -43,7 +38,7 @@ const chooseMode = mode => {
 }
 
 const AnalysisLauncher = _.flow(
-  Utils.forwardRefWithName('AnalysisLauncher'),
+  forwardRefWithName('AnalysisLauncher'),
   requesterPaysWrapper({
     onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
   }),
@@ -129,7 +124,7 @@ const AnalysisLauncher = _.flow(
 const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, bucketName, lockedBy, canShare }) => {
   const [lockedByEmail, setLockedByEmail] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
       const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, wsName: name, bucketName })
       const currentLocker = potentialLockers[lockedBy]
@@ -231,8 +226,8 @@ const PreviewHeader = ({
   queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen,
   workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
-  const signal = Utils.useCancellation()
-  const { user: { email } } = Utils.useStore(authStore)
+  const signal = useCancellation()
+  const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
@@ -260,7 +255,7 @@ const PreviewHeader = ({
     }
   })
 
-  Utils.useOnMount(() => { checkIfLocked() })
+  useOnMount(() => { checkIfLocked() })
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -393,7 +388,7 @@ const PreviewHeader = ({
 }
 
 const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, styles }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
@@ -405,7 +400,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
   )(async () => {
     setPreview(await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview())
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadPreview()
   })
 
@@ -430,7 +425,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 // TODO: this ensures that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     Ajax()
       .Metrics
       .captureEvent(Events.notebookLaunch,
@@ -489,7 +484,7 @@ const AnalysisEditorFrame = ({
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => `${name}/edit`],
@@ -500,7 +495,7 @@ const AnalysisEditorFrame = ({
     [tools.RStudio.label, () => '']
   )
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
     const pattern = Utils.switchCase(toolLabel,
@@ -560,10 +555,10 @@ const WelderDisabledNotebookEditorFrame = ({
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -585,7 +580,7 @@ const WelderDisabledNotebookEditorFrame = ({
     }
   })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     localizeNotebook()
   })
 

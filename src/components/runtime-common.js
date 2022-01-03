@@ -9,6 +9,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
+import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -22,8 +23,8 @@ export const StatusMessage = ({ hideSpinner, children }) => {
 }
 
 export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
-  const getRuntime = Utils.useGetter(runtime)
-  const signal = Utils.useCancellation()
+  const getRuntime = useGetter(runtime)
+  const signal = useCancellation()
   const [busy, setBusy] = useState()
 
   const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
@@ -49,7 +50,7 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
     }
   })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     startRuntimeOnce()
   })
 
@@ -80,7 +81,7 @@ export const PlaygroundHeader = ({ children }) => {
 
 export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop, onRuntimeStartedRunning = _.noop }) => {
   const currentStatus = getConvertedRuntimeStatus(runtime)
-  const prevStatus = Utils.usePrevious(currentStatus)
+  const prevStatus = usePrevious(currentStatus)
 
   useEffect(() => {
     if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
@@ -94,13 +95,13 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 }
 
 export const AuthenticatedCookieSetter = () => {
-  const { registrationStatus } = Utils.useStore(authStore)
+  const { registrationStatus } = useStore(authStore)
   return registrationStatus === 'registered' && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
-  const signal = Utils.useCancellation()
-  Utils.usePollingEffect(
+  const signal = useCancellation()
+  usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
       cookieReadyStore.set(true)
@@ -162,7 +163,7 @@ export const GalaxyWarning = () => {
 }
 
 export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props }) => {
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
   return h(ButtonPrimary, {
     disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
     // toolTip: _.lowerCase(app.status) == 'running' ? 'Cannot launch galaxy that is not Running' : '',

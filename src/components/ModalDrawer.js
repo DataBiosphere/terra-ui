@@ -3,7 +3,7 @@ import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
 import colors from 'src/libs/colors'
-import * as Utils from 'src/libs/utils'
+import { useLabelAssert } from 'src/libs/react-utils'
 
 
 const drawer = {
@@ -25,7 +25,7 @@ const drawer = {
 }
 
 const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => {
-  Utils.useLabelAssert('ModalDrawer', props)
+  useLabelAssert('ModalDrawer', props)
 
   return h(Transition, {
     in: isOpen,

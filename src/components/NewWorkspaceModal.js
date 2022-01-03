@@ -14,6 +14,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -43,7 +44,7 @@ const constraints = {
   }
 }
 
-const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
+const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText
 }) => {
   // State
@@ -59,7 +60,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -129,7 +130,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   }
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadData()
   })
 

@@ -14,6 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { withDisplayName } from 'src/libs/react-utils'
 import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   RadioBlock
@@ -30,7 +31,7 @@ const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/k
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 const titleId = 'galaxy-modal-title'
 
-export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
+export const GalaxyModalBase = withDisplayName('GalaxyModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
