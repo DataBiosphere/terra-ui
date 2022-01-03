@@ -36,6 +36,7 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
+                  if [[ -z "$GITHUB_TOKEN" ]]; then echo "Can't read token, not notifying"; exit 0; fi
                   apk add github-cli --no-progress --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community/
                   <<# parameters.pr >>
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)"
@@ -43,9 +44,8 @@ commands:
                   VERSION="<< parameters.env >>"
                   <</ parameters.pr >>
                   # until https://github.com/cli/cli/issues/1484 is resolved, pass json input:
-                  DEPLOY_PAYLOAD_FILE=/tmp/new_deploy_payload
-                  echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" > $DEPLOY_PAYLOAD_FILE
-                  gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input $DEPLOY_PAYLOAD_FILE \
+                  echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" | \
+                    gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input - \
                     --jq .id > /tmp/build_num
       - when:
           condition: << parameters.existing >>
@@ -53,6 +53,7 @@ commands:
             - run:
                 name: Update Github deployment status
                 command: |
+                  if [[ -z "$GITHUB_TOKEN" ]]; then echo "Can't read token, not notifying"; exit 0; fi
                   <<# parameters.pr >>
                   PR_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % 10)-dot-"
                   <</ parameters.pr >>
@@ -62,6 +63,7 @@ commands:
                 name: Update Github deployment status
                 when: on_fail
                 command: |
+                  if [[ -z "$GITHUB_TOKEN" ]]; then echo "Can't read token, not notifying"; exit 0; fi
                   gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" -F state=failure
 
   deploy-env:
@@ -91,9 +93,9 @@ commands:
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-#      - notify-github:
-#          env: << parameters.env >>
-#          pr: << parameters.pr >>
+      - notify-github:
+          env: << parameters.env >>
+          pr: << parameters.pr >>
       - when:
           condition: << parameters.pr >>
           steps:
@@ -111,10 +113,10 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
-#      - notify-github:
-#          existing: true
-#          env: << parameters.env >>
-#          pr: << parameters.pr >>
+      - notify-github:
+          existing: true
+          env: << parameters.env >>
+          pr: << parameters.pr >>
   integration-tests:
     parameters:
       local:
