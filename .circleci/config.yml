@@ -91,9 +91,9 @@ commands:
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
-      - notify-github:
-          env: << parameters.env >>
-          pr: << parameters.pr >>
+#      - notify-github:
+#          env: << parameters.env >>
+#          pr: << parameters.pr >>
       - when:
           condition: << parameters.pr >>
           steps:
@@ -111,10 +111,10 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
-      - notify-github:
-          existing: true
-          env: << parameters.env >>
-          pr: << parameters.pr >>
+#      - notify-github:
+#          existing: true
+#          env: << parameters.env >>
+#          pr: << parameters.pr >>
   integration-tests:
     parameters:
       local:
