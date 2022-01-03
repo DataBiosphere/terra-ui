@@ -426,12 +426,12 @@ const Environments = () => {
                 disksByProject[googleProject]).length > 1
               const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               // Galaxy can have multiple disks per project as long as they are in different workspaces
-              const galaxyDisksOnly = _.filter(disk => disk.labels.saturnApplication?.toLowerCase() === tools.galaxy.appType.toLowerCase() && disk.status !== 'DELETING', filteredDisks)
+              const galaxyDisksOnly = _.filter(disk => getDiskAppType(disk) === tools.galaxy.appType && disk.status !== 'DELETING', filteredDisks)
               const galaxyDiskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, galaxyDisksOnly)
               const multipleGalaxyDisks = _.uniq(galaxyDiskWorkspaces).length !== galaxyDiskWorkspaces.length
               return h(Fragment, [
                 googleProject,
-                diskStatus !== 'Deleting' && (appType === tools.galaxy.appType.toLowerCase() ? multipleGalaxyDisks : multipleDisksOfType) &&
+                diskStatus !== 'Deleting' && (appType === tools.galaxy.appType ? multipleGalaxyDisks : multipleDisksOfType) &&
                 h(TooltipTrigger, {
                   content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])

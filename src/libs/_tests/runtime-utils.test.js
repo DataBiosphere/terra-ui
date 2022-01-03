@@ -74,7 +74,7 @@ const galaxyDisk = {
   diskType: 'pd-standard',
   googleProject: 'terra-test-e4000484',
   id: 10,
-  labels: { saturnApplication: 'galaxy' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
   name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
   size: 500,
   status: 'Ready',
@@ -185,5 +185,9 @@ describe('getCurrentPersistentDisk', () => {
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
     expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks)).toBe(galaxyDisk)
     expect(getCurrentPersistentDisk(tools.cromwell.appType, [galaxyRunning], mockAppDisks)).toBe(cromwellUnattachedDisk)
+  })
+  it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
+    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
+    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
   })
 })
