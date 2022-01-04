@@ -183,7 +183,7 @@ describe('getCurrentPersistentDisk', () => {
     expect(getCurrentPersistentDisk(tools.cromwell.appType, mockApps, mockAppDisks)).toBe(cromwellProvisioningDisk)
   })
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks)).toBe(galaxyDisk)
+    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
     expect(getCurrentPersistentDisk(tools.cromwell.appType, [galaxyRunning], mockAppDisks)).toBe(cromwellUnattachedDisk)
   })
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
