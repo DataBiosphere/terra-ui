@@ -3,6 +3,7 @@ const { signIntoTerra, click, clickable, waitForNoSpinners, findText } = require
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
+const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
 const testCatalogFlowFn = _.flow(
   withUserToken
@@ -20,6 +21,10 @@ const testCatalogFlowFn = _.flow(
   await dismissNotifications(page)
 
   await click(page, clickable({ textContains: 'browse & explore' }))
+  await waitForNoSpinners(page)
+  await findText(page, 'All datasets')
+  await click(page, '//*[@role="table" and @aria-label="dataset list"]//*[@role="cell"][1]//ancestor::*[@role="row"]')
+
 })
 
 const testCatalog = {
