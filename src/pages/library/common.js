@@ -62,8 +62,7 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
   const [showAll, setShowAll] = useState(false)
   const lowerSelectedTags = _.map('lowerTag', selectedTags)
   const labelsWithContent = _.filter(label => _.size(listDataByTag[_.toLower(label)]), labels)
-  const labelsToDisplay = showAll ? labels : computeLabels(labelsWithContent, _.map('label', selectedTags))
-  const totalLabels = _.size(labelsWithContent)
+  const labelsToDisplay = showAll ? labelsWithContent : computeLabels(labelsWithContent, _.map('label', selectedTags))
 
   //Render
   return h(Fragment, [
@@ -79,10 +78,10 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
         onClick: () => onTagFilter({ lowerTag, label })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-        div({ style: styles.pill(_.includes(lowerTag, lowerSelectedTags)) }, [_.size(listDataByTag[lowerTag])])
+        div({ style: styles.pill(_.includes(lowerTag, lowerSelectedTags)) }, [size])
       ])
     }, labelsToDisplay),
-    totalLabels > numLabelsToRender && h(Link, {
+    _.size(labelsWithContent) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
       onClick: () => setShowAll(!showAll)
     }, [`See ${showAll ? 'less' : 'more'}`])
