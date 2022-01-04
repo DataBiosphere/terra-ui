@@ -38,7 +38,6 @@ commands:
                 command: |
                   apk add github-cli --no-progress --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community/
                   <<# parameters.pr >>
-                  NUM_PR_SITES=11
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)"
                   <</ parameters.pr >><<^ parameters.pr >>
                   VERSION="<< parameters.env >>"
@@ -54,7 +53,6 @@ commands:
                 name: Update Github deployment status
                 command: |
                   <<# parameters.pr >>
-                  NUM_PR_SITES=11
                   PR_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)-dot-"
                   <</ parameters.pr >>
                   gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" \
@@ -103,7 +101,6 @@ commands:
                 command: |
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
                   if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-                    NUM_PR_SITES=11
                     gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
                       --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" --no-promote --quiet
                   fi
