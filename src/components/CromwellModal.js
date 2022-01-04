@@ -8,6 +8,7 @@ import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { withDisplayName } from 'src/libs/react-utils'
 import { computeStyles, getCurrentApp, getCurrentPersistentDisk } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
@@ -19,7 +20,7 @@ const titleId = 'cromwell-modal-title'
 
 // TODO: As this code continues to evolve, create a shared base class with GalaxyModalBase if possible
 // (or find another way to reduce code duplication).
-export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
+export const CromwellModalBase = withDisplayName('CromwellModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false

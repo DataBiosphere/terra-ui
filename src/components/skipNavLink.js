@@ -2,11 +2,11 @@ import * as _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import colors from 'src/libs/colors'
+import { forwardRefWithName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
-export const SkipNavLink = Utils.forwardRefWithName('SkipNavLink', (props = {}, ref) => {
+export const SkipNavLink = forwardRefWithName('SkipNavLink', (props = {}, ref) => {
   return h(Link, _.merge({
     as: 'a',
     href: '#',
@@ -30,7 +30,7 @@ export const SkipNavLink = Utils.forwardRefWithName('SkipNavLink', (props = {}, 
   }, props), 'Skip to main content')
 })
 
-export const SkipNavTarget = Utils.forwardRefWithName('SkipNavTarget', (props = {}, ref) => {
+export const SkipNavTarget = forwardRefWithName('SkipNavTarget', (props = {}, ref) => {
   return div({
     ref,
     role: 'note',

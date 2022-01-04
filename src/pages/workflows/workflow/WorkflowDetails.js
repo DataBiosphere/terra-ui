@@ -19,6 +19,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -33,15 +34,15 @@ const InfoTile = ({ title, children }) => {
 }
 
 const WorkflowWrapper = ({ namespace, name, children }) => {
-  const signal = Utils.useCancellation()
-  const cachedSnapshotsList = Utils.useStore(snapshotsListStore)
+  const signal = useCancellation()
+  const cachedSnapshotsList = useStore(snapshotsListStore)
 
 
   const snapshotsList = cachedSnapshotsList && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedSnapshotsList[0])) ?
     cachedSnapshotsList :
     undefined
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadSnapshots = async () => {
       snapshotsListStore.set(snapshotsList || await Ajax(signal).Methods.list({ namespace, name }))
     }
@@ -68,9 +69,9 @@ const WorkflowWrapper = ({ namespace, name, children }) => {
 }
 
 const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => {
-  const signal = Utils.useCancellation()
-  const cachedSnapshotsList = Utils.useStore(snapshotsListStore)
-  const cachedSnapshot = Utils.useStore(snapshotStore)
+  const signal = useCancellation()
+  const cachedSnapshotsList = useStore(snapshotsListStore)
+  const cachedSnapshot = useStore(snapshotStore)
   const selectedSnapshot = (snapshotId * 1) || _.last(cachedSnapshotsList).snapshotId
 
   const snapshot = cachedSnapshot &&
@@ -78,7 +79,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
     cachedSnapshot :
     undefined
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadSnapshot = async () => {
       snapshotStore.set(await Ajax(signal).Methods.method(namespace, name, selectedSnapshot).get())
     }
@@ -120,7 +121,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
 }
 
 const WorkflowSummary = () => {
-  const { namespace, name, snapshotId, createDate, managers, synopsis, documentation, public: isPublic } = Utils.useStore(snapshotStore)
+  const { namespace, name, snapshotId, createDate, managers, synopsis, documentation, public: isPublic } = useStore(snapshotStore)
   const [importUrlCopied, setImportUrlCopied] = useState()
   const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`
 
@@ -168,7 +169,7 @@ const WorkflowSummary = () => {
 }
 
 const WorkflowWdl = () => {
-  const { name, snapshotId, payload } = Utils.useStore(snapshotStore)
+  const { name, snapshotId, payload } = useStore(snapshotStore)
 
   return div({ style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 }, role: 'tabpanel' }, [
     div({ style: { marginBottom: '1rem', alignSelf: 'flex-end' } }, [
@@ -186,12 +187,12 @@ const WorkflowWdl = () => {
 }
 
 const WorkflowConfigs = () => {
-  const signal = Utils.useCancellation()
-  const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
+  const signal = useCancellation()
+  const { namespace, name, snapshotId } = useStore(snapshotStore)
   const [allConfigs, setAllConfigs] = useState()
   const [snapshotConfigs, setSnapshotConfigs] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadConfigs = async () => {
       const [allConfigs, snapshotConfigs] = await Promise.all([
         Ajax(signal).Methods.method(namespace, name, snapshotId).allConfigs(),

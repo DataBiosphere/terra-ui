@@ -12,6 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commentValidation } from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -30,9 +31,9 @@ const LaunchAnalysisModal = ({
   const [bucketLocation, setBucketLocation] = useState({})
   const [userComment, setUserComment] = useState(undefined)
   const [userCommentError, setUserCommentError] = useState(undefined)
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadBucketLocation = withErrorReporting('Error loading bucket location', async () => {
       const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(googleProject, bucketName)
       setBucketLocation({ location, locationType })

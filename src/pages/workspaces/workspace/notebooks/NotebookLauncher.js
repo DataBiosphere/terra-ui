@@ -20,6 +20,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -32,7 +33,7 @@ const chooseMode = mode => {
 }
 
 const NotebookLauncher = _.flow(
-  Utils.forwardRefWithName('NotebookLauncher'),
+  forwardRefWithName('NotebookLauncher'),
   requesterPaysWrapper({
     onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
   }),
@@ -103,7 +104,7 @@ const NotebookLauncher = _.flow(
 const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, bucketName, lockedBy, canShare }) => {
   const [lockedByEmail, setLockedByEmail] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
       const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, wsName: name, bucketName })
       const currentLocker = potentialLockers[lockedBy]
@@ -194,8 +195,8 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
 }, [children])
 
 const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, googleProject, bucketName } } }) => {
-  const signal = Utils.useCancellation()
-  const { user: { email } } = Utils.useStore(authStore)
+  const signal = useCancellation()
+  const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
@@ -219,7 +220,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
     }
   })
 
-  Utils.useOnMount(() => { checkIfLocked() })
+  useOnMount(() => { checkIfLocked() })
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -336,7 +337,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
 }
 
 const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError }) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
@@ -348,7 +349,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googlePr
   )(async () => {
     setPreview(await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName).preview())
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadPreview()
   })
 
@@ -371,7 +372,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googlePr
 }
 
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
 
     const isSaved = Utils.atom(true)
@@ -421,7 +422,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
   const [notebookSetupComplete, setNotebookSetupComplete] = useState(false)
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = `${name}/edit`
   const localSafeModeBaseDirectory = `${name}/safe`
@@ -449,7 +450,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     }
   })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     setUpNotebook()
   })
 
@@ -474,10 +475,10 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -499,7 +500,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     }
   })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     localizeNotebook()
   })
 

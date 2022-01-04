@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { Storage } = require('@google-cloud/storage')
-const { screenshotBucket, screenshotDir } = require('../utils/integration-config')
+const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
@@ -95,7 +95,8 @@ const delay = ms => {
 
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+  const notificationCloseButtons = await page.$x(
+    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
 
   await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
@@ -141,38 +142,62 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
+const maybeSaveScreenshot = async (page, testName) => {
+  if (!screenshotDirPath) { return }
+  try {
+    const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
+
+    await page.screenshot({ path, fullPage: true })
+
+    const errorsPresent = await openError(page)
+
+    if (errorsPresent) {
+      await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
+    }
+
+    if (screenshotBucket) {
+      const storage = new Storage()
+      await storage.bucket(screenshotBucket).upload(path)
+      if (errorsPresent) {
+        await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
+      }
+    }
+  } catch (e) {
+    console.error('Failed to capture screenshot', e)
+  }
+}
+
 const withScreenshot = _.curry((testName, fn) => async options => {
-  const { page } = options
   try {
     return await fn(options)
   } catch (e) {
-    if (screenshotDir) {
-      try {
-        const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
-        const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
-
-        await page.screenshot({ path, fullPage: true })
-
-        const errorsPresent = await openError(page)
-
-        if (errorsPresent) {
-          await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
-        }
-
-        if (screenshotBucket) {
-          const storage = new Storage()
-          await storage.bucket(screenshotBucket).upload(path)
-          if (errorsPresent) {
-            await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
-          }
-        }
-      } catch (e) {
-        console.error('Failed to capture screenshot', e)
-      }
-    }
+    await maybeSaveScreenshot(options.page, testName)
     throw e
   }
 })
+
+const logPageConsoleMessages = page => {
+  const handle = msg => console.log('page.console', msg.text(), msg)
+  page.on('console', handle)
+  return () => page.off('console', handle)
+}
+
+const logPageAjaxResponses = page => {
+  const handle = res => {
+    console.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+  }
+  page.on('response', handle)
+  return () => page.off('response', handle)
+}
+
+const withPageLogging = fn => options => {
+  const { page } = options
+  logPageAjaxResponses(page)
+  // Leaving console logging off for now since it is mostly request failures already logged above.
+  // logPageConsoleMessages(page)
+  return fn(options)
+}
 
 module.exports = {
   click,
@@ -194,5 +219,8 @@ module.exports = {
   elementInDataTableRow,
   findInDataTableRow,
   withScreenshot,
+  logPageConsoleMessages,
+  logPageAjaxResponses,
+  withPageLogging,
   openError
 }

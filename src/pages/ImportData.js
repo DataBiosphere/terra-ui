@@ -18,6 +18,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { useOnMount } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -76,7 +77,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -91,7 +92,7 @@ const ImportData = () => {
   )(dataCatalog)
   const [snapshotResponses, setSnapshotResponses] = useState()
 
-  const isDataset = format !== 'snapshot'
+  const isDataset = !_.includes(format, ['snapshot', 'tdrexport'])
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
   const [title, header] = Utils.cond(
     [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
@@ -107,7 +108,7 @@ const ImportData = () => {
       _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
     )(_.castArray(template))
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
       withErrorReporting('Error loading templates')
@@ -125,13 +126,18 @@ const ImportData = () => {
 
     await Utils.switchCase(format,
       ['PFB', async () => {
-        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
+        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb')
         asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
         notifyDataImportProgress(jobId)
       }],
       ['entitiesJson', async () => {
         await Ajax().Workspaces.workspace(namespace, name).importJSON(url)
         notify('success', 'Data imported successfully.', { timeout: 3000 })
+      }],
+      ['tdrexport', async () => {
+        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(tdrmanifest, 'tdrexport')
+        asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+        notifyDataImportProgress(jobId)
       }],
       ['snapshot', async () => {
         if (!_.isEmpty(snapshots)) {

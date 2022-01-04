@@ -14,6 +14,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -98,7 +99,7 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
 
 const columnWidths = '1fr 30% 6rem 20px'
 
-const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
+const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
   return div({
     role: 'row',
     style: { display: 'grid', gridTemplateColumns: columnWidths, justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' }
@@ -119,7 +120,7 @@ const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort 
   ])
 })
 
-const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
+const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
   return div({
@@ -185,7 +186,7 @@ const GroupList = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -207,7 +208,7 @@ const GroupList = () => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
   })
 

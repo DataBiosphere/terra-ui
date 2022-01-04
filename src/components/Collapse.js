@@ -3,8 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
 const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, noTitleWrap, ...props }) => {
@@ -12,7 +12,7 @@ const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, chil
   const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
 
   const firstOpenRef = useRef(_.once(onFirstOpen))
-  const id = Utils.useUniqueId()
+  const id = useUniqueId()
 
   useEffect(() => {
     if (isOpened) {

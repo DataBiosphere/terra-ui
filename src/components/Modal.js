@@ -5,6 +5,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -27,11 +28,11 @@ const styles = {
 }
 
 const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, danger = false, ...props }) => {
-  const titleId = Utils.useUniqueId()
+  const titleId = useUniqueId()
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     previouslyFocusedNode.current = document.activeElement
     return () => previouslyFocusedNode.current?.focus()
   })

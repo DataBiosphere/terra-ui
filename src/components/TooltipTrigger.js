@@ -4,6 +4,7 @@ import { div, h, path, svg } from 'react-hyperscript-helpers'
 import { containsUnlabelledIcon } from 'src/components/icons'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
+import { useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -40,7 +41,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     if (!!delay) {
       renderTimeout.current = setTimeout(() => setShouldRender(true), delay)
       return () => clearTimeout(renderTimeout.current)
@@ -86,9 +87,9 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 
 const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   const [open, setOpen] = useState(false)
-  const id = Utils.useUniqueId()
-  const tooltipId = Utils.useUniqueId()
-  const descriptionId = Utils.useUniqueId()
+  const id = useUniqueId()
+  const tooltipId = useUniqueId()
+  const descriptionId = useUniqueId()
 
   const child = Children.only(children)
   const childId = child.props.id || id

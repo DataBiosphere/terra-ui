@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { div, h, label, span, strong, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { TextArea } from 'src/components/input'
@@ -8,115 +8,110 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { snapshotAccessTypes } from 'src/pages/library/dataBrowser-utils'
 
 
 const sendCopyEnabled = false
+const requestAccessEnabled = false
 
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
   const [sendCopy, setSendCopy] = useState(false)
+  const [showWipModal, setShowWipModal] = useState(false)
 
-  return h(Modal, {
-    title: 'Request Access',
-    width: '40rem',
+  return showWipModal ? h(Modal, {
+    title: `Keep in mind we're still in BETA`,
+    width: '32rem',
     showButtons: false,
-    showX: true,
-    onDismiss
+    onDismiss: () => {}
   }, [
-    div([
-      'You cannot access this dataset because it is protected by an Authorization Domain. ',
-      'You need to obtain permission from the owner(s) of this dataset in order to get access. ',
-      'Clicking the "Request Access" button below will send an email to the admins of that dataset.'
+    div({ style: { lineHeight: '1.7rem' } }, [
+      `In the near future, when you click on `, strong(['Request Access']),
+      `, the request will be sent to the appropriate approver and the dataset will be marked as `,
+      strong(['Pending']), `.`
     ]),
-    h(IdContainer, [id => div([
-      h(FormLabel, { htmlFor: id }, ['Please tell us why']),
-      h(TextArea, {
-        id,
-        style: { height: 100, marginBottom: '0.5rem' },
-        placeholder: 'Enter your reason',
-        value: reason,
-        onChange: setReason
-      }),
-      sendCopyEnabled && div([
-        h(LabeledCheckbox, {
-          checked: sendCopy,
-          onChange: setSendCopy
-        }, [
-          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Also send me a copy`])
-        ])
-      ])
-    ])]),
-    table({ style: { margin: '1rem', width: '100%' } }, [
-      thead([
-        tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
-      ]),
-      tbody(
-        _.map(({ 'dct:title': title, access, 'dct:identifier': id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
-          td({ style: { paddingRight: 20 } }, [
-            title,
-            div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
-              _.map(({ email }) => email && h(Link, { key: email, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
-            ])
-          ]),
-          td([
-            Utils.switchCase(access,
-              ['Controlled', () => h(RequestDatasetAccessButton, { title, id })],
-              ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
-              [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
-            )
-          ])
-        ]), datasets)
-      )
+    div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
+      `Let's continue testing the BETA Data Catalog!`,
+      h(ButtonPrimary, {
+        onClick: onDismiss,
+        style: { padding: '20px 30px' }
+      }, 'OK')
     ])
-  ])
+  ]) :
+    h(Modal, {
+      title: 'Request Access',
+      width: '40rem',
+      showButtons: false,
+      showX: true,
+      onDismiss
+    }, [
+      div([
+        'You cannot access this dataset because it is protected by an Authorization Domain. ',
+        'You need to obtain permission from the owner(s) of this dataset in order to get access. ',
+        'Clicking the "Request Access" button below will send an email to the admins of that dataset.'
+      ]),
+      h(IdContainer, [id => div([
+        h(FormLabel, { htmlFor: id }, ['Please tell us why']),
+        h(TextArea, {
+          id,
+          style: { height: 100, marginBottom: '0.5rem' },
+          placeholder: 'Enter your reason',
+          value: reason,
+          onChange: setReason
+        }),
+        sendCopyEnabled && div([
+          h(LabeledCheckbox, {
+            checked: sendCopy,
+            onChange: setSendCopy
+          }, [
+            label({ style: { margin: '0 2rem 0 0.25rem' } }, ['Also send me a copy'])
+          ])
+        ])
+      ])]),
+      table({ style: { margin: '1rem', width: '100%' } }, [
+        thead([
+          tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
+        ]),
+        tbody(
+          _.map(({ 'dct:title': title, access, 'dct:identifier': id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+            td({ style: { paddingRight: 20 } }, [
+              title,
+              div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
+                _.map(({ email }) => email && h(Link, { key: email, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
+              ])
+            ]),
+            td([
+              Utils.switchCase(access,
+                [snapshotAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
+                [snapshotAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+                [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
+              )
+            ])
+          ]), datasets)
+        )
+      ])
+    ])
 }
 
-const RequestDatasetAccessButton = ({ title, id }) => {
-  const [requesting, setRequesting] = useState(false)
-  const [requested, setRequested] = useState(false)
-  const [showWipModal, setShowWipModal] = useState(false)
-  const signal = Utils.useCancellation()
+const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
+  const [status, setStatus] = useState('')
+  const signal = useCancellation()
 
-  return h(Fragment, [
-    showWipModal && h(Modal, {
-      title: `Keep in mind we're still in BETA`,
-      width: '32rem',
-      showButtons: false,
-      onDismiss: () => {}
-    }, [
-      div({ style: { lineHeight: '1.7rem' } }, [
-        `In the near future, when you click on `, strong(['Request Access']),
-        `, the request will be sent to the appropriate approver and the dataset will be marked as `,
-        strong(['Pending']), `.`
-      ]),
-      div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
-        `Let's continue testing the BETA Data Catalog!`,
-        h(ButtonPrimary, { onClick: () => { setShowWipModal(false) }, style: { padding: '20px 30px' } }, 'OK')
-      ])
-    ]),
-    h(ButtonPrimary, {
-      disabled: requesting || requested,
-      onClick: () => {
-        const requestAccess = _.flow(
-          Utils.withBusyState(setRequesting),
-          withErrorReporting('Error requesting dataset access')
-        )(async () => {
-          await Ajax(signal).DataRepo.requestAccess(id)
-          setRequested(true)
-        })
-        requestAccess()
-        Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
-          snapshotId: id,
-          snapshotName: title
-        })
-      }
-    }, [
-      Utils.cond(
-        [requested, () => 'Request Sent'],
-        [requesting, () => 'Sending Request...'],
-        () => 'Request Access'
-      )
-    ])
+  return h(ButtonPrimary, {
+    disabled: status,
+    onClick: withErrorReporting('Error requesting dataset access', async () => {
+      requestAccessEnabled ?
+        await Ajax(signal).DataRepo.requestAccess(id) :
+        setShowWipModal(true)
+      setStatus('Request Sent')
+      Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
+        snapshotId: id,
+        snapshotName: title
+      })
+    })
+  }, [
+    status || 'Request Access'
   ])
 }

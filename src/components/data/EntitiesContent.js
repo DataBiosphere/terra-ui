@@ -31,6 +31,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -52,7 +53,7 @@ const getDataset = dataExplorerUrl => {
 const toolDrawerId = 'tool-drawer-title'
 
 const ToolDrawer = _.flow(
-  Utils.withDisplayName('ToolDrawer'),
+  withDisplayName('ToolDrawer'),
   requesterPaysWrapper({
     onDismiss: ({ onDismiss }) => onDismiss()
   }),
@@ -63,11 +64,11 @@ const ToolDrawer = _.flow(
 }) => {
   const [toolMode, setToolMode] = useState()
   const [notebookNames, setNotebookNames] = useState()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const { Buckets } = Ajax(signal)
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadNotebookNames = _.flow(
       withRequesterPaysHandler(onRequesterPaysError),
       withErrorReporting('Error loading notebooks')

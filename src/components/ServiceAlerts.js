@@ -7,6 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { withErrorIgnoring } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { usePollingEffect, usePrevious } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -16,9 +17,9 @@ const alertHashes = alerts => {
 
 export const ServiceAlerts = () => {
   const [alerts, setAlerts] = useState([])
-  const prevAlerts = Utils.usePrevious(alerts)
+  const prevAlerts = usePrevious(alerts)
 
-  Utils.usePollingEffect(withErrorIgnoring(
+  usePollingEffect(withErrorIgnoring(
     async () => setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
   ), { ms: 60000, leading: true })
 

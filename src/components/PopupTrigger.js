@@ -7,8 +7,8 @@ import { icon } from 'src/components/icons'
 import { VerticalNavigation } from 'src/components/keyboard-nav'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
+import { forwardRefWithName, useLabelAssert, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -25,7 +25,7 @@ const styles = {
 export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
   // We're passing popupProps here rather than just props, because ...props also includes lots of internal onClickOutside properties which
   // aren't valid to be dropped on a DOM element.
-  Utils.useLabelAssert('Popup', popupProps)
+  useLabelAssert('Popup', popupProps)
 
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
@@ -47,10 +47,10 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, popupProps: { role = 'dialog', ...popupProps } = {}, children, ...props }, ref) => {
+const PopupTrigger = forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, popupProps: { role = 'dialog', ...popupProps } = {}, children, ...props }, ref) => {
   const [open, setOpen] = useState(false)
-  const id = Utils.useUniqueId()
-  const menuId = Utils.useUniqueId()
+  const id = useUniqueId()
+  const menuId = useUniqueId()
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
   }))
@@ -115,7 +115,7 @@ export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
-export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
+export const MenuButton = forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
   return div({ role: 'menuitem' }, [
     h(Clickable, _.merge({
       ref,

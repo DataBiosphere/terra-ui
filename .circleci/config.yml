@@ -7,23 +7,67 @@ executors:
   node:
     working_directory: /mnt/ramdisk
     docker:
-      - image: node:14
+      - image: node:16
         user: node
   puppeteer:
     working_directory: /mnt/ramdisk
     docker:
-      - image: circleci/node:14-browsers
+      - image: circleci/node:16-browsers
   gcloud:
     working_directory: /mnt/ramdisk
     docker:
       - image: google/cloud-sdk:alpine
 
 commands:
+  notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
+    parameters:
+      env:
+        type: string
+      pr:
+        type: boolean
+      existing:
+        type: boolean
+        default: false
+    steps:
+      - unless:
+          condition: << parameters.existing >>
+          steps:
+            - run:
+                name: Notify Github of deployment
+                unless: << parameters.existing >>
+                command: |
+                  apk add github-cli --no-progress --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community/
+                  <<# parameters.pr >>
+                  VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)"
+                  <</ parameters.pr >><<^ parameters.pr >>
+                  VERSION="<< parameters.env >>"
+                  <</ parameters.pr >>
+                  # until https://github.com/cli/cli/issues/1484 is resolved, pass json input:
+                  echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" \
+                    | gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input - \
+                    --jq .id > /tmp/build_num
+      - when:
+          condition: << parameters.existing >>
+          steps:
+            - run:
+                name: Update Github deployment status
+                command: |
+                  <<# parameters.pr >>
+                  PR_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)-dot-"
+                  <</ parameters.pr >>
+                  gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" \
+                    -F state=success -F environment_url="https://${PR_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com" -F log_url="$CIRCLE_BUILD_URL"
+            - run:
+                name: Update Github deployment status
+                when: on_fail
+                command: |
+                  gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" -F state=failure
+
   deploy-env:
     description: "Deploy to a specific environment"
     parameters:
       sa_key_var:
-        type: string
+        type: env_var_name
         default: "SA_KEY_JSON"
       env:
         type: string
@@ -32,11 +76,23 @@ commands:
         type: boolean
         default: false
     steps:
+      - when:
+          condition: << parameters.pr >>
+          steps:
+            - run:
+                command: |
+                  if [[ -z "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" ]]; then
+                    echo "No PR number, not deploying"
+                    circleci-agent step halt
+                  fi
       - attach_workspace:
           at: .
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
+      - notify-github:
+          env: << parameters.env >>
+          pr: << parameters.pr >>
       - when:
           condition: << parameters.pr >>
           steps:
@@ -46,7 +102,7 @@ commands:
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
                   if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
                     gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
-                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % 10)" --no-promote --quiet
+                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" --no-promote --quiet
                   fi
       - unless:
           condition: << parameters.pr >>
@@ -54,6 +110,10 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
+      - notify-github:
+          existing: true
+          env: << parameters.env >>
+          pr: << parameters.pr >>
   integration-tests:
     parameters:
       local:
@@ -68,13 +128,13 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps8-
+            - test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps9-
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
       - save_cache:
-          key: test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
             - integration-tests/.yarn/cache
@@ -121,16 +181,17 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps7-
+            - deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps8-
       - run: yarn install --immutable
       - save_cache:
-          key: deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+          key: deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
             - .yarn/cache
+      - run: yarn eslint src
       - run: yarn test
-      - run: yarn build
+      - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz

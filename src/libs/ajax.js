@@ -627,7 +627,7 @@ const Workspaces = signal => ({
       },
 
       updateAcl: async (aclUpdates, inviteNew = true) => {
-        const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
+        const res = await fetchOrchestration(`api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
         return res.json()
       },
@@ -862,8 +862,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importPFB: async url => {
-        const res = await fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -874,7 +874,7 @@ const Workspaces = signal => ({
 
       listImportJobs: async isRunning => {
         // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
-        const res = await fetchOrchestration(`api/${root}/importPFB?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
+        const res = await fetchOrchestration(`api/${root}/importJob?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 

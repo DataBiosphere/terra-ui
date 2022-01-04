@@ -16,6 +16,7 @@ import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { useCancelable, useCancellation, withDisplayName } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
@@ -23,7 +24,7 @@ import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 
 
 export const FileBrowserPanel = _.flow(
-  Utils.withDisplayName('DataUploadPanel'),
+  withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({ workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, style, children }) => {
   const [prefix, setPrefix] = useState('')
@@ -38,8 +39,8 @@ export const FileBrowserPanel = _.flow(
   const [uploadStatus, setUploadStatus] = useUploader()
   const [lastRefresh, setLastRefresh] = useState(0)
 
-  const signal = Utils.useCancellation()
-  const { signal: uploadSignal, abort: abortUpload } = Utils.useCancelable()
+  const signal = useCancellation()
+  const { signal: uploadSignal, abort: abortUpload } = useCancelable()
 
   const { initialY } = StateHistory.get() || {}
   const table = useRef()

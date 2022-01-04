@@ -16,10 +16,10 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
-  defaultComputeRegion,
   defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, isApp, isComputePausable, isResourceDeletable, runtimeCost
+  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -110,17 +110,17 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
 }
 
 const Environments = () => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState()
-  const getErrorRuntimeId = Utils.useGetter(errorRuntimeId)
+  const getErrorRuntimeId = useGetter(errorRuntimeId)
   const [deleteRuntimeId, setDeleteRuntimeId] = useState()
-  const getDeleteRuntimeId = Utils.useGetter(deleteRuntimeId)
+  const getDeleteRuntimeId = useGetter(deleteRuntimeId)
   const [deleteDiskId, setDeleteDiskId] = useState()
-  const getDeleteDiskId = Utils.useGetter(deleteDiskId)
+  const getDeleteDiskId = useGetter(deleteDiskId)
   const [errorAppId, setErrorAppId] = useState()
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
@@ -163,8 +163,8 @@ const Environments = () => {
     await loadData()
   })
 
-  Utils.useOnMount(() => { loadData() })
-  Utils.usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
+  useOnMount(() => { loadData() })
+  usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const filteredRuntimes = _.orderBy([{
     project: 'googleProject',
@@ -196,7 +196,7 @@ const Environments = () => {
   const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
-  const totalDiskCost = _.sum(_.map(getPersistentDiskCostMonthly, disks))
+  const totalDiskCost = _.sum(_.map(disk => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), disks))
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
@@ -364,8 +364,8 @@ const Environments = () => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               const zone = cloudEnvironment?.runtimeConfig?.zone
               const region = cloudEnvironment?.runtimeConfig?.region
-              // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
-              // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
+              // We assume that all apps get created in zone 'us-central1-a'.
+              // If zone or region is not present then cloudEnvironment is an app so we return 'us-central1-a'.
               return zone || region || defaultComputeZone.toLowerCase()
             }
           },
@@ -503,7 +503,9 @@ const Environments = () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return Utils.formatUSD(getPersistentDiskCostMonthly(filteredDisks[rowIndex], defaultComputeRegion))
+              const disk = filteredDisks[rowIndex]
+              const diskRegion = getRegionFromZone(disk.zone)
+              return Utils.formatUSD(getPersistentDiskCostMonthly(disk, diskRegion))
             }
           },
           {

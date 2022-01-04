@@ -11,6 +11,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -88,7 +89,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined)
 
   const list = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -152,7 +153,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const load = async () => {
       try {
         const [{ acl }, shareSuggestions, groups] = await Promise.all([

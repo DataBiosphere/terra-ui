@@ -11,6 +11,7 @@ import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
@@ -151,10 +152,16 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                 h(LabeledCheckbox, {
                   style: { marginRight: 10 },
                   'aria-label': tag,
-                  checked: _.includes(tag.toLowerCase(), selectedTags),
+                  checked: _.some({ lowerTag: tag.toLowerCase() }, selectedTags),
                   onChange: () => {
                     Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
-                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                    const invertSelection = _.flow(
+                      _.find(({ label }) => _.includes(label, sections[1].labels)),
+                      _.concat([{ label: tag, lowerTag: tag.toLowerCase() }]),
+                      _.compact,
+                      _.xorBy('lowerTag')
+                    )(selectedTags)
+                    setSelectedTags(invertSelection)
                   }
                 }, [tag])
               ])
@@ -238,8 +245,8 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
-  const acknowledged = Utils.useStore(acknowledgmentStore) || {}
-  const { user: { id } } = Utils.useStore(authStore)
+  const acknowledged = useStore(acknowledgmentStore) || {}
+  const { user: { id } } = useStore(authStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
@@ -266,7 +273,9 @@ const Browser = () => {
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
-      searchType: 'Datasets'
+      searchType: 'Datasets',
+      titleField: 'dct:title',
+      descField: 'dct:description'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {

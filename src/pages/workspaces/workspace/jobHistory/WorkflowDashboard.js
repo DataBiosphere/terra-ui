@@ -7,14 +7,15 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
-  submittedIcon, successIcon, unknownIcon, workflowDetailsBreadcrumbSubtitle
+  collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submittedIcon, successIcon, unknownIcon,
+  workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
@@ -52,7 +53,7 @@ const statusCell = ({ calls }) => {
 }
 
 const WorkflowDashboard = _.flow(
-  Utils.forwardRefWithName('WorkflowDashboard'),
+  forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
@@ -67,14 +68,14 @@ const WorkflowDashboard = _.flow(
   const [fetchTime, setFetchTime] = useState()
   const [showLog, setShowLog] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const stateRefreshTimer = useRef()
 
   /*
    * Data fetchers
    */
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
         'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result',
