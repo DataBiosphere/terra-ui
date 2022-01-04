@@ -168,7 +168,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
         'Preview data'
       ])
     ]),
-    h(ButtonPrimary, {
+    snapshot.access === snapshotAccessTypes.GRANTED && h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {

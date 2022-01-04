@@ -189,6 +189,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         return {
           checkbox: h(Checkbox, {
             'aria-label': datum['dct:title'],
+            disabled: datum.access !== snapshotAccessTypes.GRANTED,
             checked: _.includes(datum, selectedData),
             onChange: () => toggleSelectedData(datum)
           }),
