@@ -134,11 +134,11 @@ const DataBrowserPreview = ({ id }) => {
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']]),
           h(Link, {
-            onClick: () => { Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id }) },
+            href: Nav.getLink('library-details', { id: Nav.getCurrentRoute().params.id }),
             'aria-label': 'Close',
             style: { marginTop: '1rem' }
           }, [
-            icon('times', { size: 30, style: { color: colors.primary('light') } })
+            icon('times', { size: 30 })
           ])
         ]),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
