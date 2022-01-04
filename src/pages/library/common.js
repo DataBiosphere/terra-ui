@@ -48,6 +48,44 @@ const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.fromPairs
 )(sidebarSections)
 
+const numLabelsToRender = 5
+// Takes the top n labels and appends any labels selected by the user to the list
+// When filter options are hidden (e.g. long lists), this will keep user selected items in view
+const computeLabels = (allLabels, selectedLabels) => _.flow(
+  _.intersection(allLabels),
+  _.concat(_.take(numLabelsToRender, allLabels)),
+  _.uniq
+)(selectedLabels)
+
+const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
+  // State
+  const [showAll, setShowAll] = useState(false)
+  const lowerSelectedTags = _.map('lowerTag', selectedTags)
+  const labelsToDisplay = showAll ? labels : computeLabels(labels, _.map('label', selectedTags))
+
+  //Render
+  return h(Fragment, [
+    _.map(label => {
+      const lowerTag = _.toLower(label)
+      return h(Clickable, {
+        key: label,
+        style: {
+          display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+          paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+        },
+        onClick: () => onTagFilter({ lowerTag, label })
+      }, [
+        div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
+        div({ style: styles.pill(_.includes(lowerTag, lowerSelectedTags)) }, [_.size(listDataByTag[lowerTag])])
+      ])
+    }, labelsToDisplay),
+    _.size(labels) > numLabelsToRender && h(Link, {
+      style: { display: 'block', textAlign: 'center' },
+      onClick: () => setShowAll(!showAll)
+    }, [`See ${showAll ? 'less' : 'more'}`])
+  ])
+}
+
 const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
   const unionSectionWorkspacesCount = ({ tags }) => _.flow(
     _.flatMap(tag => listDataByTag[tag]),
@@ -74,20 +112,9 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
-        }, [_.map(label => {
-          const tag = _.toLower(label)
-          return h(Clickable, {
-            key: label,
-            style: {
-              display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
-              paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
-            },
-            onClick: () => onTagFilter(tag)
-          }, [
-            div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
-          ])
-        }, labels)])
+        }, [
+          h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+        ])
     }, sections)
   ])
 }
@@ -163,8 +190,8 @@ export const SearchAndFilterComponent = ({
         return listData
       } else {
         return _.reduce(
-          (acc, tag) => _.intersection(listDataByTag[tag], acc),
-          listDataByTag[_.head(selectedTags)],
+          (acc, { lowerTag }) => _.intersection(listDataByTag[lowerTag], acc),
+          listDataByTag[_.head(selectedTags).lowerTag],
           _.tail(selectedTags)
         )
       }
@@ -273,9 +300,9 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: tag => {
-            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag })
-            setSelectedTags(_.xor([tag]))
+          onTagFilter: ({ lowerTag, label }) => {
+            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
+            setSelectedTags(_.xorBy('lowerTag', [{ lowerTag, label }]))
           },
           sections,
           selectedSections,
