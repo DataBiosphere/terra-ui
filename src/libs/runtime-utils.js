@@ -261,11 +261,20 @@ export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
 }
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
-export const getDiskAppType = disk => {
-  const saturnApp = disk.labels.saturnApplication
+export const getDiskAppType = ({ labels: { saturnApplication } }) => {
   // Do a case-insensitive match as disks have been created with both "galaxy" and "GALAXY".
-  const appType = _.find(type => type.toLowerCase() === saturnApp?.toLowerCase(), allAppTypes)
-  return appType
+  return _.find(type => type.toLowerCase() === saturnApplication?.toLowerCase(), allAppTypes)
+}
+
+export const haveTooManyDisks = (appType, filteredDisks, disksByProject) => {
+  if (appType === tools.galaxy.appType) {
+    // Galaxy can have multiple disks per project as long as they are in different workspaces
+    const galaxyDisksOnly = _.filter(disk => appType === tools.galaxy.appType && disk.status !== 'DELETING', filteredDisks)
+    const galaxyDiskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, galaxyDisksOnly)
+    return _.uniq(galaxyDiskWorkspaces).length !== galaxyDiskWorkspaces.length
+  } else {
+    return _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting', disksByProject).length > 1
+  }
 }
 
 export const appIsSettingUp = app => {
@@ -282,7 +291,8 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) && disk.labels.saturnWorkspaceName === workspaceName),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) &&
+        disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)

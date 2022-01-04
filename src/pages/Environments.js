@@ -19,7 +19,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost
+  getPersistentDiskCostMonthly, getRegionFromZone, haveTooManyDisks, isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -422,16 +422,10 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
-              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
-                disksByProject[googleProject]).length > 1
               const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
-              // Galaxy can have multiple disks per project as long as they are in different workspaces
-              const galaxyDisksOnly = _.filter(disk => getDiskAppType(disk) === tools.galaxy.appType && disk.status !== 'DELETING', filteredDisks)
-              const galaxyDiskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, galaxyDisksOnly)
-              const multipleGalaxyDisks = _.uniq(galaxyDiskWorkspaces).length !== galaxyDiskWorkspaces.length
               return h(Fragment, [
                 googleProject,
-                diskStatus !== 'Deleting' && (appType === tools.galaxy.appType ? multipleGalaxyDisks : multipleDisksOfType) &&
+                diskStatus !== 'Deleting' && haveTooManyDisks(appType, filteredDisks, disksByProject[googleProject]) &&
                 h(TooltipTrigger, {
                   content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
