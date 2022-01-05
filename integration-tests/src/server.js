@@ -9,6 +9,7 @@ const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workf
 const { testRegisterUser } = require('../tests/register-user')
 const { testRunNotebook } = require('../tests/run-notebook')
 const { testRunWorkflow } = require('../tests/run-workflow')
+const { testRequestAccess } = require('../tests/request-access')
 const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
@@ -81,6 +82,7 @@ _.forEach(registerTestEndpoint, [
   testRegisterUser,
   testRunNotebook,
   testRunWorkflow,
+  testRequestAccess,
   testRunWorkflowOnSnapshot
 ])
 console.info('Ready')
