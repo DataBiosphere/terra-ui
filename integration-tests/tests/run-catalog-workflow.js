@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, waitForNoSpinners, findText } = require('../utils/integration-utils')
+const { signIntoTerra, click, clickable, clickTableCell, waitForNoSpinners, findText } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
@@ -20,6 +20,21 @@ const testCatalogFlowFn = _.flow(
   await dismissNotifications(page)
 
   await click(page, clickable({ textContains: 'browse & explore' }))
+  await waitForNoSpinners(page)
+  await click(page, clickable({ textContains: 'Granted' }))
+  await clickTableCell(page, "dataset list", 2, 2)
+  await waitForNoSpinners(page)
+  await click(page, clickable({ textContains: 'Link to a workspace' }))
+  await waitForNoSpinners(page)
+
+  await click(page, clickable({ textContains: 'Start with an existing workspace' }))
+  await findText(page, 'Select a workspace')
+  await click(page, clickable({ textContains: 'Back' }))
+
+  await click(page, clickable({ textContains: 'Start with a new workspace' }))
+  await findText(page, 'Create a New Workspace')
+  await click(page, clickable({ textContains: 'Cancel' }))
+
 })
 
 const testCatalog = {

@@ -40,6 +40,12 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
+const clickTableCell = async (page, tableName, row, column, options) => {
+  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`;
+  const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
+  return (await page.waitForXPath(xpath, options)).click();
+}
+
 const click = async (page, xpath, options) => {
   return (await page.waitForXPath(xpath, options)).click()
 }
@@ -202,6 +208,7 @@ const withPageLogging = fn => options => {
 module.exports = {
   click,
   clickable,
+  clickTableCell,
   dismissNotifications,
   findIframe,
   findInGrid,
