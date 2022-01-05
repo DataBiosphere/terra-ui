@@ -1,12 +1,14 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, clickTableCell, waitForNoSpinners, findText } = require('../utils/integration-utils')
+const { signIntoTerra, click, clickable, clickTableCell, findText, input, waitForNoSpinners } = require('../utils/integration-utils')
+const { withWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
 
 const testCatalogFlowFn = _.flow(
+  withWorkspace,
   withUserToken
-)(async ({ testUrl, page, token }) => {
+)(async ({ testUrl, page, token, workspaceName }) => {
   await page.goto(testUrl)
   await waitForNoSpinners(page)
 
@@ -27,14 +29,14 @@ const testCatalogFlowFn = _.flow(
   await click(page, clickable({ textContains: 'Link to a workspace' }))
   await waitForNoSpinners(page)
 
-  await click(page, clickable({ textContains: 'Start with an existing workspace' }))
-  await findText(page, 'Select a workspace')
-  await click(page, clickable({ textContains: 'Back' }))
-
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
   await findText(page, 'Create a New Workspace')
   await click(page, clickable({ textContains: 'Cancel' }))
 
+  await click(page, clickable({ textContains: 'Start with an existing workspace' }))
+  await click(page, input({ labelContains: 'Select a workspace' }))
+  await click(page, `//*[@role="combobox"][contains(normalize-space(.), "${workspaceName}")]`)
+  await click(page, clickable({ textContains: 'Import' }))
 })
 
 const testCatalog = {
