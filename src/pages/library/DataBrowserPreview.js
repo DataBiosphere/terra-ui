@@ -14,7 +14,8 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
@@ -47,6 +48,8 @@ const DataBrowserPreview = ({ id }) => {
   const { dataCatalog } = useDataCatalog()
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const snapshot = dataMap[id]
+
+  // Snapshot access granted
   const [tables, setTables] = useState()
   const [selectedTable, setSelectedTable] = useState('')
   const [previewData, setPreviewData] = useState()
@@ -119,9 +122,11 @@ const DataBrowserPreview = ({ id }) => {
 
   useOnMount(() => {
     const loadData = async () => {
-      const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
-      setTables(metadata.tables)
-      selectTable({ value: metadata.tables[0].name })
+      if (snapshot?.access === snapshotAccessTypes.GRANTED) {
+        const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
+        setTables(metadata.tables)
+        selectTable({ value: metadata.tables[0].name })
+      }
     }
     loadData()
   })
@@ -141,7 +146,17 @@ const DataBrowserPreview = ({ id }) => {
             icon('times', { size: 30 })
           ])
         ]),
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
+        snapshot.access === snapshotAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
+          h(RequestDatasetAccessModal, {
+            datasets: [snapshot],
+            onDismiss: () => {
+              Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
+            }
+          })
+        ]),
+        snapshot.access === snapshotAccessTypes.GRANTED && div({
+          style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 }
+        }, [
           h(Select, {
             'aria-label': 'data type',
             styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350 }) },

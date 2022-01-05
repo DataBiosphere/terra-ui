@@ -6,6 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
@@ -15,7 +16,7 @@ import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -187,11 +188,14 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         const { project, dataType, access } = datum
 
         return {
-          checkbox: h(Checkbox, {
+          checkbox: h(TooltipTrigger, {
+            ...(datum.access !== snapshotAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
+          }, [h(Checkbox, {
             'aria-label': datum['dct:title'],
+            disabled: datum.access !== snapshotAccessTypes.GRANTED,
             checked: _.includes(datum, selectedData),
             onChange: () => toggleSelectedData(datum)
-          }),
+          })]),
           name: h(Link,
             {
               onClick: () => {
