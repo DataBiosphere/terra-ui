@@ -11,7 +11,6 @@ import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
@@ -49,9 +48,6 @@ const DataBrowserPreview = ({ id }) => {
   const { dataCatalog } = useDataCatalog()
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const snapshot = dataMap[id]
-
-  // Variables when you do not have access
-  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
 
   // Snapshot access granted
   const [tables, setTables] = useState()
@@ -148,16 +144,10 @@ const DataBrowserPreview = ({ id }) => {
           div([
             div(['This dataset is controlled access only.']),
             div(['To see more data, please request access.']),
-            h(ButtonPrimary, {
-              style: { fontSize: 16, textTransform: 'none', marginTop: 15 },
-              onClick: () => {
-                setShowRequestAccessModal(true)
-                Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                  snapshotId: _.get('dct:identifier', snapshot),
-                  snapshotName: snapshot['dct:title']
-                })
-              }
-            }, ['Request access'])
+            h(RequestDatasetAccessModal, {
+              datasets: [snapshot],
+              onDismiss: () => {}
+            })
           ])
         ]),
         snapshot.access === snapshotAccessTypes.GRANTED && div({
@@ -203,10 +193,6 @@ const DataBrowserPreview = ({ id }) => {
           src: viewJSON.cellData
         })
       ])
-    }),
-    showRequestAccessModal && h(RequestDatasetAccessModal, {
-      datasets: [snapshot],
-      onDismiss: () => setShowRequestAccessModal(false)
     })
   ])
 }

@@ -45,6 +45,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
       width: '40rem',
       showButtons: false,
       showX: true,
+      xIcon: 'times',
       onDismiss
     }, [
       div([

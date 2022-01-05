@@ -27,7 +27,7 @@ const styles = {
   }
 }
 
-const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, danger = false, ...props }) => {
+const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, xIcon = 'times-circle', showButtons = true, okButton, danger = false, ...props }) => {
   const titleId = useUniqueId()
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
@@ -65,7 +65,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
         'aria-label': 'Close modal',
         style: { alignSelf: 'flex-start', marginLeft: 'auto' },
         onClick: onDismiss
-      }, [icon('times-circle')])
+      }, [icon(xIcon)])
     ]),
     children,
     showButtons && div({ style: styles.buttonRow }, [
