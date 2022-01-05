@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, h1, h2 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, Select } from 'src/components/common'
+import { ButtonPrimary, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -11,9 +11,9 @@ import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { commonStyles } from 'src/pages/library/common'
 import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -136,19 +136,23 @@ const DataBrowserPreview = ({ id }) => {
     !snapshot ?
       centeredSpinner() :
       div({ style: { padding: 20, display: 'flex', flexDirection: 'column', height: '100%' } }, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
-          h1([snapshot['dct:title']])
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
+          h1([snapshot['dct:title']]),
+          h(Link, {
+            href: Nav.getLink('library-details', { id: Nav.getCurrentRoute().params.id }),
+            'aria-label': 'Close',
+            style: { marginTop: '1rem' }
+          }, [
+            icon('times', { size: 30 })
+          ])
         ]),
         snapshot.access === snapshotAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
-          icon('lock', { size: 27, style: { marginRight: 20, marginTop: 5, color: commonStyles.access.controlled } }),
-          div([
-            div(['This dataset is controlled access only.']),
-            div(['To see more data, please request access.']),
-            h(RequestDatasetAccessModal, {
-              datasets: [snapshot],
-              onDismiss: () => {}
-            })
-          ])
+          h(RequestDatasetAccessModal, {
+            datasets: [snapshot],
+            onDismiss: () => {
+              Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
+            }
+          })
         ]),
         snapshot.access === snapshotAccessTypes.GRANTED && div({
           style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 }
