@@ -269,7 +269,7 @@ export const getDiskAppType = ({ labels: { saturnApplication } }) => {
 export const haveTooManyDisks = (appType, filteredDisks, disksByProject) => {
   if (appType === tools.galaxy.appType) {
     // Galaxy can have multiple disks per project as long as they are in different workspaces
-    const galaxyDisksOnly = _.filter(disk => appType === tools.galaxy.appType && disk.status !== 'DELETING', filteredDisks)
+    const galaxyDisksOnly = _.filter(disk => disk.status !== 'DELETING', filteredDisks)
     const galaxyDiskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, galaxyDisksOnly)
     return _.uniq(galaxyDiskWorkspaces).length !== galaxyDiskWorkspaces.length
   } else {
