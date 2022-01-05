@@ -2,7 +2,7 @@
   "agoraUrlRoot": "https://agora.dsde-staging.broadinstitute.org",
   "bardRoot": "https://terra-bard-staging.appspot.com",
   "bondUrlRoot": "https://broad-bond-staging.appspot.com",
-  "calhounUrlRoot": "https://terra-calhoun-staging.appspot.com",
+  "calhounUrlRoot": "https://calhoun.dsde-staging.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-staging.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

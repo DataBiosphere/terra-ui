@@ -122,7 +122,7 @@ const DataBrowserPreview = ({ id }) => {
 
   useOnMount(() => {
     const loadData = async () => {
-      if (snapshot && snapshot.access === snapshotAccessTypes.GRANTED) {
+      if (snapshot?.access === snapshotAccessTypes.GRANTED) {
         const metadata = await Ajax(signal).DataRepo.getPreviewMetadata(id)
         setTables(metadata.tables)
         selectTable({ value: metadata.tables[0].name })
@@ -135,7 +135,7 @@ const DataBrowserPreview = ({ id }) => {
     libraryTopMatter(activeTab),
     !snapshot ?
       centeredSpinner() :
-      div({ style: { padding: 20, display: 'flex', flexDirection: 'column', height: '100%' } }, [
+      div({ style: { padding: 20 } }, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']]),
           h(Link, {

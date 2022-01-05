@@ -13,7 +13,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -155,7 +155,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     ]),
     h(ButtonOutline, {
       disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
-      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : 'You do not have access to this dataset. Please request access to unlock this feature.',
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -172,7 +172,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     ]),
     h(ButtonPrimary, {
       disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
-      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : 'You do not have access to this dataset. Please request access to unlock this feature.',
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {

@@ -16,6 +16,10 @@ export const snapshotAccessTypes = {
   PENDING: 'Pending'
 }
 
+export const uiMessaging = {
+  controlledFeature_tooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
+}
+
 export const snapshotReleasePolicies = {
   'TerraCore:NoRestriction': { label: 'NRES', desc: 'No restrictions' },
   'TerraCore:GeneralResearchUse': { label: 'GRU', desc: 'General research use' },
