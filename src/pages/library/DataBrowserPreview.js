@@ -2,15 +2,16 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, h1, h2 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, Select } from 'src/components/common'
+import { ButtonPrimary, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, spinner } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
@@ -130,8 +131,15 @@ const DataBrowserPreview = ({ id }) => {
     !snapshot ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
-          h1([snapshot['dct:title']])
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
+          h1([snapshot['dct:title']]),
+          h(Link, {
+            href: Nav.getLink('library-details', { id: Nav.getCurrentRoute().params.id }),
+            'aria-label': 'Close',
+            style: { marginTop: '1rem' }
+          }, [
+            icon('times', { size: 30 })
+          ])
         ]),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 30 } }, [
           h(Select, {
