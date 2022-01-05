@@ -153,7 +153,9 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
         ])
       ])
     ]),
-    snapshot.access === snapshotAccessTypes.GRANTED && h(ButtonOutline, {
+    h(ButtonOutline, {
+      disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : 'You do not have access to this dataset. Please request access to unlock this feature.',
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -168,7 +170,9 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
         'Preview data'
       ])
     ]),
-    snapshot.access === snapshotAccessTypes.GRANTED && h(ButtonPrimary, {
+    h(ButtonPrimary, {
+      disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : 'You do not have access to this dataset. Please request access to unlock this feature.',
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
