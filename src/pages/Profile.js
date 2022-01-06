@@ -15,6 +15,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import allProviders from 'src/libs/providers'
@@ -245,6 +246,22 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
+const RASLinker = () => {
+  const signal = useCancellation()
+  const [accountInfo, setAccountInfo] = useState()
+
+  useOnMount(() => {
+    const loadAccount = async () => {
+      setAccountInfo(await Ajax(signal).User.externalAccount('ras').get())
+    }
+
+    loadAccount()
+  })
+
+  return JSON.stringify(accountInfo) || 'loading'
+}
+
+
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const Profile = ({ queryParams = {} }) => {
@@ -413,6 +430,7 @@ const Profile = ({ queryParams = {} }) => {
           ]),
           div({ style: { margin: '0 2rem 0' } }, [
             sectionTitle('External Identities'),
+            !getConfig().isProd && h(RASLinker),
             h(NihLink, { nihToken: queryParams['nih-username-token'] }),
             _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
           ])

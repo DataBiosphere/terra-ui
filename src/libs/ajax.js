@@ -142,6 +142,7 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -352,6 +353,25 @@ const User = signal => ({
 
   unlinkFenceAccount: provider => {
     return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+  },
+
+  externalAccount: provider => {
+    const root = `api/oidc/v1/${provider}`
+
+    return {
+      get: async () => {
+        try {
+          const res = await fetchEcm(root, _.merge(authOpts(), { signal }))
+          return res.json()
+        } catch (error) {
+          if (error.status === 404) {
+            return {}
+          } else {
+            throw error
+          }
+        }
+      }
+    }
   },
 
   isUserRegistered: async email => {
