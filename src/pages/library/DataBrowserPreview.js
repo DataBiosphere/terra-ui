@@ -2,18 +2,20 @@ import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h, h1, h2 } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { ButtonPrimary, GroupedSelect } from 'src/components/common'
+import { ButtonPrimary, GroupedSelect, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { ColumnSelector, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
@@ -119,7 +121,7 @@ const DataBrowserPreview = ({ id }) => {
       setPreviewRows(newPreviewRows)
     })
 
-    if (!!tables && !!selectedTable) {
+    if (!!tables && !!selectedTable && snapshot?.access === snapshotAccessTypes.GRANTED) {
       loadTable()
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -131,8 +133,25 @@ const DataBrowserPreview = ({ id }) => {
     catalogLoading || !tables ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
-        h1({ style: { lineHeight: '26px' } }, [snapshot['dct:title']]),
-        h(GroupedSelect, {
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
+          h1([snapshot['dct:title']]),
+          h(Link, {
+            href: Nav.getLink('library-details', { id: Nav.getCurrentRoute().params.id }),
+            'aria-label': 'Close',
+            style: { marginTop: '1rem' }
+          }, [
+            icon('times', { size: 30 })
+          ])
+        ]),
+        snapshot.access === snapshotAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
+          h(RequestDatasetAccessModal, {
+            datasets: [snapshot],
+            onDismiss: () => {
+              Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
+            }
+          })
+        ]),
+        snapshot.access === snapshotAccessTypes.GRANTED && h(GroupedSelect, {
           'aria-label': 'data type',
           styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
           isSearchable: true,
