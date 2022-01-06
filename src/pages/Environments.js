@@ -208,7 +208,7 @@ const Environments = () => {
     return h(Fragment, [
       app.googleProject,
       inactive && h(TooltipTrigger, {
-        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
+        content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
@@ -219,7 +219,7 @@ const Environments = () => {
     return h(Fragment, [
       runtime.googleProject,
       inactive && h(TooltipTrigger, {
-        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
+        content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
@@ -324,7 +324,7 @@ const Environments = () => {
         columns: [
           {
             field: 'project',
-            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
+            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Workspace namespace']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ? renderBillingProjectApp(cloudEnvironment) : renderBillingProjectRuntime(cloudEnvironment)
@@ -418,7 +418,7 @@ const Environments = () => {
         columns: [
           {
             field: 'project',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Workspace namespace']),
             cellRenderer: ({ rowIndex }) => {
               const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
@@ -429,7 +429,7 @@ const Environments = () => {
                 googleProject,
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
-                  content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
+                  content: `This workspace has multiple active persistent disks${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
             }
