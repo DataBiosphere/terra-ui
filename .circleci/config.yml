@@ -80,6 +80,7 @@ commands:
           condition: << parameters.pr >>
           steps:
             - run:
+                name: Check for PR number
                 command: |
                   if [[ -z "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" ]]; then
                     echo "No PR number, not deploying"
