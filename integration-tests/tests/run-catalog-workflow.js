@@ -37,6 +37,8 @@ const testCatalogFlowFn = _.flow(
   await click(page, input({ labelContains: 'Select a workspace' }))
   await click(page, `//*[@role="combobox"][contains(normalize-space(.), "${workspaceName}")]`)
   await click(page, clickable({ textContains: 'Import' }))
+  await waitForNoSpinners(page)
+  await page.url().includes(workspaceName)
 })
 
 const testCatalog = {
