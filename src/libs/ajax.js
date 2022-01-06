@@ -374,6 +374,18 @@ const User = signal => ({
     }
   },
 
+  // TODO: make this work for RAS to get the auth url, which then can be used to link an account
+  getProviderAuthUrl: async (provider, redirectUri) => {
+    const queryParams = {
+      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+      redirect_uri: redirectUri,
+      state: btoa(JSON.stringify({ provider }))
+    }
+    // TODO: this is giving either 404 or 401 depending
+    const res = await fetchEcm(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal, method: 'GET' }))
+    return res.json()
+  },
+
   isUserRegistered: async email => {
     try {
       await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))

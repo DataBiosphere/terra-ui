@@ -246,19 +246,29 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
-const RASLinker = () => {
+const RASLinker = (redirectUrl) => {
   const signal = useCancellation()
   const [accountInfo, setAccountInfo] = useState()
+  const [authUrl, setAuthUrl] = useState()
+  const provider = 'ras'
+
+  //get auth url maybe???
+  const getAndSaveAuthUrl = async () => {
+    setAuthUrl(await Ajax(signal).User.getProviderAuthUrl(provider, redirectUrl))
+    console.log(authUrl)
+  }
+  getAndSaveAuthUrl()
 
   useOnMount(() => {
     const loadAccount = async () => {
       setAccountInfo(await Ajax(signal).User.externalAccount('ras').get())
     }
-
     loadAccount()
   })
-
-  return JSON.stringify(accountInfo) || 'loading'
+  return [
+    h(ButtonPrimary, { style: { margin: '1rem' }, onClick: () => getAndSaveAuthUrl() }, ['Link your RAS account']),
+    JSON.stringify(accountInfo) || 'loading'
+  ]
 }
 
 
