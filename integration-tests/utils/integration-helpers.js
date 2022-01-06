@@ -57,6 +57,21 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
   }, billingProject, workspaceName, testEntity)
 }
 
+const checkBucketAccess = async (page, billingProject, workspaceName, accessLevel = 'OWNER') => {
+  const details = await page.evaluate((billingProject, workspaceName) => {
+    return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
+  }, billingProject, workspaceName)
+  const bucketName = details.workspace.bucketName
+  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
+  // Try polling for workspace bucket access to be available.
+  await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
+    try {
+      await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketAccess(billingProject, bucketName, accessLevel)
+      return true
+    } catch (e) { return false }
+  }, { timeout: 60000, polling: 10000 }, billingProject, workspaceName, bucketName, accessLevel)
+}
+
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
@@ -131,7 +146,9 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
         if (e instanceof Response) {
           const text = await e.text()
           const headers = e.headers
-          const headerAuthToken = headers.get('authorization') ? `...${clipToken(headers.get('authorization').toString())}` : headers.get('authorization')
+          const headerAuthToken = headers.get('authorization') ?
+            `...${clipToken(headers.get('authorization').toString())}` :
+            headers.get('authorization')
           throw new Error(`Failed to Ajax: ${e.url} authorization header was: ${headerAuthToken} and status of: ${e.status}: ${text}`)
         } else {
           throw e
@@ -153,6 +170,7 @@ const withRegisteredUser = test => withUser(async options => {
 })
 
 module.exports = {
+  checkBucketAccess,
   createEntityInWorkspace,
   defaultTimeout,
   withWorkspace,
