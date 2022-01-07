@@ -387,7 +387,7 @@ const User = signal => ({
         return res.json()
       },
 
-      unlink: async () => {
+      unlink: () => {
         return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
       }
     }
