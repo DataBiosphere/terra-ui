@@ -23,10 +23,7 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
     timeout
   ) : test(
     name,
-    () => {
-      console.log(`Skipping ${name} as it is not configured to run on the ${environment} environment`)
-      new Promise(resolve => resolve())
-    },
+    () => console.log(`Skipping ${name} as it is not configured to run on the ${environment} environment`),
     timeout)
 }
 
