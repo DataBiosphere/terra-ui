@@ -224,29 +224,24 @@ const Environments = () => {
     ])
   }
 
-  const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject } = app
-    const disk = _.find({ name: diskName }, disks)
+  const getDetailsPopup = (envName, googleProject, disk) => {
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
-        div([strong(['Name: ']), appName]),
-        div([span({ style: { fontWeight: '600' } }, ['Google Project: ']), googleProject]),
-        disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
+        div([strong(['Name: ']), envName]),
+        div([strong(['Google Project: ']), googleProject]),
+        disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
     }, [h(Link, ['view'])])
   }
-
+  const renderDetailsApp = (app, disks) => {
+    const { appName, diskName, googleProject } = app
+    const disk = _.find({ name: diskName }, disks)
+    return getDetailsPopup(appName, googleProject, disk)
+  }
   const renderDetailsRuntime = (runtime, disks) => {
-    console.log('runtime: ', runtime)
     const { runtimeName, googleProject, runtimeConfig: { persistentDiskId } } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
-    return h(PopupTrigger, {
-      content: div({ style: { padding: '0.5rem' } }, [
-        div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
-        div([span({ style: { fontWeight: '600' } }, ['Google Project: ']), googleProject]),
-        disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
-      ])
-    }, [h(Link, ['view'])])
+    return getDetailsPopup(runtimeName, googleProject, disk)
   }
 
   const renderDeleteButton = (resourceType, resource) => {
@@ -327,10 +322,9 @@ const Environments = () => {
         columns: [
           {
             field: 'workspace-namespace',
-            headerRenderer: () => h(Sortable, { sort, field: 'workspace-namespace', onSort: setSort }, ['Workspace namespace']),
+            headerRenderer: () => h(Sortable, { sort, field: 'workspace-namespace', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              console.log('cloudEnvironment: ', cloudEnvironment)
               return cloudEnvironment.labels.saturnWorkspaceNamespace
             }
           },
@@ -430,7 +424,7 @@ const Environments = () => {
         columns: [
           {
             field: 'workspace-namespace',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-namespace', onSort: setDiskSort }, ['Workspace namespace']),
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-namespace', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
               return h(Fragment, [saturnWorkspaceNamespace])
