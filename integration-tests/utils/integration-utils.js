@@ -115,6 +115,24 @@ const findElement = (page, xpath, options) => {
   return page.waitForXPath(xpath, options)
 }
 
+const heading = ({ level, text, textContains, isDescendant = false }) => {
+  const tag = `h${level}`
+  const aria = `*[@role="heading" and aria-level=${level}]`
+  const textExpression = `${isDescendant ? '//*' : ''}[normalize-space(.)="${text}"]`
+  const textContainsExpression = `${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+
+  // These are a bit verbose because the ancestor portion of the expression does not handle 'or' cases
+  if (text) {
+    return `(//${tag}${textExpression}//ancestor-or-self::${tag} | //${aria}${textExpression}//ancestor-or-self::${aria})`
+  } else if (textContains) {
+    return `(//${tag}${textContainsExpression}//ancestor-or-self::${tag} | //${aria}${textContainsExpression}//ancestor-or-self::${aria})`
+  }
+}
+
+const findHeading = (page, xpath, options) => {
+  return page.waitForXPath(xpath, options)
+}
+
 const svgText = ({ textContains }) => {
   return `//*[name()="text" and contains(normalize-space(.),"${textContains}")]`
 }
@@ -129,11 +147,6 @@ const elementInDataTableRow = (entityName, text) => {
 
 const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text))
-}
-
-const getNumRowsInTable = async (page, tableName) => {
-  const numRows = await page.$x(`//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]`)
-  return _.size(numRows)
 }
 
 const openError = async page => {
@@ -211,10 +224,11 @@ module.exports = {
   findIframe,
   findInGrid,
   findElement,
+  findHeading,
   findText,
   fillIn,
   fillInReplace,
-  getNumRowsInTable,
+  heading,
   input,
   select,
   svgText,

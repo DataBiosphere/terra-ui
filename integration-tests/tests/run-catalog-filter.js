@@ -1,8 +1,13 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, waitForNoSpinners, input, findText, fillIn, getNumRowsInTable } = require('../utils/integration-utils')
+const { signIntoTerra, click, clickable, waitForNoSpinners, input, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
+
+const getDatasetCount = async page => {
+  const datasetHeading = await findHeading(page, heading({ level: 2, text: 'Datasets', isDescendant: true }))
+  return datasetHeading.evaluate(node => _.toNumber(_.split('Datasets', node.textContent)[1]))
+}
 
 const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const searchText = 'stem cell'
@@ -21,23 +26,22 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   await dismissNotifications(page)
 
   await click(page, clickable({ textContains: 'browse & explore' }))
+  await waitForNoSpinners(page)
 
-  const totalRows = await getNumRowsInTable(page, 'dataset list')
+  const totalDatasetSize = await getDatasetCount(page)
 
   await fillIn(page, input({ labelContains: 'Search Datasets' }), searchText)
   await page.keyboard.press('Enter')
+  const datasetSizeAfterSearch = await getDatasetCount(page, 'dataset list')
 
-  const numRowsAfterSearch = await getNumRowsInTable(page, 'dataset list')
-
-
-  if (numRowsAfterSearch === totalRows) {
+  if (datasetSizeAfterSearch >= totalDatasetSize) {
     throw new Error(`Rows not filtered after searching for '${searchText}'`)
   }
 
   await click(page, clickable({ text: filterItem, isDescendant: true }))
-  const numRowsAfterFilter = await getNumRowsInTable(page, 'dataset list')
+  const datasetSizeAfterFilter = await getDatasetCount(page, 'dataset list')
 
-  if (numRowsAfterFilter === numRowsAfterSearch) {
+  if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {
     throw new Error(`Filter for '${filterItem}' was not applied to the table`)
   }
 })
@@ -45,7 +49,8 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
 const testCatalogFilter = {
   name: 'run-catalog-filter',
   fn: testCatalogFilterFn,
-  timeout: 2 * 60 * 1000
+  timeout: 2 * 60 * 1000,
+  targetEnvironments: ['local', 'dev']
 }
 
 module.exports = { testCatalogFilter }

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
+import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -25,7 +25,7 @@ const styles = {
     fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' //, fontSize: '16px'
   },
   nav: {
     navSection: {
@@ -36,6 +36,7 @@ const styles = {
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
+    fontSize: '0.875rem',
     backgroundColor: 'white',
     ...(highlight ? { color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary() } : {})
   })
@@ -237,7 +238,7 @@ export const SearchAndFilterComponent = ({
         alignItems: 'baseline'
       }
     }, [
-      div({ style: styles.sidebarRow }, [
+      h2({ style: { ...styles.sidebarRow, margin: 0 } }, [
         div({ style: styles.header }, [searchType]),
         div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
       ]),
