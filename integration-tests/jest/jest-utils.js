@@ -16,12 +16,18 @@ const {
 
 const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
 
-const registerTest = ({ fn, name, timeout = defaultTimeout }) => {
-  return test(
+const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments = _.keys(envs) }) => {
+  return _.includes(environment, targetEnvironments) ? test(
     name,
     () => withPageLogging(withScreenshot(name)(fn))({ context, page, ...targetEnvParams }),
     timeout
-  )
+  ) : test(
+    name,
+    () => {
+      console.log(`Skipping ${name} as it is not configured to run on the ${environment} environment`)
+      new Promise(resolve => resolve())
+    },
+    timeout)
 }
 
 module.exports = { registerTest }
