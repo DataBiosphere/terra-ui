@@ -202,32 +202,29 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
-  const renderWorkspaceForApps = app => {
-    const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
+  const getBillingProjectCell = (billingProject, shouldWarn) => {
+    return h(Fragment, [
+      billingProject,
+      shouldWarn && h(TooltipTrigger, {
+        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
+      }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+    ])
+  }
+  const renderBillingProjectForApps = app => {
+    const shouldWarn = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
       getCurrentApp(app.appType)(appsByProject[app.googleProject]) !== app
-    return h(Fragment, [
-      app.labels.saturnWorkspaceName,
-      inactive && h(TooltipTrigger, {
-        content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
-      }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-    ])
+    return getBillingProjectCell(app.labels.saturnWorkspaceNamespace, shouldWarn)
   }
-
-  const renderWorkspaceForRuntimes = runtime => {
-    const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
+  const renderBillingProjectForRuntimes = runtime => {
+    const shouldWarn = !_.includes(runtime.status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
-    return h(Fragment, [
-      runtime.labels.saturnWorkspaceName,
-      inactive && h(TooltipTrigger, {
-        content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
-      }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-    ])
+    return getBillingProjectCell(runtime.labels.saturnWorkspaceNamespace, shouldWarn)
   }
 
-  const getDetailsPopup = (envName, googleProject, disk) => {
+  const getDetailsPopup = (cloudEnvName, googleProject, disk) => {
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
-        div([strong(['Name: ']), envName]),
+        div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Google Project: ']), googleProject]),
         disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -321,19 +318,19 @@ const Environments = () => {
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
-            field: 'workspace-namespace',
-            headerRenderer: () => h(Sortable, { sort, field: 'workspace-namespace', onSort: setSort }, ['Billing project']),
+            field: 'billing-project',
+            headerRenderer: () => h(Sortable, { sort, field: 'billing-project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.labels.saturnWorkspaceNamespace
+              return !!cloudEnvironment.appName ? renderBillingProjectForApps(cloudEnvironment) : renderBillingProjectForRuntimes(cloudEnvironment)
             }
           },
           {
-            field: 'workspace-name',
-            headerRenderer: () => h(Sortable, { sort, field: 'workspace-name', onSort: setSort }, ['Workspace']),
+            field: 'workspace',
+            headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return !!cloudEnvironment.appName ? renderWorkspaceForApps(cloudEnvironment) : renderWorkspaceForRuntimes(cloudEnvironment)
+              return cloudEnvironment.labels.saturnWorkspaceName
             }
           },
           {
