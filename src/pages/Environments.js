@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -130,8 +130,8 @@ const Environments = () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
-      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication' }),
-      Ajax(signal).Apps.listWithoutProject({ creator })
+      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
     setRuntimes(newRuntimes)
     setDisks(newDisks)
@@ -202,22 +202,22 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
-  const renderBillingProjectApp = app => {
+  const renderWorkspaceForApps = app => {
     const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
       getCurrentApp(app.appType)(appsByProject[app.googleProject]) !== app
     return h(Fragment, [
-      app.googleProject,
+      app.labels.saturnWorkspaceName,
       inactive && h(TooltipTrigger, {
         content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
 
-  const renderBillingProjectRuntime = runtime => {
+  const renderWorkspaceForRuntimes = runtime => {
     const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
     return h(Fragment, [
-      runtime.googleProject,
+      runtime.labels.saturnWorkspaceName,
       inactive && h(TooltipTrigger, {
         content: 'This workspace has multiple active cloud environments. Only the most recently created one will be used.'
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -225,22 +225,25 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName } = app
+    const { appName, diskName, googleProject } = app
     const disk = _.find({ name: diskName }, disks)
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
-        div([span({ style: { fontWeight: '600' } }, ['Name: ']), appName]),
+        div([strong(['Name: ']), appName]),
+        div([span({ style: { fontWeight: '600' } }, ['Google Project: ']), googleProject]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
     }, [h(Link, ['view'])])
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
-    const { runtimeName, runtimeConfig: { persistentDiskId } } = runtime
+    console.log('runtime: ', runtime)
+    const { runtimeName, googleProject, runtimeConfig: { persistentDiskId } } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
         div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
+        div([span({ style: { fontWeight: '600' } }, ['Google Project: ']), googleProject]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
     }, [h(Link, ['view'])])
@@ -323,11 +326,20 @@ const Environments = () => {
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
-            field: 'project',
-            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Workspace namespace']),
+            field: 'workspace-namespace',
+            headerRenderer: () => h(Sortable, { sort, field: 'workspace-namespace', onSort: setSort }, ['Workspace namespace']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ? renderBillingProjectApp(cloudEnvironment) : renderBillingProjectRuntime(cloudEnvironment)
+              console.log('cloudEnvironment: ', cloudEnvironment)
+              return cloudEnvironment.labels.saturnWorkspaceNamespace
+            }
+          },
+          {
+            field: 'workspace-name',
+            headerRenderer: () => h(Sortable, { sort, field: 'workspace-name', onSort: setSort }, ['Workspace']),
+            cellRenderer: ({ rowIndex }) => {
+              const cloudEnvironment = filteredCloudEnvironments[rowIndex]
+              return !!cloudEnvironment.appName ? renderWorkspaceForApps(cloudEnvironment) : renderWorkspaceForRuntimes(cloudEnvironment)
             }
           },
           {
@@ -417,16 +429,24 @@ const Environments = () => {
         rowCount: filteredDisks.length,
         columns: [
           {
-            field: 'project',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Workspace namespace']),
+            field: 'workspace-namespace',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-namespace', onSort: setDiskSort }, ['Workspace namespace']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
+              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
+              return h(Fragment, [saturnWorkspaceNamespace])
+            }
+          },
+          {
+            field: 'workspace-name',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-name', onSort: setDiskSort }, ['Workspace']),
+            cellRenderer: ({ rowIndex }) => {
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
               const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               return h(Fragment, [
-                googleProject,
+                saturnWorkspaceName,
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
                   content: `This workspace has multiple active persistent disks${forAppText}. Only the latest one will be used.`
