@@ -246,29 +246,75 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
-const RASLinker = (redirectUrl) => {
+const PassportLinker = ({ queryParams, provider }) => {
   const signal = useCancellation()
   const [accountInfo, setAccountInfo] = useState()
   const [authUrl, setAuthUrl] = useState()
-  const provider = 'ras'
-
-  //get auth url maybe???
-  const getAndSaveAuthUrl = async () => {
-    setAuthUrl(await Ajax(signal).User.getProviderAuthUrl(provider, redirectUrl))
-    console.log(authUrl)
-  }
-  getAndSaveAuthUrl()
 
   useOnMount(() => {
-    const loadAccount = async () => {
-      setAccountInfo(await Ajax(signal).User.externalAccount('ras').get())
+    const loadAuthUrl = withErrorReporting(`Error loading ${provider} account link URL`, async () => {
+      setAuthUrl(await Ajax(signal).User.externalAccount(provider).getAuthUrl())
+    })
+    const loadAccount = withErrorReporting(`Error loading ${provider} account`, async () => {
+      setAccountInfo(await Ajax(signal).User.externalAccount(provider).get())
+    })
+    const linkAccount = withErrorReporting(`Error linking ${provider} account`, async code => {
+      setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+    })
+
+    loadAuthUrl()
+
+    if (Nav.getCurrentRoute().name === 'ecm-callback') {
+      const { code, state } = queryParams
+      const { provider: linkProvider } = JSON.parse(atob(state))
+
+      if (provider === linkProvider) {
+        window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
+
+        linkAccount(code)
+        return
+      }
     }
+
     loadAccount()
   })
-  return [
-    h(ButtonPrimary, { style: { margin: '1rem' }, onClick: () => getAndSaveAuthUrl() }, ['Link your RAS account']),
-    JSON.stringify(accountInfo) || 'loading'
-  ]
+
+  const unlinkAccount = withErrorReporting(`Error unlinking ${provider} account`, async () => {
+    setAccountInfo(undefined)
+    await Ajax().User.externalAccount(provider).unlink()
+    setAccountInfo(null)
+  })
+
+  return div({ style: styles.idLink.container }, [
+    div({ style: styles.idLink.linkContentTop(false) }, [
+      h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [provider]),
+      Utils.cond(
+        [accountInfo === undefined, () => h(SpacedSpinner, ['Loading account status...'])],
+        [accountInfo === null, () => {
+          return div([h(ButtonPrimary, { style: { margin: '1rem' }, href: authUrl, ...Utils.newTabLinkProps }, ['Link your RAS account'])])
+        }],
+        () => {
+          const { externalUserId, expirationTimestamp } = accountInfo
+
+          return h(Fragment, [
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+              externalUserId
+            ]),
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(expirationTimestamp)])
+            ]),
+            div([
+              h(Link, { 'aria-label': `Renew your ${provider} link`, href: authUrl }, ['Renew']),
+              span({ style: { margin: '0 .25rem 0' } }, [' | ']),
+              h(Link, { 'aria-label': `Unlink from ${provider}`, onClick: unlinkAccount }, ['Unlink'])
+            ])
+          ])
+        }
+      )
+    ])
+  ])
 }
 
 
@@ -440,7 +486,7 @@ const Profile = ({ queryParams = {} }) => {
           ]),
           div({ style: { margin: '0 2rem 0' } }, [
             sectionTitle('External Identities'),
-            !getConfig().isProd && h(RASLinker),
+            !getConfig().isProd && h(PassportLinker, { queryParams, provider: 'ras' }),
             h(NihLink, { nihToken: queryParams['nih-username-token'] }),
             _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
           ])

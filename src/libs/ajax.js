@@ -357,6 +357,11 @@ const User = signal => ({
 
   externalAccount: provider => {
     const root = `api/oidc/v1/${provider}`
+    const queryParams = {
+      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
+      state: btoa(JSON.stringify({ provider }))
+    }
 
     return {
       get: async () => {
@@ -365,25 +370,27 @@ const User = signal => ({
           return res.json()
         } catch (error) {
           if (error.status === 404) {
-            return {}
+            return null
           } else {
             throw error
           }
         }
+      },
+
+      getAuthUrl: async () => {
+        const res = await fetchEcm(`${root}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      linkAccount: async oauthcode => {
+        const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
+        return res.json()
+      },
+
+      unlink: async () => {
+        return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
       }
     }
-  },
-
-  // TODO: make this work for RAS to get the auth url, which then can be used to link an account
-  getProviderAuthUrl: async (provider, redirectUri) => {
-    const queryParams = {
-      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
-      redirect_uri: redirectUri,
-      state: btoa(JSON.stringify({ provider }))
-    }
-    // TODO: this is giving either 404 or 401 depending
-    const res = await fetchEcm(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal, method: 'GET' }))
-    return res.json()
   },
 
   isUserRegistered: async email => {
