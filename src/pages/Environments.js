@@ -420,29 +420,29 @@ const Environments = () => {
         rowCount: filteredDisks.length,
         columns: [
           {
-            field: 'workspace-namespace',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-namespace', onSort: setDiskSort }, ['Billing project']),
+            field: 'billing-project',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'billing-project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
-              return h(Fragment, [saturnWorkspaceNamespace])
-            }
-          },
-          {
-            field: 'workspace-name',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace-name', onSort: setDiskSort }, ['Workspace']),
-            cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject, labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
-              const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
+              const forAppText = !!appType ? `for ${_.capitalize(appType)}` : ''
               return h(Fragment, [
-                saturnWorkspaceName,
+                saturnWorkspaceNamespace,
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
-                  content: `This workspace has multiple active persistent disks${forAppText}. Only the latest one will be used.`
+                  content: `This billing project has multiple active persistent disks ${forAppText}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
+            }
+          },
+          {
+            field: 'workspace',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
+            cellRenderer: ({ rowIndex }) => {
+              const { labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
+              return h(Fragment, [saturnWorkspaceName])
             }
           },
           {
