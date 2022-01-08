@@ -449,18 +449,15 @@ const Environments = () => {
             size: { basis: 90, grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
-              const { name, id } = filteredDisks[rowIndex]
+              const { name, id, googleProject } = filteredDisks[rowIndex]
               const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               const app = _.find({ diskName: name }, apps)
               return h(PopupTrigger, {
                 content: div({ style: { padding: '0.5rem' } }, [
-                  div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
-                  runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
-                  app && div([
-                    span({ style: { fontWeight: 600 } },
-                      [`${_.capitalize(app.appType)}: `]
-                    ), app.appName
-                  ])
+                  div([strong(['Name: ']), name]),
+                  div([strong(['Google Project: ']), googleProject]),
+                  runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
+                  app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])
               }, [h(Link, ['view'])])
             }
