@@ -373,7 +373,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -381,7 +381,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
@@ -492,7 +492,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 240, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -500,7 +500,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 240, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
