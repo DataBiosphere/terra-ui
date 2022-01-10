@@ -32,14 +32,14 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
 
   await fillIn(page, input({ labelContains: 'Search Datasets' }), searchText)
   await page.keyboard.press('Enter')
-  const datasetSizeAfterSearch = await getDatasetCount(page, 'dataset list')
+  const datasetSizeAfterSearch = await getDatasetCount(page)
 
   if (datasetSizeAfterSearch >= totalDatasetSize) {
     throw new Error(`Rows not filtered after searching for '${searchText}'`)
   }
 
   await click(page, clickable({ text: filterItem, isDescendant: true }))
-  const datasetSizeAfterFilter = await getDatasetCount(page, 'dataset list')
+  const datasetSizeAfterFilter = await getDatasetCount(page)
 
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {
     throw new Error(`Filter for '${filterItem}' was not applied to the table`)
