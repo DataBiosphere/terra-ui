@@ -284,7 +284,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
       Utils.cond(
         [accountInfo === undefined, () => h(SpacedSpinner, ['Loading account status...'])],
         [accountInfo === null, () => {
-          return div([h(ButtonPrimary, { style: { margin: '1rem' }, href: authUrl, ...Utils.newTabLinkProps }, [`Link your ${prettyName} account`])])
+          return div([h(ButtonPrimary, { href: authUrl, ...Utils.newTabLinkProps }, [`Link your ${prettyName} account`])])
         }],
         () => {
           const { externalUserId, expirationTimestamp } = accountInfo
