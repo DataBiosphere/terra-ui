@@ -142,6 +142,7 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -352,6 +353,44 @@ const User = signal => ({
 
   unlinkFenceAccount: provider => {
     return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+  },
+
+  externalAccount: provider => {
+    const root = `api/oidc/v1/${provider}`
+    const queryParams = {
+      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
+      state: btoa(JSON.stringify({ provider }))
+    }
+
+    return {
+      get: async () => {
+        try {
+          const res = await fetchEcm(root, _.merge(authOpts(), { signal }))
+          return res.json()
+        } catch (error) {
+          if (error.status === 404) {
+            return null
+          } else {
+            throw error
+          }
+        }
+      },
+
+      getAuthUrl: async () => {
+        const res = await fetchEcm(`${root}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      linkAccount: async oauthcode => {
+        const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
+        return res.json()
+      },
+
+      unlink: () => {
+        return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      }
+    }
   },
 
   isUserRegistered: async email => {

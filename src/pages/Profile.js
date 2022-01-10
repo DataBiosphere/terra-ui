@@ -15,6 +15,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import allProviders from 'src/libs/providers'
@@ -245,9 +246,74 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
+const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyName }) => {
+  const signal = useCancellation()
+  const [accountInfo, setAccountInfo] = useState()
+  const [authUrl, setAuthUrl] = useState()
+
+  useOnMount(() => {
+    const loadAuthUrl = withErrorReporting(`Error loading ${prettyName} account link URL`, async () => {
+      setAuthUrl(await Ajax(signal).User.externalAccount(provider).getAuthUrl())
+    })
+    const loadAccount = withErrorReporting(`Error loading ${prettyName} account`, async () => {
+      setAccountInfo(await Ajax(signal).User.externalAccount(provider).get())
+    })
+    const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async code => {
+      setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+    })
+
+    loadAuthUrl()
+
+    if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(state)).provider === provider) {
+      window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
+      linkAccount(code)
+    } else {
+      loadAccount()
+    }
+  })
+
+  const unlinkAccount = withErrorReporting(`Error unlinking ${prettyName} account`, async () => {
+    setAccountInfo(undefined)
+    await Ajax().User.externalAccount(provider).unlink()
+    setAccountInfo(null)
+  })
+
+  return div({ style: styles.idLink.container }, [
+    div({ style: styles.idLink.linkContentTop(false) }, [
+      h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [prettyName]),
+      Utils.cond(
+        [accountInfo === undefined, () => h(SpacedSpinner, ['Loading account status...'])],
+        [accountInfo === null, () => {
+          return div([h(ButtonPrimary, { href: authUrl, ...Utils.newTabLinkProps }, [`Link your ${prettyName} account`])])
+        }],
+        () => {
+          const { externalUserId, expirationTimestamp } = accountInfo
+
+          return h(Fragment, [
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+              externalUserId
+            ]),
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(expirationTimestamp)])
+            ]),
+            div([
+              h(Link, { 'aria-label': `Renew your ${prettyName} link`, href: authUrl }, ['Renew']),
+              span({ style: { margin: '0 0.25rem 0' } }, [' | ']),
+              h(Link, { 'aria-label': `Unlink from ${prettyName}`, onClick: unlinkAccount }, ['Unlink'])
+            ])
+          ])
+        }
+      )
+    ])
+  ])
+}
+
+
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
-const Profile = ({ queryParams = {} }) => {
+const Profile = ({ queryParams }) => {
   // State
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
@@ -413,8 +479,9 @@ const Profile = ({ queryParams = {} }) => {
           ]),
           div({ style: { margin: '0 2rem 0' } }, [
             sectionTitle('External Identities'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
+            h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
+            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
+            !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
           ])
         ])
       ])
