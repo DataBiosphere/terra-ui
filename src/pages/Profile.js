@@ -264,19 +264,12 @@ const PassportLinker = ({ queryParams, provider, prettyName }) => {
 
     loadAuthUrl()
 
-    if (Nav.getCurrentRoute().name === 'ecm-callback') {
-      const { code, state } = queryParams
-      const { provider: linkProvider } = JSON.parse(atob(state))
-
-      if (provider === linkProvider) {
-        window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
-
-        linkAccount(code)
-        return
-      }
+    if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(queryParams.state)).provider === provider) {
+      window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
+      linkAccount(queryParams.code)
+    } else {
+      loadAccount()
     }
-
-    loadAccount()
   })
 
   const unlinkAccount = withErrorReporting(`Error unlinking ${prettyName} account`, async () => {
