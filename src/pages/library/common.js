@@ -25,7 +25,7 @@ const styles = {
     fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' //, fontSize: '16px'
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
   },
   nav: {
     navSection: {
