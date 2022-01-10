@@ -488,7 +488,7 @@ const Profile = ({ queryParams = {} }) => {
             sectionTitle('External Identities'),
             h(NihLink, { nihToken: queryParams['nih-username-token'] }),
             _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
-            (!getConfig().isProd || getConfig().showRasLink) && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
+            !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
           ])
         ])
       ])
