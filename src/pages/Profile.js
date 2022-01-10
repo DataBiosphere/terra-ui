@@ -246,7 +246,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
-const PassportLinker = ({ queryParams, provider, prettyName }) => {
+const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyName }) => {
   const signal = useCancellation()
   const [accountInfo, setAccountInfo] = useState()
   const [authUrl, setAuthUrl] = useState()
@@ -264,9 +264,9 @@ const PassportLinker = ({ queryParams, provider, prettyName }) => {
 
     loadAuthUrl()
 
-    if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(queryParams.state)).provider === provider) {
+    if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(state)).provider === provider) {
       window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
-      linkAccount(queryParams.code)
+      linkAccount(code)
     } else {
       loadAccount()
     }
@@ -313,7 +313,7 @@ const PassportLinker = ({ queryParams, provider, prettyName }) => {
 
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
-const Profile = ({ queryParams = {} }) => {
+const Profile = ({ queryParams }) => {
   // State
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
@@ -479,7 +479,7 @@ const Profile = ({ queryParams = {} }) => {
           ]),
           div({ style: { margin: '0 2rem 0' } }, [
             sectionTitle('External Identities'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+            h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
             _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
             !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
           ])
