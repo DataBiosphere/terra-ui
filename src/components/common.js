@@ -558,7 +558,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
       await clipboard.writeText(text)
       await Utils.delay(1500)
     })
-  }, [children, icon(copied ? 'check' : 'copy-to-clipboard')])
+  }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }
 
 export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
