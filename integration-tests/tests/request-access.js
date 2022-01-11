@@ -29,7 +29,7 @@ const testRequestAccessFn = _.flow(
   await click(page, clickable({ textContains: 'Close modal' }))
 
   // Request access from the dataset details page
-  await clickTableCell(page, "dataset list", 2, 2)
+  await clickTableCell(page, 'dataset list', 2, 2)
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Request Access' }))
   await findText(page, 'Request Access')
@@ -39,7 +39,8 @@ const testRequestAccessFn = _.flow(
 const testRequestAccess = {
   name: 'request-access',
   fn: testRequestAccessFn,
-  timeout: 2 * 60 * 1000
+  timeout: 2 * 60 * 1000,  // 2 min timeout
+  targetEnvironments: ['local', 'dev']
 }
 
 module.exports = { testRequestAccess }
