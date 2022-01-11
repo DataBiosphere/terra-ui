@@ -473,7 +473,9 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
   const initialType = Utils.cond(
     [initialIsReference, () => 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
+    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
+    // eslint-disable-next-line eqeqeq
+    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   )
@@ -491,7 +493,9 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   ))
   const [editType, setEditType] = useState(() => Utils.cond(
     [initialIsReference, () => 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
+    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
+    // eslint-disable-next-line eqeqeq
+    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   ))

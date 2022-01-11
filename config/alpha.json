@@ -6,6 +6,7 @@
   "dataRepoUrlRoot": "https://data.alpha.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-alpha.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "externalCredsUrlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
   "firecloudUrlRoot": "https://firecloud.dsde-alpha.broadinstitute.org",
   "googleClientId": "589295024008-4i4s4l2cfjgckmc6moqs23te2tn6qkke.apps.googleusercontent.com",
