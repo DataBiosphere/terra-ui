@@ -69,7 +69,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
       await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketAccess(billingProject, bucketName, accessLevel)
       return true
     } catch (e) { return false }
-  }, { timeout: 60000, polling: 10000 }, billingProject, workspaceName, bucketName, accessLevel)
+  }, { timeout: 60000, polling: 500 }, billingProject, workspaceName, bucketName, accessLevel)
 }
 
 const makeUser = async () => {
