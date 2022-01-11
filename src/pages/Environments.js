@@ -230,11 +230,13 @@ const Environments = () => {
       ])
     }, [h(Link, ['view'])])
   }
+
   const renderDetailsApp = (app, disks) => {
     const { appName, diskName, googleProject } = app
     const disk = _.find({ name: diskName }, disks)
     return getDetailsPopup(appName, googleProject, disk)
   }
+
   const renderDetailsRuntime = (runtime, disks) => {
     const { runtimeName, googleProject, runtimeConfig: { persistentDiskId } } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
