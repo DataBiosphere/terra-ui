@@ -5,7 +5,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay,
+  UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -249,6 +250,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyName }) => {
   const signal = useCancellation()
   const [accountInfo, setAccountInfo] = useState()
+  const [passport, setPassport] = useState()
   const [authUrl, setAuthUrl] = useState()
 
   useOnMount(() => {
@@ -258,8 +260,12 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
     const loadAccount = withErrorReporting(`Error loading ${prettyName} account`, async () => {
       setAccountInfo(await Ajax(signal).User.externalAccount(provider).get())
     })
+    const loadPassport = withErrorReporting(`Error loading ${prettyName} passport`, async () => {
+      setPassport(await Ajax(signal).User.externalAccount(provider).getPassport())
+    })
     const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async code => {
       setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+      loadPassport()
     })
 
     loadAuthUrl()
@@ -269,6 +275,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
       linkAccount(code)
     } else {
       loadAccount()
+      loadPassport()
     }
   })
 
@@ -302,7 +309,8 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
               h(Link, { 'aria-label': `Renew your ${prettyName} link`, href: authUrl }, ['Renew']),
               span({ style: { margin: '0 0.25rem 0' } }, [' | ']),
               h(Link, { 'aria-label': `Unlink from ${prettyName}`, onClick: unlinkAccount }, ['Unlink'])
-            ])
+            ]),
+            !!passport && div([h(ClipboardButton, { text: passport }, ['Copy passport to clipboard'])])
           ])
         }
       )

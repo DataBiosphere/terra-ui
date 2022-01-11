@@ -382,6 +382,11 @@ const User = signal => ({
         return res.json()
       },
 
+      getPassport: async () => {
+        const res = await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
       linkAccount: async oauthcode => {
         const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
         return res.json()
