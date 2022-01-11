@@ -192,7 +192,7 @@ const logPageConsoleMessages = page => {
 
 const logPageAjaxResponses = page => {
   const handle = res => {
-    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} \n\x1b[1m${res.url()}\x1b[0m`) // url is bold
   }
   page.on('response', handle)
   return () => page.off('response', handle)
