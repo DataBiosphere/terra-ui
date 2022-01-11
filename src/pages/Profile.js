@@ -310,7 +310,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
               span({ style: { margin: '0 0.25rem 0' } }, [' | ']),
               h(Link, { 'aria-label': `Unlink from ${prettyName}`, onClick: unlinkAccount }, ['Unlink'])
             ]),
-            !!passport && div([h(ClipboardButton, { text: passport, tooltip: '' }, [span({ style: { marginRight: '0.5rem' } }, ['Copy passport to clipboard'])])])
+            !!passport && div([h(ClipboardButton, { text: passport }, [span({ style: { marginRight: '0.5rem' } }, ['Copy passport to clipboard'])])])
           ])
         }
       )
