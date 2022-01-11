@@ -117,7 +117,7 @@ const findElement = (page, xpath, options) => {
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
   const tag = `h${level}`
-  const aria = `*[@role="heading" and aria-level=${level}]`
+  const aria = `*[@role="heading" and @aria-level=${level}]`
   const textExpression = `${isDescendant ? '//*' : ''}[normalize-space(.)="${text}"]`
   const textContainsExpression = `${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
 
