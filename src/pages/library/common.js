@@ -25,7 +25,7 @@ const styles = {
     fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: 0
   },
   nav: {
     navSection: {
@@ -238,7 +238,7 @@ export const SearchAndFilterComponent = ({
         alignItems: 'baseline'
       }
     }, [
-      h2({ style: { ...styles.sidebarRow, margin: 0 } }, [
+      h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
         div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
       ]),
