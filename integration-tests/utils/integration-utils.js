@@ -1,3 +1,4 @@
+const rawConsole = require('console')
 const _ = require('lodash/fp')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
@@ -41,9 +42,9 @@ const clickable = ({ text, textContains }) => {
 }
 
 const clickTableCell = async (page, tableName, row, column, options) => {
-  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`;
+  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
-  return (await page.waitForXPath(xpath, options)).click();
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
 const click = async (page, xpath, options) => {
@@ -170,7 +171,7 @@ const maybeSaveScreenshot = async (page, testName) => {
       }
     }
   } catch (e) {
-    console.error('Failed to capture screenshot', e)
+    rawConsole.error('Failed to capture screenshot', e)
   }
 }
 
@@ -191,7 +192,7 @@ const logPageConsoleMessages = page => {
 
 const logPageAjaxResponses = page => {
   const handle = res => {
-    console.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
   }
   page.on('response', handle)
   return () => page.off('response', handle)
