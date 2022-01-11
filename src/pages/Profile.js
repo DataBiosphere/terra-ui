@@ -265,6 +265,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
     })
     const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async code => {
       setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+      loadPassport()
     })
 
     loadAuthUrl()
