@@ -31,8 +31,8 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const clickable = ({ text, textContains }) => {
-  const base = '(//a | //button | //*[@role="button"] | //*[@role="link"])'
+const clickable = ({ text, textContains, isDescendant = false }) => {
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"])${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
@@ -118,6 +118,24 @@ const signIntoTerra = async (page, token) => {
 }
 
 const findElement = (page, xpath, options) => {
+  return page.waitForXPath(xpath, options)
+}
+
+const heading = ({ level, text, textContains, isDescendant = false }) => {
+  const tag = `h${level}`
+  const aria = `*[@role="heading" and @aria-level=${level}]`
+  const textExpression = `${isDescendant ? '//*' : ''}[normalize-space(.)="${text}"]`
+  const textContainsExpression = `${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+
+  // These are a bit verbose because the ancestor portion of the expression does not handle 'or' cases
+  if (text) {
+    return `(//${tag}${textExpression}//ancestor-or-self::${tag} | //${aria}${textExpression}//ancestor-or-self::${aria})`
+  } else if (textContains) {
+    return `(//${tag}${textContainsExpression}//ancestor-or-self::${tag} | //${aria}${textContainsExpression}//ancestor-or-self::${aria})`
+  }
+}
+
+const findHeading = (page, xpath, options) => {
   return page.waitForXPath(xpath, options)
 }
 
@@ -213,9 +231,11 @@ module.exports = {
   findIframe,
   findInGrid,
   findElement,
+  findHeading,
   findText,
   fillIn,
   fillInReplace,
+  heading,
   input,
   select,
   svgText,
