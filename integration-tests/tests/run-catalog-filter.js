@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, waitForNoSpinners, input, findInDataTableRow, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
+const { signIntoTerra, click, clickable, waitForNoSpinners, input, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
