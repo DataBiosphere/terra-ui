@@ -168,9 +168,10 @@ const DataBrowserPreview = ({ id }) => {
         }),
         loading ?
           centeredSpinner() :
-          div({ style: { position: 'relative', padding: '0 15px' }, 'aria-live': 'polite' }, [
+          div({ style: { position: 'relative', padding: '0 15px' } }, [
+            div({ role: 'status', 'aria-label': `${selectedTable} Preview Data Table ${loading ? 'loading' : 'loaded'}` }, []),
             h(SimpleTable, {
-              'aria-label': `${_.startCase(selectedTable)} Preview Data`,
+              // 'aria-label': `${_.startCase(selectedTable)} Preview Data`,
               columns: _.filter('visible', columns),
               cellStyle: { border: 'none', paddingRight: 15, wordBreak: 'break-all', display: 'flex', alignItems: 'center' },
               ...styles.table,

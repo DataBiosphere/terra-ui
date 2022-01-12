@@ -240,7 +240,7 @@ export const SearchAndFilterComponent = ({
     }, [
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
-        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
+        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData)} Results found` }, [_.size(filteredData)])
       ]),
       div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
@@ -311,7 +311,7 @@ export const SearchAndFilterComponent = ({
           listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
         })
       ]),
-      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' }, 'aria-live': 'polite' }, [
+      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
         _.isEmpty(filteredData) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
           children({ filteredList: filteredData, sections, selectedTags, setSelectedTags })
       ])
