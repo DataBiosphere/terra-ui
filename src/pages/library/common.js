@@ -311,7 +311,7 @@ export const SearchAndFilterComponent = ({
           listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
         })
       ]),
-      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
+      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' }, 'aria-live': 'polite' }, [
         _.isEmpty(filteredData) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
           children({ filteredList: filteredData, sections, selectedTags, setSelectedTags })
       ])

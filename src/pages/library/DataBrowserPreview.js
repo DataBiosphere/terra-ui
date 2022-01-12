@@ -168,7 +168,7 @@ const DataBrowserPreview = ({ id }) => {
         }),
         loading ?
           centeredSpinner() :
-          div({ style: { position: 'relative', padding: '0 15px' } }, [
+          div({ style: { position: 'relative', padding: '0 15px' }, 'aria-live': 'polite' }, [
             h(SimpleTable, {
               'aria-label': `${_.startCase(selectedTable)} Preview Data`,
               columns: _.filter('visible', columns),
