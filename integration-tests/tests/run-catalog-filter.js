@@ -50,14 +50,14 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   // Testing filter by multiple same facets
   await click(page, clickable({ text: 'Controlled', isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
-  if (datasetSizeAfterFilter2 === 0) {
+  if (datasetSizeAfterFilter2 !== 0) {
     throw new Error(`Filters for 'Controlled' should be ANDed between the same facet category in the table'`)
   }
 
   // Testing clearing filters
   await click(page, clickable({ textContains: 'clear' }))
   const datasetSizeAfterClear = await getDatasetCount(page)
-  if (datasetSizeAfterClear !== totalDatasetSize) {
+  if (datasetSizeAfterClear !== datasetSizeAfterSearch) {
     throw new Error(`Clear Filter was not applied to the table, ${datasetSizeAfterClear}, ${totalDatasetSize}`)
   }
 })
