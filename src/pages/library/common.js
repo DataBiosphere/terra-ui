@@ -68,10 +68,10 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
   return h(Fragment, [
     _.map(label => {
       const lowerTag = _.toLower(label)
-      const checked = _.includes(lowerTag, lowerSelectedTags)
+      const isChecked = _.includes(lowerTag, lowerSelectedTags)
       const numMatches = _.size(listDataByTag[lowerTag])
       return h(Clickable, {
-        'aria-checked': checked,
+        'aria-checked': isChecked,
         role: 'checkbox',
         key: label,
         style: {
@@ -81,7 +81,7 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
         onClick: () => onTagFilter({ lowerTag, label })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-        div({ 'aria-label': `${numMatches} matches`, style: styles.pill(checked) }, [numMatches])
+        div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
       ])
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {
