@@ -32,7 +32,7 @@ const findInGrid = (page, textContains, options) => {
 }
 
 const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"])${isDescendant ? '//*' : ''}`
+  const base = `(//a | //button | //input[@type="checkbox"] | //*[@role="button" or @role="checkbox"] | //*[@role="link"])${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
@@ -41,9 +41,9 @@ const clickable = ({ text, textContains, isDescendant = false }) => {
 }
 
 const clickTableCell = async (page, tableName, row, column, options) => {
-  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`;
+  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
-  return (await page.waitForXPath(xpath, options)).click();
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
 const click = async (page, xpath, options) => {
