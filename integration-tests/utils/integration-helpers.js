@@ -1,3 +1,4 @@
+const rawConsole = require('console')
 const _ = require('lodash/fp')
 
 const { signIntoTerra } = require('./integration-utils')
@@ -28,7 +29,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  console.info(`created workspace: ${workspaceName}`)
+  rawConsole.info(`created workspace: ${workspaceName}`)
 
   return workspaceName
 })
@@ -38,7 +39,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
   }, workspaceName, billingProject)
 
-  console.info(`deleted workspace: ${workspaceName}`)
+  rawConsole.info(`deleted workspace: ${workspaceName}`)
 })
 
 const withWorkspace = test => async options => {
@@ -75,7 +76,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
-  console.info(`created a user with token: ...${clipToken(token)}`)
+  rawConsole.info(`created a user with token: ...${clipToken(token)}`)
   return { email, token }
 }
 
@@ -94,7 +95,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  console.info(`added user to: ${billingProject}`)
+  rawConsole.info(`added user to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.listProjectUsers(billingProject)
@@ -102,7 +103,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+  rawConsole.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -110,7 +111,7 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  console.info(`removed user from: ${billingProject}`)
+  rawConsole.info(`removed user from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {
@@ -132,12 +133,12 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
       return runtime.runtimeName
     }, _.remove({ status: 'Deleting' }, runtimes)))
   }, billingProject, email)
-  console.info(`deleted runtimes: ${deletedRuntimes}`)
+  rawConsole.info(`deleted runtimes: ${deletedRuntimes}`)
 })
 
 const registerUser = withSignedInPage(async ({ page, token }) => {
   // TODO: make this available to all puppeteer browser windows
-  console.info(`token of user in registerUser(): ...${clipToken(token)}`)
+  rawConsole.info(`token of user in registerUser(): ...${clipToken(token)}`)
   await page.evaluate(() => {
     window.catchErrorResponse = async fn => {
       try {
