@@ -7,9 +7,9 @@ const { dismissNotifications } = require('../utils/integration-utils')
 const datasetName = "Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics";
 
 const assertEquals = (expected, actual) => {
-    if (expected !== actual) {
-      throw new Error("Expected value " + expected + " does not equal actual " + actual)
-    }
+  if (expected !== actual) {
+    throw new Error("Expected value " + expected + " does not equal actual " + actual)
+  }
 }
 
 const testPreviewDatasetFn = _.flow(
