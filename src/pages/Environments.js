@@ -168,6 +168,7 @@ const Environments = () => {
 
   const filteredRuntimes = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -176,6 +177,7 @@ const Environments = () => {
 
   const filteredDisks = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -185,6 +187,7 @@ const Environments = () => {
 
   const filteredApps = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -323,8 +326,8 @@ const Environments = () => {
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
-            field: 'billing-project',
-            headerRenderer: () => h(Sortable, { sort, field: 'billing-project', onSort: setSort }, ['Billing project']),
+            field: 'project',
+            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.labels.saturnWorkspaceNamespace
@@ -425,8 +428,8 @@ const Environments = () => {
         rowCount: filteredDisks.length,
         columns: [
           {
-            field: 'billing-project',
-            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'billing-project', onSort: setDiskSort }, ['Billing project']),
+            field: 'project',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
               return saturnWorkspaceNamespace
