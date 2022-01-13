@@ -16,6 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
@@ -207,24 +208,25 @@ const Environments = () => {
 
   const forAppText = appType => !!appType ? `for ${_.capitalize(appType)}` : ''
 
-  const getWorkspaceCell = (workspace, appType, shouldWarn) => {
+  const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return h(Fragment, [
-      workspace,
+      h(Link, { onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name }) }, [name]),
       shouldWarn && h(TooltipTrigger, {
         content: `This workspace has multiple active cloud environments ${forAppText(appType)}. Only the latest one will be used.`
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
   const renderWorkspaceForApps = app => {
-    const { status, appType, googleProject, labels: { saturnWorkspaceName } } = app
+    const { status, appType, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
     const shouldWarn = !_.includes(status, ['DELETING', 'ERROR', 'PREDELETING']) &&
       getCurrentApp(appType)(appsByProject[googleProject]) !== app
-    return getWorkspaceCell(saturnWorkspaceName, appType, shouldWarn)
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, shouldWarn)
   }
   const renderWorkspaceForRuntimes = runtime => {
-    const shouldWarn = !_.includes(runtime.status, ['Deleting', 'Error']) &&
-      getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
-    return getWorkspaceCell(runtime.labels.saturnWorkspaceName, shouldWarn)
+    const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
+    const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
+      getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, shouldWarn)
   }
 
   const getDetailsPopup = (cloudEnvName, googleProject, disk) => {
