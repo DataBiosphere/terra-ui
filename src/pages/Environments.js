@@ -441,17 +441,17 @@ const Environments = () => {
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject, labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
-              return h(Fragment, [
-                saturnWorkspaceName,
+              return h(Fragment,
+                [h(Link, { onClick: () => Nav.goToPath('workspace-notebooks', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
+                  [saturnWorkspaceName]),
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
-                h(TooltipTrigger, {
-                  content: `This workspace has multiple active persistent disks ${forAppText(appType)}. Only the latest one will be used.`
-                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-              ])
+                  h(TooltipTrigger, {
+                    content: `This workspace has multiple active persistent disks ${forAppText(appType)}. Only the latest one will be used.`
+                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])])
             }
           },
           {
