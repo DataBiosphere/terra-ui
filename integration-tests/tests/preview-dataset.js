@@ -4,7 +4,7 @@ const { withWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
-const datasetName = "Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics";
+const datasetName = 'Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics'
 
 const assertEquals = (expected, actual) => {
   if (expected !== actual) {
