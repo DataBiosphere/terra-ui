@@ -169,7 +169,7 @@ const DataBrowserPreview = ({ id }) => {
         loading ?
           centeredSpinner() :
           div({ style: { position: 'relative', padding: '0 15px' } }, [
-            div({ role: 'status', 'aria-label': `${selectedTable} Preview Data Table ${loading ? 'loading' : 'loaded'}` }, []),
+            div({ role: 'status', 'aria-label': `${selectedTable} Preview Data Table loaded` }, []),
             h(SimpleTable, {
               'aria-label': `${_.startCase(selectedTable)} Preview Data`,
               columns: _.filter('visible', columns),
