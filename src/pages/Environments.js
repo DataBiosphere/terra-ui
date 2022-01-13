@@ -202,23 +202,26 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
-  const getBillingProjectCell = (billingProject, shouldWarn) => {
+  const forAppText = appType => !!appType ? `for ${_.capitalize(appType)}` : ''
+
+  const getWorkspaceCell = (workspace, appType, shouldWarn) => {
     return h(Fragment, [
-      billingProject,
+      workspace,
       shouldWarn && h(TooltipTrigger, {
-        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
+        content: `This workspace has multiple active cloud environments ${forAppText(appType)}. Only the latest one will be used.`
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
-  const renderBillingProjectForApps = app => {
-    const shouldWarn = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(app.appType)(appsByProject[app.googleProject]) !== app
-    return getBillingProjectCell(app.labels.saturnWorkspaceNamespace, shouldWarn)
+  const renderWorkspaceForApps = app => {
+    const { status, appType, googleProject, labels: { saturnWorkspaceName } } = app
+    const shouldWarn = !_.includes(status, ['DELETING', 'ERROR', 'PREDELETING']) &&
+      getCurrentApp(appType)(appsByProject[googleProject]) !== app
+    return getWorkspaceCell(saturnWorkspaceName, appType, shouldWarn)
   }
-  const renderBillingProjectForRuntimes = runtime => {
+  const renderWorkspaceForRuntimes = runtime => {
     const shouldWarn = !_.includes(runtime.status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
-    return getBillingProjectCell(runtime.labels.saturnWorkspaceNamespace, shouldWarn)
+    return getWorkspaceCell(runtime.labels.saturnWorkspaceName, shouldWarn)
   }
 
   const getDetailsPopup = (cloudEnvName, googleProject, disk) => {
@@ -324,7 +327,7 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort, field: 'billing-project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return !!cloudEnvironment.appName ? renderBillingProjectForApps(cloudEnvironment) : renderBillingProjectForRuntimes(cloudEnvironment)
+              return cloudEnvironment.labels.saturnWorkspaceNamespace
             }
           },
           {
@@ -332,7 +335,7 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.labels.saturnWorkspaceName
+              return !!cloudEnvironment.appName ? renderWorkspaceForApps(cloudEnvironment) : renderWorkspaceForRuntimes(cloudEnvironment)
             }
           },
           {
@@ -425,26 +428,25 @@ const Environments = () => {
             field: 'billing-project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'billing-project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
-              const appType = getDiskAppType(filteredDisks[rowIndex])
-              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
-                disksByProject[googleProject]).length > 1
-              const forAppText = !!appType ? `for ${_.capitalize(appType)}` : ''
-              return h(Fragment, [
-                saturnWorkspaceNamespace,
-                diskStatus !== 'Deleting' && multipleDisksOfType &&
-                h(TooltipTrigger, {
-                  content: `This billing project has multiple active persistent disks ${forAppText}. Only the latest one will be used.`
-                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-              ])
+              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
+              return saturnWorkspaceNamespace
             }
           },
           {
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
-              const { labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
-              return h(Fragment, [saturnWorkspaceName])
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceName } } = filteredDisks[rowIndex]
+              const appType = getDiskAppType(filteredDisks[rowIndex])
+              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
+                disksByProject[googleProject]).length > 1
+              return h(Fragment, [
+                saturnWorkspaceName,
+                diskStatus !== 'Deleting' && multipleDisksOfType &&
+                h(TooltipTrigger, {
+                  content: `This workspace has multiple active persistent disks ${forAppText(appType)}. Only the latest one will be used.`
+                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+              ])
             }
           },
           {
