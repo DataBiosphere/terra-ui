@@ -36,26 +36,16 @@ const testPreviewDatasetFn = _.flow(
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 
-  // Verify number of tables
-  const tableName = 'Cell Suspension'
-
-  await click(page, '//*[@role="combobox"]//div')
-  const tablesWithData = await page.$x('//*[@role="combobox"]//*[contains(@id, "option-0")]')
-  const countTablesWithData = _.size(tablesWithData)
-  assertEquals(countTablesWithData, 11)
-  const tablesWithNoData = await page.$x('//*[@role="combobox"]//*[contains(@id, "option-1")]')
-  const countTablesWithNoData = _.size(tablesWithNoData)
-  assertEquals(countTablesWithNoData, 16)
-
-  //  const previewTableName = 'Cell Suspension Preview Data'
-  //  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'cell_suspension_id')
-  //  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'version')
-  //  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'content')
-  //  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'f0caec4a-2a37-4895-8304-83d0fd0da588')
-  //  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), '1558104905.862')
-  //  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), 'View JSON')
-  //  await click(page, clickable({ textContains: 'View JSON'  }))
-  //  await findElement(page, '//div[contains(@class, "react-json-view")]')
+  const previewTableName = 'Cell Suspension Preview Data'
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'cell_suspension_id')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'version')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'content')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'f0caec4a-2a37-4895-8304-83d0fd0da588')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), '1558104905.862')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), 'View JSON')
+  await click(page, clickable({ textContains: 'View JSON'  }))
+  await findElement(page, '//div[contains(@class, "react-json-view")]')
+  await page.keyboard.press('Escape')
 
   // Click on a table with no data
   await click(page, '//*[@role="combobox"]//div')
@@ -64,12 +54,21 @@ const testPreviewDatasetFn = _.flow(
   await waitForNoSpinners(page)
   await findText(page, 'No Data')
 
+  // Verify table counts
+  await click(page, '//*[@role="combobox"]//div')
+  const tablesWithData = await page.$x('//*[@role="combobox"]//*[contains(@id, "option-0")]')
+  const countTablesWithData = _.size(tablesWithData)
+  assertEquals(countTablesWithData, 11)
+  const tablesWithNoData = await page.$x('//*[@role="combobox"]//*[contains(@id, "option-1")]')
+  const countTablesWithNoData = _.size(tablesWithNoData)
+  assertEquals(countTablesWithNoData, 16)
 })
 
 const testPreviewDataset = {
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
-  timeout: 2 * 60 * 1000
+  timeout: 2 * 60 * 1000,
+  targetEnvironments: ['local', 'dev']
 }
 
 module.exports = { testPreviewDataset }
