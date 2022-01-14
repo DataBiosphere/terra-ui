@@ -3,8 +3,9 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -58,11 +59,13 @@ const computeLabels = (allLabels, selectedLabels) => _.flow(
   _.uniq
 )(selectedLabels)
 
-const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
+const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
   // State
   const [showAll, setShowAll] = useState(false)
   const lowerSelectedTags = _.map('lowerTag', selectedTags)
-  const labelsToDisplay = showAll ? labels : computeLabels(labels, _.map('label', selectedTags))
+  const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
+  const [filterChanges, setFilterChanges] = useState({})
+  const [filteredTags, setFilteredTags] = useState({})
 
   //Render
   return h(Fragment, [
@@ -82,8 +85,48 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
-      onClick: () => setShowAll(!showAll)
-    }, [`See ${showAll ? 'less' : 'more'}`])
+      onClick: () => {
+        setShowAll(!showAll)
+        setFilterChanges({})
+
+        const _tagFilters = {}
+        _.forEach(label => {
+          const lowerTag = _.toLower(label)
+          _tagFilters[lowerTag] = listDataByTag[lowerTag]
+        }, labels)
+        setFilteredTags(_tagFilters)
+      }
+    }, [`See more`]),
+    showAll && h(Modal, {
+      title: `Filter by: ${name}`,
+      width: '80%',
+      showButtons: true,
+      okButton: 'Apply Filters',
+      onDismiss: () => {
+        setShowAll(false)
+        _.forEach(onTagFilter, filterChanges)
+        setFilterChanges({})
+      }
+    }, [
+      div({ style: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', fontSize: '1rem', textTransform: 'capitalize' } }, _.map(label => {
+        const lowerTag = _.toLower(label)
+        return div({ style: { width: '20%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
+          h(LabeledCheckbox, {
+            checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            onChange: v => {
+              filterChanges[lowerTag] ? delete filterChanges[lowerTag] : filterChanges[lowerTag] = { lowerTag, label }
+              setFilterChanges({ ...filterChanges })
+            },
+            style: { position: 'absolute', left: -25, top: 2 }
+          }, [
+            div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
+              span([label]),
+              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
+            ])
+          ])
+        ])
+      }, labels))
+    ])
   ])
 }
 
@@ -114,7 +157,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [
-          h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+          h(FilterSection, { name, onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
         ])
     }, sections)
   ])
