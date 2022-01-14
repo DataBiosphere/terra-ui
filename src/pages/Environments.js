@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -16,6 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
@@ -130,8 +131,8 @@ const Environments = () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
-      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication' }),
-      Ajax(signal).Apps.listWithoutProject({ creator })
+      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
     setRuntimes(newRuntimes)
     setDisks(newDisks)
@@ -168,6 +169,7 @@ const Environments = () => {
 
   const filteredRuntimes = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -176,6 +178,7 @@ const Environments = () => {
 
   const filteredDisks = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -185,6 +188,7 @@ const Environments = () => {
 
   const filteredApps = _.orderBy([{
     project: 'googleProject',
+    workspace: 'labels.saturnWorkspaceName',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
@@ -202,48 +206,52 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
-  const renderBillingProjectApp = app => {
-    const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(app.appType)(appsByProject[app.googleProject]) !== app
+  // We start the first output string with an empty space because empty space would
+  // not apply to the case where appType is not defined (e.g. Jupyter, RStudio).
+  const forAppText = appType => !!appType ? ` for ${_.capitalize(appType)}` : ''
+
+  const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return h(Fragment, [
-      app.googleProject,
-      inactive && h(TooltipTrigger, {
-        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
+      h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }) }, [name]),
+      shouldWarn && h(TooltipTrigger, {
+        content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
+  const renderWorkspaceForApps = app => {
+    const { status, appType, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
+    const shouldWarn = !_.includes(status, ['DELETING', 'ERROR', 'PREDELETING']) &&
+      getCurrentApp(appType)(appsByProject[googleProject]) !== app
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, shouldWarn)
+  }
 
-  const renderBillingProjectRuntime = runtime => {
-    const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
-      getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
-    return h(Fragment, [
-      runtime.googleProject,
-      inactive && h(TooltipTrigger, {
-        content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
-      }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-    ])
+  const renderWorkspaceForRuntimes = runtime => {
+    const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
+    const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
+      getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
+  }
+
+  const getDetailsPopup = (cloudEnvName, googleProject, disk) => {
+    return h(PopupTrigger, {
+      content: div({ style: { padding: '0.5rem' } }, [
+        div([strong(['Name: ']), cloudEnvName]),
+        div([strong(['Google Project: ']), googleProject]),
+        !!disk && div([strong(['Persistent Disk: ']), disk.name])
+      ])
+    }, [h(Link, ['view'])])
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName } = app
+    const { appName, diskName, googleProject } = app
     const disk = _.find({ name: diskName }, disks)
-    return h(PopupTrigger, {
-      content: div({ style: { padding: '0.5rem' } }, [
-        div([span({ style: { fontWeight: '600' } }, ['Name: ']), appName]),
-        disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
-      ])
-    }, [h(Link, ['view'])])
+    return getDetailsPopup(appName, googleProject, disk)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
-    const { runtimeName, runtimeConfig: { persistentDiskId } } = runtime
+    const { runtimeName, googleProject, runtimeConfig: { persistentDiskId } } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
-    return h(PopupTrigger, {
-      content: div({ style: { padding: '0.5rem' } }, [
-        div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
-        disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
-      ])
-    }, [h(Link, ['view'])])
+    return getDetailsPopup(runtimeName, googleProject, disk)
   }
 
   const renderDeleteButton = (resourceType, resource) => {
@@ -327,7 +335,15 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ? renderBillingProjectApp(cloudEnvironment) : renderBillingProjectRuntime(cloudEnvironment)
+              return cloudEnvironment.labels.saturnWorkspaceNamespace
+            }
+          },
+          {
+            field: 'workspace',
+            headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
+            cellRenderer: ({ rowIndex }) => {
+              const cloudEnvironment = filteredCloudEnvironments[rowIndex]
+              return !!cloudEnvironment.appName ? renderWorkspaceForApps(cloudEnvironment) : renderWorkspaceForRuntimes(cloudEnvironment)
             }
           },
           {
@@ -370,7 +386,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -378,7 +394,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
@@ -420,16 +436,24 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject } = filteredDisks[rowIndex]
+              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
+              return saturnWorkspaceNamespace
+            }
+          },
+          {
+            field: 'workspace',
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
+            cellRenderer: ({ rowIndex }) => {
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
-              const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               return h(Fragment, [
-                googleProject,
+                h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
+                  [saturnWorkspaceName]),
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                 h(TooltipTrigger, {
-                  content: `This billing project has multiple active persistent disks${forAppText}. Only the latest one will be used.`
+                  content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
             }
@@ -438,18 +462,15 @@ const Environments = () => {
             size: { basis: 90, grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
-              const { name, id } = filteredDisks[rowIndex]
+              const { name, id, googleProject } = filteredDisks[rowIndex]
               const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               const app = _.find({ diskName: name }, apps)
               return h(PopupTrigger, {
                 content: div({ style: { padding: '0.5rem' } }, [
-                  div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
-                  runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
-                  app && div([
-                    span({ style: { fontWeight: 600 } },
-                      [`${_.capitalize(app.appType)}: `]
-                    ), app.appName
-                  ])
+                  div([strong(['Name: ']), name]),
+                  div([strong(['Google Project: ']), googleProject]),
+                  runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
+                  app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])
               }, [h(Link, ['view'])])
             }
@@ -481,7 +502,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 240, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -489,7 +510,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 240, grow: 0 },
+            size: { basis: 220, grow: 0 },
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
