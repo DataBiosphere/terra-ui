@@ -212,7 +212,7 @@ const Environments = () => {
 
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return h(Fragment, [
-      h(Link, { onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name }) }, [name]),
+      h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }) }, [name]),
       shouldWarn && h(TooltipTrigger, {
         content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -224,6 +224,7 @@ const Environments = () => {
       getCurrentApp(appType)(appsByProject[googleProject]) !== app
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, shouldWarn)
   }
+
   const renderWorkspaceForRuntimes = runtime => {
     const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
     const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
@@ -236,7 +237,7 @@ const Environments = () => {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Google Project: ']), googleProject]),
-        disk && div([strong(['Persistent Disk: ']), disk.name])
+        !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
     }, [h(Link, ['view'])])
   }
@@ -447,13 +448,14 @@ const Environments = () => {
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
                 disksByProject[googleProject]).length > 1
-              return h(Fragment,
-                [h(Link, { onClick: () => Nav.goToPath('workspace-notebooks', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
+              return h(Fragment, [
+                h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
                   [saturnWorkspaceName]),
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
-                  h(TooltipTrigger, {
-                    content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
-                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])])
+                h(TooltipTrigger, {
+                  content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
+                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+              ])
             }
           },
           {
