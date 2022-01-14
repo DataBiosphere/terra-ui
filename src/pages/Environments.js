@@ -206,13 +206,15 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
-  const forAppText = appType => !!appType ? `for ${_.capitalize(appType)}` : ''
+  // We start the first output string with an empty space because empty space would
+  // not apply to the case where appType is not defined (e.g. Jupyter, RStudio).
+  const forAppText = appType => !!appType ? ` for ${_.capitalize(appType)}` : ''
 
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return h(Fragment, [
       h(Link, { onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name }) }, [name]),
       shouldWarn && h(TooltipTrigger, {
-        content: `This workspace has multiple active cloud environments ${forAppText(appType)}. Only the latest one will be used.`
+        content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
@@ -226,7 +228,7 @@ const Environments = () => {
     const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
     const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
-    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, shouldWarn)
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
   }
 
   const getDetailsPopup = (cloudEnvName, googleProject, disk) => {
@@ -450,7 +452,7 @@ const Environments = () => {
                   [saturnWorkspaceName]),
                 diskStatus !== 'Deleting' && multipleDisksOfType &&
                   h(TooltipTrigger, {
-                    content: `This workspace has multiple active persistent disks ${forAppText(appType)}. Only the latest one will be used.`
+                    content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
                   }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])])
             }
           },
