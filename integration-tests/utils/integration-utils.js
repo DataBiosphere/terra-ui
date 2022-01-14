@@ -33,7 +33,7 @@ const findInGrid = (page, textContains, options) => {
 }
 
 const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //input[@type="checkbox"] | //*[@role="button" or @role="checkbox"] | //*[@role="link"])${isDescendant ? '//*' : ''}`
+  const base = `(//a | //button | //input[@type="checkbox"] | //*[@role="button" or @role="checkbox"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
