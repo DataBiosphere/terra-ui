@@ -58,7 +58,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'clear' }))
   const datasetSizeAfterClear = await getDatasetCount(page)
   if (datasetSizeAfterClear !== datasetSizeAfterSearch) {
-    throw new Error(`Clear Filter was not applied to the table, ${datasetSizeAfterClear}, ${totalDatasetSize}`)
+    throw new Error(`Clear Filter was not applied to the table, ${datasetSizeAfterClear}, ${datasetSizeAfterSearch}`)
   }
 })
 
