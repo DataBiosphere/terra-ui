@@ -19,8 +19,8 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
+  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -219,10 +219,9 @@ const Environments = () => {
     ])
   }
   const renderWorkspaceForApps = app => {
-    const { status, appType, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
-    const shouldWarn = !_.includes(status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(appType)(appsByProject[googleProject]) !== app
-    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, shouldWarn)
+    const { appType, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
+    const multipleApps = workspaceHasMultipleApps(appsByProject[app.googleProject], appType)
+    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
   }
 
   const renderWorkspaceForRuntimes = runtime => {
@@ -319,6 +318,13 @@ const Environments = () => {
         loadData()
       }
     })
+  }
+
+  const multipleDisksError = (disks, appType) => {
+    // appType is undefined for runtimes (ie Jupyter, RStudio) so the first part of the ternary is for processing app
+    // disks. the second part is for processing runtime disks so it filters out app disks
+    return !!appType ? workspaceHasMultipleDisks(disks, appType) : _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
+      disks).length > 1
   }
 
   return h(FooterWrapper, [
@@ -446,12 +452,11 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
-              const multipleDisksOfType = _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
-                disksByProject[googleProject]).length > 1
+              const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return h(Fragment, [
                 h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
                   [saturnWorkspaceName]),
-                diskStatus !== 'Deleting' && multipleDisksOfType &&
+                diskStatus !== 'Deleting' && multipleDisks &&
                 h(TooltipTrigger, {
                   content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
