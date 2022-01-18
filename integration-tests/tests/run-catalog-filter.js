@@ -46,7 +46,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {
     throw new Error(`Filter for '${filterItem}' was not applied to the table`)
   }
-  
+
   // Testing filter by multiple same facets
   await click(page, clickable({ text: 'Controlled', isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
