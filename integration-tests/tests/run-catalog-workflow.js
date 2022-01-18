@@ -23,7 +23,7 @@ const testCatalogFlowFn = _.flow(
 
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Granted' }))
+  await click(page, clickable({ text: 'Granted', isDescendant: true, isCheckbox: true }))
   await clickTableCell(page, "dataset list", 2, 2)
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Link to a workspace' }))

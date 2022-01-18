@@ -22,9 +22,10 @@ const testPreviewDatasetFn = _.flow(
 
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Granted' }))
-  await click(page, clickable({ textContains: datasetName }))
+  await click(page, clickable({ text: 'Granted', isDescendant: true, isCheckbox: true }))
+  await click(page, clickable({ textContains: `${datasetName}` }))
   await waitForNoSpinners(page)
+  await findText(page, 'Contributors')
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 

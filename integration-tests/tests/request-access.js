@@ -21,7 +21,7 @@ const testRequestAccessFn = _.flow(
 
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Controlled' }))
+  await click(page, clickable({ text: 'Controlled', isDescendant: true, isCheckbox: true }))
 
   // Request access from the browse & explore page
   await click(page, clickable({ textContains: 'Request Access' }))

@@ -32,8 +32,8 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //input[@type="checkbox"] | //*[@role="button" or @role="checkbox"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${isDescendant ? '//*' : ''}`
+const clickable = ({ text, textContains, isDescendant = false, isCheckbox = false }) => {
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"]${isCheckbox ? '| //input[@type="checkbox"] | //*[@role="checkbox"]' : ''})${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
