@@ -64,8 +64,11 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
   const [showAll, setShowAll] = useState(false)
   const lowerSelectedTags = _.map('lowerTag', selectedTags)
   const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
+
+  // Filter Modal Vars
   const [filterChanges, setFilterChanges] = useState({})
   const [filteredTags, setFilteredTags] = useState({})
+  const [filterSearchText, setFilterSearchText] = useState('')
 
   //Render
   return h(Fragment, [
@@ -108,7 +111,21 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setFilterChanges({})
       }
     }, [
-      div({ style: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', fontSize: '1rem', textTransform: 'capitalize' } }, _.map(label => {
+      h(DelayedAutoCompleteInput, {
+        style: { borderRadius: 25, width: 800, flex: 1 },
+        inputIcon: 'search',
+        debounceMs: 25,
+        openOnFocus: true,
+        value: filterSearchText,
+        'aria-label': `Search for ${name} filter options`,
+        placeholder: 'Search name',
+        onChange: (a, b) => {
+          console.log('on Change', a, b)
+          setFilterSearchText(a)
+        },
+        suggestions: labels
+      }),
+      div({ style: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', fontSize: '1rem', textTransform: 'capitalize', marginTop: 20 } }, _.map(label => {
         const lowerTag = _.toLower(label)
         return div({ style: { width: '20%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
           h(LabeledCheckbox, {
