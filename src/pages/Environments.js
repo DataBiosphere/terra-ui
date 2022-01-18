@@ -220,7 +220,7 @@ const Environments = () => {
   }
   const renderWorkspaceForApps = app => {
     const { appType, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
-    const multipleApps = workspaceHasMultipleApps(appsByProject[app.googleProject], app.appType)
+    const multipleApps = workspaceHasMultipleApps(appsByProject[app.googleProject], appType)
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
   }
 
@@ -450,7 +450,6 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
-              const forAppText = !!appType ? ` for ${_.capitalize(appType)}` : ''
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return h(Fragment, [
                 h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
