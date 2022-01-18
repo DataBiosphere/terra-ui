@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
+const { signIntoTerra, checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
@@ -21,7 +21,7 @@ const testRequestAccessFn = _.flow(
 
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ text: 'Controlled', isDescendant: true, isCheckbox: true }))
+  await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
 
   // Request access from the browse & explore page
   await click(page, clickable({ textContains: 'Request Access' }))

@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
+const { signIntoTerra, checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
@@ -22,7 +22,7 @@ const testPreviewDatasetFn = _.flow(
 
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ text: 'Granted', isDescendant: true, isCheckbox: true }))
+  await click(page, checkbox({ text: 'Granted', isDescendant: true}))
   await click(page, clickable({ textContains: `${datasetName}` }))
   await waitForNoSpinners(page)
   await findText(page, 'Contributors')
