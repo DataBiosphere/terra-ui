@@ -321,6 +321,8 @@ const Environments = () => {
   }
 
   const multipleDisksError = (disks, appType) => {
+    // appType is undefined for runtimes (ie Jupyter, RStudio) so the first part of the ternary is for processing app
+    // disks. the second part is for processing runtime disks so it filters out app disks
     return !!appType ? workspaceHasMultipleDisks(disks, appType) : _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
       disks).length > 1
   }
