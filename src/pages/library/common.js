@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
-import { DelayedAutoCompleteInput } from 'src/components/input'
+import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -68,6 +68,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
   // Filter Modal Vars
   const [filterChanges, setFilterChanges] = useState({})
   const [filteredTags, setFilteredTags] = useState({})
+  const [filteredLabels, setFilteredLabels] = useState(labels)
   const [filterSearchText, setFilterSearchText] = useState('')
 
   //Render
@@ -115,19 +116,16 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setFilterChanges({})
       }
     }, [
-      h(DelayedAutoCompleteInput, {
+      h(DelayedSearchInput, {
         style: { borderRadius: 25, width: 800, flex: 1 },
-        inputIcon: 'search',
         debounceMs: 25,
-        openOnFocus: true,
         value: filterSearchText,
         'aria-label': `Search for ${name} filter options`,
         placeholder: 'Search name',
-        onChange: (a, b) => {
-          console.log('on Change', a, b)
-          setFilterSearchText(a)
-        },
-        suggestions: labels
+        onChange: searchText => {
+          setFilterSearchText(searchText)
+          setFilteredLabels(_.filter(label => _.toLower(label).match(_.toLower(searchText)), labels))
+        }
       }),
       div({ style: { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', fontSize: '1rem', textTransform: 'capitalize', marginTop: 20 } }, _.map(label => {
         const lowerTag = _.toLower(label)
@@ -146,7 +144,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
             ])
           ])
         ])
-      }, labels))
+      }, filteredLabels))
     ])
   ])
 }
