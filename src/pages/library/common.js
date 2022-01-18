@@ -114,6 +114,8 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setShowAll(false)
         _.forEach(onTagFilter, filterChanges)
         setFilterChanges({})
+        setFilterSearchText('')
+        setFilteredLabels(labels)
       }
     }, [
       h(DelayedSearchInput, {
