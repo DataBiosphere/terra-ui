@@ -36,18 +36,17 @@ commands:
                 name: Notify Github of deployment
                 unless: << parameters.existing >>
                 command: |
+                  set +e -x # don't allow a failure here to fail the job, print steps when running them
                   apk add github-cli jq --no-progress --repository=https://dl-cdn.alpinelinux.org/alpine/latest-stable/community/
                   <<# parameters.pr >>
                   VERSION="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)"
                   <</ parameters.pr >><<^ parameters.pr >>
                   VERSION="<< parameters.env >>"
                   <</ parameters.pr >>
-                  set +e -x # don't allow a failure here to fail the job, print steps when running them
                   # until https://github.com/cli/cli/issues/1484 is resolved, pass json input:
                   echo "{\"ref\": \"$CIRCLE_BRANCH\", \"environment\": \"$VERSION\", \"auto_merge\": false, \"required_contexts\": []}" > /tmp/request.json
                   # echo the complete response while saving it
                   RESPONSE=$(gh api repos/databiosphere/terra-ui/deployments -H "Authorization: token $GITHUB_TOKEN" --input /tmp/request.json | tee >(jq . > /dev/tty))
-                  set +x
                   # parse the part we want for later
                   echo $RESPONSE | jq .id | tee /tmp/build_num
       - when:
