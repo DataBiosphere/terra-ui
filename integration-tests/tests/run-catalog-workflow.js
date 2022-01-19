@@ -1,8 +1,7 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, checkbox, click, clickable, clickTableCell, findText, input, waitForNoSpinners } = require('../utils/integration-utils')
+const { signIntoTerra, checkbox, click, clickable, clickTableCell, dismissNotifications, findText, input, waitForNoSpinners } = require('../utils/integration-utils')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { dismissNotifications } = require('../utils/integration-utils')
 
 
 const testCatalogFlowFn = _.flow(
@@ -28,10 +27,6 @@ const testCatalogFlowFn = _.flow(
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Link to a workspace' }))
   await waitForNoSpinners(page)
-
-  await click(page, clickable({ textContains: 'Start with a new workspace' }))
-  await findText(page, 'Create a New Workspace')
-  await click(page, clickable({ textContains: 'Cancel' }))
 
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await click(page, input({ labelContains: 'Select a workspace' }))
