@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, checkbox, click, clickable, waitForNoSpinners, input, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
+const { checkbox, click, clickable, waitForNoSpinners, input, fillIn, heading, findHeading } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { dismissNotifications } = require('../utils/integration-utils')
+const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
 
 
 const getDatasetCount = async page => {
@@ -13,18 +13,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const searchText = 'stem cell'
   const filterItem = 'Granted'
 
-  await page.goto(testUrl)
-  await waitForNoSpinners(page)
-
-  await findText(page, 'Browse Data')
-
-  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
-  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
-
-  await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-
+  await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
 

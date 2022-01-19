@@ -1,7 +1,7 @@
 const rawConsole = require('console')
 const _ = require('lodash/fp')
 
-const { signIntoTerra } = require('./integration-utils')
+const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -172,10 +172,24 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
+const enableDataCatalog = async (page, testUrl, token) => {
+  await page.goto(testUrl)
+  await waitForNoSpinners(page)
+
+  await findText(page, 'Browse Data')
+  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+
+  await click(page, clickable({ textContains: 'Browse Data' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+}
+
 module.exports = {
   checkBucketAccess,
   createEntityInWorkspace,
   defaultTimeout,
+  enableDataCatalog,
   testWorkspaceName,
   withWorkspace,
   withBilling,
