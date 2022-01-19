@@ -177,7 +177,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
           icon: 'search',
           onChange: searchText => {
             setFilterSearchText(searchText)
-            setFilteredLabels(_.filter(label => _.toLower(label).match(_.toLower(searchText)), labels))
+            setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
           }
         }),
         h(Link, { style: { fontSize: '1rem' }, onClick: () => { setFilterType(filterOptions.alpha) } }, ['Close search'])
