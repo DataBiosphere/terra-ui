@@ -72,7 +72,8 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
   const [filterChanges, setFilterChanges] = useState({})
   const [filteredTags, setFilteredTags] = useState({})
   const [filteredLabels, setFilteredLabels] = useState(labels)
-  const [filterBy, setFilterBy] = useState(filterOptions.alpha)
+  const [filteredBy, setFilteredBy] = useState()
+  const [filterType, setFilterType] = useState(filterOptions.alpha)
   const [filterSearchText, setFilterSearchText] = useState('')
 
   //Render
@@ -115,7 +116,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
       showButtons: true,
       okButton: 'Apply Filters',
       styles: {
-        modal: { maxWidth: 900 },
+        modal: { maxWidth: 900, padding: 30 },
         buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
       },
       onDismiss: () => {
@@ -124,31 +125,51 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setFilterChanges({})
         setFilterSearchText('')
         setFilteredLabels(labels)
-        setFilterBy(filterOptions.alpha)
+        setFilterType(filterOptions.alpha)
       }
     }, [
       h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
-      filterBy === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+      filterType === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
         h(Link, {
-          style: { marginLeft: 20, fontWeight: 'bold', fontSize: '1rem' },
-          onClick: () => setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
+          style: { marginLeft: 20, fontWeight: 'bold', fontSize: '1rem', background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', padding: 5, borderRadius: 10 },
+          onClick: () => {
+            setFilteredBy('top')
+            setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
+          }
         }, [`Top ${name}s`]),
         div({ style: { width: '100%', maxWidth: 600, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', fontSize: '1rem' } },
           _.map(index => h(Link, {
-            style: { fontWeight: 'bold' },
-            onClick: () => setFilteredLabels(labelsByFirstChar[String.fromCharCode(index)])
+            style: {
+              fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
+              background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
+            },
+            'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+            onClick: () => {
+              const charFromCode = String.fromCharCode(index)
+              setFilteredBy(charFromCode)
+              setFilteredLabels(labelsByFirstChar[charFromCode])
+            }
           }, [String.fromCharCode(index)]), _.range(65, 65 + 26))
         ),
-        h(Link, { onClick: () => { setFilterBy(filterOptions.input) }, 'aria-label': 'Back' }, [
+        h(Link, { onClick: () => { setFilterType(filterOptions.input) }, 'aria-label': 'Search by text input' }, [
           span({ className: 'fa-stack fa-2x' }, [
             icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
             icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
           ])
         ])
       ]),
-      filterBy === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
+      filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
+        h(Link, {
+          style: { fontSize: '1rem' },
+          onClick: () => {
+            setFilteredBy()
+            setFilteredLabels(labels)
+          }
+        }, ['Clear selection'])
+      ]),
+      filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
         h(DelayedSearchInput, {
-          style: { borderRadius: 25, borderColor: colors.dark(0.2), width: 800, height: '3rem', marginRight: 20 },
+          style: { borderRadius: 25, borderColor: colors.dark(0.2), width: '100%', maxWidth: 575, height: '3rem', marginRight: 20 },
           debounceMs: 25,
           value: filterSearchText,
           'aria-label': `Search for ${name} filter options`,
@@ -159,32 +180,33 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
             setFilteredLabels(_.filter(label => _.toLower(label).match(_.toLower(searchText)), labels))
           }
         }),
-        h(Link, { style: { fontSize: '1rem' }, onClick: () => { setFilterBy(filterOptions.alpha) } }, ['Close search'])
+        h(Link, { style: { fontSize: '1rem' }, onClick: () => { setFilterType(filterOptions.alpha) } }, ['Close search'])
       ]),
-      div({
-        style: {
-          display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
-          fontSize: '1rem', textTransform: 'capitalize', marginTop: 20,
-          height: '50%'
-        }
-      }, _.map(label => {
-        const lowerTag = _.toLower(label)
-        return div({ style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
-          h(LabeledCheckbox, {
-            checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
-            onChange: v => {
-              filterChanges[lowerTag] ? delete filterChanges[lowerTag] : filterChanges[lowerTag] = { lowerTag, label }
-              setFilterChanges({ ...filterChanges })
-            },
-            style: { position: 'absolute', left: -25, top: 2 }
-          }, [
-            div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
-              span([label]),
-              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
+      div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
+        div({
+          style: {
+            display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
+            fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
+          }
+        }, _.map(label => {
+          const lowerTag = _.toLower(label)
+          return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
+            h(LabeledCheckbox, {
+              checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
+              onChange: v => {
+                filterChanges[lowerTag] ? delete filterChanges[lowerTag] : filterChanges[lowerTag] = { lowerTag, label }
+                setFilterChanges({ ...filterChanges })
+              },
+              style: { position: 'absolute', left: -25, top: 2 }
+            }, [
+              div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
+                span([label]),
+                span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
+              ])
             ])
           ])
-        ])
-      }, filteredLabels))
+        }, filteredLabels))
+      ])
     ])
   ])
 }
