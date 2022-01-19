@@ -111,14 +111,6 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
   ])
 }
 
-const addNamespaceLabelIfAbsent = resource => {
-  const { googleProject, labels: { saturnWorkspaceNamespace } } = resource
-  // Use googleProject if workspace namespace label is not defined
-  return !!saturnWorkspaceNamespace ?
-    resource :
-    _.set(['labels', 'saturnWorkspaceNamespace'], googleProject, resource)
-}
-
 const Environments = () => {
   const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
@@ -143,14 +135,9 @@ const Environments = () => {
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
-
-    // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
-    // created, workspace namespace (a.k.a billing project) value used to equal the google project.
-    // Therefore we use google project if the namespace label is not defined.
-    setRuntimes(_.map(addNamespaceLabelIfAbsent, newRuntimes))
-    setDisks(_.map(addNamespaceLabelIfAbsent, newDisks))
-    setApps(_.map(addNamespaceLabelIfAbsent, newApps))
-
+    setRuntimes(newRuntimes)
+    setDisks(newDisks)
+    setApps(newApps)
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined)
     }
@@ -232,14 +219,18 @@ const Environments = () => {
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
+
+  // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
+  // created, workspace namespace (a.k.a billing project) value used to equal the google project.
+  // Therefore we use google project if the namespace label is not defined.
   const renderWorkspaceForApps = app => {
-    const { appType, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
+    const { appType, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = app
     const multipleApps = workspaceHasMultipleApps(appsByProject[googleProject], appType)
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
   }
 
   const renderWorkspaceForRuntimes = runtime => {
-    const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
+    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = runtime
     const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
@@ -456,7 +447,7 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
+              const { googleProject, labels: { saturnWorkspaceNamespace = googleProject } } = filteredDisks[rowIndex]
               return saturnWorkspaceNamespace
             }
           },
