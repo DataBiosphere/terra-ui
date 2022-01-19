@@ -20,7 +20,8 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost, workspaceHasMultipleApps,
+  workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -110,6 +111,11 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
   ])
 }
 
+const addNamespaceLabelIfAbsent = resource => {
+  // Use googleProject if workspace namespace label is not defined
+  return _.merge({ labels: { saturnWorkspaceNamespace: resource.googleProject } }, resource)
+}
+
 const Environments = () => {
   const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
@@ -134,9 +140,14 @@ const Environments = () => {
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
-    setRuntimes(newRuntimes)
-    setDisks(newDisks)
-    setApps(newApps)
+
+    // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
+    // created, workspace namespace (a.k.a billing project) value used to equal the google project.
+    // Therefore we use google project if the namespace label is not defined.
+    setRuntimes(_.map(addNamespaceLabelIfAbsent, newRuntimes))
+    setDisks(_.map(addNamespaceLabelIfAbsent, newDisks))
+    setApps(_.map(addNamespaceLabelIfAbsent, newApps))
+
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined)
     }
@@ -219,8 +230,8 @@ const Environments = () => {
     ])
   }
   const renderWorkspaceForApps = app => {
-    const { appType, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
-    const multipleApps = workspaceHasMultipleApps(appsByProject[app.googleProject], appType)
+    const { appType, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
+    const multipleApps = workspaceHasMultipleApps(appsByProject[googleProject], appType)
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
   }
 
