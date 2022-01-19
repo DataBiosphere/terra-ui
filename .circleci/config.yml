@@ -55,11 +55,13 @@ commands:
             - run:
                 name: Update Github deployment status
                 command: |
+                  set +e -x # don't allow a failure here to fail the job, print steps when running them
                   <<# parameters.pr >>
                   PR_SLUG="pr-$(expr "${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}" % $NUM_PR_SITES)-dot-"
                   <</ parameters.pr >>
-                  gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" \
-                    -F state=success -F environment_url="https://${PR_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com" -F log_url="$CIRCLE_BUILD_URL"
+                  RESPONSE=$(gh api "repos/databiosphere/terra-ui/deployments/$(cat /tmp/build_num)/statuses" -H "Authorization: token $GITHUB_TOKEN" \
+                    -F state=success -F environment_url="https://${PR_SLUG}bvdp-saturn-<< parameters.env >>.appspot.com" -F log_url="$CIRCLE_BUILD_URL")
+                  echo $RESPONSE
             - run:
                 name: Update Github deployment status
                 when: on_fail

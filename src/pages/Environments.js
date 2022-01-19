@@ -20,7 +20,8 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, runtimeCost, workspaceHasMultipleApps,
+  workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -218,14 +219,18 @@ const Environments = () => {
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
     ])
   }
+
+  // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
+  // created, workspace namespace (a.k.a billing project) value used to equal the google project.
+  // Therefore we use google project if the namespace label is not defined.
   const renderWorkspaceForApps = app => {
-    const { appType, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
-    const multipleApps = workspaceHasMultipleApps(appsByProject[app.googleProject], appType)
+    const { appType, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = app
+    const multipleApps = workspaceHasMultipleApps(appsByProject[googleProject], appType)
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
   }
 
   const renderWorkspaceForRuntimes = runtime => {
-    const { status, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = runtime
+    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = runtime
     const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
       getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
@@ -340,8 +345,8 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.labels.saturnWorkspaceNamespace
+              const { googleProject, labels: { saturnWorkspaceNamespace = googleProject } } = filteredCloudEnvironments[rowIndex]
+              return saturnWorkspaceNamespace
             }
           },
           {
@@ -442,7 +447,7 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const { labels: { saturnWorkspaceNamespace } } = filteredDisks[rowIndex]
+              const { googleProject, labels: { saturnWorkspaceNamespace = googleProject } } = filteredDisks[rowIndex]
               return saturnWorkspaceNamespace
             }
           },
