@@ -112,8 +112,11 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
 }
 
 const addNamespaceLabelIfAbsent = resource => {
+  const { googleProject, labels: { saturnWorkspaceNamespace } } = resource
   // Use googleProject if workspace namespace label is not defined
-  return _.merge({ labels: { saturnWorkspaceNamespace: resource.googleProject } }, resource)
+  return !!saturnWorkspaceNamespace ?
+    resource :
+    _.set(['labels', 'saturnWorkspaceNamespace'], googleProject, resource)
 }
 
 const Environments = () => {
