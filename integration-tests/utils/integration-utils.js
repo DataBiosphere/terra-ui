@@ -32,8 +32,8 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //input[@type="checkbox"] | //*[@role="button" or @role="checkbox"] | //*[@role="link"])${isDescendant ? '//*' : ''}`
+const getClickablePath = (path, text, textContains, isDescendant=false) => {
+  const base = `${path}${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
@@ -41,8 +41,31 @@ const clickable = ({ text, textContains, isDescendant = false }) => {
   }
 }
 
+const clickable = ({ text, textContains, isDescendant = false}) => {
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const checkbox = ({ text, textContains, isDescendant = false}) => {
+  const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const getTableCellPath = (tableName, row, column) => {
+  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
+}
+
+const getTableHeaderPath = (tableName, column) => {
+  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][1]//*[@role="columnheader"][${column}]`
+}
+
+const findTableCellText = async (page, path, textContains, options) => {
+  const xpath = `${path}[contains(normalize-space(.),"${textContains}")]`
+  return (await page.waitForXPath(xpath, options))
+}
+
 const clickTableCell = async (page, tableName, row, column, options) => {
-  const tableCellPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
+  const tableCellPath = getTableCellPath(tableName, row, column)
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }
@@ -225,6 +248,7 @@ const withPageLogging = fn => options => {
 }
 
 module.exports = {
+  checkbox,
   click,
   clickable,
   clickTableCell,
@@ -236,6 +260,9 @@ module.exports = {
   findText,
   fillIn,
   fillInReplace,
+  findTableCellText,
+  getTableCellPath,
+  getTableHeaderPath,
   heading,
   input,
   select,

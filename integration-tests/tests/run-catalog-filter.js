@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, click, clickable, waitForNoSpinners, input, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
+const { signIntoTerra, checkbox, click, clickable, waitForNoSpinners, input, findText, fillIn, heading, findHeading } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { dismissNotifications } = require('../utils/integration-utils')
 
@@ -40,15 +40,15 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 
   // Testing filter by facet
-  await click(page, clickable({ text: filterItem, isDescendant: true }))
+  await click(page, checkbox({ text: filterItem, isDescendant: true}))
   const datasetSizeAfterFilter = await getDatasetCount(page)
 
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {
     throw new Error(`Filter for '${filterItem}' was not applied to the table`)
   }
-  
+
   // Testing filter by multiple same facets
-  await click(page, clickable({ text: 'Controlled', isDescendant: true }))
+  await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
   if (datasetSizeAfterFilter2 !== 0) {
     throw new Error(`Filters for 'Controlled' should be ANDed between the same facet category in the table'`)
