@@ -345,8 +345,8 @@ const Environments = () => {
             field: 'project',
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.labels.saturnWorkspaceNamespace
+              const { googleProject, labels: { saturnWorkspaceNamespace = googleProject } } = filteredCloudEnvironments[rowIndex]
+              return saturnWorkspaceNamespace
             }
           },
           {
