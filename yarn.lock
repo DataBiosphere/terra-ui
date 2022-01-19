@@ -10070,7 +10070,7 @@ fsevents@^1.2.7:
   version: 4.0.10
   resolution: "marked@npm:4.0.10"
   bin:
-    marked: bin/marked.js
+    marked: bin/marked
   checksum: 46cd8ef1a7cfcf5e461727c7f3e16dd4244369ef58f60485e75d3f5df9d53a8249b9609e96a336521eaa5c88d9531cbd296509a148718056e9375e69609f4442
   languageName: node
   linkType: hard
