@@ -2537,9 +2537,9 @@ __metadata:
   linkType: hard
 
 "@types/marked@npm:^2.0.2":
-  version: 2.0.4
-  resolution: "@types/marked@npm:2.0.4"
-  checksum: 5c1db00f2a27a71cd95646424f10ca8869249ef0137c0f0fadc01479cdf35927a3e6a8e1aee67e126e2540a5384ee55b326dc93aea4e3a78788f23334f3d7cfd
+  version: 2.0.5
+  resolution: "@types/marked@npm:2.0.5"
+  checksum: 7a0b9d18402a0e20c106ec79ec9d4bd2266a4db409cc8b4ec322b68b40afd0bc67497e9b391bfbe953b934ad0810d90a1b88f7e18404ddf8cd6b085b74ba6893
   languageName: node
   linkType: hard
 
@@ -10069,6 +10069,8 @@ fsevents@^1.2.7:
 "marked@npm:^4.0.10":
   version: 4.0.10
   resolution: "marked@npm:4.0.10"
+  bin:
+    marked: bin/marked.js
   checksum: 46cd8ef1a7cfcf5e461727c7f3e16dd4244369ef58f60485e75d3f5df9d53a8249b9609e96a336521eaa5c88d9531cbd296509a148718056e9375e69609f4442
   languageName: node
   linkType: hard
