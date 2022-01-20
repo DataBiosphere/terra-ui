@@ -212,12 +212,14 @@ const Environments = () => {
   const forAppText = appType => !!appType ? ` for ${_.capitalize(appType)}` : ''
 
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
-    return h(Fragment, [
-      h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }) }, [name]),
-      shouldWarn && h(TooltipTrigger, {
-        content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
-      }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-    ])
+    return !!name ?
+      h(Fragment, [
+        h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }) }, [name]),
+        shouldWarn && h(TooltipTrigger, {
+          content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
+        }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+      ]) :
+      'information unavailable'
   }
 
   // Old apps, runtimes and disks may not have 'saturnWorkspaceNamespace' label defined. When they were
@@ -458,14 +460,16 @@ const Environments = () => {
               const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
-              return h(Fragment, [
-                h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
-                  [saturnWorkspaceName]),
-                diskStatus !== 'Deleting' && multipleDisks &&
-                h(TooltipTrigger, {
-                  content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
-                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-              ])
+              return !!saturnWorkspaceName ?
+                h(Fragment, [
+                  h(Link, { href: Nav.getLink('workspace-dashboard', { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) },
+                    [saturnWorkspaceName]),
+                  diskStatus !== 'Deleting' && multipleDisks &&
+                  h(TooltipTrigger, {
+                    content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
+                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+                ]) :
+                'information unavailable'
             }
           },
           {
