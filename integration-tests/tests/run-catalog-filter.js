@@ -29,7 +29,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 
   // Testing filter by facet
-  await click(page, checkbox({ text: filterItem, isDescendant: true}))
+  await click(page, checkbox({ text: filterItem, isDescendant: true }))
   const datasetSizeAfterFilter = await getDatasetCount(page)
 
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {

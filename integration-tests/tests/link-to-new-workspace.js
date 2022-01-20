@@ -9,7 +9,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
   await waitForNoSpinners(page)
 
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
-  await clickTableCell(page, "dataset list", 2, 2)
+  await clickTableCell(page, 'dataset list', 2, 2)
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Link to a workspace' }))
   await waitForNoSpinners(page)
@@ -26,8 +26,8 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
     await page.url().includes(newWorkspaceName)
   } finally {
     await page.evaluate((name, billingProject) => {
-        return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-      }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
   }
 
 })

@@ -22,10 +22,10 @@ const withSignedInPage = fn => async options => {
 
 const clipToken = str => str.toString().substr(-10, 10)
 
-const testWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 100000)}`
+const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 100000)}`
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
-  const workspaceName = testWorkspaceName()
+  const workspaceName = getTestWorkspaceName()
   await page.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
@@ -190,7 +190,7 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   enableDataCatalog,
-  testWorkspaceName,
+  testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,
   withUser,
