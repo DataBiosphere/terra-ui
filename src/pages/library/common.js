@@ -151,7 +151,13 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
             }
           }, [String.fromCharCode(index)]), _.range(65, 65 + 26))
         ),
-        h(Link, { onClick: () => { setFilterType(filterOptions.input) }, 'aria-label': 'Search by text input' }, [
+        h(Link, {
+          onClick: () => {
+            setFilteredBy()
+            setFilterType(filterOptions.input)
+            setFilteredLabels(labels)
+          }, 'aria-label': 'Search by text input'
+        }, [
           span({ className: 'fa-stack fa-2x' }, [
             icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
             icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
@@ -165,7 +171,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
             setFilteredBy()
             setFilteredLabels(labels)
           }
-        }, ['Clear selection'])
+        }, ['Clear filter'])
       ]),
       filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
         h(DelayedSearchInput, {
@@ -180,7 +186,13 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
             setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
           }
         }),
-        h(Link, { style: { fontSize: '1rem' }, onClick: () => { setFilterType(filterOptions.alpha) } }, ['Close search'])
+        h(Link, {
+          style: { fontSize: '1rem' }, onClick: () => {
+            setFilterSearchText('')
+            setFilteredLabels(labels)
+            setFilterType(filterOptions.alpha)
+          }
+        }, ['Close search'])
       ]),
       div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
         div({
@@ -199,7 +211,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
               },
               style: { position: 'absolute', left: -25, top: 2 }
             }, [
-              div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start' } }, [
+              div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', lineHeight: '1.4rem' } }, [
                 span([label]),
                 span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
               ])
