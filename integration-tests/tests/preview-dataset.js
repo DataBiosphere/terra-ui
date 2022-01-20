@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
+const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
 
 const datasetName = 'Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics'
 

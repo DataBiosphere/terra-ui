@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
+const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
 
 
 const testRequestAccessFn = _.flow(
