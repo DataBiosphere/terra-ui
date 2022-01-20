@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
-import marked from 'marked'
+import { marked } from 'marked'
 import { lazy, Suspense } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
