@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import pluralize from 'pluralize'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
@@ -131,12 +132,16 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
       h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
       filterType === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
         h(Link, {
-          style: { marginLeft: 20, fontWeight: 'bold', fontSize: '1rem', background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', padding: 5, borderRadius: 10 },
+          style: {
+            marginLeft: 20, padding: 5,
+            fontWeight: 'bold', fontSize: '1rem', textTransform: 'capitalize',
+            background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', borderRadius: 10
+          },
           onClick: () => {
             setFilteredBy('top')
             setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
           }
-        }, [`Top ${name}s`]),
+        }, [`Top ${pluralize(name)}`]),
         div({ style: { width: '100%', maxWidth: 600, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', fontSize: '1rem' } },
           _.map(index => h(Link, {
             style: {
