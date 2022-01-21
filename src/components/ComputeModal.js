@@ -46,6 +46,12 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
 // Enums -- start
+const runtimeTypes = {
+  standardVm: { displayName: 'Standard VM', isDataproc: false, isCluster: false },
+  sparkMasterNode: { displayName: 'Spark master node', isDataproc: true, isDataprocCluster: false },
+  sparkCluster: { displayName: 'Spark cluster', isDataproc: true, isDataprocCluster: true }
+}
+
 const sparkInterfaces = {
   yarn: {
     label: 'yarn',
