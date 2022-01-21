@@ -46,13 +46,13 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
 // Enums -- start
-const runtimeTypes = {
+const runtimeType = {
   standardVm: { displayName: 'Standard VM', isDataproc: false, isCluster: false },
   sparkMasterNode: { displayName: 'Spark master node', isDataproc: true, isDataprocCluster: false },
   sparkCluster: { displayName: 'Spark cluster', isDataproc: true, isDataprocCluster: true }
 }
 
-const sparkInterfaces = {
+const sparkInterface = {
   yarn: {
     label: 'yarn',
     displayName: 'YARN Resource Manager',
@@ -1542,10 +1542,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
          resources and facilities, such as the YARN resource manager, the Hadoop Distributed
          File System (HDFS), MapReduce, and Spark.`
       ]),
-      h(SparkInterface, { sparkInterface: sparkInterfaces.yarn, namespace, name, onDismiss }),
-      h(SparkInterface, { sparkInterface: sparkInterfaces.appHistory, namespace, name, onDismiss }),
-      h(SparkInterface, { sparkInterface: sparkInterfaces.sparkHistory, namespace, name, onDismiss }),
-      h(SparkInterface, { sparkInterface: sparkInterfaces.jobHistory, namespace, name, onDismiss })
+      h(SparkInterface, { sparkInterface: sparkInterface.yarn, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterface.appHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterface.sparkHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterface.jobHistory, namespace, name, onDismiss })
     ])
   }
 
