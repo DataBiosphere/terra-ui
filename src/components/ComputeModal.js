@@ -194,11 +194,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     computeZone: defaultComputeZone
   })
   // State -- end
-
   const isPersistentDisk = shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
-  const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+  const { version, updated, packages, requiresSpark, isRStudio,label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
   const minRequiredMemory = sparkMode ? 7.5 : 3.75
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
@@ -953,8 +952,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     },
                     options: [
                       { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                      { value: 'master', label: 'Spark master node' },
-                      { value: 'cluster', label: 'Spark cluster' }
+                      { value: 'master', label: 'Spark master node', isDisabled: isRStudio },
+                      { value: 'cluster', label: 'Spark cluster', isDisabled: isRStudio }
                     ]
                   })
                 ]),
