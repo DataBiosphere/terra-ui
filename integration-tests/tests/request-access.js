@@ -1,24 +1,13 @@
 const _ = require('lodash/fp')
-const { signIntoTerra, checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
+const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { dismissNotifications } = require('../utils/integration-utils')
 
 
 const testRequestAccessFn = _.flow(
   withUserToken
 )(async ({ testUrl, page, token }) => {
-  await page.goto(testUrl)
-  await waitForNoSpinners(page)
-
-  await findText(page, 'Browse Data')
-
-  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
-  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
-
-  await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-
+  await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
   await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
