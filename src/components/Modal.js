@@ -55,7 +55,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement
       nodeToFocus.focus()
     },
-    style: { overlay: styles.overlay, content: { ...styles.modal, width, ...props.styles.modal } },
+    style: { overlay: styles.overlay, content: { ...styles.modal, width, ...props.styles?.modal } },
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
@@ -68,7 +68,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       }, [icon(xIcon)])
     ]),
     children,
-    showButtons && div({ style: { ...styles.buttonRow, ...props.styles.buttonRow } }, [
+    showButtons && div({ style: { ...styles.buttonRow, ...props.styles?.buttonRow } }, [
       showCancel ?
         h(ButtonSecondary, {
           style: { marginRight: '1rem' },
