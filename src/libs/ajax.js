@@ -482,7 +482,8 @@ const Groups = signal => ({
       },
 
       isMember: async () => {
-        await fetchSam(`${resourceRoot}/action/use`, _.merge(authOpts(), { signal }))
+        const res = await fetchSam(`${resourceRoot}/action/use`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }
