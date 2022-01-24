@@ -61,6 +61,85 @@ const computeLabels = (allLabels, selectedLabels) => _.flow(
   _.uniq
 )(selectedLabels)
 
+const FilterBar = ({ name, onSearch, onClear, onFilterByLetter, onFilterBySearchText, onSortBy }) => {
+  const filterOptions = { alpha: 1, input: 2 }
+  const [filterSearchText, setFilterSearchText] = useState('')
+  const [filteredBy, setFilteredBy] = useState()
+  const [filterType, setFilterType] = useState(filterOptions.alpha)
+
+  return h(Fragment, [
+    filterType === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+      h(Link, {
+        style: {
+          marginLeft: 20, padding: 5,
+          fontWeight: 'bold', fontSize: '1rem', textTransform: 'capitalize',
+          background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', borderRadius: 10
+        },
+        onClick: () => {
+          setFilteredBy('top')
+          onSortBy('top')
+        }
+      }, [`Top ${pluralize(name)}`]),
+      div({ style: { width: '100%', maxWidth: 600, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', fontSize: '1rem' } },
+        _.map(index => h(Link, {
+          style: {
+            fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
+            background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
+          },
+          'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+          onClick: () => {
+            const charFromCode = String.fromCharCode(index)
+            setFilteredBy(charFromCode)
+            onFilterByLetter(charFromCode)
+          }
+        }, [String.fromCharCode(index)]), _.range(65, 65 + 26))
+      ),
+      h(Link, {
+        onClick: () => {
+          setFilteredBy()
+          setFilterType(filterOptions.input)
+          onClear()
+        }, 'aria-label': 'Search by text input'
+      }, [
+        span({ className: 'fa-stack fa-2x' }, [
+          icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
+          icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
+        ])
+      ])
+    ]),
+    filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
+      h(Link, {
+        style: { fontSize: '1rem' },
+        onClick: () => {
+          setFilteredBy()
+          onClear()
+        }
+      }, ['Clear filter'])
+    ]),
+    filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
+      h(DelayedSearchInput, {
+        style: { borderRadius: 25, borderColor: colors.dark(0.2), width: '100%', maxWidth: 575, height: '3rem', marginRight: 20 },
+        debounceMs: 25,
+        value: filterSearchText,
+        'aria-label': `Search for ${name} filter options`,
+        placeholder: 'Search keyword',
+        icon: 'search',
+        onChange: searchText => {
+          setFilterSearchText(searchText)
+          onFilterBySearchText(searchText)
+        }
+      }),
+      h(Link, {
+        style: { fontSize: '1rem' }, onClick: () => {
+          setFilterSearchText('')
+          setFilterType(filterOptions.alpha)
+          onClear()
+        }
+      }, ['Close search'])
+    ])
+  ])
+}
+
 const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
   // State
   const [showAll, setShowAll] = useState(false)
@@ -68,14 +147,10 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
   const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
 
   // Filter Modal Vars
-  const filterOptions = { alpha: 1, input: 2 }
   const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
   const [filterChanges, setFilterChanges] = useState({})
   const [filteredTags, setFilteredTags] = useState({})
   const [filteredLabels, setFilteredLabels] = useState(labels)
-  const [filteredBy, setFilteredBy] = useState()
-  const [filterType, setFilterType] = useState(filterOptions.alpha)
-  const [filterSearchText, setFilterSearchText] = useState('')
 
   //Render
   return h(Fragment, [
@@ -124,81 +199,23 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setShowAll(false)
         _.forEach(onTagFilter, filterChanges)
         setFilterChanges({})
-        setFilterSearchText('')
         setFilteredLabels(labels)
-        setFilterType(filterOptions.alpha)
       }
     }, [
       h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
-      filterType === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-        h(Link, {
-          style: {
-            marginLeft: 20, padding: 5,
-            fontWeight: 'bold', fontSize: '1rem', textTransform: 'capitalize',
-            background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', borderRadius: 10
-          },
-          onClick: () => {
-            setFilteredBy('top')
+      h(FilterBar, {
+        name,
+        onClear: () => { setFilteredLabels(labels) },
+        onSortBy: sort => {
+          if (sort === 'top') {
             setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
           }
-        }, [`Top ${pluralize(name)}`]),
-        div({ style: { width: '100%', maxWidth: 600, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', fontSize: '1rem' } },
-          _.map(index => h(Link, {
-            style: {
-              fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
-              background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
-            },
-            'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
-            onClick: () => {
-              const charFromCode = String.fromCharCode(index)
-              setFilteredBy(charFromCode)
-              setFilteredLabels(labelsByFirstChar[charFromCode])
-            }
-          }, [String.fromCharCode(index)]), _.range(65, 65 + 26))
-        ),
-        h(Link, {
-          onClick: () => {
-            setFilteredBy()
-            setFilterType(filterOptions.input)
-            setFilteredLabels(labels)
-          }, 'aria-label': 'Search by text input'
-        }, [
-          span({ className: 'fa-stack fa-2x' }, [
-            icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
-            icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
-          ])
-        ])
-      ]),
-      filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
-        h(Link, {
-          style: { fontSize: '1rem' },
-          onClick: () => {
-            setFilteredBy()
-            setFilteredLabels(labels)
-          }
-        }, ['Clear filter'])
-      ]),
-      filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
-        h(DelayedSearchInput, {
-          style: { borderRadius: 25, borderColor: colors.dark(0.2), width: '100%', maxWidth: 575, height: '3rem', marginRight: 20 },
-          debounceMs: 25,
-          value: filterSearchText,
-          'aria-label': `Search for ${name} filter options`,
-          placeholder: 'Search keyword',
-          icon: 'search',
-          onChange: searchText => {
-            setFilterSearchText(searchText)
-            setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
-          }
-        }),
-        h(Link, {
-          style: { fontSize: '1rem' }, onClick: () => {
-            setFilterSearchText('')
-            setFilteredLabels(labels)
-            setFilterType(filterOptions.alpha)
-          }
-        }, ['Close search'])
-      ]),
+        },
+        onFilterByLetter: letter => { setFilteredLabels(labelsByFirstChar[letter]) },
+        onFilterBySearchText: searchText => {
+          setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
+        }
+      }),
       div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
         div({
           style: {
