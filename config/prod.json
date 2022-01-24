@@ -21,5 +21,6 @@
     "appId": "saturnprod-VuHKy",
     "apiKey": "AQEBBAEGP2gTM2pIdJAQOIeNrm8dcTM7E4FMSmaibbMUQxNU6qy6nLPOBK8QfSvPFSsX8PQ"
   },
-  "tosUrlRoot": "https://us-central1-broad-workbench-tos-prod.cloudfunctions.net/tos"
+  "tosUrlRoot": "https://us-central1-broad-workbench-tos-prod.cloudfunctions.net/tos",
+  "alphaSpendReportGroup": "Alpha_Spend_Report_Users@firecloud.org"
 }
