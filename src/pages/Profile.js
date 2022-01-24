@@ -5,7 +5,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay,
+  UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -15,9 +16,11 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import allProviders from 'src/libs/providers'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -93,12 +96,12 @@ const SpacedSpinner = ({ children }) => {
 
 const NihLink = ({ nihToken }) => {
   // State
-  const { nihStatus } = Utils.useStore(authStore)
+  const { nihStatus } = useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const linkNihAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setIsLinking)
@@ -186,7 +189,7 @@ const NihLink = ({ nihToken }) => {
 
 const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
-  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
+  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
 
 
@@ -195,7 +198,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true })
     const extractedProvider = state ? JSON.parse(atob(state)).provider : ''
     const token = key === extractedProvider ? code : undefined
@@ -244,15 +247,87 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
 }
 
 
+const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyName }) => {
+  const signal = useCancellation()
+  const [accountInfo, setAccountInfo] = useState()
+  const [passport, setPassport] = useState()
+  const [authUrl, setAuthUrl] = useState()
+
+  useOnMount(() => {
+    const loadAuthUrl = withErrorReporting(`Error loading ${prettyName} account link URL`, async () => {
+      setAuthUrl(await Ajax(signal).User.externalAccount(provider).getAuthUrl())
+    })
+    const loadAccount = withErrorReporting(`Error loading ${prettyName} account`, async () => {
+      setAccountInfo(await Ajax(signal).User.externalAccount(provider).get())
+    })
+    const loadPassport = withErrorReporting(`Error loading ${prettyName} passport`, async () => {
+      setPassport(await Ajax(signal).User.externalAccount(provider).getPassport())
+    })
+    const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async code => {
+      setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+      loadPassport()
+    })
+
+    loadAuthUrl()
+
+    if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(state)).provider === provider) {
+      window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
+      linkAccount(code)
+    } else {
+      loadAccount()
+      loadPassport()
+    }
+  })
+
+  const unlinkAccount = withErrorReporting(`Error unlinking ${prettyName} account`, async () => {
+    setAccountInfo(undefined)
+    await Ajax().User.externalAccount(provider).unlink()
+    setAccountInfo(null)
+  })
+
+  return div({ style: styles.idLink.container }, [
+    div({ style: styles.idLink.linkContentTop(false) }, [
+      h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [prettyName]),
+      Utils.cond(
+        [accountInfo === undefined, () => h(SpacedSpinner, ['Loading account status...'])],
+        [accountInfo === null, () => {
+          return div([h(ButtonPrimary, { href: authUrl, ...Utils.newTabLinkProps }, [`Link your ${prettyName} account`])])
+        }],
+        () => {
+          const { externalUserId, expirationTimestamp } = accountInfo
+
+          return h(Fragment, [
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+              externalUserId
+            ]),
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(expirationTimestamp)])
+            ]),
+            div([
+              h(Link, { 'aria-label': `Renew your ${prettyName} link`, href: authUrl }, ['Renew']),
+              span({ style: { margin: '0 0.25rem 0' } }, [' | ']),
+              h(Link, { 'aria-label': `Unlink from ${prettyName}`, onClick: unlinkAccount }, ['Unlink'])
+            ]),
+            !!passport && div([h(ClipboardButton, { text: passport }, ['Copy passport to clipboard'])])
+          ])
+        }
+      )
+    ])
+  ])
+}
+
+
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
-const Profile = ({ queryParams = {} }) => {
+const Profile = ({ queryParams }) => {
   // State
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
   const [saving, setSaving] = useState()
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -297,7 +372,7 @@ const Profile = ({ queryParams = {} }) => {
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadProxyGroup = async () => {
       setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
     }
@@ -412,8 +487,9 @@ const Profile = ({ queryParams = {} }) => {
           ]),
           div({ style: { margin: '0 2rem 0' } }, [
             sectionTitle('External Identities'),
-            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
+            h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
+            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
+            !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
           ])
         ])
       ])

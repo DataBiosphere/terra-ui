@@ -3,9 +3,7 @@ import { Fragment, useRef, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import {
-  Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
-} from 'src/components/common'
+import { Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -22,6 +20,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -119,7 +118,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openSupportMenu, setOpenSupportMenu] = useState(false)
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
-  const authState = Utils.useStore(authStore)
+  const authState = useStore(authStore)
 
   const showNav = () => {
     setNavShown(true)
@@ -242,17 +241,27 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
               },
               ...Utils.newTabLinkProps
-            }, ['Tutorials and Videos']),
+            }, ['Quickstart Guide']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/hc/en-us',
+              href: 'https://support.terra.bio/',
               onClick: hideNav,
               ...Utils.newTabLinkProps
-            }, ['How-to Guides']),
+            }, ['Terra Support Home']),
             isBaseline() && h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/sections/360010495892-Baseline',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Baseline Documentation']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/4408259082139-Tutorials',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Tutorials']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/4408259363739',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Videos']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
               onClick: hideNav,
@@ -275,7 +284,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               }
             }, ['Contact Us']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/hc/en-us/sections/360003424251-Release-Notes',
+              href: 'https://support.terra.bio/hc/en-us/sections/4408360527259',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Release Notes'])
@@ -407,7 +416,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { email, firstName, lastName } } = Utils.useStore(authStore)
+  const { profile: { email, firstName, lastName } } = useStore(authStore)
   const currUrl = window.location.href
 
   const returnToLegacyFC = _.flow(

@@ -13,7 +13,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -98,7 +98,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
           Utils.switchCase(access,
             [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-              onClick: () => setShowRequestAccessModal(true)
+              onClick: () => {
+                setShowRequestAccessModal(true)
+                Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                  snapshotId: _.get('dct:identifier', snapshot),
+                  snapshotName: snapshot['dct:title']
+                })
+              }
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
@@ -107,7 +113,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
-            [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
+            [Utils.DEFAULT, () => div({ style: { color: styles.access.granted } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Granted Access'
             ])])
@@ -148,6 +154,8 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
       ])
     ]),
     h(ButtonOutline, {
+      disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -163,6 +171,8 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
       ])
     ]),
     h(ButtonPrimary, {
+      disabled: snapshot.access !== snapshotAccessTypes.GRANTED,
+      tooltip: snapshot.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
         Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {

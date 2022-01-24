@@ -20,6 +20,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -48,11 +49,11 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
 
 const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
   const [workspace, setWorkspace] = useState(undefined)
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
     setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare']))
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadWorkspace()
   })
 
@@ -101,7 +102,7 @@ export const WorkspaceList = () => {
 
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadFeatured = async () => {
       setFeaturedList(await Ajax().Buckets.getFeaturedWorkspaces())
     }
@@ -213,7 +214,7 @@ export const WorkspaceList = () => {
               ]),
               div({ style: styles.tableCellContent }, [
                 span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
-                  description?.split('\n')[0] || 'No description added'
+                  description?.toString().split('\n')[0] || 'No description added'
                 ])
               ])
             ])

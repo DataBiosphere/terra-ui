@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
+import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -14,7 +14,7 @@ import * as StateHistory from 'src/libs/state-history'
 
 export const commonStyles = {
   access: {
-    open: colors.success(1.5),
+    granted: colors.success(1.5),
     controlled: colors.accent(),
     pending: '#F7981C'
   }
@@ -25,7 +25,7 @@ const styles = {
     fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: 0
   },
   nav: {
     navSection: {
@@ -36,8 +36,9 @@ const styles = {
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
+    fontSize: '0.875rem',
     backgroundColor: 'white',
-    ...(highlight ? { color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary() } : {})
+    ...(highlight ? { color: 'white', backgroundColor: colors.primary(1.5), borderColor: colors.primary(1.5), fontWeight: 'bold' } : {})
   })
 }
 
@@ -47,6 +48,48 @@ const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
   _.fromPairs
 )(sidebarSections)
+
+const numLabelsToRender = 5
+// Takes the top n labels and appends any labels selected by the user to the list
+// When filter options are hidden (e.g. long lists), this will keep user selected items in view
+const computeLabels = (allLabels, selectedLabels) => _.flow(
+  _.intersection(allLabels),
+  _.concat(_.take(numLabelsToRender, allLabels)),
+  _.uniq
+)(selectedLabels)
+
+const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
+  // State
+  const [showAll, setShowAll] = useState(false)
+  const lowerSelectedTags = _.map('lowerTag', selectedTags)
+  const labelsToDisplay = showAll ? labels : computeLabels(labels, _.map('label', selectedTags))
+
+  //Render
+  return h(Fragment, [
+    _.map(label => {
+      const lowerTag = _.toLower(label)
+      const isChecked = _.includes(lowerTag, lowerSelectedTags)
+      const numMatches = _.size(listDataByTag[lowerTag])
+      return h(Clickable, {
+        'aria-checked': isChecked,
+        role: 'checkbox',
+        key: label,
+        style: {
+          display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+          paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+        },
+        onClick: () => onTagFilter({ lowerTag, label })
+      }, [
+        div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
+        div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
+      ])
+    }, labelsToDisplay),
+    _.size(labels) > numLabelsToRender && h(Link, {
+      style: { display: 'block', textAlign: 'center' },
+      onClick: () => setShowAll(!showAll)
+    }, [`See ${showAll ? 'less' : 'more'}`])
+  ])
+}
 
 const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
   const unionSectionWorkspacesCount = ({ tags }) => _.flow(
@@ -74,20 +117,9 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
-        }, [_.map(label => {
-          const tag = _.toLower(label)
-          return h(Clickable, {
-            key: label,
-            style: {
-              display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
-              paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
-            },
-            onClick: () => onTagFilter(tag)
-          }, [
-            div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
-          ])
-        }, labels)])
+        }, [
+          h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+        ])
     }, sections)
   ])
 }
@@ -114,13 +146,16 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ]
 }
 
-export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, children }) => {
+export const SearchAndFilterComponent = ({
+  fullList, sidebarSections, customSort, searchType,
+  titleField = 'name', descField = 'description', children
+}) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const filterRegex = new RegExp(`(${searchFilter})`, 'i')
+  const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
   const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(fullList, sidebarSections))
 
@@ -160,8 +195,8 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         return listData
       } else {
         return _.reduce(
-          (acc, tag) => _.intersection(listDataByTag[tag], acc),
-          listDataByTag[_.head(selectedTags)],
+          (acc, { lowerTag }) => _.intersection(listDataByTag[lowerTag], acc),
+          listDataByTag[_.head(selectedTags).lowerTag],
           _.tail(selectedTags)
         )
       }
@@ -207,7 +242,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         alignItems: 'baseline'
       }
     }, [
-      div({ style: styles.sidebarRow }, [
+      h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
         div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
       ]),
@@ -228,7 +263,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
         placeholder: 'Search Name or Description',
-        itemToString: v => v['dct:title'],
+        itemToString: v => v[titleField],
         onChange: onSearchChange,
         suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
         renderSuggestion: suggestion => {
@@ -239,10 +274,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
               maybeMatch => {
                 return _.size(maybeMatch) < 2 ? [
                   _.truncate({ length: 90 }, _.head(maybeMatch)),
-                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])
+                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
                 ] : maybeMatch
               }
-            )(suggestion['dct:title'])
+            )(suggestion[titleField])
           )
         },
         suggestions: filteredData
@@ -270,9 +305,9 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: tag => {
-            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag })
-            setSelectedTags(_.xor([tag]))
+          onTagFilter: ({ lowerTag, label }) => {
+            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
+            setSelectedTags(_.xorBy('lowerTag', [{ lowerTag, label }]))
           },
           sections,
           selectedSections,

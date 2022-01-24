@@ -18,6 +18,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -157,7 +158,7 @@ const WorkspaceSelectorPanel = ({
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 
@@ -314,7 +315,7 @@ const WorkspaceSelectorPanel = ({
 }
 
 const CollectionSelectorPanel = _.flow(
-  Utils.withDisplayName('CollectionSelectorPanel'),
+  withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
   workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
@@ -326,11 +327,11 @@ const CollectionSelectorPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   // Helpers
   const load = _.flow(
@@ -350,7 +351,7 @@ const CollectionSelectorPanel = _.flow(
   })
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     load()
   })
 
@@ -410,14 +411,14 @@ const CollectionSelectorPanel = _.flow(
 })
 
 const DataUploadPanel = _.flow(
-  Utils.withDisplayName('DataUploadPanel'),
+  withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({ workspace, onRequesterPaysError, collection, setNumFiles, children }) => {
   const basePrefix = `${rootPrefix}${collection}/`
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 
@@ -443,7 +444,7 @@ const DataUploadPanel = _.flow(
 })
 
 const MetadataUploadPanel = _.flow(
-  Utils.withDisplayName('MetadataUploadPanel'),
+  withDisplayName('MetadataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
   workspace, workspace: { workspace: { namespace, googleProject, bucketName, name } },
@@ -466,11 +467,11 @@ const MetadataUploadPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   // Get every filename in the bucket, so we can do substitutions
   useEffect(() => {
@@ -689,7 +690,7 @@ const MetadataUploadPanel = _.flow(
 const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep }) => {
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     header.current?.focus()
   })
 
@@ -730,7 +731,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
 }
 
 const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
-  Utils.forwardRefWithName('Upload')
+  forwardRefWithName('Upload')
 )((props, ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
 

@@ -1,6 +1,7 @@
+const rawConsole = require('console')
 const _ = require('lodash/fp')
 const { Storage } = require('@google-cloud/storage')
-const { screenshotBucket, screenshotDir } = require('../utils/integration-config')
+const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
@@ -31,13 +32,42 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const clickable = ({ text, textContains }) => {
-  const base = '(//a | //button | //*[@role="button"] | //*[@role="link"])'
+const getClickablePath = (path, text, textContains, isDescendant=false) => {
+  const base = `${path}${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
     return `${base}[contains(normalize-space(.),"${textContains}") or contains(@title,"${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]/@id]`
   }
+}
+
+const clickable = ({ text, textContains, isDescendant = false}) => {
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const checkbox = ({ text, textContains, isDescendant = false}) => {
+  const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const getTableCellPath = (tableName, row, column) => {
+  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
+}
+
+const getTableHeaderPath = (tableName, column) => {
+  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][1]//*[@role="columnheader"][${column}]`
+}
+
+const findTableCellText = async (page, path, textContains, options) => {
+  const xpath = `${path}[contains(normalize-space(.),"${textContains}")]`
+  return (await page.waitForXPath(xpath, options))
+}
+
+const clickTableCell = async (page, tableName, row, column, options) => {
+  const tableCellPath = getTableCellPath(tableName, row, column)
+  const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
 const click = async (page, xpath, options) => {
@@ -95,7 +125,8 @@ const delay = ms => {
 
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+  const notificationCloseButtons = await page.$x(
+    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
 
   await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
@@ -111,6 +142,24 @@ const signIntoTerra = async (page, token) => {
 }
 
 const findElement = (page, xpath, options) => {
+  return page.waitForXPath(xpath, options)
+}
+
+const heading = ({ level, text, textContains, isDescendant = false }) => {
+  const tag = `h${level}`
+  const aria = `*[@role="heading" and @aria-level=${level}]`
+  const textExpression = `${isDescendant ? '//*' : ''}[normalize-space(.)="${text}"]`
+  const textContainsExpression = `${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+
+  // These are a bit verbose because the ancestor portion of the expression does not handle 'or' cases
+  if (text) {
+    return `(//${tag}${textExpression}//ancestor-or-self::${tag} | //${aria}${textExpression}//ancestor-or-self::${aria})`
+  } else if (textContains) {
+    return `(//${tag}${textContainsExpression}//ancestor-or-self::${tag} | //${aria}${textContainsExpression}//ancestor-or-self::${aria})`
+  }
+}
+
+const findHeading = (page, xpath, options) => {
   return page.waitForXPath(xpath, options)
 }
 
@@ -141,49 +190,80 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
+const maybeSaveScreenshot = async (page, testName) => {
+  if (!screenshotDirPath) { return }
+  try {
+    const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
+
+    await page.screenshot({ path, fullPage: true })
+
+    const errorsPresent = await openError(page)
+
+    if (errorsPresent) {
+      await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
+    }
+
+    if (screenshotBucket) {
+      const storage = new Storage()
+      await storage.bucket(screenshotBucket).upload(path)
+      if (errorsPresent) {
+        await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
+      }
+    }
+  } catch (e) {
+    rawConsole.error('Failed to capture screenshot', e)
+  }
+}
+
 const withScreenshot = _.curry((testName, fn) => async options => {
-  const { page } = options
   try {
     return await fn(options)
   } catch (e) {
-    if (screenshotDir) {
-      try {
-        const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
-        const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
-
-        await page.screenshot({ path, fullPage: true })
-
-        const errorsPresent = await openError(page)
-
-        if (errorsPresent) {
-          await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
-        }
-
-        if (screenshotBucket) {
-          const storage = new Storage()
-          await storage.bucket(screenshotBucket).upload(path)
-          if (errorsPresent) {
-            await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
-          }
-        }
-      } catch (e) {
-        console.error('Failed to capture screenshot', e)
-      }
-    }
+    await maybeSaveScreenshot(options.page, testName)
     throw e
   }
 })
 
+const logPageConsoleMessages = page => {
+  const handle = msg => console.log('page.console', msg.text(), msg)
+  page.on('console', handle)
+  return () => page.off('console', handle)
+}
+
+const logPageAjaxResponses = page => {
+  const handle = res => {
+    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+  }
+  page.on('response', handle)
+  return () => page.off('response', handle)
+}
+
+const withPageLogging = fn => options => {
+  const { page } = options
+  logPageAjaxResponses(page)
+  // Leaving console logging off for now since it is mostly request failures already logged above.
+  // logPageConsoleMessages(page)
+  return fn(options)
+}
+
 module.exports = {
+  checkbox,
   click,
   clickable,
+  clickTableCell,
   dismissNotifications,
   findIframe,
   findInGrid,
   findElement,
+  findHeading,
   findText,
   fillIn,
   fillInReplace,
+  findTableCellText,
+  getTableCellPath,
+  getTableHeaderPath,
+  heading,
   input,
   select,
   svgText,
@@ -194,5 +274,8 @@ module.exports = {
   elementInDataTableRow,
   findInDataTableRow,
   withScreenshot,
+  logPageConsoleMessages,
+  logPageAjaxResponses,
+  withPageLogging,
   openError
 }

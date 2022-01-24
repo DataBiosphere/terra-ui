@@ -4,12 +4,13 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
 const FirecloudNotification = () => {
   const { query } = Nav.useRoute()
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     if (_.has('fcredir', query)) {
       notify('welcome', div({ style: { fontSize: 14 } }, [
         div(['Welcome to the new FireCloud interface, powered by Terra. All of your workspaces are available.']),

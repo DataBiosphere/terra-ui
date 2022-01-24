@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
-const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
+const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, dismissNotifications, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -17,6 +17,8 @@ const testRunWorkflowFn = _.flow(
   await dismissNotifications(page)
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
+  // Wait for bucket access to avoid sporadic failure when launching workflow.
+  await checkBucketAccess(page, billingProject, workspaceName)
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await waitForNoSpinners(page)
@@ -39,10 +41,14 @@ const testRunWorkflowFn = _.flow(
   await click(page, clickable({ text: 'OK' }))
   await click(page, clickable({ text: 'Run analysis' }))
 
+  // If general ajax logging is disabled, uncomment the following to debug the sporadically failing
+  // checkBucketAccess call.
+  // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
   await Promise.all([
     page.waitForNavigation(),
     click(page, clickable({ text: 'Launch' }))
   ])
+  // stopLoggingPageAjaxResponses()
 
   await pRetry(async () => {
     try {

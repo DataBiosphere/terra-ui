@@ -142,6 +142,7 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -352,6 +353,49 @@ const User = signal => ({
 
   unlinkFenceAccount: provider => {
     return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+  },
+
+  externalAccount: provider => {
+    const root = `api/oidc/v1/${provider}`
+    const queryParams = {
+      scopes: ['openid', 'email', 'ga4gh_passport_v1'],
+      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
+      state: btoa(JSON.stringify({ provider }))
+    }
+
+    return {
+      get: async () => {
+        try {
+          const res = await fetchEcm(root, _.merge(authOpts(), { signal }))
+          return res.json()
+        } catch (error) {
+          if (error.status === 404) {
+            return null
+          } else {
+            throw error
+          }
+        }
+      },
+
+      getAuthUrl: async () => {
+        const res = await fetchEcm(`${root}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      getPassport: async () => {
+        const res = await fetchEcm(`${root}/passport`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      linkAccount: async oauthcode => {
+        const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
+        return res.json()
+      },
+
+      unlink: () => {
+        return fetchEcm(root, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      }
+    }
   },
 
   isUserRegistered: async email => {
@@ -627,7 +671,7 @@ const Workspaces = signal => ({
       },
 
       updateAcl: async (aclUpdates, inviteNew = true) => {
-        const res = await fetchRawls(`${root}/acl?inviteUsersNotFound=${inviteNew}`,
+        const res = await fetchOrchestration(`api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
         return res.json()
       },
@@ -862,8 +906,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importPFB: async url => {
-        const res = await fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -874,7 +918,7 @@ const Workspaces = signal => ({
 
       listImportJobs: async isRunning => {
         // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
-        const res = await fetchOrchestration(`api/${root}/importPFB?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
+        const res = await fetchOrchestration(`api/${root}/importJob?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -926,9 +970,15 @@ const Workspaces = signal => ({
 
 
 const DataRepo = signal => ({
-  getMetadata: async () => {
+  getSnapshots: async () => {
     const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
-    return res.json()
+    //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
+    return _.map(snapshot => snapshot['dct:title'].length % 2 === 0 ?
+      {
+        ...snapshot,
+        roles: ['discoverer'],
+        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC'
+      } : snapshot, (await res.json())?.result)
   },
 
   snapshot: snapshotId => {
@@ -943,6 +993,16 @@ const DataRepo = signal => ({
   requestAccess: async id => {
     //TODO: Update this link to hit the real endpoint
     const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getPreviewMetadata: async id => {
+    const res = await fetchDataRepo(`repository/v1/snapshots/${id}?include=TABLES,DATA_PROJECT`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getPreviewTable: async ({ id, table, offset, limit }) => {
+    const res = await fetchDataRepo(`repository/v1/snapshots/${id}/data/${table}?limit=${limit}&offset=${offset}`, _.merge(authOpts(), { signal }))
     return res.json()
   }
 })

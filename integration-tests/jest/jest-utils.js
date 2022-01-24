@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { defaultTimeout } = require('../utils/integration-helpers')
-const { withScreenshot } = require('../utils/integration-utils')
+const { withScreenshot, withPageLogging } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
 
 
@@ -16,8 +16,15 @@ const {
 
 const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
 
-const registerTest = ({ fn, name, timeout = defaultTimeout }) => {
-  return test(name, () => withScreenshot(name)(fn)({ context, page, ...targetEnvParams }), timeout)
+const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments = _.keys(envs) }) => {
+  return _.includes(environment, targetEnvironments) ? test(
+    name,
+    () => withPageLogging(withScreenshot(name)(fn))({ context, page, ...targetEnvParams }),
+    timeout
+  ) : test(
+    name,
+    () => console.log(`Skipping ${name} as it is not configured to run on the ${environment} environment`),
+    timeout)
 }
 
 module.exports = { registerTest }

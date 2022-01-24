@@ -5,14 +5,19 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig, isDataBrowserVisible } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
-  OPEN: 'Granted',
+  GRANTED: 'Granted',
   PENDING: 'Pending'
+}
+
+export const uiMessaging = {
+  controlledFeature_tooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
 }
 
 export const snapshotReleasePolicies = {
@@ -75,7 +80,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.OPEN : snapshotAccessTypes.CONTROLLED
+    access: _.intersection(snapshot.roles, ['reader', 'owner']).length > 0 ? snapshotAccessTypes.GRANTED : snapshotAccessTypes.CONTROLLED
   }
 }
 
@@ -96,23 +101,23 @@ const extractTags = snapshot => {
 }
 
 export const useDataCatalog = () => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const [loading, setLoading] = useState(false)
-  const dataCatalog = Utils.useStore(dataCatalogStore)
+  const dataCatalog = useStore(dataCatalogStore)
 
   const refresh = _.flow(
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const metadata = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getMetadata()
+    const snapshots = !isDataBrowserVisible() ? {} : await Ajax(signal).DataRepo.getSnapshots()
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-    }, metadata?.result)
+    }, snapshots)
 
     dataCatalogStore.set(normList)
   })
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }

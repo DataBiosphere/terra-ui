@@ -2,8 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
-  Switch
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -21,6 +20,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
+import { useCancellation } from 'src/libs/react-utils'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -473,7 +473,9 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
   const initialType = Utils.cond(
     [initialIsReference, () => 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
+    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
+    // eslint-disable-next-line eqeqeq
+    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   )
@@ -491,7 +493,9 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   ))
   const [editType, setEditType] = useState(() => Utils.cond(
     [initialIsReference, () => 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
+    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
+    // eslint-disable-next-line eqeqeq
+    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   ))
@@ -701,7 +705,7 @@ export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, colu
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const deleteColumn = async () => {
     try {

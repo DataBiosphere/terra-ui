@@ -21,12 +21,14 @@ export const computeStyles = {
   warningView: { backgroundColor: colors.warning(0.1) }
 }
 
-export const defaultDataprocDiskSize = 100 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+// Dataproc clusters don't have persistent disks.
+export const defaultDataprocMasterDiskSize = 100
+export const defaultDataprocWorkerDiskSize = 150
 export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
 
 export const defaultGceMachineType = 'n1-standard-1'
-export const defaultDataprocMachineType = 'n1-standard-2'
+export const defaultDataprocMachineType = 'n1-standard-4'
 export const defaultNumDataprocWorkers = 2
 export const defaultNumDataprocPreemptibleWorkers = 0
 
@@ -61,11 +63,11 @@ export const normalizeRuntimeConfig = ({
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
+    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || defaultDataprocDiskSize,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || defaultDataprocWorkerDiskSize,
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
@@ -84,7 +86,8 @@ export const getValidGpuTypesForZone = zone => {
 
 export const getValidGpuTypes = (numCpus, mem, zone) => {
   const validGpuTypesForZone = getValidGpuTypesForZone(zone)
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type), gpuTypes)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type),
+    gpuTypes)
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
@@ -126,7 +129,9 @@ export const runtimeConfigBaseCost = config => {
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
+  const {
+    cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
+  } = normalizeRuntimeConfig(
     config)
   const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion, false)
   const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion, false)
@@ -149,7 +154,7 @@ export const runtimeConfigCost = config => {
 
 // Per GB following https://cloud.google.com/compute/pricing
 const getPersistentDiskPriceForRegionMonthly = computeRegion => {
-  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToPrices)
+  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get(['monthlyDiskPrice']))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth
@@ -263,11 +268,23 @@ export const getDiskAppType = disk => {
   return appType
 }
 
+export const workspaceHasMultipleDisks = (disks, diskAppType) => {
+  const appTypeDisks = _.filter(disk => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks)
+  const diskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, appTypeDisks)
+  return _.uniq(diskWorkspaces).length < diskWorkspaces.length
+}
+
+export const workspaceHasMultipleApps = (apps, appType) => {
+  const appsByType = _.filter(currentApp => currentApp.appType === appType && !_.includes(currentApp.status, ['DELETING', 'PREDELETING']), apps)
+  const appWorkspaces = _.map(currentApp => currentApp.labels.saturnWorkspaceName, appsByType)
+  return _.uniq(appWorkspaces).length < appWorkspaces.length
+}
+
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
+export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDiskName = currentApp?.diskName
@@ -277,7 +294,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames)),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) && disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)

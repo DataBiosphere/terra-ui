@@ -17,10 +17,11 @@ import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
-import { topBarHeight } from 'src/libs/style'
 import * as Style from 'src/libs/style'
+import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
@@ -40,7 +41,7 @@ const getBillingAccountIcon = status => {
   return icon(shape, { size: billingAccountIconSize, color })
 }
 
-const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
+const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
     needsStatusColumn && div({ style: { width: billingAccountIconSize } }, [
       div({ className: 'sr-only' }, ['Status'])
@@ -78,7 +79,7 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   ])
 }
 
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
+const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
@@ -211,7 +212,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
@@ -348,15 +349,15 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]))
 
   // Lifecycle
-  Utils.useOnMount(() => { reloadBillingProjectUsers() })
+  useOnMount(() => { reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
   // As such, we need a layer of indirection to get current values.
-  const getShowBillingModal = Utils.useGetter(showBillingModal)
-  const getBillingAccountsOutOfDate = Utils.useGetter(billingAccountsOutOfDate)
-  Utils.usePollingEffect(
+  const getShowBillingModal = useGetter(showBillingModal)
+  const getBillingAccountsOutOfDate = useGetter(billingAccountsOutOfDate)
+  usePollingEffect(
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )

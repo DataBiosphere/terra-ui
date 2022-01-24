@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { availableBucketRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -14,6 +14,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -43,7 +44,7 @@ const constraints = {
   }
 }
 
-const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
+const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText
 }) => {
   // State
@@ -59,7 +60,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -118,8 +119,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     Ajax(signal).Groups.list().then(setAllGroups),
     !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
-        // For current phased regionality release, we only allow US workspace buckets.
-        setBucketLocation(isUSLocation(location) ? location : defaultLocation)
+        // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
+        setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
         setSourceWorkspaceLocation(location)
       })
   ]))
@@ -129,7 +130,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   }
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadData()
   })
 

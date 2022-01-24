@@ -1,6 +1,7 @@
+const rawConsole = require('console')
 const _ = require('lodash/fp')
 
-const { signIntoTerra } = require('./integration-utils')
+const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -21,24 +22,26 @@ const withSignedInPage = fn => async options => {
 
 const clipToken = str => str.toString().substr(-10, 10)
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
-  const workspaceName = `test-workspace-${Math.floor(Math.random() * 100000)}`
+const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 100000)}`
 
+const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
+  const workspaceName = getTestWorkspaceName()
   await page.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  console.info(`created workspace: ${workspaceName}`)
+  rawConsole.info(`created workspace: ${workspaceName}`)
 
   return workspaceName
 })
+
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   await page.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
   }, workspaceName, billingProject)
 
-  console.info(`deleted workspace: ${workspaceName}`)
+  rawConsole.info(`deleted workspace: ${workspaceName}`)
 })
 
 const withWorkspace = test => async options => {
@@ -57,10 +60,25 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
   }, billingProject, workspaceName, testEntity)
 }
 
+const checkBucketAccess = async (page, billingProject, workspaceName, accessLevel = 'OWNER') => {
+  const details = await page.evaluate((billingProject, workspaceName) => {
+    return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
+  }, billingProject, workspaceName)
+  const bucketName = details.workspace.bucketName
+  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
+  // Try polling for workspace bucket access to be available.
+  await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
+    try {
+      await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketAccess(billingProject, bucketName, accessLevel)
+      return true
+    } catch (e) { return false }
+  }, { timeout: 60000, polling: 500 }, billingProject, workspaceName, bucketName, accessLevel)
+}
+
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
-  console.info(`created a user with token: ...${clipToken(token)}`)
+  rawConsole.info(`created a user with token: ...${clipToken(token)}`)
   return { email, token }
 }
 
@@ -79,7 +97,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  console.info(`added user to: ${billingProject}`)
+  rawConsole.info(`added user to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.listProjectUsers(billingProject)
@@ -87,7 +105,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+  rawConsole.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -95,7 +113,7 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  console.info(`removed user from: ${billingProject}`)
+  rawConsole.info(`removed user from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {
@@ -117,12 +135,12 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
       return runtime.runtimeName
     }, _.remove({ status: 'Deleting' }, runtimes)))
   }, billingProject, email)
-  console.info(`deleted runtimes: ${deletedRuntimes}`)
+  rawConsole.info(`deleted runtimes: ${deletedRuntimes}`)
 })
 
 const registerUser = withSignedInPage(async ({ page, token }) => {
   // TODO: make this available to all puppeteer browser windows
-  console.info(`token of user in registerUser(): ...${clipToken(token)}`)
+  rawConsole.info(`token of user in registerUser(): ...${clipToken(token)}`)
   await page.evaluate(() => {
     window.catchErrorResponse = async fn => {
       try {
@@ -131,7 +149,9 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
         if (e instanceof Response) {
           const text = await e.text()
           const headers = e.headers
-          const headerAuthToken = headers.get('authorization') ? `...${clipToken(headers.get('authorization').toString())}` : headers.get('authorization')
+          const headerAuthToken = headers.get('authorization') ?
+            `...${clipToken(headers.get('authorization').toString())}` :
+            headers.get('authorization')
           throw new Error(`Failed to Ajax: ${e.url} authorization header was: ${headerAuthToken} and status of: ${e.status}: ${text}`)
         } else {
           throw e
@@ -152,9 +172,25 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
+const enableDataCatalog = async (page, testUrl, token) => {
+  await page.goto(testUrl)
+  await waitForNoSpinners(page)
+
+  await findText(page, 'Browse Data')
+  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+
+  await click(page, clickable({ textContains: 'Browse Data' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+}
+
 module.exports = {
+  checkBucketAccess,
   createEntityInWorkspace,
   defaultTimeout,
+  enableDataCatalog,
+  testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,
   withUser,

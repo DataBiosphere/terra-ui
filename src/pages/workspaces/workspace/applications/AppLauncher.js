@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -32,14 +33,14 @@ const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
 }
 
 const ApplicationLauncher = _.flow(
-  Utils.forwardRefWithName('ApplicationLauncher'),
+  forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application'),
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
-  const cookieReady = Utils.useStore(cookieReadyStore)
+  const cookieReady = useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [location, setLocation] = useState(defaultLocation)

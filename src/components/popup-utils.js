@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Children, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useGetter, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -9,7 +10,7 @@ export const useDynamicPosition = selectors => {
   const [dimensions, setDimensions] = useState(_.map(({ viewport }) => {
     return viewport ? { width: 0, height: 0 } : pickValues(new DOMRect())
   }, selectors))
-  const getDimensions = Utils.useGetter(dimensions)
+  const getDimensions = useGetter(dimensions)
   const animation = useRef()
   const computePosition = () => {
     const newDimensions = _.map(({ ref, id, viewport }) => {
@@ -24,7 +25,7 @@ export const useDynamicPosition = selectors => {
     }
     animation.current = requestAnimationFrame(computePosition)
   }
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     computePosition()
     return () => cancelAnimationFrame(animation.current)
   })

@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -99,7 +100,7 @@ const DataTable = props => {
   const [deletingColumn, setDeletingColumn] = useState()
 
   const table = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   // Helpers
   const loadData = _.flow(

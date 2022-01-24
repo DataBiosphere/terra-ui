@@ -23,6 +23,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { forwardRefWithName, useCancellation, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -52,7 +53,7 @@ const styles = {
   }
 }
 
-export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
+export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled, ref,
@@ -76,7 +77,7 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
   // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
   if (useAsLabel && !tooltip) {
-    Utils.useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
+    useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
   }
 
   if (tooltip) {
@@ -86,7 +87,7 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   }
 })
 
-export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
+export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
     style: { // 0.72 is the min to meet ANDI's contrast requirement
@@ -127,6 +128,7 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
 
 export const ButtonOutline = ({ disabled, children, ...props }) => {
   return h(ButtonPrimary, _.merge({
+    disabled,
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
       color: colors.accent(),
@@ -137,7 +139,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
-  Utils.useLabelAssert('Checkbox', { ...props, allowId: true })
+  useLabelAssert('Checkbox', { ...props, allowId: true })
   return h(Interactive, _.merge({
     as: 'span',
     className: 'fa-layers fa-fw',
@@ -296,8 +298,8 @@ const formatGroupLabel = group => (
 
 const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
-  const menuId = Utils.useUniqueId()
-  const myId = Utils.useUniqueId()
+  const menuId = useUniqueId()
+  const myId = useUniqueId()
   const inputId = id || myId
 
   return h(RSelect, _.merge({
@@ -318,7 +320,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, ...props }) => {
-  Utils.useLabelAssert('Select', { ...props, allowId: true })
+  useLabelAssert('Select', { ...props, allowId: true })
 
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
@@ -333,7 +335,7 @@ export const Select = ({ value, options, ...props }) => {
  * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, ...props }) => {
-  Utils.useLabelAssert('GroupedSelect', { ...props, allowId: true })
+  useLabelAssert('GroupedSelect', { ...props, allowId: true })
 
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
@@ -342,7 +344,7 @@ export const GroupedSelect = ({ value, options, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  const menuId = Utils.useUniqueId()
+  const menuId = useUniqueId()
   return h(RAsyncCreatableSelect, {
     menuId,
     ...commonSelectProps,
@@ -390,7 +392,7 @@ export const ShibbolethLink = ({ button = false, children, ...props }) => {
 export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button = false, ...props }) => {
   const [href, setHref] = useState()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const loadAuthUrl = withErrorReporting('Error getting Fence Link', async () => {
       const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl)
       setHref(result.url)
@@ -463,9 +465,9 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
 
 export const CromwellVersionLink = props => {
   const [version, setVersion] = useState()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     const setCromwellVersion = async () => {
       const { cromwell } = await Ajax(signal).Submissions.cromwellVersion()
 
@@ -543,7 +545,7 @@ export const WarningTitle = ({ children, iconSize = 36 }) => {
   ])
 }
 
-export const ClipboardButton = ({ text, onClick, ...props }) => {
+export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
@@ -556,7 +558,7 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
       await clipboard.writeText(text)
       await Utils.delay(1500)
     })
-  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
+  }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }
 
 export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [

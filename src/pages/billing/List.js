@@ -17,6 +17,7 @@ import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -221,7 +222,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const interval = useRef()
 
   // Helpers
@@ -267,7 +268,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   }
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     loadProjects()
     loadAccounts()
   })

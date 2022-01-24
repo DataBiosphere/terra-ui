@@ -5,18 +5,14 @@ import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
-import {
-  analysisNameInput,
-  analysisNameValidator,
-  getAnalysisFileExtension,
-  getDisplayName
-} from 'src/components/notebook-utils'
+import { analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -34,7 +30,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
   const [newName, setNewName] = useState(printName)
   const [existingNames, setExistingNames] = useState(undefined)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const { workspaces } = useWorkspaces()
 
 
@@ -134,7 +130,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
   const [newName, setNewName] = useState(printName)
   const [existingNames, setExistingNames] = useState(undefined)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const { workspaces } = useWorkspaces()
 
   // Helpers

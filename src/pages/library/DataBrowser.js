@@ -6,15 +6,21 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
+
+export const acknowledgmentStore = staticStorageSlot(localStorage, 'catalog-beta-acknowledgment')
 
 const styles = {
   ...commonStyles,
@@ -43,13 +49,13 @@ const getUnique = (prop, data) => _.flow(
 const extractCatalogFilters = dataCatalog => {
   return [{
     name: 'Access type',
-    labels: _.keys(snapshotAccessTypes),
-    labelRenderer: accessKey => {
-      const lowerKey = _.toLower(accessKey)
-      const iconKey = snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock'
+    labels: _.values(snapshotAccessTypes),
+    labelRenderer: accessValue => {
+      const lowerKey = _.toLower(accessValue)
+      const iconKey = accessValue === snapshotAccessTypes.GRANTED ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([snapshotAccessTypes[accessKey]])
+        div([accessValue])
       ])]
     }
   }, {
@@ -147,10 +153,16 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                 h(LabeledCheckbox, {
                   style: { marginRight: 10 },
                   'aria-label': tag,
-                  checked: _.includes(tag.toLowerCase(), selectedTags),
+                  checked: _.some({ lowerTag: tag.toLowerCase() }, selectedTags),
                   onChange: () => {
                     Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
-                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                    const invertSelection = _.flow(
+                      _.find(({ label }) => _.includes(label, sections[1].labels)),
+                      _.concat([{ label: tag, lowerTag: tag.toLowerCase() }]),
+                      _.compact,
+                      _.xorBy('lowerTag')
+                    )(selectedTags)
+                    setSelectedTags(invertSelection)
                   }
                 }, [tag])
               ])
@@ -176,11 +188,14 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         const { project, dataType, access } = datum
 
         return {
-          checkbox: h(Checkbox, {
+          checkbox: h(TooltipTrigger, {
+            ...(datum.access !== snapshotAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
+          }, [h(Checkbox, {
             'aria-label': datum['dct:title'],
+            disabled: datum.access !== snapshotAccessTypes.GRANTED,
             checked: _.includes(datum, selectedData),
             onChange: () => toggleSelectedData(datum)
-          }),
+          })]),
           name: h(Link,
             {
               onClick: () => {
@@ -202,13 +217,19 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
               Utils.switchCase(access,
                 [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  onClick: () => setRequestDatasetAccessList([datum])
+                  onClick: () => {
+                    setRequestDatasetAccessList([datum])
+                    Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                      snapshotId: _.get('dct:identifier', datum),
+                      snapshotName: datum['dct:title']
+                    })
+                  }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
                 [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
-                [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
+                [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
                   icon('unlock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
                 ])])
@@ -228,15 +249,37 @@ const Browser = () => {
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
+  const acknowledged = useStore(acknowledgmentStore) || {}
+  const { user: { id } } = useStore(authStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
+    !acknowledged[id] && div({
+      style: {
+        border: `1px solid ${colors.accent()}`, borderRadius: 3,
+        backgroundColor: 'rgba(0,0,0,.1)',
+        padding: '5px 20px', margin: 20,
+        fontSize: '.8rem', fontWeight: 'bold',
+        display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+      }
+    }, [
+      div({ style: { lineHeight: '1.4rem' } }, [
+        div(['Thank you for participating in the BETA Catalog test. The HCA data is for the sole use of the BETA testing of the Terra Data Catalog.']),
+        div(['Not for research purposes.'])
+      ]),
+      h(ButtonPrimary, {
+        style: { minWidth: 88, minHeight: 40 },
+        onClick: () => acknowledgmentStore.set({ [id]: true })
+      }, ['OK'])
+    ]),
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
-      searchType: 'Datasets'
+      searchType: 'Datasets',
+      titleField: 'dct:title',
+      descField: 'dct:description'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {

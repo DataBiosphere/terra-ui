@@ -16,6 +16,7 @@ import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
@@ -113,7 +114,7 @@ const noJobsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
 
 
 const JobHistory = _.flow(
-  Utils.forwardRefWithName('JobHistory'),
+  forwardRefWithName('JobHistory'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
@@ -128,7 +129,7 @@ const JobHistory = _.flow(
   const [updatingCommentId, setUpdatingCommentId] = useState(undefined)
 
   const scheduledRefresh = useRef()
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
 
   // Helpers
@@ -174,7 +175,7 @@ const JobHistory = _.flow(
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
 
     return () => {

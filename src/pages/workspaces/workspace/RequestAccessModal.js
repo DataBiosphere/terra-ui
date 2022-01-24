@@ -6,7 +6,8 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
-import { cond, useCancellation, useOnMount, withBusyState } from 'src/libs/utils'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { cond, withBusyState } from 'src/libs/utils'
 
 
 export const RequestAccessModal = ({ onDismiss, workspace }) => {

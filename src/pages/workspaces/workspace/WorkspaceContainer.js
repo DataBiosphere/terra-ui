@@ -21,6 +21,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -165,7 +166,7 @@ const WorkspaceAccessError = () => {
 }
 
 const useCloudEnvironmentPolling = googleProject => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
@@ -178,7 +179,7 @@ const useCloudEnvironmentPolling = googleProject => {
   const load = async maybeStale => {
     try {
       const [newDisks, newRuntimes] = googleProject ? await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication' }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
       ]) : [[], []]
       setRuntimes(newRuntimes)
@@ -196,7 +197,7 @@ const useCloudEnvironmentPolling = googleProject => {
   }
   const refreshRuntimes = withErrorReporting('Error loading cloud environments', load)
   const refreshRuntimesSilently = withErrorIgnoring(load)
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refreshRuntimes()
     return () => clearTimeout(timeout.current)
   })
@@ -204,7 +205,7 @@ const useCloudEnvironmentPolling = googleProject => {
 }
 
 const useAppPolling = (googleProject, workspaceName) => {
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
   const reschedule = ms => {
@@ -230,7 +231,7 @@ const useAppPolling = (googleProject, workspaceName) => {
   }
   const refreshApps = withErrorReporting('Error loading apps', loadApps)
   const refreshAppsSilently = withErrorIgnoring(loadApps)
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refreshApps()
     return () => clearTimeout(timeout.current)
   })
@@ -241,10 +242,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
-    const signal = Utils.useCancellation()
+    const signal = useCancellation()
     const [accessError, setAccessError] = useState(false)
     const accessNotificationId = useRef()
-    const cachedWorkspace = Utils.useStore(workspaceStore)
+    const cachedWorkspace = useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
@@ -252,7 +253,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
-    const prevGoogleProject = Utils.usePrevious(googleProject)
+    const prevGoogleProject = usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     if (googleProject !== prevGoogleProject) {
@@ -310,7 +311,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     })
 
-    Utils.useOnMount(() => {
+    useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
       } else {
@@ -344,7 +345,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       ])
     }
   }
-  return Utils.withDisplayName('wrapWorkspace', Wrapper)
+  return withDisplayName('wrapWorkspace', Wrapper)
 }
 
 export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(

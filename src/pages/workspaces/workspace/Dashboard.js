@@ -17,6 +17,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -76,7 +77,7 @@ const DataUseLimitations = ({ attributes }) => {
 
 const DashboardAuthContainer = props => {
   const { namespace, name } = props
-  const { isSignedIn } = Utils.useStore(authStore)
+  const { isSignedIn } = useStore(authStore)
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState()
 
   const isGoogleAuthInitialized = isSignedIn !== undefined
@@ -101,7 +102,7 @@ const DashboardAuthContainer = props => {
 }
 
 const WorkspaceDashboard = _.flow(
-  Utils.forwardRefWithName('WorkspaceDashboard'),
+  forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
@@ -129,7 +130,7 @@ const WorkspaceDashboard = _.flow(
   const [bucketLocation, setBucketLocation] = useState(undefined)
   const [bucketLocationType, setBucketLocationType] = useState(undefined)
 
-  const signal = Utils.useCancellation()
+  const signal = useCancellation()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -213,7 +214,7 @@ const WorkspaceDashboard = _.flow(
 
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     refresh()
   })
 
@@ -230,7 +231,7 @@ const WorkspaceDashboard = _.flow(
           style: { marginLeft: '0.5rem' },
           disabled: !!Utils.editWorkspaceError(workspace),
           tooltip: Utils.editWorkspaceError(workspace) || 'Edit description',
-          onClick: () => setEditDescription(description)
+          onClick: () => setEditDescription(description?.toString())
         }, [icon('edit')])
       ]),
       Utils.cond(
@@ -248,7 +249,7 @@ const WorkspaceDashboard = _.flow(
             saving && spinnerOverlay
           ])
         ],
-        [!!description, () => h(MarkdownViewer, [description])],
+        [!!description, () => h(MarkdownViewer, [description?.toString()])],
         () => div({ style: { fontStyle: 'italic' } }, ['No description added'])),
       _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Dataset Attributes']),

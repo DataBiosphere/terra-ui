@@ -21,9 +21,10 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useOnMount } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize,
-  defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
+  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
+  defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
@@ -183,7 +184,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     numberOfWorkers: defaultNumDataprocWorkers,
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
-    workerDiskSize: defaultDataprocDiskSize,
+    workerDiskSize: defaultDataprocWorkerDiskSize,
     componentGatewayEnabled: true, // We enable web interfaces (aka Spark console) for all new Dataproc clusters.
     gpuEnabled: false,
     hasGpu: false,
@@ -602,7 +603,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   // Helper functions -- end
 
   // Lifecycle
-  Utils.useOnMount(() => {
+  useOnMount(() => {
     // Can't pass an async function into useEffect so we define the function in the body and then call it
     const doUseOnMount = _.flow(
       withErrorReporting('Error loading cloud environment'),
@@ -673,12 +674,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-          (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
+          (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
         componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!newSparkMode,
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
         workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-        workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
+        workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocWorkerDiskSize,
         gpuEnabled: (!!gpuConfig && !sparkMode) || false,
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
