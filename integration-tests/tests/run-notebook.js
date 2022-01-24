@@ -40,7 +40,7 @@ const testRunNotebookFn = _.flow(
   // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
   // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
   // AJAX calls are unexpectedly slow.
-  await delay(1000)
+  await delay(2000)
   waitForNoSpinners(page)
   await click(page, clickable({ text: 'Create' }))
   await findElement(page, clickable({ textContains: 'Creating' }))
