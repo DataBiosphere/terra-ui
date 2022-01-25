@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
 import { marked } from 'marked'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 
@@ -48,15 +48,19 @@ export const newWindowLinkRenderer = (href, title, text) => {
 const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 
 export const MarkdownEditor = props => {
-  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, _.merge({
-    options: {
-      autofocus: true,
-      renderingConfig: {
-        singleLineBreaks: false
-      },
-      previewClass: ['editor-preview', 'markdown-body'],
-      previewRender: renderAndSanitizeMarkdown,
-      status: false
-    }
-  }, props))])
+  const editorOptions = useMemo(() => {
+    return _.merge({
+      options: {
+        autofocus: true,
+        renderingConfig: {
+          singleLineBreaks: false
+        },
+        previewClass: ['editor-preview', 'markdown-body'],
+        previewRender: renderAndSanitizeMarkdown,
+        status: false
+      }
+    }, props)
+  }, [])
+
+  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, editorOptions)])
 }
