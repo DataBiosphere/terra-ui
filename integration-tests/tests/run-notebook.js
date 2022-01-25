@@ -38,9 +38,9 @@ const testRunNotebookFn = _.flow(
   // that there aren't any spinners before the spinner has a chance to render. Additionally, even
   // though the slide-in animation is supposedly only 200ms, experimentation has shown that even a
   // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
-  // Therefore, we start with a 2000ms delay, then make sure there are no spinners just in case the
+  // Therefore, we start with a 3000ms delay, then make sure there are no spinners just in case the
   // AJAX calls are unexpectedly slow.
-  await delay(2000)
+  await delay(3000)
   waitForNoSpinners(page)
   await click(page, clickable({ text: 'Create' }))
   await findElement(page, clickable({ textContains: 'Creating' }))
