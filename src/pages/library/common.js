@@ -140,17 +140,79 @@ const FilterBar = ({ name, onSearch, onClear, onFilterByLetter, onFilterBySearch
   ])
 }
 
+const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags }) => {
+  // Filter Modal Vars
+  const filteredTags = (_.flow(
+    _.map(label => {
+      const lowerTag = _.toLower(label)
+      return [lowerTag, listDataByTag[lowerTag]]
+    }),
+    _.fromPairs
+  )(labels))
+  const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
+  const [filterChanges, setFilterChanges] = useState({})
+  const [filteredLabels, setFilteredLabels] = useState(labels)
+
+  return h(Modal, {
+    title: ``,
+    width: '100%',
+    showButtons: true,
+    okButton: 'Apply Filters',
+    styles: {
+      modal: { maxWidth: 900, padding: 30 },
+      buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
+    },
+    onDismiss: () => {
+      setShowAll(false)
+      _.forEach(onTagFilter, filterChanges)
+    }
+  }, [
+    h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
+    h(FilterBar, {
+      name,
+      onClear: () => { setFilteredLabels(labels) },
+      onSortBy: sort => {
+        if (sort === 'top') {
+          setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
+        }
+      },
+      onFilterByLetter: letter => { setFilteredLabels(labelsByFirstChar[letter]) },
+      onFilterBySearchText: searchText => {
+        setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
+      }
+    }),
+    div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
+      div({
+        style: {
+          display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
+          fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
+        }
+      }, _.map(label => {
+        const lowerTag = _.toLower(label)
+        return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
+          h(LabeledCheckbox, {
+            checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            onChange: () => {
+              setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label }, prevFilter))
+            },
+            style: { position: 'absolute', left: -25, top: 2 }
+          }, [
+            div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', lineHeight: '1.4rem' } }, [
+              span([label]),
+              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
+            ])
+          ])
+        ])
+      }, filteredLabels))
+    ])
+  ])
+}
+
 const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
   // State
   const [showAll, setShowAll] = useState(false)
-  const lowerSelectedTags = _.map('lowerTag', selectedTags)
   const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
-
-  // Filter Modal Vars
-  const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
-  const [filterChanges, setFilterChanges] = useState({})
-  const [filteredTags, setFilteredTags] = useState({})
-  const [filteredLabels, setFilteredLabels] = useState(labels)
+  const lowerSelectedTags = _.map('lowerTag', selectedTags)
 
   //Render
   return h(Fragment, [
@@ -174,74 +236,9 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
-      onClick: () => {
-        setShowAll(!showAll)
-        setFilterChanges({})
-
-        setFilteredTags(_.flow(
-          _.map(label => {
-            const lowerTag = _.toLower(label)
-            return [lowerTag, listDataByTag[lowerTag]]
-          }),
-          _.fromPairs
-        )(labels))
-      }
+      onClick: () => { setShowAll(!showAll) }
     }, [`See more`]),
-    showAll && h(Modal, {
-      title: ``,
-      width: '100%',
-      showButtons: true,
-      okButton: 'Apply Filters',
-      styles: {
-        modal: { maxWidth: 900, padding: 30 },
-        buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
-      },
-      onDismiss: () => {
-        setShowAll(false)
-        _.forEach(onTagFilter, filterChanges)
-        setFilterChanges({})
-        setFilteredLabels(labels)
-      }
-    }, [
-      h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
-      h(FilterBar, {
-        name,
-        onClear: () => { setFilteredLabels(labels) },
-        onSortBy: sort => {
-          if (sort === 'top') {
-            setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
-          }
-        },
-        onFilterByLetter: letter => { setFilteredLabels(labelsByFirstChar[letter]) },
-        onFilterBySearchText: searchText => {
-          setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
-        }
-      }),
-      div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
-        div({
-          style: {
-            display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
-            fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
-          }
-        }, _.map(label => {
-          const lowerTag = _.toLower(label)
-          return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
-            h(LabeledCheckbox, {
-              checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
-onChange: () => {
-                setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label }, prevFilter))
-              },
-              style: { position: 'absolute', left: -25, top: 2 }
-            }, [
-              div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', lineHeight: '1.4rem' } }, [
-                span([label]),
-                span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
-              ])
-            ])
-          ])
-        }, filteredLabels))
-      ])
-    ])
+    showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags })
   ])
 }
 
