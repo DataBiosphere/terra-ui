@@ -10,6 +10,7 @@
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "firecloudUrlRoot": "https://firecloud.dsde-dev.broadinstitute.org",
   "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
+  "isBioDataCatalyst": true,
   "isProd": false,
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
