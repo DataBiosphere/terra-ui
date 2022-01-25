@@ -178,12 +178,13 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         setShowAll(!showAll)
         setFilterChanges({})
 
-        const _tagFilters = {}
-        _.forEach(label => {
-          const lowerTag = _.toLower(label)
-          _tagFilters[lowerTag] = listDataByTag[lowerTag]
-        }, labels)
-        setFilteredTags(_tagFilters)
+        setFilteredTags(_.flow(
+          _.map(label => {
+            const lowerTag = _.toLower(label)
+            return [lowerTag, listDataByTag[lowerTag]]
+          }),
+          _.fromPairs
+        )(labels))
       }
     }, [`See more`]),
     showAll && h(Modal, {
