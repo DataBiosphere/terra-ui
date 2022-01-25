@@ -457,7 +457,7 @@ const Environments = () => {
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = filteredDisks[rowIndex]
+              const { status: diskStatus, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return !!saturnWorkspaceName ?
