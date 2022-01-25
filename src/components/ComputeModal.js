@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { tools, getToolForImage } from 'src/components/notebook-utils'
+import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
@@ -194,6 +194,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     computeZone: defaultComputeZone
   })
   // State -- end
+
   const isPersistentDisk = shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
@@ -304,7 +305,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
-  const requiresStandard = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
+  const requiresGCE = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
@@ -942,7 +943,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
-              h(InfoBox, { style: { marginLeft: '0.5rem', display: requiresStandard() || requiresSpark ? '' : 'none' } }, [
+              (requiresGCE() || requiresSpark) && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                 'Only the compute types compatible with the selected application configuration are made available below.'
               ]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
@@ -957,8 +958,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     },
                     options: [
                       { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                      { value: 'master', label: 'Spark master node', isDisabled: requiresStandard() },
-                      { value: 'cluster', label: 'Spark cluster', isDisabled: requiresStandard() }
+                      { value: 'master', label: 'Spark master node', isDisabled: requiresGCE() },
+                      { value: 'cluster', label: 'Spark cluster', isDisabled: requiresGCE() }
                     ]
                   })
                 ]),
@@ -1389,7 +1390,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages((image) => getToolForImage(image.id) === tools.RStudio.label)
+          options: getImages(image => getToolForImage(image.id) === tools.RStudio.label)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',
