@@ -26,6 +26,7 @@ const testRunNotebookFn = _.flow(
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
   await waitForNoSpinners(page)
+
   await click(page, clickable({ text: 'Edit' }))
   // There are two separate activities in the UI that could interfere with beginning to interact
   // with the modal for creating a cloud environment:
@@ -40,7 +41,7 @@ const testRunNotebookFn = _.flow(
   // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
   // Therefore, we start with a 3000ms delay, then make sure there are no spinners just in case the
   // AJAX calls are unexpectedly slow.
-  await delay(3000)
+  await delay(2000)
   waitForNoSpinners(page)
   await click(page, clickable({ text: 'Create' }))
   await findElement(page, clickable({ textContains: 'Creating' }))
