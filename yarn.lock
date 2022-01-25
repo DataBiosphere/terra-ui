@@ -2436,12 +2436,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/codemirror@npm:^0.0.88":
-  version: 0.0.88
-  resolution: "@types/codemirror@npm:0.0.88"
+"@types/codemirror@npm:0.0.109":
+  version: 0.0.109
+  resolution: "@types/codemirror@npm:0.0.109"
   dependencies:
     "@types/tern": "*"
-  checksum: 81e75595cc0bcf1dd08aaa3b968d8116bbe4ead9a61f895cf3d06154028919ab238f50378403124856373eeaf80439608fc5847923227ba31e707db216fc804a
+  checksum: e76251c07a686346b902b3605e79849da03d654d312fe7d2c406822f9157dd77d0c69af6701da424dcdeb669efb27165661ac7d027f42a3c64a4d07838ec9eb0
   languageName: node
   linkType: hard
 
@@ -2536,10 +2536,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/marked@npm:^0.7.4":
-  version: 0.7.4
-  resolution: "@types/marked@npm:0.7.4"
-  checksum: 110d869d22ca52546664703a1b89dbb03f518b6657a547a5a0a2a0935fb089251261979fb3aa987379914922246ca9f8922ee05b6989dd4a8961afa9621323bb
+"@types/marked@npm:^2.0.2":
+  version: 2.0.5
+  resolution: "@types/marked@npm:2.0.5"
+  checksum: 7a0b9d18402a0e20c106ec79ec9d4bd2266a4db409cc8b4ec322b68b40afd0bc67497e9b391bfbe953b934ad0810d90a1b88f7e18404ddf8cd6b085b74ba6893
   languageName: node
   linkType: hard
 
@@ -5987,7 +5987,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"easymde@npm:^2.10.1, easymde@npm:^2.16.1":
+"easymde@npm:^2.16.1":
   version: 2.16.1
   resolution: "easymde@npm:2.16.1"
   dependencies:
@@ -13064,17 +13064,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-simplemde-editor@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "react-simplemde-editor@npm:4.1.5"
+"react-simplemde-editor@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "react-simplemde-editor@npm:5.0.2"
   dependencies:
-    "@types/codemirror": ^0.0.88
-    "@types/marked": ^0.7.4
-    easymde: ^2.10.1
+    "@types/codemirror": 0.0.109
+    "@types/marked": ^2.0.2
   peerDependencies:
-    react: ">=15"
-    react-dom: ">=15"
-  checksum: 1c787bfd12d023f05675cebeea84f7c97e47b055ae9093f3f0aec533588dbc47b22a5c7f791129ac543501efa79d549529b251844933c1fd49e047b6607a0d4f
+    easymde: ">= 2.0.0 < 3.0.0"
+    react: ">=16.8.2"
+    react-dom: ">=16.8.2"
+  checksum: 4a1e02a5e6d62f62c1a704ad4990517201ec7ffe99f93b85d906c33ae9cd15fe5e10e85cc8666123e9c93a05fca82142fc68092ca752a84df2ee04b2739e5929
   languageName: node
   linkType: hard
 
@@ -14988,7 +14988,7 @@ resolve@^2.0.0-next.3:
     react-paginating: ^1.4.0
     react-scripts: 4.0.3
     react-select: ^4.3.1
-    react-simplemde-editor: ^4.1.5
+    react-simplemde-editor: ^5.0.2
     react-sortable-hoc: ^2.0.0
     react-switch: ^6.0.0
     react-textarea-autosize: ^8.3.3
