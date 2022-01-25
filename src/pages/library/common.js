@@ -228,9 +228,8 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
           return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
             h(LabeledCheckbox, {
               checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
-              onChange: v => {
-                filterChanges[lowerTag] ? delete filterChanges[lowerTag] : filterChanges[lowerTag] = { lowerTag, label }
-                setFilterChanges({ ...filterChanges })
+onChange: () => {
+                setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label }, prevFilter))
               },
               style: { position: 'absolute', left: -25, top: 2 }
             }, [
