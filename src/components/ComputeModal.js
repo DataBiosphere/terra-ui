@@ -46,8 +46,12 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
 // Enums -- start
+/** Dataproc can consist of one of the two architectures below:
+ * 1. One main node only (sometimes referred to as 'Spark master node')
+ * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
+ */
 const runtimeType = {
-  standardVm: { displayName: 'Standard VM', isDataproc: false, isCluster: false },
+  standardVm: { displayName: 'Standard VM', isDataproc: false, isDataprocCluster: false },
   sparkMasterNode: { displayName: 'Spark master node', isDataproc: true, isDataprocCluster: false },
   sparkCluster: { displayName: 'Spark cluster', isDataproc: true, isDataprocCluster: true }
 }
@@ -604,7 +608,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
-    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [computeExists,
+      () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
     [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
     [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
   )
