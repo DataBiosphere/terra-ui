@@ -48,7 +48,7 @@ export const newWindowLinkRenderer = (href, title, text) => {
 const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 
 /**
- * N.B. Make sure you memoize options if you're passing any in!
+ * N.B. Make sure you memoize 'options' if you're passing any in to 'SimpleMDE'!
  */
 export const MarkdownEditor = ({ options: rawOptions, placeholder, ...props }) => {
   const options = useMemo(() => _.merge({
