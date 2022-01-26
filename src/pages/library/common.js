@@ -61,39 +61,49 @@ const computeLabels = (allLabels, selectedLabels) => _.flow(
   _.uniq
 )(selectedLabels)
 
-const FilterBar = ({ name, onSearch, onClear, onFilterByLetter, onFilterBySearchText, onSortBy }) => {
+const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSortBy }) => {
   const filterOptions = { alpha: 1, input: 2 }
   const [filterSearchText, setFilterSearchText] = useState('')
   const [filteredBy, setFilteredBy] = useState()
   const [filterType, setFilterType] = useState(filterOptions.alpha)
 
   return h(Fragment, [
-    filterType === filterOptions.alpha && div({ style: { backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+    filterType === filterOptions.alpha && div({
+      style: {
+        backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8,
+        display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+      }
+    }, [
       h(Link, {
         style: {
-          marginLeft: 20, padding: 5,
+          marginLeft: 20, padding: 5, borderRadius: 10,
           fontWeight: 'bold', fontSize: '1rem', textTransform: 'capitalize',
-          background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent', borderRadius: 10
+          background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent'
         },
         onClick: () => {
           setFilteredBy('top')
           onSortBy('top')
         }
       }, [`Top ${pluralize(name)}`]),
-      div({ style: { width: '100%', maxWidth: 600, display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', fontSize: '1rem' } },
-        _.map(index => h(Link, {
-          style: {
-            fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
-            background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
-          },
-          'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
-          onClick: () => {
-            const charFromCode = String.fromCharCode(index)
-            setFilteredBy(charFromCode)
-            onFilterByLetter(charFromCode)
-          }
-        }, [String.fromCharCode(index)]), _.range(65, 65 + 26))
-      ),
+      div({
+        style: {
+          width: '100%', maxWidth: 600,
+          display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+          fontSize: '1rem'
+        }
+      },
+      _.map(index => h(Link, {
+        style: {
+          fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
+          background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
+        },
+        'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+        onClick: () => {
+          const charFromCode = String.fromCharCode(index)
+          setFilteredBy(charFromCode)
+          onFilterByLetter(charFromCode)
+        }
+      }, [String.fromCharCode(index)]), _.range(65, 65 + 26))),
       h(Link, {
         onClick: () => {
           setFilteredBy()
@@ -154,7 +164,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
   const [filteredLabels, setFilteredLabels] = useState(labels)
 
   return h(Modal, {
-    title: ``,
+    title: div({ style: { fontSize: '1.325rem', fontWeight: 700 } }, [`Filter by: "${name}"`]),
     width: '100%',
     showButtons: true,
     okButton: 'Apply Filters',
@@ -167,7 +177,6 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
       _.forEach(onTagFilter, filterChanges)
     }
   }, [
-    h2({ style: { marginTop: 0 } }, [`Filter by: "${name}"`]),
     h(FilterBar, {
       name,
       onClear: () => { setFilteredLabels(labels) },
