@@ -357,13 +357,20 @@ export const SearchAndFilterComponent = ({
       if (_.isEmpty(selectedTags) || !listData) {
         return listData
       } else {
-        const selectedDataByTag = _.map(_.flatMap(({ lowerTag }) => listDataByTag[lowerTag]), selectedTags)
+        const selectedDataByTag = _.map(
+          _.flow(
+            _.flatMap(({ lowerTag }) => listDataByTag[lowerTag]),
+            _.uniqBy('dct:identifier')
+          ), selectedTags
+        )
 
-        return _.reduce(
-          (acc, iter) => _.intersectionBy('lowerName', acc, iter),
+        const ret = _.reduce(
+          (acc, iter) => _.intersectionBy('dct:identifier', acc, iter),
           _.head(selectedDataByTag),
           _.tail(selectedDataByTag)
         )
+
+        return ret
       }
     }
 
