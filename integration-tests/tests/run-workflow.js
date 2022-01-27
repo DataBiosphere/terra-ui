@@ -66,9 +66,9 @@ const launchWorkflowAndWaitForSuccess = async page => {
     } catch (e) {
       try {
         await findInGrid(page, 'Running', { timeout: 1000 })
-        console.log(`Workspace is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+        console.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
       } catch (e) {
-        console.log(`Workspace not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+        console.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
       }
       throw new Error(e)
     }
