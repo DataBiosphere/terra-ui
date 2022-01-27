@@ -479,6 +479,11 @@ const Groups = signal => ({
 
       setPolicy: (policyName, value) => {
         return fetchSam(`${resourceRoot}/policies/${policyName}/public`, _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody(value)]))
+      },
+
+      isMember: async () => {
+        const res = await fetchSam(`${resourceRoot}/action/use`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }

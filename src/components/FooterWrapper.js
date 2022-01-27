@@ -56,7 +56,8 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     a({ href: 'https://www.nih.gov/', ...Utils.newTabLinkProps }, 'National Institutes of Health'),
     a({ href: 'https://www.usa.gov/', ...Utils.newTabLinkProps }, 'USA.gov'),
     a({ href: 'https://www.nhlbi.nih.gov/', ...Utils.newTabLinkProps },
-      'National Heart, Lung, and Blood Institute')
+      'National Heart, Lung, and Blood Institute'),
+    a({ href: 'https://hhs.responsibledisclosure.com/hc/en-us', ...Utils.newTabLinkProps }, 'HHS Responsible Disclosure')
   ])
 
   const standardFooterContent = h(Fragment, [
