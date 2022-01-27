@@ -202,7 +202,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
           h(LabeledCheckbox, {
             checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
             onChange: () => {
-              setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label }, prevFilter))
+              setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label, section: name }, prevFilter))
             },
             style: { position: 'absolute', left: -25, top: 2 }
           }, [
@@ -221,7 +221,10 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
   // State
   const [showAll, setShowAll] = useState(false)
   const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
-  const lowerSelectedTags = _.map('lowerTag', selectedTags)
+  const lowerSelectedTags = _.flow(
+    _.get(name),
+    _.map('lowerTag')
+  )(selectedTags)
 
   //Render
   return h(Fragment, [
@@ -237,7 +240,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
           display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
           paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
         },
-        onClick: () => onTagFilter({ lowerTag, label })
+        onClick: () => onTagFilter({ lowerTag, label, section: name })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
         div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
@@ -313,7 +316,7 @@ export const SearchAndFilterComponent = ({
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
+  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || {})
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
@@ -351,13 +354,15 @@ export const SearchAndFilterComponent = ({
     }
 
     const filterByTags = listData => {
-      if (_.isEmpty(selectedTags)) {
+      if (_.isEmpty(selectedTags) || !listData) {
         return listData
       } else {
+        const selectedDataByTag = _.map(_.flatMap(({ lowerTag }) => listDataByTag[lowerTag]), selectedTags)
+
         return _.reduce(
-          (acc, { lowerTag }) => _.intersection(listDataByTag[lowerTag], acc),
-          listDataByTag[_.head(selectedTags).lowerTag],
-          _.tail(selectedTags)
+          (acc, iter) => _.intersectionBy('lowerName', acc, iter),
+          _.head(selectedDataByTag),
+          _.tail(selectedDataByTag)
         )
       }
     }
@@ -411,7 +416,7 @@ export const SearchAndFilterComponent = ({
         h(Link, {
           onClick: () => {
             setSelectedSections([])
-            setSelectedTags([])
+            setSelectedTags({})
           }
         }, ['clear'])
       ]),
@@ -465,9 +470,12 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: ({ lowerTag, label }) => {
+          onTagFilter: ({ section, lowerTag, label }) => {
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            setSelectedTags(_.xorBy('lowerTag', [{ lowerTag, label }]))
+            setSelectedTags(oldSelectedTags => {
+              const newTags = _.xorBy('lowerTag', [{ lowerTag, label, section }], oldSelectedTags[section])
+              return newTags.length > 0 ? _.set(section, newTags, oldSelectedTags) : _.omit(section, oldSelectedTags)
+            })
           },
           sections,
           selectedSections,
