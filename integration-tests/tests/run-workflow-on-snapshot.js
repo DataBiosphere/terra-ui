@@ -1,8 +1,8 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const pRetry = require('p-retry')
+const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, findInGrid, navChild } = require('../utils/integration-utils')
+const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -61,19 +61,9 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
-  await delay(1000) // The Run Analysis button requires time to become enabled after hitting the save button
-  await click(page, clickable({ textContains: 'Run analysis' }))
+  await delay(1000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
 
-  await click(page, clickable({ text: 'Launch' }))
-
-  // CHECK WORKFLOW SUCCEEDED AND RESULT IS WRITTEN
-  await pRetry(async () => {
-    try {
-      await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
-    } catch (e) {
-      throw new Error(e)
-    }
-  }, { retries: 10, factor: 1 })
+  await launchWorkflowAndWaitForSuccess(page)
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'Workspace Data' }))
