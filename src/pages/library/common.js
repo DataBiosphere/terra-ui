@@ -61,6 +61,10 @@ const computeLabels = (allLabels, selectedLabels) => _.flow(
   _.uniq
 )(selectedLabels)
 
+const getFacetCount = ({ filteredData, listDataByTag, section, label }) => {
+  return _.size(_.get(['facets', section, label], filteredData) || listDataByTag[label])
+}
+
 const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSortBy }) => {
   const filterOptions = { alpha: 1, input: 2 }
   const [filterSearchText, setFilterSearchText] = useState('')
@@ -150,12 +154,12 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
   ])
 }
 
-const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags }) => {
+const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData }) => {
   // Filter Modal Vars
   const filteredTags = (_.flow(
     _.map(label => {
       const lowerTag = _.toLower(label)
-      return [lowerTag, listDataByTag[lowerTag]]
+      return [lowerTag, getFacetCount({ listDataByTag, filteredData, section: name, label: lowerTag })]
     }),
     _.fromPairs
   )(labels))
@@ -182,7 +186,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
       onClear: () => { setFilteredLabels(labels) },
       onSortBy: sort => {
         if (sort === 'top') {
-          setFilteredLabels(_.sortBy(label => -1 * _.size(filteredTags[_.toLower(label)]), labels))
+          setFilteredLabels(_.sortBy(label => -1 * filteredTags[_.toLower(label)], labels))
         }
       },
       onFilterByLetter: letter => { setFilteredLabels(labelsByFirstChar[letter]) },
@@ -208,7 +212,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
           }, [
             div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', lineHeight: '1.4rem' } }, [
               span([label]),
-              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${_.size(filteredTags[lowerTag])})`])
+              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${filteredTags[lowerTag]})`])
             ])
           ])
         ])
@@ -217,7 +221,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
   ])
 }
 
-const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
+const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag, filteredData }) => {
   // State
   const [showAll, setShowAll] = useState(false)
   const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
@@ -231,7 +235,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
     _.map(label => {
       const lowerTag = _.toLower(label)
       const isChecked = _.includes(lowerTag, lowerSelectedTags)
-      const numMatches = _.size(listDataByTag[lowerTag])
+      const numMatches = getFacetCount({ listDataByTag, filteredData, section: name, label: lowerTag })
       return h(Clickable, {
         'aria-checked': isChecked,
         role: 'checkbox',
@@ -250,11 +254,11 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
       style: { display: 'block', textAlign: 'center' },
       onClick: () => { setShowAll(!showAll) }
     }, [`See more`]),
-    showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags })
+    showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData })
   ])
 }
 
-const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
+const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag, filteredData }) => {
   const unionSectionWorkspacesCount = ({ tags }) => _.flow(
     _.flatMap(tag => listDataByTag[tag]),
     _.uniq,
@@ -281,7 +285,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [
-          h(FilterSection, { name, onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+          h(FilterSection, { name, onTagFilter, selectedTags, labelRenderer, listDataByTag, labels, filteredData })
         ])
     }, sections)
   ])
@@ -353,34 +357,46 @@ export const SearchAndFilterComponent = ({
       }
     }
 
-    const filterByTags = listData => {
-      if (_.isEmpty(selectedTags) || !listData) {
+    const filterByTags = (listData, tags = selectedTags) => {
+      if (_.isEmpty(tags) || !listData) {
         return listData
       } else {
         const selectedDataByTag = _.map(
           _.flow(
-            _.flatMap(({ lowerTag }) => listDataByTag[lowerTag]),
+            _.flatMap(({ lowerTag }) => _.intersectionBy('dct:identifier', listData, listDataByTag[lowerTag])),
             _.uniqBy('dct:identifier')
-          ), selectedTags
+          ), tags
         )
 
-        const ret = _.reduce(
+        return _.reduce(
           (acc, iter) => _.intersectionBy('dct:identifier', acc, iter),
           _.head(selectedDataByTag),
           _.tail(selectedDataByTag)
         )
-
-        return ret
       }
     }
 
-    return _.flow(
+    const sharedList = _.flow(
       filterBySections,
-      filterByTags,
-      filterByText,
-      customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
+      filterByText
     )(fullList)
-  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections])
+
+    return {
+      data: _.flow(
+        filterByTags,
+        customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
+      )(sharedList),
+      facets: _.flow(
+        _.keys,
+        _.map(section => {
+          const reducedTags = _.omit(section, selectedTags)
+          const facetedSearchData = filterByTags(sharedList, reducedTags)
+          return [section, groupByFeaturedTags(facetedSearchData, sidebarSections)]
+        }),
+        _.fromPairs
+      )(selectedTags)
+    }
+  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections])
 
 
   const onSearchChange = filter => {
@@ -416,7 +432,7 @@ export const SearchAndFilterComponent = ({
     }, [
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
-        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData)} Results found` }, [_.size(filteredData)])
+        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData.data)} Results found` }, [_.size(filteredData.data)])
       ]),
       div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
@@ -452,7 +468,7 @@ export const SearchAndFilterComponent = ({
             )(suggestion[titleField])
           )
         },
-        suggestions: filteredData
+        suggestions: filteredData.data
       }),
       div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets']),
       !customSort && h(IdContainer, [
@@ -487,12 +503,13 @@ export const SearchAndFilterComponent = ({
           sections,
           selectedSections,
           selectedTags,
-          listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+          filteredData,
+          listDataByTag: groupByFeaturedTags(filteredData.data, sidebarSections)
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        _.isEmpty(filteredData) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          children({ filteredList: filteredData, sections, selectedTags, setSelectedTags })
+        _.isEmpty(filteredData.data) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
+          children({ filteredList: filteredData.data, sections, selectedTags, setSelectedTags })
       ])
     ])
   ])
