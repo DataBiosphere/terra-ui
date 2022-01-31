@@ -85,7 +85,7 @@ const flakeShaker = ({ fn, name }) => {
     await cluster.idle()
     await cluster.close()
 
-    if (numErrors) {
+    if (!!numErrors) {
       _.forEach(err => rawConsole.log(err.stack), errors)
       throw new Error(`${numErrors} failures out of ${testRuns}. See above for specifics.`)
     }
