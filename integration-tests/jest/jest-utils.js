@@ -17,7 +17,9 @@ const {
   FLAKES: flakes = false,
   RUNS: testRuns = 100,
   CONCURRENCY: maxConcurrency = 10,
-  CLUSTER_TIMEOUT_MINUTES: clusterTimeout = 10
+  // Most tests should not take this long to complete even when running 100 times
+  // But we want to give this tool enough time to run without a jest timeout
+  CLUSTER_TIMEOUT_MINUTES: clusterTimeout = 120
 } = process.env
 
 const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
