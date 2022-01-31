@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, findElement, fillIn, input, logPageConsoleMessages, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -39,8 +39,16 @@ const testRunWorkflowFn = _.flow(
   await click(page, input({ labelContains: 'Choose specific test_entitys to process' }))
   await click(page, `//*[@role="checkbox" and contains(@aria-label, "${testEntity.name}")]`)
   await click(page, clickable({ text: 'OK' }))
-  await click(page, clickable({ text: 'Run analysis' }))
 
+  await launchWorkflowAndWaitForSuccess(page)
+
+  await click(page, navChild('data'))
+  await click(page, clickable({ textContains: 'test_entity' }))
+  await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
+})
+
+const launchWorkflowAndWaitForSuccess = async page => {
+  await click(page, clickable({ text: 'Run analysis' }))
   // If general ajax logging is disabled, uncomment the following to debug the sporadically failing
   // checkBucketAccess call.
   // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
@@ -50,18 +58,23 @@ const testRunWorkflowFn = _.flow(
   ])
   // stopLoggingPageAjaxResponses()
 
+  const disablePageLogging = logPageConsoleMessages(page)
+  const start = Date.now()
   await pRetry(async () => {
     try {
       await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
     } catch (e) {
+      try {
+        await findInGrid(page, 'Running', { timeout: 1000 })
+        console.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+      } catch (e) {
+        console.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+      }
       throw new Error(e)
     }
-  }, { retries: 10, factor: 1 })
-
-  await click(page, navChild('data'))
-  await click(page, clickable({ textContains: 'test_entity' }))
-  await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
-})
+  }, { retries: 15, factor: 1 })
+  disablePageLogging()
+}
 
 const testRunWorkflow = {
   name: 'run-workflow',
@@ -69,4 +82,4 @@ const testRunWorkflow = {
   timeout: 15 * 60 * 1000
 }
 
-module.exports = { testRunWorkflow }
+module.exports = { launchWorkflowAndWaitForSuccess, testRunWorkflow }
