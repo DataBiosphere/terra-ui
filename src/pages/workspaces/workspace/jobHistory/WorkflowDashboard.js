@@ -42,8 +42,9 @@ const statusCell = ({ calls }) => {
   const makeRow = (count, status, labelOverride) => {
     const seeMore = !!status.moreInfoLink ? h(Link, {
       href: status.moreInfoLink,
+      style: { marginLeft: '0.50rem' },
       ...Utils.newTabLinkProps
-    }, [' (learn more ', icon('pop-out', { size: 12 }), ' )']) : ''
+    }, ['Learn more about cloud quota', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
     return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
       status.icon(),
       ` ${count} ${!!labelOverride ? labelOverride : status.label()}`,

@@ -38,7 +38,7 @@ export const statusType = {
     id: 'waitingForQuota',
     label: _ => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
-    moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251-Google-Cloud-quotas-What-are-they-and-how-do-you-request-more-',
+    moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
   },
   unknown: {
