@@ -43,7 +43,7 @@ export const statusType = {
   },
   unknown: {
     id: 'unknown',
-    label: rawStatus => `Unexpected status (${rawStatus})`,
+    label: executionStatus => `Unexpected status (${executionStatus})`,
     icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } })
   }
 }
