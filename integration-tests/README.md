@@ -90,6 +90,6 @@ Setting | Default | Description
 --------|-------:|------------|
 RUNS | 100 | The number of test runs you want to execute (Default: 100) 
 CONCURRENCY | 10 | The size of the browser pool / the number of simultaneous tests to run.
-CLUSTER_TIMEOUT_MINUTES | 120 | The number of minutes before the overall test times out. 120 is overkill. If you want to run hundreds over iterations, it is best to overestimate this value
+CLUSTER_TIMEOUT_MINUTES | 120 | The number of minutes before the overall test times out. 120 is overkill. If you want to run hundreds of iterations, it is best to overestimate this value
 ### Creating a new environment (e.g., dev, alpha, etc)
 To set up an environment, run `node scripts/initializeEnvironment.js`.
