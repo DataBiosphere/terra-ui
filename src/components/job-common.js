@@ -2,76 +2,121 @@ import { Fragment } from 'react'
 import { div, h, h3, h4 } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 
 
-export const collapseStatus = status => {
-  switch (status) {
-    case 'Succeeded':
-      return 'succeeded'
-    case 'Aborting': // only on submissions not workflows
-    case 'Aborted':
-    case 'Failed':
-      return 'failed'
-    case 'Running':
-      return 'running'
-    default:
-      return 'submitted'
+const iconSize = 24
+export const addCountSuffix = (label, count = undefined) => {
+  return label + (count === undefined ? '' : `: ${count}`)
+}
+
+export const statusType = {
+  // TODO: We probably don't need the aria labels (if the icon is always used beside text). They should be aria-hidden.
+  succeeded: {
+    id: 'succeeded',
+    label: _ => 'Succeeded',
+    icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style }, 'aria-label': 'success' })
+  },
+  failed: {
+    id: 'failed',
+    label: _ => 'Failed',
+    icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style }, 'aria-label': 'failed' })
+  },
+  running: {
+    id: 'running',
+    label: _ => 'Running',
+    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'running' })
+  },
+  submitted: {
+    id: 'submitted',
+    label: _ => 'Submitted',
+    icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'submitted' })
+  },
+  waitingForCloudQuota: {
+    id: 'waitingForQuota',
+    label: _ => 'Submitted, Awaiting Cloud Quota',
+    icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style }, 'aria-label': 'waiting for cloud quota' }),
+    moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251-Google-Cloud-quotas-What-are-they-and-how-do-you-request-more-',
+    tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
+  },
+  unknown: {
+    id: 'unknown',
+    label: rawStatus => `Unexpected status (${rawStatus})`,
+    icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'unknown' })
   }
 }
 
 
-export const collapseCromwellExecutionStatus = status => {
-  switch (status) {
+/**
+ * Collapses submission or workflow status.
+ *
+ * @param {string} rawStatus
+ * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, or `statusType.submitted`
+ */
+export const collapseStatus = rawStatus => {
+  switch (rawStatus) {
+    case 'Succeeded':
+      return statusType.succeeded
+    case 'Aborting': // only on submissions not workflows
+    case 'Aborted':
+    case 'Failed':
+      return statusType.failed
+    case 'Running':
+      return statusType.running
+    default:
+      return statusType.submitted
+  }
+}
+
+/**
+ * Collapses Cromwell status, taking into account both execution and backend status values.
+ *
+ * @param {string} executionStatus from metadata
+ * @param {string} backendStatus from metadata
+ * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForCloudQuota`, or `statusType.unknown`
+ */
+export const collapseCromwellStatus = (executionStatus, backendStatus) => {
+  switch (executionStatus) {
     case 'Done':
-      return 'succeeded'
+      return statusType.succeeded
     case 'Aborting':
     case 'Aborted':
     case 'Failed':
-      return 'failed'
+      return statusType.failed
     case 'Running':
-      return 'running'
-    case 'Submitted':
-      return 'submitted'
+      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForCloudQuota : statusType.running
     default:
       return `Unexpected status (${status})`
   }
 }
 
-const size = 24
-
-export const successIcon = style => icon('check', { size, style: { color: colors.success(), ...style }, 'aria-label': 'success' })
-export const failedIcon = style => icon('warning-standard', { size, style: { color: colors.danger(), ...style }, 'aria-label': 'failed' })
-export const runningIcon = style => icon('sync', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'running' })
-export const submittedIcon = style => icon('clock', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'submitted' })
-export const unknownIcon = style => icon('question', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'unknown' })
-
-export const statusIcon = (status, style, collapseFunction = collapseStatus) => {
-  switch (collapseFunction(status)) {
-    case 'succeeded':
-      return successIcon(style)
-    case 'failed':
-      return failedIcon(style)
-    case 'running':
-      return runningIcon(style)
-    case 'submitted':
-      return submittedIcon(style)
-    default:
-      return unknownIcon(style)
-  }
+/**
+ * Returns the icon for display with workflow or submission status.
+ */
+export const statusIcon = (status, style) => {
+  return collapseStatus(status).icon(style)
 }
 
-export const cromwellExecutionStatusIcon = (status, style) => statusIcon(status, style, collapseCromwellExecutionStatus)
+/**
+ * Returns the rendered status line, based on icon function, label, and style.
+ */
+export const makeStatusLine = (iconFn, label, style) => div(
+  { style: { display: 'flex', alignItems: 'center', fontSize: 14, textTransform: 'capitalize', ...style } },
+  [iconFn({ marginRight: '0.5rem' }), label]
+)
 
-export const makeStatusLine = (iconFn, text, style) => div({ style: { display: 'flex', alignItems: 'center', fontSize: 14, textTransform: 'capitalize', ...style } }, [
-  iconFn({ marginRight: '0.5rem' }), text
-])
-
-export const makeCromwellStatusLine = cromwellStatus => {
-  const collapsedStatus = collapseCromwellExecutionStatus(cromwellStatus)
-  return makeStatusLine(style => cromwellExecutionStatusIcon(cromwellStatus, style), collapsedStatus, { marginLeft: '0.5rem' })
+/**
+ * Returns the rendered status line for Cromwell status.
+ */
+export const makeCromwellStatusLine = (executionStatus, backendStatus) => {
+  const collapsedStatus = collapseCromwellStatus(executionStatus, backendStatus)
+  return h(TooltipCell, { tooltip: collapsedStatus.tooltip },
+    [makeStatusLine(style => collapsedStatus.icon(style), collapsedStatus.label(executionStatus), { marginLeft: '0.5rem' }
+    )]
+  )
 }
 
 export const makeSection = (label, children) => div({

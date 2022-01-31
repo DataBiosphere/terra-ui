@@ -43,8 +43,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Status',
             cellRenderer: ({ rowIndex }) => {
-              const { executionStatus } = callObjects[rowIndex]
-              return h(TooltipCell, [makeCromwellStatusLine(executionStatus)])
+              const { executionStatus, backendStatus } = callObjects[rowIndex]
+              return makeCromwellStatusLine(executionStatus, backendStatus)
             }
           }, {
             size: { basis: 200, grow: 2 },

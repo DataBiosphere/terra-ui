@@ -8,7 +8,7 @@ import { ButtonSecondary, ClipboardButton, Link, Select } from 'src/components/c
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
+  addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusIcon, statusType, submissionDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -55,7 +55,7 @@ const SubmissionDetails = _.flow(
   useEffect(() => {
     const initialize = withErrorReporting('Unable to fetch submission details',
       async () => {
-        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), ['running', 'submitted']), submission.workflows)) {
+        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)) {
           if (!_.isEmpty(submission)) {
             await Utils.delay(60000)
           }
@@ -116,7 +116,8 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
+  // Note: these variable names match the id values of statusType.
+  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
 
   // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
   // 'cromwell.conf.ctmpl' file:
@@ -160,10 +161,10 @@ const SubmissionDetails = _.flow(
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
         div({ style: { display: 'grid', gridTemplateRows: '1fr auto' } }, [
           makeSection('Workflow Statuses', [
-            succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
-            failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
-            running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
-            submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
+            succeeded && makeStatusLine(statusType.succeeded.icon, addCountSuffix(statusType.succeeded.label(), succeeded.length), { marginTop: '0.5rem' }),
+            failed && makeStatusLine(statusType.failed.icon, addCountSuffix(statusType.failed.label(), failed.length), { marginTop: '0.5rem' }),
+            running && makeStatusLine(statusType.running.icon, addCountSuffix(statusType.running.label(), running.length), { marginTop: '0.5rem' }),
+            submitted && makeStatusLine(statusType.submitted.icon, addCountSuffix(statusType.submitted.label(), submitted.length), { marginTop: '0.5rem' })
           ]),
           div({
             style: { padding: '0 0.5rem 0.5rem', marginTop: '1.0rem', whiteSpace: 'pre', overflow: 'hidden' }
