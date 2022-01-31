@@ -35,7 +35,7 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
     timeout)
 }
 
-const flakeShaker = ({ fn, name, timeout = defaultTimeout }) => {
+const flakeShaker = ({ fn, name }) => {
   const timeoutMillis = clusterTimeout * 60 * 1000
   const padding = 100
   const messages = ['', `Number of times to run this test: ${testRuns} (adjust this by setting RUNS in your environment)`,
