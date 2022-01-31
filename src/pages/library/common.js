@@ -41,7 +41,7 @@ const styles = {
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
     fontSize: '0.875rem',
     backgroundColor: 'white',
-    ...(highlight ? { color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary() } : {})
+    ...(highlight ? { color: 'white', backgroundColor: colors.primary(1.5), borderColor: colors.primary(1.5), fontWeight: 'bold' } : {})
   })
 }
 

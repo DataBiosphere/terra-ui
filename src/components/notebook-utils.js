@@ -88,6 +88,9 @@ const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Ju
 // Returns appType for app with given label, or undefined if tool is not an app.
 export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
 
+// Returns label for app with given image id, or undefined if id is not associated with an app.
+export const getToolForImage = image => _.find(tool => tool.imageIds?.includes(image))(tools)?.label
+
 // Does the tool label correspond to an app?
 export const isToolAnApp = label => getAppType(label) !== undefined
 

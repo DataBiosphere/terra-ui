@@ -1,7 +1,7 @@
 const rawConsole = require('console')
 const _ = require('lodash/fp')
 
-const { signIntoTerra } = require('./integration-utils')
+const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -22,9 +22,10 @@ const withSignedInPage = fn => async options => {
 
 const clipToken = str => str.toString().substr(-10, 10)
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
-  const workspaceName = `test-workspace-${Math.floor(Math.random() * 100000)}`
+const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 100000)}`
 
+const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
+  const workspaceName = getTestWorkspaceName()
   await page.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
@@ -33,6 +34,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 
   return workspaceName
 })
+
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   await page.evaluate((name, billingProject) => {
@@ -170,10 +172,25 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
+const enableDataCatalog = async (page, testUrl, token) => {
+  await page.goto(testUrl)
+  await waitForNoSpinners(page)
+
+  await findText(page, 'Browse Data')
+  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+
+  await click(page, clickable({ textContains: 'Browse Data' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+}
+
 module.exports = {
   checkBucketAccess,
   createEntityInWorkspace,
   defaultTimeout,
+  enableDataCatalog,
+  testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,
   withUser,

@@ -2445,12 +2445,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/codemirror@npm:^0.0.88":
-  version: 0.0.88
-  resolution: "@types/codemirror@npm:0.0.88"
+"@types/codemirror@npm:^5.60.4":
+  version: 5.60.5
+  resolution: "@types/codemirror@npm:5.60.5"
   dependencies:
     "@types/tern": "*"
-  checksum: 81e75595cc0bcf1dd08aaa3b968d8116bbe4ead9a61f895cf3d06154028919ab238f50378403124856373eeaf80439608fc5847923227ba31e707db216fc804a
+  checksum: 423b6378b6415b626d9f54d37d69477f96940b30a695d4ec36402feb59a96f7ab42d1c17b8472fbb222a0966f6061deee234e37bcd3e34c75836e989dc95929d
   languageName: node
   linkType: hard
 
@@ -2536,17 +2536,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/marked@npm:^0.7.4":
-  version: 0.7.4
-  resolution: "@types/marked@npm:0.7.4"
-  checksum: 110d869d22ca52546664703a1b89dbb03f518b6657a547a5a0a2a0935fb089251261979fb3aa987379914922246ca9f8922ee05b6989dd4a8961afa9621323bb
+"@types/marked@npm:^2.0.2":
+  version: 2.0.5
+  resolution: "@types/marked@npm:2.0.5"
+  checksum: 7a0b9d18402a0e20c106ec79ec9d4bd2266a4db409cc8b4ec322b68b40afd0bc67497e9b391bfbe953b934ad0810d90a1b88f7e18404ddf8cd6b085b74ba6893
   languageName: node
   linkType: hard
 
-"@types/marked@npm:^2.0.2":
-  version: 2.0.4
-  resolution: "@types/marked@npm:2.0.4"
-  checksum: 5c1db00f2a27a71cd95646424f10ca8869249ef0137c0f0fadc01479cdf35927a3e6a8e1aee67e126e2540a5384ee55b326dc93aea4e3a78788f23334f3d7cfd
+"@types/marked@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@types/marked@npm:4.0.1"
+  checksum: c2dabaae5ed5e2806ee3ef7f717ef7fe91ac5ee2718162219dd34de9d684d36efd561987fb3316b659d1add6d432696ca507da04b94380a77aac30870cb276d7
   languageName: node
   linkType: hard
 
@@ -4661,10 +4661,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"codemirror@npm:^5.61.0":
-  version: 5.62.2
-  resolution: "codemirror@npm:5.62.2"
-  checksum: 391214c1a177b8684ee3e20eb292de0cd0d0b7541cf84bdac3666c185153f7aec70c7fb128501f6b3739749b29abc27baa9fb7c505ffe28a449b5138ec6076c8
+"codemirror@npm:^5.63.1":
+  version: 5.65.0
+  resolution: "codemirror@npm:5.65.0"
+  checksum: e2e017d91787f4d4c41a7920b9285d65d1806c70bf9098e6d88c6ff6c8d091bef197059b8177635d4f00285e4dc8222a2709fb64dbd6561cfbfd559a2b13dbe5
   languageName: node
   linkType: hard
 
@@ -5294,14 +5294,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-what@npm:^5.0.0":
-  version: 5.0.1
-  resolution: "css-what@npm:5.0.1"
-  checksum: 7a3de33a1c130d32d711cce4e0fa747be7a9afe6b5f2c6f3d56bc2765f150f6034f5dd5fe263b9359a1c371c01847399602d74b55322c982742b336d998602cd
-  languageName: node
-  linkType: hard
-
-"css-what@npm:^5.0.1":
+"css-what@npm:^5.0.0, css-what@npm:^5.0.1":
   version: 5.1.0
   resolution: "css-what@npm:5.1.0"
   checksum: 0b75d1bac95c885c168573c85744a6c6843d8c33345f54f717218b37ea6296b0e99bb12105930ea170fd4a921990392a7c790c16c585c1d8960c49e2b7ec39f7
@@ -5916,18 +5909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"domutils@npm:^2.5.2, domutils@npm:^2.6.0":
-  version: 2.7.0
-  resolution: "domutils@npm:2.7.0"
-  dependencies:
-    dom-serializer: ^1.0.1
-    domelementtype: ^2.2.0
-    domhandler: ^4.2.0
-  checksum: a4da0fcc4c54f6b338111caa11c672e18968d6280e7a1ed5e01b8b09b7dc0829ab5e03821349f5b57e34811f7e96e89b8dddbe06bb8e395cf117342424667b7d
-  languageName: node
-  linkType: hard
-
-"domutils@npm:^2.7.0":
+"domutils@npm:^2.5.2, domutils@npm:^2.6.0, domutils@npm:^2.7.0":
   version: 2.8.0
   resolution: "domutils@npm:2.8.0"
   dependencies:
@@ -6005,16 +5987,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"easymde@npm:^2.10.1, easymde@npm:^2.15.0":
-  version: 2.15.0
-  resolution: "easymde@npm:2.15.0"
+"easymde@npm:^2.16.1":
+  version: 2.16.1
+  resolution: "easymde@npm:2.16.1"
   dependencies:
-    "@types/codemirror": 0.0.109
-    "@types/marked": ^2.0.2
-    codemirror: ^5.61.0
+    "@types/codemirror": ^5.60.4
+    "@types/marked": ^4.0.1
+    codemirror: ^5.63.1
     codemirror-spell-checker: 1.1.2
-    marked: ^2.0.3
-  checksum: 3f200f4d8b0e74b1584193b854ef42620ee16861b927576da536a6bbf46173c06cbf30a011e2a0a2bd5c0529a195fe119586aafc7879ce649957305e087c670b
+    marked: ^4.0.10
+  checksum: fe75259103e7383e4e4089587ca0a5c0ad54add76c9f7ea64a83aa85d924a182205d4dd1a234eb8b8c692b123178961a0283fb5bc32e10e66590d1d4e25a58a8
   languageName: node
   linkType: hard
 
@@ -7236,12 +7218,12 @@ __metadata:
   linkType: hard
 
 "follow-redirects@npm:^1.0.0":
-  version: 1.14.1
-  resolution: "follow-redirects@npm:1.14.1"
+  version: 1.14.7
+  resolution: "follow-redirects@npm:1.14.7"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 7381a55bdc6951c5c1ab73a8da99d9fa4c0496ce72dba92cd2ac2babe0e3ebde9b81c5bca889498ad95984bc773d713284ca2bb17f1b1e1416e5f6531e39a488
+  checksum: f6d03e5e30877431065bca0d1b2e3db93949eb799d368a5c07ea8a4b71205f0349a3f8f0191bf13a07c93885522834dca1dc8e527dc99a772c6911fba24edc5f
   languageName: node
   linkType: hard
 
@@ -10066,12 +10048,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"marked@npm:^2.0.3, marked@npm:^2.1.3":
-  version: 2.1.3
-  resolution: "marked@npm:2.1.3"
+"marked@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "marked@npm:4.0.10"
   bin:
-    marked: bin/marked
-  checksum: 21a5ecd4941bc760aba21dfd97185853ec3b464cf707ad971e3ddb3aeb2f44d0deeb36b0889932afdb6f734975a994d92f18815dd0fabadbd902bdaff997cc5b
+    marked: bin/marked.js
+  checksum: 46cd8ef1a7cfcf5e461727c7f3e16dd4244369ef58f60485e75d3f5df9d53a8249b9609e96a336521eaa5c88d9531cbd296509a148718056e9375e69609f4442
   languageName: node
   linkType: hard
 
@@ -10495,11 +10477,11 @@ fsevents@^1.2.7:
   linkType: hard
 
 "nanoid@npm:^3.1.23":
-  version: 3.1.23
-  resolution: "nanoid@npm:3.1.23"
+  version: 3.2.0
+  resolution: "nanoid@npm:3.2.0"
   bin:
     nanoid: bin/nanoid.cjs
-  checksum: 8fa8dc3283a4fa159700a36cb22f61197547c8155831cb74f1b9c51fbc29ea80c136fd91001468d147a31d3a77f884958aec6c1beabac903c89780acacca9327
+  checksum: 3d1d5a69fea84e538057cf64106e713931c4ef32af344068ecff153ff91252f39b0f2b472e09b0dfff43ac3cf520c92938d90e6455121fe93976e23660f4fccc
   languageName: node
   linkType: hard
 
@@ -13089,17 +13071,17 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-simplemde-editor@npm:^4.1.5":
-  version: 4.1.5
-  resolution: "react-simplemde-editor@npm:4.1.5"
+"react-simplemde-editor@npm:^5.0.2":
+  version: 5.0.2
+  resolution: "react-simplemde-editor@npm:5.0.2"
   dependencies:
-    "@types/codemirror": ^0.0.88
-    "@types/marked": ^0.7.4
-    easymde: ^2.10.1
+    "@types/codemirror": 0.0.109
+    "@types/marked": ^2.0.2
   peerDependencies:
-    react: ">=15"
-    react-dom: ">=15"
-  checksum: 1c787bfd12d023f05675cebeea84f7c97e47b055ae9093f3f0aec533588dbc47b22a5c7f791129ac543501efa79d549529b251844933c1fd49e047b6607a0d4f
+    easymde: ">= 2.0.0 < 3.0.0"
+    react: ">=16.8.2"
+    react-dom: ">=16.8.2"
+  checksum: 4a1e02a5e6d62f62c1a704ad4990517201ec7ffe99f93b85d906c33ae9cd15fe5e10e85cc8666123e9c93a05fca82142fc68092ca752a84df2ee04b2739e5929
   languageName: node
   linkType: hard
 
@@ -13914,11 +13896,11 @@ resolve@^2.0.0-next.3:
   linkType: hard
 
 "selfsigned@npm:^1.10.8":
-  version: 1.10.11
-  resolution: "selfsigned@npm:1.10.11"
+  version: 1.10.14
+  resolution: "selfsigned@npm:1.10.14"
   dependencies:
     node-forge: ^0.10.0
-  checksum: 1fd8fd317dc0b7d713d12d828131ac03c53abf41c4538b263fecd37bbc15688526c631654049ff00806b757ccb85492de6a13d6fefcad5cb54926631e48a76e1
+  checksum: 616d131b18516ba2876398f0230987511d50a13816e0709b9f0d20246a524a2e83dfb27ea46ce2bfe331519583a156afa67bc3ece8bf0f9804aec06e2e8c7a21
   languageName: node
   linkType: hard
 
@@ -14977,7 +14959,7 @@ resolve@^2.0.0-next.3:
     debounce-promise: ^3.1.2
     dompurify: ^2.3.3
     downshift: ^6.1.7
-    easymde: ^2.15.0
+    easymde: ^2.16.1
     eslint-plugin-lodash-fp: ^2.2.0-a1
     eslint-plugin-simple-import-sort: ^7.0.0
     file-saver: ^2.0.5
@@ -14989,7 +14971,7 @@ resolve@^2.0.0-next.3:
     igv: 2.3.5
     jszip: ^3.7.1
     lodash: ^4.17.21
-    marked: ^2.1.3
+    marked: ^4.0.10
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
     pluralize: ^8.0.0
@@ -15014,7 +14996,7 @@ resolve@^2.0.0-next.3:
     react-paginating: ^1.4.0
     react-scripts: 4.0.3
     react-select: ^4.3.1
-    react-simplemde-editor: ^4.1.5
+    react-simplemde-editor: ^5.0.2
     react-sortable-hoc: ^2.0.0
     react-switch: ^6.0.0
     react-textarea-autosize: ^8.3.3
@@ -15293,14 +15275,7 @@ resolve@^2.0.0-next.3:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.3, tslib@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "tslib@npm:2.3.0"
-  checksum: 8869694c26e4a7b56d449662fd54a4f9ba872c889d991202c74462bd99f10e61d5bd63199566c4284c0f742277736292a969642cc7b590f98727a7cae9529122
-  languageName: node
-  linkType: hard
-
-"tslib@npm:^2.2.0":
+"tslib@npm:^2.0.3, tslib@npm:^2.2.0, tslib@npm:^2.3.0":
   version: 2.3.1
   resolution: "tslib@npm:2.3.1"
   checksum: de17a98d4614481f7fcb5cd53ffc1aaf8654313be0291e1bfaee4b4bb31a20494b7d218ff2e15017883e8ea9626599b3b0e0229c18383ba9dce89da2adf15cb9

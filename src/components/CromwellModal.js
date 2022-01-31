@@ -27,7 +27,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
   }) => {
     const app = getCurrentApp(tools.cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
-    const currentDataDisk = getCurrentPersistentDisk(tools.cromwell.appType, apps, appDataDisks)
+    const currentDataDisk = getCurrentPersistentDisk(tools.cromwell.appType, apps, appDataDisks, workspaceName)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
