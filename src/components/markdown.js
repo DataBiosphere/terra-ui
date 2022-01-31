@@ -1,7 +1,7 @@
 import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
-import marked from 'marked'
-import { lazy, Suspense } from 'react'
+import { marked } from 'marked'
+import { lazy, Suspense, useMemo } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 
@@ -47,16 +47,20 @@ export const newWindowLinkRenderer = (href, title, text) => {
 
 const SimpleMDE = lazy(() => import('react-simplemde-editor'))
 
-export const MarkdownEditor = props => {
-  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, _.merge({
-    options: {
-      autofocus: true,
-      renderingConfig: {
-        singleLineBreaks: false
-      },
-      previewClass: ['editor-preview', 'markdown-body'],
-      previewRender: renderAndSanitizeMarkdown,
-      status: false
-    }
-  }, props))])
+/**
+ * N.B. Make sure you memoize 'options' if you're passing any in to 'SimpleMDE'!
+ */
+export const MarkdownEditor = ({ options: rawOptions, placeholder, ...props }) => {
+  const options = useMemo(() => _.merge({
+    placeholder,
+    autofocus: true,
+    renderingConfig: {
+      singleLineBreaks: false
+    },
+    previewClass: ['editor-preview', 'markdown-body'],
+    previewRender: renderAndSanitizeMarkdown,
+    status: false
+  }, rawOptions), [placeholder, rawOptions])
+
+  return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, { options, ...props })])
 }

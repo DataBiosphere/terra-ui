@@ -1294,11 +1294,11 @@ __metadata:
   linkType: hard
 
 "axios@npm:^0.21.1":
-  version: 0.21.1
-  resolution: "axios@npm:0.21.1"
+  version: 0.21.4
+  resolution: "axios@npm:0.21.4"
   dependencies:
-    follow-redirects: ^1.10.0
-  checksum: c87915fa0b18c15c63350112b6b3563a3e2ae524d7707de0a73d2e065e0d30c5d3da8563037bc29d4cc1b7424b5a350cb7274fa52525c6c04a615fe561c6ab11
+    follow-redirects: ^1.14.0
+  checksum: 44245f24ac971e7458f3120c92f9d66d1fc695e8b97019139de5b0cc65d9b8104647db01e5f46917728edfc0cfd88eb30fc4c55e6053eef4ace76768ce95ff3c
   languageName: node
   linkType: hard
 
@@ -2562,13 +2562,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.10.0":
-  version: 1.14.1
-  resolution: "follow-redirects@npm:1.14.1"
+"follow-redirects@npm:^1.14.0":
+  version: 1.14.7
+  resolution: "follow-redirects@npm:1.14.7"
   peerDependenciesMeta:
     debug:
       optional: true
-  checksum: 7381a55bdc6951c5c1ab73a8da99d9fa4c0496ce72dba92cd2ac2babe0e3ebde9b81c5bca889498ad95984bc773d713284ca2bb17f1b1e1416e5f6531e39a488
+  checksum: f6d03e5e30877431065bca0d1b2e3db93949eb799d368a5c07ea8a4b71205f0349a3f8f0191bf13a07c93885522834dca1dc8e527dc99a772c6911fba24edc5f
   languageName: node
   linkType: hard
 
@@ -2898,13 +2898,13 @@ __metadata:
   linkType: hard
 
 "google-p12-pem@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "google-p12-pem@npm:3.0.3"
+  version: 3.1.3
+  resolution: "google-p12-pem@npm:3.1.3"
   dependencies:
-    node-forge: ^0.10.0
+    node-forge: ^1.0.0
   bin:
     gp12-pem: build/src/bin/gp12-pem.js
-  checksum: b4698748bb14356ce19fdcfe5d58922704a1719f34063e0a2c2533624cd47a0d329bab17464b8f7f21ac1b221e1c5e24aaaa5fe53f5433d6ffa2bcb2d0baf1a2
+  checksum: 8628f2bf9b4c9b3bfc7220906c15af2b306e2ef30c7c398327a9cff9d4a12285f104545f00c46b716dd23966615f446d7e5efde44d590f9483d345be78ea115e
   languageName: node
   linkType: hard
 
@@ -4609,10 +4609,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-forge@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "node-forge@npm:0.10.0"
-  checksum: 5aa6dc9922e424a20ef101d2f517418e2bc9cfc0255dd22e0701c0fad1568445f510ee67f6f3fcdf085812c4ca1b847b8ba45683b34776828e41f5c1794e42e1
+"node-forge@npm:^1.0.0":
+  version: 1.2.1
+  resolution: "node-forge@npm:1.2.1"
+  checksum: af4f88c3f69362359f35f6a9e231b35c96d906eeb6e976fb92742afe7fcdd76439dc22b41ce3755389d171f6320756ec7505bdfa7b252466c091b8c519a22674
   languageName: node
   linkType: hard
 
