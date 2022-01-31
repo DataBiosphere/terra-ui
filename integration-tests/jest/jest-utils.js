@@ -80,13 +80,14 @@ const flakeShaker = ({ fn, name }) => {
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
     const results = await Promise.all(runs)
     const errors = _.filter(_.isError, results)
+    const numErrors = _.size(errors)
 
     await cluster.idle()
     await cluster.close()
 
-    if (_.size(errors)) {
-      _.forEach(err => rawConsole.log(err), errors)
-      throw new Error(`${_.size(errors)} failures out of ${testRuns}. See above for specifics.`)
+    if (numErrors) {
+      _.forEach(err => rawConsole.log(err.stack), errors)
+      throw new Error(`${numErrors} failures out of ${testRuns}. See above for specifics.`)
     }
   }
 
