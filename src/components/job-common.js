@@ -14,38 +14,37 @@ export const addCountSuffix = (label, count = undefined) => {
 }
 
 export const statusType = {
-  // TODO: We probably don't need the aria labels (if the icon is always used beside text). They should be aria-hidden.
   succeeded: {
     id: 'succeeded',
     label: _ => 'Succeeded',
-    icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style }, 'aria-label': 'success' })
+    icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style } })
   },
   failed: {
     id: 'failed',
     label: _ => 'Failed',
-    icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style }, 'aria-label': 'failed' })
+    icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
   },
   running: {
     id: 'running',
     label: _ => 'Running',
-    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'running' })
+    icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   submitted: {
     id: 'submitted',
     label: _ => 'Submitted',
-    icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'submitted' })
+    icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForCloudQuota: {
     id: 'waitingForQuota',
     label: _ => 'Submitted, Awaiting Cloud Quota',
-    icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style }, 'aria-label': 'waiting for cloud quota' }),
+    icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251-Google-Cloud-quotas-What-are-they-and-how-do-you-request-more-',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
   },
   unknown: {
     id: 'unknown',
     label: rawStatus => `Unexpected status (${rawStatus})`,
-    icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style }, 'aria-label': 'unknown' })
+    icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } })
   }
 }
 
