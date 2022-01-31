@@ -89,7 +89,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Running':
       return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForCloudQuota : statusType.running
     default:
-      return `Unexpected status (${status})`
+      return statusType.unknown
   }
 }
 
