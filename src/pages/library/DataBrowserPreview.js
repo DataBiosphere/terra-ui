@@ -57,17 +57,17 @@ const DataBrowserPreview = ({ id }) => {
     const loadData = async () => {
       const { tables: newTables } = await Ajax(signal).DataRepo.getPreviewMetadata(id)
 
-      const [hasRows, noRows] = _.flow(
+      const hasRows = _.flow(
         _.sortBy('name'),
         _.map(({ name, rowCount }) => ({ value: name, rowCount })),
-        _.partition(({ rowCount }) => rowCount > 0)
+        _.filter(({ rowCount }) => rowCount > 0)
       )(newTables)
 
-      const newSelectOptions = [{ label: '', options: hasRows }, { label: 'Tables without data', options: noRows }]
+      const newSelectOptions = [{ label: '', options: hasRows }]
 
       setTables(newTables)
       setSelectOptions(newSelectOptions)
-      setSelectedTable(hasRows[0]?.value || noRows[0]?.value)
+      setSelectedTable(hasRows[0]?.value)
     }
 
     loadData()
@@ -157,7 +157,7 @@ const DataBrowserPreview = ({ id }) => {
           isSearchable: true,
           isClearable: false,
           value: selectedTable,
-          getOptionLabel: ({ rowCount, value }) => div({ style: { color: colors.dark(!!rowCount ? 1 : 0.5) } }, [_.startCase(value)]),
+          getOptionLabel: ({ value }) => div({ style: { color: colors.dark(1) } }, [_.startCase(value)]),
           formatGroupLabel: ({ label }) => {
             return !!label && div({
               style: { marginTop: 5, paddingTop: 15, borderTop: `1px solid ${colors.dark(0.5)}`, color: colors.dark(0.8) }
@@ -181,10 +181,7 @@ const DataBrowserPreview = ({ id }) => {
             !_.isEmpty(columns) && h(ColumnSelector, {
               onSave: setColumns, columnSettings: columns,
               style: { backgroundColor: 'unset', height: '2.5rem', width: '2.5rem', border: 0, right: 15 }
-            }),
-            _.isEmpty(previewRows) && div({
-              style: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }
-            }, ['(No Data)'])
+            })
           ])
       ]),
     !!viewJSON && h(ModalDrawer, {
