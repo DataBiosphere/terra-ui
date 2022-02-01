@@ -25,6 +25,9 @@ const testRunNotebookFn = _.flow(
   await select(page, 'Language', 'Python 3')
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
+  // We are adding a short micro sleep to make sure that the spinner is
+  // rendered by the time we start waiting for the spinner to go away.
+  await delay(500)
   await waitForNoSpinners(page)
   await click(page, clickable({ text: 'Edit' }))
   // There are two separate activities in the UI that could interfere with beginning to interact
