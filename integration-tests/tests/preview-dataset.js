@@ -28,12 +28,6 @@ const testPreviewDatasetFn = _.flow(
   await click(page, clickable({ textContains: 'View JSON'  }))
   await findText(page, 'describedBy')
   await page.keyboard.press('Escape')
-
-  // Click on a table with no data
-  await click(page, clickable({ text: 'data type', isDescendant: true }))
-  await click(page, clickable({ text: 'Analysis File'}))
-  await waitForNoSpinners(page)
-  await findText(page, 'No Data')
 })
 
 const testPreviewDataset = {

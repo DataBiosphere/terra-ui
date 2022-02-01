@@ -28,6 +28,7 @@
     "marked": "^4.0.10",
     "outdated-browser-rework": "^3.0.1",
     "path-to-regexp": "^5.0.0",
+    "pluralize": "^8.0.0",
     "prismjs": "^1.25.0",
     "prop-types": "^15.7.2",
     "qs": "^6.10.1",
