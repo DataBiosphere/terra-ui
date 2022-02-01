@@ -2015,6 +2015,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"debug@npm:^4.3.3":
+  version: 4.3.3
+  resolution: "debug@npm:4.3.3"
+  dependencies:
+    ms: 2.1.2
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 14472d56fe4a94dbcfaa6dbed2dd3849f1d72ba78104a1a328047bb564643ca49df0224c3a17fa63533fd11dd3d4c8636cd861191232a2c6735af00cc2d4de16
+  languageName: node
+  linkType: hard
+
 "decimal.js@npm:^10.2.1":
   version: 10.2.1
   resolution: "decimal.js@npm:10.2.1"
@@ -5143,6 +5155,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"puppeteer-cluster@npm:^0.23.0":
+  version: 0.23.0
+  resolution: "puppeteer-cluster@npm:0.23.0"
+  dependencies:
+    debug: ^4.3.3
+  peerDependencies:
+    puppeteer: ">=1.5.0"
+  checksum: 6ce1faca1f98d22a01c1bf3f0b749e1e72a00700a1a6c3340e17f2170a2239f6ffcc04a93ca538bc9aeb7a179fc9736431f8131934cfbaa07611bb5b1736c8f6
+  languageName: node
+  linkType: hard
+
 "puppeteer@npm:^12.0.1":
   version: 12.0.1
   resolution: "puppeteer@npm:12.0.1"
@@ -5952,6 +5975,7 @@ resolve@^1.20.0:
     p-retry: ^4.6.1
     prompts: ^2.4.1
     puppeteer: ^12.0.1
+    puppeteer-cluster: ^0.23.0
   languageName: unknown
   linkType: soft
 

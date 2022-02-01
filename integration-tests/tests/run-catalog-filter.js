@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, waitForNoSpinners, input, fillIn, heading, findHeading } = require('../utils/integration-utils')
+const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -15,7 +15,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
 
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
-  await waitForNoSpinners(page)
+  await findText(page, 'Controlled')
 
   const totalDatasetSize = await getDatasetCount(page)
 
