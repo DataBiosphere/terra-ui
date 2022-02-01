@@ -39,6 +39,7 @@ export const statusType = {
     label: _ => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
+    moreInfoLabel: 'Learn more about cloud quota',
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
   },
   unknown: {
@@ -103,7 +104,7 @@ export const statusIcon = (status, style) => {
  * Returns the rendered status line, based on icon function, label, and style.
  */
 export const makeStatusLine = (iconFn, label, style) => div(
-  { style: { display: 'flex', alignItems: 'center', fontSize: 14, textTransform: 'capitalize', ...style } },
+  { style: { display: 'flex', alignItems: 'center', fontSize: 14, ...style } },
   [iconFn({ marginRight: '0.5rem' }), label]
 )
 
@@ -112,7 +113,7 @@ export const makeStatusLine = (iconFn, label, style) => div(
  */
 export const makeCromwellStatusLine = (executionStatus, backendStatus) => {
   const collapsedStatus = collapseCromwellStatus(executionStatus, backendStatus)
-  return h(TooltipCell, { tooltip: collapsedStatus.tooltip },
+  return h(TooltipCell, { tooltip: collapsedStatus.tooltip }, // Note that if the tooltip is undefined, a default will be shown
     [makeStatusLine(style => collapsedStatus.icon(style), collapsedStatus.label(executionStatus), { marginLeft: '0.5rem' }
     )]
   )
