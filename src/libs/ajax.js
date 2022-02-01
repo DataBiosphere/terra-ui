@@ -236,6 +236,20 @@ const User = signal => ({
     }
   },
 
+  getSamTosAccepted: async () => {
+    try {
+      const res = await fetchSam('register/user/v2/self/diagnostics', _.merge(authOpts(), { signal }))
+      const { tosAccepted } = await res.json() // do you need two awaits?
+      return tosAccepted
+    } catch (error) {
+      if (error.status === 403 || error.status === 404) {
+        return false
+      } else {
+        throw error
+      }
+    }
+  },
+
   getTos: async () => {
     const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
     return response.text()
@@ -245,6 +259,13 @@ const User = signal => ({
     await fetchOk(
       `${getConfig().tosUrlRoot}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
+  },
+
+  acceptSamTos: async () => {
+    await fetchSam(
+      'register/user/v1/termsofservice',
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
     )
   },
 

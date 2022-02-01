@@ -13,7 +13,8 @@ import TermsOfService from 'src/pages/TermsOfService'
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
-  const { isSignedIn, registrationStatus, acceptedTos, profile } = useStore(authStore)
+  const { isSignedIn, registrationStatus, acceptedTos, acceptedSamTos, profile } = useStore(authStore)
+  const acceptedEither = acceptedTos || acceptedSamTos
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
   return Utils.cond(
@@ -23,7 +24,7 @@ const AuthContainer = ({ children }) => {
     [registrationStatus === 'unregistered', () => h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
     [acceptedTos === undefined && !isPublic, authspinner],
-    [acceptedTos === false && name !== 'privacy', () => h(TermsOfService)],
+    [acceptedEither === false && name !== 'privacy', () => h(TermsOfService)], // todo: modify this cond to silently accept tos before returning children
     [_.isEmpty(profile) && !isPublic, authspinner],
     () => children
   )
