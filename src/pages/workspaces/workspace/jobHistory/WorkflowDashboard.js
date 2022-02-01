@@ -55,7 +55,7 @@ const statusCell = ({ calls }) => {
     makeRow(running, statusType.running),
     makeRow(succeeded, statusType.succeeded),
     makeRow(failed, statusType.failed),
-    _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(others))
+    h(Fragment, _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(others)))
   ])
 }
 
