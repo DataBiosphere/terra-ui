@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, clickTableCell, fillIn, findHeading, findText, heading, waitForNoSpinners } = require('../utils/integration-utils')
 const { enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -6,11 +6,11 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
-  await waitForNoSpinners(page)
 
+  await findText(page, 'Granted')
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await clickTableCell(page, 'dataset list', 2, 2)
-  await waitForNoSpinners(page)
+  await findText(page, 'Link to a workspace')
   await click(page, clickable({ textContains: 'Link to a workspace' }))
   await waitForNoSpinners(page)
 
@@ -29,7 +29,6 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
       return window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
   }
-
 })
 
 const testLinkToNewWorkspace = {
