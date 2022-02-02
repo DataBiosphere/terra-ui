@@ -4,6 +4,7 @@ const { withScreenshot, withPageLogging } = require('../utils/integration-utils'
 const { Cluster } = require('puppeteer-cluster')
 const envs = require('../utils/terra-envs')
 const rawConsole = require('console')
+const { mkdirSync } = require('fs')
 
 
 const {
@@ -36,6 +37,7 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
 }
 
 const flakeShaker = ({ fn, name }) => {
+  const screenshotDir = './screenshots'
   const timeoutMillis = clusterTimeout * 60 * 1000
   const padding = 100
   const messages = ['', `Number of times to run this test: ${testRuns} (adjust this by setting RUNS in your environment)`,
@@ -55,6 +57,8 @@ const flakeShaker = ({ fn, name }) => {
     _.join(''))(messages)
   rawConsole.log(`${message}`)
 
+  mkdirSync(screenshotDir)
+
   const runCluster = async () => {
     const cluster = await Cluster.launch({
       concurrency: Cluster.CONCURRENCY_CONTEXT,
@@ -72,6 +76,7 @@ const flakeShaker = ({ fn, name }) => {
         rawConsole.log(`Test number ${runId} passed`)
         return result
       } catch (e) {
+        await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
         rawConsole.log(`Test number ${runId} failed: ${e}`)
         return e
       }

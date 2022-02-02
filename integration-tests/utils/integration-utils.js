@@ -32,7 +32,7 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const getClickablePath = (path, text, textContains, isDescendant=false) => {
+const getClickablePath = (path, text, textContains, isDescendant = false) => {
   const base = `${path}${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
@@ -41,12 +41,16 @@ const getClickablePath = (path, text, textContains, isDescendant=false) => {
   }
 }
 
-const clickable = ({ text, textContains, isDescendant = false}) => {
+const getAnimatedDrawer = textContains => {
+  return `//*[@role="dialog" and @aria-hidden="false"][contains(normalize-space(.), "${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]]`
+}
+
+const clickable = ({ text, textContains, isDescendant = false }) => {
   const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
-const checkbox = ({ text, textContains, isDescendant = false}) => {
+const checkbox = ({ text, textContains, isDescendant = false }) => {
   const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
@@ -116,6 +120,16 @@ const select = async (page, labelContains, text) => {
 }
 
 const waitForNoSpinners = page => {
+  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+}
+
+// waitForNoSpinnersAfterAction
+// This takes advantage of the mutationObserver in puppeteer by initializing the wait before taking an action.
+// This helps us guarantee that we will catch the spinner before it disappears
+const waitForNoSpinnersAfterAction = async (page, action) => {
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
+  const completeAction = action()
+  await Promise.all([foundSpinner, completeAction])
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
@@ -261,13 +275,13 @@ module.exports = {
   fillIn,
   fillInReplace,
   findTableCellText,
+  getAnimatedDrawer,
   getTableCellPath,
   getTableHeaderPath,
   heading,
   input,
   select,
   svgText,
-  waitForNoSpinners,
   delay,
   signIntoTerra,
   navChild,
@@ -276,6 +290,8 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   logPageAjaxResponses,
+  waitForNoSpinners,
+  waitForNoSpinnersAfterAction,
   withPageLogging,
   openError
 }
