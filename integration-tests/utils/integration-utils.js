@@ -128,8 +128,7 @@ const waitForNoSpinners = page => {
 // This helps us guarantee that we will catch the spinner before it disappears
 const waitForNoSpinnersAfterAction = async (page, action) => {
   const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
-  const completeAction = action()
-  await Promise.all([foundSpinner, completeAction])
+  await Promise.all([foundSpinner, action()])
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 

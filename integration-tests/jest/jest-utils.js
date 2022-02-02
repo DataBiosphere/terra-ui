@@ -4,7 +4,7 @@ const { withScreenshot, withPageLogging } = require('../utils/integration-utils'
 const { Cluster } = require('puppeteer-cluster')
 const envs = require('../utils/terra-envs')
 const rawConsole = require('console')
-const { mkdirSync } = require('fs')
+const { mkdirSync, existsSync } = require('fs')
 
 
 const {
@@ -57,7 +57,7 @@ const flakeShaker = ({ fn, name }) => {
     _.join(''))(messages)
   rawConsole.log(`${message}`)
 
-  mkdirSync(screenshotDir)
+  !existsSync(screenshotDir) && mkdirSync(screenshotDir)
 
   const runCluster = async () => {
     const cluster = await Cluster.launch({
