@@ -123,13 +123,13 @@ const waitForNoSpinners = page => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
-// waitForNoSpinnersAfterAction
-// This takes advantage of the mutationObserver in puppeteer by initializing the wait before taking an action.
-// This helps us guarantee that we will catch the spinner before it disappears
-const waitForNoSpinnersAfterAction = async (page, action) => {
+// Puppeteer works by internally using MutationObserver. We are setting up the listener before
+// the action to ensure that the spinner rendering is captured by the observer, followed by
+// waiting for the spinner to be removed
+const noSpinnersAfter = async (page, { action }) => {
   const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
   await Promise.all([foundSpinner, action()])
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+  return waitForNoSpinners(page)
 }
 
 const delay = ms => {
@@ -289,8 +289,8 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   logPageAjaxResponses,
+  noSpinnersAfter,
   waitForNoSpinners,
-  waitForNoSpinnersAfterAction,
   withPageLogging,
   openError
 }
