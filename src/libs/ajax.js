@@ -238,12 +238,11 @@ const User = signal => ({
 
   getSamTosAccepted: async () => {
     try {
-      const res = await fetchSam('register/user/v2/self/diagnostics', _.merge(authOpts(), { signal }))
-      const { tosAccepted } = await res.json() // do you need two awaits?
-      return tosAccepted
+      const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
+      return await res.json() // why do you need two awaits? do you?
     } catch (error) {
-      if (error.status === 403 || error.status === 404) {
-        return false
+      if (error.status === 404) {
+        return null
       } else {
         throw error
       }
