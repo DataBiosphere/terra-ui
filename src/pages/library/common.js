@@ -202,11 +202,12 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
         }
       }, _.map(label => {
         const lowerTag = _.toLower(label)
+        const escapedTag = lowerTag.replace(/\./g, '-')
         return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
           h(LabeledCheckbox, {
-            checked: !!filterChanges[lowerTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            checked: !!filterChanges[escapedTag] ^ _.includes(lowerTag, lowerSelectedTags),
             onChange: () => {
-              setFilterChanges(prevFilter => prevFilter[lowerTag] ? _.omit(lowerTag, prevFilter) : _.set(lowerTag, { lowerTag, label, section: name }, prevFilter))
+              setFilterChanges(prevFilter => prevFilter[escapedTag] ? _.omit(escapedTag, prevFilter) : _.set(escapedTag, { lowerTag, label, section: name }, prevFilter))
             },
             style: { position: 'absolute', left: -25, top: 2 }
           }, [
