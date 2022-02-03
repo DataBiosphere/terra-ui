@@ -225,7 +225,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
 const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag, filteredData }) => {
   // State
   const [showAll, setShowAll] = useState(false)
-  const labelsToDisplay = computeLabels(labels, _.map('label', selectedTags))
+  const labelsToDisplay = computeLabels(labels, _.flatMap(_.map('label'), selectedTags))
   const lowerSelectedTags = _.flow(
     _.get(name),
     _.map('lowerTag')
