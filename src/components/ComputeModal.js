@@ -1348,8 +1348,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
+            existingRuntime.tool !== tool ? p([`By continuing, you will be changing the application of your cloud environment from ${existingRuntime.tool} to ${tool}.`]) : undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
-            existingRuntime.tool !== tool ? p([`Note that you are changing the application of your cloud environment to ${tool}.`]) : undefined,
             p(['Your existing data will be preserved during this update.'])
           ])]
         )
