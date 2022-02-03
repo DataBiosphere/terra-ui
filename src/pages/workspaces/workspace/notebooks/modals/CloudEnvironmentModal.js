@@ -61,7 +61,7 @@ export const CloudEnvironmentModal = ({
     },
     onSuccess: () => {
       setViewMode(undefined)
-      onDismiss()
+      onSuccess()
     }
   })
 
@@ -77,7 +77,7 @@ export const CloudEnvironmentModal = ({
     },
     onSuccess: () => {
       setViewMode(undefined)
-      onDismiss()
+      onSuccess()
     }
   })
 
