@@ -8,7 +8,7 @@ import { ButtonSecondary, ClipboardButton, Link, Select } from 'src/components/c
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
+  addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusType, submissionDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -55,7 +55,7 @@ const SubmissionDetails = _.flow(
   useEffect(() => {
     const initialize = withErrorReporting('Unable to fetch submission details',
       async () => {
-        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), ['running', 'submitted']), submission.workflows)) {
+        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), [statusType.running, statusType.submitted]), submission.workflows)) {
           if (!_.isEmpty(submission)) {
             await Utils.delay(60000)
           }
@@ -116,7 +116,7 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
+  const statusGroups = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
 
   // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
   // 'cromwell.conf.ctmpl' file:
@@ -159,12 +159,10 @@ const SubmissionDetails = _.flow(
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
         div({ style: { display: 'grid', gridTemplateRows: '1fr auto' } }, [
-          makeSection('Workflow Statuses', [
-            succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
-            failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
-            running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
-            submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
-          ]),
+          makeSection('Workflow Statuses',
+            [statusType.succeeded.id, statusType.failed.id, statusType.running.id, statusType.submitted.id].filter(s => statusGroups[s]).map(
+              s => makeStatusLine(statusType[s].icon, addCountSuffix(statusType[s].label(), statusGroups[s].length), { marginTop: '0.5rem' })
+            )),
           div({
             style: { padding: '0 0.5rem 0.5rem', marginTop: '1.0rem', whiteSpace: 'pre', overflow: 'hidden' }
           }, [
@@ -274,7 +272,7 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { status } = filteredWorkflows[rowIndex]
-                return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
+                return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status])
               }
             }, {
               size: { basis: 125, grow: 0 },
