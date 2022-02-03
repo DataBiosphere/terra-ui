@@ -2,12 +2,7 @@ runtime: nodejs16
 default_expiration: "2m"
 
 handlers:
-- url: /(.*\.(ico|jpg|jpeg|png|svg))
-  static_files: build/\1
-  upload: build/(.*)
-  secure: always
-  # IE has had issues with image files and the X-Content-Type-Options header value, so do not add it to those files.
-- url: /(.*\.(css|eot|gz|html|js|json|map|otf|ttf|woff|woff2))
+- url: /(.*\.(css|eot|gz|html|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2))
   static_files: build/\1
   upload: build/(.*)
   secure: always
