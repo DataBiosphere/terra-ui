@@ -5,6 +5,7 @@
   "scripts": {
     "test": "jest",
     "test-local": "TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) yarn test",
+    "test-flakes": "FLAKES=true yarn test-local --runInBand",
     "start": "node src/server.js",
     "start-dev": "nodemon"
   },
@@ -13,7 +14,8 @@
     "jest-junit": "^13.0.0",
     "jest-puppeteer": "^6.0.2",
     "node-fetch": "^2.6.6",
-    "prompts": "^2.4.1"
+    "prompts": "^2.4.1",
+    "puppeteer-cluster": "^0.23.0"
   },
   "jest-junit": {
     "suiteName": "Integration tests",
