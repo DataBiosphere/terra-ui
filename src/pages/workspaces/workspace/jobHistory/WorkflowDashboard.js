@@ -36,8 +36,9 @@ const groupCallStatuses = _.flow(
 )
 
 const statusCell = ({ calls }) => {
-  // Note: these variable names match the id values of statusType (except for others, which will be the labels for unknown statuses).
-  const { succeeded, failed, running, submitted, waitingForQuota, ...others } = groupCallStatuses(calls)
+  const statusGroups = groupCallStatuses(calls)
+  // Note: these variable names match the id values of statusType (except for unknownStatuses, which will be their labels).
+  const { succeeded, failed, running, submitted, waitingForQuota, ...unknownStatuses } = statusGroups
 
   const makeRow = (count, status, labelOverride) => {
     const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...Utils.newTabLinkProps },
@@ -48,15 +49,11 @@ const statusCell = ({ calls }) => {
       seeMore
     ])
   }
-
-  return h(Fragment, [
-    makeRow(submitted, statusType.submitted),
-    makeRow(waitingForQuota, statusType.waitingForCloudQuota),
-    makeRow(running, statusType.running),
-    makeRow(succeeded, statusType.succeeded),
-    makeRow(failed, statusType.failed),
-    h(Fragment, _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(others)))
-  ])
+  return h(Fragment, _.concat(
+    [statusType.submitted.id, statusType.waitingForCloudQuota.id, statusType.running.id, statusType.succeeded.id, statusType.failed.id].filter(
+      s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
+    _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses)))
+  )
 }
 
 const WorkflowDashboard = _.flow(

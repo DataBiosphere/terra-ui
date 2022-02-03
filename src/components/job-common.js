@@ -16,27 +16,27 @@ export const addCountSuffix = (label, count = undefined) => {
 export const statusType = {
   succeeded: {
     id: 'succeeded',
-    label: _ => 'Succeeded',
+    label: () => 'Succeeded',
     icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style } })
   },
   failed: {
     id: 'failed',
-    label: _ => 'Failed',
+    label: () => 'Failed',
     icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
   },
   running: {
     id: 'running',
-    label: _ => 'Running',
+    label: () => 'Running',
     icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   submitted: {
     id: 'submitted',
-    label: _ => 'Submitted',
+    label: () => 'Submitted',
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForCloudQuota: {
     id: 'waitingForQuota',
-    label: _ => 'Submitted, Awaiting Cloud Quota',
+    label: () => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
     moreInfoLabel: 'Learn more about cloud quota',
@@ -94,7 +94,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
 }
 
 /**
- * Returns the icon for display with workflow or submission status.
+ * Returns the icon for display with workflow or submission status, using `collapseStatus` to determine the appropriate icon.
  */
 export const statusIcon = (status, style) => {
   return collapseStatus(status).icon(style)

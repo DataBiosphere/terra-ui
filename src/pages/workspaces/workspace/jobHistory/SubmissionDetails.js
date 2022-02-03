@@ -116,8 +116,7 @@ const SubmissionDetails = _.flow(
     sort.direction === 'asc' ? _.identity : _.reverse
   )(workflows)
 
-  // Note: these variable names match the id values of statusType.
-  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
+  const statusGroups = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
 
   // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
   // 'cromwell.conf.ctmpl' file:
@@ -160,12 +159,10 @@ const SubmissionDetails = _.flow(
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
         div({ style: { display: 'grid', gridTemplateRows: '1fr auto' } }, [
-          makeSection('Workflow Statuses', [
-            succeeded && makeStatusLine(statusType.succeeded.icon, addCountSuffix(statusType.succeeded.label(), succeeded.length), { marginTop: '0.5rem' }),
-            failed && makeStatusLine(statusType.failed.icon, addCountSuffix(statusType.failed.label(), failed.length), { marginTop: '0.5rem' }),
-            running && makeStatusLine(statusType.running.icon, addCountSuffix(statusType.running.label(), running.length), { marginTop: '0.5rem' }),
-            submitted && makeStatusLine(statusType.submitted.icon, addCountSuffix(statusType.submitted.label(), submitted.length), { marginTop: '0.5rem' })
-          ]),
+          makeSection('Workflow Statuses',
+            [statusType.succeeded.id, statusType.failed.id, statusType.running.id, statusType.submitted.id].filter(s => statusGroups[s]).map(
+              s => makeStatusLine(statusType[s].icon, addCountSuffix(statusType[s].label(), statusGroups[s].length), { marginTop: '0.5rem' })
+            )),
           div({
             style: { padding: '0 0.5rem 0.5rem', marginTop: '1.0rem', whiteSpace: 'pre', overflow: 'hidden' }
           }, [
