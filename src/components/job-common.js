@@ -94,13 +94,6 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
 }
 
 /**
- * Returns the icon for display with workflow or submission status, using `collapseStatus` to determine the appropriate icon.
- */
-export const statusIcon = (status, style) => {
-  return collapseStatus(status).icon(style)
-}
-
-/**
  * Returns the rendered status line, based on icon function, label, and style.
  */
 export const makeStatusLine = (iconFn, label, style) => div(

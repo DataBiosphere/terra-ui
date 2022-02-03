@@ -8,7 +8,7 @@ import { ButtonSecondary, ClipboardButton, Link, Select } from 'src/components/c
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusIcon, statusType, submissionDetailsBreadcrumbSubtitle
+  addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusType, submissionDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
@@ -272,7 +272,7 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { status } = filteredWorkflows[rowIndex]
-                return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
+                return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status])
               }
             }, {
               size: { basis: 125, grow: 0 },

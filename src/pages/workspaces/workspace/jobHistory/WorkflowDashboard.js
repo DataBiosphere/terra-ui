@@ -7,7 +7,7 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusIcon, statusType, workflowDetailsBreadcrumbSubtitle
+  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
@@ -147,7 +147,7 @@ const WorkflowDashboard = _.flow(
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Status', [
-            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => statusIcon(status, style), status)])
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => collapseStatus(status).icon(style), status)])
           ]),
           makeSection('Workflow Timing', [
             div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
