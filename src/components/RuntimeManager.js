@@ -18,6 +18,7 @@ import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
+import { isAnalysisTabVisible } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -347,7 +348,7 @@ export default class RuntimeManager extends PureComponent {
 
     const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
 
-    return h(Fragment, [
+    return isAnalysisTabVisible() ? h(Fragment) : h(Fragment, [
       galaxyApp && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
           'aria-label': 'Galaxy clickable',

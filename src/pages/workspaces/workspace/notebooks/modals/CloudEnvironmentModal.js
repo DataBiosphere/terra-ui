@@ -16,7 +16,7 @@ import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
-import rstudioLogo from 'src/images/rstudio-logo.svg'
+import rstudioBioLogo from 'src/images/r-bio-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -124,7 +124,7 @@ export const CloudEnvironmentModal = ({
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
       'aria-label': `${toolLabel} Status`,
-      hover: { backgroundColor: colors.accent(0.2) },
+      hover: disabled ? {} : { backgroundColor: colors.accent(0.2) },
       // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
       style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
       onClick, disabled, ...props
@@ -250,7 +250,7 @@ export const CloudEnvironmentModal = ({
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.galaxy.label, () => galaxyLogo],
-    [tools.RStudio.label, () => rstudioLogo],
+    [tools.RStudio.label, () => rstudioBioLogo],
     [tools.cromwell.label, () => cromwellImg])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
@@ -290,7 +290,7 @@ export const CloudEnvironmentModal = ({
         ...toolButtonStyles,
         color: isDisabled ? colors.dark(0.7) : colors.accent()
       },
-      hover: { backgroundColor: colors.accent(0.2) },
+      hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
         [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
@@ -361,7 +361,7 @@ export const CloudEnvironmentModal = ({
               ...toolButtonStyles,
               color: !isCloudEnvForToolDisabled ? colors.accent() : colors.dark(0.7)
             },
-            hover: { backgroundColor: colors.accent(0.2) },
+            hover: isCloudEnvForToolDisabled ? {} : { backgroundColor: colors.accent(0.2) },
             tooltip: Utils.cond([isCloudEnvForToolDisabled, () => 'Edit disabled, processing'],
               [doesCloudEnvForToolExist, () => 'Edit existing Environment'],
               [!doesCloudEnvForToolExist, () => 'Create new Environment (may overwrite existing)']),
@@ -369,8 +369,8 @@ export const CloudEnvironmentModal = ({
             onClick: () => setViewMode(toolLabel)
           }, [
             img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }),
-            span('Cloud'),
-            span('Environment')
+            span('Environment'),
+            span('Settings')
           ]),
           // Status button with stop/start functionality
           renderStatusClickable(toolLabel),

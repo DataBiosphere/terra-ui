@@ -1349,6 +1349,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])],
           [willRequireDowntime(), () => h(Fragment, [
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
+            existingRuntime.tool !== tool ? p([`Note that you are changing the application of your cloud environment to ${tool}.`]) : undefined,
             p(['Your existing data will be preserved during this update.'])
           ])]
         )

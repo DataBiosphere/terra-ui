@@ -15,7 +15,7 @@ import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
-import rstudioLogo from 'src/images/rstudio-logo.svg'
+import rstudioBioLogo from 'src/images/r-bio-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -161,7 +161,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           setCurrentTool(tools.RStudio.label)
           enterNextViewMode(tools.RStudio.label)
         }
-      }, [img({ src: rstudioLogo, style: styles.image })]),
+      }, [img({ src: rstudioBioLogo, style: styles.image })]),
       div({
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
