@@ -172,7 +172,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
       }
     }
   }
-  if (!oldState.isSignedIn && state.isSignedIn) {
+  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldState.acceptedSamTos && state.acceptedSamTos)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
     authStore.update(state => ({ ...state, registrationStatus }))

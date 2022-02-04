@@ -243,6 +243,8 @@ const User = signal => ({
     } catch (error) {
       if (error.status === 404) {
         return null
+      } else if (error.status === 403) {
+        return false
       } else {
         throw error
       }
