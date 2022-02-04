@@ -17,7 +17,7 @@ import * as Utils from 'src/libs/utils'
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, acceptedTos, acceptedSamTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && !(acceptedTos || acceptedSamTos) // where to check that both are accepted and accept the other one if not?
+  const needToAccept = isSignedIn && !(acceptedSamTos === null ? acceptedTos : acceptedSamTos)
   const [termsOfService, setTermsOfService] = useState()
 
   useOnMount(() => {
