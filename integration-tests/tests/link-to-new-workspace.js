@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, findHeading, findText, heading, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, clickTableCell, fillIn, findText, waitForNoSpinners } = require('../utils/integration-utils')
 const { enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
