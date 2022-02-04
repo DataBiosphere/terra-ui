@@ -14,7 +14,6 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, acceptedSamTos, profile } = useStore(authStore)
-  const needToAccept = !(acceptedSamTos === null ? acceptedTos : acceptedSamTos) // acceptedSamTos will be null if Sam ToS enforcement is not yet live. Rely on acceptedTos (from Cloud Function) until Sam ToS is live
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
   return Utils.cond(
@@ -22,9 +21,9 @@ const AuthContainer = ({ children }) => {
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === 'unregistered', () => h(Register)],
+    [(acceptedTos === undefined || acceptedSamTos === undefined) && !isPublic, authspinner],
+    [!(acceptedSamTos === null ? acceptedTos : acceptedSamTos) && name !== 'privacy', () => h(TermsOfService)],
     [registrationStatus === 'disabled', () => h(Disabled)],
-    [acceptedTos === undefined && !isPublic, authspinner],
-    [needToAccept === true && name !== 'privacy', () => h(TermsOfService)],
     [_.isEmpty(profile) && !isPublic, authspinner],
     () => children
   )

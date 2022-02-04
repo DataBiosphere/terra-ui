@@ -182,7 +182,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const acceptedTos = await Ajax().User.getTosAccepted()
-    const acceptedSamTos = await Ajax().user.getSamTosAccepted()
+    const acceptedSamTos = await Ajax().User.getSamTosAccepted()
     authStore.update(state => ({ ...state, acceptedTos, acceptedSamTos }))
   }
 }))
