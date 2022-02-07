@@ -15,27 +15,27 @@ export const addCountSuffix = (label, count = undefined) => {
 
 export const statusType = {
   succeeded: {
-    id: 'succeeded',
+    id: 'succeeded', // Must match variable name for collection unpacking.
     label: () => 'Succeeded',
     icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style } })
   },
   failed: {
-    id: 'failed',
+    id: 'failed', // Must match variable name for collection unpacking.
     label: () => 'Failed',
     icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
   },
   running: {
-    id: 'running',
+    id: 'running', // Must match variable name for collection unpacking.
     label: () => 'Running',
     icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   submitted: {
-    id: 'submitted',
+    id: 'submitted', // Must match variable name for collection unpacking.
     label: () => 'Submitted',
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   waitingForQuota: {
-    id: 'waitingForQuota',
+    id: 'waitingForQuota', // Must match variable name for collection unpacking.
     label: () => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
@@ -43,7 +43,7 @@ export const statusType = {
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
   },
   unknown: {
-    id: 'unknown',
+    id: 'unknown', // Must match variable name for collection unpacking.
     label: executionStatus => `Unexpected status (${executionStatus})`,
     icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } })
   }
