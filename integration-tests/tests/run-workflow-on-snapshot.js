@@ -59,7 +59,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ text: 'Save' }))
 
-  await delay(1000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
+  // TODO: change this to wait for the button to become enabled.
+  await delay(5000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
 
   await launchWorkflowAndWaitForSuccess(page)
 
