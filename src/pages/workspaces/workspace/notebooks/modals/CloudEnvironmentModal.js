@@ -364,7 +364,7 @@ export const CloudEnvironmentModal = ({
             hover: isCloudEnvForToolDisabled ? {} : { backgroundColor: colors.accent(0.2) },
             tooltip: Utils.cond([isCloudEnvForToolDisabled, () => 'Edit disabled, processing'],
               [doesCloudEnvForToolExist, () => 'Edit existing Environment'],
-              [!doesCloudEnvForToolExist, () => 'Create new Environment (may overwrite existing)']),
+              [!doesCloudEnvForToolExist, () => 'Create new Environment']),
             disabled: isCloudEnvForToolDisabled,
             onClick: () => setViewMode(toolLabel)
           }, [
