@@ -52,7 +52,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     // once import service is fully adopted, we can/should remove the avro-import status values.
     const successNotify = () => notify('success', 'Data imported successfully.', {
       message: h(Fragment, [
-        p([`Data import to workspace "${namespace} / ${name}" is complete, please refresh the Data view.`]),
+        p([`Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`]),
         p([`When data is imported from external sources, like PFB or TDR, prefixes ("pfb:" or "tdr:", respectively)
             will be prepended to column names. Prefix values must be included in attribute references as described `,
         h(Link, {
