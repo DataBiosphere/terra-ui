@@ -34,7 +34,7 @@ export const statusType = {
     label: () => 'Submitted',
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
-  waitingForCloudQuota: {
+  waitingForQuota: {
     id: 'waitingForQuota',
     label: () => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
@@ -76,7 +76,7 @@ export const collapseStatus = rawStatus => {
  *
  * @param {string} executionStatus from metadata
  * @param {string} backendStatus from metadata
- * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForCloudQuota`, or `statusType.unknown`
+ * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
  */
 export const collapseCromwellStatus = (executionStatus, backendStatus) => {
   switch (executionStatus) {
@@ -87,7 +87,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Failed':
       return statusType.failed
     case 'Running':
-      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForCloudQuota : statusType.running
+      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running
     default:
       return statusType.unknown
   }
