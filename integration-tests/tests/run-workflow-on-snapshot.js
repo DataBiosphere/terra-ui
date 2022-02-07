@@ -53,12 +53,10 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ textContains: 'Inputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file input1 attribute' }), `this.${snapshotColumnName}`)
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
-  await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
+
   await click(page, clickable({ text: 'Save' }))
 
   await delay(1000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
