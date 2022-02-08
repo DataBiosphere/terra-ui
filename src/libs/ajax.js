@@ -239,7 +239,7 @@ const User = signal => ({
   getSamTosAccepted: async () => {
     try {
       const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
-      return await res.json()
+      return res.json()
     } catch (error) {
       if (error.status === 404) {
         return null
