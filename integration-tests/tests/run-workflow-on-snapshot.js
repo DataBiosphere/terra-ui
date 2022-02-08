@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
 const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, enabledClickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
+const { click, clickable, clickableEnabled, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -61,8 +61,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
 
   await click(page, clickable({ text: 'Save' }))
-  // Wait for "Run Analysis" to become enabled.
-  await page.waitForXPath(enabledClickable({ text: 'Run analysis' }))
+  await clickableEnabled(page, { text: 'Run analysis' })
 
   await launchWorkflowAndWaitForSuccess(page)
 

@@ -45,14 +45,16 @@ const getAnimatedDrawer = textContains => {
   return `//*[@role="dialog" and @aria-hidden="false"][contains(normalize-space(.), "${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]]`
 }
 
-const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
+const clickable = ({ text, textContains, isDescendant = false, isDisabled = undefined }) => {
+  let base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
+  if (isDisabled !== undefined) {
+    base += `[@aria-disabled="${isDisabled}"]`
+  }
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
-const enabledClickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a[@aria-disabled="false"] | //button[@aria-disabled="false"] | //*[@role="button" and @aria-disabled="false"] | //*[@role="link" and @aria-disabled="false"] | //*[@role="combobox" and @aria-disabled="false"] | //*[@role="option" and @aria-disabled="false"])`
-  return getClickablePath(base, text, textContains, isDescendant)
+const clickableEnabled = async (page, { text, textContains, isDescendant = false} ) => {
+  return (await page.waitForXPath(clickable({ text, textContains, isDescendant, isDisabled: false} )))
 }
 
 const checkbox = ({ text, textContains, isDescendant = false }) => {
@@ -269,8 +271,8 @@ module.exports = {
   checkbox,
   click,
   clickable,
+  clickableEnabled,
   clickTableCell,
-  enabledClickable,
   dismissNotifications,
   findIframe,
   findInGrid,
