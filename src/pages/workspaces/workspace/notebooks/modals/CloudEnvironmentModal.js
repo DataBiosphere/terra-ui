@@ -12,7 +12,6 @@ import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
-import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
@@ -368,7 +367,7 @@ export const CloudEnvironmentModal = ({
             disabled: isCloudEnvForToolDisabled,
             onClick: () => setViewMode(toolLabel)
           }, [
-            img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }),
+            icon('cog', { size: 20 }),
             span('Environment'),
             span('Settings')
           ]),

@@ -116,7 +116,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       },
       onSuccess: () => {
         setViewMode(undefined)
-        onDismiss()
+        onSuccess()
       }
     })
 
@@ -132,7 +132,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       },
       onSuccess: () => {
         setViewMode(undefined)
-        onDismiss()
+        onSuccess()
       }
     })
 

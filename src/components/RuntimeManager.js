@@ -348,7 +348,7 @@ export default class RuntimeManager extends PureComponent {
 
     const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
 
-    return isAnalysisTabVisible() ? h(Fragment) : h(Fragment, [
+    return isAnalysisTabVisible() ? null : h(Fragment, [
       galaxyApp && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
           'aria-label': 'Galaxy clickable',
