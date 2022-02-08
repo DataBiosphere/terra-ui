@@ -160,7 +160,7 @@ const SubmissionDetails = _.flow(
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
         div({ style: { display: 'grid', gridTemplateRows: '1fr auto' } }, [
           makeSection('Workflow Statuses',
-            [statusType.succeeded.id, statusType.failed.id, statusType.running.id, statusType.submitted.id].filter(s => statusGroups[s]).map(
+            ['succeeded', 'failed', 'running', 'submitted'].filter(s => statusGroups[s]).map(
               s => makeStatusLine(statusType[s].icon, addCountSuffix(statusType[s].label(), statusGroups[s].length), { marginTop: '0.5rem' })
             )),
           div({
