@@ -159,7 +159,7 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
   const filteredTags = (_.flow(
     _.map(label => {
       const lowerTag = _.toLower(label)
-      return [lowerTag, getFacetCount({ listDataByTag, filteredData, section: name, label: lowerTag })]
+      return [lowerTag, getFacetCount({ filteredData, listDataByTag, section: name, label: lowerTag })]
     }),
     _.fromPairs
   )(labels))
@@ -236,7 +236,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
     _.map(label => {
       const lowerTag = _.toLower(label)
       const isChecked = _.includes(lowerTag, lowerSelectedTags)
-      const numMatches = getFacetCount({ listDataByTag, filteredData, section: name, label: lowerTag })
+      const numMatches = getFacetCount({ filteredData, listDataByTag, section: name, label: lowerTag })
       return h(Clickable, {
         'aria-checked': isChecked,
         role: 'checkbox',
