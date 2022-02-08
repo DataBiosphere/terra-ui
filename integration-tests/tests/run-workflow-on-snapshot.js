@@ -32,6 +32,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await page.goto(`${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
