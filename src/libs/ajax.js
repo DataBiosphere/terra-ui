@@ -264,10 +264,16 @@ const User = signal => ({
   },
 
   acceptSamTos: async () => {
-    await fetchSam(
-      'register/user/v1/termsofservice',
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
-    )
+    try {
+      await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
+      )
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error
+      }
+    }
   },
 
   // If you are making changes to the Support Request Modal, make sure you test the following:
