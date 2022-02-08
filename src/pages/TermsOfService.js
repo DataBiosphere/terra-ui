@@ -16,8 +16,8 @@ import * as Utils from 'src/libs/utils'
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
-  const { isSignedIn, acceptedTos, acceptedSamTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
-  const needToAccept = isSignedIn && !(acceptedSamTos === null ? acceptedTos : acceptedSamTos)
+  const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
+  const needToAccept = isSignedIn && !acceptedTos
   const [termsOfService, setTermsOfService] = useState()
 
   useOnMount(() => {
@@ -35,7 +35,7 @@ const TermsOfServicePage = () => {
       setBusy(true)
       await Ajax().User.acceptTos()
       await Ajax().User.acceptSamTos()
-      authStore.update(state => ({ ...state, acceptedTos: true, acceptedSamTos: true }))
+      authStore.update(state => ({ ...state, acceptedTos: true }))
     } catch (error) {
       reportError('Error accepting TOS', error)
       setBusy(false)

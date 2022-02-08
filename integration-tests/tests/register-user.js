@@ -3,6 +3,7 @@ const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotific
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
+  debugger;
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)

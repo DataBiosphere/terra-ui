@@ -104,7 +104,6 @@ export const initializeAuth = _.memoize(async () => {
         anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
-        acceptedSamTos: isSignedIn ? state.acceptedSamTos : undefined,
         profile: isSignedIn ? state.profile : {},
         nihStatus: isSignedIn ? state.nihStatus : undefined,
         fenceStatus: isSignedIn ? state.fenceStatus : {},
@@ -172,7 +171,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
       }
     }
   }
-  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldState.acceptedSamTos && state.acceptedSamTos)) {
+  if ((!oldState.isSignedIn && state.isSignedIn) || (!oldState.acceptedTos && state.acceptedTos)) {
     clearNotification(sessionTimeoutProps.id)
     const registrationStatus = await getRegistrationStatus()
     authStore.update(state => ({ ...state, registrationStatus }))
@@ -181,9 +180,10 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const acceptedTos = await Ajax().User.getTosAccepted()
+    const acceptedCloudFunctionTos = await Ajax().User.getTosAccepted()
     const acceptedSamTos = await Ajax().User.getSamTosAccepted()
-    authStore.update(state => ({ ...state, acceptedTos, acceptedSamTos }))
+    const acceptedTos = acceptedSamTos === null ? acceptedCloudFunctionTos : acceptedSamTos
+    authStore.update(state => ({ ...state, acceptedTos }))
   }
 }))
 
