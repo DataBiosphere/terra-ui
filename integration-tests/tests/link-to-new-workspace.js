@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, clickTableCell, fillIn, noSpinnersAfter, waitForNoSpinners } = require('../utils/integration-utils')
 const { checkBucketAccess, enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -19,8 +19,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
     await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
     await click(page, clickable({ text: 'Select a billing project' }))
     await click(page, clickable({ text: `${newWorkspaceBillingAccount}` }))
-    await click(page, clickable({ text: 'Create Workspace' }))
-    await waitForNoSpinners(page)
+    await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
     // Wait for bucket access to avoid sporadic failures
     await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
     await page.url().includes(newWorkspaceName)
