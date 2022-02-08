@@ -9,8 +9,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
 
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await clickTableCell(page, 'dataset list', 2, 2)
-  await click(page, clickable({ textContains: 'Link to a workspace' }))
-  await waitForNoSpinners(page)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
 
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
@@ -18,7 +17,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
   await click(page, clickable({ text: 'Select a billing project' }))
   await click(page, clickable({ text: `${newWorkspaceBillingAccount}` }))
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
   try {
     // Wait for bucket access to avoid sporadic failures
     await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
