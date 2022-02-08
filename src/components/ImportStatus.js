@@ -56,7 +56,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
         p([`When data is imported from external sources, like PFB or TDR, prefixes ("pfb:" or "tdr:", respectively)
             will be prepended to column names. Prefix values must be included in attribute references as described `,
         h(Link, {
-          'aria-label': `Support article`,
+          'aria-label': 'Support article',
           href: 'https://support.terra.bio/hc/en-us/articles/360051722371-Data-table-attribute-namespace-support-pfb-prefix-#h_01ENT95Y0KM48QFRMJ44DEXS7S',
           ...Utils.newTabLinkProps
         }, ['here.'])])
