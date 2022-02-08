@@ -15,27 +15,27 @@ export const addCountSuffix = (label, count = undefined) => {
 
 export const statusType = {
   succeeded: {
-    id: 'succeeded',
+    id: 'succeeded', // Must match variable name for collection unpacking.
     label: () => 'Succeeded',
     icon: style => icon('check', { size: iconSize, style: { color: colors.success(), ...style } })
   },
   failed: {
-    id: 'failed',
+    id: 'failed', // Must match variable name for collection unpacking.
     label: () => 'Failed',
     icon: style => icon('warning-standard', { size: iconSize, style: { color: colors.danger(), ...style } })
   },
   running: {
-    id: 'running',
+    id: 'running', // Must match variable name for collection unpacking.
     label: () => 'Running',
     icon: style => icon('sync', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
   submitted: {
-    id: 'submitted',
+    id: 'submitted', // Must match variable name for collection unpacking.
     label: () => 'Submitted',
     icon: style => icon('clock', { size: iconSize, style: { color: colors.dark(), ...style } })
   },
-  waitingForCloudQuota: {
-    id: 'waitingForQuota',
+  waitingForQuota: {
+    id: 'waitingForQuota', // Must match variable name for collection unpacking.
     label: () => 'Submitted, Awaiting Cloud Quota',
     icon: style => icon('error-standard', { size: iconSize, style: { color: colors.warning(), ...style } }),
     moreInfoLink: 'https://support.terra.bio/hc/en-us/articles/360029071251',
@@ -43,7 +43,7 @@ export const statusType = {
     tooltip: 'Delayed by Google Cloud Platform (GCP) quota limits. Contact Terra Support to request a quota increase.'
   },
   unknown: {
-    id: 'unknown',
+    id: 'unknown', // Must match variable name for collection unpacking.
     label: executionStatus => `Unexpected status (${executionStatus})`,
     icon: style => icon('question', { size: iconSize, style: { color: colors.dark(), ...style } })
   }
@@ -76,7 +76,7 @@ export const collapseStatus = rawStatus => {
  *
  * @param {string} executionStatus from metadata
  * @param {string} backendStatus from metadata
- * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForCloudQuota`, or `statusType.unknown`
+ * @returns {Object} one of `statusType.succeeded`, `statusType.failed`, `statusType.running`, `statusType.waitingForQuota`, or `statusType.unknown`
  */
 export const collapseCromwellStatus = (executionStatus, backendStatus) => {
   switch (executionStatus) {
@@ -87,7 +87,7 @@ export const collapseCromwellStatus = (executionStatus, backendStatus) => {
     case 'Failed':
       return statusType.failed
     case 'Running':
-      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForCloudQuota : statusType.running
+      return backendStatus === 'AwaitingCloudQuota' ? statusType.waitingForQuota : statusType.running
     default:
       return statusType.unknown
   }

@@ -50,7 +50,7 @@ const statusCell = ({ calls }) => {
     ])
   }
   return h(Fragment, _.concat(
-    [statusType.submitted.id, statusType.waitingForCloudQuota.id, statusType.running.id, statusType.succeeded.id, statusType.failed.id].filter(
+    ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
       s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
     _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses)))
   )
