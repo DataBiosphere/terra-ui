@@ -50,6 +50,11 @@ const clickable = ({ text, textContains, isDescendant = false }) => {
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
+const enabledClickable = ({ text, textContains, isDescendant = false }) => {
+  const base = `(//a[@aria-disabled="false"] | //button[@aria-disabled="false"] | //*[@role="button" and @aria-disabled="false"] | //*[@role="link" and @aria-disabled="false"] | //*[@role="combobox" and @aria-disabled="false"] | //*[@role="option" and @aria-disabled="false"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
 const checkbox = ({ text, textContains, isDescendant = false }) => {
   const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
   return getClickablePath(base, text, textContains, isDescendant)
@@ -265,6 +270,7 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
+  enabledClickable,
   dismissNotifications,
   findIframe,
   findInGrid,
