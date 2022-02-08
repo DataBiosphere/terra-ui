@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, enabledClickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -58,9 +58,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
 
   await click(page, clickable({ text: 'Save' }))
-
-  // TODO: change this to wait for the button to become enabled.
-  await delay(5000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
+  // Wait for "Run Analysis" to become enabled.
+  await page.waitForXPath(enabledClickable({ text: 'Run analysis' }))
 
   await launchWorkflowAndWaitForSuccess(page)
 
