@@ -244,7 +244,7 @@ const withScreenshot = _.curry((testName, fn) => async options => {
 })
 
 const logPageConsoleMessages = page => {
-  const handle = msg => console.log('page.console', msg.text(), msg)
+  const handle = msg => rawConsole.log('page.console', msg.text(), msg)
   page.on('console', handle)
   return () => page.off('console', handle)
 }
