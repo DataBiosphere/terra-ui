@@ -1,18 +1,19 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
-import { div, h, iframe } from 'react-hyperscript-helpers'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { div, h, iframe, p } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
-import { tools } from 'src/components/notebook-utils'
+import Modal from 'src/components/Modal'
+import { notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { forwardRefWithName, useStore } from 'src/libs/react-utils'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
-import { cookieReadyStore } from 'src/libs/state'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -41,19 +42,80 @@ const ApplicationLauncher = _.flow(
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, _ref) => {
   const cookieReady = useStore(cookieReadyStore)
+  const signal = useCancellation()
+  const interval = useRef()
+  const { user: { email } } = useStore(authStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [location, setLocation] = useState(defaultLocation)
+  const [outdatedAnalyses, setOutdatedAnalyses] = useState()
+  const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
+  const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
   // See following tickets for status (both parts needed):
   // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
   // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label) // useState(application == tools.RStudio.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
+  const FileOutdatedModal = ({ onDismiss, bucketName }) => {
+    const handleChoice = _.flow(
+      withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
+      Utils.withBusyState(setBusy)
+    )(async shouldCopy => {
+      await Promise.all(_.flatMap(async analysis => {
+        const currentMetadata = analysis.metadata
+        const file = analysis.name.split('/')[1]
+        if (shouldCopy) {
+          currentMetadata[hashedOwnerEmail] = ''
+          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(stripExtension(file).concat(`_copy${Date.now().toString()}.`).concat(tools.RStudio.ext), bucketName, currentMetadata)
+        }
+        currentMetadata[hashedOwnerEmail] = 'doNotSync'
+        await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, currentMetadata)
+      }, outdatedAnalyses))
+      onDismiss()
+    })
+
+    return h(Modal, {
+      onDismiss,
+      width: 530,
+      title: outdatedAnalyses?.length > 1 ? 'R Markdown Files In Use' : 'R Markdown File Is In Use',
+      showButtons: false
+    }, [
+      p(outdatedAnalyses?.length > 1 ? `These R markdown files are being edited by another user and are now outdated. The files will no longer sync with the workspace bucket.` : `${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and is now outdated. The file will no longer sync with the workspace bucket.`),
+      p(outdatedAnalyses?.length > 1 ? 'You can 1) save a copy of these outdated files to your VM to enable file syncing again or 2) continue working on the existing files without file syncing enabled.' : 'You can 1) save a copy of this outdated file version to your VM to enable file syncing again or 2) continue working on the existing file without file syncing enabled.'),
+      div({ style: { marginTop: '2rem' } }, [
+        h(ButtonSecondary, {
+          style: { padding: '0 1rem' },
+          onClick: () => handleChoice(false)
+        }, ['Keep outdated version']),
+        h(ButtonPrimary, {
+          style: { padding: '0 1rem' },
+          onClick: () => handleChoice(true)
+        }, ['Make a copy'])
+      ])
+    ])
+  }
+
+  const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
+    const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
+    const rAnalyses = _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), analyses)
+    return _.filter(
+      analysis => analysis && Object.keys(analysis).includes('metadata') && Object.keys(analysis.metadata).includes(hashedOwnerEmail) &&
+        analysis.metadata[hashedOwnerEmail] === 'outdated', rAnalyses)
+  }
+
+  useOnMount(() => {
+    const findHashedEmail = withErrorReporting('Error loading user email information', async () => {
+      const hashedEmail = await notebookLockHash(bucketName, email)
+      setHashedOwnerEmail(hashedEmail)
+    })
+    findHashedEmail()
+  })
 
   useEffect(() => {
     const runtime = getCurrentRuntime(runtimes)
@@ -90,6 +152,24 @@ const ApplicationLauncher = _.flow(
       setupWelder()
       setShouldSetupWelder(true)
     }
+
+    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
+      const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
+      setOutdatedAnalyses(outdatedRAnalyses)
+      if (outdatedRAnalyses?.length >= 1) {
+        setFileOutdatedOpen(true)
+      }
+    })
+
+    findOutdatedAnalyses()
+
+    // periodically check for outdated R analyses
+    interval.current = setInterval(findOutdatedAnalyses, 10000)
+
+    return () => {
+      clearInterval(interval.current)
+      interval.current = undefined
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleProject, workspaceName, runtimes, bucketName])
 
@@ -104,6 +184,7 @@ const ApplicationLauncher = _.flow(
       runtime, refreshRuntimes,
       onNullRuntime: () => setShowCreate(true)
     }),
+    fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({

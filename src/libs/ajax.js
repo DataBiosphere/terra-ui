@@ -1272,6 +1272,22 @@ const Buckets = signal => ({
       )
     }
 
+    const copyWithMetadata = async (newName, newBucket, copyMetadata) => {
+      const body = { metadata: copyMetadata }
+      return fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
+      )
+    }
+
+    const updateMetadata = async (fileName, newMetadata) => {
+      const body = { metadata: newMetadata }
+      return fetchBuckets(
+        `${bucketUrl}/${encodeFileName(fileName)}`,
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'PATCH' }])
+      )
+    }
+
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
@@ -1300,6 +1316,8 @@ const Buckets = signal => ({
 
       copy,
 
+      copyWithMetadata,
+
       create: async textContents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
@@ -1317,7 +1335,9 @@ const Buckets = signal => ({
       rename: async newName => {
         await copy(newName, bucket, false)
         return doDelete()
-      }
+      },
+
+      updateMetadata
     }
   }
 })
