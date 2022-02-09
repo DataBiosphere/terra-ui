@@ -46,16 +46,9 @@ const getAnimatedDrawer = textContains => {
 }
 
 const clickable = ({ text, textContains, isDescendant = false, isDisabled = undefined }) => {
-  const checkDisabled = isDisabled !== undefined ? `[@aria-disabled=${isDisabled}]` : ''
+  const checkDisabled = isDisabled !== undefined ? `[@aria-disabled="${isDisabled}"]` : ''
   const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${checkDisabled}`
-  if (isDisabled !== undefined) {
-    base += `[@aria-disabled="${isDisabled}"]`
-  }
   return getClickablePath(base, text, textContains, isDescendant)
-}
-
-const clickableEnabled = async (page, { text, textContains, isDescendant = false} ) => {
-  return (await page.waitForXPath(clickable({ text, textContains, isDescendant, isDisabled: false} )))
 }
 
 const checkbox = ({ text, textContains, isDescendant = false }) => {
@@ -272,7 +265,6 @@ module.exports = {
   checkbox,
   click,
   clickable,
-  clickableEnabled,
   clickTableCell,
   dismissNotifications,
   findIframe,
