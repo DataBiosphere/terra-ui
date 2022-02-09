@@ -16,8 +16,8 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
   await select(page, 'Billing project', `${newWorkspaceBillingAccount}`)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
   try {
-    await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
     // Wait for bucket access to avoid sporadic failures
     await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
     await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
@@ -26,7 +26,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
       await page.evaluate((name, billingProject) => {
         return window.Ajax().Workspaces.workspace(billingProject, name).delete()
       }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
-    } catch(e) {
+    } catch (e) {
       console.error(`Error deleting workspace: ${e.message}`)
     }
   }
