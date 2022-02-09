@@ -45,9 +45,10 @@ const getAnimatedDrawer = textContains => {
   return `//*[@role="dialog" and @aria-hidden="false"][contains(normalize-space(.), "${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]]`
 }
 
-const clickable = ({ text, textContains, isDescendant = false, isDisabled = undefined }) => {
-  const checkDisabled = isDisabled !== undefined ? `[@aria-disabled="${isDisabled}"]` : ''
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${checkDisabled}`
+// Note: isEnabled is not supported for native anchor and button elements.
+const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
+  const checkEnabled = isEnabled !== undefined ? ` and @aria-disabled!="${isEnabled}"` : ''
+  const base = `(//a | //button | //*[@role="button"${checkEnabled}] | //*[@role="link"${checkEnabled}] | //*[@role="combobox"${checkEnabled}] | //*[@role="option"${checkEnabled}])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
 

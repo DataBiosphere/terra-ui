@@ -61,7 +61,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
 
   await click(page, clickable({ text: 'Save' }))
-  await findElement(page, clickable({ text: 'Run analysis', isDisabled: false }))
 
   await launchWorkflowAndWaitForSuccess(page)
 
