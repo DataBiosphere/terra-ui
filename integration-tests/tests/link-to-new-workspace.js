@@ -1,5 +1,5 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, waitForNoSpinners } = require('../utils/integration-utils')
-const { enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
+const { checkbox, click, clickable, clickTableCell, fillIn, noSpinnersAfter, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkBucketAccess, enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -9,23 +9,27 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
 
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await clickTableCell(page, 'dataset list', 2, 2)
-  await click(page, clickable({ textContains: 'Link to a workspace' }))
-  await waitForNoSpinners(page)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
 
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
+  await click(page, clickable({ textContains: 'Start with a new workspace' }))
+  await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
+  await click(page, clickable({ text: 'Select a billing project' }))
+  await click(page, clickable({ text: `${newWorkspaceBillingAccount}` }))
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
   try {
-    await click(page, clickable({ textContains: 'Start with a new workspace' }))
-    await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
-    await click(page, clickable({ text: 'Select a billing project' }))
-    await click(page, clickable({ text: `${newWorkspaceBillingAccount}` }))
-    await click(page, clickable({ text: 'Create Workspace' }))
-    await waitForNoSpinners(page)
+    // Wait for bucket access to avoid sporadic failures
+    await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
     await page.url().includes(newWorkspaceName)
   } finally {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-    }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+    try {
+      await page.evaluate((name, billingProject) => {
+        return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+      }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+    } catch(e) {
+      console.error(`Error deleting workspace: ${e.message}`)
+    }
   }
 })
 
