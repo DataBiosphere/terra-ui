@@ -46,7 +46,8 @@ const getAnimatedDrawer = textContains => {
 }
 
 const clickable = ({ text, textContains, isDescendant = false, isDisabled = undefined }) => {
-  let base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
+  const checkDisabled = isDisabled !== undefined ? `[@aria-disabled=${isDisabled}]` : ''
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${checkDisabled}`
   if (isDisabled !== undefined) {
     base += `[@aria-disabled="${isDisabled}"]`
   }
