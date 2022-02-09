@@ -7,8 +7,7 @@ import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submittedIcon, successIcon, unknownIcon,
-  workflowDetailsBreadcrumbSubtitle
+  collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
@@ -30,26 +29,31 @@ const styles = {
 const groupCallStatuses = _.flow(
   _.values,
   _.flattenDepth(1),
-  _.countBy(a => collapseCromwellExecutionStatus(a.executionStatus))
+  _.countBy(a => {
+    const collapsedStatus = collapseCromwellStatus(a.executionStatus, a.backendStatus)
+    return collapsedStatus !== statusType.unknown ? collapsedStatus.id : collapsedStatus.label(a.executionStatus)
+  })
 )
 
 const statusCell = ({ calls }) => {
-  const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(calls)
+  const statusGroups = groupCallStatuses(calls)
+  // Note: these variable names match the id values of statusType (except for unknownStatuses, which will be their labels).
+  const { succeeded, failed, running, submitted, waitingForQuota, ...unknownStatuses } = statusGroups
 
-  const makeRow = (count, icon, text) => {
+  const makeRow = (count, status, labelOverride) => {
+    const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...Utils.newTabLinkProps },
+      [status.moreInfoLabel, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) : ''
     return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
-      icon,
-      ` ${count} ${text}`
+      status.icon(),
+      ` ${count} ${!!labelOverride ? labelOverride : status.label()}`,
+      seeMore
     ])
   }
-
-  return h(Fragment, [
-    makeRow(submitted, submittedIcon(), 'Submitted'),
-    makeRow(running, runningIcon(), 'Running'),
-    makeRow(succeeded, successIcon(), 'Succeeded'),
-    makeRow(failed, failedIcon(), 'Failed'),
-    _.map(([name, count]) => makeRow(count, unknownIcon(), name), _.toPairs(others))
-  ])
+  return h(Fragment, _.concat(
+    ['submitted', 'waitingForQuota', 'running', 'succeeded', 'failed'].filter(
+      s => statusGroups[s]).map(s => makeRow(statusGroups[s], statusType[s])),
+    _.map(([label, count]) => makeRow(count, statusType.unknown, label), _.toPairs(unknownStatuses)))
+  )
 }
 
 const WorkflowDashboard = _.flow(
@@ -79,7 +83,7 @@ const WorkflowDashboard = _.flow(
     const loadWorkflow = async () => {
       const includeKey = [
         'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result',
-        'callCaching:effectiveCallCachingMode'
+        'callCaching:effectiveCallCachingMode', 'backendStatus'
       ]
       const excludeKey = []
 
@@ -89,7 +93,7 @@ const WorkflowDashboard = _.flow(
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
-      if (_.includes(wf.status, ['Running', 'Submitted'])) {
+      if (_.includes(collapseStatus(metadata.status), [statusType.running, statusType.submitted])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
       }
     }
@@ -143,7 +147,7 @@ const WorkflowDashboard = _.flow(
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Status', [
-            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => statusIcon(status, style), status)])
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => collapseStatus(status).icon(style), status)])
           ]),
           makeSection('Workflow Timing', [
             div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [

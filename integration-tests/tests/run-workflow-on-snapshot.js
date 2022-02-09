@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, enabledClickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -32,6 +32,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await page.goto(`${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
@@ -53,15 +54,13 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ textContains: 'Inputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file input1 attribute' }), `this.${snapshotColumnName}`)
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
-  await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
-  await click(page, clickable({ text: 'Save' }))
 
-  await delay(1000) // The Run Analysis button (launchWorkflowAndWaitForSuccess) requires time to become enabled after hitting the save button
+  await click(page, clickable({ text: 'Save' }))
+  // Wait for "Run Analysis" to become enabled.
+  await page.waitForXPath(enabledClickable({ text: 'Run analysis' }))
 
   await launchWorkflowAndWaitForSuccess(page)
 

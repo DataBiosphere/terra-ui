@@ -284,7 +284,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               }
             }, ['Contact Us']),
             h(DropDownSubItem, {
-              href: 'https://support.terra.bio/hc/en-us/sections/4408360527259',
+              href: 'https://support.terra.bio/hc/en-us/sections/4414878945819',
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Release Notes'])

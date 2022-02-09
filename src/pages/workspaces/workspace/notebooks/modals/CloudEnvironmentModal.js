@@ -34,7 +34,7 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
-  isOpen, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
+  isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
   workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -61,7 +61,7 @@ export const CloudEnvironmentModal = ({
     },
     onSuccess: () => {
       setViewMode(undefined)
-      onDismiss()
+      onSuccess()
     }
   })
 
@@ -77,7 +77,7 @@ export const CloudEnvironmentModal = ({
     },
     onSuccess: () => {
       setViewMode(undefined)
-      onDismiss()
+      onSuccess()
     }
   })
 

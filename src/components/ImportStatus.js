@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { h, p } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -49,13 +50,18 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     // import service statuses: Pending, Translating, ReadyForUpsert, Upserting, Done, Error
     // TODO: only need to support both sets of statuses during the transition from avro-import to import service.
     // once import service is fully adopted, we can/should remove the avro-import status values.
-
-    const successNotify = () => notify('success', 'Data imported successfully.',
-      {
-        message: `Data import to workspace "${namespace} / ${name}" is complete, please refresh the Data view.
-      If your data comes from a PFB, you must include the namespace "pfb:" when referring to attribute names,
-      e.g. "this.pfb:consent_codes" instead of "this.consent_codes."`
-      })
+    const successNotify = () => notify('success', 'Data imported successfully.', {
+      message: h(Fragment, [
+        p([`Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`]),
+        p([`When data is imported from external sources, like PFB or TDR, prefixes ("pfb:" or "tdr:", respectively)
+            will be prepended to column names. Prefix values must be included in attribute references as described `,
+        h(Link, {
+          'aria-label': 'Support article',
+          href: 'https://support.terra.bio/hc/en-us/articles/360051722371-Data-table-attribute-namespace-support-pfb-prefix-#h_01ENT95Y0KM48QFRMJ44DEXS7S',
+          ...Utils.newTabLinkProps
+        }, ['here.'])])
+      ])
+    })
 
     const errorNotify = () => notify('error', 'Error importing data.', { message })
 

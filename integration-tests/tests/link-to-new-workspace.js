@@ -6,11 +6,9 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
-  await waitForNoSpinners(page)
 
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await clickTableCell(page, 'dataset list', 2, 2)
-  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Link to a workspace' }))
   await waitForNoSpinners(page)
 
@@ -29,7 +27,6 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
       return window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
   }
-
 })
 
 const testLinkToNewWorkspace = {

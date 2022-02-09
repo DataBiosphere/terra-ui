@@ -32,7 +32,7 @@ const findInGrid = (page, textContains, options) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
-const getClickablePath = (path, text, textContains, isDescendant=false) => {
+const getClickablePath = (path, text, textContains, isDescendant = false) => {
   const base = `${path}${isDescendant ? '//*' : ''}`
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
@@ -41,12 +41,21 @@ const getClickablePath = (path, text, textContains, isDescendant=false) => {
   }
 }
 
-const clickable = ({ text, textContains, isDescendant = false}) => {
+const getAnimatedDrawer = textContains => {
+  return `//*[@role="dialog" and @aria-hidden="false"][contains(normalize-space(.), "${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]]`
+}
+
+const clickable = ({ text, textContains, isDescendant = false }) => {
   const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
-const checkbox = ({ text, textContains, isDescendant = false}) => {
+const enabledClickable = ({ text, textContains, isDescendant = false }) => {
+  const base = `(//a[@aria-disabled="false"] | //button[@aria-disabled="false"] | //*[@role="button" and @aria-disabled="false"] | //*[@role="link" and @aria-disabled="false"] | //*[@role="combobox" and @aria-disabled="false"] | //*[@role="option" and @aria-disabled="false"])`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const checkbox = ({ text, textContains, isDescendant = false }) => {
   const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
@@ -117,6 +126,15 @@ const select = async (page, labelContains, text) => {
 
 const waitForNoSpinners = page => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+}
+
+// Puppeteer works by internally using MutationObserver. We are setting up the listener before
+// the action to ensure that the spinner rendering is captured by the observer, followed by
+// waiting for the spinner to be removed
+const noSpinnersAfter = async (page, { action }) => {
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
+  await Promise.all([foundSpinner, action()])
+  return waitForNoSpinners(page)
 }
 
 const delay = ms => {
@@ -252,6 +270,7 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
+  enabledClickable,
   dismissNotifications,
   findIframe,
   findInGrid,
@@ -261,13 +280,13 @@ module.exports = {
   fillIn,
   fillInReplace,
   findTableCellText,
+  getAnimatedDrawer,
   getTableCellPath,
   getTableHeaderPath,
   heading,
   input,
   select,
   svgText,
-  waitForNoSpinners,
   delay,
   signIntoTerra,
   navChild,
@@ -276,6 +295,8 @@ module.exports = {
   withScreenshot,
   logPageConsoleMessages,
   logPageAjaxResponses,
+  noSpinnersAfter,
+  waitForNoSpinners,
   withPageLogging,
   openError
 }
