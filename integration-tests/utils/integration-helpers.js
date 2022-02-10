@@ -26,12 +26,15 @@ const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
-  await page.evaluate((name, billingProject) => {
-    return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-  }, workspaceName, billingProject)
+  try {
+    await page.evaluate((name, billingProject) => {
+      return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+    }, workspaceName, billingProject)
 
-  rawConsole.info(`created workspace: ${workspaceName}`)
-
+    rawConsole.info(`created workspace: ${workspaceName}`)
+  } catch (e) {
+    throw Error(`Failed to create workspace: ${workspaceName}`)
+  }
   return workspaceName
 })
 
@@ -44,7 +47,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 
     rawConsole.info(`deleted workspace: ${workspaceName}`)
   } catch (e) {
-    console.error(`Failed to delete workspace: ${workspaceName}. Error: ${e.message}`)
+    throw Error(`Failed to delete workspace: ${workspaceName}`)
   }
 })
 
