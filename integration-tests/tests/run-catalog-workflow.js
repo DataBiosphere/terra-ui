@@ -1,13 +1,13 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, clickTableCell, input, noSpinnersAfter, waitForNoSpinners } = require('../utils/integration-utils')
-const { checkBucketAccess, enableDataCatalog, withWorkspace } = require('../utils/integration-helpers')
+const { checkbox, click, clickable, clickTableCell, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
+const { enableDataCatalog, withWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testCatalogFlowFn = _.flow(
   withWorkspace,
   withUserToken
-)(async ({ page, testUrl, token, workspaceName, billingProject }) => {
+)(async ({ page, testUrl, token, workspaceName }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
 
@@ -16,12 +16,9 @@ const testCatalogFlowFn = _.flow(
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
 
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
-  await click(page, input({ labelContains: 'Select a workspace' }))
-  await click(page, `//*[@role="combobox"][contains(normalize-space(.), "${workspaceName}")]`)
-  await click(page, clickable({ textContains: 'Import' }))
-  await waitForNoSpinners(page)
-  await checkBucketAccess(page, billingProject, workspaceName)
-  await page.url().includes(workspaceName)
+  await select(page, 'Select a workspace', `${workspaceName}`)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Import' })) })
+  await findText(page, workspaceName)
 })
 
 const testCatalog = {
