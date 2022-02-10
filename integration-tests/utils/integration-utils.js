@@ -47,7 +47,7 @@ const getAnimatedDrawer = textContains => {
 
 // Note: isEnabled is not supported for native anchor and button elements.
 const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
-  const checkEnabled = isEnabled !== undefined ? ` and @aria-disabled!="${isEnabled}"` : ''
+  const checkEnabled = isEnabled !== undefined ? (isEnabled === false ? ` and @aria-disabled="${!isEnabled}"` : ` and @aria-disabled!="${isEnabled}"`) : ''
   const base = `(//a | //button | //*[@role="button"${checkEnabled}] | //*[@role="link"${checkEnabled}] | //*[@role="combobox"${checkEnabled}] | //*[@role="option"${checkEnabled}])`
   return getClickablePath(base, text, textContains, isDescendant)
 }
