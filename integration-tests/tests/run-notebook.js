@@ -28,7 +28,7 @@ const testRunNotebookFn = _.flow(
 
   await findElement(page, getAnimatedDrawer('Cloud Environment'))
   await click(page, clickable({ text: 'Create' }))
-  await findElement(page, clickable({ textContains: 'Creating' }))
+  await findElement(page, clickable({ textContains: 'Creating', isEnabled: false }))
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
   const frame = await findIframe(page)
