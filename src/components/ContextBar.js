@@ -72,7 +72,7 @@ export const ContextBar = ({
         getImgForTool(toolLabel)
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', color: getColorForStatus(status) } }, [
-        icon('circle', { size: 6 })
+        icon('circle', { style: { border: '1px solid white', borderRadius: '50%' }, size: 12 })
       ])
     ])
   }

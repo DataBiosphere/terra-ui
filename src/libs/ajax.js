@@ -236,6 +236,21 @@ const User = signal => ({
     }
   },
 
+  getSamTosAccepted: async () => {
+    try {
+      const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404) {
+        return null
+      } else if (error.status === 403) {
+        return false
+      } else {
+        throw error
+      }
+    }
+  },
+
   getTos: async () => {
     const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
     return response.text()
@@ -246,6 +261,19 @@ const User = signal => ({
       `${getConfig().tosUrlRoot}/user/response`,
       _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
     )
+  },
+
+  acceptSamTos: async () => {
+    try {
+      await fetchSam(
+        'register/user/v1/termsofservice',
+        _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
+      )
+    } catch (error) {
+      if (error.status !== 404) {
+        throw error
+      }
+    }
   },
 
   // If you are making changes to the Support Request Modal, make sure you test the following:

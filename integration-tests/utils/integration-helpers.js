@@ -65,7 +65,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
     return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
   }, billingProject, workspaceName)
   const bucketName = details.workspace.bucketName
-  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
+  rawConsole.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
   // Try polling for workspace bucket access to be available.
   await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
     try {

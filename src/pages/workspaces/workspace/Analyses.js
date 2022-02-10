@@ -409,10 +409,14 @@ const Analyses = _.flow(
           location,
           onDismiss: () => {
             refreshAnalyses()
+            refreshRuntimes()
+            refreshApps()
             setCreating(false)
           },
           onSuccess: () => {
             refreshAnalyses()
+            refreshRuntimes()
+            refreshApps()
             setCreating(false)
           }
         }),

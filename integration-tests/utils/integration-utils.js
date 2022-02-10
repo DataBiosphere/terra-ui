@@ -45,13 +45,10 @@ const getAnimatedDrawer = textContains => {
   return `//*[@role="dialog" and @aria-hidden="false"][contains(normalize-space(.), "${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]]`
 }
 
-const clickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])`
-  return getClickablePath(base, text, textContains, isDescendant)
-}
-
-const enabledClickable = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//a[@aria-disabled="false"] | //button[@aria-disabled="false"] | //*[@role="button" and @aria-disabled="false"] | //*[@role="link" and @aria-disabled="false"] | //*[@role="combobox" and @aria-disabled="false"] | //*[@role="option" and @aria-disabled="false"])`
+// Note: isEnabled is not fully supported for native anchor and button elements (only aria-disabled is examined).
+const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
+  const checkEnabled = isEnabled === false ? '[@aria-disabled="true"]' : '[not(@aria-disabled="true")]'
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${checkEnabled}`
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
@@ -244,7 +241,7 @@ const withScreenshot = _.curry((testName, fn) => async options => {
 })
 
 const logPageConsoleMessages = page => {
-  const handle = msg => console.log('page.console', msg.text(), msg)
+  const handle = msg => rawConsole.log('page.console', msg.text(), msg)
   page.on('console', handle)
   return () => page.off('console', handle)
 }
@@ -270,7 +267,6 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
-  enabledClickable,
   dismissNotifications,
   findIframe,
   findInGrid,

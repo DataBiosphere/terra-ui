@@ -1,8 +1,8 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
-const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, enabledClickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
+const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
+const { click, clickable, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -24,7 +24,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+)(async ({ billingProject, dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
   if (!snapshotId) {
     return
   }
@@ -36,6 +36,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
+  // Wait for bucket access to avoid sporadic failure when launching workflow.
+  await checkBucketAccess(page, billingProject, workspaceName)
 
   // ADD WORKFLOW
   await click(page, navChild('workflows'))
@@ -59,8 +61,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
 
   await click(page, clickable({ text: 'Save' }))
-  // Wait for "Run Analysis" to become enabled.
-  await page.waitForXPath(enabledClickable({ text: 'Run analysis' }))
 
   await launchWorkflowAndWaitForSuccess(page)
 

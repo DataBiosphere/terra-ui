@@ -34,6 +34,7 @@ const TermsOfServicePage = () => {
     try {
       setBusy(true)
       await Ajax().User.acceptTos()
+      await Ajax().User.acceptSamTos()
       authStore.update(state => ({ ...state, acceptedTos: true }))
     } catch (error) {
       reportError('Error accepting TOS', error)
