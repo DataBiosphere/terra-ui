@@ -37,11 +37,15 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
-  await page.evaluate((name, billingProject) => {
-    return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-  }, workspaceName, billingProject)
+  try {
+    await page.evaluate((name, billingProject) => {
+      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    }, workspaceName, billingProject)
 
-  rawConsole.info(`deleted workspace: ${workspaceName}`)
+    rawConsole.info(`deleted workspace: ${workspaceName}`)
+  } catch (e) {
+    console.error(`Failed to delete workspace: ${workspaceName}. Error: ${e.message}`)
+  }
 })
 
 const withWorkspace = test => async options => {
