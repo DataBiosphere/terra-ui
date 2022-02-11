@@ -1,20 +1,9 @@
+const { linkDataToWorkspace, eitherThrow } = require('../utils/catalog-utils')
 const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
 const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { linkDataToWorkspace } = require('./run-catalog-workflow')
 
 
-// Helper
-const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
-  if (testFailure) {
-    cleanupFailure && console.error(`${cleanupMessage}: ${cleanupFailure.message}`)
-    throw testFailure
-  } else if (cleanupFailure) {
-    throw new Error(`${cleanupMessage}: ${cleanupFailure.message}`)
-  }
-}
-
-// Test
 const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()

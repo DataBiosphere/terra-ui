@@ -1,16 +1,9 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, clickTableCell, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
-const { enableDataCatalog, withWorkspace } = require('../utils/integration-helpers')
+const { linkDataToWorkspace } = require('../utils/catalog-utils')
+const { click, clickable, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
+const { withWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
-
-const linkDataToWorkspace = async (page, testUrl, token) => {
-  await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
-  await click(page, checkbox({ text: 'Granted', isDescendant: true }))
-  await clickTableCell(page, 'dataset list', 2, 2)
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
-}
 
 const testCatalogFlowFn = _.flow(
   withWorkspace,
