@@ -1,16 +1,11 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, findText, noSpinnersAfter, select, waitForNoSpinners } = require('../utils/integration-utils')
-const { checkBucketAccess, enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
+const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
+const { checkBucketAccess, enableDataCatalog, goToLinkWorkspacePage, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
-
-  await click(page, checkbox({ text: 'Granted', isDescendant: true }))
-  await clickTableCell(page, 'dataset list', 2, 2)
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
-
+  await goToLinkWorkspacePage(page)
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
@@ -21,6 +16,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) 
     // Wait for bucket access to avoid sporadic failures
     await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
     await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
+    await findText(page, 'Select a data type')
   } finally {
     try {
       await page.evaluate((name, billingProject) => {
