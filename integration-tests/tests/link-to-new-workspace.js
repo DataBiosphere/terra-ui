@@ -4,6 +4,17 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const { linkDataToWorkspace } = require('./run-catalog-workflow')
 
 
+// Helper
+const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
+  if (testFailure) {
+    cleanupFailure && console.error(`${cleanupMessage}: ${cleanupFailure.message}`)
+    throw testFailure
+  } else if (cleanupFailure) {
+    throw new Error(`${cleanupMessage}: ${cleanupFailure.message}`)
+  }
+}
+
+// Test
 const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
@@ -12,19 +23,35 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
   await select(page, 'Billing project', `${newWorkspaceBillingAccount}`)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
-  try {
-    // Wait for bucket access to avoid sporadic failures
-    await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
-    await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
-    await findText(page, 'Select a data type')
-  } finally {
+
+  const waitForWorkspacePage = async () => {
+    try {
+      await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
+      await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
+      await findText(page, 'Select a data type')
+    } catch (error) {
+      return error
+    }
+  }
+
+  const cleanupFn = async () => {
     try {
       await page.evaluate((name, billingProject) => {
         return window.Ajax().Workspaces.workspace(billingProject, name).delete()
       }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
-    } catch (e) {
-      console.error(`Error deleting workspace: ${e.message}`)
+    } catch (error) {
+      return error
     }
+  }
+
+  const workspaceFailure = await waitForWorkspacePage()
+  const cleanupFailure = await cleanupFn()
+
+  if (workspaceFailure || cleanupFailure) {
+    eitherThrow(workspaceFailure, {
+      cleanupFailure,
+      cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${newWorkspaceBillingAccount}`
+    })
   }
 })
 
