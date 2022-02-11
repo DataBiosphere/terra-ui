@@ -1,7 +1,7 @@
 const rawConsole = require('console')
 const _ = require('lodash/fp')
 
-const { checkbox, click, clickable, clickTableCell, dismissNotifications, findText, noSpinnersAfter, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
+const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -192,19 +192,11 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await dismissNotifications(page)
 }
 
-const goToLinkWorkspacePage = async (page) => {
-  await click(page, clickable({ textContains: 'browse & explore' }))
-  await click(page, checkbox({ text: 'Granted', isDescendant: true }))
-  await clickTableCell(page, 'dataset list', 2, 2)
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
-}
-
 module.exports = {
   checkBucketAccess,
   createEntityInWorkspace,
   defaultTimeout,
   enableDataCatalog,
-  goToLinkWorkspacePage,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,

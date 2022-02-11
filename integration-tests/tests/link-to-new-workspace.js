@@ -1,11 +1,11 @@
 const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
-const { checkBucketAccess, enableDataCatalog, goToLinkWorkspacePage, testWorkspaceName } = require('../utils/integration-helpers')
+const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { linkDataToWorkspace } = require('./run-catalog-workflow')
 
 
-const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) => {
-  await enableDataCatalog(page, testUrl, token)
-  await goToLinkWorkspacePage(page)
+const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
+  await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
