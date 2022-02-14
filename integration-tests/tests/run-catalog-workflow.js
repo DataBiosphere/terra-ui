@@ -25,6 +25,5 @@ const testCatalog = {
 }
 
 module.exports = {
-  linkDataToWorkspace,
   testCatalog
 }
