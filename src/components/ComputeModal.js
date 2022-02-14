@@ -25,7 +25,7 @@ import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutoPause, defaultAutoPauseLength, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, defaultAutoPause, defaultAutoPauseLength, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -642,6 +642,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
       })
+
       const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
@@ -650,6 +651,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
+
+
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -719,6 +722,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         computeRegion
       })
     })
+
     doUseOnMount()
   })
 
