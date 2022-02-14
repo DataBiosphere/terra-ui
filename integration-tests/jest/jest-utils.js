@@ -36,6 +36,11 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
     timeout)
 }
 
+const processResults = results => {
+  const errors = _.filter(_.isError, results)
+  return [errors, _.countBy('stack', errors)]
+}
+
 const flakeShaker = ({ fn, name }) => {
   const screenshotDir = './screenshots'
   const timeoutMillis = clusterTimeout * 60 * 1000
@@ -73,26 +78,30 @@ const flakeShaker = ({ fn, name }) => {
       const { taskFn, taskParams, runId } = data
       try {
         const result = await taskFn({ context, page, ...taskParams })
-        rawConsole.log(`Test number ${runId} passed`)
+        process.stdout.write('.')
         return result
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
-        rawConsole.log(`Test number ${runId} failed: ${e}`)
+        process.stdout.write('.')
         return e
       }
     })
+    process.stdout.clearLine(0)
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
     const results = await Promise.all(runs)
-    const errors = _.filter(_.isError, results)
+    const [errors, errorCounts] = processResults(results)
     const numErrors = _.size(errors)
 
     await cluster.idle()
     await cluster.close()
 
     if (!!numErrors) {
-      _.forEach(err => rawConsole.log(err.stack), errors)
-      throw new Error(`${numErrors} failures out of ${testRuns}. See above for specifics.`)
+      _.forEach(key => {
+        rawConsole.log(`\t\x1b[31m\x1b[1mError encountered ${errorCounts[key]} times`)
+        rawConsole.log(`\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`)
+      }, _.keys(errorCounts))
+      throw new Error(`${numErrors} failures out of ${testRuns}. See below for specifics.`)
     }
   }
 
