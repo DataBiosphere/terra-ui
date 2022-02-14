@@ -25,7 +25,7 @@ import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutoPause, defaultAutoPauseLength, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
+  defaultNumDataprocWorkers, defaultNumGpus, defaultAutoPause, defaultAutoPauseLength, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
