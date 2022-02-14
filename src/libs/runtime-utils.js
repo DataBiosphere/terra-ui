@@ -40,6 +40,9 @@ export const defaultLocation = 'US'
 export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
 
+export const defaultAutoPause = true
+export const defaultAutoPauseLength = 30
+
 export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
