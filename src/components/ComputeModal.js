@@ -23,7 +23,7 @@ import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultAutoPause, defaultAutoPauseLength, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
+  computeStyles, defaultAutoPause, defaultAutoPauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
@@ -191,7 +191,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     gpuType: defaultGpuType,
     numGpus: defaultNumGpus,
     autopauseEnabled: defaultAutoPause,
-    autopauseThreshold: defaultAutoPauseLength,
+    autopauseThreshold: defaultAutoPauseThreshold,
     computeRegion: defaultComputeRegion,
     computeZone: defaultComputeZone
   })
@@ -652,7 +652,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
 
-
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -691,15 +690,15 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
-      const autopauseConfig = currentRuntimeDetails ? { enabled: currentRuntimeDetails?.autopauseEnabled, threshold: currentRuntimeDetails?.autopauseThreshold } : null
+      const autopauseConfig = !! currentRuntimeDetails ?
+        { enabled: currentRuntimeDetails.autopauseEnabled, threshold: currentRuntimeDetails.autopauseThreshold } :
+        null
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
         [cloudServices.GCE, () => false],
         [Utils.DEFAULT, () => false] // for when there's no existing runtime
       )
       const isDataproc = !sparkMode && !runtimeConfig?.diskSize
-
-      const calculateAutopauseThreshold = () => autopauseConfig ? (autopauseConfig.enabled ? autopauseConfig.threshold : 0) : defaultAutoPauseLength
 
       setSparkMode(newSparkMode)
       setComputeConfig({
@@ -716,8 +715,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
-        autopauseEnabled: autopauseConfig ? autopauseConfig.enabled : true,
-        autopauseThreshold: calculateAutopauseThreshold(),
+        autopauseEnabled: autopauseConfig?.enabled ?? true,
+        autopauseThreshold: autopauseConfig?.enabled ? (autopauseConfig.threshold ?? 0) : defaultAutoPauseThreshold,
         computeZone,
         computeRegion
       })
