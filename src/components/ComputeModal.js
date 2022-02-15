@@ -690,15 +690,28 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
-      const autopauseConfig = !! currentRuntimeDetails ?
-        { enabled: currentRuntimeDetails.autopauseEnabled, threshold: currentRuntimeDetails.autopauseThreshold } :
-        null
+
+      const ifLet = (v, truthyFn, falsyFn) => {
+        if (v) { return truthyFn(v) }
+        else { return falsyFn() }
+      }
+      const autopauseConfig = ifLet(currentRuntimeDetails,
+        x => ({enabled: x.autopauseEnabled, threshold: x.autopauseThreshold})
+        () => ({})
+      )
+
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
         [cloudServices.GCE, () => false],
         [Utils.DEFAULT, () => false] // for when there's no existing runtime
       )
       const isDataproc = !sparkMode && !runtimeConfig?.diskSize
+
+      const autopauseThreshold = Utils.switchCase(autopauseConfig.enabled,
+        [undefined, () => defaultAutoPauseLength],
+        [false, () => 0],
+        [true, () => autopauseConfig.threshold]
+      )
 
       setSparkMode(newSparkMode)
       setComputeConfig({
@@ -715,8 +728,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
-        autopauseEnabled: autopauseConfig?.enabled ?? true,
-        autopauseThreshold: autopauseConfig?.enabled ? (autopauseConfig.threshold ?? 0) : defaultAutoPauseThreshold,
+        autopauseEnabled: autopauseConfig.enabled ?? true,
+        autopauseThreshold,
         computeZone,
         computeRegion
       })
