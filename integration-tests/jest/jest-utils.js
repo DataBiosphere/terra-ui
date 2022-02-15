@@ -38,6 +38,7 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
 
 const processResults = results => {
   const errors = _.filter(_.isError, results)
+  // Group by "stack" to identify unique errors
   return [errors, _.countBy('stack', errors)]
 }
 
