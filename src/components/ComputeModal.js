@@ -1013,12 +1013,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         h(LabeledCheckbox, {
           checked: computeConfig.autopauseEnabled,
           disabled: !autoPauseCheckboxEnabled,
-          onChange: v => {
-            updateComputeConfig('autopauseEnabled', v)
-            // if auto pause is being turned on set threshold to default length,
-            // if auto pause is being disabled it sets threshold to 0 as this is consistent with how threshold is currently managed
-            v ? updateComputeConfig('autopauseThreshold', defaultAutoPauseLength) : updateComputeConfig('autopauseThreshold', 0)
-          }
+          onChange: v => updateComputeConfig('autopauseEnabled', v)
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               enableAutoPauseSpan
