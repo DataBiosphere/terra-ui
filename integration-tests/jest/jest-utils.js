@@ -98,7 +98,7 @@ const flakeShaker = ({ fn, name }) => {
 
     if (!!numErrors) {
       _.forEach(key => {
-        rawConsole.log(`\t\x1b[31m\x1b[1mError encountered ${errorCounts[key]} times`)
+        rawConsole.log(`\t\x1b[31m\x1b[1mError encountered ${errorCounts[key]} times (out of ${numErrors} in total)`)
         rawConsole.log(`\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`)
       }, _.keys(errorCounts))
       throw new Error(`${numErrors} failures out of ${testRuns}. See below for specifics.`)
