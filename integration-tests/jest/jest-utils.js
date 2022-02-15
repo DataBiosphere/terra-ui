@@ -75,19 +75,23 @@ const flakeShaker = ({ fn, name }) => {
       }
     })
 
+    process.stdout.write(`Running tests: 0%`)
     await cluster.task(async ({ page, data }) => {
       const { taskFn, taskParams, runId } = data
       try {
         const result = await taskFn({ context, page, ...taskParams })
-        process.stdout.write('.')
         return result
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
-        process.stdout.write('.')
         return e
+      } finally {
+        process.stdout.clearLine()
+        if (runId < testRuns) {
+          process.stdout.cursorTo(0)
+          process.stdout.write(`Running tests: ${Math.floor(runId * 100.0 / testRuns)}%`)
+        }
       }
     })
-    process.stdout.clearLine(0)
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
     const results = await Promise.all(runs)
