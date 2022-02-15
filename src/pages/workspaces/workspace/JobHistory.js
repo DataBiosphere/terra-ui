@@ -6,7 +6,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Clickable, HeaderRenderer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
+import { collapseStatus, statusType } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, TextCell, TooltipCell } from 'src/components/table'
@@ -46,7 +46,7 @@ const isTerminal = submissionStatus => submissionStatus === 'Aborted' || submiss
 
 const collapsedStatuses = _.flow(
   _.toPairs,
-  _.map(([status, count]) => ({ [collapseStatus(status)]: count })),
+  _.map(([status, count]) => ({ [collapseStatus(status).id]: count })),
   _.reduce(_.mergeWith(_.add), {})
 )
 
@@ -66,10 +66,10 @@ const statusCell = (workflowStatuses, status) => {
     content: table({ style: { margin: '0.5rem' } }, [
       tbody({}, [
         tr({}, [
-          td(styles.statusDetailCell, [successIcon()]),
-          td(styles.statusDetailCell, [failedIcon()]),
-          td(styles.statusDetailCell, [runningIcon()]),
-          td(styles.statusDetailCell, [submittedIcon()])
+          td(styles.statusDetailCell, [statusType.succeeded.icon()]),
+          td(styles.statusDetailCell, [statusType.failed.icon()]),
+          td(styles.statusDetailCell, [statusType.running.icon()]),
+          td(styles.statusDetailCell, [statusType.submitted.icon()])
         ]),
         tr({}, [
           td(styles.statusDetailCell, [succeeded || 0]),
@@ -86,10 +86,10 @@ const statusCell = (workflowStatuses, status) => {
         role: 'note',
         'aria-label': summary
       }, [
-        succeeded && successIcon(),
-        failed && failedIcon(),
-        running && runningIcon(),
-        submitted && submittedIcon()
+        succeeded && statusType.succeeded.icon(),
+        failed && statusType.failed.icon(),
+        running && statusType.running.icon(),
+        submitted && statusType.submitted.icon()
       ]),
       _.keys(collapsedStatuses(workflowStatuses)).length === 1 && span({
         style: { marginLeft: '0.5em' }

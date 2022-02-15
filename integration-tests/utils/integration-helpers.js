@@ -26,22 +26,29 @@ const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
-  await page.evaluate((name, billingProject) => {
-    return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-  }, workspaceName, billingProject)
+  try {
+    await page.evaluate((name, billingProject) => {
+      return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+    }, workspaceName, billingProject)
 
-  rawConsole.info(`created workspace: ${workspaceName}`)
-
+    rawConsole.info(`Created workspace: ${workspaceName}`)
+  } catch (e) {
+    throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}`)
+  }
   return workspaceName
 })
 
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
-  await page.evaluate((name, billingProject) => {
-    return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-  }, workspaceName, billingProject)
+  try {
+    await page.evaluate((name, billingProject) => {
+      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    }, workspaceName, billingProject)
 
-  rawConsole.info(`deleted workspace: ${workspaceName}`)
+    rawConsole.info(`Deleted workspace: ${workspaceName}`)
+  } catch (e) {
+    throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}`)
+  }
 })
 
 const withWorkspace = test => async options => {
@@ -65,7 +72,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
     return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
   }, billingProject, workspaceName)
   const bucketName = details.workspace.bucketName
-  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
+  rawConsole.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
   // Try polling for workspace bucket access to be available.
   await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
     try {

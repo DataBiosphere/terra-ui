@@ -1,3 +1,4 @@
+const rawConsole = require('console')
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
@@ -39,8 +40,16 @@ const testRunWorkflowFn = _.flow(
   await click(page, input({ labelContains: 'Choose specific test_entitys to process' }))
   await click(page, `//*[@role="checkbox" and contains(@aria-label, "${testEntity.name}")]`)
   await click(page, clickable({ text: 'OK' }))
-  await click(page, clickable({ text: 'Run analysis' }))
 
+  await launchWorkflowAndWaitForSuccess(page)
+
+  await click(page, navChild('data'))
+  await click(page, clickable({ textContains: 'test_entity' }))
+  await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
+})
+
+const launchWorkflowAndWaitForSuccess = async page => {
+  await click(page, clickable({ text: 'Run analysis' }))
   // If general ajax logging is disabled, uncomment the following to debug the sporadically failing
   // checkBucketAccess call.
   // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
@@ -50,18 +59,28 @@ const testRunWorkflowFn = _.flow(
   ])
   // stopLoggingPageAjaxResponses()
 
+  const start = Date.now()
   await pRetry(async () => {
     try {
       await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
     } catch (e) {
+      try {
+        await findInGrid(page, 'Running', { timeout: 1000 })
+        rawConsole.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+      } catch (e) {
+        rawConsole.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+      }
       throw new Error(e)
     }
-  }, { retries: 10, factor: 1 })
-
-  await click(page, navChild('data'))
-  await click(page, clickable({ textContains: 'test_entity' }))
-  await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
-})
+  },
+  // Note about retries value:
+  // If there is a large backlog of workflows in the environment (for example, if there has been a large submission), workflows
+  // might sit in "Submitted" for a very long time. In that situation, it is possible that this test will fail even with a 12-minute
+  // retries value. The test runner will kill any test that goes over 15 minutes though, so keep retries under that threshold.
+  // BW-1057 should further reduce this retries value after changes have been implemented to move workflows through Cromwell more quickly.
+  { retries: 12, factor: 1 }
+  )
+}
 
 const testRunWorkflow = {
   name: 'run-workflow',
@@ -69,4 +88,4 @@ const testRunWorkflow = {
   timeout: 15 * 60 * 1000
 }
 
-module.exports = { testRunWorkflow }
+module.exports = { launchWorkflowAndWaitForSuccess, testRunWorkflow }

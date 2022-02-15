@@ -1,8 +1,8 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const pRetry = require('p-retry')
-const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, findInGrid, navChild } = require('../utils/integration-utils')
+const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
+const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
+const { click, clickable, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -24,7 +24,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+)(async ({ billingProject, dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
   if (!snapshotId) {
     return
   }
@@ -32,9 +32,12 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await page.goto(`${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
+  // Wait for bucket access to avoid sporadic failure when launching workflow.
+  await checkBucketAccess(page, billingProject, workspaceName)
 
   // ADD WORKFLOW
   await click(page, navChild('workflows'))
@@ -53,27 +56,13 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ textContains: 'Inputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file input1 attribute' }), `this.${snapshotColumnName}`)
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
-  await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
-  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
+
   await click(page, clickable({ text: 'Save' }))
 
-  await delay(1000) // The Run Analysis button requires time to become enabled after hitting the save button
-  await click(page, clickable({ textContains: 'Run analysis' }))
-
-  await click(page, clickable({ text: 'Launch' }))
-
-  // CHECK WORKFLOW SUCCEEDED AND RESULT IS WRITTEN
-  await pRetry(async () => {
-    try {
-      await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
-    } catch (e) {
-      throw new Error(e)
-    }
-  }, { retries: 10, factor: 1 })
+  await launchWorkflowAndWaitForSuccess(page)
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'Workspace Data' }))

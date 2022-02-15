@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, waitForNoSpinners, input, fillIn, heading, findHeading } = require('../utils/integration-utils')
+const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -15,7 +15,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
 
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
-  await waitForNoSpinners(page)
+  await findText(page, 'Controlled')
 
   const totalDatasetSize = await getDatasetCount(page)
 
@@ -39,8 +39,8 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   // Testing filter by multiple same facets
   await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
-  if (datasetSizeAfterFilter2 !== 0) {
-    throw new Error(`Filters for 'Controlled' should be ANDed between the same facet category in the table'`)
+  if (datasetSizeAfterFilter2 === 0) {
+    throw new Error(`Filters for 'Controlled' should be ORed between the same facet category in the table'`)
   }
 
   // Testing clearing filters

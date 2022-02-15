@@ -1,35 +1,47 @@
-const { checkbox, click, clickable, clickTableCell, fillIn, waitForNoSpinners } = require('../utils/integration-utils')
-const { enableDataCatalog, testWorkspaceName } = require('../utils/integration-helpers')
+const { linkDataToWorkspace, eitherThrow } = require('../utils/catalog-utils')
+const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
+const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testLinkToNewWorkspaceFn = withUserToken(async ({ testUrl, page, token }) => {
-  await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
-  await waitForNoSpinners(page)
-
-  await click(page, checkbox({ text: 'Granted', isDescendant: true }))
-  await clickTableCell(page, 'dataset list', 2, 2)
-  await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Link to a workspace' }))
-  await waitForNoSpinners(page)
-
+const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
+  await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
-  try {
-    await click(page, clickable({ textContains: 'Start with a new workspace' }))
-    await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
-    await click(page, clickable({ text: 'Select a billing project' }))
-    await click(page, clickable({ text: `${newWorkspaceBillingAccount}` }))
-    await click(page, clickable({ text: 'Create Workspace' }))
-    await waitForNoSpinners(page)
-    await page.url().includes(newWorkspaceName)
-  } finally {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-    }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+  await click(page, clickable({ textContains: 'Start with a new workspace' }))
+  await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
+  await select(page, 'Billing project', `${newWorkspaceBillingAccount}`)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
+
+  const waitForWorkspacePage = async () => {
+    try {
+      await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
+      await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
+      await findText(page, 'Select a data type')
+    } catch (error) {
+      return error
+    }
   }
 
+  const cleanupFn = async () => {
+    try {
+      await page.evaluate((name, billingProject) => {
+        return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+      }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+    } catch (error) {
+      return error
+    }
+  }
+
+  const workspaceFailure = await waitForWorkspacePage()
+  const cleanupFailure = await cleanupFn()
+
+  if (workspaceFailure || cleanupFailure) {
+    eitherThrow(workspaceFailure, {
+      cleanupFailure,
+      cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${newWorkspaceBillingAccount}`
+    })
+  }
 })
 
 const testLinkToNewWorkspace = {

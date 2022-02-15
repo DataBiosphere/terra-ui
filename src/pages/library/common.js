@@ -1,10 +1,13 @@
 import _ from 'lodash/fp'
+import pluralize from 'pluralize'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, IdContainer, Link, Select } from 'src/components/common'
-import { DelayedAutoCompleteInput } from 'src/components/input'
+import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -58,18 +61,182 @@ const computeLabels = (allLabels, selectedLabels) => _.flow(
   _.uniq
 )(selectedLabels)
 
-const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listDataByTag }) => {
+const getFacetCount = ({ filteredData, listDataByTag, section, label }) => {
+  return _.size(_.get(['facets', section, label], filteredData) || listDataByTag[label])
+}
+
+const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSortBy }) => {
+  const filterOptions = { alpha: 1, input: 2 }
+  const [filterSearchText, setFilterSearchText] = useState('')
+  const [filteredBy, setFilteredBy] = useState()
+  const [filterType, setFilterType] = useState(filterOptions.alpha)
+
+  return h(Fragment, [
+    filterType === filterOptions.alpha && div({
+      style: {
+        backgroundColor: colors.dark(0.1), paddingTop: 6, borderRadius: 8,
+        display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
+      }
+    }, [
+      h(Link, {
+        style: {
+          marginLeft: 20, padding: 5, borderRadius: 10,
+          fontWeight: 'bold', fontSize: '1rem', textTransform: 'capitalize',
+          background: filteredBy === 'top' ? colors.accent(0.3) : 'transparent'
+        },
+        onClick: () => {
+          setFilteredBy('top')
+          onSortBy('top')
+        }
+      }, [`Top ${pluralize(name)}`]),
+      div({
+        style: {
+          width: '100%', maxWidth: 600,
+          display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around',
+          fontSize: '1rem'
+        }
+      },
+      _.map(index => h(Link, {
+        style: {
+          fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
+          background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
+        },
+        'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+        onClick: () => {
+          const charFromCode = String.fromCharCode(index)
+          setFilteredBy(charFromCode)
+          onFilterByLetter(charFromCode)
+        }
+      }, [String.fromCharCode(index)]), _.range(65, 65 + 26))),
+      h(Link, {
+        onClick: () => {
+          setFilteredBy()
+          setFilterType(filterOptions.input)
+          onClear()
+        }, 'aria-label': 'Search by text input'
+      }, [
+        span({ className: 'fa-stack fa-2x' }, [
+          icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
+          icon('search', { size: 20, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
+        ])
+      ])
+    ]),
+    filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
+      h(Link, {
+        style: { fontSize: '1rem' },
+        onClick: () => {
+          setFilteredBy()
+          onClear()
+        }
+      }, ['Clear filter'])
+    ]),
+    filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
+      h(DelayedSearchInput, {
+        style: { borderRadius: 25, borderColor: colors.dark(0.2), width: '100%', maxWidth: 575, height: '3rem', marginRight: 20 },
+        debounceMs: 25,
+        value: filterSearchText,
+        'aria-label': `Search for ${name} filter options`,
+        placeholder: 'Search keyword',
+        icon: 'search',
+        onChange: searchText => {
+          setFilterSearchText(searchText)
+          onFilterBySearchText(searchText)
+        }
+      }),
+      h(Link, {
+        style: { fontSize: '1rem' }, onClick: () => {
+          setFilterSearchText('')
+          setFilterType(filterOptions.alpha)
+          onClear()
+        }
+      }, ['Close search'])
+    ])
+  ])
+}
+
+const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData }) => {
+  // Filter Modal Vars
+  const filteredTags = (_.flow(
+    _.map(label => {
+      const lowerTag = _.toLower(label)
+      return [lowerTag, getFacetCount({ filteredData, listDataByTag, section: name, label: lowerTag })]
+    }),
+    _.fromPairs
+  )(labels))
+  const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
+  const [filterChanges, setFilterChanges] = useState({})
+  const [filteredLabels, setFilteredLabels] = useState(labels)
+
+  return h(Modal, {
+    title: div({ style: { fontSize: '1.325rem', fontWeight: 700 } }, [`Filter by: "${name}"`]),
+    width: '100%',
+    showButtons: true,
+    okButton: 'Apply Filters',
+    styles: {
+      modal: { maxWidth: 900, padding: 30 },
+      buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
+    },
+    onDismiss: () => {
+      setShowAll(false)
+      _.forEach(onTagFilter, filterChanges)
+    }
+  }, [
+    h(FilterBar, {
+      name,
+      onClear: () => { setFilteredLabels(labels) },
+      onSortBy: sort => {
+        if (sort === 'top') {
+          setFilteredLabels(_.sortBy(label => -1 * filteredTags[_.toLower(label)], labels))
+        }
+      },
+      onFilterByLetter: letter => { setFilteredLabels(labelsByFirstChar[letter]) },
+      onFilterBySearchText: searchText => {
+        setFilteredLabels(_.filter(label => _.toLower(label).match(_.escapeRegExp(_.toLower(searchText))), labels))
+      }
+    }),
+    div({ style: { height: 'calc(80vh - 250px)', minHeight: 300, overflowY: 'auto' } }, [
+      div({
+        style: {
+          display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
+          fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
+        }
+      }, _.map(label => {
+        const lowerTag = _.toLower(label)
+        const escapedTag = lowerTag.replace(/\./g, '-')
+        return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
+          h(LabeledCheckbox, {
+            checked: !!filterChanges[escapedTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            onChange: () => {
+              setFilterChanges(prevFilter => prevFilter[escapedTag] ? _.omit(escapedTag, prevFilter) : _.set(escapedTag, { lowerTag, label, section: name }, prevFilter))
+            },
+            style: { position: 'absolute', left: -25, top: 2 }
+          }, [
+            div({ style: { display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'flex-start', lineHeight: '1.4rem' } }, [
+              span([label]),
+              span({ style: { opacity: 0.5, fontSize: '.75rem', lineHeight: '1.4rem' } }, [`(${filteredTags[lowerTag]})`])
+            ])
+          ])
+        ])
+      }, filteredLabels))
+    ])
+  ])
+}
+
+const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag, filteredData }) => {
   // State
   const [showAll, setShowAll] = useState(false)
-  const lowerSelectedTags = _.map('lowerTag', selectedTags)
-  const labelsToDisplay = showAll ? labels : computeLabels(labels, _.map('label', selectedTags))
+  const labelsToDisplay = computeLabels(labels, _.flatMap(_.map('label'), selectedTags))
+  const lowerSelectedTags = _.flow(
+    _.get(name),
+    _.map('lowerTag')
+  )(selectedTags)
 
   //Render
   return h(Fragment, [
     _.map(label => {
       const lowerTag = _.toLower(label)
       const isChecked = _.includes(lowerTag, lowerSelectedTags)
-      const numMatches = _.size(listDataByTag[lowerTag])
+      const numMatches = getFacetCount({ filteredData, listDataByTag, section: name, label: lowerTag })
       return h(Clickable, {
         'aria-checked': isChecked,
         role: 'checkbox',
@@ -78,7 +245,7 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
           display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
           paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
         },
-        onClick: () => onTagFilter({ lowerTag, label })
+        onClick: () => onTagFilter({ lowerTag, label, section: name })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
         div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
@@ -86,12 +253,13 @@ const FilterSection = ({ onTagFilter, labels, selectedTags, labelRenderer, listD
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
-      onClick: () => setShowAll(!showAll)
-    }, [`See ${showAll ? 'less' : 'more'}`])
+      onClick: () => { setShowAll(!showAll) }
+    }, [`See more`]),
+    showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData })
   ])
 }
 
-const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
+const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag, filteredData }) => {
   const unionSectionWorkspacesCount = ({ tags }) => _.flow(
     _.flatMap(tag => listDataByTag[tag]),
     _.uniq,
@@ -118,7 +286,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           titleFirst: true, initialOpenState: true,
           title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [
-          h(FilterSection, { onTagFilter, selectedTags, labelRenderer, listDataByTag, labels })
+          h(FilterSection, { name, onTagFilter, selectedTags, labelRenderer, listDataByTag, labels, filteredData })
         ])
     }, sections)
   ])
@@ -153,7 +321,7 @@ export const SearchAndFilterComponent = ({
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
+  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || {})
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
@@ -190,25 +358,46 @@ export const SearchAndFilterComponent = ({
       }
     }
 
-    const filterByTags = listData => {
-      if (_.isEmpty(selectedTags)) {
+    const filterByTags = (listData, tags = selectedTags) => {
+      if (_.isEmpty(tags) || !listData) {
         return listData
       } else {
+        const selectedDataByTag = _.map(
+          _.flow(
+            _.flatMap(({ lowerTag }) => _.intersectionBy('dct:identifier', listData, listDataByTag[lowerTag])),
+            _.uniqBy('dct:identifier')
+          ), tags
+        )
+
         return _.reduce(
-          (acc, { lowerTag }) => _.intersection(listDataByTag[lowerTag], acc),
-          listDataByTag[_.head(selectedTags).lowerTag],
-          _.tail(selectedTags)
+          (acc, iter) => _.intersectionBy('dct:identifier', acc, iter),
+          _.head(selectedDataByTag),
+          _.tail(selectedDataByTag)
         )
       }
     }
 
-    return _.flow(
+    const sharedList = _.flow(
       filterBySections,
-      filterByTags,
-      filterByText,
-      customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
+      filterByText
     )(fullList)
-  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections])
+
+    return {
+      data: _.flow(
+        filterByTags,
+        customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
+      )(sharedList),
+      facets: _.flow(
+        _.keys,
+        _.map(section => {
+          const reducedTags = _.omit(section, selectedTags)
+          const facetedSearchData = filterByTags(sharedList, reducedTags)
+          return [section, groupByFeaturedTags(facetedSearchData, sidebarSections)]
+        }),
+        _.fromPairs
+      )(selectedTags)
+    }
+  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections])
 
 
   const onSearchChange = filter => {
@@ -244,14 +433,14 @@ export const SearchAndFilterComponent = ({
     }, [
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
-        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
+        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData.data)} Results found` }, [_.size(filteredData.data)])
       ]),
       div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
         h(Link, {
           onClick: () => {
             setSelectedSections([])
-            setSelectedTags([])
+            setSelectedTags({})
           }
         }, ['clear'])
       ]),
@@ -280,7 +469,7 @@ export const SearchAndFilterComponent = ({
             )(suggestion[titleField])
           )
         },
-        suggestions: filteredData
+        suggestions: filteredData.data
       }),
       div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets']),
       !customSort && h(IdContainer, [
@@ -305,19 +494,23 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: ({ lowerTag, label }) => {
+          onTagFilter: ({ section, lowerTag, label }) => {
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            setSelectedTags(_.xorBy('lowerTag', [{ lowerTag, label }]))
+            setSelectedTags(oldSelectedTags => {
+              const newTags = _.xorBy('lowerTag', [{ lowerTag, label, section }], oldSelectedTags[section])
+              return newTags.length > 0 ? _.set(section, newTags, oldSelectedTags) : _.omit(section, oldSelectedTags)
+            })
           },
           sections,
           selectedSections,
           selectedTags,
-          listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+          filteredData,
+          listDataByTag: groupByFeaturedTags(filteredData.data, sidebarSections)
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        _.isEmpty(filteredData) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          children({ filteredList: filteredData, sections, selectedTags, setSelectedTags })
+        _.isEmpty(filteredData.data) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
+          children({ filteredList: filteredData.data, sections, selectedTags, setSelectedTags })
       ])
     ])
   ])
