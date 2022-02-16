@@ -690,7 +690,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
-      const autopauseConfig = !! currentRuntimeDetails ?
+      const autopauseConfig = !!currentRuntimeDetails ?
         { enabled: currentRuntimeDetails.autopauseEnabled, threshold: currentRuntimeDetails.autopauseThreshold } :
         null
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
