@@ -58,7 +58,12 @@ const extractCatalogFilters = dataCatalog => {
         div([accessValue])
       ])]
     }
-  }, {
+  },
+  {
+    name: 'Consortium',
+    labels: getUnique('project', dataCatalog)
+  },
+  {
     name: 'Data use policy',
     labels: getUnique('dataReleasePolicy.policy', dataCatalog),
     labelRenderer: rawPolicy => {
@@ -68,9 +73,6 @@ const extractCatalogFilters = dataCatalog => {
         desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
       ])]
     }
-  }, {
-    name: 'Consortium',
-    labels: getUnique('project', dataCatalog)
   }, {
     name: 'Data modality',
     labels: getUnique('dataModality', dataCatalog)
