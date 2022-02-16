@@ -50,11 +50,12 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
  * 1. One main node only (sometimes referred to as 'Spark master node')
  * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
  * If you modify this object, make sure to update the helpers below it too as applicable.
+ * Assumption: There are no duplicate values.
  */
 const runtimeTypes = {
-  gceVm: { displayName: 'Standard VM' },
-  dataprocSingleNode: { displayName: 'Spark single node' },
-  dataprocCluster: { displayName: 'Spark cluster' }
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster'
 }
 
 const sparkInterfaces = {
@@ -157,17 +158,13 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
 // Auxiliary components -- end
 
 // Auxiliary functions -- begin
-const getRuntimeType = name => Utils.switchCase(name,
-  [runtimeTypes.gceVm.displayName, () => runtimeTypes.gceVm],
-  [runtimeTypes.dataprocSingleNode.displayName, () => runtimeTypes.dataprocSingleNode],
-  [runtimeTypes.dataprocCluster.displayName, () => runtimeTypes.dataprocSingleNode]
-)
+const getRuntimeType = name => _.findKey(_.isEqual(name), runtimeTypes)
 
-const isGce = runtimeType => _.isEqual(runtimeType, runtimeTypes.gceVm)
+const isGce = runtimeType => runtimeType === runtimeTypes.gceVm
 
-const isDataproc = runtimeType => _.isEqual(runtimeType, runtimeTypes.dataprocSingleNode) || _.isEqual(runtimeType, runtimeTypes.dataprocCluster)
+const isDataproc = runtimeType => runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster
 
-const isDataprocCluster = runtimeType => _.isEqual(runtimeType, runtimeTypes.dataprocCluster)
+const isDataprocCluster = runtimeType => runtimeType === runtimeTypes.dataprocCluster
 
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
@@ -851,7 +848,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : runtimeType
+    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType)
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -978,9 +975,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   h(Select, {
                     id,
                     isSearchable: false,
-                    value: runtimeType.displayName,
+                    value: runtimeType,
                     onChange: ({ value }) => {
-                      setRuntimeType(getRuntimeType(value))
+                      setRuntimeType(value)
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [
