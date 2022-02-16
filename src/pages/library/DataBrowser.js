@@ -58,12 +58,10 @@ const extractCatalogFilters = dataCatalog => {
         div([accessValue])
       ])]
     }
-  },
-  {
+  }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
-  },
-  {
+  }, {
     name: 'Data use policy',
     labels: getUnique('dataReleasePolicy.policy', dataCatalog),
     labelRenderer: rawPolicy => {
