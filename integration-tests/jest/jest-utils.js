@@ -36,10 +36,25 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
     timeout)
 }
 
-const processResults = results => {
-  const errors = _.filter(_.isError, results)
-  // Group by "stack" to identify unique errors
-  return [errors, _.countBy('stack', errors)]
+const logTestProgress = (defaultOutputStream, { total, completed, errored, errorMap, linesWritten = -1 }) => {
+  if (completed > 1) {
+    defaultOutputStream.moveCursor(0, linesWritten * -1)
+    defaultOutputStream.clearLine(1)
+  }
+
+  let newLinesWritten = 2
+  defaultOutputStream.write(`Running tests: ${Math.floor(completed * 100.0 / total)}% (deleted the last ${linesWritten} lines)`)
+
+  if (!!errored) {
+    _.forEach(key => {
+      const stackLines = key.split('\n')
+      newLinesWritten += stackLines.length + 2
+      defaultOutputStream.write(`\n\t\x1b[31m\x1b[1mError encountered ${errorMap[key]} times`)
+      defaultOutputStream.write(`\n\t\x1b[0m${stackLines.join('\n\t')}\n\n`)
+    }, _.keys(errorMap))
+  }
+
+  return newLinesWritten
 }
 
 const flakeShaker = ({ fn, name }) => {
@@ -79,11 +94,19 @@ const flakeShaker = ({ fn, name }) => {
       }
     })
 
-    let completedTests = 0;
     const defaultOutputStream = _.clone(process.stdout)
     const newOutputStream = createWriteStream(`${logsDir}/log`)
     process.stdout.write = newOutputStream.write.bind(newOutputStream)
     defaultOutputStream.write(`Running tests: 0%`)
+
+    const testProgress = {
+      completed: 0,
+      errored: 0,
+      errorMap: {},
+      total: testRuns,
+      linesWritten: 0
+    }
+
     await cluster.task(async ({ page, data }) => {
       const { taskFn, taskParams, runId } = data
       try {
@@ -91,32 +114,25 @@ const flakeShaker = ({ fn, name }) => {
         return result
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
+        testProgress.errored++
+        testProgress.errorMap[e.stack] = _.has(e.stack, testProgress.errorMap) ? testProgress.errorMap[e.stack] + 1 : 1
         return e
       } finally {
-        defaultOutputStream.clearLine()
-        if (runId < testRuns) {
-          defaultOutputStream.cursorTo(0)
-          defaultOutputStream.write(`Running tests: ${Math.floor(++completedTests * 100.0 / testRuns)}%`)
-        }
+        testProgress.completed++
+        testProgress.linesWritten = logTestProgress(defaultOutputStream, testProgress)
       }
     })
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
-    const results = await Promise.all(runs)
+    await Promise.all(runs)
     process.stdout.write = defaultOutputStream
-    const [errors, errorCounts] = processResults(results)
-    const numErrors = _.size(errors)
 
     await cluster.idle()
     await cluster.close()
 
     rawConsole.log(`Log is available at ./${logsDir}, and screenshots are available at ./${screenshotDir}`)
-    if (!!numErrors) {
-      _.forEach(key => {
-        rawConsole.log(`\t\x1b[31m\x1b[1mError encountered ${errorCounts[key]} times (out of ${numErrors} in total)`)
-        rawConsole.log(`\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`)
-      }, _.keys(errorCounts))
-      throw new Error(`${numErrors} failures out of ${testRuns}. See below for specifics.`)
+    if (!!testProgress.numErrors) {
+      throw new Error(`${testProgress.numErrors} failures out of ${testRuns}. See below for specifics.`)
     }
   }
 
