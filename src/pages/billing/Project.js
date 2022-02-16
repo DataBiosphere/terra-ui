@@ -485,6 +485,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ]),
       h(SimpleTabBar, {
         'aria-label': 'project details',
+        metricsPrefix: Events.billingProjectSelectTab,
+        metricsData: { billingProjectName: billingProject.projectName },
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
