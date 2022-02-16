@@ -216,7 +216,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
 
 const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const [showProjectFilters, setShowProjectFilters] = useState(false)
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
@@ -251,7 +250,7 @@ const Browser = () => {
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description'
-    }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
+    }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
