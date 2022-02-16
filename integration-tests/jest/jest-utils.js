@@ -4,7 +4,7 @@ const { withScreenshot, withPageLogging } = require('../utils/integration-utils'
 const { Cluster } = require('puppeteer-cluster')
 const envs = require('../utils/terra-envs')
 const rawConsole = require('console')
-const { mkdirSync, existsSync } = require('fs')
+const { mkdirSync, existsSync, createWriteStream } = require('fs')
 
 
 const {
@@ -43,7 +43,9 @@ const processResults = results => {
 }
 
 const flakeShaker = ({ fn, name }) => {
-  const screenshotDir = './screenshots'
+  const resultsDir = './results'
+  const screenshotDir = `${resultsDir}/screenshots`
+  const logsDir = `${resultsDir}/logs`
   const timeoutMillis = clusterTimeout * 60 * 1000
   const padding = 100
   const messages = ['', `Number of times to run this test: ${testRuns} (adjust this by setting RUNS in your environment)`,
@@ -63,7 +65,9 @@ const flakeShaker = ({ fn, name }) => {
     _.join(''))(messages)
   rawConsole.log(`${message}`)
 
+  !existsSync(resultsDir) && mkdirSync(resultsDir)
   !existsSync(screenshotDir) && mkdirSync(screenshotDir)
+  !existsSync(logsDir) && mkdirSync(logsDir)
 
   const runCluster = async () => {
     const cluster = await Cluster.launch({
@@ -75,7 +79,11 @@ const flakeShaker = ({ fn, name }) => {
       }
     })
 
-    process.stdout.write(`Running tests: 0%`)
+    let completedTests = 0;
+    const defaultOutputStream = _.clone(process.stdout)
+    const newOutputStream = createWriteStream(`${logsDir}/log`)
+    process.stdout.write = newOutputStream.write.bind(newOutputStream)
+    defaultOutputStream.write(`Running tests: 0%`)
     await cluster.task(async ({ page, data }) => {
       const { taskFn, taskParams, runId } = data
       try {
@@ -85,22 +93,24 @@ const flakeShaker = ({ fn, name }) => {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
         return e
       } finally {
-        process.stdout.clearLine()
+        defaultOutputStream.clearLine()
         if (runId < testRuns) {
-          process.stdout.cursorTo(0)
-          process.stdout.write(`Running tests: ${Math.floor(runId * 100.0 / testRuns)}%`)
+          defaultOutputStream.cursorTo(0)
+          defaultOutputStream.write(`Running tests: ${Math.floor(++completedTests * 100.0 / testRuns)}%`)
         }
       }
     })
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
     const results = await Promise.all(runs)
+    process.stdout.write = defaultOutputStream
     const [errors, errorCounts] = processResults(results)
     const numErrors = _.size(errors)
 
     await cluster.idle()
     await cluster.close()
 
+    rawConsole.log(`Log is available at ./${logsDir}, and screenshots are available at ./${screenshotDir}`)
     if (!!numErrors) {
       _.forEach(key => {
         rawConsole.log(`\t\x1b[31m\x1b[1mError encountered ${errorCounts[key]} times (out of ${numErrors} in total)`)
