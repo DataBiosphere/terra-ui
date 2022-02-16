@@ -233,9 +233,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
 
-  const loadAlphaSpendReportMember = _.flow(
-    reportErrorAndRethrow('Error loading user group membership')
-  )(async () => {
+  const loadAlphaSpendReportMember = reportErrorAndRethrow('Error loading user group membership')(async () => {
     setIsAlphaSpendReportUser(await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember())
   })
 
