@@ -487,8 +487,9 @@ const WorkflowView = _.flow(
           entityMetadata, !!modifiedConfig.dataReferenceName
         ),
         workspaceAttributes: _.flow(
-          _.without(['description']),
-          _.remove(s => s.includes(':'))
+          _.without(['description']), // workspace description
+          _.remove(s => s.includes(':')), // library, tags
+          _.remove(s => s.startsWith('__DESCRIPTION__')) // workspace data variable descriptions
         )(_.keys(attributes))
       })
 
