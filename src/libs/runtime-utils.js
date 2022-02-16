@@ -24,7 +24,9 @@ export const computeStyles = {
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
 export const defaultDataprocWorkerDiskSize = 150
-export const defaultGceBootDiskSize = 100 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+// Since Leonardo started supporting persistent disks (PDs) for GCE VMs, boot disk size for a GCE VM
+// with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
+export const defaultGceBootDiskSize = 100
 export const defaultGcePersistentDiskSize = 50
 
 export const defaultGceMachineType = 'n1-standard-1'
@@ -294,7 +296,8 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) && disk.labels.saturnWorkspaceName === workspaceName),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) &&
+        disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)
