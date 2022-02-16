@@ -219,8 +219,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const isCustomImage = selectedLeoImage === customMode
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
-  const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75
+  // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
+  const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
   const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType))
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
