@@ -158,8 +158,6 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
 // Auxiliary components -- end
 
 // Auxiliary functions -- begin
-const getRuntimeType = name => _.findKey(_.isEqual(name), runtimeTypes)
-
 const isGce = runtimeType => runtimeType === runtimeTypes.gceVm
 
 const isDataproc = runtimeType => runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster
@@ -226,6 +224,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
   const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType))
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
+
+  const isRuntimeRunning = currentRuntimeDetails?.status === 'Running'
+  const shouldDisplaySparkConsoleLink = isDataproc(runtimeType) && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
+  const canManageSparkConsole = shouldDisplaySparkConsoleLink && isRuntimeRunning
+
+  const canUpdateNumberOfWorkers = !currentRuntimeDetails || isRuntimeRunning
 
   const errors = validate(
     { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
@@ -318,14 +322,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     onSuccess()
   })
-
-  const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
-
-  const shouldDisplaySparkConsoleLink = () => isDataproc(runtimeType) && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
-
-  const canManageSparkConsole = () => shouldDisplaySparkConsoleLink() && isRuntimeRunning()
-
-  const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
   const requiresGCE = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
@@ -690,7 +686,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? runtimeTypes.dataprocSingleNode : runtimeTypes.dataprocCluster],
         [cloudServices.GCE, () => runtimeTypes.gceVm],
-        [Utils.DEFAULT, () => undefined] // for when there's no existing runtime
+        [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       )
 
       setRuntimeType(newRuntimeType)
@@ -981,16 +977,16 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [
-                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                      { value: 'master', label: 'Spark master node', isDisabled: requiresGCE() },
-                      { value: 'cluster', label: 'Spark cluster', isDisabled: requiresGCE() }
+                      { value: runtimeTypes.gceVm, label: runtimeTypes.gceVm, isDisabled: requiresSpark },
+                      { value: runtimeTypes.dataprocSingleNode, label: runtimeTypes.dataprocSingleNode, isDisabled: requiresGCE() },
+                      { value: runtimeTypes.dataprocCluster, label: runtimeTypes.dataprocCluster, isDisabled: requiresGCE() }
                     ]
                   })
                 ]),
-                shouldDisplaySparkConsoleLink() && span([
+                shouldDisplaySparkConsoleLink && span([
                   h(Link, {
-                    disabled: !canManageSparkConsole(),
-                    tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
+                    disabled: !canManageSparkConsole,
+                    tooltip: !canManageSparkConsole && 'You must have a running Spark cluster or a master node.',
                     onClick: () => setViewMode('sparkConsole')
                   }, ['Manage and monitor Spark console'])
                 ])
@@ -1012,8 +1008,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 isClearable: false,
                 onlyInteger: true,
                 value: computeConfig.numberOfWorkers,
-                disabled: !canUpdateNumberOfWorkers(),
-                tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
+                disabled: !canUpdateNumberOfWorkers,
+                tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                 onChange: updateComputeConfig('numberOfWorkers')
               })
             ])
@@ -1027,8 +1023,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 isClearable: false,
                 onlyInteger: true,
                 value: computeConfig.numberOfPreemptibleWorkers,
-                disabled: !canUpdateNumberOfWorkers(),
-                tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
+                disabled: !canUpdateNumberOfWorkers,
+                tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
                 onChange: updateComputeConfig('numberOfPreemptibleWorkers')
               })
             ])
@@ -1400,9 +1396,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       onChange: ({ value }) => {
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
         const newRuntimeType = Utils.cond(
-          [requiresSpark && isDataproc(runtimeType), () => runtimeType],
-          [requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
-          [Utils.DEFAULT, runtimeTypes.gceVm]
+          [!!requiresSpark && isDataproc(runtimeType), () => runtimeType],
+          [!!requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
+          [Utils.DEFAULT, () => runtimeTypes.gceVm]
         )
         setSelectedLeoImage(value)
         setCustomEnvImage('')
