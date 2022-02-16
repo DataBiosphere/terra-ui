@@ -34,7 +34,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
     mountOnEnter: true,
     unmountOnExit: true
   }, [transitionState => h(RModal, {
-    aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true },
+    aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true, hidden: transitionState !== 'entered' },
     ariaHideApp: false,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,

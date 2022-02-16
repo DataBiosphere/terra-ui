@@ -357,7 +357,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const getCurrentMountDirectory = currentRuntimeDetails => {
     const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter/notebooks'
+    const jupyterMountPoint = '/home/jupyter'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
     return currentRuntimeDetails?.labels.tool ?
       (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
@@ -1362,6 +1362,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
+            existingRuntime.tool !== tool ? p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ', strong([tool]), '.']) : undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
             p(['Your existing data will be preserved during this update.'])
           ])]

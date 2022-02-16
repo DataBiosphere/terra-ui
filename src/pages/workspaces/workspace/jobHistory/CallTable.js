@@ -43,8 +43,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Status',
             cellRenderer: ({ rowIndex }) => {
-              const { executionStatus } = callObjects[rowIndex]
-              return h(TooltipCell, [makeCromwellStatusLine(executionStatus)])
+              const { executionStatus, backendStatus } = callObjects[rowIndex]
+              return makeCromwellStatusLine(executionStatus, backendStatus)
             }
           }, {
             size: { basis: 200, grow: 2 },
@@ -92,17 +92,15 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             cellRenderer: ({ rowIndex }) => {
               const { failures, shardIndex: index, attempt } = callObjects[rowIndex]
               const failureCount = _.size(failures)
-              return failures ? [
-                h(Link, {
-                  style: { marginLeft: '0.5rem' },
-                  onClick: () => setFailuresModalParams({ index, attempt, failures })
-                }, [
-                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-                    `${failureCount} Message${failureCount > 1 ? 's' : ''}`
-                  ])
+              return !!failureCount && h(Link, {
+                style: { marginLeft: '0.5rem' },
+                onClick: () => setFailuresModalParams({ index, attempt, failures })
+              }, [
+                div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+                  `${failureCount} Message${failureCount > 1 ? 's' : ''}`
                 ])
-              ] : undefined
+              ])
             }
           }
         ]

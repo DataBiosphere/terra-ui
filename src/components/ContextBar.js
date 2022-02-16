@@ -34,7 +34,10 @@ const contextBarStyles = {
   hover: { backgroundColor: colors.accent(0.4) }
 }
 
-export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const ContextBar = ({
+  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
+}) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
 
   const currentRuntime = getCurrentRuntime(runtimes)
@@ -69,7 +72,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
         getImgForTool(toolLabel)
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', color: getColorForStatus(status) } }, [
-        icon('circle', { size: 6 })
+        icon('circle', { style: { border: '1px solid white', borderRadius: '50%' }, size: 12 })
       ])
     ])
   }
@@ -90,17 +93,14 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
       onSuccess: async () => {
         setCloudEnvOpen(false)
         await refreshRuntimes(true)
+        await refreshApps()
       },
       onDismiss: async () => {
         setCloudEnvOpen(false)
         await refreshRuntimes(true)
+        await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-      workspace,
-      canCompute,
-      persistentDisks,
-      location,
-      locationType
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, locationType
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [

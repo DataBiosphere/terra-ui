@@ -45,7 +45,6 @@ const AnalysisLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'analyses'),
     title: _.get('analysisName'),
-    showTabBar: false,
     activeTab: analysisLauncherTabName
   })
 )(
