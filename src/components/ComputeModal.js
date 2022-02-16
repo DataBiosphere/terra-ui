@@ -50,7 +50,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
  * 1. One main node only (sometimes referred to as 'Spark master node')
  * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
  * If you modify this object, make sure to update the helpers below it too as applicable.
- * Assumption: There are no duplicate values.
  */
 const runtimeTypes = {
   gceVm: 'Standard VM',
