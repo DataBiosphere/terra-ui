@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, h3, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -226,6 +226,25 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
   const spendReportKey = 'spend report'
 
+  const CostCard = ({ title, amount, ...props }) => {
+    return div({
+      ...props,
+      style: {
+        ...Style.elements.card.container,
+        backgroundColor: 'white',
+        width: 250,
+        padding: undefined,
+        boxShadow: undefined,
+        gridRowStart: 2
+      }
+    }, [
+      div({ style: { flex: 'none', padding: '10px 20px' } }, [
+        h3({ style: { fontSize: 16, color: colors.accent(), margin: '4px 0px', fontWeight: 'normal' } }, title),
+        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
+      ])
+    ])
+  }
+
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, {
@@ -271,7 +290,17 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(Fragment, [])
+    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: '250px 250px', rowGap: '20px' } }, [
+      div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, ['Date range']),
+        h(Select, {
+          id,
+          value: 'Last 90 days',
+          options: ['Last 90 days']
+        })
+      ])])]),
+      CostCard({ title: 'Total spend', amount: '$90.36'} )
+    ])
   }
 
   const tabs = _.map(key => ({
