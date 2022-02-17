@@ -285,9 +285,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
       }
     }),
     deleteIndex !== undefined && h(Modal, {
-      onDismiss: () => {
-        setDeleteIndex(undefined)
-      },
+      onDismiss: () => { setDeleteIndex(undefined) },
       title: 'Are you sure you wish to delete this variable?',
       okButton: h(ButtonPrimary, {
         onClick: _.flow(
