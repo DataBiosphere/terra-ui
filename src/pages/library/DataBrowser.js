@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -59,6 +59,9 @@ const extractCatalogFilters = dataCatalog => {
       ])]
     }
   }, {
+    name: 'Consortium',
+    labels: getUnique('project', dataCatalog)
+  }, {
     name: 'Data use policy',
     labels: getUnique('dataReleasePolicy.policy', dataCatalog),
     labelRenderer: rawPolicy => {
@@ -68,9 +71,6 @@ const extractCatalogFilters = dataCatalog => {
         desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
       ])]
     }
-  }, {
-    name: 'Consortium',
-    labels: getUnique('project', dataCatalog)
   }, {
     name: 'Data modality',
     labels: getUnique('dataModality', dataCatalog)
@@ -124,8 +124,8 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
 }
 
 
-const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters }) => {
-  const DataBrowserTable = ({ filteredList, setSelectedTags, selectedTags, sections }) => {
+const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList }) => {
+  const DataBrowserTable = ({ filteredList }) => {
     return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
       'aria-label': 'dataset list',
       columns: [
@@ -136,38 +136,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
           size: { grow: 2.2 }, key: 'name'
         }, {
-          header: div({ style: styles.table.header }, [
-            h(ButtonSecondary, {
-              style: { height: '1rem', fontSize: '.75rem', fontWeight: 600, position: 'relative' },
-              onClick: () => setShowProjectFilters(!showProjectFilters)
-            }, ['Project', icon('caretDown')]),
-            showProjectFilters && div({
-              style: {
-                backgroundColor: 'white', width: 380, height: 280, overflowY: 'auto',
-                border: '1px solid', borderColor: colors.accent(), borderRadius: 3,
-                position: 'absolute', padding: 15, marginTop: 4, boxShadow: 'rgb(0 0 0 / 5%) 0 0 8px 5px',
-                textTransform: 'none', color: 'gray', fontSize: '.9rem', fontWeight: 400
-              }
-            }, _.map(tag => {
-              return div({ key: `project-filter-dropdown_${tag}`, style: { height: '3rem' } }, [
-                h(LabeledCheckbox, {
-                  style: { marginRight: 10 },
-                  'aria-label': tag,
-                  checked: _.some({ lowerTag: tag.toLowerCase() }, selectedTags),
-                  onChange: () => {
-                    Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
-                    const invertSelection = _.flow(
-                      _.find(({ label }) => _.includes(label, sections[1].labels)),
-                      _.concat([{ label: tag, lowerTag: tag.toLowerCase() }]),
-                      _.compact,
-                      _.xorBy('lowerTag')
-                    )(selectedTags)
-                    setSelectedTags(invertSelection)
-                  }
-                }, [tag])
-              ])
-            }, sections[1].labels))
-          ]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project', onSort: setSort }, ['Consortium'])]),
           size: { grow: 1 }, key: 'project'
         }, {
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
@@ -245,7 +214,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
 
 const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const [showProjectFilters, setShowProjectFilters] = useState(false)
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
@@ -280,7 +248,7 @@ const Browser = () => {
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description'
-    }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
+    }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
