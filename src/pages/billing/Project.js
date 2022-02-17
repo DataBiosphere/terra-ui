@@ -13,6 +13,7 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -211,6 +212,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
+  const [totalCost, setTotalCost] = useState(null)
+  const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
 
   const signal = useCancellation()
 
@@ -221,10 +224,18 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
 
+  const spendReportKey = 'spend report'
+  const maybeLoadTotalCost = async activeTab => {
+    if (!updatingTotalCost && totalCost === null && activeTab === spendReportKey) {
+      setUpdatingTotalCost(true)
+      setTotalCost((await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember()) ? '$97.99' : null)
+    }
+  }
+  maybeLoadTotalCost(tab)
+
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
-  const spendReportKey = 'spend report'
 
   const CostCard = ({ title, amount, ...props }) => {
     return div({
@@ -299,7 +310,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           options: ['Last 90 days']
         })
       ])])]),
-      CostCard({ title: 'Total spend', amount: '$90.36'} )
+      CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
     ])
   }
 
@@ -391,7 +402,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
-
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
@@ -526,6 +536,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           } else {
             setTab(newTab)
           }
+          maybeLoadTotalCost(newTab)
         },
         tabs
       }, [
