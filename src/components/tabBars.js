@@ -134,13 +134,13 @@ export const SimpleTabBar = ({
   useLabelAssert('SimpleTabBar', props)
   const tabIds = _.map(useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
-  const emitViewMetric = key => {
+  const maybeEmitViewMetric = key => {
     !!metricsPrefix && Ajax().Metrics.captureEvent(`${metricsPrefix}:view:${_.replace(/\s/g, '-', key)}`, metricsData)
   }
 
   // Determine the index of the selected tab, or choose the first one
   const selectedId = Math.max(0, _.findIndex(({ key }) => key === value, tabs))
-  useOnMount(() => { emitViewMetric(tabs[selectedId].key) })
+  useOnMount(() => { maybeEmitViewMetric(tabs[selectedId].key) })
 
   return h(Fragment, [
     h(HorizontalNavigation, {
@@ -163,7 +163,7 @@ export const SimpleTabBar = ({
           // This most efficiently lets keyboard users interact with the tabs and find the content they care about.
           children && panelRef.current?.focus()
           onChange && onChange(key)
-          emitViewMetric(key)
+          maybeEmitViewMetric(key)
         },
         ...tabProps
       }, [title])
