@@ -15,6 +15,7 @@ const eventsList = {
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',
+  billingProjectSelectTab: 'billing:project:tab',
   changeBillingAccount: 'billing:project:account:update',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
