@@ -70,7 +70,7 @@ const DataTable = props => {
   const [totalRowCount, setTotalRowCount] = useState(0)
 
   const stateHistory = firstRender ? StateHistory.get() : {}
-  const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 25)
+  const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
   const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
@@ -333,7 +333,8 @@ const DataTable = props => {
           setItemsPerPage: v => {
             setPageNumber(1)
             setItemsPerPage(v)
-          }
+          },
+          itemsPerPageOptions: [10, 25, 50, 100, 250, 500, 1000]
         })
       ])
     ]),
