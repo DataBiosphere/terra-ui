@@ -206,13 +206,15 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
       'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
     ]),
-    ..._.map(([i, entity]) => div({
-      style: {
-        borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-        padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
-      }
-    }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
-    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys)),
+    div({ style: { maxHeight: 550, overflowY: 'auto', margin: '0 -1.25rem' } },
+      _.map(([i, entity]) => div({
+        style: {
+          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+          padding: '0.6rem 1.25rem'
+        }
+      }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
+      Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys))
+    ),
     div({
       style: { ...fullWidthWarning, textAlign: 'right' }
     }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
