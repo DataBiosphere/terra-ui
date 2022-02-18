@@ -72,7 +72,6 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
           return errorMap[key]
         }, _.keys(errorMap))
         const numErrors = _.sum(errors)
-        consoleOutputStream.write(`Error: ${numErrors}\n`)
         consoleOutputStream.write(`\t\x1b[31m\x1b[1m${numErrors} errors encountered (${_.size(errorMap)} unique errors)\n`)
       } else {
         consoleOutputStream.write('No errors encountered.\n')
