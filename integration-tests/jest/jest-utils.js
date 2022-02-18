@@ -68,7 +68,7 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
       consoleOutputStream.write(`Running tests: ${Math.floor(completed * 100.0 / total)}% \n`)
 
       if (!!errored) {
-        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${errored} unique errors)\n`)
+        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${_.size(errorMap)} unique errors)\n`)
       } else {
         consoleOutputStream.write('No errors encountered.\n')
       }
@@ -114,10 +114,12 @@ const flakeShaker = ({ fn, name }) => {
     })
 
     const consoleOutputStream = _.clone(process.stdout)
-    const logOutputStream = createWriteStream(`${logsDir}/log`)
-    process.stdout.write = logOutputStream.write.bind(logOutputStream)
-    consoleOutputStream.write(`Running tests: 0%`)
+    const logOutputStream = createWriteStream(`${logsDir}/flakes.log`)
+    process.stdout.write = v => {
+      logOutputStream.write(v.replace(/\u001b\[.*?m/g, ''))
+    }
 
+    consoleOutputStream.write(`Running tests: 0%`)
     const logTestStatus = logTestState(consoleOutputStream, logOutputStream, testRuns)
 
     await cluster.task(async ({ page, data }) => {
