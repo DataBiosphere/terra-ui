@@ -67,12 +67,8 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
 
       consoleOutputStream.write(`Running tests: ${Math.floor(completed * 100.0 / total)}% \n`)
 
-      if (!!_.size(errorMap)) {
-        const errors = _.map(key => {
-          return errorMap[key]
-        }, _.keys(errorMap))
-        const numErrors = _.sum(errors)
-        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${numErrors} errors encountered (${_.size(errorMap)} unique errors)\n`)
+      if (!!errored) {
+        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${errored} unique errors)\n`)
       } else {
         consoleOutputStream.write('No errors encountered.\n')
       }
