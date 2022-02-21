@@ -976,9 +976,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [
-                      { value: runtimeTypes.gceVm, label: runtimeTypes.gceVm, isDisabled: requiresSpark },
-                      { value: runtimeTypes.dataprocSingleNode, label: runtimeTypes.dataprocSingleNode, isDisabled: requiresGCE() },
-                      { value: runtimeTypes.dataprocCluster, label: runtimeTypes.dataprocCluster, isDisabled: requiresGCE() }
+                      { value: runtimeTypes.gceVm, isDisabled: requiresSpark },
+                      { value: runtimeTypes.dataprocSingleNode, isDisabled: requiresGCE() },
+                      { value: runtimeTypes.dataprocCluster, isDisabled: requiresGCE() }
                     ]
                   })
                 ]),
