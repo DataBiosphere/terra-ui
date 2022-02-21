@@ -4,8 +4,9 @@ import { Fragment, useRef } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { HorizontalNavigation } from 'src/components/keyboard-nav'
+import { Ajax } from 'src/libs/ajax'
 import { terraSpecial } from 'src/libs/colors'
-import { useLabelAssert, useUniqueId } from 'src/libs/react-utils'
+import { useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -123,17 +124,23 @@ TabBar.propTypes = {
  * @param tabStyle Optionally, additional styles to add to each tab
  * @param children Children, which will be appended to teh end of the tab bar
  * @param props Any additional properties to add to the container menu element
+ * @param metricsPrefix Optionally, a metrics event will be fired with this prefix and the name of the tab whenever the given tab is viewed.
+ *    The form of the event name will be <metricsPrefix>:view:<tabName> (any spaces in tabName will be replaced with "-").
+ * @param metricsData Optionally, if metricsPrefix is supplied then this data object will be included with the event that is fired.
  */
 export const SimpleTabBar = ({
-  value, onChange, tabs, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, children, ...props
+  value, onChange, tabs, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, metricsPrefix = undefined, metricsData = {}, children, ...props
 }) => {
   useLabelAssert('SimpleTabBar', props)
-
   const tabIds = _.map(useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
+  const maybeEmitViewMetric = key => {
+    !!metricsPrefix && Ajax().Metrics.captureEvent(`${metricsPrefix}:view:${_.replace(/\s/g, '-', key)}`, metricsData)
+  }
 
   // Determine the index of the selected tab, or choose the first one
   const selectedId = Math.max(0, _.findIndex(({ key }) => key === value, tabs))
+  useOnMount(() => { maybeEmitViewMetric(tabs[selectedId].key) })
 
   return h(Fragment, [
     h(HorizontalNavigation, {
@@ -156,6 +163,7 @@ export const SimpleTabBar = ({
           // This most efficiently lets keyboard users interact with the tabs and find the content they care about.
           children && panelRef.current?.focus()
           onChange && onChange(key)
+          maybeEmitViewMetric(key)
         },
         ...tabProps
       }, [title])
@@ -181,5 +189,7 @@ SimpleTabBar.propTypes = {
   tabProps: PropTypes.object,
   panelProps: PropTypes.object,
   style: PropTypes.object,
-  tabStyle: PropTypes.object
+  tabStyle: PropTypes.object,
+  metricsPrefix: PropTypes.string,
+  metricsData: PropTypes.object
 }
