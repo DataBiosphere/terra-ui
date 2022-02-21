@@ -46,6 +46,17 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
 // Enums -- start
+/** Dataproc can consist of one of the two architectures below:
+ * 1. One main node only (sometimes referred to as 'Spark master node')
+ * 2. A cluster with a main node AND two or more worker nodes (sometimes referred to as 'Spark cluster')
+ * If you modify this object, make sure to update the helpers below it too as applicable.
+ */
+const runtimeTypes = {
+  gceVm: 'Standard VM',
+  dataprocSingleNode: 'Spark single node',
+  dataprocCluster: 'Spark cluster'
+}
+
 const sparkInterfaces = {
   yarn: {
     label: 'yarn',
@@ -145,6 +156,13 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
 }
 // Auxiliary components -- end
 
+// Auxiliary functions -- begin
+const isGce = runtimeType => runtimeType === runtimeTypes.gceVm
+
+const isDataproc = runtimeType => runtimeType === runtimeTypes.dataprocSingleNode || runtimeType === runtimeTypes.dataprocCluster
+
+const isDataprocCluster = runtimeType => runtimeType === runtimeTypes.dataprocCluster
+
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
 }
@@ -159,8 +177,9 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
     _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
 }
 
-const shouldUsePersistentDisk = (sparkMode, runtimeDetails, upgradeDiskSelected) => !sparkMode &&
+const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => isGce(runtimeType) &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
+// Auxiliary functions -- end
 
 export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false }) => {
   // State -- begin
@@ -176,7 +195,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
-  const [sparkMode, setSparkMode] = useState(false)
+  const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -195,15 +214,21 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   })
   // State -- end
 
-  const isPersistentDisk = shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected)
+  const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
-  const minRequiredMemory = sparkMode ? 7.5 : 3.75
+  // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
+  const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
+  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType))
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
+
+  const isRuntimeRunning = currentRuntimeDetails?.status === 'Running'
+  const shouldDisplaySparkConsoleLink = isDataproc(runtimeType) && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
+  const canManageSparkConsole = shouldDisplaySparkConsoleLink && isRuntimeRunning
+
+  const canUpdateNumberOfWorkers = !currentRuntimeDetails || isRuntimeRunning
 
   const errors = validate(
     { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
@@ -297,14 +322,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     onSuccess()
   })
 
-  const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
-
-  const shouldDisplaySparkConsoleLink = () => !!sparkMode && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
-
-  const canManageSparkConsole = () => shouldDisplaySparkConsoleLink() && isRuntimeRunning()
-
-  const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
-
   const requiresGCE = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
   const canUpdateRuntime = () => {
@@ -379,7 +396,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
-          componentGatewayEnabled: runtimeConfig.componentGatewayEnabled || !!sparkMode,
+          componentGatewayEnabled: runtimeConfig.componentGatewayEnabled || isDataproc(runtimeType),
           ...(numberOfWorkers && {
             numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
             workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
@@ -393,8 +410,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const getDesiredEnvironmentConfig = () => {
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
-    const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
+    const cloudService = isDataproc(runtimeType) ? cloudServices.DATAPROC : cloudServices.GCE
+    const desiredNumberOfWorkers = isDataprocCluster(runtimeType) ? computeConfig.numberOfWorkers : 0
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -410,7 +427,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
-              ...(shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected) ? {
+              ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected) ? {
                 persistentDiskAttached: true
               } : {
                 diskSize: computeConfig.masterDiskSize
@@ -434,7 +451,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ),
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
-        [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected),
+        [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
           () => ({ size: computeConfig.selectedPersistentDiskSize })],
         () => existingPersistentDisk
       )
@@ -598,7 +615,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
-    [computeExists, () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
+    [computeExists,
+      () => 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'],
     [isUSLocation(bucketLocation), () => 'Currently US workspaces can only have US cloud environments.'],
     [Utils.DEFAULT, () => 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.']
   )
@@ -664,25 +682,25 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
-      const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
-        [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
-        [cloudServices.GCE, () => false],
-        [Utils.DEFAULT, () => false] // for when there's no existing runtime
+      const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
+        [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? runtimeTypes.dataprocSingleNode : runtimeTypes.dataprocCluster],
+        [cloudServices.GCE, () => runtimeTypes.gceVm],
+        [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       )
-      const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
-      setSparkMode(newSparkMode)
+      setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-        masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-          (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
+        masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
+          defaultDataprocMasterDiskSize :
+          defaultGceBootDiskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
-        componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!newSparkMode,
+        componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || isDataprocCluster(newRuntimeType),
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
         workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
         workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocWorkerDiskSize,
-        gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+        gpuEnabled: !!gpuConfig && isGce(newRuntimeType),
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
@@ -825,7 +843,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
+    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType)
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -872,7 +890,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             div({ style: { gridColumnEnd: 'span 2' } })
         ]),
         // GPU Enabling
-        !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
+        isGce(runtimeType) && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
           h(LabeledCheckbox, {
             checked: computeConfig.gpuEnabled,
             disabled: gpuCheckboxDisabled,
@@ -893,7 +911,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])
         ]),
         // GPU Selection
-        computeConfig.gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
+        computeConfig.gpuEnabled && isGce(runtimeType) &&
+        div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
           h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
@@ -951,22 +970,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   h(Select, {
                     id,
                     isSearchable: false,
-                    value: sparkMode,
+                    value: runtimeType,
                     onChange: ({ value }) => {
-                      setSparkMode(value)
-                      updateComputeConfig('componentGatewayEnabled', !!value)
+                      setRuntimeType(value)
+                      updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [
-                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                      { value: 'master', label: 'Spark master node', isDisabled: requiresGCE() },
-                      { value: 'cluster', label: 'Spark cluster', isDisabled: requiresGCE() }
+                      { value: runtimeTypes.gceVm, isDisabled: requiresSpark },
+                      { value: runtimeTypes.dataprocSingleNode, isDisabled: requiresGCE() },
+                      { value: runtimeTypes.dataprocCluster, isDisabled: requiresGCE() }
                     ]
                   })
                 ]),
-                shouldDisplaySparkConsoleLink() && span([
+                shouldDisplaySparkConsoleLink && span([
                   h(Link, {
-                    disabled: !canManageSparkConsole(),
-                    tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
+                    disabled: !canManageSparkConsole,
+                    tooltip: !canManageSparkConsole && 'You must have a running Spark cluster or a master node.',
                     onClick: () => setViewMode('sparkConsole')
                   }, ['Manage and monitor Spark console'])
                 ])
@@ -975,7 +994,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])
         ])
       ]),
-      sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
+      isDataprocCluster(runtimeType) && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
         legend({ style: { padding: 0, ...computeStyles.label } }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
         div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
@@ -988,8 +1007,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 isClearable: false,
                 onlyInteger: true,
                 value: computeConfig.numberOfWorkers,
-                disabled: !canUpdateNumberOfWorkers(),
-                tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
+                disabled: !canUpdateNumberOfWorkers,
+                tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                 onChange: updateComputeConfig('numberOfWorkers')
               })
             ])
@@ -1003,8 +1022,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 isClearable: false,
                 onlyInteger: true,
                 value: computeConfig.numberOfPreemptibleWorkers,
-                disabled: !canUpdateNumberOfWorkers(),
-                tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
+                disabled: !canUpdateNumberOfWorkers,
+                tooltip: !canUpdateNumberOfWorkers ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
                 onChange: updateComputeConfig('numberOfPreemptibleWorkers')
               })
             ])
@@ -1348,7 +1367,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime.tool !== tool ? p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ', strong([tool]), '.']) : undefined,
+            existingRuntime.tool !== tool ?
+              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ',
+                strong([tool]), '.']) :
+              undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
             p(['Your existing data will be preserved during this update.'])
           ])]
@@ -1372,11 +1394,15 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       value: selectedLeoImage,
       onChange: ({ value }) => {
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
-        const newSparkMode = requiresSpark ? (sparkMode || 'master') : false
+        const newRuntimeType = Utils.cond(
+          [!!requiresSpark && isDataproc(runtimeType), () => runtimeType],
+          [!!requiresSpark && !isDataproc(runtimeType), () => runtimeTypes.dataprocSingleNode],
+          [Utils.DEFAULT, () => runtimeTypes.gceVm]
+        )
         setSelectedLeoImage(value)
         setCustomEnvImage('')
-        setSparkMode(newSparkMode)
-        updateComputeConfig('componentGatewayEnabled', !!newSparkMode)
+        setRuntimeType(newRuntimeType)
+        updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
       },
       isSearchable: true,
       isClearable: false,
@@ -1492,7 +1518,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
           !!isPersistentDisk && renderPersistentDiskSection(),
-          !sparkMode && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
+          isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
