@@ -190,7 +190,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     hasGpu: false,
     gpuType: defaultGpuType,
     numGpus: defaultNumGpus,
-    autopauseEnabled: defaultAutoPause,
+    autopause: defaultAutoPause,
     autopauseThreshold: defaultAutoPauseThreshold,
     computeRegion: defaultComputeRegion,
     computeZone: defaultComputeZone
@@ -238,7 +238,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         zone: desiredRuntime.zone.toLowerCase(),
-        autopauseEnabled: desiredAutopauseConfig.enabled,
+        autopause: desiredAutopauseConfig.enabled,
         autopauseThreshold: desiredAutopauseConfig.threshold,
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
@@ -286,14 +286,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
         runtimeConfig,
         autopauseThreshold: computeConfig.autopauseThreshold,
-        autopauseEnabled: computeConfig.autopauseEnabled
+        autopause: computeConfig.autopause
       })
     }
     if (shouldCreateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         autopauseThreshold: computeConfig.autopauseThreshold,
-        autopauseEnabled: computeConfig.autopauseEnabled,
+        autopause: computeConfig.autopause,
         toolDockerImage: desiredRuntime.toolDockerImage,
         labels: {
           saturnWorkspaceNamespace: namespace,
@@ -372,7 +372,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return {
       hasGpu: computeConfig.hasGpu,
       autopauseConfig: {
-        enabled: computeConfig.autopauseEnabled,
+        enabled: computeConfig.autopause,
         threshold: computeConfig.autopauseThreshold
       },
       runtime: currentRuntimeDetails ? {
@@ -415,7 +415,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return {
       hasGpu: computeConfig.hasGpu,
       autopauseConfig: {
-        enabled: computeConfig.autopauseEnabled,
+        enabled: computeConfig.autopause,
         threshold: computeConfig.autopauseThreshold
       },
       runtime: Utils.cond(
@@ -691,7 +691,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const autopauseConfig = !!currentRuntimeDetails ?
-        { enabled: currentRuntimeDetails.autopauseEnabled, threshold: currentRuntimeDetails.autopauseThreshold } :
+        { enabled: currentRuntimeDetails.autopause, threshold: currentRuntimeDetails.autopauseThreshold } :
         null
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
@@ -715,7 +715,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
-        autopauseEnabled: autopauseConfig?.enabled ?? true,
+        autopause: autopauseConfig?.enabled ?? true,
         autopauseThreshold: autopauseConfig?.enabled ? (autopauseConfig.threshold ?? 0) : defaultAutoPauseThreshold,
         computeZone,
         computeRegion
@@ -1009,27 +1009,32 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])
         ])
       ]),
-      !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
+      div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(LabeledCheckbox, {
-          checked: computeConfig.autopauseEnabled,
+          checked: computeConfig.autopause,
           disabled: !autoPauseCheckboxEnabled,
-          onChange: v => updateComputeConfig('autopauseEnabled', v)
+          onChange: v => updateComputeConfig('autopause', v)
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               enableAutoPauseSpan
+          ]),
+          h(Link, {
+            style: { marginLeft: '1rem', verticalAlign: 'top' },
+            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+          }, [
+            'Learn more about auto pause.',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
-        ]),
-        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-          'Automatically pauses your runtime environment after the specified period of inactivity. This can help you save on cloud costs.'
         ]),
         div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
-            min: 0,
+            min: 1,
+            max: 999,
             isClearable: false,
             onlyInteger: true,
             value: computeConfig.autopauseThreshold,
-            disabled: !computeConfig.autopauseEnabled,
-            tooltip: !computeConfig.autopauseEnabled ? 'Auto pause must be enabled to configure pause time.' : undefined,
+            disabled: !computeConfig.autopause,
+            tooltip: !computeConfig.autopause ? 'Auto pause must be enabled to configure pause time.' : undefined,
             onChange: updateComputeConfig('autopauseThreshold')
           }),
           span(['minutes of inactivity'])
