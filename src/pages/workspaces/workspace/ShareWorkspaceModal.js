@@ -200,10 +200,16 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
 
   const remainingSuggestions = _.difference(suggestions, _.map('email', acl))
 
+  const addUserReminder = `Did you mean to add ${searchValue} as a collaborator? Add them or clear the "User email" field to save changes.`
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
-    okButton: h(ButtonPrimary, { onClick: save }, ['Save']),
+    okButton: h(ButtonPrimary, {
+      disabled: searchValueValid,
+      tooltip: searchValueValid && addUserReminder,
+      onClick: save
+    }, ['Save']),
     onDismiss
   }, [
     h(IdContainer, [id => h(Fragment, [
