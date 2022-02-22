@@ -4,7 +4,7 @@ const { withScreenshot, withPageLogging } = require('../utils/integration-utils'
 const { Cluster } = require('puppeteer-cluster')
 const envs = require('../utils/terra-envs')
 const rawConsole = require('console')
-const { mkdirSync, existsSync, createWriteStream, writeSync } = require('fs')
+const { mkdirSync, existsSync, createWriteStream } = require('fs')
 
 
 const {
@@ -116,6 +116,7 @@ const flakeShaker = ({ fn, name }) => {
     const consoleOutputStream = _.clone(process.stdout)
     const logOutputStream = createWriteStream(`${logsDir}/flakes.log`)
     process.stdout.write = v => {
+      // eslint-disable-next-line no-control-regex
       logOutputStream.write(v.replace(/\u001b\[.*?m/g, ''))
     }
 
