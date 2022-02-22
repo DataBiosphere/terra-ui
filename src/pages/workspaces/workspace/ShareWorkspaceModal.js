@@ -203,6 +203,14 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
 
   const addUserReminder = `Did you mean to add ${searchValue} as a collaborator? Add them or clear the "User email" field to save changes.`
 
+  const addCollaborator = collaboratorEmail => {
+    if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
+      setSearchValue('')
+      setAcl(Utils.append({ email: collaboratorEmail, accessLevel: 'READER' }))
+      setLastAddedEmail(collaboratorEmail)
+    }
+  }
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
@@ -213,34 +221,35 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     }, ['Save']),
     onDismiss
   }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id }, ['User email']),
-      h(AutocompleteTextInput, {
-        id,
-        openOnFocus: true,
-        placeholderText: _.includes(searchValue, aclEmails) ?
-          'This email has already been added to the list' :
-          'Type an email address and press "Enter" or "Return"',
-        onPick: value => {
-          if (!validate.single(value, { email: true, exclusion: aclEmails })) {
-            setSearchValue('')
-            setAcl(Utils.append({ email: value, accessLevel: 'READER' }))
-            setLastAddedEmail(value)
-          }
-        },
-        placeholder: 'Add people or groups',
-        value: searchValue,
-        onFocus: () => { setSearchHasFocus(true) },
-        onBlur: () => { setSearchHasFocus(false) },
-        onChange: setSearchValue,
-        suggestions: Utils.cond(
-          [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-          [remainingSuggestions.length, () => remainingSuggestions],
-          () => []
-        ),
-        style: { fontSize: 16 }
-      })
-    ])]),
+    div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+      h(IdContainer, [id => div({ style: { flexGrow: 1, marginRight: '1rem' } }, [
+        h(FormLabel, { htmlFor: id }, ['User email']),
+        h(AutocompleteTextInput, {
+          id,
+          openOnFocus: true,
+          placeholderText: _.includes(searchValue, aclEmails) ?
+            'This email has already been added to the list' :
+            'Type an email address and press "Enter" or "Return"',
+          onPick: addCollaborator,
+          placeholder: 'Add people or groups',
+          value: searchValue,
+          onFocus: () => { setSearchHasFocus(true) },
+          onBlur: () => { setSearchHasFocus(false) },
+          onChange: setSearchValue,
+          suggestions: Utils.cond(
+            [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+            [remainingSuggestions.length, () => remainingSuggestions],
+            () => []
+          ),
+          style: { fontSize: 16 }
+        })
+      ])]),
+      h(ButtonPrimary, {
+        disabled: !searchValueValid,
+        tooltip: !searchValueValid && 'Enter an email address to add a collaborator',
+        onClick: () => { addCollaborator(searchValue) }
+      }, ['Add'])
+    ]),
     searchValueValid && !searchHasFocus && p({ style: { color: colors.danger() } }, addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
