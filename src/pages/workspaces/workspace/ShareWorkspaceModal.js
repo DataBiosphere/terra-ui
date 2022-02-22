@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -87,6 +87,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   const [working, setWorking] = useState(false)
   const [updateError, setUpdateError] = useState(undefined)
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined)
+  const [searchHasFocus, setSearchHasFocus] = useState(true)
 
   const list = useRef()
   const signal = useCancellation()
@@ -229,6 +230,8 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         },
         placeholder: 'Add people or groups',
         value: searchValue,
+        onFocus: () => { setSearchHasFocus(true) },
+        onBlur: () => { setSearchHasFocus(false) },
         onChange: setSearchValue,
         suggestions: Utils.cond(
           [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
@@ -238,6 +241,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         style: { fontSize: 16 }
       })
     ])]),
+    searchValueValid && !searchHasFocus && p({ style: { color: colors.danger() } }, addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
       h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
