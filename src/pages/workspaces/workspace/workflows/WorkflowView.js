@@ -1009,7 +1009,7 @@ const WorkflowView = _.flow(
     const suggestions = [
       ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
-      ...getSuggestionsForAttributesOfSetMembers(),
+      ...(modifiedConfig.rootEntityType ? getSuggestionsForAttributesOfSetMembers() : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const data = currentSnapRedacted ?
