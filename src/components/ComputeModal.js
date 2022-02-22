@@ -716,7 +716,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
         autopause: autopauseConfig?.enabled ?? true,
-        autopauseThreshold: autopauseConfig?.enabled ? (autopauseConfig.threshold ?? 0) : defaultAutoPauseThreshold,
+        autopauseThreshold: Utils.switchCase(autopauseConfig?.enabled,
+          [undefined, () => defaultAutoPauseThreshold],
+          [false, () => 0],
+          [true, () => autopauseConfig.threshold]
+        ),
         computeZone,
         computeRegion
       })
