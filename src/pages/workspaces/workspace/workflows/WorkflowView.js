@@ -986,9 +986,30 @@ const WorkflowView = _.flow(
     const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
+
+    const getSuggestionsForAttributesOfSetMembers = () => {
+      if (!modifiedConfig.rootEntityType.endsWith('_set')) {
+        return []
+      }
+      const memberEntityType = modifiedConfig.rootEntityType.slice(0, modifiedConfig.rootEntityType.length - 4)
+      const membersAttributeName = `${memberEntityType}s`
+      if (!(
+        _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata).includes(membersAttributeName) &&
+        _.has(memberEntityType, selectionMetadata)
+      )) {
+        return []
+      }
+
+      return _.flow(
+        _.get([memberEntityType, 'attributeNames']),
+        _.map(name => `this.${membersAttributeName}.${name}`)
+      )(selectionMetadata)
+    }
+
     const suggestions = [
       ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
+      ...getSuggestionsForAttributesOfSetMembers(),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const data = currentSnapRedacted ?
