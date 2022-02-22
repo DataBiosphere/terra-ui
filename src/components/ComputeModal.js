@@ -865,7 +865,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
     const enableAutoPauseSpan = span(
-      ['Enable Auto Pause'])
+      ['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -1026,7 +1026,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             style: { marginLeft: '1rem', verticalAlign: 'top' },
             href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
           }, [
-            'Learn more about auto pause.',
+            'Learn more about autopause.',
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ]),
@@ -1038,10 +1038,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             onlyInteger: true,
             value: computeConfig.autopauseThreshold,
             disabled: !computeConfig.autopause,
-            tooltip: !computeConfig.autopause ? 'Auto pause must be enabled to configure pause time.' : undefined,
+            tooltip: !computeConfig.autopause ? 'Autopause must be enabled to configure pause time.' : undefined,
             onChange: updateComputeConfig('autopauseThreshold')
           }),
-          span(['minutes of inactivity'])
+          span({style: {width: '300px'}}, ['minutes of inactivity'])
         ])
       ]),
       sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
