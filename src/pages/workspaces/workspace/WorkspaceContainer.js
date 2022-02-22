@@ -2,7 +2,7 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -360,7 +360,6 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWo
         tooltipSide: 'left',
         onClick: () => setSharingWorkspace(true)
       }, [makeMenuIcon('share'), 'Share']),
-      h(MenuButton, { 'aria-label': 'Workspace publish', disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
       h(MenuButton, {
         'aria-label': 'Workspace delete',
         disabled: !isOwner,
