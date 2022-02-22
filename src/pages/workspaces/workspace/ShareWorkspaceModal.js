@@ -213,7 +213,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         openOnFocus: true,
         placeholderText: _.includes(searchValue, aclEmails) ?
           'This email has already been added to the list' :
-          'Enter an email address',
+          'Type an email address and press "Enter" or "Return"',
         onPick: value => {
           if (!validate.single(value, { email: true, exclusion: aclEmails })) {
             setSearchValue('')
