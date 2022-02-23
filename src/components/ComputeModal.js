@@ -1030,7 +1030,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ]),
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '0.8rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
             min: 1,
             max: 999,
@@ -1041,7 +1041,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             tooltip: !computeConfig.autopause ? 'Autopause must be enabled to configure pause time.' : undefined,
             onChange: updateComputeConfig('autopauseThreshold')
           }),
-          span({style: {width: '300px'}}, ['minutes of inactivity'])
+          span(['minutes of inactivity'])
         ])
       ]),
       sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
