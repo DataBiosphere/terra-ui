@@ -430,7 +430,7 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
     Ajax()
       .Metrics
       .captureEvent(Events.analysisLaunch,
-        { source: tools.Jupyter.label, tool: tools.Jupyter.label, workspaceName: details.name, namespace: details.namespace })
+        { source: tools.Jupyter.label, application: tools.Jupyter.label, workspaceName: details.name, namespace: details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
