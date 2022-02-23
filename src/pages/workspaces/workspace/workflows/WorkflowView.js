@@ -991,7 +991,7 @@ const WorkflowView = _.flow(
       if (!modifiedConfig.rootEntityType.endsWith('_set')) {
         return []
       }
-      const memberEntityType = modifiedConfig.rootEntityType.slice(0, modifiedConfig.rootEntityType.length - 4)
+      const memberEntityType = modifiedConfig.rootEntityType.slice(0, modifiedConfig.rootEntityType.length - '_set'.length)
       const membersAttributeName = `${memberEntityType}s`
       if (!(
         _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata).includes(membersAttributeName) &&
