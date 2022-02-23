@@ -58,7 +58,7 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
         consoleOutputStream.write(`\n\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`)
       }, _.keys(errorMap))
     },
-    logger: () => {
+    log: () => {
       completed++
       if (completed > 1) {
         consoleOutputStream.moveCursor(0, -2)
@@ -77,7 +77,7 @@ const logTestState = (consoleOutputStream, logOutputStream, total) => {
 }
 
 const flakeShaker = ({ fn, name }) => {
-  const resultsDir = './results'
+  const resultsDir = 'results'
   const screenshotDir = `${resultsDir}/screenshots`
   const logsDir = `${resultsDir}/logs`
   const timeoutMillis = clusterTimeout * 60 * 1000
@@ -102,6 +102,8 @@ const flakeShaker = ({ fn, name }) => {
   !existsSync(resultsDir) && mkdirSync(resultsDir)
   !existsSync(screenshotDir) && mkdirSync(screenshotDir)
   !existsSync(logsDir) && mkdirSync(logsDir)
+
+  rawConsole.log(`\nLog is available at ${logsDir}, and screenshots are available at ${screenshotDir}\n`)
 
   const runCluster = async () => {
     const cluster = await Cluster.launch({
@@ -133,18 +135,17 @@ const flakeShaker = ({ fn, name }) => {
         logTestStatus.addError(e)
         return e
       } finally {
-        logTestStatus.logger()
+        logTestStatus.log()
       }
     })
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
     await Promise.all(runs)
-    process.stdout.write = consoleOutputStream
+    process.stdout.write = consoleOutputStream.write
 
     await cluster.idle()
     await cluster.close()
 
-    rawConsole.log(`Log is available at ./${logsDir}, and screenshots are available at ./${screenshotDir}`)
     if (!!logTestStatus.getNumErrors()) {
       logTestStatus.logUniqueErrors()
       throw new Error(`${logTestStatus.getNumErrors()} failures out of ${testRuns}. See above for specifics.`)
