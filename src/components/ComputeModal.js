@@ -1030,7 +1030,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ]),
-        div({ style: { ...gridStyle, gridGap: '0.8rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
             min: 1,
             max: 999,
