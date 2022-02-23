@@ -135,7 +135,7 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
       div({ style: { ...styles.innerContent, display: 'flex', alignItems: 'center' } }, [
         div({ style: { marginRight: '1rem' } }, [workflowCardMenu]),
         div({ style: { ...styles.longTitle } }, [workflowName]),
-        div({ style: { ...styles.longMethodVersion, display: 'flex', alignItems: 'center' } }, [
+        div({ style: { ...styles.longMethodVersion } }, [
           `V. ${methodVersion}`
         ]),
         div({ style: { flex: 'none', width: 130 } }, ['Source: ', repoLink])
@@ -146,10 +146,8 @@ const WorkflowCard = memoWithName('WorkflowCard', ({ listView, name, namespace, 
       div({ style: { ...styles.innerContent, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' } }, [
         div({ style: { ...styles.shortTitle } }, [workflowName]),
         div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' } }, [
-          div([
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              `V. ${methodVersion}`
-            ]),
+          div({ style: { minWidth: 100, marginRight: '1ch' } }, [
+            div({ style: { ...Style.noWrapEllipsis } }, `V. ${methodVersion}`),
             'Source: ', repoLink
           ]), workflowCardMenu
         ])
