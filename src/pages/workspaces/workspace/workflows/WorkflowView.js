@@ -297,6 +297,32 @@ const findPossibleSets = listOfExistingEntities => {
   }, [], listOfExistingEntities)
 }
 
+const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEntities, entityMetadata) => {
+  return _.flow(
+    // Collect attributes of selected entities
+    _.values,
+    _.flatMap(_.flow(_.get('attributes'), _.toPairs)),
+    // Find attributes that reference other entities
+    _.filter(([attributeName, attributeValue]) => _.get('itemsType', attributeValue) === 'EntityReference'),
+    // Find all entity types that are referenced by each attribute
+    _.flatMap(([attributeName, { items }]) => {
+      return _.flow(
+        _.map(_.get('entityType')),
+        _.uniq,
+        _.map(entityType => [attributeName, entityType])
+      )(items)
+    }),
+    _.uniqBy(([attributeName, entityType]) => `${attributeName}|${entityType}`),
+    // Use entity metadata to list attributes for each referenced entity type
+    _.flatMap(([attributeName, entityType]) => {
+      return _.flow(
+        _.get([entityType, 'attributeNames']),
+        _.map(nestedAttributeName => `this.${attributeName}.${nestedAttributeName}`)
+      )(entityMetadata)
+    })
+  )(selectedEntities)
+}
+
 const WorkflowView = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
@@ -979,7 +1005,7 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const {
       modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter,
-      selectedSnapshotEntityMetadata, availableSnapshots
+      selectedSnapshotEntityMetadata, availableSnapshots, entitySelectionModel: { selectedEntities }
     } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
@@ -987,29 +1013,10 @@ const WorkflowView = _.flow(
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
 
-    const getSuggestionsForAttributesOfSetMembers = () => {
-      if (!modifiedConfig.rootEntityType.endsWith('_set')) {
-        return []
-      }
-      const memberEntityType = modifiedConfig.rootEntityType.slice(0, modifiedConfig.rootEntityType.length - '_set'.length)
-      const membersAttributeName = `${memberEntityType}s`
-      if (!(
-        _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata).includes(membersAttributeName) &&
-        _.has(memberEntityType, selectionMetadata)
-      )) {
-        return []
-      }
-
-      return _.flow(
-        _.get([memberEntityType, 'attributeNames']),
-        _.map(name => `this.${membersAttributeName}.${name}`)
-      )(selectionMetadata)
-    }
-
     const suggestions = [
       ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
-      ...(modifiedConfig.rootEntityType ? getSuggestionsForAttributesOfSetMembers() : []),
+      ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const data = currentSnapRedacted ?
