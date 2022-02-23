@@ -1,20 +1,20 @@
 import Color from 'color'
 import _ from 'lodash/fp'
-import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
 const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark']
 
 const baseColors = {
-  primary: '#4d72aa',
-  secondary: '#6d6e70',
-  accent: '#4d72aa',
+  primary: '#4d72aa', // Used as accent on header, loading spinner, background of beta version tag and some buttons
+  secondary: '#6d6e70', // Used as footer background
+  accent: '#4d72aa', // Used as button backgrounds, headers, links
   success: '#74ae43',
   warning: '#f7981c',
   danger: '#db3214',
-  light: '#e9ecef',
-  dark: '#333f52'
+  light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
+  dark: '#333f52' // Used as text color, menu background (lightened), selected background (lightened)
 }
 
 const colorPalette = Utils.cond(
@@ -23,6 +23,7 @@ const colorPalette = Utils.cond(
   [isAnvil(), () => ({ ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' })],
   [isBioDataCatalyst(), () => ({ ...baseColors, primary: '#c02f42', secondary: '#1a568c', accent: '#1a568c', light: '#f4f4f6', dark: '#12385a' })],
   [isBaseline(), () => ({ ...baseColors, primary: '#c41061', secondary: '#31164c', light: '#f6f7f4', dark: '#012840' })],
+  [isElwazi(), () => ({ ...baseColors, primary: '#c13f27', secondary: '#c13f27', dark: '#1d1d1b', success: '#9eb642' })],
   () => ({ ...baseColors, primary: '#74ae43' })
 )
 

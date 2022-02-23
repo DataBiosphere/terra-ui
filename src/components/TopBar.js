@@ -313,7 +313,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.light() } }),
             isBioDataCatalyst() && h(Fragment, [
               h(Link,
                 {
