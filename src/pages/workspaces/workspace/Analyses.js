@@ -26,6 +26,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -219,7 +220,7 @@ const Analyses = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Analyses',
-    activeTab: analysisTabName
+    activeTab: 'analyses'
   }),
   withViewToggle('analysesTab')
 )(({
@@ -385,6 +386,18 @@ const Analyses = _.flow(
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
+        h(ButtonOutline, {
+          style: { marginLeft: '1rem' },
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
+              workspaceName: wsName,
+              workspaceNamespace: namespace
+            })
+            window.configOverridesStore.set({ isAnalysisTabVisible: false })
+            Nav.goToPath('workspace-notebooks', { namespace, name: wsName })
+          },
+          tooltip: 'Disable analysis tab beta'
+        }, ['Disable Beta']),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',

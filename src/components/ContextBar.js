@@ -12,6 +12,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -133,7 +134,8 @@ export const ContextBar = ({
           tooltipSide: 'left',
           disabled: !isTerminalEnabled,
           href: terminalLaunchLink,
-          onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : undefined,
+          onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : Ajax().Metrics.captureEvent(Events.analysisLaunch,
+            { origin: 'contextBar', source: 'terminal', application: 'terminal', workspaceName, namespace }),
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,

@@ -19,6 +19,7 @@ import rstudioBioLogo from 'src/images/r-bio-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
@@ -275,6 +276,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
                 refreshAnalyses()
+                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {

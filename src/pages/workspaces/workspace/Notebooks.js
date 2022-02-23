@@ -6,7 +6,7 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
@@ -15,10 +15,12 @@ import {
   findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { analysisTabName } from 'src/components/runtime-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -407,6 +409,28 @@ const Notebooks = _.flow(
     notebooks && h(PageBox, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
+        div({ hidden: true }, //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+          [
+            h(ButtonOutline, {
+              style: { marginLeft: '8.5rem' },
+              tooltip: 'Enable analysis tab beta',
+              onClick: () => {
+                Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
+                  workspaceName: wsName,
+                  workspaceNamespace: namespace
+                })
+                window.configOverridesStore.set({ isAnalysisTabVisible: true })
+                Nav.goToPath(analysisTabName, { namespace, name: wsName })
+              }
+            }, ['Analysis Beta']),
+            h(Link, {
+              style: { marginLeft: '1rem' },
+              href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+            }, [
+              'What is the analysis tab beta?',
+              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+            ])
+          ]),
         div({ style: { flex: 1 } }),
         h(DelayedSearchInput, {
           'aria-label': 'Search notebooks',

@@ -285,10 +285,12 @@ const PreviewHeader = ({
         ] : [
           h(HeaderButton, {
             onClick: () => {
-              if (currentRuntimeTool !== tools.RStudio.label) {
-                setCreateOpen(true)
+              if (runtimeStatus === 'Running') {
+                Ajax().Metrics.captureEvent(Events.analysisLaunch,
+                  { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
+                Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
               } else {
-                runtimeStatus === 'Running' ? Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' }) : setCreateOpen(true)
+                setCreateOpen(true)
               }
             }
           }, [
@@ -427,8 +429,8 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {
     Ajax()
       .Metrics
-      .captureEvent(Events.notebookLaunch,
-        { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
+      .captureEvent(Events.analysisLaunch,
+        { source: tools.Jupyter.label, tool: tools.Jupyter.label, workspaceName: details.name, namespace: details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
