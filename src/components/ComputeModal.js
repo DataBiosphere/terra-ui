@@ -23,10 +23,11 @@ import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultAutopauseThreshold, defaultAutopauseDisabledValue, isAutopauseEnabled, getAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
-  defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
-  getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, RadioBlock,
+  runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -1011,7 +1012,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(LabeledCheckbox, {
-          checked:  isAutopauseEnabled(computeConfig.autopauseThreshold),
+          checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
           disabled: !autoPauseCheckboxEnabled,
           onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
         }, [
