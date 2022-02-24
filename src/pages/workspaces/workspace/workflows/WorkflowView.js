@@ -31,6 +31,7 @@ import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepCo
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
+import getWorkflowInputSuggestionsForAttributesOfSetMembers from 'src/pages/workspaces/workspace/workflows/getWorkflowInputSuggestionsForAttributesOfSetMembers'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -295,32 +296,6 @@ const findPossibleSets = listOfExistingEntities => {
       acc :
       Utils.append(`${entityType}_set`, acc)
   }, [], listOfExistingEntities)
-}
-
-const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEntities, entityMetadata) => {
-  return _.flow(
-    // Collect attributes of selected entities
-    _.values,
-    _.flatMap(_.flow(_.get('attributes'), _.toPairs)),
-    // Find attributes that reference other entities
-    _.filter(([attributeName, attributeValue]) => _.get('itemsType', attributeValue) === 'EntityReference'),
-    // Find all entity types that are referenced by each attribute
-    _.flatMap(([attributeName, { items }]) => {
-      return _.flow(
-        _.map(_.get('entityType')),
-        _.uniq,
-        _.map(entityType => [attributeName, entityType])
-      )(items)
-    }),
-    _.uniqBy(([attributeName, entityType]) => `${attributeName}|${entityType}`),
-    // Use entity metadata to list attributes for each referenced entity type
-    _.flatMap(([attributeName, entityType]) => {
-      return _.flow(
-        _.get([entityType, 'attributeNames']),
-        _.map(nestedAttributeName => `this.${attributeName}.${nestedAttributeName}`)
-      )(entityMetadata)
-    })
-  )(selectedEntities)
 }
 
 const WorkflowView = _.flow(
