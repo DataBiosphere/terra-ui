@@ -23,7 +23,10 @@ const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEntities, 
         _.get([entityType, 'attributeNames']),
         _.map(nestedAttributeName => `this.${attributeName}.${nestedAttributeName}`)
       )(entityMetadata)
-    })
+    }),
+    // Sort and remove duplicates
+    _.sortBy(_.identity),
+    _.sortedUniq
   )(selectedEntities)
 }
 

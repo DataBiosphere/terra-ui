@@ -155,9 +155,8 @@ describe('getWorkflowInputSuggestionsForAttributesOfSetMembers', () => {
         }
       )).toEqual([
       'this.issues.description',
-      'this.issues.severity',
-      'this.issues.description',
-      'this.issues.priority'
+      'this.issues.priority',
+      'this.issues.severity'
     ])
   })
 })
