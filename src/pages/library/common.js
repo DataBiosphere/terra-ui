@@ -316,7 +316,7 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
 
 export const SearchAndFilterComponent = ({
   fullList, sidebarSections, customSort, searchType,
-  titleField = 'name', descField = 'description', children
+  titleField = 'name', descField = 'description', idField = 'lowerName', children
 }) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
@@ -364,13 +364,13 @@ export const SearchAndFilterComponent = ({
       } else {
         const selectedDataByTag = _.map(
           _.flow(
-            _.flatMap(({ lowerTag }) => _.intersectionBy('dct:identifier', listData, listDataByTag[lowerTag])),
-            _.uniqBy('dct:identifier')
+            _.flatMap(({ lowerTag }) => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
+            _.uniqBy(idField)
           ), tags
         )
 
         return _.reduce(
-          (acc, iter) => _.intersectionBy('dct:identifier', acc, iter),
+          (acc, iter) => _.intersectionBy(idField, acc, iter),
           _.head(selectedDataByTag),
           _.tail(selectedDataByTag)
         )
@@ -397,7 +397,7 @@ export const SearchAndFilterComponent = ({
         _.fromPairs
       )(selectedTags)
     }
-  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections])
+  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
 
 
   const onSearchChange = filter => {

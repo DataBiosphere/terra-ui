@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import pluralize from 'pluralize'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -98,12 +99,19 @@ const DataStepContent = ({
       }, [
         h(DataTable, {
           key: type.description,
-          childrenBefore: () => div({ style: Style.elements.sectionHeader }, [
-            Utils.switchCase(type,
-              [chooseSetType, () => `Select one or more ${entitySetType}s to combine and process`],
-              [chooseRootType, () => `Select ${rootEntityType}s to process`],
-              [chooseBaseType, () => `Select ${baseEntityType}s to create a new ${rootEntityType} to process`]
-            )
+          childrenBefore: () => div({ style: { display: 'flex', alignItems: 'center' } }, [
+            div({ style: Style.elements.sectionHeader }, [
+              Utils.switchCase(type,
+                [chooseSetType, () => `Select one or more ${entitySetType}s to combine and process`],
+                [chooseRootType, () => `Select ${rootEntityType}s to process`],
+                [chooseBaseType, () => `Select ${baseEntityType}s to create a new ${rootEntityType} to process`]
+              )
+            ]),
+            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+            div({
+              role: 'status',
+              'aria-atomic': true
+            }, [`${pluralize('row', _.size(selectedEntities), true)} selected`])
           ]),
           entityType: Utils.switchCase(type,
             [chooseBaseType, () => baseEntityType],

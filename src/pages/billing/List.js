@@ -13,6 +13,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
@@ -221,6 +222,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
+  const [isAlphaSpendReportUser, setIsAlphaSpendReportUser] = useState(false)
 
   const signal = useCancellation()
   const interval = useRef()
@@ -230,6 +232,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
+
+  const loadAlphaSpendReportMember = reportErrorAndRethrow('Error loading user group membership')(async () => {
+    setIsAlphaSpendReportUser(await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember())
+  })
 
   const reloadBillingProject = _.flow(
     reportErrorAndRethrow('Error loading billing project'),
@@ -271,6 +277,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   useOnMount(() => {
     loadProjects()
     loadAccounts()
+    loadAlphaSpendReportMember()
   })
 
   useEffect(() => {
@@ -375,7 +382,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingProject,
             billingAccounts,
             authorizeAndLoadAccounts: authorizeAccounts,
-            reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects)
+            reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
+            isAlphaSpendReportUser
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {

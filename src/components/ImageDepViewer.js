@@ -56,12 +56,16 @@ export const ImageDepViewer = ({ packageLink }) => {
           ])
         ]),
         tbody(
-          _.map(({ name, version }) => {
-            return tr({ key: name }, [
-              td({ style: { paddingRight: '1rem' } }, [name]),
-              td([version])
-            ])
-          }, _.filter({ tool: selectedTool }, packages))
+          _.flow(
+            _.filter({ tool: selectedTool }),
+            _.sortBy(({ name }) => _.toLower(name)),
+            _.map(({ name, version }) => {
+              return tr({ key: name }, [
+                td({ style: { paddingRight: '1rem' } }, [name]),
+                td([version])
+              ])
+            })
+          )(packages)
         )
       ])
     ])

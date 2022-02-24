@@ -210,15 +210,6 @@ export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgr
 
 export const topSpinnerOverlay = makeBaseSpinner({ innerStyles: { marginTop: 150 } })
 
-export const comingSoon = span({
-  style: {
-    margin: '0.5rem', padding: 3, borderRadius: 2,
-    backgroundColor: colors.dark(0.2), color: colors.dark(),
-    fontSize: '75%', textTransform: 'uppercase', fontWeight: 500,
-    whiteSpace: 'nowrap', lineHeight: 1
-  }
-}, ['coming soon'])
-
 const commonSelectProps = {
   theme: base => _.merge(base, {
     colors: {

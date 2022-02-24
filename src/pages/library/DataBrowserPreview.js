@@ -136,7 +136,7 @@ const DataBrowserPreview = ({ id }) => {
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
           h1([snapshot['dct:title']]),
           h(Link, {
-            href: Nav.getLink('library-details', { id: Nav.getCurrentRoute().params.id }),
+            onClick: Nav.history.goBack,
             'aria-label': 'Close',
             style: { marginTop: '1rem' }
           }, [

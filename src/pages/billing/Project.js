@@ -190,7 +190,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -224,6 +224,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
+  const spendReportKey = 'spend report'
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -269,7 +270,8 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
         }, _.orderBy([sort.field], [sort.direction], projectUsers))
         )
       ])
-    ])
+    ]),
+    [spendReportKey]: h(Fragment, [])
   }
 
   const tabs = _.map(key => ({
@@ -278,8 +280,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       _.capitalize(key)
     ]),
     tableName: _.lowerCase(key)
-  }), _.keys(tabToTable))
-
+  }), _.filter(key => (key !== spendReportKey || isAlphaSpendReportUser), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
@@ -484,9 +485,12 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       ]),
       h(SimpleTabBar, {
         'aria-label': 'project details',
+        metricsPrefix: Events.billingProjectSelectTab,
+        metricsData: { billingProjectName: billingProject.projectName },
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
+        key: `tabBarKey${isAlphaSpendReportUser}`, // The Spend report tab is only present for alpha users, so force recreation.
         onChange: newTab => {
           if (newTab === tab) {
             reloadBillingProjectUsers()

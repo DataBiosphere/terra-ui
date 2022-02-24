@@ -344,6 +344,7 @@ const Environments = () => {
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
+            size: { basis: 250 },
             field: 'project',
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
@@ -352,6 +353,7 @@ const Environments = () => {
             }
           },
           {
+            size: { basis: 250 },
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
@@ -446,6 +448,7 @@ const Environments = () => {
         rowCount: filteredDisks.length,
         columns: [
           {
+            size: { basis: 250 },
             field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
@@ -454,6 +457,7 @@ const Environments = () => {
             }
           },
           {
+            size: { basis: 250 },
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {

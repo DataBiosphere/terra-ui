@@ -170,6 +170,7 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
       await window.Ajax().User.acceptTos()
+      await window.Ajax().User.acceptSamTos()
     })
   })
 })
