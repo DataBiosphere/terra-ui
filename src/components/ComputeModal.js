@@ -23,7 +23,7 @@ import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultAutoPauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
+  computeStyles, defaultAutopauseThreshold, defaultAutopauseDisabledValue, isAutopauseEnabled, getAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
   getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
@@ -209,7 +209,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     hasGpu: false,
     gpuType: defaultGpuType,
     numGpus: defaultNumGpus,
-    autopauseThreshold: defaultAutoPauseThreshold,
+    autopauseThreshold: defaultAutopauseThreshold,
     computeRegion: defaultComputeRegion,
     computeZone: defaultComputeZone
   })
@@ -230,8 +230,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const canManageSparkConsole = shouldDisplaySparkConsoleLink && isRuntimeRunning
 
   const canUpdateNumberOfWorkers = !currentRuntimeDetails || isRuntimeRunning
-
-  const isAutopauseEnabled = threshold => threshold > 0
 
   const errors = validate(
     { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
@@ -694,7 +692,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
-      const autopauseThresholdCalculated = !!currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutoPauseThreshold
+      const autopauseThresholdCalculated = !!currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutopauseThreshold
       const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? runtimeTypes.dataprocSingleNode : runtimeTypes.dataprocCluster],
         [cloudServices.GCE, () => runtimeTypes.gceVm],
@@ -1015,7 +1013,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         h(LabeledCheckbox, {
           checked:  isAutopauseEnabled(computeConfig.autopauseThreshold),
           disabled: !autoPauseCheckboxEnabled,
-          onChange: v => updateComputeConfig('autopauseThreshold', v ? defaultAutoPauseThreshold : 0)
+          onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               enableAutoPauseSpan
