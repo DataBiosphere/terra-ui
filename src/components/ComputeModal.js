@@ -206,6 +206,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
 
+  const isAutopauseEnabled = threshold => threshold > 0
+
   const errors = validate(
     { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
     {
@@ -993,7 +995,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ]),
       div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
         h(LabeledCheckbox, {
-          checked: computeConfig.autopauseThreshold !== 0,
+          checked:  isAutopauseEnabled(computeConfig.autopauseThreshold),
           disabled: !autoPauseCheckboxEnabled,
           onChange: v => updateComputeConfig('autopauseThreshold', v ? defaultAutoPauseThreshold : 0)
         }, [
@@ -1015,8 +1017,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             isClearable: false,
             onlyInteger: true,
             value: computeConfig.autopauseThreshold,
-            disabled: computeConfig.autopauseThreshold === 0,
-            tooltip: computeConfig.autopauseThreshold === 0 ? 'Autopause must be enabled to configure pause time.' : undefined,
+            disabled: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+            tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
             onChange: updateComputeConfig('autopauseThreshold')
           }),
           span(['minutes of inactivity'])
