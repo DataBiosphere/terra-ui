@@ -20,7 +20,11 @@ const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEntities, 
     // Use entity metadata to list attributes for each referenced entity type
     _.flatMap(([attributeName, entityType]) => {
       return _.flow(
-        _.get([entityType, 'attributeNames']),
+        _.over([
+          _.get([entityType, 'attributeNames']),
+          _.get([entityType, 'idName'])
+        ]),
+        _.spread(_.concat),
         _.map(nestedAttributeName => `this.${attributeName}.${nestedAttributeName}`)
       )(entityMetadata)
     }),

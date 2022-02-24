@@ -60,6 +60,7 @@ describe('getWorkflowInputSuggestionsForAttributesOfSetMembers', () => {
         }
       )).toEqual([
       'this.colors.hex',
+      'this.colors.name',
       'this.colors.rgb'
     ])
   })
@@ -155,6 +156,7 @@ describe('getWorkflowInputSuggestionsForAttributesOfSetMembers', () => {
         }
       )).toEqual([
       'this.issues.description',
+      'this.issues.id',
       'this.issues.priority',
       'this.issues.severity'
     ])
