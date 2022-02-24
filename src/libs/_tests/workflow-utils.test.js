@@ -1,4 +1,4 @@
-import getWorkflowInputSuggestionsForAttributesOfSetMembers from 'src/pages/workspaces/workspace/workflows/getWorkflowInputSuggestionsForAttributesOfSetMembers'
+import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils'
 
 
 describe('getWorkflowInputSuggestionsForAttributesOfSetMembers', () => {
