@@ -134,8 +134,13 @@ export const ContextBar = ({
           tooltipSide: 'left',
           disabled: !isTerminalEnabled,
           href: terminalLaunchLink,
-          onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : Ajax().Metrics.captureEvent(Events.analysisLaunch,
-            { origin: 'contextBar', source: 'terminal', application: 'terminal', workspaceName, namespace }),
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'contextBar', source: 'terminal', application: 'terminal', workspaceName, namespace })
+            if (window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped') {
+              startCurrentRuntime()
+            }
+          },
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,

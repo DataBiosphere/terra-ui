@@ -6,7 +6,7 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
@@ -21,7 +21,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
-import { betaVersionTag } from 'src/libs/logos'
+import { betaVersionTag, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -407,31 +407,41 @@ const Notebooks = _.flow(
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     notebooks && h(PageBox, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-        div({ hidden: true }, //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
-          [
-            h(ButtonOutline, {
-              style: { marginLeft: '8.5rem' },
-              tooltip: 'Enable analysis tab beta',
-              onClick: () => {
-                Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
-                  workspaceName: wsName,
-                  workspaceNamespace: namespace
-                })
-                window.configOverridesStore.set({ isAnalysisTabVisible: true })
-                Nav.goToPath(analysisTabName, { namespace, name: wsName })
-              }
-            }, ['Analysis Beta']),
-            h(Link, {
-              style: { marginLeft: '1rem' },
-              href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
-            }, [
-              'What is the analysis tab beta?',
-              icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-            ])
-          ]),
         div({ style: { flex: 1 } }),
+        //hidden will be removed, and this will be released in this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+        div({ style: { display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem', border: `1px solid ${colors.accent()}`, borderRadius: 3 }, hidden: true }, [
+          div({ style: { display: 'flex', flexDirection: 'row' } }, [
+            div([
+              span(/*{ style: { maxWidth: 200 } },*/ [
+                'New features are available! Help us improve Terra by trying it out and giving feedback. '
+                // ,a({
+                //   href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+                // }, ['Learn more'])
+              ]),
+              h(Link, {
+                href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+              }, [
+                'Learn more'
+              ])
+            ]),
+            versionTag('Beta', { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
+          ]),
+          h(ButtonPrimary, {
+            style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'left' },
+            tooltip: 'Enable analysis tab beta',
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
+                workspaceName: wsName,
+                workspaceNamespace: namespace
+              })
+              window.configOverridesStore.set({ isAnalysisTabVisible: true })
+              Nav.goToPath(analysisTabName, { namespace, name: wsName })
+            }
+          }, ['Try out the new layout'])
+        ]),
+        div({ style: { flex: 5 } }),
         h(DelayedSearchInput, {
           'aria-label': 'Search notebooks',
           style: { marginRight: '0.75rem', width: 220 },
