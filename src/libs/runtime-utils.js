@@ -44,6 +44,7 @@ export const defaultComputeRegion = 'US-CENTRAL1'
 
 export const defaultAutopauseThreshold = 30
 export const defaultAutopauseDisabledValue = 0
+// Leonardo considers autopause disabled when the threshold is set to 0
 export const isAutopauseEnabled = threshold => threshold > defaultAutopauseDisabledValue
 export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : defaultAutopauseDisabledValue
 
