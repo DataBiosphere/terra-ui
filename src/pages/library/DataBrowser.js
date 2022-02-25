@@ -247,7 +247,8 @@ const Browser = () => {
       customSort: sort,
       searchType: 'Datasets',
       titleField: 'dct:title',
-      descField: 'dct:description'
+      descField: 'dct:description',
+      idField: 'dct:identifier'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {

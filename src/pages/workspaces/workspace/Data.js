@@ -36,10 +36,13 @@ const bucketObjects = '__bucket_objects__'
 
 const styles = {
   tableContainer: {
-    display: 'flex', flex: 1
+    display: 'flex', flex: 1, flexBasis: '15rem',
+    maxHeight: '100%',
+    overflow: 'hidden'
   },
   dataTypeSelectionPanel: {
     flex: 'none', width: 280, backgroundColor: 'white',
+    overflow: 'auto',
     boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
   },
   tableViewPanel: {

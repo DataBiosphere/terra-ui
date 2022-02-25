@@ -4,7 +4,7 @@ const { withScreenshot, withPageLogging } = require('../utils/integration-utils'
 const { Cluster } = require('puppeteer-cluster')
 const envs = require('../utils/terra-envs')
 const rawConsole = require('console')
-const { mkdirSync, existsSync } = require('fs')
+const { mkdirSync, existsSync, createWriteStream } = require('fs')
 
 
 const {
@@ -36,8 +36,50 @@ const registerTest = ({ fn, name, timeout = defaultTimeout, targetEnvironments =
     timeout)
 }
 
+const logTestState = (consoleOutputStream, logOutputStream, total) => {
+  let completed = 0
+  let errored = 0
+  const errorMap = {}
+
+  return {
+    addError: e => {
+      errored++
+      if (_.has(e.stack, errorMap)) {
+        errorMap[e.stack]++
+      } else {
+        errorMap[e.stack] = 1
+        logOutputStream.write(e.stack)
+      }
+    },
+    getNumErrors: () => errored,
+    logUniqueErrors: () => {
+      _.forEach(key => {
+        consoleOutputStream.write(`\n\t\x1b[31m\x1b[1mError encountered ${errorMap[key]} times`)
+        consoleOutputStream.write(`\n\t\x1b[0m${key.split('\n').join('\n\t')}\n\n`)
+      }, _.keys(errorMap))
+    },
+    log: () => {
+      completed++
+      if (completed > 1) {
+        consoleOutputStream.moveCursor(0, -2)
+        consoleOutputStream.clearLine(1)
+      }
+
+      consoleOutputStream.write(`Running tests: ${Math.floor(completed * 100.0 / total)}% \n`)
+
+      if (!!errored) {
+        consoleOutputStream.write(`\t\x1b[31m\x1b[1m${errored} errors encountered (${_.size(errorMap)} unique errors)\n`)
+      } else {
+        consoleOutputStream.write('No errors encountered.\n')
+      }
+    }
+  }
+}
+
 const flakeShaker = ({ fn, name }) => {
-  const screenshotDir = './screenshots'
+  const resultsDir = 'results'
+  const screenshotDir = `${resultsDir}/screenshots`
+  const logsDir = `${resultsDir}/logs`
   const timeoutMillis = clusterTimeout * 60 * 1000
   const padding = 100
   const messages = ['', `Number of times to run this test: ${testRuns} (adjust this by setting RUNS in your environment)`,
@@ -57,7 +99,11 @@ const flakeShaker = ({ fn, name }) => {
     _.join(''))(messages)
   rawConsole.log(`${message}`)
 
+  !existsSync(resultsDir) && mkdirSync(resultsDir)
   !existsSync(screenshotDir) && mkdirSync(screenshotDir)
+  !existsSync(logsDir) && mkdirSync(logsDir)
+
+  rawConsole.log(`\nLog is available at ${logsDir}, and screenshots are available at ${screenshotDir}\n`)
 
   const runCluster = async () => {
     const cluster = await Cluster.launch({
@@ -69,30 +115,40 @@ const flakeShaker = ({ fn, name }) => {
       }
     })
 
+    const consoleOutputStream = _.clone(process.stdout)
+    const logOutputStream = createWriteStream(`${logsDir}/flakes.log`)
+    process.stdout.write = v => {
+      // eslint-disable-next-line no-control-regex
+      logOutputStream.write(v.replace(/\u001b\[.*?m/g, ''))
+    }
+
+    consoleOutputStream.write(`Running tests: 0%`)
+    const logTestStatus = logTestState(consoleOutputStream, logOutputStream, testRuns)
+
     await cluster.task(async ({ page, data }) => {
       const { taskFn, taskParams, runId } = data
       try {
         const result = await taskFn({ context, page, ...taskParams })
-        rawConsole.log(`Test number ${runId} passed`)
         return result
       } catch (e) {
         await page.screenshot({ path: `${screenshotDir}/${runId}.jpg`, fullPage: true })
-        rawConsole.log(`Test number ${runId} failed: ${e}`)
+        logTestStatus.addError(e)
         return e
+      } finally {
+        logTestStatus.log()
       }
     })
 
     const runs = _.times(runId => cluster.execute({ taskParams: targetEnvParams, taskFn: fn, runId }), testRuns)
-    const results = await Promise.all(runs)
-    const errors = _.filter(_.isError, results)
-    const numErrors = _.size(errors)
+    await Promise.all(runs)
+    process.stdout.write = consoleOutputStream.write
 
     await cluster.idle()
     await cluster.close()
 
-    if (!!numErrors) {
-      _.forEach(err => rawConsole.log(err.stack), errors)
-      throw new Error(`${numErrors} failures out of ${testRuns}. See above for specifics.`)
+    if (!!logTestStatus.getNumErrors()) {
+      logTestStatus.logUniqueErrors()
+      throw new Error(`${logTestStatus.getNumErrors()} failures out of ${testRuns}. See above for specifics.`)
     }
   }
 
