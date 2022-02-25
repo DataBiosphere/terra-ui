@@ -27,6 +27,7 @@ import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -979,16 +980,18 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const {
       modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter,
-      selectedSnapshotEntityMetadata, availableSnapshots
+      selectedSnapshotEntityMetadata, availableSnapshots, entitySelectionModel: { selectedEntities }
     } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
     const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
+
     const suggestions = [
       ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
+      ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
     const data = currentSnapRedacted ?
