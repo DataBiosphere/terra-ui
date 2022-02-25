@@ -860,8 +860,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
-    const enableAutoPauseSpan = span(
-      ['Enable autopause'])
+    const enableAutoPauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
