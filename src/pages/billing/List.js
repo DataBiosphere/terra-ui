@@ -283,7 +283,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   useEffect(() => {
     const anyProjectsCreating = _.some({ creationStatus: 'Creating' }, billingProjects)
 
-    if (anyProjectsCreating && interval.current) {
+    if (anyProjectsCreating && !interval.current) {
       interval.current = setInterval(loadProjects, 10000)
     } else if (!anyProjectsCreating && interval.current) {
       clearInterval(interval.current)
@@ -292,7 +292,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
     StateHistory.update({ billingProjects })
 
-    return () => clearInterval(interval.current)
+    return () => {
+      clearInterval(interval.current)
+      interval.current = undefined
+    }
   })
 
   // Render
