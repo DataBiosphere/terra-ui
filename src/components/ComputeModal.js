@@ -860,7 +860,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
-    const enableAutoPauseSpan = span(
+    const enableAutopauseSpan = span(
       ['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
@@ -1017,7 +1017,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
-              enableAutoPauseSpan
+              enableAutopauseSpan
           ]),
           h(Link, {
             style: { marginLeft: '1rem', verticalAlign: 'top' },

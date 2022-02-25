@@ -43,9 +43,9 @@ export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
 
 export const defaultAutopauseThreshold = 30
-export const defaultAutopauseDisabledValue = 0
-export const isAutopauseEnabled = threshold => threshold > defaultAutopauseDisabledValue
-export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : defaultAutopauseDisabledValue
+export const autopauseDisabledValue = 0
+export const isAutopauseEnabled = threshold => threshold > autopauseDisabledValue
+export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue
 
 export const usableStatuses = ['Updating', 'Running']
 
