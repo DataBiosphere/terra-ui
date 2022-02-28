@@ -1032,11 +1032,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             isClearable: false,
             onlyInteger: true,
             value: computeConfig.autopauseThreshold,
-            disabled: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+            hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
             tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
             onChange: updateComputeConfig('autopauseThreshold')
           }),
-          span(['minutes of inactivity'])
+          span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
         ])
       ]),
       isDataprocCluster(runtimeType) && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
