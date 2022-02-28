@@ -388,8 +388,16 @@ const Analyses = _.flow(
         ]),
         div({ style: { flex: 1.5 } }),
         div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '.5rem', backgroundColor: colors.secondary(0.1), padding: '1rem', border: `1px solid ${colors.accent()}`, borderRadius: 3 }, hidden: false }, [//Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+          div({ style: { maxWidth: 300 } }, [
+            span(['What did you think? We\'d love to hear your thoughts. ']),
+            h(Link, {
+              href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+            }, [
+              'Submit feedback'
+            ])
+          ]),
           h(ButtonPrimary, {
-            style: { marginBottom: '.5rem', maxWidth: 250, alignSelf: 'left' },
+            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'left' },
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
                 workspaceName: wsName,
@@ -399,15 +407,7 @@ const Analyses = _.flow(
               Nav.goToPath('workspace-notebooks', { namespace, name: wsName })
             },
             tooltip: 'Exit the analysis tab beta feature'
-          }, ['Revert layout']),
-          div({ style: { display: 'flex', flexDirection: 'column' } }, [
-            span(['We\'d love to hear your thoughts']),
-            h(Link, {
-              href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
-            }, [
-              'Submit feedback'
-            ])
-          ])
+          }, ['Revert layout'])
         ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {

@@ -414,11 +414,8 @@ const Notebooks = _.flow(
         div({ style: { display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem', border: `1px solid ${colors.accent()}`, borderRadius: 3 }, hidden: true }, [
           div({ style: { display: 'flex', flexDirection: 'row' } }, [
             div([
-              span(/*{ style: { maxWidth: 200 } },*/ [
+              span([
                 'New features are available! Help us improve Terra by trying it out and giving feedback. '
-                // ,a({
-                //   href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
-                // }, ['Learn more'])
               ]),
               h(Link, {
                 href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
