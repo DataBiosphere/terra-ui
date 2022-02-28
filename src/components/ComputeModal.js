@@ -251,7 +251,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
+    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
     const shouldUpdatePersistentDisk = canUpdatePersistentDisk() && !_.isEqual(desiredPersistentDisk, existingPersistentDisk)
     const shouldDeletePersistentDisk = existingPersistentDisk && !canUpdatePersistentDisk()
     const shouldUpdateRuntime = canUpdateRuntime() && !_.isEqual(desiredRuntime, existingRuntime)
@@ -263,7 +263,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         zone: desiredRuntime.zone.toLowerCase(),
-        autopauseThreshold: desiredAutopauseThreshold,
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
