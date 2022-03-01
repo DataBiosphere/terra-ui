@@ -387,8 +387,7 @@ const User = signal => ({
     const root = `api/oidc/v1/${provider}`
     const queryParams = {
       scopes: ['openid', 'email', 'ga4gh_passport_v1'],
-      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`,
-      state: btoa(JSON.stringify({ provider }))
+      redirectUri: `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/ecm-callback`
     }
 
     return {
@@ -415,8 +414,8 @@ const User = signal => ({
         return res.json()
       },
 
-      linkAccount: async oauthcode => {
-        const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
+      linkAccount: async (oauthcode, state) => {
+        const res = await fetchEcm(`${root}/oauthcode?${qs.stringify({ ...queryParams, oauthcode, state }, { indices: false })}`, _.merge(authOpts(), { signal, method: 'POST' }))
         return res.json()
       },
 
