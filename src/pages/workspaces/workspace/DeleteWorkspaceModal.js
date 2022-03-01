@@ -114,6 +114,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     ]),
     !isDeleteDisabledFromApps && div({
       style: {
+        color: colors.danger(),
         fontWeight: 500,
         marginTop: '1rem'
       }
