@@ -705,6 +705,66 @@ const SortableDiv = SortableElement(props => div(props))
 const SortableList = SortableContainer(props => h(List, props))
 const SortableHandleDiv = SortableHandle(props => div(props))
 
+const ColumnSettings = ({ columnSettings, onChange }) => {
+  const toggleVisibility = index => {
+    onChange(_.update([index, 'visible'], b => !b)(columnSettings))
+  }
+
+  const setAll = value => {
+    onChange(_.map(_.set('visible', value))(columnSettings))
+  }
+
+  const sort = () => {
+    onChange(_.sortBy('name')(columnSettings))
+  }
+
+  const reorder = ({ oldIndex, newIndex }) => {
+    onChange(arrayMove(columnSettings, oldIndex, newIndex))
+  }
+
+  return h(Fragment, [
+    div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+      div({ style: { fontWeight: 500 } }, ['Show:']),
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(true) }, ['all']),
+      '|',
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(false) }, ['none']),
+      div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => sort() }, ['alphabetical'])
+    ]),
+    h(AutoSizer, { disableHeight: true }, [
+      ({ width }) => {
+        return h(SortableList, {
+          style: { outline: 'none' },
+          lockAxis: 'y',
+          useDragHandle: true,
+          width, height: 400,
+          rowCount: columnSettings.length,
+          rowHeight: 30,
+          rowRenderer: ({ index, style, key }) => {
+            const { name, visible } = columnSettings[index]
+            return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
+              h(SortableHandleDiv, { style: styles.columnHandle }, [
+                icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
+              ]),
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                h(LabeledCheckbox, {
+                  checked: visible,
+                  onChange: () => toggleVisibility(index)
+                }, [
+                  h(Clickable, {
+                    style: styles.columnName
+                  }, [name])
+                ])
+              ])
+            ])
+          },
+          onSortEnd: v => reorder(v)
+        })
+      }
+    ])
+  ])
+}
+
 /**
  * @param {Object[]} columnSettings - current column list, in order
  * @param {string} columnSettings[].name
@@ -715,22 +775,6 @@ const SortableHandleDiv = SortableHandle(props => div(props))
 export const ColumnSelector = ({ onSave, columnSettings, style }) => {
   const [open, setOpen] = useState(false)
   const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
-
-  const toggleVisibility = index => {
-    setModifiedColumnSettings(_.update([index, 'visible'], b => !b))
-  }
-
-  const setAll = value => {
-    setModifiedColumnSettings(_.map(_.set('visible', value)))
-  }
-
-  const sort = () => {
-    setModifiedColumnSettings(_.sortBy('name'))
-  }
-
-  const reorder = ({ oldIndex, newIndex }) => {
-    setModifiedColumnSettings(arrayMove(modifiedColumnSettings, oldIndex, newIndex))
-  }
 
   return h(Fragment, [
     h(Clickable, {
@@ -753,45 +797,10 @@ export const ColumnSelector = ({ onSave, columnSettings, style }) => {
         }
       }, ['Done'])
     }, [
-      div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-        div({ style: { fontWeight: 500 } }, ['Show:']),
-        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(true) }, ['all']),
-        '|',
-        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(false) }, ['none']),
-        div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
-        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => sort() }, ['alphabetical'])
-      ]),
-      h(AutoSizer, { disableHeight: true }, [
-        ({ width }) => {
-          return h(SortableList, {
-            style: { outline: 'none' },
-            lockAxis: 'y',
-            useDragHandle: true,
-            width, height: 400,
-            rowCount: modifiedColumnSettings.length,
-            rowHeight: 30,
-            rowRenderer: ({ index, style, key }) => {
-              const { name, visible } = modifiedColumnSettings[index]
-              return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
-                h(SortableHandleDiv, { style: styles.columnHandle }, [
-                  icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
-                ]),
-                div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  h(LabeledCheckbox, {
-                    checked: visible,
-                    onChange: () => toggleVisibility(index)
-                  }, [
-                    h(Clickable, {
-                      style: styles.columnName
-                    }, [name])
-                  ])
-                ])
-              ])
-            },
-            onSortEnd: v => reorder(v)
-          })
-        }
-      ])
+      h(ColumnSettings, {
+        columnSettings: modifiedColumnSettings,
+        onChange: setModifiedColumnSettings
+      })
     ])
   ])
 }
