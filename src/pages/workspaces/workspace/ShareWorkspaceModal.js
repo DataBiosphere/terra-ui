@@ -250,7 +250,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         onClick: () => { addCollaborator(searchValue) }
       }, ['Add'])
     ]),
-    searchValueValid && !searchHasFocus && p({ style: { color: colors.danger() } }, addUserReminder),
+    searchValueValid && !searchHasFocus && p(addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
       h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
