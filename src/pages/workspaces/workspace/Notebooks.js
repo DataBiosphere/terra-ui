@@ -411,7 +411,12 @@ const Notebooks = _.flow(
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
         div({ style: { flex: 1 } }),
         //hidden will be removed, and this will be released in this ticket https://broadworkbench.atlassian.net/browse/IA-3225
-        div({ style: { display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem', border: `1px solid ${colors.accent()}`, borderRadius: 3 }, hidden: true }, [
+        div({
+          style: {
+            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
+            border: `1px solid ${colors.accent()}`, borderRadius: 3
+          }, hidden: false
+        }, [
           div({ style: { display: 'flex', flexDirection: 'row' } }, [
             div([
               span([
@@ -423,7 +428,8 @@ const Notebooks = _.flow(
                 'Learn more'
               ])
             ]),
-            versionTag('Beta', { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
+            versionTag('Beta',
+              { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
           ]),
           h(ButtonPrimary, {
             style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'left' },
@@ -447,7 +453,7 @@ const Notebooks = _.flow(
           value: filter
         }),
         h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem', marginTop: '0.5rem' } }, ['Sort By:']),
           h(Select, {
             id,
             value: sortOrder,

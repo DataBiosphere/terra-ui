@@ -387,11 +387,18 @@ const Analyses = _.flow(
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
         div({ style: { flex: 1.5 } }),
-        div({ style: { display: 'flex', flexDirection: 'column', marginLeft: '.5rem', backgroundColor: colors.secondary(0.1), padding: '1rem', border: `1px solid ${colors.accent()}`, borderRadius: 3 }, hidden: false }, [//Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+        div({
+          style: {
+            display: 'flex', flexDirection: 'column', marginLeft: '.5rem', padding: '1rem',
+            backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
+          }, hidden: false
+        }, [
+          //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
           div({ style: { maxWidth: 300 } }, [
             span(['What did you think? We\'d love to hear your thoughts. ']),
             h(Link, {
-              href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+              //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+              href: '', ...Utils.newTabLinkProps
             }, [
               'Submit feedback'
             ])
