@@ -119,8 +119,8 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         marginTop: '1rem'
       }
     }, 'This cannot be undone.'),
-    !isDeleteDisabledFromApps && div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
+    !isDeleteDisabledFromApps && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+      label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {
         id: 'delete-workspace-confirmation',
         placeholder: 'Delete Workspace',
