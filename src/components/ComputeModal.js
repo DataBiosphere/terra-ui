@@ -634,7 +634,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
   }
 
-  const copyImageLinkTooltipText = 'Copy the image version of the runtime'
+  const copyImageLinkTooltipText = 'Copy the image version'
   const isTerraSupported = runtime => (!runtime.isCommunity && !(getToolForImage(runtime.id) === tools.RStudio.label) && !(runtime.id.includes('legacy')))
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
