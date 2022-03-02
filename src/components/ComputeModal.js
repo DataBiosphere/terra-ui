@@ -547,14 +547,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
     div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
-    div([h(isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)) ? Link : span, { href: `https://github.com/DataBiosphere/terra-docker/blob/master/${_.find({ image: selectedLeoImage }, leoImages)?.id }/CHANGELOG.md`, ...Utils.newTabLinkProps }, [
-      'Version: ', version || null
-    ]), h(ClipboardButton, {
+    div([h(isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)) ? Link : span,
+      {
+        href: `https://github.com/DataBiosphere/terra-docker/blob/master/${_.find({ image: selectedLeoImage }, leoImages)?.id}/CHANGELOG.md`,
+        ...Utils.newTabLinkProps
+      }, [
+        'Version: ', version || null
+      ]), h(ClipboardButton, {
       text: selectedLeoImage,
       style: { marginLeft: '0.5rem' },
       tooltip: copyImageLinkTooltipText
-    })
-    ])
+    })])
   ])
 
   const sendCloudEnvironmentMetrics = () => {
@@ -632,7 +635,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const copyImageLinkTooltipText = 'Copy the image version of the runtime'
-  const isTerraSupported = (runtime) => (!runtime.isCommunity && !(getToolForImage(runtime.id) === tools.RStudio.label) && !(runtime.id.includes('legacy')))
+  const isTerraSupported = runtime => (!runtime.isCommunity && !(getToolForImage(runtime.id) === tools.RStudio.label) && !(runtime.id.includes('legacy')))
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
     [computeExists,
