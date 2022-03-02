@@ -13,7 +13,6 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -214,6 +213,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [totalCost, setTotalCost] = useState(null)
   const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
+  const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(90)
 
   const signal = useCancellation()
 
@@ -225,13 +225,18 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   ), [billingProject, workspaces])
 
   const spendReportKey = 'spend report'
-  const maybeLoadTotalCost = async activeTab => {
-    if (!updatingTotalCost && totalCost === null && activeTab === spendReportKey) {
+  const maybeLoadTotalCost = reportErrorAndRethrow('Unable to retrieve spend report data')(async () => {
+    if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
       setUpdatingTotalCost(true)
-      setTotalCost((await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember()) ? '$97.99' : null)
+      const endDate = new Date().toISOString().slice(0, 10)
+      const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+      const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
+      const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
+      setTotalCost(costFormatter.format(spend.spendSummary.cost))
+      setUpdatingTotalCost(false)
     }
-  }
-  maybeLoadTotalCost(tab)
+  })
+  maybeLoadTotalCost()
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
@@ -306,8 +311,15 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         h(FormLabel, { htmlFor: id }, ['Date range']),
         h(Select, {
           id,
-          value: 'Last 90 days',
-          options: ['Last 90 days']
+          value: spendReportLengthInDays,
+          options: _.map(days => ({
+            label: `Last ${days} days`,
+            value: days
+          }), [90]),
+          onChange: ({ value: selectedDays }) => {
+            setSpendReportLengthInDays(selectedDays)
+            setTotalCost(null) // This will force the report to be recalculated based on selectedDays
+          }
         })
       ])])]),
       CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
@@ -536,7 +548,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           } else {
             setTab(newTab)
           }
-          maybeLoadTotalCost(newTab)
+          maybeLoadTotalCost()
         },
         tabs
       }, [
