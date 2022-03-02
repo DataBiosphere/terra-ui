@@ -11,7 +11,7 @@ import {
   addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusType, submissionDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { FLEX_TABLE_DEFAULT_ROW_HEIGHT, FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
+import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -26,7 +26,7 @@ import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/Up
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const WORKFLOWS_TABLE_ROW_HEIGHT = FLEX_TABLE_DEFAULT_ROW_HEIGHT
+const workflowsTableRowHeight = flexTableDefaultRowHeight
 
 const SubmissionDetails = _.flow(
   forwardRefWithName('SubmissionDetails'),
@@ -245,12 +245,12 @@ const SubmissionDetails = _.flow(
         ])
       ]),
       // 48px is based on the default row height of FlexTable
-      div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * WORKFLOWS_TABLE_ROW_HEIGHT}px` } }, [
+      div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * workflowsTableRowHeight}px` } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
           'aria-label': 'submission details',
           width, height, sort,
-          headerHeight: WORKFLOWS_TABLE_ROW_HEIGHT,
-          rowHeight: WORKFLOWS_TABLE_ROW_HEIGHT,
+          headerHeight: workflowsTableRowHeight,
+          rowHeight: workflowsTableRowHeight,
           rowCount: filteredWorkflows.length,
           noContentMessage: 'No matching workflows',
           columns: [
