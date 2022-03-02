@@ -108,9 +108,12 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     ]),
     collaboratorEmails && collaboratorEmails.length > 0 && div({ style: { marginTop: '1rem' } }, [
       p(`${pluralize('collaborator', collaboratorEmails.length, true)} will lose access to this workspace.`),
-      div(collaboratorEmails.map(
+      div(collaboratorEmails.slice(0, 5).map(
         email => div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [h(Link, { href: `mailto:${email}` }, [email])])
-      ))
+      )),
+      collaboratorEmails.length > 5 && (
+        div(`and ${collaboratorEmails.length - 5} more`)
+      )
     ]),
     !isDeleteDisabledFromApps && div({
       style: {
