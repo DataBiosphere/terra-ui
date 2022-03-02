@@ -263,8 +263,8 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
     const loadPassport = withErrorReporting(`Error loading ${prettyName} passport`, async () => {
       setPassport(await Ajax(signal).User.externalAccount(provider).getPassport())
     })
-    const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async code => {
-      setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code))
+    const linkAccount = withErrorReporting(`Error linking ${prettyName} account`, async (code, state) => {
+      setAccountInfo(await Ajax().User.externalAccount(provider).linkAccount(code, state))
       loadPassport()
     })
 
@@ -272,7 +272,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
 
     if (Nav.getCurrentRoute().name === 'ecm-callback' && JSON.parse(atob(state)).provider === provider) {
       window.history.replaceState({}, '', `/${Nav.getLink('profile')}`)
-      linkAccount(code)
+      linkAccount(code, state)
     } else {
       loadAccount()
       loadPassport()

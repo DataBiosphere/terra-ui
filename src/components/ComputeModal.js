@@ -23,10 +23,11 @@ import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
-  defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType,
-  getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, RadioBlock,
+  runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -209,6 +210,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     hasGpu: false,
     gpuType: defaultGpuType,
     numGpus: defaultNumGpus,
+    autopauseThreshold: defaultAutopauseThreshold,
     computeRegion: defaultComputeRegion,
     computeZone: defaultComputeZone
   })
@@ -304,11 +306,15 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
+      await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
+        runtimeConfig,
+        autopauseThreshold: computeConfig.autopauseThreshold
+      })
     }
     if (shouldCreateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
+        autopauseThreshold: computeConfig.autopauseThreshold,
         toolDockerImage: desiredRuntime.toolDockerImage,
         labels: {
           saturnWorkspaceNamespace: namespace,
@@ -325,8 +331,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const requiresGCE = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
   const canUpdateRuntime = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+    const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig()
+    const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
 
     return !(
       !existingRuntime ||
@@ -336,6 +342,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       desiredRuntime.jupyterUserScriptUri !== existingRuntime.jupyterUserScriptUri ||
       (desiredRuntime.cloudService === cloudServices.GCE ? (
         desiredRuntime.persistentDiskAttached !== existingRuntime.persistentDiskAttached ||
+        desiredAutopauseThreshold !== existingAutopauseThreshold ||
         (desiredRuntime.persistentDiskAttached ? !canUpdatePersistentDisk() : desiredRuntime.diskSize < existingRuntime.diskSize)
       ) : (
         desiredRuntime.masterDiskSize < existingRuntime.masterDiskSize ||
@@ -376,6 +383,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     return {
       hasGpu: computeConfig.hasGpu,
+      autopauseThreshold: computeConfig.autopauseThreshold,
       runtime: currentRuntimeDetails ? {
         cloudService,
         toolDockerImage: getImageUrl(currentRuntimeDetails),
@@ -415,6 +423,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     return {
       hasGpu: computeConfig.hasGpu,
+      autopauseThreshold: computeConfig.autopauseThreshold,
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironment'), () => {
           return {
@@ -474,10 +483,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
    * so this is necessary to compute the cost for potential new configurations.
    */
   const getPendingRuntimeConfig = () => {
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+    const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
 
     return {
       cloudService: desiredRuntime.cloudService,
+      autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
@@ -682,6 +692,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
+      const autopauseThresholdCalculated = !!currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutopauseThreshold
       const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
         [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? runtimeTypes.dataprocSingleNode : runtimeTypes.dataprocCluster],
         [cloudServices.GCE, () => runtimeTypes.gceVm],
@@ -704,6 +715,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         hasGpu: !!gpuConfig,
         gpuType: gpuConfig?.gpuType || defaultGpuType,
         numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
+        autopauseThreshold: autopauseThresholdCalculated,
         computeZone,
         computeRegion
       })
@@ -846,6 +858,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType)
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
+    const autoPauseCheckboxEnabled = true
+    const enableAutopauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -992,6 +1006,37 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               ])
             ])
           ])
+        ])
+      ]),
+      div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
+        h(LabeledCheckbox, {
+          checked: isAutopauseEnabled(computeConfig.autopauseThreshold),
+          disabled: !autoPauseCheckboxEnabled,
+          onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
+        }, [
+          span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
+              enableAutopauseSpan
+          ]),
+          h(Link, {
+            style: { marginLeft: '1rem', verticalAlign: 'top' },
+            href: 'https://support.terra.bio/hc/en-us/articles/360029761352-Preventing-runaway-costs-with-Cloud-Environment-autopause-#h_27c11f46-a6a7-4860-b5e7-fac17df2b2b5', ...Utils.newTabLinkProps
+          }, [
+            'Learn more about autopause.',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+          ])
+        ]),
+        div({ style: { ...gridStyle, gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
+          h(NumberInput, {
+            min: 1,
+            max: 999,
+            isClearable: false,
+            onlyInteger: true,
+            value: computeConfig.autopauseThreshold,
+            hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
+            tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
+            onChange: updateComputeConfig('autopauseThreshold')
+          }),
+          span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
         ])
       ]),
       isDataprocCluster(runtimeType) && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
@@ -1324,6 +1369,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
 
+    const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
@@ -1367,9 +1414,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime.tool !== tool ?
+            existingRuntime.tool !== desiredTool ?
               p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ',
-                strong([tool]), '.']) :
+                strong([desiredTool]), '.']) :
               undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
             p(['Your existing data will be preserved during this update.'])
