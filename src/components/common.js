@@ -540,7 +540,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
-    tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
+    tooltip: props?.tooltip ?? (copied ? 'Copied to clipboard' : 'Copy to clipboard'),
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)

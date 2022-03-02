@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
+  ButtonOutline, ButtonPrimary, ClipboardButton, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
@@ -547,7 +547,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
     div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
-    div(['Version: ', version || null])
+    div([h(isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)) ? Link : span, { href: `https://github.com/DataBiosphere/terra-docker/blob/master/${_.find({ image: selectedLeoImage }, leoImages)?.id }/CHANGELOG.md`, ...Utils.newTabLinkProps }, [
+      'Version: ', version || null
+    ]), h(ClipboardButton, {
+      text: selectedLeoImage,
+      style: { marginLeft: '0.5rem' },
+      tooltip: copyImageLinkTooltipText
+    })
+    ])
   ])
 
   const sendCloudEnvironmentMetrics = () => {
@@ -623,6 +630,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       return computeConfig.computeRegion !== location
     }
   }
+
+  const copyImageLinkTooltipText = 'Copy the image version of the runtime'
+  const isTerraSupported = (runtime) => (!runtime.isCommunity && !(getToolForImage(runtime.id) === tools.RStudio.label) && !(runtime.id.includes('legacy')))
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
     [computeExists,
@@ -1516,7 +1526,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
               ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
                 li([
-                  div([packageLabel]),
+                  div([packageLabel, h(ClipboardButton, {
+                    text: selectedLeoImage,
+                    style: { marginLeft: '0.5rem' },
+                    tooltip: copyImageLinkTooltipText
+                  })]),
                   h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
