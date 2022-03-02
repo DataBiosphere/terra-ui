@@ -564,6 +564,21 @@ const Billing = signal => ({
     return res
   },
 
+  /**
+   * Returns the spend report for the given billing project, from 12 AM on the startDate to 11:59 PM on the endDate (UTC).
+   * @param billingProjectName
+   * @param startDate, a string of the format YYYY-MM-DD, representing the start date of the report.
+   * @param endDate a string of the format YYYY-MM-DD, representing the end date of the report.
+   * @returns {Promise<*>}
+   */
+  getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
+    const res = await fetchRawls(
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate })}`,
+      _.merge(authOpts(), { signal })
+    )
+    return res.json()
+  },
+
   listProjectUsers: async projectName => {
     const res = await fetchRawls(`billing/v2/${projectName}/members`, _.merge(authOpts(), { signal }))
     return res.json()
