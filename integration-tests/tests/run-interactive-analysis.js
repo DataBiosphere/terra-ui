@@ -1,9 +1,22 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
+const {
+  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe,
+  findText, dismissNotifications
+} = require('../utils/integration-utils')
 
 
-const notebookName = 'TestNotebook'
+const notebookName = 'TestAnalysis'
+
+const enableAnalysesTab = async page => {
+  await findText(page, 'NOTEBOOKS') // TODO: Can we look for something more specific?
+  await page.evaluate(() => window.configOverridesStore.set({ isAnalysisTabVisible: true }))
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+
+  await click(page, clickable({ textContains: 'Browse Data' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+}
 
 const testRunInteractiveAnalysisFn = _.flow(
   withWorkspace,
@@ -17,6 +30,7 @@ const testRunInteractiveAnalysisFn = _.flow(
   await waitForNoSpinners(page)
 
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
+  await enableAnalysesTab(page)
   await click(page, navChild('notebooks'))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
