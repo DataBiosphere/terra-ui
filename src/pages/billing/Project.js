@@ -238,10 +238,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   })
   maybeLoadTotalCost()
 
-  const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
-  const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
-  const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
-
   const CostCard = ({ title, amount, ...props }) => {
     return div({
       ...props,
@@ -260,6 +256,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ])
   }
+
+  const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
+  const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
+  const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -414,6 +414,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
+
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
