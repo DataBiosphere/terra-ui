@@ -772,7 +772,7 @@ const ColumnSettings = ({ columnSettings, onChange }) => {
  * @param {Object} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
-export const ColumnSelector = ({ onSave, columnSettings, style }) => {
+export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent = ColumnSettings, style, ...otherProps }) => {
   const [open, setOpen] = useState(false)
   const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
 
@@ -797,7 +797,8 @@ export const ColumnSelector = ({ onSave, columnSettings, style }) => {
         }
       }, ['Done'])
     }, [
-      h(ColumnSettings, {
+      h(columnSettingsComponent, {
+        ...otherProps,
         columnSettings: modifiedColumnSettings,
         onChange: setModifiedColumnSettings
       })
