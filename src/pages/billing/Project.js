@@ -213,7 +213,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [totalCost, setTotalCost] = useState(null)
   const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
-  const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(90)
+  const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
 
   const signal = useCancellation()
 
@@ -315,7 +315,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           options: _.map(days => ({
             label: `Last ${days} days`,
             value: days
-          }), [90]),
+          }), [7, 30, 90]),
           onChange: ({ value: selectedDays }) => {
             setSpendReportLengthInDays(selectedDays)
             setTotalCost(null) // This will force the report to be recalculated based on selectedDays
