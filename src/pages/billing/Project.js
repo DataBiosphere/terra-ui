@@ -244,7 +244,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       style: {
         ...Style.elements.card.container,
         backgroundColor: 'white',
-        width: 250,
         padding: undefined,
         boxShadow: undefined,
         gridRowStart: 2
@@ -306,7 +305,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: '250px 250px', rowGap: '20px' } }, [
+    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: 'minmax(250px, max-content)', rowGap: '20px' } }, [
       div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['Date range']),
         h(Select, {
