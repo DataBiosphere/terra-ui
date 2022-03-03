@@ -995,6 +995,11 @@ const Workspaces = signal => ({
       accessInstructions: async () => {
         const res = await fetchRawls(`${root}/accessInstructions`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      bucketUsage: async () => {
+        const res = await fetchRawls(`${root}/bucketUsage`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }

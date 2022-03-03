@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import pluralize from 'pluralize'
 import { useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
@@ -18,20 +19,25 @@ import * as Utils from 'src/libs/utils'
 const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName } }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
-  const [loadingApps, setLoadingApps] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [apps, setApps] = useState()
+  const [collaboratorEmails, setCollaboratorEmails] = useState()
+  const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
 
   const signal = useCancellation()
 
   useOnMount(() => {
-    const loadApps = async workspaceName => {
-      const [currentWorkspaceAppList] = await Promise.all([
-        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
+    const load = Utils.withBusyState(setLoading, async () => {
+      const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
+        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
+        Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+        Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       ])
       setApps(currentWorkspaceAppList)
-      setLoadingApps(false)
-    }
-    loadApps(name)
+      setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
+      setWorkspaceBucketUsageInBytes(usageInBytes)
+    })
+    load()
   })
 
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps)
@@ -92,20 +98,32 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         ...Utils.newTabLinkProps,
         href: bucketBrowserUrl(bucketName)
       }, ['Google Cloud Bucket']),
-      ' and all its data.'
+      ' and all its data',
+      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
+      '.'
     ]),
     hasApps() && div({ style: { marginTop: '1rem' } }, [
       p(['Deleting it will also delete any associated applications:']),
       getAppDeletionMessage()
     ]),
+    collaboratorEmails && collaboratorEmails.length > 0 && div({ style: { marginTop: '1rem' } }, [
+      p(`${pluralize('collaborator', collaboratorEmails.length, true)} will lose access to this workspace.`),
+      div(collaboratorEmails.slice(0, 5).map(
+        email => div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [h(Link, { href: `mailto:${email}` }, [email])])
+      )),
+      collaboratorEmails.length > 5 && (
+        div(`and ${collaboratorEmails.length - 5} more`)
+      )
+    ]),
     !isDeleteDisabledFromApps && div({
       style: {
+        color: colors.danger(),
         fontWeight: 500,
         marginTop: '1rem'
       }
     }, 'This cannot be undone.'),
-    !isDeleteDisabledFromApps && div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
+    !isDeleteDisabledFromApps && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+      label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {
         id: 'delete-workspace-confirmation',
         placeholder: 'Delete Workspace',
@@ -113,7 +131,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         onChange: setDeleteConfirmation
       })
     ]),
-    (deleting || loadingApps) && spinnerOverlay
+    (deleting || loading) && spinnerOverlay
   ])
 }
 

@@ -343,3 +343,18 @@ export const sha256 = async message => {
     _.join('')
   )(new Uint8Array(hashBuffer))
 }
+
+export const formatBytes = bytes => {
+  if (bytes < 2 ** 10) {
+    return `${bytes} B`
+  }
+
+  const [prefix, divisor] = [
+    ['P', 2 ** 50],
+    ['T', 2 ** 40],
+    ['G', 2 ** 30],
+    ['M', 2 ** 20],
+    ['K', 2 ** 10]
+  ].find(([p, d]) => bytes >= d)
+  return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+}
