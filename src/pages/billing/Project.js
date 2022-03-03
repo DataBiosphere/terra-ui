@@ -249,8 +249,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         gridRowStart: 2
       }
     }, [
-      div({ style: { flex: 'none', padding: '10px 20px' } }, [
-        h3({ style: { fontSize: 16, color: colors.accent(), margin: '4px 0px', fontWeight: 'normal' } }, title),
+      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' } }, [
+        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
       ])
     ])
@@ -305,7 +305,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: 'minmax(250px, max-content)', rowGap: '20px' } }, [
+    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: 'minmax(15.625rem, max-content)', rowGap: '1.25rem' } }, [
       div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['Date range']),
         h(Select, {
