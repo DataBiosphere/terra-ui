@@ -242,7 +242,8 @@ const SubmissionDetails = _.flow(
           })
         ])
       ]),
-      div({ style: { flex: 1 } }, [
+      // 48px is based on the default row height of FlexTable
+      div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * 48}px` } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
           'aria-label': 'submission details',
           width, height, sort,
