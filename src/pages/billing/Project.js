@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, h3, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -211,6 +211,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
+  const [totalCost, setTotalCost] = useState(null)
+  const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
+  const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
 
   const signal = useCancellation()
 
@@ -221,10 +224,41 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
 
+  const spendReportKey = 'spend report'
+  const maybeLoadTotalCost = reportErrorAndRethrow('Unable to retrieve spend report data')(async () => {
+    if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
+      setUpdatingTotalCost(true)
+      const endDate = new Date().toISOString().slice(0, 10)
+      const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+      const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
+      const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
+      setTotalCost(costFormatter.format(spend.spendSummary.cost))
+      setUpdatingTotalCost(false)
+    }
+  })
+  maybeLoadTotalCost()
+
+  const CostCard = ({ title, amount, ...props }) => {
+    return div({
+      ...props,
+      style: {
+        ...Style.elements.card.container,
+        backgroundColor: 'white',
+        padding: undefined,
+        boxShadow: undefined,
+        gridRowStart: 2
+      }
+    }, [
+      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' } }, [
+        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
+        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
+      ])
+    ])
+  }
+
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
-  const spendReportKey = 'spend report'
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -271,7 +305,24 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: h(Fragment, [])
+    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: 'minmax(15.625rem, max-content)', rowGap: '1.25rem' } }, [
+      div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, ['Date range']),
+        h(Select, {
+          id,
+          value: spendReportLengthInDays,
+          options: _.map(days => ({
+            label: `Last ${days} days`,
+            value: days
+          }), [7, 30, 90]),
+          onChange: ({ value: selectedDays }) => {
+            setSpendReportLengthInDays(selectedDays)
+            setTotalCost(null) // This will force the report to be recalculated based on selectedDays
+          }
+        })
+      ])])]),
+      CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
+    ])
   }
 
   const tabs = _.map(key => ({
@@ -497,6 +548,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           } else {
             setTab(newTab)
           }
+          maybeLoadTotalCost()
         },
         tabs
       }, [
