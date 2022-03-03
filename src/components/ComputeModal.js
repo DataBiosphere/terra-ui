@@ -547,17 +547,15 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
     div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
-    div([h(isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)) ? Link : span,
-      {
-        href: getChangelogUrl(_.find({ image: selectedLeoImage }, leoImages)),
-        ...Utils.newTabLinkProps
-      }, [
-        'Version: ', version || null
-      ]), h(ClipboardButton, {
+    div(h(Link, {
+      disabled: !isTerraSupported(_.find({ image: selectedLeoImage }, leoImages).isCommunity, _.find({ image: selectedLeoImage }, leoImages).id),
+      href: getChangelogUrl(_.find({ image: selectedLeoImage }, leoImages)),
+      ...Utils.newTabLinkProps
+    }, ['Version: ', version || null]), h(ClipboardButton, {
       text: selectedLeoImage,
       style: { marginLeft: '0.5rem' },
-      tooltip: copyImageLinkTooltipText
-    })])
+      tooltip: 'Copy the image version'
+    }))
   ])
 
   const sendCloudEnvironmentMetrics = () => {
@@ -1533,7 +1531,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   div([packageLabel, h(ClipboardButton, {
                     text: selectedLeoImage,
                     style: { marginLeft: '0.5rem' },
-                    tooltip: copyImageLinkTooltipText
+                    tooltip: 'Copy the image version'
                   })]),
                   h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
                 ]),
