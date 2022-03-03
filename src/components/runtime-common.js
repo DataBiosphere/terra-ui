@@ -180,4 +180,4 @@ export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props })
 export const appLauncherTabName = 'workspace-application-launch'
 export const analysisLauncherTabName = 'workspace-analysis-launch'
 export const analysisTabName = 'workspace-analyses'
-export const contextBarTabs = [appLauncherTabName, analysisLauncherTabName, analysisTabName]
+export const contextBarTabs = [appLauncherTabName, analysisLauncherTabName, 'analyses']
