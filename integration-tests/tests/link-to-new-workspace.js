@@ -5,7 +5,6 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
-  console.log(`---------------------------------------------------1`)
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
   const newWorkspaceBillingAccount = 'general-dev-billing-account'
@@ -26,22 +25,18 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
 
   const cleanupFn = async () => {
     try {
-      await page.evaluate((name, billingProject) => {
-        return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-      }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+      await page.evaluate(async (name, billingProject) => {
+        return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+      }, newWorkspaceName, newWorkspaceBillingAccount)
     } catch (error) {
       return error
     }
   }
 
-  console.log(`---------------------------------------------------2`)
   const workspaceFailure = await waitForWorkspacePage()
-  console.log(`---------------------------------------------------3`)
   const cleanupFailure = await cleanupFn()
-  console.log(`---------------------------------------------------4`)
 
   if (workspaceFailure || cleanupFailure) {
-    console.log(`--------------------------------------------------- ${workspaceFailure} ${cleanupFailure}`)
     eitherThrow(workspaceFailure, {
       cleanupFailure,
       cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${newWorkspaceBillingAccount}`
