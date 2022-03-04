@@ -3,7 +3,7 @@ const { click, clickable, dismissNotifications, findText, noSpinnersAfter, selec
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-class BillingAccountPage {
+class BillingProjectsPage {
   constructor(testPage, testUrl) {
     this.testPage = testPage
     this.testUrl = testUrl
@@ -74,7 +74,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await dismissNotifications(page)
 
   // Interact with the Billing Page via mocked AJAX responses.
-  const billingPage = new BillingAccountPage(page, testUrl)
+  const billingPage = new BillingProjectsPage(page, testUrl)
   await billingPage.setAjaxMock({ ownedBillingProjectName: 'OwnedBillingProject', spendCost: '90.13' })
   await billingPage.visit()
   await billingPage.selectSpendReport()
