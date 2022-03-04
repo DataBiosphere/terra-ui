@@ -203,13 +203,15 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
   ])
 ])
 
+export const flexTableDefaultRowHeight = 48
+
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
  */
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
-  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = 48, rowHeight = 48,
+  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
   ...props
 }) => {
