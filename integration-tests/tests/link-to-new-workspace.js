@@ -25,9 +25,9 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
 
   const cleanupFn = async () => {
     try {
-      await page.evaluate((name, billingProject) => {
-        return window.Ajax().Workspaces.workspace(billingProject, name).delete()
-      }, `${newWorkspaceName}`, `${newWorkspaceBillingAccount}`)
+      await page.evaluate(async (name, billingProject) => {
+        return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+      }, newWorkspaceName, newWorkspaceBillingAccount)
     } catch (error) {
       return error
     }
