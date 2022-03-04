@@ -328,9 +328,11 @@ export const CloudEnvironmentModal = ({
           ...baseProps,
           href: applicationLaunchLink,
           onClick: () => {
-            ((toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && currentRuntime?.status === 'Stopped' ?
-              () => startApp(toolLabel) :
-              () => {})()
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
+            if ((toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && currentRuntime?.status === 'Stopped') {
+              startApp(toolLabel)
+            }
             onDismiss()
           }
         }

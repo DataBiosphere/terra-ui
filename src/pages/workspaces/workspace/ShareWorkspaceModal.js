@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -87,6 +87,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   const [working, setWorking] = useState(false)
   const [updateError, setUpdateError] = useState(undefined)
   const [lastAddedEmail, setLastAddedEmail] = useState(undefined)
+  const [searchHasFocus, setSearchHasFocus] = useState(true)
 
   const list = useRef()
   const signal = useCancellation()
@@ -200,38 +201,56 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
 
   const remainingSuggestions = _.difference(suggestions, _.map('email', acl))
 
+  const addUserReminder = `Did you mean to add ${searchValue} as a collaborator? Add them or clear the "User email" field to save changes.`
+
+  const addCollaborator = collaboratorEmail => {
+    if (!validate.single(collaboratorEmail, { email: true, exclusion: aclEmails })) {
+      setSearchValue('')
+      setAcl(Utils.append({ email: collaboratorEmail, accessLevel: 'READER' }))
+      setLastAddedEmail(collaboratorEmail)
+    }
+  }
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
-    okButton: h(ButtonPrimary, { onClick: save }, ['Save']),
+    okButton: h(ButtonPrimary, {
+      disabled: searchValueValid,
+      tooltip: searchValueValid && addUserReminder,
+      onClick: save
+    }, ['Save']),
     onDismiss
   }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id }, ['User email']),
-      h(AutocompleteTextInput, {
-        id,
-        openOnFocus: true,
-        placeholderText: _.includes(searchValue, aclEmails) ?
-          'This email has already been added to the list' :
-          'Enter an email address',
-        onPick: value => {
-          if (!validate.single(value, { email: true, exclusion: aclEmails })) {
-            setSearchValue('')
-            setAcl(Utils.append({ email: value, accessLevel: 'READER' }))
-            setLastAddedEmail(value)
-          }
-        },
-        placeholder: 'Add people or groups',
-        value: searchValue,
-        onChange: setSearchValue,
-        suggestions: Utils.cond(
-          [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-          [remainingSuggestions.length, () => remainingSuggestions],
-          () => []
-        ),
-        style: { fontSize: 16 }
-      })
-    ])]),
+    div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
+      h(IdContainer, [id => div({ style: { flexGrow: 1, marginRight: '1rem' } }, [
+        h(FormLabel, { htmlFor: id }, ['User email']),
+        h(AutocompleteTextInput, {
+          id,
+          openOnFocus: true,
+          placeholderText: _.includes(searchValue, aclEmails) ?
+            'This email has already been added to the list' :
+            'Type an email address and press "Enter" or "Return"',
+          onPick: addCollaborator,
+          placeholder: 'Add people or groups',
+          value: searchValue,
+          onFocus: () => { setSearchHasFocus(true) },
+          onBlur: () => { setSearchHasFocus(false) },
+          onChange: setSearchValue,
+          suggestions: Utils.cond(
+            [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+            [remainingSuggestions.length, () => remainingSuggestions],
+            () => []
+          ),
+          style: { fontSize: 16 }
+        })
+      ])]),
+      h(ButtonPrimary, {
+        disabled: !searchValueValid,
+        tooltip: !searchValueValid && 'Enter an email address to add a collaborator',
+        onClick: () => { addCollaborator(searchValue) }
+      }, ['Add'])
+    ]),
+    searchValueValid && !searchHasFocus && p(addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
       h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),

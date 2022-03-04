@@ -2,12 +2,12 @@ import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { a, div, h, img } from 'react-hyperscript-helpers'
+import { a, div, h, img, span } from 'react-hyperscript-helpers'
 import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -26,6 +26,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -219,7 +220,7 @@ const Analyses = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Analyses',
-    activeTab: analysisTabName
+    activeTab: 'analyses'
   }),
   withViewToggle('analysesTab')
 )(({
@@ -384,6 +385,36 @@ const Analyses = _.flow(
         }, [
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
+        ]),
+        div({ style: { flex: 1.5 } }),
+        div({
+          style: {
+            display: 'flex', flexDirection: 'column', marginLeft: '.5rem', padding: '1rem',
+            backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
+          }, hidden: false
+        }, [
+          //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+          div({ style: { maxWidth: 300 } }, [
+            span(['What did you think? We\'d love to hear your thoughts. ']),
+            h(Link, {
+              //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+              href: '', ...Utils.newTabLinkProps
+            }, [
+              'Submit feedback'
+            ])
+          ]),
+          h(ButtonPrimary, {
+            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'left' },
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
+                workspaceName: wsName,
+                workspaceNamespace: namespace
+              })
+              window.configOverridesStore.set({ isAnalysisTabVisible: false })
+              Nav.goToPath('workspace-notebooks', { namespace, name: wsName })
+            },
+            tooltip: 'Exit the analysis tab beta feature'
+          }, ['Revert layout'])
         ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {

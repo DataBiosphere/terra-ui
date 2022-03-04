@@ -6,7 +6,7 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
@@ -15,11 +15,13 @@ import {
   findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { analysisTabName } from 'src/components/runtime-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { betaVersionTag } from 'src/libs/logos'
+import Events from 'src/libs/events'
+import { betaVersionTag, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -405,9 +407,44 @@ const Notebooks = _.flow(
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     notebooks && h(PageBox, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
         div({ style: { flex: 1 } }),
+        //hidden will be removed, and this will be released in this ticket https://broadworkbench.atlassian.net/browse/IA-3225
+        div({
+          style: {
+            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
+            border: `1px solid ${colors.accent()}`, borderRadius: 3
+          }, hidden: true
+        }, [
+          div({ style: { display: 'flex', flexDirection: 'row' } }, [
+            div([
+              span([
+                'New features are available! Help us improve Terra by trying it out and giving feedback. '
+              ]),
+              h(Link, {
+                href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+              }, [
+                'Learn more'
+              ])
+            ]),
+            versionTag('Beta',
+              { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
+          ]),
+          h(ButtonPrimary, {
+            style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'left' },
+            tooltip: 'Enable analysis tab beta',
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
+                workspaceName: wsName,
+                workspaceNamespace: namespace
+              })
+              window.configOverridesStore.set({ isAnalysisTabVisible: true })
+              Nav.goToPath(analysisTabName, { namespace, name: wsName })
+            }
+          }, ['Try out the new layout'])
+        ]),
+        div({ style: { flex: 5 } }),
         h(DelayedSearchInput, {
           'aria-label': 'Search notebooks',
           style: { marginRight: '0.75rem', width: 220 },
@@ -416,7 +453,7 @@ const Notebooks = _.flow(
           value: filter
         }),
         h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem', marginTop: '0.5rem' } }, ['Sort By:']),
           h(Select, {
             id,
             value: sortOrder,
