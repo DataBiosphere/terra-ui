@@ -32,6 +32,7 @@ saturn-ui.iml
 
 /integration-tests/failures
 /integration-tests/results
+/integration-tests/screenshots
 
 **/.yarn/*
 !**/.yarn/patches
