@@ -547,15 +547,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
     div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
-    div(h(Link, {
-      disabled: !isTerraSupported(_.find({ image: selectedLeoImage }, leoImages).isCommunity, _.find({ image: selectedLeoImage }, leoImages).id),
+    h(Link, {
       href: getChangelogUrl(_.find({ image: selectedLeoImage }, leoImages)),
+      disabled: !isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)),
       ...Utils.newTabLinkProps
-    }, ['Version: ', version || null]), h(ClipboardButton, {
+    },
+    ['Version: ', version || null]),
+    h(ClipboardButton, {
       text: selectedLeoImage,
       style: { marginLeft: '0.5rem' },
       tooltip: 'Copy the image version'
-    }))
+    })
   ])
 
   const sendCloudEnvironmentMetrics = () => {
@@ -632,9 +634,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
   }
 
-  const copyImageLinkTooltipText = 'Copy the image version'
-  const isTerraSupported = runtime => (!runtime.isCommunity && !(getToolForImage(runtime.id) === tools.RStudio.label))
-  const getChangelogUrl = runtime => `https://github.com/DataBiosphere/terra-docker/blob/master/${runtime.id.replace('_legacy', '')}/CHANGELOG.md`
+  const isTerraSupported = ({ isCommunity = false, id }) => !isCommunity && !(getToolForImage(id) === tools.RStudio.label)
+  const getChangelogUrl = ({ id }) => `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', id)}/CHANGELOG.md`
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
     [computeExists,
