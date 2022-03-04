@@ -21,7 +21,7 @@ class BillingProjectsPage {
       projectName: this.mockValues.ownedBillingProjectName,
       billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
     }]
-    const setAjaxMock = async () => {
+    const setAjaxOverrides = async () => {
       await this.testPage.evaluate((spendReturnResult, projectListResult) => {
         window.ajaxOverridesStore.set([
           {
@@ -43,7 +43,7 @@ class BillingProjectsPage {
         ])
       }, spendReturnResult, projectListResult)
     }
-    await setAjaxMock()
+    await setAjaxOverrides()
   }
 
   async visit() {
