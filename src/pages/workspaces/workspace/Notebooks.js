@@ -415,7 +415,7 @@ const Notebooks = _.flow(
           style: {
             display: 'none', /*display: 'flex', */flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
             border: `1px solid ${colors.accent()}`, borderRadius: 3
-          },
+          }
         }, [
           div({ style: { display: 'flex', flexDirection: 'row' } }, [
             div([
