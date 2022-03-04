@@ -551,8 +551,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       href: getChangelogUrl(_.find({ image: selectedLeoImage }, leoImages)),
       disabled: !isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)),
       ...Utils.newTabLinkProps
-    },
-    ['Version: ', version || null]),
+    }, ['Version: ', version || null]),
     h(ClipboardButton, {
       text: selectedLeoImage,
       style: { marginLeft: '0.5rem' },
