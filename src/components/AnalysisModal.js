@@ -156,19 +156,19 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           setCurrentTool(tools.Jupyter.label)
           enterNextViewMode(tools.Jupyter.label)
         }
-      }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: '30%' }) })]),
       div({
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
           enterNextViewMode(tools.RStudio.label)
         }
-      }, [img({ src: rstudioBioLogo, style: styles.image })]),
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
       div({
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
         }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
       !tools.cromwell.isAppHidden && div({
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)

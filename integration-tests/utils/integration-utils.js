@@ -84,6 +84,10 @@ const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
+const findAltText = (page, textContains, options) => {
+  return page.waitForXPath(`//img[contains(@alt,"${textContains}")]`, options)
+}
+
 const input = ({ labelContains, placeholder }) => {
   const base = '(//input | //textarea)'
   if (labelContains) {
@@ -272,6 +276,7 @@ module.exports = {
   findInGrid,
   findElement,
   findHeading,
+  findAltText,
   findText,
   fillIn,
   fillInReplace,
