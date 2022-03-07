@@ -27,6 +27,7 @@ import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
@@ -38,10 +39,11 @@ const navIconProps = {
 const WorkspaceTabs = ({
   namespace, name, workspace, activeTab, refresh,
   deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
-  sharingWorkspace, setSharingWorkspace
+  sharingWorkspace, setSharingWorkspace, togglingWorkspaceLock, setTogglingWorkspaceLock
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
+  const isLocked = workspace?.workspace.isLocked
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
@@ -60,7 +62,7 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      isAnalysisTabVisible() ? h(Fragment) : h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
+      isAnalysisTabVisible() ? h(Fragment) : h(WorkspaceMenuTrigger, { canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace, setTogglingWorkspaceLock, setDeletingWorkspace }, [
         h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ]
       )
@@ -75,6 +77,7 @@ const WorkspaceContainer = ({
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
+  const [togglingWorkspaceLock, setTogglingWorkspaceLock] = useState(false)
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -107,7 +110,7 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
-      sharingWorkspace, setSharingWorkspace
+      sharingWorkspace, setSharingWorkspace, togglingWorkspaceLock, setTogglingWorkspaceLock
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
 
@@ -119,7 +122,7 @@ const WorkspaceContainer = ({
           ]),
           workspace && h(ContextBar, {
             workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            apps, appDataDisks, refreshApps,
+            setTogglingWorkspaceLock, apps, appDataDisks, refreshApps,
             runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
@@ -132,6 +135,11 @@ const WorkspaceContainer = ({
       cloneWorkspace: workspace,
       onDismiss: () => setCloningWorkspace(false),
       onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+    }),
+    togglingWorkspaceLock && h(LockWorkspaceModal, {
+      workspace,
+      onDismiss: () => setTogglingWorkspaceLock(false)
+//      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
     }),
     sharingWorkspace && h(ShareWorkspaceModal, {
       workspace,
@@ -274,7 +282,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
-          'workspaceSubmissionStats'
+          'workspace.isLocked', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
@@ -348,7 +356,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   return withDisplayName('wrapWorkspace', Wrapper)
 }
 
-export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(
+export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace, setTogglingWorkspaceLock }) => h(
   MenuTrigger, {
     closeOnClick: true,
     'aria-label': 'Workspace menu',
@@ -360,6 +368,12 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWo
         tooltipSide: 'left',
         onClick: () => setSharingWorkspace(true)
       }, [makeMenuIcon('share'), 'Share']),
+      h(MenuButton, {
+        disabled: !isOwner,
+        tooltip: !isOwner && 'You have not been granted permission to lock or unlock this workspace',
+        tooltipSide: 'left',
+        onClick: () => setTogglingWorkspaceLock(true)
+      }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
       h(MenuButton, {
         'aria-label': 'Workspace delete',
         disabled: !isOwner,
