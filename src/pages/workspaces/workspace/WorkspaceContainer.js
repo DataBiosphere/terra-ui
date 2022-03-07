@@ -72,7 +72,7 @@ const WorkspaceTabs = ({
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
+  refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -138,8 +138,8 @@ const WorkspaceContainer = ({
     }),
     togglingWorkspaceLock && h(LockWorkspaceModal, {
       workspace,
-      onDismiss: () => setTogglingWorkspaceLock(false)
-//      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+      onDismiss: () => setTogglingWorkspaceLock(false),
+      onSuccess: () => refreshWorkspace()
     }),
     sharingWorkspace && h(ShareWorkspaceModal, {
       workspace,
@@ -332,7 +332,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
+        namespace, name, activeTab, showTabBar, workspace, refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
