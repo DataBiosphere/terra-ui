@@ -80,13 +80,13 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
     }
   }
   useOnMount(() => {
-    if (isGs(uri) && isFilePreviewable(metadata)) {
+    if (isFilePreviewable(metadata)) {
       loadPreview()
     }
   })
   return els.cell([
     Utils.cond(
-      [isGs(uri) && isFilePreviewable(metadata), () => h(Fragment, [
+      [isFilePreviewable(metadata), () => h(Fragment, [
         els.label('Preview'),
         Utils.cond(
           [preview === null, () => 'Unable to load preview.'],
@@ -95,7 +95,6 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
           () => div({ style: styles.previewText }, [preview])
         )
       ])],
-      [!isGs(uri), () => els.label(`DOS uri's can't be previewed`)],
       [isImage(metadata), () => els.label('Image is too large to preview')],
       () => els.label(`File can't be previewed.`)
     )
