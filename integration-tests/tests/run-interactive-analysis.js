@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const {
-  click, clickable, delay, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findAltText, findText,
+  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findAltText, findText,
   dismissNotifications
 } = require('../utils/integration-utils')
 
@@ -27,15 +27,11 @@ const testRunInteractiveAnalysisFn = _.flow(
   await click(page, clickable({ textContains: 'Create' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
   await findAltText(page, 'Create new notebook')
-  await delay(2000)
   await click(page, clickable({ textContains: 'Create new notebook' }))
-  await delay(3000)
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
-  await delay(3000)
   await select(page, 'Language', 'Python 3')
-  await delay(3000)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
-  await delay(3000)
+  await findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).')
 })
 const testRunInteractiveAnalysis = {
   name: 'run-interactive-analysis',
