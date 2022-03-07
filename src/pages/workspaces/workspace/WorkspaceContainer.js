@@ -370,7 +370,7 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, namespace, 
       }, [makeMenuIcon('share'), 'Share']),
       h(MenuButton, {
         disabled: !isOwner,
-        tooltip: !isOwner && 'You have not been granted permission to lock or unlock this workspace',
+        tooltip: !isOwner && 'You have not been granted permission to toggle the lock for this workspace',
         tooltipSide: 'left',
         onClick: () => setTogglingWorkspaceLock(true)
       }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),

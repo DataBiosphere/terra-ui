@@ -8,7 +8,6 @@ import { reportError } from 'src/libs/error'
 
 const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocked } }, onDismiss, onSuccess }) => {
   const [locking, setLocking] = useState(false)
-  const [loading, setLoading] = useState(false)
   const titleText = isLocked ? 'Unlock Workspace' : 'Lock Workspace'
 
   const toggleWorkspaceLock = async () => {
@@ -33,7 +32,7 @@ const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocke
     div(['Are you sure you want to lock the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
       '?']),
-    (locking || loading) && spinnerOverlay
+    locking && spinnerOverlay
   ])
 }
 
