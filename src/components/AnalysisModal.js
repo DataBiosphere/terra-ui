@@ -84,7 +84,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
           [isToolAnApp(currentTool) && !!app, () => {
             console.error(
-              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(app.appType)} instance when one exists; the button should be disabled.`)
+              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(
+                app.appType)} instance when one exists; the button should be disabled.`)
             resetView()
           }]
         )]
