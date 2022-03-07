@@ -320,7 +320,7 @@ const WorkspaceDashboard = _.flow(
           return span({ key: tag, style: styles.tag }, [
             tag,
             Utils.canWrite(accessLevel) && h(Link, {
-              tooltip: 'Remove tag',
+              tooltip: Utils.editWorkspaceError(workspace) || 'Remove tag',
               disabled: busy || Utils.editWorkspaceError(workspace),
               onClick: () => deleteTag(tag),
               style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
