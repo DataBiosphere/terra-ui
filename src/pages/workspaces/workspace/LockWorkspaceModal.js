@@ -8,7 +8,7 @@ import { reportError } from 'src/libs/error'
 
 const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocked } }, onDismiss, onSuccess }) => {
   const [togglingLock, setTogglingLock] = useState(false)
-  const titleText = isLocked ? 'Unlock Workspace' : 'Lock Workspace'
+  const helpText = isLocked ? 'Unlock Workspace' : 'Lock Workspace'
 
   const toggleWorkspaceLock = async () => {
     try {
@@ -22,15 +22,15 @@ const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocke
     }
   }
   return h(Modal, {
-    title: titleText,
+    title: helpText,
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: toggleWorkspaceLock,
-      tooltip: titleText
-    }, titleText)
+      tooltip: helpText
+    }, helpText)
   }, [
     isLocked ?
-      div(['Are you sure you want to unlock this workspace? Collaborators will be able to modify the workspace while it is unlocked.']) :
+      div(['Are you sure you want to unlock this workspace? Collaborators will be able to modify the workspace after it is unlocked.']) :
       div(['Are you sure you want to lock this workspace? Collaborators will not be able to modify the workspace while it is locked.']),
     togglingLock && spinnerOverlay
   ])
