@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
@@ -103,6 +104,7 @@ const DashboardAuthContainer = props => {
 
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
+  requesterPaysWrapper({ onDismiss: () => Nav.history.goBack() }),
   wrapWorkspace({
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
@@ -117,7 +119,8 @@ const WorkspaceDashboard = _.flow(
       authorizationDomain, createdDate, lastModified, bucketName, googleProject,
       attributes, attributes: { description = '' }
     }
-  }
+  },
+  onRequesterPaysError
 }, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
@@ -156,7 +159,10 @@ const WorkspaceDashboard = _.flow(
     }
   })
 
-  const loadBucketLocation = withErrorReporting('Error loading bucket location data', async () => {
+  const loadBucketLocation = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
+    withErrorReporting('Error loading bucket location data')
+  )(async () => {
     const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
     setBucketLocation(location)
     setBucketLocationType(locationType)
