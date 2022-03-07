@@ -259,8 +259,7 @@ const BucketContent = _.flow(
       flexDirection: 'column',
       flexGrow: 1,
       maxHeight: '100%',
-      backgroundColor:
-      'white',
+      backgroundColor: 'white',
       border: `1px solid ${colors.dark(0.55)}`,
       padding: '1rem'
     },
