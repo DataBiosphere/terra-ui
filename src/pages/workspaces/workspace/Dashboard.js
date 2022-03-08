@@ -307,7 +307,7 @@ const WorkspaceDashboard = _.flow(
         ]),
         (busy || !tagsList) && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
       ]),
-      Utils.canWrite(accessLevel) && !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
+      !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
         h(WorkspaceTagSelect, {
           value: null,
           placeholder: 'Add a tag',
