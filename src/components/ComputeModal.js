@@ -546,14 +546,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const makeImageInfo = style => {
-    const isTerraSupported = ({ isCommunity = false, id }) => !isCommunity && !(getToolForImage(id) === tools.RStudio.label)
-    const getChangelogUrl = ({ id }) => `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', id)}/CHANGELOG.md`
+    const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === tools.RStudio.label
+    const changelogUrl = _.isEmpty(leoImages) ?
+      '' :
+      `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`
 
     return div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
       h(Link, {
-        href: leoImages.length > 0 ? getChangelogUrl(_.find({ image: selectedLeoImage }, leoImages)) : '',
-        disabled: leoImages.length > 0 ? !isTerraSupported(_.find({ image: selectedLeoImage }, leoImages)) : true,
+        href: changelogUrl,
+        disabled: shouldDisable,
         ...Utils.newTabLinkProps
       }, ['Version: ', version || null]),
       h(ClipboardButton, {
