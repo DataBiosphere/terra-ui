@@ -48,12 +48,17 @@ const getAnimatedDrawer = textContains => {
 // Note: isEnabled is not fully supported for native anchor and button elements (only aria-disabled is examined).
 const clickable = ({ text, textContains, isDescendant = false, isEnabled = true }) => {
   const checkEnabled = isEnabled === false ? '[@aria-disabled="true"]' : '[not(@aria-disabled="true")]'
-  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"] | //img[@alt])${checkEnabled}`
+  const base = `(//a | //button | //*[@role="button"] | //*[@role="link"] | //*[@role="combobox"] | //*[@role="option"])${checkEnabled}`
+  return getClickablePath(base, text, textContains, isDescendant)
+}
+
+const image = ({ text, textContains, isDescendant = false }) => {
+  const base = '(//img[@alt])'
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
 const checkbox = ({ text, textContains, isDescendant = false }) => {
-  const base = `(//input[@type="checkbox"] | //*[@role="checkbox"])`
+  const base = '(//input[@type="checkbox"] | //*[@role="checkbox"])'
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
@@ -285,6 +290,7 @@ module.exports = {
   getTableCellPath,
   getTableHeaderPath,
   heading,
+  image,
   input,
   select,
   svgText,

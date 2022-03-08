@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { overrideConfig, withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findAltText, findText,
+  click, clickable, getAnimatedDrawer, image, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findAltText, findText,
   dismissNotifications
 } = require('../utils/integration-utils')
 
@@ -28,7 +28,7 @@ const testCreateInteractiveAnalysisFn = _.flow(
   await click(page, clickable({ textContains: 'Create' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
   await findAltText(page, 'Create new notebook')
-  await click(page, clickable({ textContains: 'Create new notebook' }))
+  await click(page, image({ textContains: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
