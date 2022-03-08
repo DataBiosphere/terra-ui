@@ -109,9 +109,13 @@ const Participant = ({ logo, title, shortDescription, description, sizeText, mod
 
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
-const captureEventOnClick = (datasetName) => {
+const captureEventMetrics = (eventName, metrics) => {
+  Ajax().Metrics.captureEvent(eventName, metrics)
+}
+
+const captureBrowseDataEvent = (datasetName) => {
   const eventName = `${Events.datasetLibraryBrowseData}`
-  Ajax().Metrics.captureEvent(eventName, {
+  captureEventMetrics(eventName, {
     datasetName: datasetName
   })
 }
@@ -127,7 +131,7 @@ const thousandGenomesHighCoverage = () => h(Participant, {
     'aria-label': 'Browse 1000 Genomes High Coverage data',
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
-    onClick: () => captureEventOnClick('1000G-high-coverage-2019')
+    onClick: () => captureBrowseDataEvent('1000G-high-coverage-2019')
   }, ['Browse data'])
 ])
 
@@ -146,7 +150,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
     'aria-label': 'Browse 1000 Genomes Low Coverage data',
     tooltip: browseTooltip,
     href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
-    onClick: () => captureEventOnClick('1000 Genomes')
+    onClick: () => captureBrowseDataEvent('1000 Genomes')
   }, ['Browse data'])
 ])
 
@@ -192,12 +196,12 @@ const amppd = () => h(Participant, {
     'aria-label': 'Browse AMP-PD Tier 1 data',
     style: { marginBottom: '1rem' },
     href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' }),
-    onClick: () => captureEventOnClick('AMP PD Clinical - 2020_v2release_1218')
+    onClick: () => captureBrowseDataEvent('AMP PD Clinical - 2020_v2release_1218')
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
     'aria-label': 'Browse AMP-PD Tier 2 data',
     href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' }),
-    onClick: () => captureEventOnClick('AMP PD - 2020_v2release_1218')
+    onClick: () => captureBrowseDataEvent('AMP PD - 2020_v2release_1218')
   }, ['Browse Tier 2 Data'])
 ])
 
@@ -216,7 +220,7 @@ const baseline = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Baseline Health Study data',
     href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' }),
-    onClick: () => captureEventOnClick('Baseline Health Study')
+    onClick: () => captureBrowseDataEvent('Baseline Health Study')
   }, ['Browse Data'])
 ])
 
@@ -231,7 +235,7 @@ const ccdg = () => h(Participant, {
     'aria-label': 'Browse CCDG data',
     tooltip: browseTooltip,
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
-    onClick: () => captureEventOnClick('CCDG'),
+    onClick: () => captureBrowseDataEvent('CCDG'),
     ...Utils.newTabLinkProps
   }, ['Browse data'])
 ])
@@ -247,7 +251,7 @@ const cmg = () => h(Participant, {
     'aria-label': 'Browse CMG data',
     tooltip: browseTooltip,
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
-    onClick: () => captureEventOnClick('CMG'),
+    onClick: () => captureBrowseDataEvent('CMG'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -267,7 +271,7 @@ const encode = () => h(Participant, {
     'aria-label': 'Browse ENCODE data',
     tooltip: browseTooltip,
     href: 'https://broad-gdr-encode.appspot.com/',
-    onClick: () => captureEventOnClick('ENCODE'),
+    onClick: () => captureBrowseDataEvent('ENCODE'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -283,7 +287,7 @@ const fcDataLib = () => h(Participant, {
     'aria-label': 'Browse Broad Institute datasets',
     tooltip: 'Search for dataset workspaces',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
-    onClick: () => captureEventOnClick('Broad Institute Datasets'),
+    onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
     ...Utils.newTabLinkProps
   }, ['Browse Datasets'])
 ])
@@ -305,7 +309,7 @@ const framingham = () => h(Participant, {
     'aria-label': 'Browse Framingham Heart Study dataset',
     tooltip: browseTooltip,
     href: Nav.getLink('data-explorer-public', { dataset: 'Framingham Heart Study Teaching Dataset' }),
-    onClick: () => captureEventOnClick('Framingham Heart Study')
+    onClick: () => captureBrowseDataEvent('Framingham Heart Study')
   }, ['Browse data'])
 ])
 
@@ -332,13 +336,13 @@ const gp2 = () => h(Participant, {
     style: { marginBottom: '1rem' },
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier1' }),
-    onClick: () => captureEventOnClick('GP2 Tier 1 data'),
+    onClick: () => captureBrowseDataEvent('GP2 Tier 1 data'),
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
     'aria-label': 'Browse GP2 Tier 2 data',
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier2' }),
-    onClick: () => captureEventOnClick('GP2 Tier 2 data')
+    onClick: () => captureBrowseDataEvent('GP2 Tier 2 data')
   }, ['Browse Tier 2 Data'])
 ])
 
@@ -353,7 +357,7 @@ const hca = () => h(Participant, {
     'aria-label': 'Browse Human Cell Atlas data',
     tooltip: 'Look for the Export Selected Data button to export data from this provider.',
     href: 'https://data.humancellatlas.org/explore/projects',
-    onClick: () => captureEventOnClick('Human Cell Atlas'),
+    onClick: () => captureBrowseDataEvent('Human Cell Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -370,7 +374,7 @@ const nemo = () => h(Participant, {
     'aria-label': 'Browse Neuroscience Multi-Omic Archive data',
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.',
     href: 'http://portal.nemoarchive.org/',
-    onClick: () => captureEventOnClick('Nemo Archive'),
+    onClick: () => captureBrowseDataEvent('Nemo Archive'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -387,7 +391,7 @@ const target = () => h(Participant, {
 }, [h(ButtonPrimary, {
   'aria-label': 'Browse TARGET data',
   href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
-  onClick: () => captureEventOnClick('TARGET'),
+  onClick: () => captureBrowseDataEvent('TARGET'),
   ...Utils.newTabLinkProps
 }, ['Browse Data'])])
 
@@ -407,7 +411,7 @@ const tcga = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Cancer Genome Atlas data',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
-    onClick: () => captureEventOnClick('Cancer Genome Atlas'),
+    onClick: () => captureBrowseDataEvent('Cancer Genome Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -424,7 +428,7 @@ const topMed = () => h(Participant, {
     'aria-label': 'Browse TopMed data',
     tooltip: browseTooltip,
     href: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer',
-    onClick: () => captureEventOnClick('TopMed'),
+    onClick: () => captureBrowseDataEvent('TopMed'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
