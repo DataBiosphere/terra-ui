@@ -25,8 +25,7 @@ const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocke
     title: helpText,
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: toggleWorkspaceLock,
-      tooltip: helpText
+      onClick: toggleWorkspaceLock
     }, helpText)
   }, [
     isLocked ?
