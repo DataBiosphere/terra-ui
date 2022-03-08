@@ -376,7 +376,7 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, namespace, 
       }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
       h(MenuButton, {
         'aria-label': 'Workspace delete',
-        disabled: !isOwner,
+        disabled: !isOwner || isLocked,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
         onClick: () => setDeletingWorkspace(true)
