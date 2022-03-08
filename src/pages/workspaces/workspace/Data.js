@@ -288,7 +288,7 @@ const BucketContent = _.flow(
       )
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-    div({ style: { flex: '1 1 0', overflow: 'auto' }}, [
+    div({ style: { flex: '1 1 0', overflow: 'auto' } }, [
       h(SimpleTable, {
         'aria-label': 'file browser',
         columns: [
