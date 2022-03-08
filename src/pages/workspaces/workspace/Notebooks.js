@@ -413,9 +413,9 @@ const Notebooks = _.flow(
         //hidden will be removed, and this will be released in this ticket https://broadworkbench.atlassian.net/browse/IA-3225
         div({
           style: {
-            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
+            display: 'none', /*display: 'flex', */flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
             border: `1px solid ${colors.accent()}`, borderRadius: 3
-          }, hidden: true
+          }
         }, [
           div({ style: { display: 'flex', flexDirection: 'row' } }, [
             div([

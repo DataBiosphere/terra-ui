@@ -382,7 +382,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           }, [' Create participant, sample, and pair associations']),
           h(Link, {
             style: { marginLeft: '1rem', verticalAlign: 'middle' },
-            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+            href: 'https://support.terra.bio/hc/en-us/articles/360033913771-Understanding-entity-types-and-the-standard-genomic-data-model#h_01EN5PCAEDPX020T2EFGN8TJD6',
             ...Utils.newTabLinkProps
           }, ['Learn more ', icon('pop-out', { size: 12 })])
         ]),
