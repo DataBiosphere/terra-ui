@@ -85,7 +85,8 @@ const WorkspaceContainer = ({
         div({ style: Style.noWrapEllipsis }, breadcrumbs),
         h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [
           title || `${namespace}/${name}`,
-          workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
+          workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)'),
+          workspace && workspace.workspace.isLocked && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(locked)')
         ])
       ]),
       topBarContent,
