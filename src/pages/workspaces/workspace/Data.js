@@ -254,7 +254,15 @@ const BucketContent = _.flow(
 
   return h(Dropzone, {
     disabled: !!Utils.editWorkspaceError(workspace),
-    style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      flexGrow: 1,
+      maxHeight: '100%',
+      backgroundColor: 'white',
+      border: `1px solid ${colors.dark(0.55)}`,
+      padding: '1rem'
+    },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
@@ -280,53 +288,55 @@ const BucketContent = _.flow(
       )
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-    h(SimpleTable, {
-      'aria-label': 'file browser',
-      columns: [
-        { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
-        { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-        { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-        { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-      ],
-      rows: [
-        ..._.map(p => {
-          return {
-            button: div({ style: { display: 'flex' } }, [
-              icon('folder', { size: 16, 'aria-label': 'folder' })
-            ]),
-            name: h(TextCell, [
-              makeBucketLink({
-                label: p.slice(prefix.length),
-                target: `gs://${bucketName}/${p}`,
-                onClick: () => load(p),
-                'aria-label': `${p.slice(prefix.length, -1)} (folder)`
-              })
-            ])
-          }
-        }, prefixes),
-        ..._.map(({ name, size, updated }) => {
-          return {
-            button: h(Link, {
-              style: { display: 'flex' }, onClick: () => setDeletingName(name),
-              tooltip: 'Delete file'
-            }, [
-              icon('trash', { size: 16, className: 'hover-only' })
-            ]),
-            name: h(TextCell, [
-              makeBucketLink({
-                label: name.slice(prefix.length),
-                target: `gs://${bucketName}/${name}`,
-                onClick: () => setViewingName(name),
-                'aria-haspopup': 'dialog',
-                'aria-label': `${name.slice(prefix.length)} (file)`
-              })
-            ]),
-            size: filesize(size, { round: 0 }),
-            updated: Utils.makePrettyDate(updated)
-          }
-        }, objects)
-      ]
-    }),
+    div({ style: { flex: '1 1 0', overflow: 'auto' }}, [
+      h(SimpleTable, {
+        'aria-label': 'file browser',
+        columns: [
+          { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
+          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
+          { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
+          { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
+        ],
+        rows: [
+          ..._.map(p => {
+            return {
+              button: div({ style: { display: 'flex' } }, [
+                icon('folder', { size: 16, 'aria-label': 'folder' })
+              ]),
+              name: h(TextCell, [
+                makeBucketLink({
+                  label: p.slice(prefix.length),
+                  target: `gs://${bucketName}/${p}`,
+                  onClick: () => load(p),
+                  'aria-label': `${p.slice(prefix.length, -1)} (folder)`
+                })
+              ])
+            }
+          }, prefixes),
+          ..._.map(({ name, size, updated }) => {
+            return {
+              button: h(Link, {
+                style: { display: 'flex' }, onClick: () => setDeletingName(name),
+                tooltip: 'Delete file'
+              }, [
+                icon('trash', { size: 16, className: 'hover-only' })
+              ]),
+              name: h(TextCell, [
+                makeBucketLink({
+                  label: name.slice(prefix.length),
+                  target: `gs://${bucketName}/${name}`,
+                  onClick: () => setViewingName(name),
+                  'aria-haspopup': 'dialog',
+                  'aria-label': `${name.slice(prefix.length)} (file)`
+                })
+              ]),
+              size: filesize(size, { round: 0 }),
+              updated: Utils.makePrettyDate(updated)
+            }
+          }, objects)
+        ]
+      })
+    ]),
     deletingName && h(DeleteObjectModal, {
       workspace, name: deletingName,
       onDismiss: () => setDeletingName(),
