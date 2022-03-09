@@ -122,7 +122,7 @@ const DataTable = props => {
     // For the time being, the uniquness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
     // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs
     const newAttrsForThisType = concatenateAttributeNames(entityMetadata[entityType]?.attributeNames, attrNamesFromResults)
-    if (newAttrsForThisType !== entityMetadata[entityType].attributeNames) {
+    if (!_.isEqual(newAttrsForThisType, entityMetadata[entityType].attributeNames)) {
       const newMetadata = _.cloneDeep(entityMetadata)
       newMetadata[entityType].attributeNames = newAttrsForThisType
       setEntityMetadata(newMetadata)
