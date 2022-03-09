@@ -80,9 +80,9 @@ const SignIn = () => {
           }, ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'])
         ])
       ]),
-      isAnvil() && div({ style: styles.warningNoticeContainer }, [
+      (isAnvil() || isElwazi()) && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),
-        p([`
+        isAnvil() && p([`
           You are accessing a web site created by the Genomic Data Science Analysis, Visualization,
           and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
         `]),
@@ -97,12 +97,6 @@ const SignIn = () => {
           of their actions and all communications or data transiting or stored on related to this
           website and is advised that if such monitoring reveals possible evidence of criminal activity,
           evidence may be provided to law enforcement officials.
-        `])
-      ]),
-      isElwazi() && div({ style: styles.warningNoticeContainer }, [
-        div({ style: styles.warningNotice }, ['Warning Notice']),
-        p([`
-          TBD
         `])
       ])
     ])
