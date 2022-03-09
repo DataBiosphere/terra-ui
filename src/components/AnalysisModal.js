@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Select, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import { CromwellModalBase } from 'src/components/CromwellModal'
 import Dropzone from 'src/components/Dropzone'
@@ -149,22 +149,23 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const galaxyApp = currentApp(tools.galaxy.label)
     const cromwellApp = currentApp(tools.cromwell.label)
 
+    // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
     }, [
-      div({
+      h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.Jupyter.label)
           enterNextViewMode(tools.Jupyter.label)
         }
       }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: '30%' }) })]),
-      div({
+      h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
           enterNextViewMode(tools.RStudio.label)
         }
       }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
-      div({
+      h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
@@ -175,7 +176,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
         }, disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
-      }, [img({ src: cromwellImg, style: styles.image })])
+      }, [img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })])
     ])
 
     const renderSelectAnalysisBody = () => div({
