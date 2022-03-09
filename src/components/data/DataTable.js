@@ -123,9 +123,7 @@ const DataTable = props => {
     // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs
     const newAttrsForThisType = concatenateAttributeNames(entityMetadata[entityType]?.attributeNames, attrNamesFromResults)
     if (!_.isEqual(newAttrsForThisType, entityMetadata[entityType].attributeNames)) {
-      const newMetadata = _.cloneDeep(entityMetadata)
-      newMetadata[entityType].attributeNames = newAttrsForThisType
-      setEntityMetadata(newMetadata)
+      setEntityMetadata(_.set([entityType, 'attributeNames'], newAttrsForThisType))
     }
     setEntities(results)
     setFilteredCount(filteredCount)
