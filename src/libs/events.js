@@ -29,6 +29,7 @@ const eventsList = {
   catalogRequestAccess: 'catalog:requestAccess',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
+  datasetLibraryBrowseData: 'library:browseData',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
