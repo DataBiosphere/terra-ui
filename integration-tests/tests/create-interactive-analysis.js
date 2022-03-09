@@ -17,8 +17,6 @@ const testCreateInteractiveAnalysisFn = _.flow(
   await findText(page, 'View Workspaces')
 
   await overrideConfig(page, { isAnalysisTabVisible: true })
-  // await page.evaluate(() => window.configOverridesStore.set({ isAnalysisTabVisible: true }))
-  // await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
