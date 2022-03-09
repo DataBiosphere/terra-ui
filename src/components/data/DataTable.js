@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -116,16 +116,17 @@ const DataTable = props => {
           { filterTerms: activeTextFilter })
       }))
     // find all the unique attribute names contained in the current page of results
-    const allAttrNames = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
+    const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
     // add any attribute names from the current page of results to those found in metadata.
     // This allows for the stale metadata (e.g. the metadata cache is out of date).
     // For the time being, the uniquness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
     // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs
-    const newAttrsForThisType = _.uniqWith((left, right) => !left.localeCompare(right, undefined, { sensitivity: 'accent' }),
-      _.concat(entityMetadata[entityType].attributeNames, allAttrNames)).sort()
-    const newMetadata = _.cloneDeep(entityMetadata)
-    newMetadata[entityType].attributeNames = newAttrsForThisType
-    setEntityMetadata(newMetadata)
+    const newAttrsForThisType = concatenateAttributeNames(entityMetadata[entityType]?.attributeNames, attrNamesFromResults)
+    if (newAttrsForThisType !== entityMetadata[entityType].attributeNames) {
+      const newMetadata = _.cloneDeep(entityMetadata)
+      newMetadata[entityType].attributeNames = newAttrsForThisType
+      setEntityMetadata(newMetadata)
+    }
     setEntities(results)
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
