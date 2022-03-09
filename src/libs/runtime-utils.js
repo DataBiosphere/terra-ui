@@ -28,6 +28,7 @@ export const defaultDataprocWorkerDiskSize = 150
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
 export const defaultGceBootDiskSize = 100
 export const defaultGcePersistentDiskSize = 50
+export const defaultGcePersistentDiskType = 'pd-standard'
 
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
