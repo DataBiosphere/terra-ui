@@ -76,6 +76,7 @@ const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
 }
 
 _.forEach(registerTestEndpoint, [
+  testCreateInteractiveAnalysis,
   testFindWorkflow,
   testImportCohortData,
   testImportDockstoreWorkflow,
