@@ -171,7 +171,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           enterNextViewMode(tools.galaxy.label)
         }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
-      !tools.cromwell.isAppHidden && div({
+      !tools.cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
