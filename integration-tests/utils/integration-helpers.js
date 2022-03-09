@@ -180,8 +180,8 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
-const overrideConfig = async (page, config) => {
-  await page.evaluate(passedInConfig => window.configOverridesStore.set(passedInConfig), config)
+const overrideConfig = async (page, configToPassIn) => {
+  await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)
   await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 }
 
