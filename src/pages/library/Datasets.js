@@ -123,7 +123,7 @@ const thousandGenomesHighCoverage = () => h(Participant, {
     'aria-label': 'Browse 1000 Genomes High Coverage data',
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
-    onClick: () => captureBrowseDataEvent('1000G-high-coverage-2019')
+    onClick: () => captureBrowseDataEvent('1000 Genomes High Coverage')
   }, ['Browse data'])
 ])
 
@@ -142,7 +142,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
     'aria-label': 'Browse 1000 Genomes Low Coverage data',
     tooltip: browseTooltip,
     href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
-    onClick: () => captureBrowseDataEvent('1000 Genomes')
+    onClick: () => captureBrowseDataEvent('1000 Genomes Low Coverage')
   }, ['Browse data'])
 ])
 
