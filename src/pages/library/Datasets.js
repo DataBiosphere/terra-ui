@@ -109,16 +109,8 @@ const Participant = ({ logo, title, shortDescription, description, sizeText, mod
 
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
-const captureEventMetrics = (eventName, metrics) => {
-  Ajax().Metrics.captureEvent(eventName, metrics)
-}
-
-const captureBrowseDataEvent = (datasetName) => {
-  const eventName = `${Events.datasetLibraryBrowseData}`
-  captureEventMetrics(eventName, {
-    datasetName: datasetName
-  })
-}
+const captureBrowseDataEvent = datasetName =>
+  Ajax().Metrics.captureEvent(Events.datasetLibraryBrowseData, {datasetName})
 
 const thousandGenomesHighCoverage = () => h(Participant, {
   logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL', height: '55%' },
