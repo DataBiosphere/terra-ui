@@ -24,6 +24,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
@@ -47,11 +48,11 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
   )
 }
 
-const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
+const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock }) => {
   const [workspace, setWorkspace] = useState(undefined)
   const signal = useCancellation()
   const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
-    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare']))
+    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare', 'workspace.isLocked']))
   })
   useOnMount(() => {
     loadWorkspace()
@@ -60,6 +61,7 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  const isLocked = workspace?.workspace.isLocked
   return h(Fragment, [
     h(MenuButton, {
       disabled: !canRead,
@@ -73,6 +75,12 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
       tooltipSide: 'left',
       onClick: onShare
     }, [makeMenuIcon('share'), 'Share']),
+    h(MenuButton, {
+      disabled: !isOwner,
+      tooltip: !isOwner && ['You have not been granted permission to ', isLocked ? 'unlock' : 'lock', ' this workspace'],
+      tooltipSide: 'left',
+      onClick: onLock
+    }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
@@ -97,6 +105,7 @@ export const WorkspaceList = () => {
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
   const [deletingWorkspaceId, setDeletingWorkspaceId] = useState()
+  const [lockingWorkspaceId, setLockingWorkspaceId] = useState()
   const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
 
@@ -264,6 +273,7 @@ export const WorkspaceList = () => {
             }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
+            const onLock = () => setLockingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
@@ -272,7 +282,7 @@ export const WorkspaceList = () => {
                 h(MenuTrigger, {
                   side: 'left',
                   closeOnClick: true,
-                  content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
+                  content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete, onLock })
                 }, [
                   h(Link, {
                     'aria-label': `Menu for Workspace: ${name}`,
@@ -401,6 +411,11 @@ export const WorkspaceList = () => {
       deletingWorkspaceId && h(DeleteWorkspaceModal, {
         workspace: getWorkspace(deletingWorkspaceId),
         onDismiss: () => setDeletingWorkspaceId(undefined),
+        onSuccess: refreshWorkspaces
+      }),
+      lockingWorkspaceId && h(LockWorkspaceModal, {
+        workspace: getWorkspace(lockingWorkspaceId),
+        onDismiss: () => setLockingWorkspaceId(undefined),
         onSuccess: refreshWorkspaces
       }),
       sharingWorkspaceId && h(ShareWorkspaceModal, {
