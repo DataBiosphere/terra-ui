@@ -1,12 +1,9 @@
-const _ = require('lodash/fp')
 const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testRequestAccessFn = _.flow(
-  withUserToken
-)(async ({ testUrl, page, token }) => {
+const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)

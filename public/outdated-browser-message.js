@@ -1,3 +1,4 @@
+/* global outdatedBrowserRework */
 outdatedBrowserRework({
   browserSupport: {
     Chrome: 67, // Includes Chrome for mobile devices

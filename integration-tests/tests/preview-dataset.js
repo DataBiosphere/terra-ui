@@ -1,4 +1,3 @@
-const _ = require('lodash/fp')
 const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -6,9 +5,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const datasetName = 'Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics'
 
-const testPreviewDatasetFn = _.flow(
-  withUserToken
-)(async ({ testUrl, page, token }) => {
+const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
