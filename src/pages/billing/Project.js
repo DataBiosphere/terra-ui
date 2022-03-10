@@ -263,15 +263,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
       setTotalCost(costFormatter.format(spend.spendSummary.cost))
 
+      const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
+      console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
       // Get the most expensive workspaces, sorted from most to least expensive.
       const mostExpensiveWorkspaces = _.flow(
         _.sortBy(({ cost }) => { return parseFloat(cost) }),
         _.reverse,
         _.slice(0, maxWorkspacesInChart)
-      )(spend.spendDetails[0].spendData)
-
+      )(workspaceDetails?.spendData)
       // Pull out names and costs.
-      const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: spend.spendDetails[0].spendData.length }
+      const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: workspaceDetails?.spendData.length }
       _.forEach(workspaceCostData => {
         costsPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
         costsPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
