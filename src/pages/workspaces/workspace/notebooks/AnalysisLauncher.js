@@ -325,7 +325,7 @@ const PreviewHeader = ({
         'Starting cloud environment, this may take up to 2 minutes.'
       ])],
       [runtimeStatus === 'Stopping', () => h(StatusMessage, [
-        'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
+        'Cloud environment is stopping, which takes ~4 minutes. It will restart after this finishes.'
       ])],
       [runtimeStatus === 'LeoReconfiguring', () => h(StatusMessage, [
         'Cloud environment is updating, please wait.'
