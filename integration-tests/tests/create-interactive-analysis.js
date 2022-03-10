@@ -33,8 +33,7 @@ const testCreateInteractiveAnalysisFn = _.flow(
 })
 const testCreateInteractiveAnalysis = {
   name: 'create-interactive-analysis',
-  fn: testCreateInteractiveAnalysisFn,
-  timeout: 20 * 60 * 1000
+  fn: testCreateInteractiveAnalysisFn
 }
 
 module.exports = { testCreateInteractiveAnalysis }
