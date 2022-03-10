@@ -240,6 +240,9 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
+  console.log('toolLabel', toolLabel)
+  console.log('runtimeTool', currentRuntimeTool)
+
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
@@ -285,7 +288,7 @@ const PreviewHeader = ({
         ] : [
           h(HeaderButton, {
             onClick: () => {
-              if (runtimeStatus === 'Running') {
+              if (runtimeStatus === 'Running' && currentRuntimeTool === toolLabel) {
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
