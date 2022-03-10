@@ -313,19 +313,19 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.light() } }),
             isBioDataCatalyst() && h(Fragment, [
               h(Link,
                 {
                   variant: 'light',
-                  style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
+                  style: { display: 'block', textDecoration: 'underline', color: colors.light() },
                   href: Nav.getLink('privacy'),
                   onClick: hideNav
                 }, ['Terra Privacy Policy']),
               h(Link, {
                 variant: 'light',
                 href: Nav.getLink('terms-of-service'),
-                style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
+                style: { display: 'block', textDecoration: 'underline', color: colors.light() },
                 onClick: hideNav
               }, ['Terra Terms of Service'])
             ]),

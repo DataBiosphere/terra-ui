@@ -7,13 +7,15 @@ import bioDataCatalystLogo from 'src/images/brands/bioDataCatalyst/bioDataCataly
 import bioDataCatalystLogoWhite from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-white.svg'
 import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg'
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg'
+import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg'
+import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg'
 import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import colors from 'src/libs/colors'
-import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -23,6 +25,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isAnvil(), () => longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
   [isBioDataCatalyst(), () => 'NHLBI BioData Catalyst'],
   [isBaseline(), () => longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
+  [isElwazi(), () => longName ? 'The eLwazi Open Data Science Platform' : 'eLwazi'],
   () => 'Terra'
 )
 
@@ -33,7 +36,8 @@ const pickBrandLogo = (color = false) => Utils.cond(
   [isDatastage(), () => color ? datastageLogo : datastageLogoWhite],
   [isAnvil(), () => color ? anvilLogo : anvilLogoWhite],
   [isBioDataCatalyst(), () => color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
-  [isBaseline(), () => color ? baselineLogo : baselineLogoWhite]
+  [isBaseline(), () => color ? baselineLogo : baselineLogoWhite],
+  [isElwazi(), () => color ? elwaziLogo : elwaziLogoWhite]
 )
 
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra', role: 'img', src: logoVariant, style })

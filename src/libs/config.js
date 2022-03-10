@@ -16,5 +16,6 @@ export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
 export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
 export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
 export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
+export const isElwazi = () => (window.location.hostname === 'elwazi.terra.bio') || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline()
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi()
