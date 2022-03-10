@@ -370,7 +370,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ])])]),
         CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
       ]),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2 } },
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: '500px' } }, // Set minWidth so chart will shrink on resize
         [h(HighchartsReact, { highcharts: Highcharts, options: spendChartOptions })]
       )
     ])
