@@ -240,9 +240,6 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
-  console.log('toolLabel', toolLabel)
-  console.log('runtimeTool', currentRuntimeTool)
-
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
