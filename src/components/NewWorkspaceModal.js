@@ -71,7 +71,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     ...(requiredAuthDomain ? [requiredAuthDomain] : [])
   ])
 
-  const loadAlphaRegionalityUser = reportErrorAndRethrow('Error loading user group membership')(async () => {
+  const loadAlphaRegionalityUser = reportErrorAndRethrow('Error loading regionality group membership')(async () => {
     setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
   })
 
