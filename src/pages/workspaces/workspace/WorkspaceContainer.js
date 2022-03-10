@@ -62,7 +62,10 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      isAnalysisTabVisible() ? h(Fragment) : h(WorkspaceMenuTrigger, { canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace, setTogglingWorkspaceLock, setDeletingWorkspace }, [
+      isAnalysisTabVisible() ? h(Fragment) : h(WorkspaceMenuTrigger, {
+        canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace,
+        setTogglingWorkspaceLock, setDeletingWorkspace
+      }, [
         h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ]
       )
