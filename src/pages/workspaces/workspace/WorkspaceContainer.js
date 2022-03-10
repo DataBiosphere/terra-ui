@@ -360,7 +360,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   return withDisplayName('wrapWorkspace', Wrapper)
 }
 
-export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace, setTogglingWorkspaceLock }) => h(
+export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace, setTogglingWorkspaceLock }) => h(
   MenuTrigger, {
     closeOnClick: true,
     'aria-label': 'Workspace menu',
