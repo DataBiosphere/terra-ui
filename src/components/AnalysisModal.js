@@ -9,7 +9,8 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, getAppType, getDisplayName, getTool, isToolAnApp, notebookData, tools
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
@@ -220,16 +221,17 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       renderCreateAnalysisBody(currentTool)
     ])
 
-    const errors = validate(
-      { analysisName, notebookKernel },
-      {
-        analysisName: analysisNameValidator(_.map(({ name }) => getDisplayName(name), analyses)),
-        notebookKernel: { presence: { allowEmpty: true } }
-      }
-    )
-
     const renderCreateAnalysisBody = toolLabel => {
       const isJupyter = toolLabel === tools.Jupyter.label
+
+      const errors = validate(
+        { analysisName: `${analysisName}.${getAnalysisFileExtension(toolLabel)}`, notebookKernel },
+        {
+          analysisName: analysisNameValidator(_.map(({ name }) => getFileName(name), analyses)),
+          notebookKernel: { presence: { allowEmpty: true } }
+        }
+      )
+
       return div({ style: { display: 'flex', flexDirection: 'column' } }, [
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
