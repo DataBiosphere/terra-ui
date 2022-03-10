@@ -1,7 +1,7 @@
 import Highcharts from 'highcharts'
+import HighchartsReact from 'highcharts-react-official'
 import highchartsAccessibility from 'highcharts/modules/accessibility'
 import highchartsExporting from 'highcharts/modules/exporting'
-import HighchartsReact from 'highcharts-react-official'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
@@ -233,13 +233,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   highchartsExporting(Highcharts)
   const maxWorkspacesInChart = 10
   const spendChartOptions = {
-    chart: {
-      type: 'bar', events: {
-        load() { this.showLoading() },
-        redraw() { this.hideLoading() }
-      },
-      spacingRight: '4'
-    },
+    chart: { spacingRight: '4', type: 'bar' },
     credits: { enabled: false },
     legend: { enabled: false },
     series: [{ name: 'Total Cost', data: costPerWorkspace.workspaceCosts }],
@@ -375,7 +369,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ])])]),
         CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
       ]),
-      div({ style: { gridRowStart: 2 } }, [h(HighchartsReact, { highcharts: Highcharts, options: spendChartOptions })])
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2 } },
+        [h(HighchartsReact, { highcharts: Highcharts, options: spendChartOptions })]
+      )
     ])
   }
 
