@@ -35,7 +35,7 @@ const findInGrid = (page, textContains, options) => {
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
   const base = `${path}${isDescendant ? '//*' : ''}`
   if (text) {
-    return `${base}[normalize-space(.)="${text}" or @title="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
+    return `${base}[normalize-space(.)="${text}" or @title="${text}" or @alt="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
     return `${base}[contains(normalize-space(.),"${textContains}") or contains(@title,"${textContains}") or contains(@alt,"${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]/@id]`
   }
