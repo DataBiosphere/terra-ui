@@ -583,8 +583,9 @@ const WorkspaceData = _.flow(
                       buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
                       tooltip: canCompute ?
                         tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
-                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                        'Contact the owner of this workspace to change your permissions.')],
+                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
+                          'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                          'Contact the owner of this workspace to change your permissions.')],
                       tooltipSide: canCompute ? 'bottom' : 'left',
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),

@@ -19,7 +19,7 @@ const cromwellRunning = {
   status: 'RUNNING'
 }
 
-// Newer than cromwellRunning.
+// Newer than cromwellRunning
 const cromwellProvisioning = {
   appName: 'terra-app-73f46705-524c-4fc8-ac8c-07fd0cfbb14f',
   appType: 'CROMWELL',
