@@ -110,8 +110,8 @@ const WorkspaceContainer = ({
       })
     ]),
     showTabBar && h(WorkspaceTabs, {
-      namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
-      sharingWorkspace, setSharingWorkspace, togglingWorkspaceLock, setTogglingWorkspaceLock
+      namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
+      setSharingWorkspace, setTogglingWorkspaceLock
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
 
