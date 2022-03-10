@@ -3,7 +3,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
+import { withErrorReportingInModal } from 'src/libs/error'
 
 
 const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocked } }, onDismiss, onSuccess }) => {
