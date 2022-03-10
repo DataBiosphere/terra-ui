@@ -1,10 +1,10 @@
 define([
   'base/js/namespace',
   'base/js/promises'
-], function(
+], (
   Jupyter,
   promises
-) {
+) => {
   function close_notebook() {
     Jupyter.notebook.shutdown_kernel({ confirm: false })
     window.parent.postMessage('close', '*')
@@ -46,9 +46,9 @@ define([
     $('#menubar-close-button').on('click', close_notebook)
 
     // frequent autosave
-    promises.notebook_loaded.then(function() {
-      Jupyter.notebook.set_autosave_interval(15000);
-    });
+    promises.notebook_loaded.then(() => {
+      Jupyter.notebook.set_autosave_interval(15000)
+    })
 
     // listen for explicit save command
     window.addEventListener('message', e => {
@@ -58,13 +58,12 @@ define([
     })
 
     // report save status up
-    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', function (event, data) {
+    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', (event, data) => {
       window.parent.postMessage(data.value ? 'dirty' : 'saved', '*')
     })
-
   }
 
   return {
-    load_ipython_extension: load_ipython_extension
+    load_ipython_extension
   }
 })

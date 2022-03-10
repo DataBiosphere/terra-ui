@@ -22,13 +22,12 @@ const testRequestAccessFn = _.flow(
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Request Access' }))
   await findText(page, 'Request Access')
-
 })
 
 const testRequestAccess = {
   name: 'request-access',
   fn: testRequestAccessFn,
-  timeout: 2 * 60 * 1000,  // 2 min timeout
+  timeout: 2 * 60 * 1000, // 2 min timeout
   targetEnvironments: ['local', 'dev']
 }
 
