@@ -173,21 +173,21 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
         },
-        hover: !!galaxyApp ? styles.hover : undefined,
-        disabled: !galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
+        hover: !galaxyApp ? styles.hover : undefined,
+        disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
       !tools.cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
         },
-        hover: !!cromwellApp ? styles.hover : undefined,
-        disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
+        hover: !cromwellApp ? styles.hover : undefined,
+        disabled: !!cromwellApp, tooltip: cromwellApp ? 'You already have a Cromwell instance' : ''
       }, [img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })])
     ])
 
     const renderSelectAnalysisBody = () => div({
-      style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' }
+      style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' }
     }, [
       renderToolButtons(),
       h(Dropzone, {
