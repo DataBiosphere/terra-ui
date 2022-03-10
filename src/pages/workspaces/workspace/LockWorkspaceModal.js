@@ -10,17 +10,17 @@ const LockWorkspaceModal = ({ workspace: { workspace: { namespace, name, isLocke
   const [togglingLock, setTogglingLock] = useState(false)
   const helpText = isLocked ? 'Unlock Workspace' : 'Lock Workspace'
 
-  const toggleWorkspaceLock = async () => {
-    try {
-      setTogglingLock(true)
-      isLocked ? await Ajax().Workspaces.workspace(namespace, name).unlock() : await Ajax().Workspaces.workspace(namespace, name).lock()
-      onDismiss()
-      onSuccess()
-    } catch (error) {
-      reportError('Error toggling workspace lock', error)
-      setTogglingLock(false)
-    }
+  const onFailureDismiss = () => {
+    setTogglingLock(false)
+    onDismiss()
   }
+
+  const toggleWorkspaceLock = withErrorReportingInModal('Error toggling workspace lock', onFailureDismiss, async () => {
+    setTogglingLock(true)
+    isLocked ? await Ajax().Workspaces.workspace(namespace, name).unlock() : await Ajax().Workspaces.workspace(namespace, name).lock()
+    onDismiss()
+    onSuccess()
+  })
   return h(Modal, {
     title: helpText,
     onDismiss,
