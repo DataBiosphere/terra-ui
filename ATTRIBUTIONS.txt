@@ -1,0 +1,22 @@
+attributions:
+- name: Highcharts
+  link: https://www.highcharts.com/
+  copyright: Copyright (c) Highsoft AS. All rights reserved.
+  license:
+    Highsoft
+    Non-Commercial License Statement
+
+    This email constitutes as your license statement.
+    Date of issue: [February 16, 2022]
+
+    License holder:
+      Christina Roberts
+      The Broad Institute of MIT and Harvard
+
+    This license is valid for:
+      Not-for-Profit usage of the following product(s):
+      Highcharts.
+
+    This software is released under Creative Commons Attribution-NonCommercial 3.0
+  licenseLink: https://creativecommons.org/licenses/by-nc/3.0/us/
+  licenseName: Creative Commons Attribution-NonCommercial 3.0

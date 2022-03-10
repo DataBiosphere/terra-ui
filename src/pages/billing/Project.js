@@ -1,7 +1,7 @@
-import Highcharts from 'highcharts'
-import HighchartsReact from 'highcharts-react-official'
+import Highcharts from 'highcharts' // Highcharts is being used under the Creative Commons Attribution-NonCommercial 3.0 license
 import highchartsAccessibility from 'highcharts/modules/accessibility'
 import highchartsExporting from 'highcharts/modules/exporting'
+import HighchartsReact from 'highcharts-react-official'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
