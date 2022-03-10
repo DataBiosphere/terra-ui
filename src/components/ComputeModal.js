@@ -24,7 +24,7 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGcePersistentDiskType, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
@@ -56,6 +56,17 @@ const runtimeTypes = {
   gceVm: 'Standard VM',
   dataprocSingleNode: 'Spark single node',
   dataprocCluster: 'Spark cluster'
+}
+
+const pdTypes = {
+  standard: {
+    label: 'pd-standard',
+    displayName: 'Standard persistent disk'
+  },
+  ssd: {
+    label: 'pd-ssd',
+    displayName: 'Solid state drive'
+  }
 }
 
 const sparkInterfaces = {
@@ -267,12 +278,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
-        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size, diskType: desiredPersistentDisk.diskType } : {
+        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
           persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDiskDetails.name
           } : {
             name: Utils.generatePersistentDiskName(),
             size: desiredPersistentDisk.size,
+            diskType: desiredPersistentDisk.diskType,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
         })),
@@ -413,7 +425,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           })
         })
       } : undefined,
-      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
+      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size, diskType: currentPersistentDiskDetails.diskType } : undefined
     }
   }
 
@@ -720,7 +732,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: currentPersistentDiskDetails?.diskType || defaultDataprocMachineType,
+        selectedPersistentDiskType: currentPersistentDiskDetails?.diskType || defaultGcePersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -1053,12 +1065,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             value: computeConfig.autopauseThreshold,
             hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
             tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-            onChange: () => {
-              console.log(currentPersistentDiskDetails)
-              console.log(getDesiredEnvironmentConfig())
-              console.log('is pd' + isPersistentDisk)
-              updateComputeConfig('autopauseThreshold')
-            }
+            onChange: () => updateComputeConfig('autopauseThreshold')
           }),
           span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
         ])
@@ -1592,7 +1599,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && renderPersistentDiskSection(),
+          !!isPersistentDisk && renderPersistentDiskSection(existingRuntime),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1650,7 +1657,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     ])
   }
 
-  const renderPersistentDiskSection = () => {
+  const renderPersistentDiskSection = computeExists => {
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -1663,31 +1670,34 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
             h(div, [
-            label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
-            h(Select, {
-              id,
-              value: computeConfig.selectedPersistentDiskType,
-              onChange: ({ value }) => {
-                updateComputeConfig('selectedPersistentDiskType', value)
-              },
-              options: [
-                { value: 'pd-ssd' },
-                { value: 'pd-standard' }
-              ]
-            })]),
+              label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+              div({ style: { marginTop: '0.5rem' } }, [
+                h(Select, {
+                  id,
+                  value: computeConfig.selectedPersistentDiskType,
+                  isDisabled: computeExists || false,
+                  onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+                  options: [
+                    { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
+                    { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
+                  ]
+                })
+              ])
+            ]),
             h(div, [
               label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
-              h(NumberInput, {
-                id,
-                min: 10,
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: computeConfig.selectedPersistentDiskSize,
-                onChange: updateComputeConfig('selectedPersistentDiskSize')
-              })
+              div({ style: { marginTop: '0.5rem' } }, [
+                h(NumberInput, {
+                  id,
+                  min: 10,
+                  max: 64000,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: computeConfig.selectedPersistentDiskSize,
+                  onChange: updateComputeConfig('selectedPersistentDiskSize')
+                })
+              ])
             ])
-
           ])
         ])
       ])
