@@ -369,7 +369,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name },
+        entityType: entityKey, initialEntityMetadata: entityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {

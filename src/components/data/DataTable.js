@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -49,7 +49,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = props => {
   const {
-    entityType, entityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
+    entityType, initialEntityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
     selectionModel: { selected, setSelected },
     childrenBefore,
@@ -68,6 +68,7 @@ const DataTable = props => {
   const [entities, setEntities] = useState()
   const [filteredCount, setFilteredCount] = useState(0)
   const [totalRowCount, setTotalRowCount] = useState(0)
+  const [entityMetadata, setEntityMetadata] = useState(initialEntityMetadata)
 
   const stateHistory = firstRender ? StateHistory.get() : {}
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
@@ -114,6 +115,16 @@ const DataTable = props => {
           { billingProject: googleProject, dataReference: snapshotName } :
           { filterTerms: activeTextFilter })
       }))
+    // find all the unique attribute names contained in the current page of results
+    const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
+    // add any attribute names from the current page of results to those found in metadata.
+    // This allows for the stale metadata (e.g. the metadata cache is out of date).
+    // For the time being, the uniquness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
+    // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs
+    const newAttrsForThisType = concatenateAttributeNames(entityMetadata[entityType]?.attributeNames, attrNamesFromResults)
+    if (!_.isEqual(newAttrsForThisType, entityMetadata[entityType].attributeNames)) {
+      setEntityMetadata(_.set([entityType, 'attributeNames'], newAttrsForThisType))
+    }
     setEntities(results)
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
