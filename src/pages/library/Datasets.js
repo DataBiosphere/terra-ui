@@ -19,11 +19,11 @@ import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { returnParam } from 'src/libs/logos'
-import { Ajax } from 'src/libs/ajax'
 import Events from 'src/libs/events'
+import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -109,8 +109,7 @@ const Participant = ({ logo, title, shortDescription, description, sizeText, mod
 
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
-const captureBrowseDataEvent = datasetName =>
-  Ajax().Metrics.captureEvent(Events.datasetLibraryBrowseData, {datasetName})
+const captureBrowseDataEvent = datasetName => Ajax().Metrics.captureEvent(Events.datasetLibraryBrowseData, { datasetName })
 
 const thousandGenomesHighCoverage = () => h(Participant, {
   logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL', height: '55%' },
@@ -328,7 +327,7 @@ const gp2 = () => h(Participant, {
     style: { marginBottom: '1rem' },
     tooltip: 'Visit the workspace',
     href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier1' }),
-    onClick: () => captureBrowseDataEvent('GP2 Tier 1 data'),
+    onClick: () => captureBrowseDataEvent('GP2 Tier 1 data')
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
     'aria-label': 'Browse GP2 Tier 2 data',

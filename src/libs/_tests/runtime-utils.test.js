@@ -78,7 +78,7 @@ const galaxy1Workspace1 = {
   errors: [],
   googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: { saturnWorkspaceName: 'test-workspace'},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'RUNNING'
 }
@@ -93,7 +93,7 @@ const galaxy2Workspace1 = {
   errors: [],
   googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: { saturnWorkspaceName: 'test-workspace'},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'RUNNING'
 }
@@ -108,7 +108,7 @@ const cromwell1Workspace1 = {
   errors: [],
   googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
-  labels: { saturnWorkspaceName: 'test-workspace'},
+  labels: { saturnWorkspaceName: 'test-workspace' },
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'RUNNING'
 }
