@@ -705,7 +705,7 @@ const SortableDiv = SortableElement(props => div(props))
 const SortableList = SortableContainer(props => h(List, props))
 const SortableHandleDiv = SortableHandle(props => div(props))
 
-const ColumnSettings = ({ columnSettings, onChange }) => {
+export const ColumnSettings = ({ columnSettings, onChange }) => {
   const toggleVisibility = index => {
     onChange(_.update([index, 'visible'], b => !b)(columnSettings))
   }
@@ -789,6 +789,7 @@ export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent
     }, [icon('cog', { size: 20 })]),
     open && h(Modal, {
       title: 'Select columns',
+      width: 600,
       onDismiss: () => setOpen(false),
       okButton: h(ButtonPrimary, {
         onClick: () => {
