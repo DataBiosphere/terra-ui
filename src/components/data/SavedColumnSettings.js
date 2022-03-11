@@ -9,6 +9,7 @@ import { ColumnSettings } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { noWrapEllipsis } from 'src/libs/style'
@@ -154,11 +155,13 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
   )(async settingsName => {
     await saveColumnSettings(settingsName, columnSettings)
     setSavedColumnSettings(_.set(settingsName, columnSettings))
+    Ajax().Metrics.captureEvent(Events.dataTableSaveColumnSettings)
   })
 
   const load = settingsName => {
     onLoad(savedColumnSettings[settingsName])
     setSelectedSettingsName(settingsName)
+    Ajax().Metrics.captureEvent(Events.dataTableLoadColumnSettings)
   }
 
   const del = _.flow(
