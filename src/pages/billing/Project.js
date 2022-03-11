@@ -1,3 +1,7 @@
+import Highcharts from 'highcharts' // Highcharts is being used under the Creative Commons Attribution-NonCommercial 3.0 license
+import highchartsAccessibility from 'highcharts/modules/accessibility'
+import highchartsExporting from 'highcharts/modules/exporting'
+import HighchartsReact from 'highcharts-react-official'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
@@ -212,6 +216,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [totalCost, setTotalCost] = useState(null)
+  const [costPerWorkspace, setCostPerWorkspace] = useState({ workspaceNames: [], workspaceCosts: [], numWorkspaces: 0 })
   const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
 
@@ -224,6 +229,31 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
 
+  highchartsAccessibility(Highcharts)
+  highchartsExporting(Highcharts)
+  const maxWorkspacesInChart = 10
+  const spendChartOptions = {
+    chart: { type: 'bar', style: { fontFamily: 'inherit' } },
+    credits: { enabled: false },
+    legend: { enabled: false },
+    series: [{ name: 'Total Cost', data: costPerWorkspace.workspaceCosts }],
+    title: {
+      text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace'
+    },
+    tooltip: { valuePrefix: '$' },
+    xAxis: {
+      categories: costPerWorkspace.workspaceNames, crosshair: true,
+      labels: { style: { fontSize: '12px' } }
+    },
+    yAxis: {
+      crosshair: true, min: 0,
+      labels: { format: `\${value:.2f}`, style: { fontSize: '12px' } },
+      title: { text: 'Total Cost' },
+      width: '96%'
+    },
+    exporting: { buttons: { contextButton: { x: -15 } } }
+  }
+
   const spendReportKey = 'spend report'
   const maybeLoadTotalCost = reportErrorAndRethrow('Unable to retrieve spend report data')(async () => {
     if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
@@ -233,6 +263,23 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
       const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
       setTotalCost(costFormatter.format(spend.spendSummary.cost))
+
+      const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
+      console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
+      // Get the most expensive workspaces, sorted from most to least expensive.
+      const mostExpensiveWorkspaces = _.flow(
+        _.sortBy(({ cost }) => { return parseFloat(cost) }),
+        _.reverse,
+        _.slice(0, maxWorkspacesInChart)
+      )(workspaceDetails?.spendData)
+      // Pull out names and costs.
+      const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: workspaceDetails?.spendData.length }
+      _.forEach(workspaceCostData => {
+        costsPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+        costsPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
+      })(mostExpensiveWorkspaces)
+      setCostPerWorkspace(costsPerWorkspace)
+
       setUpdatingTotalCost(false)
     }
   })
@@ -305,23 +352,28 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', gridTemplateColumns: 'minmax(15.625rem, max-content)', rowGap: '1.25rem' } }, [
-      div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id }, ['Date range']),
-        h(Select, {
-          id,
-          value: spendReportLengthInDays,
-          options: _.map(days => ({
-            label: `Last ${days} days`,
-            value: days
-          }), [7, 30, 90]),
-          onChange: ({ value: selectedDays }) => {
-            setSpendReportLengthInDays(selectedDays)
-            setTotalCost(null) // This will force the report to be recalculated based on selectedDays
-          }
-        })
-      ])])]),
-      CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
+    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
+      div({ style: { display: 'grid', gridTemplateColumns: 'minmax(15.625rem, max-content)', rowGap: '1.25rem' } }, [
+        div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id }, ['Date range']),
+          h(Select, {
+            id,
+            value: spendReportLengthInDays,
+            options: _.map(days => ({
+              label: `Last ${days} days`,
+              value: days
+            }), [7, 30, 90]),
+            onChange: ({ value: selectedDays }) => {
+              setSpendReportLengthInDays(selectedDays)
+              setTotalCost(null) // This will force the report to be recalculated based on selectedDays
+            }
+          })
+        ])])]),
+        CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
+      ]),
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: '500px' } }, // Set minWidth so chart will shrink on resize
+        [h(HighchartsReact, { highcharts: Highcharts, options: spendChartOptions })]
+      )
     ])
   }
 
