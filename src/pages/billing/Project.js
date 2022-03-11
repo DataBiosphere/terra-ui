@@ -233,13 +233,12 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   highchartsExporting(Highcharts)
   const maxWorkspacesInChart = 10
   const spendChartOptions = {
-    chart: { spacingRight: '4', type: 'bar' },
+    chart: { type: 'bar', style: { fontFamily: 'inherit' } },
     credits: { enabled: false },
     legend: { enabled: false },
     series: [{ name: 'Total Cost', data: costPerWorkspace.workspaceCosts }],
     title: {
-      text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace',
-      fontFamily: 'sans-serif'
+      text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace'
     },
     tooltip: { valuePrefix: '$' },
     xAxis: {
@@ -249,8 +248,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     yAxis: {
       crosshair: true, min: 0,
       labels: { format: `\${value:.2f}`, style: { fontSize: '12px' } },
-      title: { text: 'Total Cost' }
-    }
+      title: { text: 'Total Cost' },
+      width: '96%'
+    },
+    exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
   const spendReportKey = 'spend report'
