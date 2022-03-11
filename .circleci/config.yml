@@ -195,7 +195,7 @@ jobs:
           paths:
             - node_modules
             - .yarn/cache
-      - run: yarn eslint --max-warnings=0 src
+      - run: yarn eslint --max-warnings=0 .
       - run: yarn test
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - run: tar -czf build.tgz .gcloudignore app.yaml build config

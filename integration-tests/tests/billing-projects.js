@@ -1,4 +1,3 @@
-const _ = require('lodash/fp')
 const { click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -53,19 +52,19 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, n
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
-        fn: () => async () => { return new Response(JSON.stringify(projectListResult), { status: 200 }) }
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(projectListResult), { status: 200 }))
       },
       {
         filter: { url: /Alpha_Spend_Report_Users\/action\/use/ },
-        fn: () => async () => { return new Response(JSON.stringify(true), { status: 200 }) }
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(true), { status: 200 }))
       },
       {
         filter: { url: /api\/billing\/v2(.*)\/members$/ },
-        fn: () => async () => { return new Response('[]', { status: 200 }) }
+        fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
       },
       {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
-        fn: () => async () => { return new Response(JSON.stringify(spendReturnResult), { status: 200 }) }
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
   }, spendReturnResult, projectListResult)
