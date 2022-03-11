@@ -723,6 +723,14 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      lock: async () => {
+        return await fetchRawls(`${root}/lock`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      },
+
+      unlock: async () => {
+        return await fetchRawls(`${root}/unlock`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      },
+
       listMethodConfigs: async (allRepos = true) => {
         const res = await fetchRawls(`${mcPath}?allRepos=${allRepos}`, _.merge(authOpts(), { signal }))
         return res.json()

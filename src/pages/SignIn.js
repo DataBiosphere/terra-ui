@@ -3,7 +3,7 @@ import { div, h, p } from 'react-hyperscript-helpers'
 import { HeroWrapper, Link } from 'src/components/common'
 import SignInButton from 'src/components/SignInButton'
 import colors from 'src/libs/colors'
-import { isAnvil, isBioDataCatalyst, isFirecloud } from 'src/libs/config'
+import { isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -28,7 +28,7 @@ const SignIn = () => {
         `${getAppName()} uses your Google account. Once you have signed in and completed the user profile registration step, you can start using ${getAppName()}.`
       ]),
       h(SignInButton),
-      !isAnvil() && div({ style: styles.warningNoticeContainer }, [
+      !isAnvil() && !isElwazi() && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),
         p([`
           By continuing to log in, you acknowledge that you are accessing a US Government web site
@@ -80,22 +80,22 @@ const SignIn = () => {
           }, ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'])
         ])
       ]),
-      isAnvil() && div({ style: styles.warningNoticeContainer }, [
+      (isAnvil() || isElwazi()) && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),
-        p([`
-          You are accessing a web site created by the Genomic Data Science Analysis, Visualization, 
+        isAnvil() && p([`
+          You are accessing a web site created by the Genomic Data Science Analysis, Visualization,
           and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
         `]),
         p([`
-          Unauthorized attempts to upload information, change information, or use of this web site 
-          may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users 
-          of this website should have no expectation of privacy regarding any communications or 
+          Unauthorized attempts to upload information, change information, or use of this web site
+          may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users
+          of this website should have no expectation of privacy regarding any communications or
           data processed by this website.
         `]),
         p([`
-          By continuing to log in, anyone accessing this website expressly consents to monitoring 
-          of their actions and all communications or data transiting or stored on related to this 
-          website and is advised that if such monitoring reveals possible evidence of criminal activity, 
+          By continuing to log in, anyone accessing this website expressly consents to monitoring
+          of their actions and all communications or data transiting or stored on related to this
+          website and is advised that if such monitoring reveals possible evidence of criminal activity,
           evidence may be provided to law enforcement officials.
         `])
       ])

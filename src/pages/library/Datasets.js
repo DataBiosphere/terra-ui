@@ -19,8 +19,10 @@ import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -107,6 +109,7 @@ const Participant = ({ logo, title, shortDescription, description, sizeText, mod
 
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
+const captureBrowseDataEvent = datasetName => Ajax().Metrics.captureEvent(Events.datasetLibraryBrowseData, { datasetName })
 
 const thousandGenomesHighCoverage = () => h(Participant, {
   logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL', height: '55%' },
@@ -118,7 +121,8 @@ const thousandGenomesHighCoverage = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse 1000 Genomes High Coverage data',
     tooltip: 'Visit the workspace',
-    href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' })
+    href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
+    onClick: () => captureBrowseDataEvent('1000 Genomes High Coverage')
   }, ['Browse data'])
 ])
 
@@ -136,7 +140,8 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse 1000 Genomes Low Coverage data',
     tooltip: browseTooltip,
-    href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' })
+    href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
+    onClick: () => captureBrowseDataEvent('1000 Genomes Low Coverage')
   }, ['Browse data'])
 ])
 
@@ -181,11 +186,13 @@ const amppd = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse AMP-PD Tier 1 data',
     style: { marginBottom: '1rem' },
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' }),
+    onClick: () => captureBrowseDataEvent('AMP PD Clinical - 2020_v2release_1218')
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
     'aria-label': 'Browse AMP-PD Tier 2 data',
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' }),
+    onClick: () => captureBrowseDataEvent('AMP PD - 2020_v2release_1218')
   }, ['Browse Tier 2 Data'])
 ])
 
@@ -203,7 +210,8 @@ const baseline = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     'aria-label': 'Browse Baseline Health Study data',
-    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' }),
+    onClick: () => captureBrowseDataEvent('Baseline Health Study')
   }, ['Browse Data'])
 ])
 
@@ -218,6 +226,7 @@ const ccdg = () => h(Participant, {
     'aria-label': 'Browse CCDG data',
     tooltip: browseTooltip,
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
+    onClick: () => captureBrowseDataEvent('CCDG'),
     ...Utils.newTabLinkProps
   }, ['Browse data'])
 ])
@@ -233,6 +242,7 @@ const cmg = () => h(Participant, {
     'aria-label': 'Browse CMG data',
     tooltip: browseTooltip,
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
+    onClick: () => captureBrowseDataEvent('CMG'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -252,6 +262,7 @@ const encode = () => h(Participant, {
     'aria-label': 'Browse ENCODE data',
     tooltip: browseTooltip,
     href: 'https://broad-gdr-encode.appspot.com/',
+    onClick: () => captureBrowseDataEvent('ENCODE'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -267,6 +278,7 @@ const fcDataLib = () => h(Participant, {
     'aria-label': 'Browse Broad Institute datasets',
     tooltip: 'Search for dataset workspaces',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
+    onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
     ...Utils.newTabLinkProps
   }, ['Browse Datasets'])
 ])
@@ -287,7 +299,8 @@ const framingham = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Framingham Heart Study dataset',
     tooltip: browseTooltip,
-    href: Nav.getLink('data-explorer-public', { dataset: 'Framingham Heart Study Teaching Dataset' })
+    href: Nav.getLink('data-explorer-public', { dataset: 'Framingham Heart Study Teaching Dataset' }),
+    onClick: () => captureBrowseDataEvent('Framingham Heart Study')
   }, ['Browse data'])
 ])
 
@@ -295,17 +308,17 @@ const gp2 = () => h(Participant, {
   logo: { src: gp2Logo, alt: 'GP2 logo', height: '40%' },
   modalLogoHeight: 100,
   title: `GP2`,
-  shortDescription: `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding 
-    of the genetic basis of Parkinson’s disease (PD) across diverse populations, including those 
+  shortDescription: `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding
+    of the genetic basis of Parkinson’s disease (PD) across diverse populations, including those
     underserved in biomedical...`,
   description: p([
-    `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding of the genetic 
-    basis of Parkinson’s disease (PD) across diverse populations, including those underserved in 
-    biomedical research. This program includes targeted collection and analysis of data and samples 
-    from Africa, Asia, Europe and the Americas toward genetic insights that will broaden biomarker and 
-    therapeutic discovery and development. GP2 is a resource of the Aligning Science Across 
-    Parkinson’s (ASAP) initiative, which has developed an ambitious roadmap to tackle key scientific 
-    challenges in PD by supporting meaningful, multidisciplinary collaboration; generating 
+    `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding of the genetic
+    basis of Parkinson’s disease (PD) across diverse populations, including those underserved in
+    biomedical research. This program includes targeted collection and analysis of data and samples
+    from Africa, Asia, Europe and the Americas toward genetic insights that will broaden biomarker and
+    therapeutic discovery and development. GP2 is a resource of the Aligning Science Across
+    Parkinson’s (ASAP) initiative, which has developed an ambitious roadmap to tackle key scientific
+    challenges in PD by supporting meaningful, multidisciplinary collaboration; generating
     research-enabling resources; and sharing data.`
   ])
 }, [
@@ -313,12 +326,14 @@ const gp2 = () => h(Participant, {
     'aria-label': 'Browse GP2 Tier 1 data',
     style: { marginBottom: '1rem' },
     tooltip: 'Visit the workspace',
-    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier1' })
+    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier1' }),
+    onClick: () => captureBrowseDataEvent('GP2 Tier 1 data')
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
     'aria-label': 'Browse GP2 Tier 2 data',
     tooltip: 'Visit the workspace',
-    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier2' })
+    href: Nav.getLink('workspace-dashboard', { namespace: 'cardterra', name: 'GP2_Tier2' }),
+    onClick: () => captureBrowseDataEvent('GP2 Tier 2 data')
   }, ['Browse Tier 2 Data'])
 ])
 
@@ -333,6 +348,7 @@ const hca = () => h(Participant, {
     'aria-label': 'Browse Human Cell Atlas data',
     tooltip: 'Look for the Export Selected Data button to export data from this provider.',
     href: 'https://data.humancellatlas.org/explore/projects',
+    onClick: () => captureBrowseDataEvent('Human Cell Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -349,6 +365,7 @@ const nemo = () => h(Participant, {
     'aria-label': 'Browse Neuroscience Multi-Omic Archive data',
     tooltip: 'Look for the Export to Terra option in the Download Cart to export data.',
     href: 'http://portal.nemoarchive.org/',
+    onClick: () => captureBrowseDataEvent('Nemo Archive'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -365,6 +382,7 @@ const target = () => h(Participant, {
 }, [h(ButtonPrimary, {
   'aria-label': 'Browse TARGET data',
   href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
+  onClick: () => captureBrowseDataEvent('TARGET'),
   ...Utils.newTabLinkProps
 }, ['Browse Data'])])
 
@@ -384,6 +402,7 @@ const tcga = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Cancer Genome Atlas data',
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
+    onClick: () => captureBrowseDataEvent('Cancer Genome Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])
@@ -400,6 +419,7 @@ const topMed = () => h(Participant, {
     'aria-label': 'Browse TopMed data',
     tooltip: browseTooltip,
     href: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer',
+    onClick: () => captureBrowseDataEvent('TopMed'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
 ])

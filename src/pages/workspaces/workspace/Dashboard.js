@@ -307,7 +307,7 @@ const WorkspaceDashboard = _.flow(
         ]),
         (busy || !tagsList) && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
       ]),
-      Utils.canWrite(accessLevel) && div({ style: { marginBottom: '0.5rem' } }, [
+      !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
         h(WorkspaceTagSelect, {
           value: null,
           placeholder: 'Add a tag',
@@ -319,7 +319,7 @@ const WorkspaceDashboard = _.flow(
         _.map(tag => {
           return span({ key: tag, style: styles.tag }, [
             tag,
-            Utils.canWrite(accessLevel) && h(Link, {
+            !Utils.editWorkspaceError(workspace) && h(Link, {
               tooltip: 'Remove tag',
               disabled: busy,
               onClick: () => deleteTag(tag),
