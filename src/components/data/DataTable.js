@@ -12,6 +12,7 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { isDataTableSavedColumnSettingsEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
@@ -331,7 +332,7 @@ const DataTable = props => {
           }
         ]),
         // Enable saved column settings only for data tables, not snapshots
-        h(ColumnSelector, _.merge(snapshotName ? {} : {
+        h(ColumnSelector, _.merge(snapshotName || !isDataTableSavedColumnSettingsEnabled() ? {} : {
           columnSettingsComponent: ColumnSettingsWithSavedColumnSettings,
           entityMetadata,
           entityType,
