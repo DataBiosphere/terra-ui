@@ -61,11 +61,11 @@ const runtimeTypes = {
 const pdTypes = {
   standard: {
     label: 'pd-standard',
-    displayName: 'Standard persistent disk'
+    displayName: 'Standard'
   },
   ssd: {
     label: 'pd-ssd',
-    displayName: 'Solid state drive'
+    displayName: 'Solid state drive (SSD)'
   }
 }
 
