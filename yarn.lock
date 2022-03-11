@@ -3228,9 +3228,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansi-html@npm:0.0.7":
-  version: 0.0.7
-  resolution: "ansi-html@npm:0.0.7"
+"ansi-html@npm:0.0.8":
+  version: 0.0.8
+  resolution: "ansi-html@npm:0.0.8"
   bin:
     ansi-html: ./bin/ansi-html
   checksum: 9b839ce99650b4c2d83621d67d68622d27e7948b54f7a4386f2218a3997ee4e684e5a6e8d290880c3f3260e8d90c2613c59c7028f04992ad5c8d99d3a0fcc02c
@@ -15953,7 +15953,7 @@ resolve@^2.0.0-next.3:
   version: 3.11.1
   resolution: "webpack-dev-server@npm:3.11.1"
   dependencies:
-    ansi-html: 0.0.7
+    ansi-html: 0.0.8
     bonjour: ^3.5.0
     chokidar: ^2.1.8
     compression: ^1.7.4
