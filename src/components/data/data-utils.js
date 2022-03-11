@@ -777,10 +777,3 @@ export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, 
 export const saveScroll = _.throttle(100, (initialX, initialY) => {
   StateHistory.update({ initialX, initialY })
 })
-
-// Accepts two arrays of attribute names. Concatenates, uniquifies, and sorts those attribute names, returning
-// the resultant array. Uniqification is case-insensitive but case-preserving, to mirror backend behavior of the
-// entity type metadata API. Uniqification prefers the leftmost attribute.
-export const concatenateAttributeNames = (attrList1, attrList2) => {
-  return _.uniqWith((left, right) => !left.localeCompare(right, undefined, { sensitivity: 'accent' }), _.concat(attrList1, attrList2)).sort()
-}
