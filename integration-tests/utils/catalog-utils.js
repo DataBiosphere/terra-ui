@@ -1,6 +1,7 @@
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { click, clickable, checkbox, clickTableCell, noSpinnersAfter } = require('../utils/integration-utils')
 
+
 const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
   if (testFailure) {
     cleanupFailure && console.error(`${cleanupMessage}: ${cleanupFailure.message}`)

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Select, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import { CromwellModalBase } from 'src/components/CromwellModal'
 import Dropzone from 'src/components/Dropzone'
@@ -85,7 +85,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
           [isToolAnApp(currentTool) && !!app, () => {
             console.error(
-              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(app.appType)} instance when one exists; the button should be disabled.`)
+              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(
+                app.appType)} instance when one exists; the button should be disabled.`)
             resetView()
           }]
         )]
@@ -143,43 +144,51 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem',
         textAlign: 'center', width: '100%', height: 60
       },
-      image: { verticalAlign: 'middle', height: '100%', width: '40%' }
+      image: { verticalAlign: 'middle', height: '100%', width: '40%' },
+      hover: { backgroundColor: colors.accent(0.3) }
     }
 
     const galaxyApp = currentApp(tools.galaxy.label)
     const cromwellApp = currentApp(tools.cromwell.label)
 
+    // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
     }, [
-      div({
+      h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.Jupyter.label)
           enterNextViewMode(tools.Jupyter.label)
-        }
-      }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
-      div({
+        },
+        hover: styles.hover
+      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: '30%' }) })]),
+      h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
           enterNextViewMode(tools.RStudio.label)
-        }
-      }, [img({ src: rstudioBioLogo, style: styles.image })]),
-      div({
+        },
+        hover: styles.hover
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
+      h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
-        }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
-      !tools.cromwell.isAppHidden && div({
+        },
+        hover: !galaxyApp ? styles.hover : undefined,
+        disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
+      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
+      !tools.cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
-        }, disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
-      }, [img({ src: cromwellImg, style: styles.image })])
+        },
+        hover: !cromwellApp ? styles.hover : undefined,
+        disabled: !!cromwellApp, tooltip: cromwellApp ? 'You already have a Cromwell instance' : ''
+      }, [img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })])
     ])
 
     const renderSelectAnalysisBody = () => div({
-      style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' }
+      style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' }
     }, [
       renderToolButtons(),
       h(Dropzone, {

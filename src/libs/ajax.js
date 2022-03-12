@@ -565,7 +565,9 @@ const Billing = signal => ({
   },
 
   /**
-   * Returns the spend report for the given billing project, from 12 AM on the startDate to 11:59 PM on the endDate (UTC).
+   * Returns the spend report for the given billing project, from 12 AM on the startDate to 11:59 PM on the endDate (UTC). Spend details by
+   * Workspace are included.
+   *
    * @param billingProjectName
    * @param startDate, a string of the format YYYY-MM-DD, representing the start date of the report.
    * @param endDate a string of the format YYYY-MM-DD, representing the end date of the report.
@@ -573,7 +575,7 @@ const Billing = signal => ({
    */
   getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
     const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate })}`,
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace' })}`,
       _.merge(authOpts(), { signal })
     )
     return res.json()
@@ -721,6 +723,14 @@ const Workspaces = signal => ({
         const res = await fetchOrchestration(`api/${root}/acl?inviteUsersNotFound=${inviteNew}`,
           _.mergeAll([authOpts(), jsonBody(aclUpdates), { signal, method: 'PATCH' }]))
         return res.json()
+      },
+
+      lock: async () => {
+        return await fetchRawls(`${root}/lock`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      },
+
+      unlock: async () => {
+        return await fetchRawls(`${root}/unlock`, _.merge(authOpts(), { signal, method: 'PUT' }))
       },
 
       listMethodConfigs: async (allRepos = true) => {

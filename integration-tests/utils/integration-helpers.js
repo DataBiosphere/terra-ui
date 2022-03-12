@@ -180,13 +180,17 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
+const overrideConfig = async (page, configToPassIn) => {
+  await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+}
+
 const enableDataCatalog = async (page, testUrl, token) => {
   await page.goto(testUrl)
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
-  await page.evaluate(() => window.configOverridesStore.set({ isDataBrowserVisible: true }))
-  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+  await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, token)
@@ -198,6 +202,7 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   enableDataCatalog,
+  overrideConfig,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,

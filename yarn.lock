@@ -7792,6 +7792,23 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
+"highcharts-react-official@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "highcharts-react-official@npm:3.1.0"
+  peerDependencies:
+    highcharts: ">=6.0.0"
+    react: ">=16.8.0"
+  checksum: 13ea12e8f778d4b7dac735082b6f36ed3c852b7c31823812ba42ea78e72ce21b90e62daf0a2bc35bb6db07705a9f19cf7b21c03455c6f3fb14e7cab8d35b0ecf
+  languageName: node
+  linkType: hard
+
+"highcharts@npm:^9.3.3":
+  version: 9.3.3
+  resolution: "highcharts@npm:9.3.3"
+  checksum: bd952eafcf7b1c136ab1e20d6b58172f9aeab9381c13e3d67f08b10eb6b2c1f96e62a8d276f29b1e92ef0a8cbc6d1696cd0e554691063a5183235e820b42404b
+  languageName: node
+  linkType: hard
+
 "history@npm:^4.10.1":
   version: 4.10.1
   resolution: "history@npm:4.10.1"
@@ -14972,6 +14989,8 @@ resolve@^2.0.0-next.3:
     file-saver: ^2.0.5
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0
+    highcharts: ^9.3.3
+    highcharts-react-official: ^3.1.0
     history: ^4.10.1
     husky: ^7.0.2
     iframe-resizer: ^4.3.2
