@@ -88,7 +88,7 @@ const LegacyAttributesComponent = ({ dataObj }) => {
   return h(Collapse, {
     title: h2({ style: { fontWeight: 'normal', fontSize: '1.2rem' } }, ['Legacy Dataset Attributes']),
     initialOpenState: true,
-    style: { borderTop: '2px solid #D6D7D7' }
+    style: { borderTop: '2px solid #D6D7D7', marginTop: '1.5rem' }
   }, [
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } },
       _.flow(
@@ -102,9 +102,6 @@ const LegacyAttributesComponent = ({ dataObj }) => {
           ])
         })
       )(dataObj.legacyDatasetAttributes)
-      // _.map(attr => {
-      //   return div({ style: { width: '30%', margin: '10px 0' } }, [attr])
-      // }, dataObj.legacyDatasetAttributes)
     )
   ])
 }
@@ -241,30 +238,6 @@ const DataBrowserDetails = ({ id }) => {
   const { dataCatalog } = useDataCatalog()
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
   const dataObj = dataMap[id]
-
-  // if (dataObj) {
-  //   // TODO: Update this data source with actual field information when workspaces are included
-  //   dataObj.dataSource = {
-  //     storageSystemName: 'the Terra workspace',
-  //     storageSystemId: '',
-  //     storageSourceId: 'testing',
-  //     storageSourceName: 'TARGET_WT_hg38_OpenAccess_GDCDR-12-0_DATA'
-  //   }
-
-  //   dataObj.legacyDatasetAttributes = {
-  //     experimentalStrategy: 'Whole Exome',
-  //     cohortDescription: 'Whilms Tumor',
-  //     cohortName: 'TARGET Kidney Tumors Project: Wilms Tumor',
-  //     cohortPhenotype: 'metachronous kidney Wilms\' tumor',
-  //     datasetVersion: 'GDCDR-12-0',
-  //     datasetOwner: 'NCI',
-  //     datasetCustodian: 'Chet Birger',
-  //     noOfSubjects: 'Number of Subjects',
-  //     region: 'Multi-region - US',
-  //     studyDesign: 'Tumor/Norma',
-  //     projectName: 'TARGET'
-  //   }
-  // }
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
