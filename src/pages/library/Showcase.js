@@ -23,7 +23,7 @@ const sidebarSections = [{
   name: 'Analysis Tools',
   labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
 }, {
-  name: 'Experimental Strategy',
+  name: 'Experimental Strategies',
   labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
     'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
 }, {
