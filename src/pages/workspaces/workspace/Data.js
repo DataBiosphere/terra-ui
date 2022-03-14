@@ -152,6 +152,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
       snapshotName,
       workspace,
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      setEntityMetadata: () => {},
       entityKey: tableName,
       loadMetadata,
       firstRender
@@ -723,6 +724,7 @@ const WorkspaceData = _.flow(
             key: refreshKey,
             workspace,
             entityMetadata,
+            setEntityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
