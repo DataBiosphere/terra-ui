@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, hr, li, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, IdContainer, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -199,7 +199,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
         })
       ])]),
       p({ style: { marginTop: 0 } }, 'This column selection will be shared with all users of this workspace.'),
-      h(ButtonPrimary, {
+      h(ButtonOutline, {
         disabled: !selectedSettingsName,
         tooltip: cond(
           [!selectedSettingsName, () => 'Enter a name to save column selection'],
@@ -211,7 +211,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
         }
       }, selectedSettingsNameExists ? 'Update' : 'Save')
     ] : [
-      h(ButtonPrimary, {
+      h(ButtonOutline, {
         onClick: () => { setShowSaveForm(true) }
       }, 'Save this column selection')
     ]),
