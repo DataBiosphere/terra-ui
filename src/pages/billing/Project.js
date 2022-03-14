@@ -1,14 +1,10 @@
-import Highcharts from 'highcharts' // Highcharts is being used under the Creative Commons Attribution-NonCommercial 3.0 license
-import highchartsAccessibility from 'highcharts/modules/accessibility'
-import highchartsExporting from 'highcharts/modules/exporting'
-import HighchartsReact from 'highcharts-react-official'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { div, h, h3, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -194,6 +190,8 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
+const LazySpendChart = lazy(() => import('src/components/SpendChart'))
+
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
@@ -229,8 +227,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
 
-  highchartsAccessibility(Highcharts)
-  highchartsExporting(Highcharts)
   const maxWorkspacesInChart = 10
   const spendChartOptions = {
     chart: { type: 'bar', style: { fontFamily: 'inherit' } },
@@ -371,9 +367,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ])])]),
         CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
       ]),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: '500px' } }, // Set minWidth so chart will shrink on resize
-        [h(HighchartsReact, { highcharts: Highcharts, options: spendChartOptions })]
-      )
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
+        h(Suspense, { fallback: centeredSpinner() }, [h(LazySpendChart, { options: spendChartOptions })])
+      ])
     ])
   }
 
