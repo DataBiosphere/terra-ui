@@ -8,6 +8,7 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ColumnSettings } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -245,7 +246,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
                   }, [
                     h(Clickable, {
                       'aria-label': 'Column selection menu',
-                      style: { marginLeft: '1ch' }
+                      style: { color: colors.accent(), marginLeft: '1ch' }
                     }, [icon('cardMenuIcon')])
                   ])
                 ])
