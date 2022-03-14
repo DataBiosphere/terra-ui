@@ -414,6 +414,7 @@ const WorkspaceData = _.flow(
 
   const loadEntityMetadata = async () => {
     try {
+      setEntityMetadata(undefined)
       setEntityMetadataError(false)
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
