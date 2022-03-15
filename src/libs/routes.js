@@ -37,6 +37,7 @@ import * as AnalysisLauncher from 'src/pages/workspaces/workspace/notebooks/Anal
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
+import * as MethodConfig from 'src/pages/workspaces/workspace/MethodConfigs'
 
 
 const routes = _.flatten([
@@ -75,6 +76,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
+  MethodConfig.navPaths,
   NotFound.navPaths // must be last
 ])
 
