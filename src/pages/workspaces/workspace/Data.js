@@ -152,6 +152,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
       snapshotName,
       workspace,
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      setEntityMetadata: () => {},
       entityKey: tableName,
       loadMetadata,
       firstRender
@@ -413,6 +414,7 @@ const WorkspaceData = _.flow(
 
   const loadEntityMetadata = async () => {
     try {
+      setEntityMetadata(undefined)
       setEntityMetadataError(false)
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
@@ -723,6 +725,7 @@ const WorkspaceData = _.flow(
             key: refreshKey,
             workspace,
             entityMetadata,
+            setEntityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
