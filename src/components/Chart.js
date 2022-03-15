@@ -8,8 +8,6 @@ import { h } from 'react-hyperscript-helpers'
 highchartsAccessibility(Highcharts)
 highchartsExporting(Highcharts)
 
-const Chart = ({ options }) => {
-  return h(HighchartsReact, { highcharts: Highcharts, options })
-}
+const Chart = ({ options }) => h(HighchartsReact, { highcharts: Highcharts, options })
 
 export default Chart
