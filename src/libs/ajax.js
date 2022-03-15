@@ -669,8 +669,12 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  getTags: async tag => {
-    const res = await fetchRawls(`workspaces/tags?${qs.stringify({ q: tag })}`, _.merge(authOpts(), { signal }))
+  getTags: async (tag, limit) => {
+    const params = { q: tag }
+    if (limit) {
+      params.limit = limit
+    }
+    const res = await fetchRawls(`workspaces/tags?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
