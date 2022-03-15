@@ -63,7 +63,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: 232, ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
         tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
         tooltipDelay: 250,
