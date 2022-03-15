@@ -103,7 +103,7 @@ const DataTable = props => {
   const signal = useCancellation()
 
   // Helpers
-  const loadData = entityMetadata && _.flow(
+  const loadData = !!entityMetadata && _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
