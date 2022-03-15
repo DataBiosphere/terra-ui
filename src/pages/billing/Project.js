@@ -292,7 +292,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         gridRowStart: 2
       }
     }, [
-      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': !!totalCost ? 'polite' : 'off', 'aria-atomic': true }, [
+      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': totalCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
         h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
       ])
@@ -365,7 +365,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           })
         ])])]),
-        CostCard({ title: 'Total spend', amount: (!!totalCost ? totalCost : '$__.__') })
+        CostCard({ title: 'Total spend', amount: (totalCost !== null ? totalCost : '$__.__') })
       ]),
       costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
         h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
