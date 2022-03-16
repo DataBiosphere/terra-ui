@@ -52,7 +52,8 @@ const WorkspaceTabs = ({
     // we want this feature gated until it is ready for release
     ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
     { name: 'workflows', link: 'workspace-workflows' },
-    { name: 'job history', link: 'workspace-job-history' }
+    { name: 'job history', link: 'workspace-job-history' },
+    { name: 'method configs', link: 'method-configs' }
   ]
   return h(Fragment, [
     h(TabBar, {
