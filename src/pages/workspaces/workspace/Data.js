@@ -63,7 +63,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: 232, ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
         tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
         tooltipDelay: 250,
@@ -152,6 +152,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
       snapshotName,
       workspace,
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      setEntityMetadata: () => {},
       entityKey: tableName,
       loadMetadata,
       firstRender
@@ -413,6 +414,7 @@ const WorkspaceData = _.flow(
 
   const loadEntityMetadata = async () => {
     try {
+      setEntityMetadata(undefined)
       setEntityMetadataError(false)
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
@@ -723,6 +725,7 @@ const WorkspaceData = _.flow(
             key: refreshKey,
             workspace,
             entityMetadata,
+            setEntityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,

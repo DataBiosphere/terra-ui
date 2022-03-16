@@ -6,11 +6,12 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
+import { allRegions, availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { getConfig } from 'src/libs/config'
+import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -60,6 +61,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
+  const [isAlphaRegionalityUser, setIsAlphaRegionalityUser] = useState(false)
   const signal = useCancellation()
 
 
@@ -68,6 +70,10 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
     ...(requiredAuthDomain ? [requiredAuthDomain] : [])
   ])
+
+  const loadAlphaRegionalityUser = reportErrorAndRethrow('Error loading regionality group membership')(async () => {
+    setIsAlphaRegionalityUser(await Ajax(signal).Groups.group(getConfig().alphaRegionalityGroup).isMember())
+  })
 
   const create = async () => {
     try {
@@ -132,6 +138,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   // Lifecycle
   useOnMount(() => {
     loadData()
+    loadAlphaRegionalityUser()
   })
 
 
@@ -221,7 +228,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', availableBucketRegions)
+          options: _.sortBy('label', isAlphaRegionalityUser ? allRegions : availableBucketRegions)
         })
       ])]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [

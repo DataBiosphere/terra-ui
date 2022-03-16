@@ -1,16 +1,18 @@
+/* eslint-disable import/no-amd */
+/* global $, define */
 define([
   'base/js/namespace',
   'base/js/promises'
-], function(
+], (
   Jupyter,
   promises
-) {
-  function close_notebook() {
+) => {
+  function closeNotebook() {
     Jupyter.notebook.shutdown_kernel({ confirm: false })
     window.parent.postMessage('close', '*')
   }
 
-  function load_ipython_extension() {
+  function loadIpythonExtension() {
     // hide header
     // $('#header-container').hide() // NOTE: disabled until we have better solutions for displaying save-status
 
@@ -21,7 +23,7 @@ define([
     $('#toggle_header').remove()
 
     // override close menu action
-    $('#close_and_halt').on('click', close_notebook)
+    $('#close_and_halt').on('click', closeNotebook)
 
     // add close button
     $('#menubar-container > div').wrapAll('<div style="max-width: calc(100% - 40px)">')
@@ -43,12 +45,12 @@ define([
         '</a>'
       )
 
-    $('#menubar-close-button').on('click', close_notebook)
+    $('#menubar-close-button').on('click', closeNotebook)
 
     // frequent autosave
-    promises.notebook_loaded.then(function() {
-      Jupyter.notebook.set_autosave_interval(15000);
-    });
+    promises.notebook_loaded.then(() => {
+      Jupyter.notebook.set_autosave_interval(15000)
+    })
 
     // listen for explicit save command
     window.addEventListener('message', e => {
@@ -58,13 +60,12 @@ define([
     })
 
     // report save status up
-    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', function (event, data) {
+    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', (event, data) => {
       window.parent.postMessage(data.value ? 'dirty' : 'saved', '*')
     })
-
   }
 
   return {
-    load_ipython_extension: load_ipython_extension
+    load_ipython_extension: loadIpythonExtension
   }
 })

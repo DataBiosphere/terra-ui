@@ -180,6 +180,7 @@ export const entityAttributeText = (value, machineReadable) => {
         JSON.stringify(value.items) :
         `${value.items.length} ${label}`
     }],
+    [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
     () => value
   )
 }

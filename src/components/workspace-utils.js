@@ -296,17 +296,13 @@ export const WorkspaceImporter = _.flow(
 export const WorkspaceTagSelect = props => {
   const signal = useCancellation()
   const getTagSuggestions = useInstance(() => debouncePromise(withErrorReporting('Error loading tags', async text => {
-    if (text.length > 2) {
-      return _.map(({ tag, count }) => {
-        return { value: tag, label: `${tag} (${count})` }
-      }, _.take(10, await Ajax(signal).Workspaces.getTags(text)))
-    } else {
-      return []
-    }
+    return _.map(({ tag, count }) => {
+      return { value: tag, label: `${tag} (${count})` }
+    }, await Ajax(signal).Workspaces.getTags(text, 10))
   }), 250))
   return h(AsyncCreatableSelect, {
-    noOptionsMessage: () => 'Enter at least 3 characters to search',
     allowCreateWhileLoading: true,
+    defaultOptions: true,
     loadOptions: getTagSuggestions,
     ...props
   })

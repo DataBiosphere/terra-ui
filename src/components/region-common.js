@@ -62,7 +62,7 @@ export const locationTypes = {
   default: 'multi-region'
 }
 
-const allRegions = [
+export const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
