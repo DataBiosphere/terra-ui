@@ -1065,7 +1065,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             value: computeConfig.autopauseThreshold,
             hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
             tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-            onChange: () => updateComputeConfig('autopauseThreshold')
+            onChange: updateComputeConfig('autopauseThreshold')
           }),
           span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
         ])
