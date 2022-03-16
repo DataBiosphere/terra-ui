@@ -7,6 +7,7 @@ import { AutocompleteTextInput } from 'src/components/input'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ColumnSettings } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { useWorkspaceDetails } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -14,7 +15,7 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { noWrapEllipsis } from 'src/libs/style'
-import { cond, withBusyState } from 'src/libs/utils'
+import { cond, editWorkspaceError, withBusyState } from 'src/libs/utils'
 
 
 const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings'
@@ -123,6 +124,7 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
 const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMetadata, columnSettings, onLoad }) => {
   const [loading, setLoading] = useState(true)
   const [savedColumnSettings, setSavedColumnSettings] = useState([])
+  const { workspace, loading: loadingWorkspace } = useWorkspaceDetails(workspaceId, ['accessLevel', 'workspace.isLocked'])
 
   const {
     getSavedColumnSettings,
@@ -175,6 +177,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
   })
 
   const selectedSettingsNameExists = _.has(selectedSettingsName, savedColumnSettings)
+  const editWorkspaceErrorMessage = workspace ? editWorkspaceError(workspace) : undefined
 
   return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
     div(showSaveForm ? [
@@ -213,6 +216,8 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
       }, selectedSettingsNameExists ? 'Update' : 'Save')
     ] : [
       h(ButtonOutline, {
+        disabled: Boolean(editWorkspaceErrorMessage),
+        tooltip: editWorkspaceErrorMessage,
         onClick: () => { setShowSaveForm(true) }
       }, 'Save this column selection')
     ]),
@@ -257,7 +262,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
       ])
     ]),
 
-    loading && spinnerOverlay
+    (loading || loadingWorkspace) && spinnerOverlay
   ])
 }
 
