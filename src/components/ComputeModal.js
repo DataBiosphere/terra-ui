@@ -1672,7 +1672,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             computeExists ?
               h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
                 h(div, [
-                  label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+                  label({ htmlFor: id, style: computeStyles.label }, ['Disk type']),
                   div({ style: { marginTop: '0.5rem' } }, [
                     h(Select, {
                       id,
