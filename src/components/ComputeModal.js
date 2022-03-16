@@ -882,7 +882,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 4.5rem 1fr 5.5rem 1fr 5rem' } }, [
+        div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 5rem 1fr 6rem 1fr 5rem' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
@@ -1051,7 +1051,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             value: computeConfig.autopauseThreshold,
             hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold),
             tooltip: !isAutopauseEnabled(computeConfig.autopauseThreshold) ? 'Autopause must be enabled to configure pause time.' : undefined,
-            onChange: updateComputeConfig('autopauseThreshold')
+            onChange: updateComputeConfig('autopauseThreshold'),
+            'aria-label': 'Minutes of inactivity before autopausing'
           }),
           span({ hidden: !isAutopauseEnabled(computeConfig.autopauseThreshold) }, ['minutes of inactivity'])
         ])
