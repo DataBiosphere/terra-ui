@@ -140,17 +140,18 @@ const ImportData = () => {
         notifyDataImportProgress(jobId)
       }],
       ['snapshot', async () => {
+        // Normalize the title:
+        // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
+        // Replace all whitespace characters with _
+        // Then replace all non alphanumeric characters with nothing
+        const normalizedTitle = _.flow(
+          _.replace(/\s/g, '_'),
+          _.replace(/[^A-Za-z0-9-_]/g, '')
+        )(snapshotName)
+
         if (!_.isEmpty(snapshots)) {
           const responses = await Promise.allSettled(
             _.map(({ title, id, description }) => {
-              // Normalize the title:
-              // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
-              // Replace all whitespace characters with _
-              // Then replace all non alphanumeric characters with nothing
-              const normalizedTitle = _.flow(
-                _.replace(/\s/g, '_'),
-                _.replace(/[^A-Za-z0-9-_]/g, '')
-              )(title)
               return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
             }, snapshots)
           )
@@ -171,7 +172,7 @@ const ImportData = () => {
             throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`)
           }
         } else {
-          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, normalizedTitle)
           notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
         }
       }],
