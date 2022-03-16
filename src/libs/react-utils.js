@@ -83,6 +83,18 @@ export const withDisplayName = _.curry((name, WrappedComponent) => {
   return WrappedComponent
 })
 
+export const combineRefs = refs => {
+  return value => {
+    for (const ref of refs) {
+      if (_.has('current', ref)) {
+        ref.current = value
+      } else if (_.isFunction(ref)) {
+        ref(value)
+      }
+    }
+  }
+}
+
 export const forwardRefWithName = _.curry((name, WrappedComponent) => {
   return withDisplayName(name, forwardRef(WrappedComponent))
 })
