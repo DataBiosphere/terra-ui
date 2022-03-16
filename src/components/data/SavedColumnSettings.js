@@ -96,7 +96,7 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   }
 
   const saveColumnSettings = async (columnSettingsName, columnSettings) => {
-    // Re-fetch column settings to avoid overwriting changes made by other users since we first loaded settings.
+    // Re-fetch column settings to reduce the chances of overwriting changes made by other users since we first loaded settings.
     const allColumnSettings = await getAllSavedColumnSettings()
     const newColumnSettings = _.set(
       `${entityTypeKey}.${columnSettingsName}`,
@@ -107,7 +107,7 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   }
 
   const deleteSavedColumnSettings = async columnSettingsName => {
-    // Re-fetch column settings to avoid overwriting changes made by other users since we first loaded settings.
+    // Re-fetch column settings to reduce the chances of overwriting changes made by other users since we first loaded settings.
     const allColumnSettings = await getAllSavedColumnSettings()
     const newColumnSettings = _.omit(`${entityTypeKey}.${columnSettingsName}`, allColumnSettings)
     await updateSavedColumnSettings(newColumnSettings)
