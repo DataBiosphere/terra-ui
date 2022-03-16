@@ -254,20 +254,6 @@ const PreviewHeader = ({
     }
   })
 
-  // const checkIfOutdated = withErrorReporting('Error checking analysis lock status', async () => {
-  //   const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
-  //     .Buckets
-  //     .analysis(googleProject, bucketName, getDisplayName(analysisName), toolLabel)
-  //     .getObject()
-  //   const hashedUser = await notebookLockHash(bucketName, email)
-  //   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
-  //
-  //   if (lastLockedBy && (lastLockedBy !== hashedUser) && (lockExpirationDate > Date.now())) {
-  //     setLocked(true)
-  //     setLockedBy(lastLockedBy)
-  //   }
-  // })
-
   useOnMount(() => { checkIfLocked() })
 
   return h(ApplicationHeader, {

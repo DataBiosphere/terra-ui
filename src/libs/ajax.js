@@ -1126,6 +1126,15 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
+  listRStudioAnalyses: async (googleProject, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      _.merge(authOpts(await saToken(googleProject)), { signal })
+    )
+    const { items } = await res.json()
+    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), items)
+  },
+
   list: async (googleProject, bucket, prefix) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
@@ -1244,6 +1253,14 @@ const Buckets = signal => ({
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
+      )
+    }
+
+    const updateMetadata = async (fileName, metadata) => {
+      const body = { metadata: metadata }
+      return fetchBuckets(
+        `${bucketUrl}/${encodeFileName(fileName)}`,
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'PATCH' }])
       )
     }
 

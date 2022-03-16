@@ -19,6 +19,8 @@ import validate from 'validate.js'
 
 export const notebookLockHash = (bucketName, email) => Utils.sha256(`${bucketName}:${email}`)
 
+export const ownerEmailHash = email => Utils.sha256(`${email}`)
+
 export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
   if (canShare) {
     const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()

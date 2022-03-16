@@ -1,18 +1,19 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, iframe } from 'react-hyperscript-helpers'
+import { div, h, iframe, p } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
-import { tools } from 'src/components/notebook-utils'
+import Modal from 'src/components/Modal'
+import { getDisplayName, notebookLockHash, ownerEmailHash, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { forwardRefWithName, useStore } from 'src/libs/react-utils'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
-import { cookieReadyStore } from 'src/libs/state'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -41,9 +42,13 @@ const ApplicationLauncher = _.flow(
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
   const cookieReady = useStore(cookieReadyStore)
+  const signal = useCancellation()
+  const { user: { email } } = useStore(authStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [location, setLocation] = useState(defaultLocation)
+  const [outdated, setOutdated] = useState() // list of outdated files
+  const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
@@ -54,6 +59,64 @@ const ApplicationLauncher = _.flow(
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
+  const FileOutdatedModal = ({ onDismiss,bucketName, userEmail }) => {
+    const [outdatedAnalyses, setOutdatedAnalyses] = useState()
+
+    useOnMount(() => {
+      const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
+        const hashedUser = await ownerEmailHash(userEmail)
+        console.log("!!")
+        const outdatedRAnalyses = checkForOutdatedAnalyses({ googleProject, bucketName })
+        console.log(JSON.stringify(outdatedRAnalyses))
+        //const outdatedRAnalyses = _.filter(({analysis}) => analysis.keys().contains(hashedUser) && analysis.get(hashedUser) == 'outdated', rAnalyses)
+        setOutdatedAnalyses(outdatedRAnalyses)
+      })
+      findOutdatedAnalyses()
+    })
+
+    const handleChoice =  _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReportingInModal('Error setting up analysis file syncing')
+    )(async shouldCopy => {
+      await Promise.all(_.flatMap(async analysis => {
+        const bucketObject = await Ajax(signal).Buckets.getObject(googleProject, bucketName, analysis)
+        console.log("!!")
+        console.log(JSON.stringify(bucketObject))
+        // if (shouldCopy) {
+        //
+        // } else {
+        //
+        // }
+      }))
+    })
+
+    return h(Modal, {
+      width: 530,
+      title: 'You have outdated markdown files',
+      onDismiss,
+      showButtons: false
+    }, [
+      p(outdatedAnalyses ?
+        `There is a newer version of this file owned by.` :
+        `There is a newer version of this markdown file.`),
+      p('You can make a copy of your version, or choose to keep your version and have it not be synced to the workspace bucket.'),
+      div({ style: { marginTop: '2rem' } }, [
+        h(ButtonSecondary, {
+          style: { padding: '0 1rem' },
+          onClick: () => handleChoice(true)
+        }, ['Make a copy']),
+        h(ButtonPrimary, {
+          onClick: () => handleChoice(false)
+        }, ['Keep outdated version'])
+      ])
+    ])
+  }
+
+  const checkForOutdatedAnalyses = async ({ googleProject, bucketName}) => {
+    const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)// workspace.workspace.bucketName
+    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), analyses)
+  }
 
   useEffect(() => {
     const runtime = getCurrentRuntime(runtimes)
@@ -104,6 +167,7 @@ const ApplicationLauncher = _.flow(
       runtime, refreshRuntimes,
       onNullRuntime: () => setShowCreate(true)
     }),
+    fileOutdatedOpen && h(FileOutdatedModal, {onDismiss: () => setFileOutdatedOpen(false), bucketName, email}),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
