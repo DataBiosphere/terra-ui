@@ -45,7 +45,7 @@ export const useWorkspaceDetails = ({ namespace, name }, fields) => {
   const signal = useCancellation()
 
   const refresh = _.flow(
-    withErrorReporting('Error loading workspace'),
+    withErrorReporting('Error loading workspace details'),
     Utils.withBusyState(setLoading)
   )(async () => {
     const ws = await Ajax(signal).Workspaces.workspace(namespace, name).details(fields)
