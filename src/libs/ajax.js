@@ -1043,7 +1043,26 @@ const DataRepo = signal => ({
       {
         ...snapshot,
         roles: ['discoverer'],
-        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC'
+        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC',
+        dataSource: {
+          storageSystemName: 'the Terra workspace',
+          storageSystemId: '',
+          storageSourceId: 'testing',
+          storageSourceName: 'TARGET_WT_hg38_OpenAccess_GDCDR-12-0_DATA'
+        },
+        legacyDatasetAttributes: {
+          experimentalStrategy: 'Whole Exome',
+          cohortDescription: 'Whilms Tumor',
+          cohortName: 'TARGET Kidney Tumors Project: Wilms Tumor',
+          cohortPhenotype: 'metachronous kidney Wilms\' tumor',
+          datasetVersion: 'GDCDR-12-0',
+          datasetOwner: 'NCI',
+          datasetCustodian: 'Chet Birger',
+          noOfSubjects: 'Number of Subjects',
+          region: 'Multi-region - US',
+          studyDesign: 'Tumor/Norma',
+          projectName: 'TARGET'
+        }
       } : snapshot, (await res.json())?.result)
   },
 
