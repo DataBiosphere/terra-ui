@@ -17,7 +17,7 @@ import validate from 'validate.js'
 const DataStepContent = ({
   entitySelectionModel, onDismiss, onSuccess,
   entityMetadata, rootEntityType,
-  workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }
+  workspace, workspace: { workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } } }
 }) => {
   // State
   const [type, setType] = useState(entitySelectionModel.type)
@@ -118,7 +118,7 @@ const DataStepContent = ({
             [chooseRootType, () => rootEntityType],
             [chooseSetType, () => entitySetType]
           ),
-          entityMetadata, setEntityMetadata: () => {}, googleProject, workspaceId: { namespace, name }, columnDefaults,
+          entityMetadata, setEntityMetadata: () => {}, googleProject, workspaceId: { namespace, name }, workspace, columnDefaults,
           selectionModel: {
             selected: selectedEntities, setSelected: setSelectedEntities
           }
