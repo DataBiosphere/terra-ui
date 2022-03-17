@@ -872,7 +872,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType)
+    const isRStudio = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
+    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudio
     const enableGpusSpan = span(
       ['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
@@ -929,7 +930,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           }, [
             span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               gpuCheckboxDisabled ?
-                h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
+                h(TooltipTrigger, { content: [isRStudio? 'GPUs are not currently supported for the selected configuration'
+                    : 'GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
                 enableGpusSpan
             ]),
             h(Link, {
