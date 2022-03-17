@@ -33,7 +33,8 @@ module.exports = {
     'no-unused-vars': [
       'warn', {
         'vars': 'all',
-        'args': 'all'
+        'args': 'all',
+        'argsIgnorePattern': '^_'
       }
     ],
     'no-whitespace-before-property': 'warn',
