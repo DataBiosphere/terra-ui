@@ -14,13 +14,12 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaceDetails, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -49,15 +48,7 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
 }
 
 const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock }) => {
-  const [workspace, setWorkspace] = useState(undefined)
-  const signal = useCancellation()
-  const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
-    setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare', 'workspace.isLocked']))
-  })
-  useOnMount(() => {
-    loadWorkspace()
-  })
-
+  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'canShare', 'workspace.isLocked'])
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
