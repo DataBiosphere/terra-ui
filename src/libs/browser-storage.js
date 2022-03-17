@@ -19,8 +19,7 @@ const forceSetItem = (storage, key, value) => {
         console.error('Could not write to storage, and no entries to delete')
         return
       }
-      // eslint-disable-next-line no-unused-vars
-      const [chosenKey] = _.head(_.sortBy(([k, v]) => {
+      const [chosenKey] = _.head(_.sortBy(([_k, v]) => {
         const data = maybeParseJSON(v)
         return data && _.isInteger(data.timestamp) ? data.timestamp : -Infinity
       }, candidates))

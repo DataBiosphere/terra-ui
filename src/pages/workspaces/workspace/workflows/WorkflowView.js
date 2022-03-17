@@ -948,7 +948,6 @@ const WorkflowView = _.flow(
     try {
       const rawUpdates = JSON.parse(await Utils.readFileAsText(file))
       const updates = _.mapValues(v => _.isString(v) && v.match(/\${(.*)}/) ?
-        // eslint-disable-next-line no-unused-vars
         v.replace(/\${(.*)}/, (_, match) => match) :
         JSON.stringify(v)
       )(rawUpdates)

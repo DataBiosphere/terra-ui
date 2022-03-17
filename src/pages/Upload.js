@@ -146,7 +146,6 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
 }
 
 const WorkspaceSelectorPanel = ({
-  // eslint-disable-next-line no-unused-vars
   workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children, ...props
 }) => {
   const [filter, setFilter] = useState(StateHistory.get().filter || '')
@@ -319,7 +318,6 @@ const CollectionSelectorPanel = _.flow(
   withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  // eslint-disable-next-line no-unused-vars
   workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
 }) => {
   // State

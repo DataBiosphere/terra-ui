@@ -249,7 +249,6 @@ const withAutocomplete = WrappedComponent => forwardRefWithName(`withAutocomplet
     })
   })
 
-  // eslint-disable-next-line no-unused-vars
   const stateReducer = (_unused, action) => {
     return action.type === Downshift.stateChangeTypes.keyDownEscape ? { isOpen: false } : action
   }
