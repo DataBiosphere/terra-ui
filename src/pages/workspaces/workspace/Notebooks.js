@@ -222,6 +222,7 @@ const Notebooks = _.flow(
 )(({
   apps, appDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
+// eslint-disable-next-line no-unused-vars
 }, ref) => {
   // State
   const [renamingNotebookName, setRenamingNotebookName] = useState(undefined)

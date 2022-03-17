@@ -355,6 +355,7 @@ export const formatBytes = bytes => {
     ['G', 2 ** 30],
     ['M', 2 ** 20],
     ['K', 2 ** 10]
+  // eslint-disable-next-line no-unused-vars
   ].find(([p, d]) => bytes >= d)
   return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
 }

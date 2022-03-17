@@ -98,6 +98,9 @@ export const initializeAuth = _.memoize(async () => {
           timeout: 30000
         })
       }
+
+      console.log('in initializeAuth', state)
+
       return {
         ...state,
         isSignedIn,
@@ -125,6 +128,7 @@ export const initializeAuth = _.memoize(async () => {
       }
     })
   }
+  console.log('user?', getAuthInstance().currentUser.get())
   processUser(getAuthInstance().currentUser.get())
   getAuthInstance().currentUser.listen(processUser)
 })

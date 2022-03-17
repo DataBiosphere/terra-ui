@@ -474,6 +474,7 @@ const Profile = ({ queryParams }) => {
                 Utils.withBusyState(setSaving),
                 withErrorReporting('Error saving profile')
               )(async () => {
+                // eslint-disable-next-line no-unused-vars
                 const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
                 await Promise.all([
                   Ajax().User.profile.set(_.pickBy(_.identity, profileData)),

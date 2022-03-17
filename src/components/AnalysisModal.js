@@ -34,7 +34,7 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
+    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)

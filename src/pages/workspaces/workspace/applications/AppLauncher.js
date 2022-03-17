@@ -39,6 +39,7 @@ const ApplicationLauncher = _.flow(
     title: _.get('application'),
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
+// eslint-disable-next-line no-unused-vars
 )(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
   const cookieReady = useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)

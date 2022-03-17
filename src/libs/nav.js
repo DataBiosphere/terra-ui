@@ -13,6 +13,7 @@ export const blockNav = Utils.atom(() => Promise.resolve())
 
 export const history = createHistory({
   hashType: 'noslash',
+  // eslint-disable-next-line no-unused-vars
   getUserConfirmation: (_, cb) => blockNav.get()().then(() => cb(true))
 })
 

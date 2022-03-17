@@ -37,8 +37,8 @@ const navIconProps = {
 
 const WorkspaceTabs = ({
   namespace, name, workspace, activeTab, refresh,
-  deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
-  sharingWorkspace, setSharingWorkspace
+  setDeletingWorkspace, setCloningWorkspace,
+  setSharingWorkspace
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare

@@ -17,6 +17,7 @@ export const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEnt
     _.values,
     _.flatMap(_.flow(_.get('attributes'), _.toPairs)),
     // Find attributes that reference other entities
+    // eslint-disable-next-line no-unused-vars
     _.filter(([attributeName, attributeValue]) => _.get('itemsType', attributeValue) === 'EntityReference'),
     // Find all entity types that are referenced by each attribute
     _.flatMap(([attributeName, { items }]) => {

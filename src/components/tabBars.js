@@ -48,7 +48,7 @@ const styles = {
  */
 export const TabBar = ({
   activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
-  getOnClick = _.noop, tabProps = {}, children, ...props
+  getOnClick = _.noop, children, ...props
 }) => {
   useLabelAssert('TabBar', props)
 

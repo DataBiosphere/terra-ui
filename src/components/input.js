@@ -231,7 +231,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
+  itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
   useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
@@ -249,6 +249,7 @@ const withAutocomplete = WrappedComponent => ({
     })
   })
 
+  // eslint-disable-next-line no-unused-vars
   const stateReducer = (_unused, action) => {
     return action.type === Downshift.stateChangeTypes.keyDownEscape ? { isOpen: false } : action
   }

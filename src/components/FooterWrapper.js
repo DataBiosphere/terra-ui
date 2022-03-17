@@ -37,7 +37,7 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     if (fixedHeight) {
       window.addEventListener('resize', handleResize)
     }
-    return _ => {
+    return () => {
       window.removeEventListener('resize', handleResize)
     }
   })

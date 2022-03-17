@@ -34,6 +34,7 @@ const SubmissionDetails = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   })
+// eslint-disable-next-line no-unused-vars
 )((props, ref) => {
   const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
 

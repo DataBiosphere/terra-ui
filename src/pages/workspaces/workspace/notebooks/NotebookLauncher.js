@@ -44,6 +44,7 @@ const NotebookLauncher = _.flow(
   })
 )(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
+    // eslint-disable-next-line no-unused-vars
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const [busy, setBusy] = useState()

@@ -30,6 +30,12 @@ module.exports = {
     'no-multiple-empty-lines': 'warn',
     'no-trailing-spaces': 'warn',
     'no-unneeded-ternary': 'warn',
+    'no-unused-vars': [
+      'warn', {
+        'vars': 'all',
+        'args': 'all'
+      }
+    ],
     'no-whitespace-before-property': 'warn',
     'nonblock-statement-body-position': 'warn',
     'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
