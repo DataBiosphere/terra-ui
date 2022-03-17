@@ -178,6 +178,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
 
   const selectedSettingsNameExists = _.has(selectedSettingsName, savedColumnSettings)
   const editWorkspaceErrorMessage = workspace ? editWorkspaceError(workspace) : undefined
+  const canSaveSettings = workspace && !editWorkspaceErrorMessage
 
   return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
     div(showSaveForm ? [
@@ -216,7 +217,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
       }, selectedSettingsNameExists ? 'Update' : 'Save')
     ] : [
       h(ButtonOutline, {
-        disabled: Boolean(editWorkspaceErrorMessage),
+        disabled: !canSaveSettings,
         tooltip: editWorkspaceErrorMessage,
         onClick: () => { setShowSaveForm(true) }
       }, 'Save this column selection')
