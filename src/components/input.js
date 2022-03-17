@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import { forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils'
+import { combineRefs, forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -230,10 +230,10 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
   ])
 }
 
-const withAutocomplete = WrappedComponent => ({
+const withAutocomplete = WrappedComponent => forwardRefWithName(`withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`, ({
   itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
-}) => {
+}, ref) => {
   useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
 
   const suggestions = _.filter(suggestionFilter(value), rawSuggestions)
@@ -299,7 +299,7 @@ const withAutocomplete = WrappedComponent => ({
           },
           nativeOnChange: true,
           ...props,
-          ref: inputEl
+          ref: combineRefs([inputEl, ref])
         })),
         isOpen && h(AutocompleteSuggestions, {
           target: getInputProps().id,
@@ -319,7 +319,7 @@ const withAutocomplete = WrappedComponent => ({
       ])
     }
   ])
-}
+})
 
 export const AutocompleteTextInput = withAutocomplete(TextInput)
 

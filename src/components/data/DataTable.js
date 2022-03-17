@@ -3,7 +3,8 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -49,7 +50,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = props => {
   const {
-    entityType, entityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
+    entityType, entityMetadata, setEntityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
     selectionModel: { selected, setSelected },
     childrenBefore,
@@ -103,7 +104,7 @@ const DataTable = props => {
   const signal = useCancellation()
 
   // Helpers
-  const loadData = _.flow(
+  const loadData = !!entityMetadata && _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
@@ -114,6 +115,17 @@ const DataTable = props => {
           { billingProject: googleProject, dataReference: snapshotName } :
           { filterTerms: activeTextFilter })
       }))
+    // Find all the unique attribute names contained in the current page of results.
+    const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
+    // Add any attribute names from the current page of results to those found in metadata.
+    // This allows for stale metadata (e.g. the metadata cache is out of date).
+    // For the time being, the uniqueness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
+    // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs.
+    const attrNamesFromMetadata = entityMetadata[entityType]?.attributeNames
+    const newAttrsForThisType = concatenateAttributeNames(attrNamesFromMetadata, attrNamesFromResults)
+    if (!_.isEqual(newAttrsForThisType, attrNamesFromMetadata)) {
+      setEntityMetadata(_.set([entityType, 'attributeNames'], newAttrsForThisType))
+    }
     setEntities(results)
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
@@ -318,10 +330,17 @@ const DataTable = props => {
             })
           }
         ]),
-        h(ColumnSelector, {
+        // Enable saved column settings only for data tables, not snapshots
+        h(ColumnSelector, _.merge(snapshotName ? {} : {
+          columnSettingsComponent: ColumnSettingsWithSavedColumnSettings,
+          entityMetadata,
+          entityType,
+          snapshotName,
+          workspaceId
+        }, {
           columnSettings,
           onSave: setColumnState
-        })
+        }))
       ]),
       !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({

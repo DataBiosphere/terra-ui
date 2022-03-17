@@ -286,7 +286,7 @@ const PreviewHeader = ({
         ] : [
           h(HeaderButton, {
             onClick: () => {
-              if (runtimeStatus === 'Running') {
+              if (runtimeStatus === 'Running' && currentRuntimeTool === toolLabel) {
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
@@ -326,7 +326,7 @@ const PreviewHeader = ({
         'Starting cloud environment, this may take up to 2 minutes.'
       ])],
       [runtimeStatus === 'Stopping', () => h(StatusMessage, [
-        'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
+        'Cloud environment is stopping, which takes ~4 minutes. It will restart after this finishes.'
       ])],
       [runtimeStatus === 'LeoReconfiguring', () => h(StatusMessage, [
         'Cloud environment is updating, please wait.'

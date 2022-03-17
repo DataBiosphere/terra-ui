@@ -63,7 +63,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: 232, ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
         tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
         tooltipDelay: 250,
@@ -152,6 +152,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
       snapshotName,
       workspace,
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      setEntityMetadata: () => {},
       entityKey: tableName,
       loadMetadata,
       firstRender
@@ -288,7 +289,7 @@ const BucketContent = _.flow(
       )
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-    div({ style: { flex: '1 1 0', overflow: 'auto' }}, [
+    div({ style: { flex: '1 1 0', overflow: 'auto' } }, [
       h(SimpleTable, {
         'aria-label': 'file browser',
         columns: [
@@ -413,6 +414,7 @@ const WorkspaceData = _.flow(
 
   const loadEntityMetadata = async () => {
     try {
+      setEntityMetadata(undefined)
       setEntityMetadataError(false)
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
@@ -583,8 +585,9 @@ const WorkspaceData = _.flow(
                       buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
                       tooltip: canCompute ?
                         tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
-                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                        'Contact the owner of this workspace to change your permissions.')],
+                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
+                          'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                          'Contact the owner of this workspace to change your permissions.')],
                       tooltipSide: canCompute ? 'bottom' : 'left',
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
@@ -722,6 +725,7 @@ const WorkspaceData = _.flow(
             key: refreshKey,
             workspace,
             entityMetadata,
+            setEntityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
