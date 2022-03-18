@@ -732,8 +732,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
 
 const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
   forwardRefWithName('Upload')
-// eslint-disable-next-line no-unused-vars
-)((props, ref) => {
+)((props, _ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
 
   // State

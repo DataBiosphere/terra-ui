@@ -52,8 +52,7 @@ const AnalysisLauncher = _.flow(
     queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
     refreshRuntimes
   },
-  // eslint-disable-next-line no-unused-vars
-  ref) => {
+  _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}

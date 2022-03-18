@@ -38,8 +38,7 @@ const groupCallStatuses = _.flow(
 const statusCell = ({ calls }) => {
   const statusGroups = groupCallStatuses(calls)
   // Note: these variable names match the id values of statusType (except for unknownStatuses, which will be their labels).
-  // eslint-disable-next-line no-unused-vars
-  const { succeeded, failed, running, submitted, waitingForQuota, ...unknownStatuses } = statusGroups
+  const { ...unknownStatuses } = statusGroups
 
   const makeRow = (count, status, labelOverride) => {
     const seeMore = !!status.moreInfoLink ? h(Link, { href: status.moreInfoLink, style: { marginLeft: '0.50rem' }, ...Utils.newTabLinkProps },
@@ -63,8 +62,7 @@ const WorkflowDashboard = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   })
-// eslint-disable-next-line no-unused-vars
-)((props, ref) => {
+)((props, _ref) => {
   const { namespace, name, submissionId, workflowId, workspace: { workspace: { googleProject, bucketName } } } = props
 
   /*

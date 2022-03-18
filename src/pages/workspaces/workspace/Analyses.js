@@ -226,8 +226,7 @@ const Analyses = _.flow(
 )(({
   apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, appDataDisks
-// eslint-disable-next-line no-unused-vars
-}, ref) => {
+}, _ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
