@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { div, h, h3, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -251,7 +251,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   }
 
   const spendReportKey = 'spend report'
-  const maybeLoadTotalCost = reportErrorAndRethrow('Unable to retrieve spend report data')(async () => {
+  const maybeLoadTotalCost = _.flow(
+    reportErrorAndRethrow('Unable to retrieve spend report data'),
+    Utils.withBusyState(setUpdating)
+  )(async () => {
     if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
       setUpdatingTotalCost(true)
       const endDate = new Date().toISOString().slice(0, 10)
@@ -279,7 +282,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       setUpdatingTotalCost(false)
     }
   })
-  maybeLoadTotalCost()
 
   const CostCard = ({ title, amount, ...props }) => {
     return div({
@@ -361,7 +363,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }), [7, 30, 90]),
             onChange: ({ value: selectedDays }) => {
               setSpendReportLengthInDays(selectedDays)
-              setTotalCost(null) // This will force the report to be recalculated based on selectedDays
+              setTotalCost(null)
             }
           })
         ])])]),
@@ -452,6 +454,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useOnMount(() => { reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
+  // Update cost data only if report date range changes, or if spend report tab was selected.
+  useEffect(() => { maybeLoadTotalCost() },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [spendReportLengthInDays, tab]
+  )
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
   // As such, we need a layer of indirection to get current values.
@@ -596,7 +603,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           } else {
             setTab(newTab)
           }
-          maybeLoadTotalCost()
         },
         tabs
       }, [
@@ -645,7 +651,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    updating && spinnerOverlay
+    updating && absoluteSpinnerOverlay
   ])
 }
 
