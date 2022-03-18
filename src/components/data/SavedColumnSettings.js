@@ -14,7 +14,7 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { noWrapEllipsis } from 'src/libs/style'
-import { cond, withBusyState } from 'src/libs/utils'
+import { cond, editWorkspaceError, withBusyState } from 'src/libs/utils'
 
 
 const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings'
@@ -120,7 +120,8 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   }
 }
 
-const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMetadata, columnSettings, onLoad }) => {
+const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetadata, columnSettings, onLoad }) => {
+  const { workspace: { namespace, name } } = workspace
   const [loading, setLoading] = useState(true)
   const [savedColumnSettings, setSavedColumnSettings] = useState([])
 
@@ -128,7 +129,7 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
     getSavedColumnSettings,
     saveColumnSettings,
     deleteSavedColumnSettings
-  } = useSavedColumnSettings({ workspaceId, snapshotName, entityType, entityMetadata })
+  } = useSavedColumnSettings({ workspaceId: { namespace, name }, snapshotName, entityType, entityMetadata })
 
   useOnMount(() => {
     const loadSavedColumnSettings = _.flow(
@@ -175,6 +176,8 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
   })
 
   const selectedSettingsNameExists = _.has(selectedSettingsName, savedColumnSettings)
+  const editWorkspaceErrorMessage = workspace ? editWorkspaceError(workspace) : undefined
+  const canSaveSettings = workspace && !editWorkspaceErrorMessage
 
   return div({ style: { display: 'flex', flexDirection: 'column', height: '100%' } }, [
     div(showSaveForm ? [
@@ -213,6 +216,8 @@ const SavedColumnSettings = ({ workspaceId, snapshotName, entityType, entityMeta
       }, selectedSettingsNameExists ? 'Update' : 'Save')
     ] : [
       h(ButtonOutline, {
+        disabled: !canSaveSettings,
+        tooltip: editWorkspaceErrorMessage,
         onClick: () => { setShowSaveForm(true) }
       }, 'Save this column selection')
     ]),

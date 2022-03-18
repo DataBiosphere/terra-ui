@@ -50,7 +50,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = props => {
   const {
-    entityType, entityMetadata, setEntityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
+    entityType, entityMetadata, setEntityMetadata, workspaceId, workspace, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
     selectionModel: { selected, setSelected },
     childrenBefore,
@@ -336,7 +336,7 @@ const DataTable = props => {
           entityMetadata,
           entityType,
           snapshotName,
-          workspaceId
+          workspace
         }, {
           columnSettings,
           onSave: setColumnState

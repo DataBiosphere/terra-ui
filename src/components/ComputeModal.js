@@ -328,7 +328,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     onSuccess()
   })
 
-  const requiresGCE = () => getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
+  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig()
@@ -872,9 +872,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType)
-    const enableGpusSpan = span(
-      ['Enable GPUs ', betaVersionTag])
+    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
+    const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
     const enableAutopauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -929,8 +928,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           }, [
             span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
               gpuCheckboxDisabled ?
-                h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
-                enableGpusSpan
+                h(TooltipTrigger, {
+                  content: isRStudioImage ?
+                    'GPUs are not currently supported for the selected application configuration.' :
+                    'GPUs can be added only to Standard VM compute at creation time.',
+                  side: 'right'
+                }, [enableGpusSpan]) : enableGpusSpan
             ]),
             h(Link, {
               style: { marginLeft: '1rem', verticalAlign: 'top' },
@@ -993,7 +996,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
-              (requiresGCE() || requiresSpark) && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+              (isRStudioImage || requiresSpark) && h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                 'Only the compute types compatible with the selected application configuration are made available below.'
               ]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
@@ -1008,8 +1011,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     },
                     options: [
                       { value: runtimeTypes.gceVm, isDisabled: requiresSpark },
-                      { value: runtimeTypes.dataprocSingleNode, isDisabled: requiresGCE() },
-                      { value: runtimeTypes.dataprocCluster, isDisabled: requiresGCE() }
+                      { value: runtimeTypes.dataprocSingleNode, isDisabled: isRStudioImage },
+                      { value: runtimeTypes.dataprocCluster, isDisabled: isRStudioImage }
                     ]
                   })
                 ]),
@@ -1032,7 +1035,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           onChange: v => updateComputeConfig('autopauseThreshold', getAutopauseThreshold(v))
         }, [
           span({ style: { marginLeft: '0.5rem', ...computeStyles.label, verticalAlign: 'top' } }, [
-              enableAutopauseSpan
+            enableAutopauseSpan
           ]),
           h(Link, {
             style: { marginLeft: '1rem', verticalAlign: 'top' },
