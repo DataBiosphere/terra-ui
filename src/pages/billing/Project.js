@@ -191,6 +191,8 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
 }
 
 const LazyChart = lazy(() => import('src/components/Chart'))
+const maxWorkspacesInChart = 10
+const spendReportKey = 'spend report'
 
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, reloadBillingProject }) => {
   // State
@@ -226,8 +228,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     { namespace: billingProject.projectName },
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
-
-  const maxWorkspacesInChart = 10
   const spendChartOptions = {
     chart: { type: 'bar', style: { fontFamily: 'inherit' } },
     credits: { enabled: false },
@@ -249,39 +249,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     },
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
-
-  const spendReportKey = 'spend report'
-  const maybeLoadTotalCost = _.flow(
-    reportErrorAndRethrow('Unable to retrieve spend report data'),
-    Utils.withBusyState(setUpdating)
-  )(async () => {
-    if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
-      setUpdatingTotalCost(true)
-      const endDate = new Date().toISOString().slice(0, 10)
-      const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
-      const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
-      const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-      setTotalCost(costFormatter.format(spend.spendSummary.cost))
-
-      const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
-      console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
-      // Get the most expensive workspaces, sorted from most to least expensive.
-      const mostExpensiveWorkspaces = _.flow(
-        _.sortBy(({ cost }) => { return parseFloat(cost) }),
-        _.reverse,
-        _.slice(0, maxWorkspacesInChart)
-      )(workspaceDetails?.spendData)
-      // Pull out names and costs.
-      const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: workspaceDetails?.spendData.length }
-      _.forEach(workspaceCostData => {
-        costsPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-        costsPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
-      })(mostExpensiveWorkspaces)
-      setCostPerWorkspace(costsPerWorkspace)
-
-      setUpdatingTotalCost(false)
-    }
-  })
 
   const CostCard = ({ title, amount, ...props }) => {
     return div({
@@ -455,10 +422,40 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
   // Update cost data only if report date range changes, or if spend report tab was selected.
-  useEffect(() => { maybeLoadTotalCost() },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [spendReportLengthInDays, tab]
-  )
+  useEffect(() => {
+    const maybeLoadTotalCost = _.flow(
+      reportErrorAndRethrow('Unable to retrieve spend report data'),
+      Utils.withBusyState(setUpdating)
+    )(async () => {
+      if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
+        setUpdatingTotalCost(true)
+        const endDate = new Date().toISOString().slice(0, 10)
+        const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+        const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
+        const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
+        setTotalCost(costFormatter.format(spend.spendSummary.cost))
+
+        const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
+        console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
+        // Get the most expensive workspaces, sorted from most to least expensive.
+        const mostExpensiveWorkspaces = _.flow(
+          _.sortBy(({ cost }) => { return parseFloat(cost) }),
+          _.reverse,
+          _.slice(0, maxWorkspacesInChart)
+        )(workspaceDetails?.spendData)
+        // Pull out names and costs.
+        const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: workspaceDetails?.spendData.length }
+        _.forEach(workspaceCostData => {
+          costsPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+          costsPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
+        })(mostExpensiveWorkspaces)
+        setCostPerWorkspace(costsPerWorkspace)
+
+        setUpdatingTotalCost(false)
+      }
+    })
+    maybeLoadTotalCost()
+  }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
   // As such, we need a layer of indirection to get current values.
