@@ -403,7 +403,7 @@ const CollectionSelectorPanel = _.flow(
     ]),
     isCreating && h(NameModal, {
       thing: 'Collection',
-      validator: /^[^ /#*?\[\]]+$/, // eslint-disable-line no-useless-escape
+      validator: /^[^\s/#*?\[\]]+$/, // eslint-disable-line no-useless-escape
       validationMessage: 'Collection name may not contain spaces, forward slashes, or any of the following characters: # * ? [ ]',
       onDismiss: () => setCreating(false),
       onSuccess: ({ name }) => setCollection(name)
