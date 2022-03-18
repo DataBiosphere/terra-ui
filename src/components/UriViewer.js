@@ -79,11 +79,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
       setPreview(null)
     }
   }
-  useOnMount(() => {
-    if (isFilePreviewable(metadata)) {
-      loadPreview()
-    }
-  })
+  useOnMount(() => isFilePreviewable(metadata) && loadPreview())
   return els.cell([
     Utils.cond(
       [isFilePreviewable(metadata), () => h(Fragment, [
