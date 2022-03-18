@@ -38,6 +38,25 @@ export const useWorkspaces = () => {
   return { workspaces, refresh, loading }
 }
 
+export const useWorkspaceDetails = ({ namespace, name }, fields) => {
+  const [workspace, setWorkspace] = useState()
+
+  const [loading, setLoading] = useState(true)
+  const signal = useCancellation()
+
+  const refresh = _.flow(
+    withErrorReporting('Error loading workspace details'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    const ws = await Ajax(signal).Workspaces.workspace(namespace, name).details(fields)
+    setWorkspace(ws)
+  })
+
+  useOnMount(refresh)
+
+  return { workspace, refresh, loading }
+}
+
 export const withWorkspaces = WrappedComponent => {
   return withDisplayName('withWorkspaces', props => {
     const { workspaces, refresh, loading } = useWorkspaces()
