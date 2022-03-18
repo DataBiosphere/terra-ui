@@ -336,7 +336,6 @@ const DataTable = props => {
           entityMetadata,
           entityType,
           snapshotName,
-          workspaceId,
           workspace
         }, {
           columnSettings,

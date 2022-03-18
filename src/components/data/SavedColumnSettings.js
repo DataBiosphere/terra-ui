@@ -120,7 +120,8 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   }
 }
 
-const SavedColumnSettings = ({ workspaceId, workspace, snapshotName, entityType, entityMetadata, columnSettings, onLoad }) => {
+const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetadata, columnSettings, onLoad }) => {
+  const { workspace: { namespace, name } } = workspace
   const [loading, setLoading] = useState(true)
   const [savedColumnSettings, setSavedColumnSettings] = useState([])
 
@@ -128,7 +129,7 @@ const SavedColumnSettings = ({ workspaceId, workspace, snapshotName, entityType,
     getSavedColumnSettings,
     saveColumnSettings,
     deleteSavedColumnSettings
-  } = useSavedColumnSettings({ workspaceId, snapshotName, entityType, entityMetadata })
+  } = useSavedColumnSettings({ workspaceId: { namespace, name }, snapshotName, entityType, entityMetadata })
 
   useOnMount(() => {
     const loadSavedColumnSettings = _.flow(
