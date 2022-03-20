@@ -247,7 +247,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       followPointer: true,
       shared: true,
       headerFormat: '{point.key}',
-      pointFormatter: function() {
+      pointFormatter: function() { // eslint-disable-line object-shorthand
         return `<br/><span style="color:${this.color}">\u25CF</span> ${this.series.name}: ${costPerWorkspace.costFormatter.format(this.y)}`
       }
     },
@@ -258,7 +258,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     yAxis: {
       crosshair: true, min: 0,
       labels: {
-        formatter: function() { return costPerWorkspace.costFormatter.format(this.value) },
+        formatter: function() { return costPerWorkspace.costFormatter.format(this.value) }, // eslint-disable-line object-shorthand
         style: { fontSize: '12px' }
       },
       title: { enabled: false },
@@ -488,7 +488,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
         const costPerWorkspace = {
           workspaceNames: [], workspaceCosts: [], computeCosts: [], storageCosts: [], otherCosts: [],
-          costFormatter: costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+          costFormatter, numWorkspaces: workspaceDetails?.spendData.length
         }
         _.forEach(workspaceCostData => {
           costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
