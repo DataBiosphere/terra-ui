@@ -33,7 +33,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 
     rawConsole.info(`Created workspace: ${workspaceName}`)
   } catch (e) {
-    throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}. Error: ${e}.`)
+    throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}`)
   }
   return workspaceName
 })
@@ -47,7 +47,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 
     rawConsole.info(`Deleted workspace: ${workspaceName}`)
   } catch (e) {
-    throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}. Error: ${e}.`)
+    throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}`)
   }
 })
 
