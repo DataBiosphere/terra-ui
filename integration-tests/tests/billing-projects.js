@@ -115,18 +115,18 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
   await billingPage.selectSpendReport(billingProjectName)
-  // Title and cost are in different elements, but checking both in same text assert to verify that category is correctly associated to cost.
+  // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.00')
   await billingPage.assertText('Total compute$999.00')
   await billingPage.assertText('Total storage$22.00')
   await billingPage.assertText('Total other$89.00')
   // Check that chart loaded, and workspaces are sorted by cost.
   await billingPage.assertText('Spend By Workspace')
-  // Verify all series values of the most expensive workspace
+  // Verify all series values of the most expensive workspace.
   await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Compute', '$900.00')
   await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Other', '$80.00')
   await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Storage', '$20.00')
-  // Spot check other 2 workspaces
+  // Spot-check other 2 workspaces.
   await billingPage.assertChartValue(2, 'Second Most Expensive Workspace', 'Compute', '$90.00')
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
