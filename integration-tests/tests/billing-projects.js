@@ -19,9 +19,9 @@ const billingProjectsPage = (testPage, testUrl) => {
 
     assertText: async expectedText => await findText(testPage, expectedText),
 
-    assertChartValue: async (expectedNumber, expectedText) => {
+    assertChartValue: async (number, workspaceName, category, cost) => {
       // This checks the accessible text for chart values.
-      await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${expectedNumber}. ${expectedText}")]`)
+      await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`)
     }
   }
 }
@@ -31,18 +31,48 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, n
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
     },
-    spendDetails: [{
-      aggregationKey: 'Workspace',
-      spendData: [
-        { cost: '100', workspace: { name: 'Second Most Expensive Workspace' } },
-        { cost: '1000', workspace: { name: 'Most Expensive Workspace' } },
-        { cost: '10', workspace: { name: 'Third Most Expensive Workspace' } }
-      ]
-    }]
+    spendDetails: [
+      {
+        aggregationKey: 'Workspace',
+        spendData: [
+          {
+            cost: '100', workspace: { name: 'Second Most Expensive Workspace' },
+            subAggregation: {
+              aggregationKey: 'Category',
+              spendData: [{ cost: '90', category: 'Compute' }, { cost: '2', category: 'Storage' }, { cost: '8', category: 'Other' }]
+            }
+          },
+          {
+            cost: '1000', workspace: { name: 'Most Expensive Workspace' },
+            subAggregation: {
+              aggregationKey: 'Category',
+              spendData: [{ cost: '900', category: 'Compute' }, { cost: '20', category: 'Storage' }, { cost: '80', category: 'Other' }]
+            }
+          },
+          {
+            cost: '10', workspace: { name: 'Third Most Expensive Workspace' },
+            subAggregation: {
+              aggregationKey: 'Category',
+              spendData: [{ cost: '9', category: 'Compute' }, { cost: '0', category: 'Storage' }, { cost: '1', category: 'Other' }]
+            }
+          }
+        ]
+      },
+      {
+        aggregationKey: 'Category',
+        spendData: [{ cost: '999', category: 'Compute' }, { cost: '22', category: 'Storage' }, { cost: '89', category: 'Other' }]
+      }
+    ]
   }
 
   _.forEach(() => {
-    spendReturnResult.spendDetails[0].spendData.push({ cost: '0.01', workspace: { name: 'Extra Inexpensive Workspace' } })
+    spendReturnResult.spendDetails[0].spendData.push({
+      cost: '0.01', workspace: { name: 'Extra Inexpensive Workspace' },
+      subAggregation: {
+        aggregationKey: 'Category',
+        spendData: [{ cost: '0.01', category: 'Compute' }, { cost: '0.00', category: 'Storage' }, { cost: '0.00', category: 'Other' }]
+      }
+    })
   }, _.range(0, numExtraWorkspaces))
 
   const projectListResult = [{
@@ -79,26 +109,34 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 
   // Interact with the Billing Page via mocked AJAX responses.
   const billingProjectName = 'OwnedBillingProject'
-  await setAjaxMockValues(page, billingProjectName, '90.13')
+  await setAjaxMockValues(page, billingProjectName, '1110')
 
   // Select spend report and verify cost for default date ranges
   const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
   await billingPage.selectSpendReport(billingProjectName)
-  await billingPage.assertText('$90.13')
+  // Title and cost are in different elements, but checking both in same text assert to verify that category is correctly associated to cost.
+  await billingPage.assertText('Total spend$1,110.00')
+  await billingPage.assertText('Total compute$999.00')
+  await billingPage.assertText('Total storage$22.00')
+  await billingPage.assertText('Total other$89.00')
   // Check that chart loaded, and workspaces are sorted by cost.
   await billingPage.assertText('Spend By Workspace')
-  await billingPage.assertChartValue(1, 'Most Expensive Workspace, $1,000')
-  await billingPage.assertChartValue(2, 'Second Most Expensive Workspace, $100')
-  await billingPage.assertChartValue(3, 'Third Most Expensive Workspace, $10')
+  // Verify all series values of the most expensive workspace
+  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Compute', '$900.00')
+  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Other', '$80.00')
+  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Storage', '$20.00')
+  // Spot check other 2 workspaces
+  await billingPage.assertChartValue(2, 'Second Most Expensive Workspace', 'Compute', '$90.00')
+  await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, billingProjectName, '135', 20)
+  await setAjaxMockValues(page, billingProjectName, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
-  await billingPage.assertText('$135.00')
+  await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Top 10 Spending Workspaces')
-  await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace')
+  await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace', 'Compute', '$0.01')
 })
 
 const testBillingSpendReport = {

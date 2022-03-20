@@ -264,6 +264,13 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       title: { enabled: false },
       width: '96%'
     },
+    accessibility: {
+      point: {
+        descriptionFormatter: point => {
+          return `${point.index + 1}. Workspace ${point.category}, ${point.series.name}: ${costPerWorkspace.costFormatter.format(point.y)}.`
+        }
+      }
+    },
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
@@ -457,7 +464,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
         const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
-
         const getCategoryCosts = (categorySpendData, asFloat) => {
           const costDict = {}
           _.forEach(type => {
