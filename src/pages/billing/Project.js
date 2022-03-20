@@ -215,9 +215,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
-  const [totalCost, setTotalCost] = useState(null)
-  const [costPerWorkspace, setCostPerWorkspace] = useState({ workspaceNames: [], workspaceCosts: [], numWorkspaces: 0 })
-  const [updatingTotalCost, setUpdatingTotalCost] = useState(false)
+  const [projectCost, setProjectCost] = useState(null)
+  const [costPerWorkspace, setCostPerWorkspace] = useState(
+    { workspaceNames: [], workspaceCosts: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
+  )
+  const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
 
   const signal = useCancellation()
@@ -231,20 +233,35 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const spendChartOptions = {
     chart: { type: 'bar', style: { fontFamily: 'inherit' } },
     credits: { enabled: false },
-    legend: { enabled: false },
-    series: [{ name: 'Total Cost', data: costPerWorkspace.workspaceCosts }],
+    legend: { reversed: true },
+    plotOptions: { series: { stacking: 'normal' } },
+    series: [
+      { name: 'Compute', data: costPerWorkspace.computeCosts },
+      { name: 'Storage', data: costPerWorkspace.storageCosts },
+      { name: 'Other', data: costPerWorkspace.otherCosts }
+    ],
     title: {
       text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace'
     },
-    tooltip: { valuePrefix: '$' },
+    tooltip: {
+      followPointer: true,
+      shared: true,
+      headerFormat: '{point.key}',
+      pointFormatter: function() {
+        return `<br/><span style="color:${this.color}">\u25CF</span> ${this.series.name}: ${costPerWorkspace.costFormatter.format(this.y)}`
+      }
+    },
     xAxis: {
       categories: costPerWorkspace.workspaceNames, crosshair: true,
       labels: { style: { fontSize: '12px' } }
     },
     yAxis: {
       crosshair: true, min: 0,
-      labels: { format: `\${value:.2f}`, style: { fontSize: '12px' } },
-      title: { text: 'Total Cost' },
+      labels: {
+        formatter: function() { return costPerWorkspace.costFormatter.format(this.value) },
+        style: { fontSize: '12px' }
+      },
+      title: { enabled: false },
       width: '96%'
     },
     exporting: { buttons: { contextButton: { x: -15 } } }
@@ -261,7 +278,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         gridRowStart: 2
       }
     }, [
-      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': totalCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
+      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': projectCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
         h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
       ])
@@ -318,24 +335,29 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
-      div({ style: { display: 'grid', gridTemplateColumns: 'minmax(15.625rem, max-content)', rowGap: '1.25rem' } }, [
-        div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id }, ['Date range']),
-          h(Select, {
-            id,
-            value: spendReportLengthInDays,
-            options: _.map(days => ({
-              label: `Last ${days} days`,
-              value: days
-            }), [7, 30, 90]),
-            onChange: ({ value: selectedDays }) => {
-              setSpendReportLengthInDays(selectedDays)
-              setTotalCost(null)
-            }
-          })
-        ])])]),
-        CostCard({ title: 'Total spend', amount: (totalCost !== null ? totalCost : '$__.__') })
-      ]),
+      div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
+        _.concat(
+          div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
+            h(IdContainer, [id => h(Fragment, [
+              h(FormLabel, { htmlFor: id }, ['Date range']),
+              h(Select, {
+                id,
+                value: spendReportLengthInDays,
+                options: _.map(days => ({
+                  label: `Last ${days} days`,
+                  value: days
+                }), [7, 30, 90]),
+                onChange: ({ value: selectedDays }) => {
+                  setSpendReportLengthInDays(selectedDays)
+                  setProjectCost(null)
+                }
+              })
+            ])])
+          ])
+        )(_.map(name => CostCard({ title: `Total ${name}`, amount: (projectCost === null ? '...' : projectCost[name]) }),
+          ['spend', 'compute', 'storage', 'other'])
+        )
+      ),
       costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
         h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
       ])
@@ -423,17 +445,36 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
   // Update cost data only if report date range changes, or if spend report tab was selected.
   useEffect(() => {
-    const maybeLoadTotalCost = _.flow(
+    const maybeLoadProjectCost = _.flow(
       reportErrorAndRethrow('Unable to retrieve spend report data'),
       Utils.withBusyState(setUpdating)
     )(async () => {
-      if (!updatingTotalCost && totalCost === null && tab === spendReportKey) {
-        setUpdatingTotalCost(true)
+      if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
+        setUpdatingProjectCost(true)
         const endDate = new Date().toISOString().slice(0, 10)
         const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
         const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
         const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-        setTotalCost(costFormatter.format(spend.spendSummary.cost))
+        const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
+        console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
+
+        const getCategoryCosts = (categorySpendData, asFloat) => {
+          const costDict = {}
+          _.forEach(type => {
+            const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
+            costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
+          }, ['Compute', 'Storage', 'Other'])
+          return costDict
+        }
+        const costDict = getCategoryCosts(categoryDetails.spendData, false)
+        const totalCosts = {
+          spend: costFormatter.format(spend.spendSummary.cost),
+          compute: costDict.Compute,
+          storage: costDict.Storage,
+          other: costDict.Other
+        }
+
+        setProjectCost(totalCosts)
 
         const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
         console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
@@ -444,17 +485,26 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           _.slice(0, maxWorkspacesInChart)
         )(workspaceDetails?.spendData)
         // Pull out names and costs.
-        const costsPerWorkspace = { workspaceNames: [], workspaceCosts: [], numWorkspaces: workspaceDetails?.spendData.length }
-        _.forEach(workspaceCostData => {
-          costsPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-          costsPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
-        })(mostExpensiveWorkspaces)
-        setCostPerWorkspace(costsPerWorkspace)
 
-        setUpdatingTotalCost(false)
+        const costPerWorkspace = {
+          workspaceNames: [], workspaceCosts: [], computeCosts: [], storageCosts: [], otherCosts: [],
+          costFormatter: costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+        }
+        _.forEach(workspaceCostData => {
+          costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+          costPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
+          const categoryDetails = workspaceCostData.subAggregation
+          console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
+          const costDict = getCategoryCosts(categoryDetails.spendData, true)
+          costPerWorkspace.computeCosts.push(costDict.Compute)
+          costPerWorkspace.storageCosts.push(costDict.Storage)
+          costPerWorkspace.otherCosts.push(costDict.Other)
+        })(mostExpensiveWorkspaces)
+        setCostPerWorkspace(costPerWorkspace)
+        setUpdatingProjectCost(false)
       }
     })
-    maybeLoadTotalCost()
+    maybeLoadProjectCost()
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
