@@ -18,7 +18,6 @@ import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
-import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const contextBarStyles = {
@@ -45,8 +44,6 @@ export const ContextBar = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = !!workspace?.canShare
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
 
   const startCurrentRuntime = () => {
