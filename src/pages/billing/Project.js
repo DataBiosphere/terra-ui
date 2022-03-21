@@ -230,6 +230,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     { namespace: billingProject.projectName },
     _.map('workspace', workspaces)
   ), [billingProject, workspaces])
+
   const spendChartOptions = {
     chart: { type: 'bar', style: { fontFamily: 'inherit' } },
     credits: { enabled: false },
