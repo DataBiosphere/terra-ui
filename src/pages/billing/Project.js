@@ -233,7 +233,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   ), [billingProject, workspaces])
 
   const spendChartOptions = {
-    chart: { type: 'bar', style: { fontFamily: 'inherit' } },
+    chart: { marginTop: 50, spacingLeft: 20, style: { fontFamily: 'inherit' }, type: 'bar' },
     credits: { enabled: false },
     legend: { reversed: true },
     plotOptions: { series: { stacking: 'normal' } },
@@ -243,6 +243,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       { name: 'Other', data: costPerWorkspace.otherCosts }
     ],
     title: {
+      align: 'left', style: { fontSize: '16px' }, y: 25,
       text: costPerWorkspace.numWorkspaces > maxWorkspacesInChart ? `Top ${maxWorkspacesInChart} Spending Workspaces` : 'Spend By Workspace'
     },
     tooltip: {
