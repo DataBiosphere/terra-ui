@@ -1,6 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { DraggableCore } from 'react-draggable'
 import { div, h, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -41,14 +42,21 @@ const styles = {
     overflow: 'hidden'
   },
   dataTypeSelectionPanel: {
-    flex: 'none', width: 280, backgroundColor: 'white',
+    flex: 'none', backgroundColor: 'white',
     overflow: 'auto',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
+    transition: 'width 100ms'
+  },
+  sidebarSeparator: {
+    width: '0.75rem',
+    height: '100%',
+    cursor: 'ew-resize'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    padding: '1rem', width: '100%',
+    // Left padding is 0.25rem to make room for the sidebar separator
+    padding: '1rem 1rem 1rem 0.25rem', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
@@ -375,6 +383,37 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
   }, [children])
 ])
 
+const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onDrag = useCallback(_.throttle(100, e => {
+    setSidebarWidth(e.pageX)
+  }), [setSidebarWidth])
+
+  return h(DraggableCore, { onDrag }, [
+    h(Interactive, {
+      as: 'div',
+      role: 'separator',
+      'aria-label': 'Resize sidebar',
+      'aria-valuenow': sidebarWidth,
+      'aria-valuemin': 0,
+      'aria-valuemax': window.innerWidth,
+      tabIndex: 0,
+      className: 'custom-focus-style',
+      style: styles.sidebarSeparator,
+      hover: {
+        background: `linear-gradient(to right, ${colors.accent(1.2)}, transparent 3px)`
+      },
+      onKeyDown: e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          setSidebarWidth(w => w + 10)
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          setSidebarWidth(w => w - 10)
+        }
+      }
+    })
+  ])
+}
+
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
@@ -394,6 +433,7 @@ const WorkspaceData = _.flow(
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
+  const [sidebarWidth, setSidebarWidth] = useState(280)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -510,7 +550,7 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
+      div({ style: { ...styles.dataTypeSelectionPanel, width: sidebarWidth }, role: 'navigation', 'aria-label': 'data in this workspace' }, [
         div({ role: 'list' }, [
           h(DataTypeSection, {
             title: 'Tables',
@@ -685,6 +725,7 @@ const WorkspaceData = _.flow(
           ])
         ])
       ]),
+      h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         Utils.switchCase(getSelectionType(),
           ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],

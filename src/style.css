@@ -8,6 +8,7 @@
 @import-normalize;
 
 .hover-style:hover, .hover-style:focus {
+  --hover-background: var(--app-hover-background);
   --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-border: var(--app-hover-border);
   --hover-color: var(--app-hover-color);
@@ -17,6 +18,7 @@
 }
 
 .hover-style:hover .hover-style:not(:hover) {
+  --hover-background: initial;
   --hover-backgroundColor: initial;
   --hover-border: initial;
   --hover-color: initial;
@@ -91,6 +93,11 @@ a {
 .error-style {
   /* Must use important to override default react-interactive focus style */
   border: 1px solid #db3214 !important;
+  outline: none !important;
+}
+
+.custom-focus-style:focus {
+  /* Must use important to override default Interactive focus style */
   outline: none !important;
 }
 
