@@ -218,7 +218,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [projectCost, setProjectCost] = useState(null)
   const [costPerWorkspace, setCostPerWorkspace] = useState(
-    { workspaceNames: [], workspaceCosts: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
+    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
   )
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
@@ -494,12 +494,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )(workspaceDetails?.spendData)
         // Pull out names and costs.
         const costPerWorkspace = {
-          workspaceNames: [], workspaceCosts: [], computeCosts: [], storageCosts: [], otherCosts: [],
-          costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+          workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
         }
         _.forEach(workspaceCostData => {
           costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-          costPerWorkspace.workspaceCosts.push(parseFloat(workspaceCostData.cost))
           const categoryDetails = workspaceCostData.subAggregation
           console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
           const costDict = getCategoryCosts(categoryDetails.spendData, true)
