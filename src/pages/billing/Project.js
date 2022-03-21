@@ -493,7 +493,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           _.slice(0, maxWorkspacesInChart)
         )(workspaceDetails?.spendData)
         // Pull out names and costs.
-
         const costPerWorkspace = {
           workspaceNames: [], workspaceCosts: [], computeCosts: [], storageCosts: [], otherCosts: [],
           costFormatter, numWorkspaces: workspaceDetails?.spendData.length
