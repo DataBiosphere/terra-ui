@@ -472,68 +472,217 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   ])
 }
 
-export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
-  const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
-  const initialIsList = _.isObject(attributeValue) && attributeValue.items
-  const initialType = Utils.cond(
-    [initialIsReference, () => 'reference'],
+export const getAttributeType = attributeValue => {
+  const isList = Boolean(_.isObject(attributeValue) && attributeValue.items)
+
+  const isReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
+  const type = Utils.cond(
+    [isReference, () => 'reference'],
     // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
     // eslint-disable-next-line eqeqeq
-    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
-    [initialIsList, () => typeof attributeValue.items[0]],
+    [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
+    [isList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   )
 
-  const [newValue, setNewValue] = useState(() => Utils.cond(
-    [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
-    [initialIsList, () => attributeValue.items],
-    [initialIsReference, () => attributeValue.entityName],
-    () => attributeValue
-  ))
-  const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
-    [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
-    [initialIsReference, () => attributeValue.entityType],
+  return { type, isList }
+}
+
+export const convertAttributeValue = (attributeValue, newType, referenceEntityType) => {
+  if (newType === 'reference' && !referenceEntityType) {
+    throw new Error('An entity type is required to convert an attribute to a reference')
+  }
+
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const baseConvertFn = Utils.switchCase(
+    newType,
+    ['reference', () => value => ({
+      entityType: referenceEntityType,
+      entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
+    })],
+    ['number', () => value => {
+      const numberVal = _.toNumber(value)
+      return _.isNaN(numberVal) ? 0 : numberVal
+    }],
+    [Utils.DEFAULT, () => Utils.convertValue(newType)]
+  )
+  const convertFn = type === 'reference' ? _.flow(_.get('entityName'), baseConvertFn) : baseConvertFn
+
+  if (isList) {
+    return _.flow(
+      _.update('items', _.map(convertFn)),
+      newType === 'reference' ? _.set('itemsType', 'EntityReference') : _.omit('itemsType')
+    )(attributeValue)
+  }
+
+  return convertFn(attributeValue)
+}
+
+const renderInputForAttributeType = _.curry((attributeType, props) => {
+  return Utils.switchCase(attributeType,
+    ['string', () => {
+      const { value = '', onChange, ...otherProps } = props
+      return h(TextInput, {
+        autoFocus: true,
+        placeholder: 'Enter a value',
+        value,
+        onChange: v => onChange(_.trim(v)),
+        ...otherProps
+      })
+    }],
+    ['reference', () => {
+      const { value, onChange, ...otherProps } = props
+      return h(TextInput, {
+        autoFocus: true,
+        placeholder: 'Enter a value',
+        value: value.entityName,
+        onChange: v => onChange({ ...value, entityName: _.trim(v) }),
+        ...otherProps
+      })
+    }],
+    ['number', () => {
+      const { value = 0, ...otherProps } = props
+      return h(NumberInput, { autoFocus: true, isClearable: false, value, ...otherProps })
+    }],
+    ['boolean', () => {
+      const { value = false, ...otherProps } = props
+      return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+        [h(Switch, { checked: value, ...otherProps })])
+    }]
+  )
+})
+
+const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
+  return Utils.switchCase(
+    attributeType,
+    ['string', () => ''],
+    ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
+    ['number', () => 0],
+    ['boolean', () => false]
+  )
+}
+
+const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) => {
+  const { type: attributeType, isList } = getAttributeType(attributeValue)
+
+  const renderInput = renderInputForAttributeType(attributeType)
+
+  const defaultReferenceEntityType = Utils.cond(
+    [attributeType === 'reference' && isList, () => !_.isEmpty(attributeValue.items) ? attributeValue.items[0].entityType : entityTypes[0]],
+    [attributeType === 'reference', () => attributeValue.entityType],
     () => entityTypes[0]
-  ))
-  const [editType, setEditType] = useState(() => Utils.cond(
-    [initialIsReference, () => 'reference'],
-    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
-    // eslint-disable-next-line eqeqeq
-    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
-    [initialIsList, () => typeof attributeValue.items[0]],
-    () => typeof attributeValue
-  ))
+  )
+  const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+
+  return h(Fragment, [
+    div({ style: { marginBottom: '1rem' } }, [
+      fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { marginRight: '1.2rem' } }, [
+            h(RadioButton, {
+              text: _.startCase(type),
+              name: 'edit-type',
+              checked: attributeType === type,
+              onChange: () => {
+                const newAttributeValue = convertAttributeValue(attributeValue, type, defaultReferenceEntityType)
+                onChange(newAttributeValue)
+              },
+              labelStyle: { paddingLeft: '0.5rem' }
+            })
+          ])
+        ]),
+        [
+          { type: 'string' },
+          { type: 'reference', tooltip: 'A link to another entity' },
+          { type: 'number' },
+          { type: 'boolean' }
+        ])
+        )
+      ]),
+      attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+          h(Select, {
+            id,
+            value: defaultReferenceEntityType,
+            options: entityTypes,
+            onChange: ({ value }) => {
+              const newAttributeValue = isList ?
+                _.update('items', _.map(_.set('entityType', value)), attributeValue) :
+                _.set('entityType', value, attributeValue)
+              onChange(newAttributeValue)
+            }
+          })
+        ])])
+      ])
+    ]),
+    div({ style: { marginBottom: '0.5rem' } }, [
+      h(LabeledCheckbox, {
+        checked: isList,
+        onChange: willBeList => {
+          const newAttributeValue = Utils.cond(
+            [willBeList && attributeType === 'reference', () => ({ items: [attributeValue], itemsType: 'EntityReference' })],
+            [willBeList, () => ({ items: [attributeValue] })],
+            () => attributeValue.items[0]
+          )
+          onChange(newAttributeValue)
+        }
+      }, [
+        span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])
+      ])
+    ]),
+    isList ?
+      h(Fragment, [
+        div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+        }, [
+          renderInput({
+            'aria-label': `List value ${i + 1}`,
+            autoFocus: true,
+            value,
+            onChange: v => {
+              const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
+              onChange(newAttributeValue)
+            }
+          }),
+          h(Link, {
+            'aria-label': `Remove list value ${i + 1}`,
+            disabled: value.length === 1,
+            onClick: () => {
+              const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
+              onChange(newAttributeValue)
+            },
+            style: { marginLeft: '0.5rem' }
+          }, [
+            icon('times', { size: 20 })
+          ])
+        ]), Utils.toIndexPairs(attributeValue.items))),
+        h(Link, {
+          style: { display: 'block', marginTop: '1rem' },
+          onClick: () => {
+            const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
+            onChange(newAttributeValue)
+          }
+        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item'])
+      ]) : div({ style: { marginTop: '1.5rem' } }, [
+        renderInput({
+          'aria-label': 'New value',
+          autoFocus: true,
+          value: attributeValue,
+          onChange
+        })
+      ])
+  ])
+}
+
+export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [newValue, setNewValue] = useState(attributeValue)
+  const isUnchanged = _.isEqual(attributeValue, newValue)
+
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
-
-  const isList = _.isArray(newValue)
-  const isUnchanged = (initialType === editType && initialIsList === isList && _.isEqual(attributeValue, newValue))
-
-  const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
-
-  const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
-    ['string', () => ({
-      prepForUpload: _.trim,
-      makeInput: makeTextInput('Enter a value'),
-      blankVal: ''
-    })],
-    ['reference', () => ({
-      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
-      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
-      blankVal: ''
-    })],
-    ['number', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
-      blankVal: 0
-    })],
-    ['boolean', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
-        [h(Switch, { checked: value, ...props })]),
-      blankVal: false
-    })]
-  )
 
   const doEdit = async () => {
     try {
@@ -544,7 +693,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         .workspace(namespace, name)
         .upsertEntities([{
           name: entityName, entityType,
-          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+          attributes: { [attributeName]: newValue }
         }])
       onSuccess()
     } catch (e) {
@@ -583,86 +732,11 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         ])
       ]) :
       h(Fragment, [
-        div({ style: { marginBottom: '1rem' } }, [
-          fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-            legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
-            h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
-              content: tooltip
-            }, [
-              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
-                text: _.startCase(type),
-                name: 'edit-type',
-                checked: editType === type,
-                onChange: () => {
-                  const convertFn = type === 'number' ?
-                    v => {
-                      const numberVal = _.toNumber(v)
-                      return _.isNaN(numberVal) ? 0 : numberVal
-                    } :
-                    Utils.convertValue(type === 'reference' ? 'string' : type)
-                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
-
-                  setNewValue(convertedValue)
-                  setEditType(type)
-                },
-                labelStyle: { paddingLeft: '0.5rem' }
-              })])
-            ]), [
-              { type: 'string' },
-              { type: 'reference', tooltip: 'A link to another entity' },
-              { type: 'number' },
-              { type: 'boolean' }
-            ]))
-          ]),
-          editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-            h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-              h(Select, {
-                id,
-                value: linkedEntityType,
-                options: entityTypes,
-                onChange: ({ value }) => setLinkedEntityType(value)
-              })
-            ])])
-          ])
-        ]),
-        div({ style: { marginBottom: '0.5rem' } }, [
-          h(LabeledCheckbox, {
-            checked: isList,
-            onChange: willBeList => setNewValue(willBeList ? [newValue] : newValue[0])
-          }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
-        ]),
-        isList ?
-          div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
-            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
-          }, [
-            makeInput({
-              'aria-label': `List value ${i + 1}`,
-              autoFocus: true,
-              value,
-              onChange: v => setNewValue(_.set(i, v))
-            }),
-            h(Link, {
-              'aria-label': `Remove list value ${i + 1}`,
-              disabled: newValue.length === 1,
-              onClick: () => setNewValue(_.pullAt(i)),
-              style: { marginLeft: '0.5rem' }
-            }, [
-              icon('times', { size: 20 })
-            ])
-          ]), Utils.toIndexPairs(newValue))) :
-          div({ style: { marginTop: '1.5rem' } }, [
-            makeInput({
-              'aria-label': 'New value',
-              autoFocus: true,
-              value: newValue,
-              onChange: setNewValue
-            })
-          ]),
-        isList && h(Link, {
-          style: { display: 'block', marginTop: '1rem' },
-          onClick: () => setNewValue(Utils.append(blankVal))
-        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
+        h(AttributeInput, {
+          value: newValue,
+          onChange: setNewValue,
+          entityTypes
+        }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
