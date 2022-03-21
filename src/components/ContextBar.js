@@ -105,16 +105,6 @@ export const ContextBar = ({
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
-          h(Clickable, {
-            style: contextBarStyles.contextBarButton,
-            hover: contextBarStyles.hover,
-            tooltipSide: 'left',
-            tooltip: 'Workspace menu',
-            tooltipDelay: 100,
-            useTooltipAsLabel: true
-          }, [icon('ellipsis-v', { size: 24 })])
-        ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,

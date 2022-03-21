@@ -1503,7 +1503,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         h(TitleBar, {
           id: titleId,
           style: { marginBottom: '0.5rem' },
-          title: 'Cloud Environment',
+          title: isAnalysisMode ? `${tool} Cloud Environment` : 'Cloud Environment',
           hideCloseButton: isAnalysisMode,
           onDismiss
         }),

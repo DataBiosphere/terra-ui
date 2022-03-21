@@ -125,7 +125,7 @@ export const CloudEnvironmentModal = ({
       'aria-label': `${toolLabel} Status`,
       hover: disabled ? {} : { backgroundColor: colors.accent(0.2) },
       // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
-      style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
+      style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), ...style },
       onClick, disabled, ...props
     }, [
       icon(shape, { size: 20 }),
@@ -287,7 +287,7 @@ export const CloudEnvironmentModal = ({
       disabled: isDisabled,
       style: {
         ...toolButtonStyles,
-        color: isDisabled ? colors.dark(0.7) : colors.accent()
+        color: isDisabled ? colors.dark(0.3) : colors.accent()
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
@@ -379,7 +379,7 @@ export const CloudEnvironmentModal = ({
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
             span('Launch'),
-            span(_.capitalize(toolLabel))
+            span(toolLabel)
           ])
         ])
       ])
