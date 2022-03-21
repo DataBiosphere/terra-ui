@@ -1,3 +1,4 @@
+import { addDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
@@ -460,7 +461,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
         setUpdatingProjectCost(true)
         const endDate = new Date().toISOString().slice(0, 10)
-        const startDate = new Date((Date.now() - spendReportLengthInDays * 24 * 60 * 60 * 1000)).toISOString().slice(0, 10)
+        const startDate = addDays(-1 * spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
         const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
         const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
         const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
