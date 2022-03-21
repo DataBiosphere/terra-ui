@@ -267,14 +267,16 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
-    if (googleProject !== prevGoogleProject) {
+    if (googleProject !== prevGoogleProject && googleProject !== '') {
       refreshRuntimes()
       refreshApps()
     }
 
     const loadBucketLocation = async (googleProject, bucketName) => {
-      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-      setBucketLocation(bucketLocation)
+      if (googleProject !== '') {
+        const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+        setBucketLocation(bucketLocation)
+      }
     }
 
     const refreshWorkspace = _.flow(
@@ -288,11 +290,15 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           'workspace.isLocked', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
-        setGoogleProject(workspace.workspace.googleProject)
+        if (workspace.workspace.googleProject !== '') {
+          setGoogleProject(workspace.workspace.googleProject)
+        }
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
 
-        loadBucketLocation(googleProject, bucketName)
+        if (googleProject !== '') {
+          loadBucketLocation(googleProject, bucketName)
+        }
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
@@ -327,7 +333,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         refreshWorkspace()
       } else {
         const { workspace: { bucketName, googleProject } } = workspace
-        loadBucketLocation(googleProject, bucketName)
+        if (googleProject !== '') {
+          loadBucketLocation(googleProject, bucketName)
+        }
       }
     })
 

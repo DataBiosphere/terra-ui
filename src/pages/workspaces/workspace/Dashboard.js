@@ -163,9 +163,11 @@ const WorkspaceDashboard = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading bucket location data')
   )(async () => {
-    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-    setBucketLocation(location)
-    setBucketLocationType(locationType)
+    if (googleProject !== '') {
+      const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+      setBucketLocation(location)
+      setBucketLocationType(locationType)
+    }
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
