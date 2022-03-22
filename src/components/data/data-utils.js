@@ -535,7 +535,7 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
       const { value, onChange, ...otherProps } = props
       return h(TextInput, {
         autoFocus: true,
-        placeholder: 'Enter a value',
+        placeholder: `Enter a ${value.entityType}_id`,
         value: value.entityName,
         onChange: v => onChange({ ...value, entityName: _.trim(v) }),
         ...otherProps
