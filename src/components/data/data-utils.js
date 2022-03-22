@@ -512,7 +512,7 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
   if (isList) {
     return _.flow(
       _.update('items', _.map(convertFn)),
-      newType === 'reference' ? _.set('itemsType', 'EntityReference') : _.omit('itemsType')
+      _.set('itemsType', newType === 'reference' ? 'EntityReference' : 'AttributeValue')
     )(attributeValue)
   }
 
@@ -622,11 +622,9 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
       h(LabeledCheckbox, {
         checked: isList,
         onChange: willBeList => {
-          const newAttributeValue = Utils.cond(
-            [willBeList && attributeType === 'reference', () => ({ items: [attributeValue], itemsType: 'EntityReference' })],
-            [willBeList, () => ({ items: [attributeValue] })],
-            () => attributeValue.items[0]
-          )
+          const newAttributeValue = willBeList ?
+            { items: [attributeValue], itemsType: attributeType === 'reference' ? 'EntityReference' : 'AttributeValue' } :
+            attributeValue.items[0]
           onChange(newAttributeValue)
         }
       }, [

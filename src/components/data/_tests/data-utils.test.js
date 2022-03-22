@@ -72,9 +72,9 @@ describe('getAttributeType', () => {
       entityName: 'thing_one'
     })).toEqual({ type: 'reference', isList: false })
 
-    expect(getAttributeType({ items: ['a', 'b', 'c'] })).toEqual({ type: 'string', isList: true })
-    expect(getAttributeType({ items: [1, 2, 3] })).toEqual({ type: 'number', isList: true })
-    expect(getAttributeType({ items: [true, false] })).toEqual({ type: 'boolean', isList: true })
+    expect(getAttributeType({ items: ['a', 'b', 'c'], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+    expect(getAttributeType({ items: [1, 2, 3], itemsType: 'AttributeValue' })).toEqual({ type: 'number', isList: true })
+    expect(getAttributeType({ items: [true, false], itemsType: 'AttributeValue' })).toEqual({ type: 'boolean', isList: true })
     expect(getAttributeType({
       items: [
         { entityType: 'thing', entityName: 'thing_one' },
@@ -86,8 +86,8 @@ describe('getAttributeType', () => {
 
   it('returns string for null values', () => {
     expect(getAttributeType(null)).toEqual({ type: 'string', isList: false })
-    expect(getAttributeType({ items: [] })).toEqual({ type: 'string', isList: true })
-    expect(getAttributeType({ items: [null] })).toEqual({ type: 'string', isList: true })
+    expect(getAttributeType({ items: [], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+    expect(getAttributeType({ items: [null], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
   })
 })
 
@@ -116,7 +116,7 @@ describe('convertAttributeValue', () => {
   })
 
   it('converts each value of lists', () => {
-    expect(convertAttributeValue({ items: ['42', 'value'] }, 'number')).toEqual({ items: [42, 0] })
+    expect(convertAttributeValue({ items: ['42', 'value'], itemsType: 'AttributeValue' }, 'number')).toEqual({ items: [42, 0], itemsType: 'AttributeValue' })
 
     expect(convertAttributeValue({
       items: [
@@ -124,11 +124,11 @@ describe('convertAttributeValue', () => {
         { entityType: 'thing', entityName: 'thing_two' }
       ],
       itemsType: 'EntityReference'
-    }, 'string')).toEqual({ items: ['thing_one', 'thing_two'] })
+    }, 'string')).toEqual({ items: ['thing_one', 'thing_two'], itemsType: 'AttributeValue' })
   })
 
   it('adds itemsType to reference lists', () => {
-    expect(convertAttributeValue({ items: ['thing_one', 'thing_two'] }, 'reference', 'thing')).toEqual({
+    expect(convertAttributeValue({ items: ['thing_one', 'thing_two'], itemsType: 'AttributeValue' }, 'reference', 'thing')).toEqual({
       items: [
         { entityType: 'thing', entityName: 'thing_one' },
         { entityType: 'thing', entityName: 'thing_two' }
