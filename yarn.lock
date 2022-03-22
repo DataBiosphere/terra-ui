@@ -3408,7 +3408,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"acorn@npm:^7.0.0, acorn@npm:^7.1.1":
+"acorn@npm:^7.0.0, acorn@npm:^7.1.1, acorn@npm:^7.4.1":
   version: 7.4.1
   resolution: "acorn@npm:7.4.1"
   bin:
@@ -4067,7 +4067,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"base64-js@npm:^1.3.0, base64-js@npm:^1.3.1":
+"base64-js@npm:^1.3.0, base64-js@npm:^1.3.1, base64-js@npm:^1.5.1":
   version: 1.5.1
   resolution: "base64-js@npm:1.5.1"
   checksum: 669632eb3745404c2f822a18fc3a0122d2f9a7a13f7fb8b5823ee19d1d2ff9ee5b52c53367176ea4ad093c332fd5ab4bd0ebae5a8e27917a4105a4cfc86b1005
@@ -4928,7 +4928,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.19.2":
+"core-js@npm:^3.19.2, core-js@npm:^3.8.3":
   version: 3.21.1
   resolution: "core-js@npm:3.21.1"
   checksum: d68eddd831340ad5b24ac29c72fda022a43b17f194c4278b6b875a843283d316502cb4abd07f28631d6ebc4387f66aa06e2b1b3c8fd7e08096a751b5c63f6889
@@ -4994,6 +4994,13 @@ __metadata:
     shebang-command: ^2.0.0
     which: ^2.0.1
   checksum: 671cc7c7288c3a8406f3c69a3ae2fc85555c04169e9d611def9a675635472614f1c0ed0ef80955d5b6d4e724f6ced67f0ad1bb006c2ea643488fcfef994d7f52
+  languageName: node
+  linkType: hard
+
+"crypto-js@npm:^4.0.0, crypto-js@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "crypto-js@npm:4.1.1"
+  checksum: b3747c12ee3a7632fab3b3e171ea50f78b182545f0714f6d3e7e2858385f0f4101a15f2517e033802ce9d12ba50a391575ff4638c9de3dd9b2c4bc47768d5425
   languageName: node
   linkType: hard
 
@@ -9337,6 +9344,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jwt-decode@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "jwt-decode@npm:3.1.2"
+  checksum: 20a4b072d44ce3479f42d0d2c8d3dabeb353081ba4982e40b83a779f2459a70be26441be6c160bfc8c3c6eadf9f6380a036fbb06ac5406b5674e35d8c4205eeb
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^3.0.0":
   version: 3.1.0
   resolution: "keyv@npm:3.1.0"
@@ -10387,6 +10401,29 @@ __metadata:
   version: 1.1.2
   resolution: "obuf@npm:1.1.2"
   checksum: 41a2ba310e7b6f6c3b905af82c275bf8854896e2e4c5752966d64cbcd2f599cfffd5932006bcf3b8b419dfdacebb3a3912d5d94e10f1d0acab59876c8757f27f
+  languageName: node
+  linkType: hard
+
+"oidc-client-ts@npm:^2.0.2":
+  version: 2.0.3
+  resolution: "oidc-client-ts@npm:2.0.3"
+  dependencies:
+    crypto-js: ^4.1.1
+    jwt-decode: ^3.1.2
+  checksum: 84becba2400fcfadf83b445d1b54d9f48df9669f46c5f7209180040d54dd8c31bb45bf99100bb19fe5648d6eb32a9ad6dcd86974d81916be3d89ea4c026095d8
+  languageName: node
+  linkType: hard
+
+"oidc-client@npm:^1.11.5":
+  version: 1.11.5
+  resolution: "oidc-client@npm:1.11.5"
+  dependencies:
+    acorn: ^7.4.1
+    base64-js: ^1.5.1
+    core-js: ^3.8.3
+    crypto-js: ^4.0.0
+    serialize-javascript: ^4.0.0
+  checksum: 3d0a84667de96936d7bab1a57c80389e333f2883c4f20e9d6366bdbacde7e4d56bda3625b5df8bd44420df093d4cebe591e6dba3ef6d214bc70c5f86ef41452c
   languageName: node
   linkType: hard
 
@@ -12218,6 +12255,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-oidc-context@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "react-oidc-context@npm:2.1.0"
+  peerDependencies:
+    oidc-client-ts: ^2.0.0
+    react: ">=16.8.0"
+  checksum: 34c44ced6ce186a1f0043294e70754216ada0d178ccf2e6ff147bf94a13bf2877d80a2cd872b6a8cffa591ed7e10a9a16f273828ade78ea07b97a9ad46370d71
+  languageName: node
+  linkType: hard
+
 "react-onclickoutside@npm:^6.12.0":
   version: 6.12.0
   resolution: "react-onclickoutside@npm:6.12.0"
@@ -14001,6 +14048,8 @@ resolve@^2.0.0-next.3:
     jszip: ^3.7.1
     lodash: ^4.17.21
     marked: ^4.0.10
+    oidc-client: ^1.11.5
+    oidc-client-ts: ^2.0.2
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
     pluralize: ^8.0.0
@@ -14019,6 +14068,7 @@ resolve@^2.0.0-next.3:
     react-json-view: ^1.21.3
     react-modal: ^3.14.3
     react-notifications-component: ^3.1.0
+    react-oidc-context: ^2.1.0
     react-onclickoutside: ^6.12.0
     react-paginating: ^1.4.0
     react-scripts: 5.0.0
