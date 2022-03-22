@@ -35,7 +35,7 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)

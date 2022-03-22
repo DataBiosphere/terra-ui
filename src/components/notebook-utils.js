@@ -77,7 +77,7 @@ export const tools = {
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   galaxy: { label: 'Galaxy', appType: 'GALAXY' },
-  cromwell: { label: 'cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+  cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
 }
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
