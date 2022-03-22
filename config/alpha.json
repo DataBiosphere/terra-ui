@@ -10,7 +10,7 @@
   "externalCredsUrlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
   "firecloudUrlRoot": "https://firecloud.dsde-alpha.broadinstitute.org",
-  "googleClientId": "589295024008-4i4s4l2cfjgckmc6moqs23te2tn6qkke.apps.googleusercontent.com",
+  "oauth2ClientId": "589295024008-4i4s4l2cfjgckmc6moqs23te2tn6qkke.apps.googleusercontent.com",
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-alpha.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-alpha.broadinstitute.org",

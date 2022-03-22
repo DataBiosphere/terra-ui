@@ -9,7 +9,7 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
   "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
-  "googleClientId": "480750596605-ljlp6lpopl4su6qa2vhtfon2047ckml3.apps.googleusercontent.com",
+  "oauth2ClientId": "480750596605-ljlp6lpopl4su6qa2vhtfon2047ckml3.apps.googleusercontent.com",
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-staging.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-staging.broadinstitute.org",
