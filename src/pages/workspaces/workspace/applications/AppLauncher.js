@@ -84,8 +84,8 @@ const ApplicationLauncher = _.flow(
     })
 
     const handleChoice = _.flow(
-      Utils.withBusyState(setBusy),
-      withErrorReportingInModal('Error setting up analysis file syncing')
+      withErrorReporting('Error saving change to workspace variables'),
+      Utils.withBusyState(setBusy)
     )(async shouldCopy => {
       try {
         console.log('do i get here???')
@@ -119,10 +119,7 @@ const ApplicationLauncher = _.flow(
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
-          onClick: () => {
-            console.log('inside onClick')
-            handleChoice(true)()
-          }
+          onClick: () => handleChoice(true)
         }, ['Make a copy']),
         h(ButtonPrimary, {
           onClick: () => handleChoice(false)
