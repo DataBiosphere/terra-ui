@@ -5,10 +5,10 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
-import { getDisplayName, notebookLockHash, ownerEmailHash, tools } from 'src/components/notebook-utils'
+import { notebookLockHash, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import { reportError, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -40,7 +40,10 @@ const ApplicationLauncher = _.flow(
     title: _.get('application'),
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
-)(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
+)(({
+  name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace,
+  workspace: { workspace: { googleProject, bucketName } }
+}, ref) => {
   const cookieReady = useStore(cookieReadyStore)
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
@@ -48,7 +51,7 @@ const ApplicationLauncher = _.flow(
   const [busy, setBusy] = useState(false)
   const [location, setLocation] = useState(defaultLocation)
   const [outdated, setOutdated] = useState() // list of outdated files
-  const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
+  const [fileOutdatedOpen, setFileOutdatedOpen] = useState(true)
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
@@ -60,41 +63,53 @@ const ApplicationLauncher = _.flow(
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
 
-  const FileOutdatedModal = ({ onDismiss,bucketName, userEmail }) => {
+  const FileOutdatedModal = ({ onDismiss, bucketName, email }) => {
     const [outdatedAnalyses, setOutdatedAnalyses] = useState()
 
     useOnMount(() => {
       const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
-        const hashedUser = await ownerEmailHash(userEmail)
-        console.log("!!")
-        const outdatedRAnalyses = checkForOutdatedAnalyses({ googleProject, bucketName })
+        const hashedUser = await notebookLockHash(bucketName, email)
+        console.log('!!!')
+        console.log(JSON.stringify(hashedUser))
+        const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
         console.log(JSON.stringify(outdatedRAnalyses))
-        //const outdatedRAnalyses = _.filter(({analysis}) => analysis.keys().contains(hashedUser) && analysis.get(hashedUser) == 'outdated', rAnalyses)
+        const rAnalyses = _.filter(
+          analysis => analysis && Object.keys(analysis).includes('metadata') && Object.keys(analysis.metadata).includes('lastModifiedBy') &&
+            analysis.metadata.lastModifiedBy == hashedUser, outdatedRAnalyses)
+        console.log('--------------')
+        console.log(JSON.stringify(rAnalyses))
         setOutdatedAnalyses(outdatedRAnalyses)
       })
       findOutdatedAnalyses()
     })
 
-    const handleChoice =  _.flow(
+    const handleChoice = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReportingInModal('Error setting up analysis file syncing')
     )(async shouldCopy => {
-      await Promise.all(_.flatMap(async analysis => {
-        const bucketObject = await Ajax(signal).Buckets.getObject(googleProject, bucketName, analysis)
-        console.log("!!")
-        console.log(JSON.stringify(bucketObject))
-        // if (shouldCopy) {
-        //
-        // } else {
-        //
-        // }
-      }))
+      try {
+        console.log('do i get here???')
+        console.log(JSON.stringify(shouldCopy))
+        await Promise.all(_.flatMap(async analysis => {
+          console.log('hiiiiii')
+          const bucketObject = await Ajax(signal).Buckets.getObject(googleProject, bucketName, analysis)
+          console.log('!!')
+          console.log(JSON.stringify(bucketObject))
+          console.log(JSON.stringify(analysis))
+          // if (shouldCopy) {
+          //   //await Ajax().Buckets.upload(googleProject, bucketName, bucketObject.prefix, bucketObject.file)
+          // }
+          return Ajax().Buckets.getObject(googleProject, bucketName, analysis)
+        }, outdatedAnalyses))
+      } catch (error) {
+        reportError('Error: ', error)
+      }
     })
 
     return h(Modal, {
+      onDismiss,
       width: 530,
       title: 'You have outdated markdown files',
-      onDismiss,
       showButtons: false
     }, [
       p(outdatedAnalyses ?
@@ -104,7 +119,10 @@ const ApplicationLauncher = _.flow(
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
-          onClick: () => handleChoice(true)
+          onClick: () => {
+            console.log('inside onClick')
+            handleChoice(true)()
+          }
         }, ['Make a copy']),
         h(ButtonPrimary, {
           onClick: () => handleChoice(false)
@@ -113,8 +131,9 @@ const ApplicationLauncher = _.flow(
     ])
   }
 
-  const checkForOutdatedAnalyses = async ({ googleProject, bucketName}) => {
+  const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)// workspace.workspace.bucketName
+    //console.log(JSON.stringify(_.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), analyses)))
     return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), analyses)
   }
 
@@ -167,7 +186,7 @@ const ApplicationLauncher = _.flow(
       runtime, refreshRuntimes,
       onNullRuntime: () => setShowCreate(true)
     }),
-    fileOutdatedOpen && h(FileOutdatedModal, {onDismiss: () => setFileOutdatedOpen(false), bucketName, email}),
+    fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName, email }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
