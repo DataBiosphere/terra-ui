@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
 import { div, h, h2, p } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
+import Modal, { styles as modalStyles } from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -214,11 +214,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
-    okButton: h(ButtonPrimary, {
-      disabled: searchValueValid,
-      tooltip: searchValueValid && addUserReminder,
-      onClick: save
-    }, ['Save']),
+    showButtons: false,
     onDismiss
   }, [
     div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
@@ -259,6 +255,17 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     updateError && div({ style: { marginTop: '1rem' } }, [
       div(['An error occurred:']),
       updateError
+    ]),
+    div({ style: modalStyles.buttonRow }, [
+      h(ButtonSecondary, {
+        style: { marginRight: '1rem' },
+        onClick: onDismiss
+      }, 'Cancel'),
+      h(ButtonPrimary, {
+        disabled: searchValueValid,
+        tooltip: searchValueValid && addUserReminder,
+        onClick: save
+      }, 'Save')
     ]),
     working && spinnerOverlay
   ])
