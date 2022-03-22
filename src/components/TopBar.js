@@ -235,7 +235,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             isOpened: openSupportMenu
           }, [
             h(DropDownSubItem, {
-              href: window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/articles/360042745091',
+              href: window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/categories/360005881492',
               onClick: () => {
                 hideNav()
                 window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
