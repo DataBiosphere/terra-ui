@@ -575,7 +575,7 @@ const Billing = signal => ({
    */
   getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
     const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace~Category' })}&${qs.stringify({ aggregationKey: 'Category' })}`,
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace' })}`,
       _.merge(authOpts(), { signal })
     )
     return res.json()
