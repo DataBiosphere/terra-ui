@@ -30,6 +30,8 @@ const eventsList = {
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   datasetLibraryBrowseData: 'library:browseData',
+  dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
+  dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',

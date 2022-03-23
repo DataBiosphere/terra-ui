@@ -4,6 +4,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -49,7 +50,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = props => {
   const {
-    entityType, entityMetadata, setEntityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
+    entityType, entityMetadata, setEntityMetadata, workspaceId, workspace, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
     selectionModel: { selected, setSelected },
     childrenBefore,
@@ -329,10 +330,17 @@ const DataTable = props => {
             })
           }
         ]),
-        h(ColumnSelector, {
+        // Enable saved column settings only for data tables, not snapshots
+        h(ColumnSelector, _.merge(snapshotName ? {} : {
+          columnSettingsComponent: ColumnSettingsWithSavedColumnSettings,
+          entityMetadata,
+          entityType,
+          snapshotName,
+          workspace
+        }, {
           columnSettings,
           onSave: setColumnState
-        })
+        }))
       ]),
       !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({
