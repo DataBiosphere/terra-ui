@@ -1,8 +1,8 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
-import { div, h, h3 } from 'react-hyperscript-helpers'
+import { div, form, h, h3, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -17,12 +17,14 @@ import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { isDataTabRedesignEnabled } from 'src/libs/config'
+import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
@@ -415,6 +417,44 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
+const DataTableActions = ({ workspace, tableName }) => {
+  const { workspace: { namespace, name } } = workspace
+  const isSetSet = tableName.endsWith('_set_set')
+
+  const downloadForm = useRef()
+
+  return h(MenuTrigger, {
+    side: 'bottom',
+    closeOnClick: true,
+    content: h(Fragment, [
+      form({
+        ref: downloadForm,
+        action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
+        method: 'POST'
+      }, [
+        input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+        input({ type: 'hidden', name: 'model', value: 'flexible' })
+      ]),
+      h(MenuButton, {
+        disabled: isSetSet,
+        tooltip: isSetSet ?
+          'Downloading sets of sets as TSV is not supported at this time' :
+          'Download a TSV file containing all rows in this table',
+        onClick: () => {
+          downloadForm.current.submit()
+          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+            ...extractWorkspaceDetails(workspace.workspace),
+            downloadFrom: 'all rows',
+            fileType: '.tsv'
+          })
+        }
+      }, 'Download TSV')
+    ])
+  }, [
+    h(Clickable, { tooltip: 'Table menu', useTooltipAsLabel: true }, [icon('cardMenuIcon')])
+  ])
+}
+
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
@@ -574,7 +614,11 @@ const WorkspaceData = _.flow(
                 onClick: () => {
                   setSelectedDataType(type)
                   forceRefresh()
-                }
+                },
+                after: isDataTabRedesignEnabled() && h(DataTableActions, {
+                  tableName: type,
+                  workspace
+                })
               })
             }, sortedEntityPairs)
           ]),
