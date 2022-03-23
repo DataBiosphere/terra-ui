@@ -260,7 +260,11 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     searchValueValid && !searchHasFocus && p(addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
-      h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
+      h(Fragment, _.flow(
+        _.remove(aclEntryIsTerraSupport),
+        Utils.toIndexPairs,
+        _.map(renderCollaborator)
+      )(acl)),
       !loaded && centeredSpinner()
     ]),
     updateError && div({ style: { marginTop: '1rem' } }, [
