@@ -30,7 +30,8 @@ module.exports = {
         enabled: env === 'production',
         hashEnabled: { 'style-src': false },
         nonceEnabled: { 'style-src': false }
-      }))
+      })),
+      _.update('ignoreWarnings', (old = []) => _.concat(old, /Failed to parse source map/))
     )(config)
 
     return rewireReactHotLoader(newConfig, env)
