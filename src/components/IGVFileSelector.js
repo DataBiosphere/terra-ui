@@ -55,7 +55,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
         h(Select, {
           id,
-          options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
+          options: ['hg38', 'hg19', 'hg18', 'ASM985889v3', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
           value: refGenome,
           onChange: ({ value }) => setRefGenome(value)
         })
