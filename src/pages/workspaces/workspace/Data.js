@@ -10,6 +10,7 @@ import Collapse from 'src/components/Collapse'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
+import ExportDataModal from 'src/components/data/ExportDataModal'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -417,41 +418,72 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName }) => {
-  const { workspace: { namespace, name } } = workspace
+const DataTableActions = ({ workspace, tableName, rowCount }) => {
+  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetSet = tableName.endsWith('_set_set')
 
   const downloadForm = useRef()
+  const signal = useCancellation()
 
-  return h(MenuTrigger, {
-    side: 'bottom',
-    closeOnClick: true,
-    content: h(Fragment, [
-      form({
-        ref: downloadForm,
-        action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
-        method: 'POST'
-      }, [
-        input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
-        input({ type: 'hidden', name: 'model', value: 'flexible' })
-      ]),
-      h(MenuButton, {
-        disabled: isSetSet,
-        tooltip: isSetSet ?
-          'Downloading sets of sets as TSV is not supported at this time' :
-          'Download a TSV file containing all rows in this table',
-        onClick: () => {
-          downloadForm.current.submit()
-          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-            ...extractWorkspaceDetails(workspace.workspace),
-            downloadFrom: 'all rows',
-            fileType: '.tsv'
+  const [loading, setLoading] = useState(false)
+  const [entities, setEntities] = useState([])
+  const [exporting, setExporting] = useState(false)
+
+  return h(Fragment, [
+    h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        form({
+          ref: downloadForm,
+          action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
+          method: 'POST'
+        }, [
+          input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+          input({ type: 'hidden', name: 'model', value: 'flexible' })
+        ]),
+        h(MenuButton, {
+          disabled: isSetSet,
+          tooltip: isSetSet ?
+            'Downloading sets of sets as TSV is not supported at this time' :
+            'Download a TSV file containing all rows in this table',
+          onClick: () => {
+            downloadForm.current.submit()
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'all rows',
+              fileType: '.tsv'
+            })
+          }
+        }, 'Download TSV'),
+        h(MenuButton, {
+          onClick: _.flow(
+            Utils.withBusyState(setLoading),
+            withErrorReporting('Error loading entities')
+          )(async () => {
+            const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(tableName, { pageSize: rowCount })
+            setEntities(_.map(_.get('name'), queryResults.results))
+            setExporting(true)
           })
-        }
-      }, 'Download TSV')
-    ])
-  }, [
-    h(Clickable, { tooltip: 'Table menu', useTooltipAsLabel: true }, [icon('cardMenuIcon')])
+        }, 'Export to workspace')
+      ])
+    }, [
+      h(Clickable, {
+        disabled: loading,
+        tooltip: 'Table menu',
+        useTooltipAsLabel: true
+      }, [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')])
+    ]),
+    exporting && h(ExportDataModal, {
+      onDismiss: () => {
+        setExporting(false)
+        setEntities([])
+      },
+      workspace,
+      selectedDataType: tableName,
+      selectedEntities: entities,
+      runningSubmissionsCount
+    })
   ])
 }
 
@@ -617,6 +649,7 @@ const WorkspaceData = _.flow(
                 },
                 after: isDataTabRedesignEnabled() && h(DataTableActions, {
                   tableName: type,
+                  rowCount: typeDetails.count,
                   workspace
                 })
               })
