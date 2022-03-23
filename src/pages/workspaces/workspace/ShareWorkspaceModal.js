@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { div, h, h2, p } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, h2, label, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, Switch } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal, { styles as modalStyles } from 'src/components/Modal'
@@ -16,6 +16,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
+
+const terraSupportEmail = 'Terra-Support@firecloud.org'
 
 const styles = {
   currentCollaboratorsArea: {
@@ -211,6 +213,15 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     }
   }
 
+  // The get workspace ACL API endpoint returns emails capitalized as they are registered in Terra.
+  // However, a user may type in the support email using different capitalization (terra-support, TERRA-SUPPORT, etc.)
+  // The email they entered will appear in the ACL stored in this component's state until updates are saved.
+  // We want the share with support switch to function with any variation of the support email.
+  const aclEntryIsTerraSupport = ({ email }) => _.toLower(email) === _.toLower(terraSupportEmail)
+  const isTerraSupportInAcl = !!_.find(aclEntryIsTerraSupport, acl)
+  const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail)
+  const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport))
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
@@ -256,16 +267,34 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
       div(['An error occurred:']),
       updateError
     ]),
-    div({ style: modalStyles.buttonRow }, [
-      h(ButtonSecondary, {
-        style: { marginRight: '1rem' },
-        onClick: onDismiss
-      }, 'Cancel'),
-      h(ButtonPrimary, {
-        disabled: searchValueValid,
-        tooltip: searchValueValid && addUserReminder,
-        onClick: save
-      }, 'Save')
+    div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
+      h(IdContainer, [
+        id => label({ htmlFor: id }, [
+          h(Switch, {
+            id,
+            checked: isTerraSupportInAcl,
+            onChange: checked => {
+              if (checked) {
+                addTerraSupportToAcl()
+              } else {
+                removeTerraSupportFromAcl()
+              }
+            }
+          }),
+          span({ style: { marginLeft: '1ch' } }, 'Share with support')
+        ])
+      ]),
+      span([
+        h(ButtonSecondary, {
+          style: { marginRight: '1rem' },
+          onClick: onDismiss
+        }, 'Cancel'),
+        h(ButtonPrimary, {
+          disabled: searchValueValid,
+          tooltip: searchValueValid && addUserReminder,
+          onClick: save
+        }, 'Save')
+      ])
     ]),
     working && spinnerOverlay
   ])
