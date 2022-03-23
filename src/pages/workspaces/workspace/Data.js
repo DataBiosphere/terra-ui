@@ -22,6 +22,7 @@ import UriViewer from 'src/components/UriViewer'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
@@ -83,7 +84,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
-      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
       isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
