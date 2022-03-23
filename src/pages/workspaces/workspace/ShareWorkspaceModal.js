@@ -5,6 +5,7 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Sel
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal, { styles as modalStyles } from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -218,7 +219,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   // The email they entered will appear in the ACL stored in this component's state until updates are saved.
   // We want the share with support switch to function with any variation of the support email.
   const aclEntryIsTerraSupport = ({ email }) => _.toLower(email) === _.toLower(terraSupportEmail)
-  const isTerraSupportInAcl = !!_.find(aclEntryIsTerraSupport, acl)
+  const terraSupportAccess = _.find(aclEntryIsTerraSupport, acl)
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail)
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport))
 
@@ -273,19 +274,25 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     ]),
     div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
       h(IdContainer, [
-        id => label({ htmlFor: id }, [
-          h(Switch, {
-            id,
-            checked: isTerraSupportInAcl,
-            onChange: checked => {
-              if (checked) {
-                addTerraSupportToAcl()
-              } else {
-                removeTerraSupportFromAcl()
+        id => h(TooltipTrigger, {
+          content: terraSupportAccess ?
+            `Terra Support has ${_.toLower(terraSupportAccess.accessLevel)} access to this workspace` :
+            'Grant Terra Support reader access to this workspace'
+        }, [
+          label({ htmlFor: id }, [
+            h(Switch, {
+              id,
+              checked: !!terraSupportAccess,
+              onChange: checked => {
+                if (checked) {
+                  addTerraSupportToAcl()
+                } else {
+                  removeTerraSupportFromAcl()
+                }
               }
-            }
-          }),
-          span({ style: { marginLeft: '1ch' } }, 'Share with support')
+            }),
+            span({ style: { marginLeft: '1ch' } }, 'Share with support')
+          ])
         ])
       ]),
       span([
