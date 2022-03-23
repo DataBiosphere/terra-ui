@@ -4,7 +4,7 @@ import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecl
 import * as Utils from 'src/libs/utils'
 
 
-const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark']
+const ALL_COLORS = ['primary', 'secondary', 'accent', 'success', 'warning', 'danger', 'light', 'dark', 'grey']
 
 const baseColors = {
   primary: '#4d72aa', // Used as accent on header, loading spinner, background of beta version tag and some buttons
@@ -14,7 +14,8 @@ const baseColors = {
   warning: '#f7981c',
   danger: '#db3214',
   light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
-  dark: '#333f52' // Used as text color, menu background (lightened), selected background (lightened)
+  dark: '#333f52', // Used as text color, menu background (lightened), selected background (lightened)
+  grey: '#808080'
 }
 
 const colorPalette = Utils.cond(

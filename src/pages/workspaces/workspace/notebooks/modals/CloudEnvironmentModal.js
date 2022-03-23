@@ -104,7 +104,8 @@ export const CloudEnvironmentModal = ({
     maxWidth: 105,
     display: 'flex',
     flexDirection: 'column',
-    border: '.5px solid grey',
+    border: '.5px solid',
+    borderColor: colors.grey(),
     borderRadius: 16,
     padding: '.5rem .75rem',
     alignItems: 'center',
@@ -125,7 +126,7 @@ export const CloudEnvironmentModal = ({
       'aria-label': `${toolLabel} Status`,
       hover: disabled ? {} : { backgroundColor: colors.accent(0.2) },
       // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
-      style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), borderColor: !disabled ? 'grey' : colors.dark(0.3), ...style },
+      style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), ...style },
       onClick, disabled, ...props
     }, [
       icon(shape, { size: 20 }),
@@ -170,7 +171,8 @@ export const CloudEnvironmentModal = ({
     disabled: true,
     messageChildren: [span('Pause'),
       span('Environment')],
-    tooltip: 'No Environment found'
+    tooltip: 'No Environment found',
+    style: { borderColor: colors.dark(0.3) }
   })
 
   const renderStatusClickable = toolLabel => Utils.cond(
@@ -219,7 +221,8 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span('Environment'), span(getComputeStatusForDisplay(status))]
+          messageChildren: [span('Environment'), span(getComputeStatusForDisplay(status))],
+          style: { color: colors.dark(0.7) }
         })
       case 'Error':
         return h(RuntimeIcon, {
@@ -288,7 +291,7 @@ export const CloudEnvironmentModal = ({
       style: {
         ...toolButtonStyles,
         color: isDisabled ? colors.dark(0.3) : colors.accent(),
-        borderColor: isDisabled ? colors.dark(0.3) : 'grey'
+        borderColor: isDisabled ? colors.dark(0.3) : colors.grey()
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
