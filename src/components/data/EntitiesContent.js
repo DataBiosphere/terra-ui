@@ -6,8 +6,8 @@ import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Link } from 'src/components/common'
-import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
+import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { EntityDeleter, EntityUploader, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -26,7 +26,7 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -211,10 +211,11 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata, forceRefresh
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
+  const [uploadingFile, setUploadingFile] = useState(false)
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
@@ -359,6 +360,102 @@ const EntitiesContent = ({
     ])])
   }
 
+  const entitiesSelected = !_.isEmpty(selectedEntities)
+  const canEdit = !Utils.editWorkspaceError(workspace)
+
+  const renderImportMenu = () => {
+    return !snapshotName && h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setUploadingFile(true)
+        }, 'Upload TSV')
+      ])
+    }, [h(ButtonSecondary, {
+      disabled: !canEdit,
+      tooltip: canEdit ? 'Import data' : 'You do not have permission to modify this workspace',
+      style: { marginRight: '1.5rem' }
+    }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Import'])])
+  }
+
+  const renderEditMenu = () => {
+    return !snapshotName && h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setDeletingEntities(true)
+        }, 'Delete')
+      ])
+    }, [h(ButtonSecondary, {
+      disabled: !canEdit || !entitiesSelected,
+      tooltip: Utils.cond(
+        [!canEdit, () => 'You do not have permission to modify this workspace'],
+        [!entitiesSelected, () => 'Select rows to edit'],
+        () => 'Edit selected data'
+      ),
+      style: { marginRight: '1.5rem' }
+    }, [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit'])])
+  }
+
+  const renderExportMenu = ({ columnSettings }) => {
+    const isSet = _.endsWith('_set', entityKey)
+    const isSetSet = entityKey.endsWith('_set_set')
+
+    return h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          disabled: isSetSet,
+          tooltip: isSetSet && 'Downloading sets of sets as TSV is not supported at this time',
+          onClick: async () => {
+            const tsv = buildTSV(columnSettings, selectedEntities)
+            isSet ?
+              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'table data',
+              fileType: '.tsv'
+            })
+          }
+        }, 'Download as TSV'),
+        !snapshotName && h(MenuButton, {
+          onClick: () => setCopyingEntities(true)
+        }, 'Export to workspace'),
+        h(MenuButton, {
+          onClick: _.flow(
+            withErrorReporting('Error copying to clipboard'),
+            Utils.withBusyState(setNowCopying)
+          )(async () => {
+            const str = buildTSV(columnSettings, _.values(selectedEntities))
+            await clipboard.writeText(str)
+            notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
+          })
+        }, 'Copy to clipboard')
+      ])
+    }, [h(ButtonSecondary, {
+      disabled: !entitiesSelected,
+      tooltip: entitiesSelected ? 'Export selected data' : 'Select rows to export',
+      style: { marginRight: '1.5rem' }
+    }, [
+      icon(nowCopying ? 'loadingSpinner' : 'export', { style: { marginRight: '0.5rem' } }),
+      'Export'
+    ])])
+  }
+
+  const renderOpenWithMenu = () => {
+    const menuDisabled = _.isEmpty(selectedEntities)
+    return !snapshotName && h(ButtonSecondary, {
+      disabled: menuDisabled,
+      tooltip: menuDisabled ? 'Select rows to open' : 'Open selected data',
+      style: { marginRight: '1.5rem' },
+      onClick: () => setShowToolSelector(true)
+    }, [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...'])
+  }
+
   // Render
   const { initialX, initialY } = firstRender ? StateHistory.get() : {}
   const selectedKeys = _.keys(selectedEntities)
@@ -378,7 +475,12 @@ const EntitiesContent = ({
         },
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
-        }, [
+        }, isDataTabRedesignEnabled() ? [
+          renderImportMenu(),
+          renderEditMenu(),
+          renderExportMenu({ columnSettings }),
+          renderOpenWithMenu()
+        ] : [
           !snapshotName && renderDownloadButton(columnSettings),
           !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
@@ -390,6 +492,16 @@ const EntitiesContent = ({
           renderSelectedRowsMenu(columnSettings)
         ]),
         deleteColumnUpdateMetadata
+      }),
+      uploadingFile && h(EntityUploader, {
+        onDismiss: () => setUploadingFile(false),
+        onSuccess: () => {
+          setUploadingFile(false)
+          forceRefresh()
+          loadMetadata()
+        },
+        namespace, name,
+        entityTypes: _.keys(entityMetadata)
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),

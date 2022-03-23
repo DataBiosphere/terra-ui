@@ -770,7 +770,8 @@ const WorkspaceData = _.flow(
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
-            deleteColumnUpdateMetadata
+            deleteColumnUpdateMetadata,
+            forceRefresh
           })]
         )
       ])
