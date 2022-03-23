@@ -1,5 +1,6 @@
 const rawConsole = require('console')
 const _ = require('lodash/fp')
+const uuid = require('uuid')
 
 const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -22,7 +23,7 @@ const withSignedInPage = fn => async options => {
 
 const clipToken = str => str.toString().substr(-10, 10)
 
-const getTestWorkspaceName = () => `test-workspace-${Math.floor(Math.random() * 100000)}`
+const getTestWorkspaceName = () => `terra-ui-test-workspace-${uuid.v4()}`
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
