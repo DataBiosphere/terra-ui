@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { EntityDeleter, EntityUploader, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
+import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -211,11 +211,10 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata, forceRefresh
+  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
-  const [uploadingFile, setUploadingFile] = useState(false)
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
@@ -363,22 +362,6 @@ const EntitiesContent = ({
   const entitiesSelected = !_.isEmpty(selectedEntities)
   const canEdit = !Utils.editWorkspaceError(workspace)
 
-  const renderImportMenu = () => {
-    return !snapshotName && h(MenuTrigger, {
-      side: 'bottom',
-      closeOnClick: true,
-      content: h(Fragment, [
-        h(MenuButton, {
-          onClick: () => setUploadingFile(true)
-        }, 'Upload TSV')
-      ])
-    }, [h(ButtonSecondary, {
-      disabled: !canEdit,
-      tooltip: canEdit ? 'Import data' : 'You do not have permission to modify this workspace',
-      style: { marginRight: '1.5rem' }
-    }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Import'])])
-  }
-
   const renderEditMenu = () => {
     return !snapshotName && h(MenuTrigger, {
       side: 'bottom',
@@ -477,7 +460,6 @@ const EntitiesContent = ({
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
         }, isDataTabRedesignEnabled() ? [
-          renderImportMenu(),
           renderExportMenu({ columnSettings }),
           renderEditMenu(),
           renderOpenWithMenu(),
@@ -499,16 +481,6 @@ const EntitiesContent = ({
           renderSelectedRowsMenu(columnSettings)
         ]),
         deleteColumnUpdateMetadata
-      }),
-      uploadingFile && h(EntityUploader, {
-        onDismiss: () => setUploadingFile(false),
-        onSuccess: () => {
-          setUploadingFile(false)
-          forceRefresh()
-          loadMetadata()
-        },
-        namespace, name,
-        entityTypes: _.keys(entityMetadata)
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),
