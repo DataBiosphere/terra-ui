@@ -5,7 +5,7 @@ const { dismissNotifications, signIntoTerra } = require('../utils/integration-ut
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const olderThanDays = 365
+const olderThanDays = 200
 const workspacePrefix = 'test-workspace-' // TODO: share with other location
 
 const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
