@@ -49,6 +49,8 @@ module.exports = {
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',
+    // TODO: Set 'variables' to 'true' after fixing the existing issues
+    'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
     'no-useless-rename': 'warn',
     'no-var': 'warn',
     'object-shorthand': 'warn',
@@ -59,6 +61,7 @@ module.exports = {
     'prefer-spread': 'warn',
     'rest-spread-spacing': 'warn',
     'template-curly-spacing': 'warn',
+    'vars-on-top': 'warn',
 
 
     'lodash-fp/consistent-name': ['warn', '_'],
