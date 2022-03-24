@@ -477,8 +477,8 @@ const EntitiesContent = ({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
         }, isDataTabRedesignEnabled() ? [
           renderImportMenu(),
-          renderEditMenu(),
           renderExportMenu({ columnSettings }),
+          renderEditMenu(),
           renderOpenWithMenu()
         ] : [
           !snapshotName && renderDownloadButton(columnSettings),
