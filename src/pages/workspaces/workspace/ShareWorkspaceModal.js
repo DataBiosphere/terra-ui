@@ -219,7 +219,8 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   // The email they entered will appear in the ACL stored in this component's state until updates are saved.
   // We want the share with support switch to function with any variation of the support email.
   const aclEntryIsTerraSupport = ({ email }) => _.toLower(email) === _.toLower(terraSupportEmail)
-  const terraSupportAccess = _.find(aclEntryIsTerraSupport, acl)
+  const currentTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, originalAcl)?.accessLevel
+  const newTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, acl)?.accessLevel
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail)
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport))
 
@@ -275,15 +276,19 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
       h(IdContainer, [
         id => h(TooltipTrigger, {
-          content: terraSupportAccess ?
-            `Terra Support has ${_.toLower(terraSupportAccess.accessLevel)} access to this workspace` :
-            'Grant Terra Support reader access to this workspace'
+          content: Utils.cond(
+            [!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => 'Allow Terra Support to view this workspace'],
+            [!currentTerraSupportAccessLevel && newTerraSupportAccessLevel, () => `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`],
+            [currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => `Saving will remove Terra Support's access to this workspace`],
+            [currentTerraSupportAccessLevel !== newTerraSupportAccessLevel, () => `Saving will change Terra Support's level of access to this workspace from ${_.toLower(currentTerraSupportAccessLevel)} to ${_.toLower(newTerraSupportAccessLevel)}`],
+            [currentTerraSupportAccessLevel === newTerraSupportAccessLevel, () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`]
+          )
         }, [
           label({ htmlFor: id }, [
             span({ style: { marginRight: '1ch' } }, 'Share with support'),
             h(Switch, {
               id,
-              checked: !!terraSupportAccess,
+              checked: !!newTerraSupportAccessLevel,
               onLabel: 'Yes',
               offLabel: 'No',
               width: 70,
