@@ -9,6 +9,7 @@ import { Ajax, saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
+import { autopauseDisabledValue } from 'src/libs/runtime-utils'
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -86,6 +87,7 @@ const IGVBrowser = _.flow(
     div({
       ref: containerRef,
       style: {
+        overflowY: 'auto',
         padding: '10px 0',
         margin: 8,
         border: `1px solid ${colors.dark(0.25)}`
