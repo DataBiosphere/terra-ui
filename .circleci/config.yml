@@ -133,7 +133,7 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - deps-{{ checksum "yarn.lock" }}
+            - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
@@ -180,11 +180,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "yarn.lock" }}
-            - deps-
+            - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable
       - save_cache:
-          key: deps-{{ checksum "yarn.lock" }}
+          key: deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
           paths:
             - .yarn/install-state.gz
             - .yarn/unplugged
