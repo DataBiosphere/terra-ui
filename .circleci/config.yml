@@ -132,7 +132,8 @@ commands:
       - attach_workspace:
           at: .
       - restore_cache:
-          keys: deps-{{ checksum "yarn.lock" }}
+          keys:
+            - deps-{{ checksum "yarn.lock" }}
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
