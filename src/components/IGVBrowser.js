@@ -9,7 +9,6 @@ import { Ajax, saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
-import { autopauseDisabledValue } from 'src/libs/runtime-utils'
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
