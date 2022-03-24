@@ -5,7 +5,7 @@ const { dismissNotifications, signIntoTerra } = require('../utils/integration-ut
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const olderThanDays = 200
+const olderThanDays = 100
 const workspacePrefix = 'test-workspace-' // TODO: share with other location
 
 const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
@@ -30,7 +30,7 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
       await page.evaluate((namespace, name) => window.Ajax().Workspaces.workspace(namespace, name).delete(), namespace, name)
       rawConsole.info(`Deleted old workspace: ${name}`)
     } catch (e) {
-      throw Error(`Failed to delete old workspace: ${name} with billing project ${namespace}`)
+      rawConsole.info(`Failed to delete old workspace: ${name} with billing project ${namespace}`)
     }
   }, oldWorkspaces))
 })
