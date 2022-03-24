@@ -33,7 +33,7 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(tools.Galaxy.appType)(apps)

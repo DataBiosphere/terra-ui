@@ -23,7 +23,7 @@ const titleId = 'cromwell-modal-title'
 export const CromwellModalBase = withDisplayName('CromwellModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
-    shouldHideCloseButton
+    shouldHideCloseButton = false
   }) => {
     const app = getCurrentApp(tools.Cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
