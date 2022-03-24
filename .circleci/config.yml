@@ -161,7 +161,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
-            yarn test $TESTS_TO_RUN --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            yarn test $TESTS_TO_RUN --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
@@ -195,7 +195,7 @@ jobs:
             - .yarn/install-state.gz
             - .yarn/unplugged
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn test
+      - run: yarn test --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
