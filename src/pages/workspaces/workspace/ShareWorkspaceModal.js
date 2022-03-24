@@ -280,6 +280,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
             'Grant Terra Support reader access to this workspace'
         }, [
           label({ htmlFor: id }, [
+            span({ style: { marginRight: '1ch' } }, 'Share with support'),
             h(Switch, {
               id,
               checked: !!terraSupportAccess,
@@ -290,8 +291,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
                   removeTerraSupportFromAcl()
                 }
               }
-            }),
-            span({ style: { marginLeft: '1ch' } }, 'Share with support')
+            })
           ])
         ])
       ]),
