@@ -269,9 +269,13 @@ export const CloudEnvironmentModal = ({
     [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
-      return runtime ?
-        !canCompute || busy || getIsRuntimeBusy(runtime) :
-        !canCompute || busy || getIsRuntimeBusy(currentRuntime) //TODO: multiple runtimes: change this to not have the last check in the or
+      console.log(toolLabel, runtime)
+      // This asks 'does this tool have a runtime'
+      //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
+      //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
+      //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
+      return runtime ? false :
+        !canCompute || busy || getIsRuntimeBusy(currentRuntime)
     }]
   )
 

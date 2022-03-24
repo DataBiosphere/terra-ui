@@ -88,7 +88,7 @@ export const ContextBar = ({
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
       hover: contextBarStyles.hover,
-      onClick: () => { // onclick displays an error message if the tool is in error, otherwise, if the tool is editable, opens the config modal (I.e. ComputeModal or GalaxyModal)
+      onClick: () => { // onclick displays an error message if the tool is in error, otherwise opens the config modal (I.e. ComputeModal or GalaxyModal)
         if (_.toLower(status) === 'error') {
           Utils.cond(
             [isToolAnApp(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],

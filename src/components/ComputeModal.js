@@ -784,7 +784,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
 
-    const isChangeDisabled = getIsRuntimeBusy(currentRuntimeDetails)
+    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails)
 
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
@@ -806,9 +806,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         onClick: () => {
           applyChanges()
         },
-        disabled: isChangeDisabled,
+        disabled: isUpdateDisabled,
         tooltipSide: 'left',
-        tooltip: isChangeDisabled ? `Cannot perform change on environment in status ( ${currentRuntimeDetails.status} )` : 'Update Environment'
+        tooltip: isUpdateDisabled ? `Cannot perform change on environment in status ( ${currentRuntimeDetails.status} )` : 'Update Environment'
       }, [
         Utils.cond(
           [viewMode === 'deleteEnvironment', () => 'Delete'],
