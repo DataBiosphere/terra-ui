@@ -136,7 +136,7 @@ commands:
             - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
       - run:
           working_directory: integration-tests
-          command: yarn install --immutable
+          command: yarn install --immutable-cache
       - when:
           condition: << parameters.local >>
           steps:
@@ -181,7 +181,7 @@ jobs:
       - restore_cache:
           keys:
             - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
-      - run: yarn install --immutable
+      - run: yarn install --immutable-cache
       - save_cache:
           key: deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
           paths:
