@@ -81,14 +81,14 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
           .then(res => res.text()))
       setUserscriptError(true)
     } else {
-      setError(runtimeErrors[0].errorMessage)
+      setError(runtimeErrors[0]?.errorMessage)
     }
   })
 
   useOnMount(() => { loadRuntimeError() })
 
   return h(Modal, {
-    title: `Cloud Environment Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
+    title: `Cloud Environment is in error state${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
@@ -132,7 +132,7 @@ export const AppErrorModal = ({ app, onDismiss }) => {
   useOnMount(() => { loadAppError() })
 
   return h(Modal, {
-    title: `Galaxy App Creation Failed`,
+    title: `Galaxy App is in error state`,
     showCancel: false,
     onDismiss
   }, [
@@ -209,7 +209,7 @@ export default class RuntimeManager extends PureComponent {
         message: h(ButtonPrimary, {
           href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
-        }, 'Launch Cloud Environment')
+        }, 'Open RStudio')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
@@ -376,7 +376,7 @@ export default class RuntimeManager extends PureComponent {
           tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
         }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
         h(Link, {
-          'aria-label': 'Launch app',
+          'aria-label': 'Open application',
           href: applicationLaunchLink,
           onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
           tooltip: canCompute ? `Open ${applicationName}` : noCompute,

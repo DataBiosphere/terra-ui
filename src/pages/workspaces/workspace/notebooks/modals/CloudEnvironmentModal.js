@@ -49,6 +49,7 @@ export const CloudEnvironmentModal = ({
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
+    shouldHideCloseButton: true,
     workspace,
     tool,
     runtimes,
@@ -66,7 +67,7 @@ export const CloudEnvironmentModal = ({
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
-    isAnalysisMode: true,
+    shouldHideCloseButton: true,
     workspace,
     apps,
     appDataDisks,

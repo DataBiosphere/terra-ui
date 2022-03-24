@@ -237,13 +237,13 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, {
             onClick: () => setEditModeDisabledOpen(true)
-          }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
+          }, [makeMenuIcon('warning-standard'), 'Open (Disabled)'])],
           [locked, () => h(HeaderButton, {
             onClick: () => setFileInUseOpen(true)
-          }, [makeMenuIcon('lock'), 'Edit (In use)'])],
+          }, [makeMenuIcon('lock'), 'Open (In use)'])],
           () => h(HeaderButton, {
             onClick: () => chooseMode('edit')
-          }, [makeMenuIcon('edit'), 'Edit'])
+          }, [makeMenuIcon('rocket'), 'Open'])
         ),
         h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)

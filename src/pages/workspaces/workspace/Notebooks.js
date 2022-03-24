@@ -104,7 +104,7 @@ const NotebookCard = ({
         disabled: locked || !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left'
-      }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+      }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('rocket'), 'Open']),
       h(MenuButton, {
         href: notebookPlaygroundLink,
         tooltip: canWrite && 'Open in playground mode',

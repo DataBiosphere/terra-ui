@@ -23,7 +23,7 @@ const titleId = 'cromwell-modal-title'
 export const CromwellModalBase = withDisplayName('CromwellModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
-    isAnalysisMode = false
+    shouldHideCloseButton
   }) => {
     const app = getCurrentApp(tools.cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
@@ -69,7 +69,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
         h(TitleBar, {
           id: titleId,
           title: 'Cromwell Cloud Environment',
-          hideCloseButton: isAnalysisMode,
+          hideCloseButton: shouldHideCloseButton,
           style: { marginBottom: '0.5rem' },
           onDismiss,
           onPrevious: undefined

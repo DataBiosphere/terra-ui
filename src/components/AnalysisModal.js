@@ -108,6 +108,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
+      shouldHideCloseButton: true,
       workspace,
       tool: currentTool,
       runtimes,
@@ -125,7 +126,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
       isOpen: viewMode === toolLabel,
-      isAnalysisMode: true,
+      shouldHideCloseButton: true,
       workspace,
       apps,
       appDataDisks,

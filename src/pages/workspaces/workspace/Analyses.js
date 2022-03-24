@@ -104,7 +104,7 @@ const AnalysisCard = ({
           tooltip: Utils.cond([!canWrite, () => noWrite],
             [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
-        }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+        }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
           'aria-label': `Playground`,
           href: analysisPlaygroundLink,
@@ -119,7 +119,7 @@ const AnalysisCard = ({
           tooltip: Utils.cond([!canWrite, () => noWrite],
             [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
-        }, [makeMenuIcon('rocket'), 'Launch'])
+        }, [makeMenuIcon('rocket'), 'Open'])
       ]),
       h(MenuButton, {
         'aria-label': `Copy`,

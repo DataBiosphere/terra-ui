@@ -33,8 +33,7 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
-    isAnalysisMode = false
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(tools.galaxy.appType)(apps)
@@ -115,7 +114,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             ['RUNNING', () => h(Fragment, [
               deleteButton,
               pauseButton,
-              h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
+              h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Open Galaxy'])
             ])],
             ['STOPPED', () => h(Fragment, [
               h(ButtonOutline, {
@@ -126,7 +125,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             ])],
             ['ERROR', () => deleteButton],
             [Utils.DEFAULT, () => {
-              return h(Fragment, { tooltip: 'Cloud Compute must be resumed first.' }, [
+              return h(Fragment, [
                 h(ButtonOutline, {
                   disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn')
                 }, ['Delete Environment']),
@@ -154,7 +153,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           id: titleId,
           title: 'Cloud Environment',
           style: { marginBottom: '0.5rem' },
-          hideCloseButton: isAnalysisMode,
+          hideCloseButton: shouldHideCloseButton,
           onDismiss,
           onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
         }),
@@ -206,8 +205,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
-          title: h(WarningTitle, ['Launch Galaxy']),
-          hideCloseButton: isAnalysisMode,
+          title: h(WarningTitle, ['Open Galaxy']),
+          hideCloseButton: shouldHideCloseButton,
           style: { marginBottom: '0.5rem' },
           onDismiss,
           onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
@@ -334,7 +333,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         h(TitleBar, {
           id: titleId,
           style: computeStyles.titleBar,
-          hideCloseButton: isAnalysisMode,
+          hideCloseButton: shouldHideCloseButton,
           title: h(WarningTitle, ['Delete environment']),
           onDismiss,
           onPrevious: () => {
@@ -388,7 +387,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         h(TitleBar, {
           id: titleId,
           title: 'Cloud Environment',
-          hideCloseButton: isAnalysisMode,
+          hideCloseButton: shouldHideCloseButton,
           style: { marginBottom: '0.5rem' },
           onDismiss,
           onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
