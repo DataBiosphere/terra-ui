@@ -132,17 +132,10 @@ commands:
       - attach_workspace:
           at: .
       - restore_cache:
-          keys:
-            - deps-{{ checksum "yarn.lock" }}
-            - deps-
+          keys: deps-{{ checksum "yarn.lock" }}
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
-      - save_cache:
-          key: deps-{{ checksum "yarn.lock" }}
-          paths:
-            - .yarn/install-state.gz
-            - .yarn/unplugged
       - when:
           condition: << parameters.local >>
           steps:
