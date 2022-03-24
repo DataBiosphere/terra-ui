@@ -89,5 +89,31 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "packageManager": "yarn@3.1.1"
+  "dependenciesMeta": {
+    "@fortawesome/fontawesome-common-types": {
+      "built": false
+    },
+    "@fortawesome/fontawesome-svg-core": {
+      "built": false
+    },
+    "@fortawesome/free-regular-svg-icons": {
+      "built": false
+    },
+    "@fortawesome/free-solid-svg-icons": {
+      "built": false
+    },
+    "core-js": {
+      "built": false
+    },
+    "core-js-pure": {
+      "built": false
+    }
+  },
+  "packageManager": "yarn@3.2.0",
+  "workspaces": [
+    "integration-tests"
+  ],
+  "jest": {
+    "transformIgnorePatterns": []
+  }
 }

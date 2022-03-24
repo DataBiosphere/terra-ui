@@ -133,16 +133,16 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps9-
+            - deps-{{ checksum "yarn.lock" }}
+            - deps-
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
       - save_cache:
-          key: test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: deps-{{ checksum "yarn.lock" }}
           paths:
-            - integration-tests/node_modules
-            - integration-tests/.yarn/cache
+            - .yarn/install-state.gz
+            - .yarn/unplugged
       - when:
           condition: << parameters.local >>
           steps:
@@ -186,14 +186,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps8-
+            - deps-{{ checksum "yarn.lock" }}
+            - deps-
       - run: yarn install --immutable
       - save_cache:
-          key: deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+          key: deps-{{ checksum "yarn.lock" }}
           paths:
-            - node_modules
-            - .yarn/cache
+            - .yarn/install-state.gz
+            - .yarn/unplugged
       - run: yarn eslint --max-warnings=0 .
       - run: yarn test
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
