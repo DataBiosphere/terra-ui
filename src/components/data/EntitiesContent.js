@@ -426,6 +426,8 @@ const EntitiesContent = ({
           onClick: () => setCopyingEntities(true)
         }, 'Export to workspace'),
         h(MenuButton, {
+          disabled: isSetSet,
+          tooltip: isSetSet && 'Copying sets of sets is not supported at this time',
           onClick: _.flow(
             withErrorReporting('Error copying to clipboard'),
             Utils.withBusyState(setNowCopying)
