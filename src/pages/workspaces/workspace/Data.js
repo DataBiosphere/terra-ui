@@ -2,12 +2,12 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
-import { div, form, h, h3, input } from 'react-hyperscript-helpers'
+import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -624,9 +624,32 @@ const WorkspaceData = _.flow(
   const sortedEntityPairs = toSortedPairs(entityMetadata)
   const sortedSnapshotPairs = toSortedPairs(snapshotDetails)
 
+  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
+  const canEditWorkspace = !editWorkspaceErrorMessage
+
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+        isDataTabRedesignEnabled() && div({ style: { display: 'flex', padding: '1rem 1.5rem', backgroundColor: colors.light(0.4) } }, [
+          h(MenuTrigger, {
+            side: 'bottom',
+            closeOnClick: true,
+            content: h(Fragment, [
+              h(MenuButton, {
+                'aria-haspopup': 'dialog',
+                onClick: () => setUploadingFile(true)
+              }, 'Upload TSV'),
+              h(MenuButton, {
+                'aria-haspopup': 'dialog',
+                onClick: () => setImportingReference(true)
+              }, 'Add reference data')
+            ])
+          }, [h(ButtonOutline, {
+            disabled: !canEditWorkspace,
+            tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+            style: { flex: 1 }
+          }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])])])
+        ]),
         div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
           div({ role: 'list' }, [
             h(DataTypeSection, {
