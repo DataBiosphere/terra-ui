@@ -284,6 +284,9 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
             h(Switch, {
               id,
               checked: !!terraSupportAccess,
+              onLabel: 'Yes',
+              offLabel: 'No',
+              width: 70,
               onChange: checked => {
                 if (checked) {
                   addTerraSupportToAcl()
