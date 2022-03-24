@@ -4,6 +4,7 @@ const _ = require('lodash/fp')
 const { dismissNotifications, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
+
 const olderThanDays = 365
 const workspacePrefix = 'test-workspace-' // TODO: share with other location
 
@@ -16,8 +17,8 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
   // Delete old orphaned workspaces. These can result from local integration test runs where the
   // process was prematurely terminated.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list())
-  const oldWorkspaces = _.filter( ( { workspace: {namespace, name, lastModified} } ) => {
-      return namespace === billingProject &&
+  const oldWorkspaces = _.filter(({ workspace: { namespace, name, lastModified } }) => {
+    return namespace === billingProject &&
       _.startsWith(workspacePrefix, name) &&
       dateFns.differenceInDays(new Date(lastModified), new Date()) > olderThanDays
   }, workspaces)
