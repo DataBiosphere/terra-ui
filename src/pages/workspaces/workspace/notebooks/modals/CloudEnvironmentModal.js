@@ -49,6 +49,7 @@ export const CloudEnvironmentModal = ({
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
+    shouldHideCloseButton: true,
     workspace,
     tool,
     runtimes,
@@ -66,7 +67,7 @@ export const CloudEnvironmentModal = ({
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
-    isAnalysisMode: true,
+    shouldHideCloseButton: true,
     workspace,
     apps,
     appDataDisks,
@@ -251,14 +252,14 @@ export const CloudEnvironmentModal = ({
 
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
-    [tools.galaxy.label, () => galaxyLogo],
+    [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
-    [tools.cromwell.label, () => cromwellImg])
+    [tools.Cromwell.label, () => cromwellImg])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
-    [toolLabel === tools.cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -268,7 +269,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
+    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
       return runtime ?
@@ -303,7 +304,7 @@ export const CloudEnvironmentModal = ({
       )
     }
     return Utils.switchCase(toolLabel,
-      [tools.galaxy.label, () => {
+      [tools.Galaxy.label, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls?.galaxy,
@@ -314,13 +315,13 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
-      [tools.cromwell.label, () => {
+      [tools.Cromwell.label, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.cromwell.appType })
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.Cromwell.appType })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -392,8 +393,8 @@ export const CloudEnvironmentModal = ({
 
   const NEW_JUPYTER_MODE = tools.Jupyter.label
   const NEW_RSTUDIO_MODE = tools.RStudio.label
-  const NEW_GALAXY_MODE = tools.galaxy.label
-  const NEW_CROMWELL_MODE = tools.cromwell.label
+  const NEW_GALAXY_MODE = tools.Galaxy.label
+  const NEW_CROMWELL_MODE = tools.Cromwell.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
