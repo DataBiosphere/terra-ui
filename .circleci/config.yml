@@ -133,7 +133,7 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
+            - deps-{{ .Branch }}
       - run:
           working_directory: integration-tests
           command: yarn install --immutable-cache
@@ -180,13 +180,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
+            - deps-{{ .Branch }}
       - run: yarn install --immutable-cache
       - save_cache:
-          key: deps-{{ checksum "yarn.lock" }}-{{ checksum ".pnp.cjs" }}
+          key: deps-{{ .Branch }}
           paths:
-            - .yarn/install-state.gz
             - .yarn/unplugged
+            - node_modules/.cache
       - run: yarn eslint --max-warnings=0 .
       - run: yarn test --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
