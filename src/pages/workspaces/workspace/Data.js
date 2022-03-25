@@ -654,7 +654,7 @@ const WorkspaceData = _.flow(
           div({ role: 'list' }, [
             h(DataTypeSection, {
               title: 'Tables',
-              titleExtras: h(Link, {
+              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
                 disabled: !!Utils.editWorkspaceError(workspace),
                 tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
                 onClick: () => setUploadingFile(true),
@@ -758,7 +758,7 @@ const WorkspaceData = _.flow(
             ]),
             h(DataTypeSection, {
               title: 'Reference Data',
-              titleExtras: h(Link, {
+              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
                 disabled: !!Utils.editWorkspaceError(workspace),
                 tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
                 onClick: () => setImportingReference(true),
