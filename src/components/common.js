@@ -477,22 +477,22 @@ export const CromwellVersionLink = props => {
     'Cromwell version loading...'
 }
 
-const SwitchLabel = ({ isOn }) => div({
+const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({
   style: {
     display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
     fontSize: 15, fontWeight: 'bold', color: 'white',
     height: '100%', lineHeight: '28px',
     ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
   }
-}, [isOn ? 'True' : 'False'])
+}, [isOn ? onLabel : offLabel])
 
-export const Switch = ({ onChange, ...props }) => {
+export const Switch = ({ onChange, onLabel = 'True', offLabel = 'False', ...props }) => {
   return h(RSwitch, {
     onChange: value => onChange(value),
     offColor: colors.dark(0.5),
     onColor: colors.success(1.2),
-    checkedIcon: h(SwitchLabel, { isOn: true }),
-    uncheckedIcon: h(SwitchLabel, { isOn: false }),
+    checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
+    uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
     width: 80,
     ...props
   })

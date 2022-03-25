@@ -10,7 +10,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const styles = {
+export const styles = {
   overlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '2rem 1rem',
     display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
