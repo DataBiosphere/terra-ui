@@ -152,7 +152,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
-          title: 'Cloud Environment',
+          title: 'Galaxy Cloud Environment',
           style: { marginBottom: '0.5rem' },
           hideCloseButton: isAnalysisMode,
           onDismiss,
@@ -387,7 +387,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       return div({ style: computeStyles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
-          title: 'Cloud Environment',
+          title: 'Galaxy Cloud Environment',
           hideCloseButton: isAnalysisMode,
           style: { marginBottom: '0.5rem' },
           onDismiss,

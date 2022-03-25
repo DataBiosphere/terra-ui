@@ -18,7 +18,6 @@ import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
-import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const contextBarStyles = {
@@ -36,7 +35,7 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
@@ -45,8 +44,6 @@ export const ContextBar = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = !!workspace?.canShare
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
 
   const startCurrentRuntime = () => {
@@ -105,16 +102,6 @@ export const ContextBar = ({
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
-          h(Clickable, {
-            style: contextBarStyles.contextBarButton,
-            hover: contextBarStyles.hover,
-            tooltipSide: 'left',
-            tooltip: 'Workspace menu',
-            tooltipDelay: 100,
-            useTooltipAsLabel: true
-          }, [icon('ellipsis-v', { size: 24 })])
-        ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,

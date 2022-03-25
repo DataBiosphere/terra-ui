@@ -76,8 +76,8 @@ export const tools = {
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
-  galaxy: { label: 'galaxy', appType: 'GALAXY' },
-  cromwell: { label: 'cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+  galaxy: { label: 'Galaxy', appType: 'GALAXY' },
+  cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
 }
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools

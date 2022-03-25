@@ -61,7 +61,7 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      isAnalysisTabVisible() ? h(Fragment) : h(WorkspaceMenuTrigger, {
+      h(WorkspaceMenuTrigger, {
         canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace,
         setShowLockWorkspaceModal, setDeletingWorkspace
       }, [
