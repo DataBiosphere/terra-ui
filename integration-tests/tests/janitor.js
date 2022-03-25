@@ -6,7 +6,7 @@ const { dismissNotifications, signIntoTerra } = require('../utils/integration-ut
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const olderThanDays = 0
+const olderThanDays = 2
 
 const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
@@ -15,7 +15,8 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
   await dismissNotifications(page)
 
   // Delete old orphaned workspaces. These can result from local integration test runs where the
-  // process was prematurely terminated.
+  // process was prematurely terminated, but a few also appear in alpha and staging indicating that
+  // ci test runs also sometimes leak workspaces.
   const workspaces = await page.evaluate(async () => await window.Ajax().Workspaces.list())
   const oldWorkspaces = _.filter(({ workspace: { namespace, name, createdDate } }) => {
     const age = dateFns.differenceInDays(new Date(createdDate), new Date())
