@@ -7,7 +7,7 @@ executors:
   node:
     working_directory: /mnt/ramdisk
     docker:
-      - image: node:16
+      - image: cimg/node:16.14
         user: node
   puppeteer:
     working_directory: /mnt/ramdisk
