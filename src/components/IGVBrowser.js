@@ -89,6 +89,7 @@ const IGVBrowser = _.flow(
     div({
       ref: containerRef,
       style: {
+        overflowY: 'auto',
         padding: '10px 0',
         margin: 8,
         border: `1px solid ${colors.dark(0.25)}`
