@@ -38,9 +38,8 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } },
-  filterForTool = undefined
+  runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
