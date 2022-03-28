@@ -231,7 +231,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => forwardRefWithName(`withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`, ({
-  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
+  itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }, ref) => {
   useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })

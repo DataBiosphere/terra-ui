@@ -64,7 +64,7 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
+const PreviewContent = ({ metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = useCancellation()
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
@@ -224,7 +224,7 @@ const UriViewer = _.flow(
           els.label('Filename'),
           els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
         ]),
-        h(PreviewContent, { uri, metadata, googleProject }),
+        h(PreviewContent, { metadata, googleProject }),
         els.cell([els.label('File size'), els.data(filesize(size))]),
         !accessUrl && !!gsUri && els.cell([
           h(Link, {

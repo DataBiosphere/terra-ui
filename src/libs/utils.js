@@ -356,6 +356,6 @@ export const formatBytes = bytes => {
     ['G', 2 ** 30],
     ['M', 2 ** 20],
     ['K', 2 ** 10]
-  ].find(([p, d]) => bytes >= d)
+  ].find(([_p, d]) => bytes >= d)
   return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
 }

@@ -318,7 +318,7 @@ const CollectionSelectorPanel = _.flow(
   withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
+  workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
 }) => {
   // State
   const [collections, setCollections] = useState(undefined)
@@ -705,7 +705,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
     }, [
       p([
         h(Link, {
-          href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name }),
+          href: Nav.getLink('workspace-data', { namespace, name }),
           onClick: () => StateHistory.update({ selectedDataType: tableName })
         }, [
           icon('view-cards'),
@@ -734,7 +734,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
 
 const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
   forwardRefWithName('Upload')
-)((props, ref) => {
+)((props, _ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
 
   // State
@@ -875,7 +875,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
                 workspace,
                 collection,
                 setNumFiles,
-                setUploadedFiles: files => {
+                setUploadedFiles: () => {
                   setCurrentStep('metadata')
                 }
               }, [

@@ -44,7 +44,7 @@ const NotebookLauncher = _.flow(
   })
 )(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
-    ref) => {
+    _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const [busy, setBusy] = useState()
     const [location, setLocation] = useState(defaultLocation)

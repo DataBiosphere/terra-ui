@@ -53,7 +53,7 @@ const PrivateDataExplorer = ({ dataset }) => {
           // - User has not completed oauth for this Data Explorer
           // - User has completed oauth but has not used DE from this browser
           // - User has used DE from this browser but IAP login cookie has expired
-          .catch(e => { setCompletedDeOauth(false) })
+          .catch(() => { setCompletedDeOauth(false) })
       ])
       setGroups(_.map(g => g.groupName, groupObjs))
     }

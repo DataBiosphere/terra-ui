@@ -30,6 +30,13 @@ module.exports = {
     'no-multiple-empty-lines': 'warn',
     'no-trailing-spaces': 'warn',
     'no-unneeded-ternary': 'warn',
+    'no-unused-vars': [
+      'warn', {
+        'vars': 'all',
+        'args': 'all',
+        'argsIgnorePattern': '^_|^props'
+      }
+    ],
     'no-whitespace-before-property': 'warn',
     'nonblock-statement-body-position': 'warn',
     'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
@@ -49,6 +56,8 @@ module.exports = {
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',
+    // TODO: Set 'variables' to 'true' after fixing the existing issues
+    'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
     'no-useless-rename': 'warn',
     'no-var': 'warn',
     'object-shorthand': 'warn',
@@ -59,6 +68,7 @@ module.exports = {
     'prefer-spread': 'warn',
     'rest-spread-spacing': 'warn',
     'template-curly-spacing': 'warn',
+    'vars-on-top': 'warn',
 
 
     'lodash-fp/consistent-name': ['warn', '_'],

@@ -162,7 +162,7 @@ export const GalaxyWarning = () => {
   ])
 }
 
-export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props }) => {
+export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
   const cookieReady = useStore(cookieReadyStore)
   return h(ButtonPrimary, {
     disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
