@@ -2,13 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, img } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
-import { ComputeModal } from 'src/components/ComputeModal'
-import { CromwellModal } from 'src/components/CromwellModal'
-import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
-import { getAppType, isToolAnApp, tools } from 'src/components/notebook-utils'
+import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName } from 'src/components/runtime-common'
-import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-logo.png'
@@ -16,7 +12,6 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
@@ -43,16 +38,12 @@ const contextBarStyles = {
 }
 
 export const ContextBar = ({
-  runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
+runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
+  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } },
+  filterForTool = undefined
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
-  const [isComputeModalOpen, setComputeModalOpen] = useState(false)
-  const [isGalaxyModalOpen, setGalaxyModalOpen] = useState(false)
-  const [isCromwellModalOpen, setCromwellModalOpen] = useState(false)
-  const [selectedToolIcon, setSelectedToolIcon] = useState(null)
-  const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
-  const [errorAppId, setErrorAppId] = useState(undefined)
+  const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -78,31 +69,16 @@ export const ContextBar = ({
     [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
 
-  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
-
-
   const getIconForTool = (toolLabel, status) => {
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
       hover: contextBarStyles.hover,
-      onClick: () => { // onclick displays an error message if the tool is in error, otherwise opens the config modal (I.e. ComputeModal or GalaxyModal)
-        if (_.toLower(status) === 'error') {
-          Utils.cond(
-            [isToolAnApp(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
-            [Utils.DEFAULT, () => setErrorRuntimeId(currentRuntime?.id)]
-          )
-        } else {
-          Utils.switchCase(toolLabel,
-            [tools.Galaxy.label, () => setGalaxyModalOpen(true)],
-            [tools.Cromwell.label, () => setCromwellModalOpen(true)],
-            [Utils.DEFAULT, () => {
-              setSelectedToolIcon(toolLabel)
-              setComputeModalOpen(true)
-            }])
-        }
+      onClick: () => {
+        setSelectedToolIcon(toolLabel)
+        setCloudEnvOpen(true)
       },
       tooltipSide: 'left',
-      tooltip: `${toolLabel} environment ( ${getComputeStatusForDisplay(status)} )`,
+      tooltip: `${toolLabel} Environment ( ${getComputeStatusForDisplay(status)} )`,
       tooltipDelay: 100,
       useTooltipAsLabel: true
     }, [
@@ -128,68 +104,20 @@ export const ContextBar = ({
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
+      filterForTool: selectedToolIcon,
       onSuccess: async () => {
         setCloudEnvOpen(false)
+        setSelectedToolIcon(undefined)
         await refreshRuntimes(true)
         await refreshApps()
       },
       onDismiss: async () => {
         setCloudEnvOpen(false)
+        setSelectedToolIcon(undefined)
         await refreshRuntimes(true)
         await refreshApps()
       },
       runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, locationType
-    }),
-    h(ComputeModal, {
-      isOpen: isComputeModalOpen,
-      isAnalysisMode: true,
-      tool: selectedToolIcon,
-      workspace,
-      runtimes,
-      persistentDisks,
-      location,
-      onDismiss: () => setComputeModalOpen(false),
-      onSuccess: _.flow(
-        withErrorReporting('Error loading cloud environment'),
-        Utils.withBusyState(v => this.setState({ busy: v }))
-      )(async () => {
-        setComputeModalOpen(false)
-        await refreshRuntimes(true)
-      })
-    }),
-    h(GalaxyModal, {
-      workspace,
-      apps,
-      appDataDisks,
-      isOpen: isGalaxyModalOpen,
-      onDismiss: () => setGalaxyModalOpen(false),
-      onSuccess: () => {
-        withErrorReporting('Error loading galaxy environment')(
-          setGalaxyModalOpen(false),
-          refreshApps()
-        )
-      }
-    }),
-    h(CromwellModal, {
-      workspace,
-      apps,
-      appDataDisks,
-      isOpen: isCromwellModalOpen,
-      onDismiss: () => setCromwellModalOpen(false),
-      onSuccess: () => {
-        withErrorReporting('Error loading galaxy environment')(
-          setCromwellModalOpen(false),
-          refreshApps()
-        )
-      }
-    }),
-    errorAppId && h(AppErrorModal, {
-      app: _.find({ appName: errorAppId }, apps),
-      onDismiss: () => setErrorAppId(undefined)
-    }),
-    errorRuntimeId && h(RuntimeErrorModal, {
-      runtime: _.find({ id: errorRuntimeId }, runtimes),
-      onDismiss: () => setErrorRuntimeId(undefined)
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [

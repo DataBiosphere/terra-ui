@@ -34,7 +34,8 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
+  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } },
+  filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
@@ -82,7 +83,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(getToolsToDisplay)
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay)
   )
 
   const toolPanelStyles = {
@@ -272,7 +273,6 @@ export const CloudEnvironmentModal = ({
     [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
-      console.log(toolLabel, runtime)
       // This asks 'does this tool have a runtime'
       //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
       //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
@@ -350,6 +350,7 @@ export const CloudEnvironmentModal = ({
   }
 
   const renderToolButtons = toolLabel => {
+    console.log('label in renderTolButtons', toolLabel)
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)

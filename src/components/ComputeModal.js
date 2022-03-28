@@ -784,7 +784,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
 
-    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails)
+    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails, existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage)
 
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
