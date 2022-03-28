@@ -522,12 +522,11 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
 const renderInputForAttributeType = _.curry((attributeType, props) => {
   return Utils.switchCase(attributeType,
     ['string', () => {
-      const { value = '', onChange, ...otherProps } = props
+      const { value = '', ...otherProps } = props
       return h(TextInput, {
         autoFocus: true,
         placeholder: 'Enter a value',
         value,
-        onChange: v => onChange(_.trim(v)),
         ...otherProps
       })
     }],
@@ -537,7 +536,7 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
         autoFocus: true,
         placeholder: `Enter a ${value.entityType}_id`,
         value: value.entityName,
-        onChange: v => onChange({ ...value, entityName: _.trim(v) }),
+        onChange: v => onChange({ ...value, entityName: v }),
         ...otherProps
       })
     }],
@@ -675,6 +674,20 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
   ])
 }
 
+export const prepareAttributeForUpload = attributeValue => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const transform = Utils.switchCase(type,
+    ['string', () => _.trim],
+    ['reference', () => _.update('entityName', _.trim)],
+    [Utils.DEFAULT, () => _.identity]
+  )
+
+  return isList ?
+    _.update('items', _.map(transform), attributeValue) :
+    transform(attributeValue)
+}
+
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [newValue, setNewValue] = useState(attributeValue)
   const isUnchanged = _.isEqual(attributeValue, newValue)
@@ -691,7 +704,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         .workspace(namespace, name)
         .upsertEntities([{
           name: entityName, entityType,
-          attributes: { [attributeName]: newValue }
+          attributes: { [attributeName]: prepareAttributeForUpload(newValue) }
         }])
       onSuccess()
     } catch (e) {
