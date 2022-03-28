@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -563,7 +563,7 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -574,6 +574,18 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
     () => entityTypes[0]
   )
   const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+
+  const focusLastListItemInput = useRef(false)
+  const lastListItemInput = useRef(null)
+  useEffect(() => {
+    if (!isList) {
+      lastListItemInput.current = null
+    }
+    if (focusLastListItemInput.current && lastListItemInput.current) {
+      lastListItemInput.current.focus()
+      focusLastListItemInput.current = false
+    }
+  }, [attributeValue, isList])
 
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
@@ -638,7 +650,8 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
         }, [
           renderInput({
             'aria-label': `List value ${i + 1}`,
-            autoFocus: true,
+            autoFocus: i === 0 && autoFocus,
+            ref: i === attributeValue.items.length - 1 ? lastListItemInput : undefined,
             value,
             onChange: v => {
               const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
@@ -660,6 +673,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
         h(Link, {
           style: { display: 'block', marginTop: '1rem' },
           onClick: () => {
+            focusLastListItemInput.current = true
             const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
             onChange(newAttributeValue)
           }
@@ -667,7 +681,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
       ]) : div({ style: { marginTop: '1.5rem' } }, [
         renderInput({
           'aria-label': 'New value',
-          autoFocus: true,
+          autoFocus,
           value: attributeValue,
           onChange
         })
@@ -745,6 +759,7 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
       ]) :
       h(Fragment, [
         h(AttributeInput, {
+          autoFocus: true,
           value: newValue,
           onChange: setNewValue,
           entityTypes
