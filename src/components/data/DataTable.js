@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -373,7 +373,7 @@ const DataTable = props => {
       },
       onDismiss: () => setRenamingEntity(undefined)
     }),
-    !!updatingEntity && h(EntityEditor, {
+    !!updatingEntity && h(SingleEntityEditor, {
       entityType: _.find(entity => entity.name === updatingEntity.entityName, entities).entityType,
       ...updatingEntity,
       entityTypes: _.keys(entityMetadata),
