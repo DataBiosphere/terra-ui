@@ -1,6 +1,6 @@
 /* eslint-disable quote-props */
 module.exports = {
-  'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
+  'plugins': ['lodash-fp', 'simple-import-sort'],
   'extends': 'react-app',
   'rules': {
     // Best Practices
