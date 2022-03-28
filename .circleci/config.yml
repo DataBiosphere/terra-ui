@@ -134,7 +134,6 @@ commands:
       - restore_cache:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-            - deps-{{ .Branch }}-
       - run:
           working_directory: integration-tests
           command: yarn install --immutable-cache
