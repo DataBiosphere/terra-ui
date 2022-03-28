@@ -906,6 +906,14 @@ const Workspaces = signal => ({
           { signal, method: 'PATCH' }]))
       },
 
+      deleteAttributeFromEntities: (entityType, attributeName, entityNames) => {
+        const body = _.map(name => ({
+          entityType, name, operations: [{ op: 'RemoveAttribute', attributeName }]
+        }), entityNames)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+      },
+
       deleteEntityColumn: (type, attributeName) => {
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },

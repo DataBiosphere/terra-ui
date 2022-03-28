@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import pluralize from 'pluralize'
 import { Fragment, useState } from 'react'
 import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
 import {
@@ -6,7 +7,7 @@ import {
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -757,6 +758,138 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
             disabled: isUnchanged || newValue === undefined || newValue === '',
             tooltip: isUnchanged && 'No changes to save'
           }, ['Save Changes'])
+        ])
+      ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [attributeToEdit, setAttributeToEdit] = useState('')
+  const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
+  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
+  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+
+  const [newValue, setNewValue] = useState('')
+
+  const signal = useCancellation()
+  const [isBusy, setIsBusy] = useState()
+  const [consideringDelete, setConsideringDelete] = useState()
+
+  const doEdit = async () => {
+    try {
+      setIsBusy(true)
+
+      const entityUpdates = _.map(entityName => ({
+        entityType,
+        name: entityName,
+        attributes: { [attributeToEdit]: prepareAttributeForUpload(newValue) }
+      }), entityNames)
+
+      await Ajax(signal)
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities(entityUpdates)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const doDelete = async () => {
+    try {
+      setIsBusy(true)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, entityNames)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const boldish = text => span({ style: { fontWeight: 600 } }, [text])
+
+  return h(Modal, {
+    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    onDismiss,
+    showButtons: false
+  }, [
+    consideringDelete ?
+      h(Fragment, [
+        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
+        div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
+        div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
+          div({ style: { flexGrow: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+        ])
+      ]) :
+      h(Fragment, [
+        div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+                h(AutocompleteTextInput, {
+                  id,
+                  value: attributeToEdit,
+                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
+                  placeholder: 'Attribute name',
+                  style: attributeToEditError ? {
+                    paddingRight: '2.25rem',
+                    border: `1px solid ${colors.danger()}`
+                  } : undefined,
+                  onChange: value => {
+                    setAttributeToEdit(value)
+                    setAttributeToEditTouched(true)
+                  }
+                }),
+                attributeToEditError && icon('error-standard', {
+                  size: 24,
+                  style: {
+                    position: 'absolute', right: '0.5rem',
+                    color: colors.danger()
+                  }
+                })
+              ]),
+              attributeToEditError && div({
+                'aria-live': 'assertive',
+                'aria-relevant': 'all',
+                style: {
+                  marginTop: '0.5rem',
+                  color: colors.danger()
+                }
+              }, attributeToEditError)
+            ])
+          ])
+        ]),
+        attributeToEditTouched ? h(Fragment, [
+          h(AttributeInput, {
+            value: newValue,
+            onChange: setNewValue,
+            entityTypes
+          }),
+          div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
+            h(ButtonOutline, {
+              disabled: attributeToEditError || isNewAttribute,
+              tooltip: Utils.cond(
+                [attributeToEditError, () => attributeToEditError],
+                [isNewAttribute, () => 'The selected attribute does not exist.']
+              ),
+              onClick: () => setConsideringDelete(true)
+            }, ['Delete']),
+            div({ style: { flexGrow: 1 } }),
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
+            h(ButtonPrimary, {
+              disabled: attributeToEditError,
+              tooltip: attributeToEditError,
+              onClick: doEdit
+            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+          ])
+        ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
+          h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
         ])
       ]),
     isBusy && spinnerOverlay
