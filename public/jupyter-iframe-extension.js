@@ -60,7 +60,7 @@ define([
     })
 
     // report save status up
-    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', (event, data) => {
+    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', (_event, data) => {
       window.parent.postMessage(data.value ? 'dirty' : 'saved', '*')
     })
   }

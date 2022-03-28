@@ -34,7 +34,7 @@ const SubmissionDetails = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   })
-)((props, ref) => {
+)((props, _ref) => {
   const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
 
   /*

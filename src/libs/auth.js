@@ -98,6 +98,7 @@ export const initializeAuth = _.memoize(async () => {
           timeout: 30000
         })
       }
+
       return {
         ...state,
         isSignedIn,

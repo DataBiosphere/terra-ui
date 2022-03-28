@@ -77,7 +77,7 @@ export const RequestAccessModal = ({ onDismiss, workspace }) => {
   ])
 }
 
-const RequestAccessButton = ({ groupName, instructions }) => {
+const RequestAccessButton = ({ groupName }) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
   const signal = useCancellation()

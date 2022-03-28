@@ -287,7 +287,7 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
   const menuId = useUniqueId()
   const myId = useUniqueId()

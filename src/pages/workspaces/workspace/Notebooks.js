@@ -222,7 +222,7 @@ const Notebooks = _.flow(
 )(({
   apps, appDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
-}, ref) => {
+}, _ref) => {
   // State
   const [renamingNotebookName, setRenamingNotebookName] = useState(undefined)
   const [copyingNotebookName, setCopyingNotebookName] = useState(undefined)
