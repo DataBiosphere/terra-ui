@@ -335,7 +335,8 @@ export default class RuntimeManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
+
+    const totalCost = () => _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
 
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
@@ -403,7 +404,7 @@ export default class RuntimeManager extends PureComponent {
               div({ style: { fontSize: 10 } }, [
                 span({ style: { textTransform: 'capitalize', fontWeight: 500 } },
                   [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
-                !!totalCost && ` (${Utils.formatUSD(totalCost)} / hr)`
+                !!totalCost() && ` (${Utils.formatUSD(totalCost())} / hr)`
               ])
             ]),
             icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })

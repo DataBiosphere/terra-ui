@@ -122,7 +122,7 @@ const getGpuCost = (gpuType, numGpus, region) => {
   return price * numGpus
 }
 
-export const runtimeConfigBaseCost = config => {
+export const runtimeConfigBaseCost = (config, diskConfig) => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
   } = normalizeRuntimeConfig(config)
@@ -130,14 +130,14 @@ export const runtimeConfigBaseCost = config => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion),
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion))
+      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType))
   ])
 }
 
-export const runtimeConfigCost = config => {
+export const runtimeConfigCost = (config, diskConfig) => {
   const {
     cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
   } = normalizeRuntimeConfig(
@@ -153,27 +153,39 @@ export const runtimeConfigCost = config => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion),
+    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
-    runtimeConfigBaseCost(config)
+    runtimeConfigBaseCost(config, diskConfig)
   ])
 }
 
+const pdTypes = {
+  standard: {
+    label: 'pd-standard',
+    costName: 'monthlyDiskPrice'
+  },
+  ssd: {
+    label: 'pd-ssd',
+    costName: 'monthlySSDPrice'
+  }
+}
+
 // Per GB following https://cloud.google.com/compute/pricing
-const getPersistentDiskPriceForRegionMonthly = computeRegion => {
-  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get(['monthlyDiskPrice']))(regionToPrices)
+const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
+  const costName = pdTypes[_.replace('pd-', '', diskType)]?.costName || 'monthlyDiskPrice'
+  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([costName]))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
-const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth
+const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
-export const getPersistentDiskCostMonthly = ({ size, status }, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionMonthly(computeRegion)
+export const getPersistentDiskCostMonthly = ({ size, status, diskType }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
-export const getPersistentDiskCostHourly = ({ size, status }, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionHourly(computeRegion)
+export const getPersistentDiskCostHourly = ({ size, status, diskType }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
 
@@ -185,12 +197,12 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
 export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return runtimeConfigBaseCost(runtimeConfig)
+      return runtimeConfigBaseCost(runtimeConfig, { diskType: 'pd-standard' })
     case 'Deleting':
     case 'Error':
       return 0.0
     default:
-      return runtimeConfigCost(runtimeConfig)
+      return runtimeConfigCost(runtimeConfig, { diskType: 'pd-standard' })
   }
 }
 
@@ -234,14 +246,15 @@ export const getGalaxyComputeCost = app => {
  * - Disk cost is total for data (NFS) disk, metadata (postgres) disk, and boot disks (1 boot disk per nodepool)
  * - Size of a data disk is user-customizable. The other disks have fixed sizes.
  */
-export const getGalaxyDiskCost = dataDiskSize => {
+export const getGalaxyDiskCost = (dataDiskSize, dataDiskType) => {
   const metadataDiskSize = 10 // GB
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
   return getPersistentDiskCostHourly({
     status: 'Running',
-    size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
+    size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize,
+    diskType: dataDiskType
   }, defaultComputeRegion)
 }
 

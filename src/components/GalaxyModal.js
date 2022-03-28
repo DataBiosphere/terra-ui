@@ -256,7 +256,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     }
 
     // TODO Refactor this and the duplicate in ComputeModal.js
-    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDiskSize) => {
+    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDiskSize, dataDiskType) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
 
@@ -280,7 +280,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per hr' }
+          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize, dataDiskType)), unitLabel: 'per hr' }
         ])
       ])
     }
@@ -458,7 +458,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           getEnvMessageBasedOnStatus(app)
         ]),
         div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
-          renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDisk.size)
+          renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDisk.size, dataDisk.diskType)
         ]),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([

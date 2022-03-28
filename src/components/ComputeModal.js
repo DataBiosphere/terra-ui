@@ -487,7 +487,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
    */
   const getPendingDisk = () => {
     const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-    return { size: desiredPersistentDisk.size, status: 'Ready' }
+    return { size: desiredPersistentDisk.size, status: 'Ready', diskType: desiredPersistentDisk.diskType }
   }
 
   /**
@@ -601,8 +601,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
       desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig()),
-      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
+      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()),
+      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()),
       ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
       existingRuntime_exists: !!existingRuntime,
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
@@ -1161,8 +1161,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
           cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
