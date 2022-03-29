@@ -256,8 +256,8 @@ export const CloudEnvironmentModal = ({
     [tools.cromwell.label, () => cromwellImg])
 
   const getToolIconHeight = toolLabel => Utils.switchCase(toolLabel,
-    [tools.RStudio.label, () => 30 ],
-    [Utils.DEFAULT, () => 20 ])
+    [tools.RStudio.label, () => 30],
+    [Utils.DEFAULT, () => 20])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
