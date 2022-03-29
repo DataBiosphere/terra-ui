@@ -350,7 +350,6 @@ export const CloudEnvironmentModal = ({
   }
 
   const renderToolButtons = toolLabel => {
-    console.log('label in renderTolButtons', toolLabel)
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
@@ -423,7 +422,10 @@ export const CloudEnvironmentModal = ({
       title: 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
-      onDismiss,
+      onDismiss: () => {
+        setViewMode(undefined)
+        onDismiss()
+      },
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
