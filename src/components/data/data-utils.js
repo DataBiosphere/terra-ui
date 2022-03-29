@@ -647,7 +647,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
           }),
           h(Link, {
             'aria-label': `Remove list value ${i + 1}`,
-            disabled: attributeValue.items.length === 1,
+            disabled: _.size(attributeValue.items) === 1,
             onClick: () => {
               const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
               onChange(newAttributeValue)
