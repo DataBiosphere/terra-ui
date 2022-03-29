@@ -445,8 +445,8 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
         h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
-            'Downloading sets of sets as TSV is not supported at this time' :
-            'Download a TSV file containing all rows in this table',
+            'Downloading sets of sets as TSV is not supported at this time.' :
+            'Download a TSV file containing all rows in this table.',
           onClick: () => {
             downloadForm.current.submit()
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
@@ -459,7 +459,7 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
         h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
-            withErrorReporting('Error loading entities')
+            withErrorReporting('Error loading entities.')
           )(async () => {
             const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(tableName, { pageSize: rowCount })
             setEntities(_.map(_.get('name'), queryResults.results))

@@ -374,7 +374,7 @@ const EntitiesContent = ({
     }, [h(ButtonSecondary, {
       disabled: !canEdit || !entitiesSelected,
       tooltip: Utils.cond(
-        [!canEdit, () => 'You do not have permission to modify this workspace'],
+        [!canEdit, () => 'You do not have permission to modify this workspace.'],
         [!entitiesSelected, () => 'Select rows to edit'],
         () => 'Edit selected data'
       ),
@@ -392,7 +392,7 @@ const EntitiesContent = ({
       content: h(Fragment, [
         h(MenuButton, {
           disabled: isSetOfSets,
-          tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time',
+          tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time.',
           onClick: async () => {
             const tsv = buildTSV(columnSettings, selectedEntities)
             isSet ?
@@ -410,14 +410,14 @@ const EntitiesContent = ({
         }, 'Export to workspace'),
         h(MenuButton, {
           disabled: isSetOfSets,
-          tooltip: isSetOfSets && 'Copying sets of sets is not supported at this time',
+          tooltip: isSetOfSets && 'Copying sets of sets is not supported at this time.',
           onClick: _.flow(
-            withErrorReporting('Error copying to clipboard'),
+            withErrorReporting('Error copying to clipboard.'),
             Utils.withBusyState(setNowCopying)
           )(async () => {
             const str = buildTSV(columnSettings, _.values(selectedEntities))
             await clipboard.writeText(str)
-            notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
+            notify('success', 'Successfully copied to clipboard.', { timeout: 3000 })
           })
         }, 'Copy to clipboard')
       ])
