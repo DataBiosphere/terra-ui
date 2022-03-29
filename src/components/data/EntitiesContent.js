@@ -294,6 +294,19 @@ const EntitiesContent = ({
     }
   }
 
+  const downloadSelectedRows = async columnSettings => {
+    const tsv = buildTSV(columnSettings, selectedEntities)
+    const isSet = _.endsWith('_set', entityKey)
+    isSet ?
+      FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+      FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+    Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      downloadFrom: 'table data',
+      fileType: '.tsv'
+    })
+  }
+
   const renderCopyButton = (entities, columnSettings) => {
     return h(Fragment, [
       h(ButtonPrimary, {
@@ -315,7 +328,6 @@ const EntitiesContent = ({
   }
 
   const renderSelectedRowsMenu = columnSettings => {
-    const isSet = _.endsWith('_set', entityKey)
     const noEdit = Utils.editWorkspaceError(workspace)
     const disabled = entityKey.endsWith('_set_set')
 
@@ -328,17 +340,7 @@ const EntitiesContent = ({
           tooltip: disabled ?
             'Downloading sets of sets as TSV is not supported at this time' :
             `Download the selected data as a file`,
-          onClick: async () => {
-            const tsv = buildTSV(columnSettings, selectedEntities)
-            isSet ?
-              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
-              ...extractWorkspaceDetails(workspace.workspace),
-              downloadFrom: 'table data',
-              fileType: '.tsv'
-            })
-          }
+          onClick: () => downloadSelectedRows(columnSettings)
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
@@ -383,7 +385,6 @@ const EntitiesContent = ({
   }
 
   const renderExportMenu = ({ columnSettings }) => {
-    const isSet = _.endsWith('_set', entityKey)
     const isSetOfSets = entityKey.endsWith('_set_set')
 
     return h(MenuTrigger, {
@@ -393,17 +394,7 @@ const EntitiesContent = ({
         h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time.',
-          onClick: async () => {
-            const tsv = buildTSV(columnSettings, selectedEntities)
-            isSet ?
-              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
-              ...extractWorkspaceDetails(workspace.workspace),
-              downloadFrom: 'table data',
-              fileType: '.tsv'
-            })
-          }
+          onClick: () => downloadSelectedRows(columnSettings)
         }, 'Download as TSV'),
         !snapshotName && h(MenuButton, {
           onClick: () => setCopyingEntities(true)
