@@ -316,7 +316,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           resetView()
           onDismiss()
         },
-        onPrevious: () => !!viewMode && resetView()
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
       getView()
