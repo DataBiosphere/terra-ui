@@ -40,6 +40,20 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   return workspaceName
 })
 
+const createRuntime =  withSignedInPage(async ({ page, billingProject }) => {
+  const runtimeName = `terra-ui-test-runtime-${uuid.v4()}`
+
+    try {
+      await page.evaluate((name, billingProject) => {
+        //return window.Ajax().Runtimes.runtime.create
+      }, runtimeName, billingProject)
+
+      rawConsole.info(`Created runtime: ${runtimeName}`)
+    } finally {
+      //withBilling ensures the runtime is deleted.
+    }
+})
+
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
