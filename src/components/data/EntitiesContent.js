@@ -384,15 +384,15 @@ const EntitiesContent = ({
 
   const renderExportMenu = ({ columnSettings }) => {
     const isSet = _.endsWith('_set', entityKey)
-    const isSetSet = entityKey.endsWith('_set_set')
+    const isSetOfSets = entityKey.endsWith('_set_set')
 
     return h(MenuTrigger, {
       side: 'bottom',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          disabled: isSetSet,
-          tooltip: isSetSet && 'Downloading sets of sets as TSV is not supported at this time',
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time',
           onClick: async () => {
             const tsv = buildTSV(columnSettings, selectedEntities)
             isSet ?
@@ -409,8 +409,8 @@ const EntitiesContent = ({
           onClick: () => setCopyingEntities(true)
         }, 'Export to workspace'),
         h(MenuButton, {
-          disabled: isSetSet,
-          tooltip: isSetSet && 'Copying sets of sets is not supported at this time',
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets && 'Copying sets of sets is not supported at this time',
           onClick: _.flow(
             withErrorReporting('Error copying to clipboard'),
             Utils.withBusyState(setNowCopying)

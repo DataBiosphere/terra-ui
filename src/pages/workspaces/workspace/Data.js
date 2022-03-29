@@ -420,7 +420,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
 const DataTableActions = ({ workspace, tableName, rowCount }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
-  const isSetSet = tableName.endsWith('_set_set')
+  const isSetOfSets = tableName.endsWith('_set_set')
 
   const downloadForm = useRef()
   const signal = useCancellation()
@@ -443,8 +443,8 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
         h(MenuButton, {
-          disabled: isSetSet,
-          tooltip: isSetSet ?
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time' :
             'Download a TSV file containing all rows in this table',
           onClick: () => {
