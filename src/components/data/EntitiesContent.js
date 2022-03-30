@@ -362,7 +362,8 @@ const EntitiesContent = ({
   }
 
   const entitiesSelected = !_.isEmpty(selectedEntities)
-  const canEdit = !Utils.editWorkspaceError(workspace)
+  const editErrorMessage = Utils.editWorkspaceError(workspace)
+  const canEdit = !editErrorMessage
 
   const renderEditMenu = () => {
     return !snapshotName && h(MenuTrigger, {
@@ -376,7 +377,7 @@ const EntitiesContent = ({
     }, [h(ButtonSecondary, {
       disabled: !canEdit || !entitiesSelected,
       tooltip: Utils.cond(
-        [!canEdit, () => 'You do not have permission to modify this workspace.'],
+        [!canEdit, () => editErrorMessage],
         [!entitiesSelected, () => 'Select rows to edit'],
         () => 'Edit selected data'
       ),
