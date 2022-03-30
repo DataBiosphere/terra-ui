@@ -378,7 +378,7 @@ const EntitiesContent = ({
       disabled: !canEdit || !entitiesSelected,
       tooltip: Utils.cond(
         [!canEdit, () => editErrorMessage],
-        [!entitiesSelected, () => 'Select rows to edit'],
+        [!entitiesSelected, () => 'Select rows to edit in the table'],
         () => 'Edit selected data'
       ),
       style: { marginRight: '1.5rem' }
@@ -415,7 +415,7 @@ const EntitiesContent = ({
       ])
     }, [h(ButtonSecondary, {
       disabled: !entitiesSelected,
-      tooltip: entitiesSelected ? 'Export selected data' : 'Select rows to export',
+      tooltip: entitiesSelected ? 'Export selected data' : 'Select rows to export in the table',
       style: { marginRight: '1.5rem' }
     }, [
       icon(nowCopying ? 'loadingSpinner' : 'export', { style: { marginRight: '0.5rem' } }),
@@ -424,10 +424,9 @@ const EntitiesContent = ({
   }
 
   const renderOpenWithMenu = () => {
-    const menuDisabled = _.isEmpty(selectedEntities)
     return !snapshotName && h(ButtonSecondary, {
-      disabled: menuDisabled,
-      tooltip: menuDisabled ? 'Select rows to open' : 'Open selected data',
+      disabled: !entitiesSelected,
+      tooltip: entitiesSelected ? 'Open selected data' : 'Select rows to open in the table',
       onClick: () => setShowToolSelector(true)
     }, [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...'])
   }
