@@ -1,8 +1,8 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
-import { div, h, h3 } from 'react-hyperscript-helpers'
+import { div, form, h, h3, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -10,6 +10,7 @@ import Collapse from 'src/components/Collapse'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
+import ExportDataModal from 'src/components/data/ExportDataModal'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -17,11 +18,14 @@ import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
@@ -83,7 +87,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
-      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
       isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
@@ -414,6 +418,75 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
+const DataTableActions = ({ workspace, tableName, rowCount }) => {
+  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+  const isSetOfSets = tableName.endsWith('_set_set')
+
+  const downloadForm = useRef()
+  const signal = useCancellation()
+
+  const [loading, setLoading] = useState(false)
+  const [entities, setEntities] = useState([])
+  const [exporting, setExporting] = useState(false)
+
+  return h(Fragment, [
+    h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        form({
+          ref: downloadForm,
+          action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
+          method: 'POST'
+        }, [
+          input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+          input({ type: 'hidden', name: 'model', value: 'flexible' })
+        ]),
+        h(MenuButton, {
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets ?
+            'Downloading sets of sets as TSV is not supported at this time.' :
+            'Download a TSV file containing all rows in this table.',
+          onClick: () => {
+            downloadForm.current.submit()
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'all rows',
+              fileType: '.tsv'
+            })
+          }
+        }, 'Download TSV'),
+        h(MenuButton, {
+          onClick: _.flow(
+            Utils.withBusyState(setLoading),
+            withErrorReporting('Error loading entities.')
+          )(async () => {
+            const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(tableName, { pageSize: rowCount })
+            setEntities(_.map(_.get('name'), queryResults.results))
+            setExporting(true)
+          })
+        }, 'Export to workspace')
+      ])
+    }, [
+      h(Clickable, {
+        disabled: loading,
+        tooltip: 'Table menu',
+        useTooltipAsLabel: true
+      }, [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')])
+    ]),
+    exporting && h(ExportDataModal, {
+      onDismiss: () => {
+        setExporting(false)
+        setEntities([])
+      },
+      workspace,
+      selectedDataType: tableName,
+      selectedEntities: entities,
+      runningSubmissionsCount
+    })
+  ])
+}
+
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
@@ -573,7 +646,12 @@ const WorkspaceData = _.flow(
                 onClick: () => {
                   setSelectedDataType(type)
                   forceRefresh()
-                }
+                },
+                after: isDataTabRedesignEnabled() && h(DataTableActions, {
+                  tableName: type,
+                  rowCount: typeDetails.count,
+                  workspace
+                })
               })
             }, sortedEntityPairs)
           ]),
@@ -770,7 +848,8 @@ const WorkspaceData = _.flow(
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
-            deleteColumnUpdateMetadata
+            deleteColumnUpdateMetadata,
+            forceRefresh
           })]
         )
       ])
