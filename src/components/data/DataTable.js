@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
+import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -132,18 +132,21 @@ const DataTable = props => {
     setTotalRowCount(unfilteredCount)
   })
 
-  const deleteColumnUpdateEntities = attributeName => {
-    const updatedEntities = _.map(entity => {
-      return { ...entity, attributes: _.omit([attributeName], entity.attributes) }
-    }, entities)
-    setEntities(updatedEntities)
-  }
-
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
     return queryResults.results
   }
+
+  const deleteColumn = withErrorReporting('Unable to delete column')(async attributeName => {
+    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
+    deleteColumnUpdateMetadata({ entityType, attributeName: deletingColumn })
+
+    const updatedEntities = _.map(entity => {
+      return { ...entity, attributes: _.omit([attributeName], entity.attributes) }
+    }, entities)
+    setEntities(updatedEntities)
+  })
 
   const clearColumn = withErrorReporting('Unable to clear column.')(async attributeName => {
     const allEntities = await getAllEntities()
@@ -310,7 +313,7 @@ const DataTable = props => {
                       h(HeaderOptions, {
                         sort, field: attributeName, onSort: setSort,
                         extraActions: [
-                          { label: 'Delete Column', onClick: () => setDeletingColumn({ entityType, attributeName }) },
+                          { label: 'Delete Column', onClick: () => setDeletingColumn(attributeName) },
                           { label: 'Clear Column', onClick: () => setClearingColumn(attributeName) }
                         ]
                       }, [
@@ -402,16 +405,17 @@ const DataTable = props => {
       },
       onDismiss: () => setUpdatingEntity(undefined)
     }),
-    !!deletingColumn && h(DeleteEntityColumnModal, {
-      workspaceId: { namespace, name },
-      column: deletingColumn,
-      onSuccess: () => {
-        setDeletingColumn(undefined)
-        deleteColumnUpdateMetadata(deletingColumn)
-        deleteColumnUpdateEntities(deletingColumn.attributeName)
-      },
+    !!deletingColumn && h(DeleteConfirmationModal, {
+      title: 'Delete Column',
+      confirmationPrompt: 'Delete column',
+      buttonText: 'Delete column',
+      onConfirm: () => deleteColumn(deletingColumn),
       onDismiss: () => setDeletingColumn(undefined)
-    }),
+    }, [
+      div(['Are you sure you want to permanently delete the column ',
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, deletingColumn), '?']),
+      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    ]),
     !!clearingColumn && h(DeleteConfirmationModal, {
       title: 'Clear Column',
       confirmationPrompt: 'Clear column',

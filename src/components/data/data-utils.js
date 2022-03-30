@@ -938,52 +938,6 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
-
-  const signal = useCancellation()
-
-  const deleteColumn = async () => {
-    try {
-      setDeleting(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
-      onDismiss()
-      onSuccess()
-    } catch (e) {
-      reportError('Unable to modify column', e)
-      setDeleting(false)
-    }
-  }
-
-  return h(Modal, {
-    title: 'Delete Column',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: deleteColumn,
-      disabled: _.toLower(deleteConfirmation) !== 'delete column',
-      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
-    }, 'Delete column')
-  }, [
-    div(['Are you sure you want to permanently delete the column ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
-      '?']),
-    div({
-      style: { fontWeight: 500, marginTop: '1rem' }
-    }, 'This cannot be undone.'),
-    div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
-      h(TextInput, {
-        id: 'delete-column-confirmation',
-        placeholder: 'Delete Column',
-        value: deleteConfirmation,
-        onChange: setDeleteConfirmation
-      })
-    ]),
-    deleting && spinnerOverlay
-  ])
-}
-
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
