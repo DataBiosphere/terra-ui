@@ -156,6 +156,9 @@ const DataTable = props => {
       attributes: { [attributeName]: '' }
     }), allEntities)
     await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
+
+    const updatedEntities = _.map(_.update('attributes', _.set(attributeName, '')), entities)
+    setEntities(updatedEntities)
   })
 
   const selectAll = _.flow(
@@ -420,10 +423,7 @@ const DataTable = props => {
       title: 'Clear Column',
       confirmationPrompt: 'Clear column',
       buttonText: 'Clear column',
-      onConfirm: async () => {
-        await clearColumn(clearingColumn)
-        loadData()
-      },
+      onConfirm: () => clearColumn(clearingColumn),
       onDismiss: () => setClearingColumn(undefined)
     }, [
       div(['Are you sure you want to permanently delete all data in the column ',
