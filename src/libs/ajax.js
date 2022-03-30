@@ -1155,7 +1155,7 @@ const Buckets = signal => ({
 
   listAll: async (googleProject, bucket, prefix = null, pageToken = null, delimiter = null) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken, maxResults: '1' })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const body = await res.json()
