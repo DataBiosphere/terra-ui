@@ -18940,6 +18940,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@google-cloud/firestore", "npm:4.15.1"],\
             ["@google-cloud/secret-manager", "npm:3.11.0"],\
             ["@google-cloud/storage", "npm:5.18.2"],\
+            ["date-fns", "npm:2.24.0"],\
             ["express", "npm:4.17.1"],\
             ["google-auth-library", "npm:7.14.1"],\
             ["googleapis", "npm:87.0.0"],\
