@@ -1155,18 +1155,19 @@ const Buckets = signal => ({
 
   listAll: async (googleProject, bucket, prefix = null, pageToken = null) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/', pageToken, maxResults: '1' })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const body = await res.json()
     const items = body.items || []
+    const prefixes = body.prefixes || []
 
     // Get the next page recursively if there is one
     if (body.nextPageToken) {
       const next = await Buckets(signal).listAll(googleProject, bucket, prefix, body.nextPageToken)
-      return _.concat(items, next)
+      return { items: _.concat(items, next.items), prefixes: _.concat(prefixes, next.prefixes) }
     }
-    return items
+    return { items, prefixes }
   },
 
   delete: async (googleProject, bucket, name) => {
