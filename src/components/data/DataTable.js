@@ -268,7 +268,7 @@ const DataTable = props => {
                       setColumnWidths(_.set('name', nameWidth + delta))
                     }
                   }, [
-                    h(HeaderOptions, { sort, field: 'name', onSort: setSort, isEntityName: true },
+                    h(HeaderOptions, { sort, field: 'name', onSort: setSort },
                       [h(HeaderCell, [entityMetadata[entityType].idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
@@ -293,8 +293,8 @@ const DataTable = props => {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                     }, [
                       h(HeaderOptions, {
-                        sort, field: attributeName, onSort: setSort, isEntityName: false,
-                        beginDelete: () => setDeletingColumn({ entityType, attributeName })
+                        sort, field: attributeName, onSort: setSort,
+                        extraActions: [{ label: 'Delete Column', onClick: () => setDeletingColumn({ entityType, attributeName }) }]
                       }, [
                         h(HeaderCell, [
                           !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },

@@ -984,14 +984,14 @@ export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, colu
   ])
 }
 
-export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
+      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
