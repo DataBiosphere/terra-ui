@@ -74,7 +74,7 @@ export const FileBrowserPanel = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error counting bucket objects')
   )(async () => {
-    const items = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
+    const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
     setNumFiles(items.length)
   })
 
