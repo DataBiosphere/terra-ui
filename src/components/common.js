@@ -9,6 +9,7 @@ import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
+import { TextInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
@@ -555,3 +556,43 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
 export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
+
+export const DeleteConfirmationModal = ({ title, children, confirmationPrompt = 'Delete', buttonText = 'Delete', onConfirm, onDismiss }) => {
+  const [busy, setBusy] = useState(false)
+  const [confirmation, setConfirmation] = useState('')
+
+  const del = async () => {
+    try {
+      setBusy(true)
+      await onConfirm()
+    } finally {
+      onDismiss()
+    }
+  }
+
+  const isConfirmed = _.toLower(confirmation) === _.toLower(confirmationPrompt)
+
+  return h(Modal, {
+    title,
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      onClick: del,
+      disabled: !isConfirmed,
+      tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
+    }, buttonText)
+  }, [
+    children,
+    div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
+        h(TextInput, {
+          id,
+          placeholder: confirmationPrompt,
+          value: confirmation,
+          onChange: setConfirmation
+        })
+      ])])
+    ]),
+    busy && spinnerOverlay
+  ])
+}
