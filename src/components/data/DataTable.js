@@ -139,14 +139,19 @@ const DataTable = props => {
     setEntities(updatedEntities)
   }
 
-  const clearColumn = withErrorReporting('Unable to clear column.')(async attributeName => {
+  const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
+    return queryResults.results
+  }
+
+  const clearColumn = withErrorReporting('Unable to clear column.')(async attributeName => {
+    const allEntities = await getAllEntities()
     const entityUpdates = _.map(entity => ({
       name: entity.name,
       entityType: entity.entityType,
       attributes: { [attributeName]: '' }
-    }), queryResults.results)
+    }), allEntities)
     await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
   })
 
@@ -154,9 +159,8 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
-    const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
-    setSelected(entityMap(queryResults.results))
+    const allEntities = await getAllEntities()
+    setSelected(entityMap(allEntities))
   })
 
   const selectPage = () => {
