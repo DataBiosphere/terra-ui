@@ -212,7 +212,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [selectedBilling, setSelectedBilling] = useState()
   const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
   const [selectedDatasetName, setSelectedDatasetName] = useState(null)
-  const [tab, setTab] = useState(query.tab || 'workspaces')
+  const [tab, setTab] = useState(query.tab || 'workspace')
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
@@ -226,6 +226,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const signal = useCancellation()
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+
+  console.log(projectUsers)
 
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
@@ -300,7 +302,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
-    workspaces: h(Fragment, [
+    workspaces: adminCanEdit && h(Fragment, [
       h(WorkspaceCardHeaders, {
         needsStatusColumn: billingAccountsOutOfDate,
         sort: workspaceSort,
@@ -344,7 +346,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
+    [spendReportKey]: adminCanEdit && div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
       div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
         _.concat(
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
@@ -527,10 +529,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
-        h(Link, {
+        adminCanEdit && h(Link, {
           tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
@@ -542,7 +544,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           }
         }, [icon('edit', { size: 12 })]),
-        h(Link, {
+        adminCanEdit && h(Link, {
           tooltip: 'Remove Billing Account',
           style: { marginLeft: '0.5rem' },
           // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
@@ -595,7 +597,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
-      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+      adminCanEdit && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
