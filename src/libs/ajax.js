@@ -1153,6 +1153,18 @@ const Buckets = signal => ({
     return res.json()
   },
 
+  /**
+   * Recursively returns all objects in the specified bucket, iterating through all pages until
+   * results have been exhausted and all objects have been collected.
+   *
+   * @param googleProject
+   * @param bucket Name of the bucket in which to look for objects.
+   * @param prefix Filter results to include only objects whose names begin with this prefix.
+   * @param pageToken A previously-returned page token representing part of the larger set of results to view.
+   * @param delimiter Returns results in a directory-like mode, with / being a common value for the delimiter.
+   * @returns {Promise<*>}
+   * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
+   */
   listAll: async (googleProject, bucket, prefix = null, pageToken = null, delimiter = null) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
