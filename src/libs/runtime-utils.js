@@ -135,7 +135,7 @@ const getGpuCost = (gpuType, numGpus, region) => {
   return price * numGpus
 }
 
-export const runtimeConfigBaseCost = (config, diskConfig) => {
+export const runtimeConfigBaseCost = (config) => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
   } = normalizeRuntimeConfig(config)
@@ -143,14 +143,14 @@ export const runtimeConfigBaseCost = (config, diskConfig) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType),
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard.label),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType))
+      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard.label))
   ])
 }
 
-export const runtimeConfigCost = (config, diskConfig) => {
+export const runtimeConfigCost = (config) => {
   const {
     cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
   } = normalizeRuntimeConfig(
@@ -166,11 +166,11 @@ export const runtimeConfigCost = (config, diskConfig) => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, diskConfig.diskType),
+    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard.label),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
-    runtimeConfigBaseCost(config, diskConfig)
+    runtimeConfigBaseCost(config)
   ])
 }
 
@@ -199,12 +199,12 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
 export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return runtimeConfigBaseCost(runtimeConfig, { diskType: pdTypes.standard.label })
+      return runtimeConfigBaseCost(runtimeConfig)
     case 'Deleting':
     case 'Error':
       return 0.0
     default:
-      return runtimeConfigCost(runtimeConfig, { diskType: pdTypes.standard.label })
+      return runtimeConfigCost(runtimeConfig)
   }
 }
 
