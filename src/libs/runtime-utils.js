@@ -135,7 +135,7 @@ const getGpuCost = (gpuType, numGpus, region) => {
   return price * numGpus
 }
 
-export const runtimeConfigBaseCost = (config) => {
+export const runtimeConfigBaseCost = config => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
   } = normalizeRuntimeConfig(config)
@@ -150,7 +150,7 @@ export const runtimeConfigBaseCost = (config) => {
   ])
 }
 
-export const runtimeConfigCost = (config) => {
+export const runtimeConfigCost = config => {
   const {
     cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion
   } = normalizeRuntimeConfig(
