@@ -196,7 +196,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not a .ipynb otebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+          'The selected file is not a .ipynb notebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
@@ -205,7 +205,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             enterNextViewMode(tool, analysisMode)
           uploadFiles()
         }
-      }, [() => div({
+      }, [() => h(Clickable, {
         onClick: () => {
           resetView()
           onSuccess()
