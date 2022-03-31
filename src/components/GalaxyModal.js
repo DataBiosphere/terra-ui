@@ -312,7 +312,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
                         id,
                         value: dataDisk.diskType,
                         isDisabled: true,
-                        onChange: value => setDataDisk(_.set('diskType', value)),
+                        onChange: value => setDataDisk(_.set('diskType', value.value)),
                         options: [
                           { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
                           { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
