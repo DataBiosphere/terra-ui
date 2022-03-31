@@ -561,7 +561,7 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
   const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
 
-  const del = async () => {
+  const confirm = async () => {
     try {
       setBusy(true)
       await onConfirm()
@@ -576,7 +576,7 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
     title,
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: del,
+      onClick: confirm,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
     }, buttonText)
