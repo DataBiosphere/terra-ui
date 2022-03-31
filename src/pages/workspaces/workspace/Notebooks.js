@@ -77,6 +77,12 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
+const activeFileTransferMessage = div({ style: { fontSize: 20 } }, [
+  div([
+    'Your notebooks are still in the process of being copied over.'
+  ])
+])
+
 const NotebookCard = ({
   namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
   potentialLockers
@@ -236,6 +242,7 @@ const Notebooks = _.flow(
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
   const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
+  const [activeFileTransfer, setActiveFileTransfer] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -251,6 +258,15 @@ const Notebooks = _.flow(
   )(async () => {
     const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
+  })
+
+  const getActiveFileTransfer = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
+    withErrorReporting('Error loading file transfer status'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listFileTransfers()
+    setActiveFileTransfer(!_.isEmpty(fileTransfers))
   })
 
   const doAppRefresh = _.flow(
@@ -287,6 +303,7 @@ const Notebooks = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
+      getActiveFileTransfer()
       refreshNotebooks()
     }
 
@@ -386,6 +403,7 @@ const Notebooks = _.flow(
         ])
       ]),
       Utils.cond(
+        [activeFileTransfer, () => activeFileTransferMessage],
         [_.isEmpty(notebooks), () => noNotebooksMessage],
         [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
