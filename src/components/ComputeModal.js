@@ -659,6 +659,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
+      console.log('currentPersistentDisk', currentPersistentDisk)
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
@@ -784,7 +785,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
 
-    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails, existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage)
+    const isRuntimeError = existingRuntime?.status === 'Error'
+    const shouldErrorDisableUpdate = existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage
+    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails) || (shouldErrorDisableUpdate && isRuntimeError)
 
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
@@ -808,7 +811,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         },
         disabled: isUpdateDisabled,
         tooltipSide: 'left',
-        tooltip: isUpdateDisabled ? `Cannot perform change on environment in status ( ${currentRuntimeDetails.status} )` : 'Update Environment'
+        tooltip: isUpdateDisabled ? `Cannot perform change on environment in ( ${currentRuntimeDetails.status} ) status` : 'Update Environment'
       }, [
         Utils.cond(
           [viewMode === 'deleteEnvironment', () => 'Delete'],

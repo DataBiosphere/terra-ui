@@ -50,7 +50,6 @@ export const CloudEnvironmentModal = ({
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
-    shouldHideCloseButton: true,
     workspace,
     tool,
     runtimes,
@@ -68,7 +67,6 @@ export const CloudEnvironmentModal = ({
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
-    shouldHideCloseButton: true,
     workspace,
     apps,
     appDataDisks,
@@ -300,10 +298,10 @@ export const CloudEnvironmentModal = ({
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
-        [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
+        [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
-          () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
+          () => 'Select or create a notebook in the analyses tab to open Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
@@ -360,7 +358,7 @@ export const CloudEnvironmentModal = ({
           img({
             src: getToolIcon(toolLabel),
             style: { height: 20 },
-            alt: `${toolLabel} image`
+            alt: `${toolLabel}`
           }),
           getCostForTool(toolLabel)
         ]),
@@ -388,7 +386,7 @@ export const CloudEnvironmentModal = ({
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
-            span('Launch'),
+            span('Open'),
             span(toolLabel)
           ])
         ])
@@ -420,7 +418,7 @@ export const CloudEnvironmentModal = ({
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: 'Cloud Environment Details',
+      title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss: () => {

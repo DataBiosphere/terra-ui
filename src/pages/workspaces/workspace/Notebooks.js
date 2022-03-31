@@ -502,6 +502,7 @@ const Notebooks = _.flow(
         }),
         h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,
+          shouldHideCloseButton: false,
           workspace,
           apps,
           appDataDisks,

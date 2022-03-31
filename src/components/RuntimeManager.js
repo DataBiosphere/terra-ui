@@ -81,7 +81,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
           .then(res => res.text()))
       setUserscriptError(true)
     } else {
-      setError(runtimeErrors[0]?.errorMessage)
+      setError(runtimeErrors && runtimeErrors.length > 0 ? runtimeErrors[0].errorMessage : 'An unknown error has occurred with the runtime')
     }
   })
 
@@ -429,6 +429,7 @@ export default class RuntimeManager extends PureComponent {
           apps,
           appDataDisks,
           isOpen: galaxyDrawerOpen,
+          shouldHideCloseButton: false,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {
             withErrorReporting('Error loading galaxy environment')(

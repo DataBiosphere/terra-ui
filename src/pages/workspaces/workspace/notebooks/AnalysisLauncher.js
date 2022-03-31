@@ -99,7 +99,6 @@ const AnalysisLauncher = _.flow(
           isOpen: createOpen,
           tool: toolLabel,
           isAnalysisMode: true,
-          shouldHideCloseButton: true,
           workspace,
           runtimes,
           persistentDisks,

@@ -56,10 +56,10 @@ export const ContextBar = ({
   }
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 } })],
-    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 } })],
-    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 } })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 } })]
+    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: '' })],
+    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -130,7 +130,7 @@ export const ContextBar = ({
             tooltipDelay: 100,
             useTooltipAsLabel: true
           }, [
-            img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 40, width: 40 } })
+            img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 40, width: 40 }, alt: '' })
           ]),
           getEnvironmentStatusIcons()
         ]),
