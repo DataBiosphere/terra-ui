@@ -16,32 +16,20 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import {
-  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
-  RadioBlock
+  computeStyles, defaultPersistentDiskType, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  pdTypes, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 const defaultDataDiskSize = 500 // GB
-const defaultDataDiskType = 'pd-standard'
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
 // Removing low cpu/memory options based on the Galaxy team's suggestions
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 const titleId = 'galaxy-modal-title'
-
-const pdTypes = {
-  standard: {
-    label: 'pd-standard',
-    displayName: 'Standard'
-  },
-  ssd: {
-    label: 'pd-ssd',
-    displayName: 'Solid state drive (SSD)'
-  }
-}
 
 //setDataDisk(_.set(key, value)))
 
@@ -56,7 +44,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const [dataDisk, setDataDisk] = useState({
       size: attachedDataDisk?.size || defaultDataDiskSize,
-      diskType: attachedDataDisk?.diskType || defaultDataDiskType
+      diskType: attachedDataDisk?.diskType || defaultPersistentDiskType
     })
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
     const [viewMode, setViewMode] = useState(undefined)

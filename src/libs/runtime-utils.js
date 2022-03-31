@@ -21,6 +21,19 @@ export const computeStyles = {
   warningView: { backgroundColor: colors.warning(0.1) }
 }
 
+export const pdTypes = {
+  standard: {
+    label: 'pd-standard',
+    displayName: 'Standard',
+    regionToPricesName: 'monthlyDiskPrice'
+  },
+  ssd: {
+    label: 'pd-ssd',
+    displayName: 'Solid state drive (SSD)',
+    regionToPricesName: 'monthlySSDPrice'
+  }
+}
+
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
 export const defaultDataprocWorkerDiskSize = 150
@@ -28,7 +41,7 @@ export const defaultDataprocWorkerDiskSize = 150
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
 export const defaultGceBootDiskSize = 100
 export const defaultGcePersistentDiskSize = 50
-export const defaultGcePersistentDiskType = 'pd-standard'
+export const defaultPersistentDiskType = pdTypes.standard.label
 
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
@@ -161,21 +174,10 @@ export const runtimeConfigCost = (config, diskConfig) => {
   ])
 }
 
-const pdTypes = {
-  standard: {
-    label: 'pd-standard',
-    costName: 'monthlyDiskPrice'
-  },
-  ssd: {
-    label: 'pd-ssd',
-    costName: 'monthlySSDPrice'
-  }
-}
-
 // Per GB following https://cloud.google.com/compute/pricing
 const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
-  const costName = pdTypes[_.replace('pd-', '', diskType)]?.costName || 'monthlyDiskPrice'
-  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([costName]))(regionToPrices)
+  const selectedRegionToPricesValue = pdTypes[_.replace('pd-', '', diskType)]?.regionToPricesName || pdTypes.standard.regionToPricesName
+  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([selectedRegionToPricesValue]))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
@@ -197,12 +199,12 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
 export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return runtimeConfigBaseCost(runtimeConfig, { diskType: 'pd-standard' })
+      return runtimeConfigBaseCost(runtimeConfig, { diskType: pdTypes.standard.label })
     case 'Deleting':
     case 'Error':
       return 0.0
     default:
-      return runtimeConfigCost(runtimeConfig, { diskType: 'pd-standard' })
+      return runtimeConfigCost(runtimeConfig, { diskType: pdTypes.standard.label })
   }
 }
 

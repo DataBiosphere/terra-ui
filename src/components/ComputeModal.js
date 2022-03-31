@@ -24,9 +24,9 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGcePersistentDiskType, defaultGpuType, defaultLocation,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
-  getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, RadioBlock,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, pdTypes, RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -56,17 +56,6 @@ const runtimeTypes = {
   gceVm: 'Standard VM',
   dataprocSingleNode: 'Spark single node',
   dataprocCluster: 'Spark cluster'
-}
-
-const pdTypes = {
-  standard: {
-    label: 'pd-standard',
-    displayName: 'Standard'
-  },
-  ssd: {
-    label: 'pd-ssd',
-    displayName: 'Solid state drive (SSD)'
-  }
 }
 
 const sparkInterfaces = {
@@ -210,7 +199,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
-    selectedPersistentDiskType: defaultGcePersistentDiskType,
+    selectedPersistentDiskType: defaultPersistentDiskType,
     masterMachineType: defaultGceMachineType,
     masterDiskSize: defaultGceBootDiskSize,
     numberOfWorkers: defaultNumDataprocWorkers,
@@ -732,7 +721,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: currentPersistentDiskDetails?.diskType || defaultGcePersistentDiskType,
+        selectedPersistentDiskType: currentPersistentDiskDetails?.diskType || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
