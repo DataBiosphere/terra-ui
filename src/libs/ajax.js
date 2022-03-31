@@ -1165,7 +1165,7 @@ const Buckets = signal => ({
    * @returns {Promise<*>}
    * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
    */
-  listAll: async (googleProject, bucket, prefix = null, pageToken = null, delimiter = null) => {
+  listAll: async (googleProject, bucket, { prefix = null, pageToken = null, delimiter = null } = {}) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -1176,7 +1176,7 @@ const Buckets = signal => ({
 
     // Get the next page recursively if there is one
     if (body.nextPageToken) {
-      const next = await Buckets(signal).listAll(googleProject, bucket, prefix, body.nextPageToken, delimiter)
+      const next = await Buckets(signal).listAll(googleProject, bucket, { prefix, pageToken: body.nextPageToken, delimiter })
       return { items: _.concat(items, next.items), prefixes: _.concat(prefixes, next.prefixes) }
     }
     return { items, prefixes }

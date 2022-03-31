@@ -484,7 +484,7 @@ const MetadataUploadPanel = _.flow(
     )(async () => {
       // Fetch every object in the entire bucket so we don't have to do it recursively, but
       // filter out any that aren't in our base prefix
-      const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
+      const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: basePrefix })
 
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(
