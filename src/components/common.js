@@ -557,7 +557,7 @@ export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) =
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
 
-export const DeleteConfirmationModal = ({ title, children, confirmationPrompt = 'Delete', buttonText = 'Delete', onConfirm, onDismiss }) => {
+export const PromptedConfirmationModal = ({ title, children, confirmationPrompt = 'Delete', buttonText = 'Delete', onConfirm, onDismiss }) => {
   const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
 

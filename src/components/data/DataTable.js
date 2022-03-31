@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
+import { Checkbox, Clickable, fixedSpinnerOverlay, Link, PromptedConfirmationModal } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
@@ -408,7 +408,7 @@ const DataTable = props => {
       },
       onDismiss: () => setUpdatingEntity(undefined)
     }),
-    !!deletingColumn && h(DeleteConfirmationModal, {
+    !!deletingColumn && h(PromptedConfirmationModal, {
       title: 'Delete Column',
       confirmationPrompt: 'Delete column',
       buttonText: 'Delete column',
@@ -419,7 +419,7 @@ const DataTable = props => {
         span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, deletingColumn), '?']),
       div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
-    !!clearingColumn && h(DeleteConfirmationModal, {
+    !!clearingColumn && h(PromptedConfirmationModal, {
       title: 'Clear Column',
       confirmationPrompt: 'Clear column',
       buttonText: 'Clear column',
