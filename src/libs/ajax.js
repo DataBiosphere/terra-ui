@@ -1159,9 +1159,10 @@ const Buckets = signal => ({
    *
    * @param googleProject
    * @param bucket Name of the bucket in which to look for objects.
-   * @param prefix Filter results to include only objects whose names begin with this prefix.
-   * @param pageToken A previously-returned page token representing part of the larger set of results to view.
-   * @param delimiter Returns results in a directory-like mode, with / being a common value for the delimiter.
+   * @param {Object} options to pass into the GCS API. Accepted options are:
+   *    prefix: Filter results to include only objects whose names begin with this prefix.
+   *    pageToken: A previously-returned page token representing part of the larger set of results to view.
+   *    delimiter: Returns results in a directory-like mode, with / being a common value for the delimiter.
    * @returns {Promise<*>}
    * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
    */
