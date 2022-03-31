@@ -40,18 +40,23 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   return workspaceName
 })
 
-const createRuntime =  withSignedInPage(async ({ page, billingProject }) => {
+const createRuntime =  withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   const runtimeName = `terra-ui-test-runtime-${uuid.v4()}`
 
     try {
-      await page.evaluate((name, billingProject) => {
-        //return window.Ajax().Runtimes.runtime.create
-      }, runtimeName, billingProject)
+      await page.evaluate((name, billingProject, workspaceName) => {
+        return window.Ajax().Runtimes.runtime(billingProject, name).create({
+          labels: { saturnAutomationTest: 'true',
+                  saturnWorkspaceName: workspaceName}
+        })
+      }, runtimeName, billingProject, workspaceName)
 
       rawConsole.info(`Created runtime: ${runtimeName}`)
-    } finally {
-      //withBilling ensures the runtime is deleted.
+    } catch (e) {
+      throw Error(`Failed to create runtime: ${runtimeName} with billing project ${billingProject} in workspace ${workspaceName}`)
     }
+
+    return runtimeName
 })
 
 
@@ -74,6 +79,18 @@ const withWorkspace = test => async options => {
     await test({ ...options, workspaceName })
   } finally {
     await deleteWorkspace({ ...options, workspaceName })
+  }
+}
+
+const withRuntime = test => async options => {
+  const runtimeName = await createRuntime(options)
+
+  console.log('in withRuntime', options)
+  try {
+    await test({ ...options, runtimeName })
+  } finally {
+    // clean-up is done by withBilling
+
   }
 }
 
@@ -224,5 +241,6 @@ module.exports = {
   withWorkspace,
   withBilling,
   withUser,
-  withRegisteredUser
+  withRegisteredUser,
+  withRuntime
 }
