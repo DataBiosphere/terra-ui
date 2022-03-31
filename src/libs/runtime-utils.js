@@ -381,8 +381,8 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
 }
 
 export const getIsAppBusy = app => app?.status !== 'RUNNING' && _.includes('ING', app?.status)
-export const getIsRuntimeBusy = (runtime) => {
-  const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring, Stopping: stopping, Starting: starting} = _.countBy(getConvertedRuntimeStatus, [runtime])
+export const getIsRuntimeBusy = runtime => {
+  const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring, Stopping: stopping, Starting: starting } = _.countBy(getConvertedRuntimeStatus, [runtime])
   return creating || updating || reconfiguring || stopping || starting
 }
 
