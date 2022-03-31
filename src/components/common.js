@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -561,8 +561,6 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
   const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
 
-  const confirmationInput = useRef()
-
   const del = async () => {
     try {
       setBusy(true)
@@ -581,21 +579,16 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
       onClick: del,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
-    }, buttonText),
-    onAfterOpen: () => {
-      if (confirmationInput.current) {
-        confirmationInput.current.focus()
-      }
-    }
+    }, buttonText)
   }, [
     children,
     div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [
         label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
         h(TextInput, {
+          autoFocus: true,
           id,
           placeholder: confirmationPrompt,
-          ref: confirmationInput,
           value: confirmation,
           onChange: setConfirmation
         })
