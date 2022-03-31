@@ -140,7 +140,7 @@ const DataTable = props => {
 
   const deleteColumn = withErrorReporting('Unable to delete column')(async attributeName => {
     await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
-    deleteColumnUpdateMetadata({ entityType, attributeName: deletingColumn })
+    deleteColumnUpdateMetadata({ entityType, attributeName })
 
     const updatedEntities = _.map(entity => {
       return { ...entity, attributes: _.omit([attributeName], entity.attributes) }
