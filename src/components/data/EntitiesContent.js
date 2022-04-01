@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
+import { EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -215,6 +215,7 @@ const EntitiesContent = ({
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
+  const [editingEntities, setEditingEntities] = useState(false)
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
@@ -343,6 +344,11 @@ const EntitiesContent = ({
           onClick: () => downloadSelectedRows(columnSettings)
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {
+          disabled: noEdit,
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
+          onClick: () => setEditingEntities(true)
+        }, ['Edit Attribute']),
+        !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
         }, ['Open with...']),
@@ -370,6 +376,9 @@ const EntitiesContent = ({
       side: 'bottom',
       closeOnClick: true,
       content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setEditingEntities(true)
+        }, ['Edit Attribute']),
         h(MenuButton, {
           onClick: () => setDeletingEntities(true)
         }, 'Delete')
@@ -471,6 +480,18 @@ const EntitiesContent = ({
             renderSelectedRowsMenu(columnSettings)
           ]),
         deleteColumnUpdateMetadata
+      }),
+      editingEntities && h(MultipleEntityEditor, {
+        entityType: entityKey,
+        entityNames: _.keys(selectedEntities),
+        attributeNames: entityMetadata[entityKey].attributeNames,
+        entityTypes: _.keys(entityMetadata),
+        workspaceId: { namespace, name },
+        onDismiss: () => setEditingEntities(false),
+        onSuccess: () => {
+          setEditingEntities(false)
+          setRefreshKey(_.add(1))
+        }
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),
