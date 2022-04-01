@@ -392,6 +392,7 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
   }
 
   return h(Collapse, {
+    role: 'listitem',
     title: h3({
       style: {
         margin: 0,
