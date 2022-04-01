@@ -1592,7 +1592,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && renderPersistentDiskSection(existingRuntime),
+          !!isPersistentDisk && renderPersistentDiskSection(existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1650,7 +1650,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     ])
   }
 
-  const renderPersistentDiskSection = computeExists => {
+  const renderPersistentDiskSection = diskExists => {
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -1662,7 +1662,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
-            computeExists ?
+            diskExists ?
               h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
                 h(div, [
                   label({ htmlFor: id, style: computeStyles.label }, ['Disk type']),
@@ -1670,7 +1670,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     h(Select, {
                       id,
                       value: computeConfig.selectedPersistentDiskType,
-                      isDisabled: computeExists || false,
+                      isDisabled: diskExists || false,
                       onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
                       options: [
                         { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
@@ -1685,7 +1685,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   h(Select, {
                     id,
                     value: computeConfig.selectedPersistentDiskType,
-                    isDisabled: computeExists || false,
+                    isDisabled: diskExists || false,
                     onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
                     options: [
                       { label: pdTypes.standard.displayName, value: pdTypes.standard.label },

@@ -31,8 +31,6 @@ const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/k
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 const titleId = 'galaxy-modal-title'
 
-//setDataDisk(_.set(key, value)))
-
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
@@ -52,6 +50,8 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
     const currentDataDisk = getCurrentPersistentDisk(tools.galaxy.appType, apps, appDataDisks, workspaceName)
+
+    const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)))
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
@@ -312,7 +312,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
                         id,
                         value: dataDisk.diskType,
                         isDisabled: true,
-                        onChange: value => setDataDisk(_.set('diskType', value.value)),
+                        onChange: updateDataDisk('diskType'),
                         options: [
                           { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
                           { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
