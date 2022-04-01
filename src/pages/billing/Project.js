@@ -325,7 +325,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     users: h(Fragment, [
-      adminCanEdit && h(NewUserCard, {
+      isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
         icon('plus-circle', { size: 14 }),
@@ -346,7 +346,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: adminCanEdit && div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
+    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
       div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
         _.concat(
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
@@ -532,7 +532,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
-        adminCanEdit && h(Link, {
+        isOwner && h(Link, {
           tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
@@ -544,7 +544,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           }
         }, [icon('edit', { size: 12 })]),
-        adminCanEdit && h(Link, {
+        isOwner && h(Link, {
           tooltip: 'Remove Billing Account',
           style: { marginLeft: '0.5rem' },
           // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
@@ -597,7 +597,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
-      adminCanEdit && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+      isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
