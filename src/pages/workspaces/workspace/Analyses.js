@@ -384,7 +384,7 @@ const Analyses = _.flow(
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
           icon('plus', { size: 14, style: { color: colors.accent() } }),
-          div({ style: { marginLeft: '0.5rem' } }, ['Create'])
+          div({ style: { marginLeft: '0.5rem' } }, ['Start'])
         ]),
         div({ style: { flex: 1.5 } }),
         div({
