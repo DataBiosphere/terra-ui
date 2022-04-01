@@ -131,7 +131,6 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
-const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
@@ -1339,15 +1338,6 @@ const Buckets = signal => ({
 })
 
 
-const GoogleBilling = signal => ({
-  listProjectNames: async billingAccountName => {
-    const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
-    const json = await response.json()
-    return _.map('projectId', json.projectBillingInfo)
-  }
-})
-
-
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
@@ -1696,7 +1686,6 @@ export const Ajax = signal => {
     Workspaces: Workspaces(signal),
     DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
-    GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
     Runtimes: Runtimes(signal),
