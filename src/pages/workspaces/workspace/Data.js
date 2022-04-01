@@ -220,7 +220,7 @@ const BucketContent = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, targetPrefix)
+    const { items, prefixes } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: targetPrefix, delimiter: '/' })
     setPrefix(targetPrefix)
     setPrefixes(prefixes)
     setObjects(items)
