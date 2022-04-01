@@ -79,7 +79,7 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
 
 const activeFileTransferMessage = div({ style: { fontSize: 20 } }, [
   div([
-    'Your notebooks are still in the process of being copied over.'
+    'The'
   ])
 ])
 
@@ -403,7 +403,7 @@ const Notebooks = _.flow(
         ])
       ]),
       Utils.cond(
-        [activeFileTransfer, () => activeFileTransferMessage],
+//        [!activeFileTransfer, () => activeFileTransferMessage],
         [_.isEmpty(notebooks), () => noNotebooksMessage],
         [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
           return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
