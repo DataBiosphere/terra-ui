@@ -306,6 +306,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     billingProjects
   )
 
+  console.log(projectsOwned)
+
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({ style: Style.breadcrumb.breadcrumb }, [
@@ -387,7 +389,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             authorizeAndLoadAccounts: authorizeAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
             isAlphaSpendReportUser,
-            isOwner: true
+            isOwner: _.find({ projectName: selectedName }, projectsOwned)
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {

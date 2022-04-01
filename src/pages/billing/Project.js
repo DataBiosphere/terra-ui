@@ -212,7 +212,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [selectedBilling, setSelectedBilling] = useState()
   const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
   const [selectedDatasetName, setSelectedDatasetName] = useState(null)
-  const [tab, setTab] = useState(query.tab || 'workspace')
+  const [tab, setTab] = useState(query.tab || 'workspaces')
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
@@ -226,8 +226,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const signal = useCancellation()
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
-
-  console.log(projectUsers)
 
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
@@ -338,7 +336,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             key: member.email,
             adminLabel: billingRoles.owner,
             userLabel: billingRoles.user,
-            member, adminCanEdit,
+            member,
+            adminCanEdit: (adminCanEdit && isOwner),
             onEdit: () => setEditingUser(member),
             onDelete: () => setDeletingUser(member)
           })
