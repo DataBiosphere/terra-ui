@@ -906,6 +906,14 @@ const Workspaces = signal => ({
           { signal, method: 'PATCH' }]))
       },
 
+      deleteAttributeFromEntities: (entityType, attributeName, entityNames) => {
+        const body = _.map(name => ({
+          entityType, name, operations: [{ op: 'RemoveAttribute', attributeName }]
+        }), entityNames)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+      },
+
       deleteEntityColumn: (type, attributeName) => {
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
@@ -1153,20 +1161,34 @@ const Buckets = signal => ({
     return res.json()
   },
 
-  listAll: async (googleProject, bucket, prefix = null, pageToken = null) => {
+  /**
+   * Recursively returns all objects in the specified bucket, iterating through all pages until
+   * results have been exhausted and all objects have been collected.
+   *
+   * @param googleProject
+   * @param bucket Name of the bucket in which to look for objects.
+   * @param {Object} options to pass into the GCS API. Accepted options are:
+   *    prefix: Filter results to include only objects whose names begin with this prefix.
+   *    pageToken: A previously-returned page token representing part of the larger set of results to view.
+   *    delimiter: Returns results in a directory-like mode, with / being a common value for the delimiter.
+   * @returns {Promise<*>}
+   * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
+   */
+  listAll: async (googleProject, bucket, { prefix = null, pageToken = null, delimiter = null } = {}) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const body = await res.json()
     const items = body.items || []
+    const prefixes = body.prefixes || []
 
     // Get the next page recursively if there is one
     if (body.nextPageToken) {
-      const next = await Buckets(signal).listAll(googleProject, bucket, prefix, body.nextPageToken)
-      return _.concat(items, next)
+      const next = await Buckets(signal).listAll(googleProject, bucket, { prefix, pageToken: body.nextPageToken, delimiter })
+      return { items: _.concat(items, next.items), prefixes: _.concat(prefixes, next.prefixes) }
     }
-    return items
+    return { items, prefixes }
   },
 
   delete: async (googleProject, bucket, name) => {

@@ -133,16 +133,10 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps9-
+            - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run:
           working_directory: integration-tests
-          command: yarn install --immutable
-      - save_cache:
-          key: test-deps9-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-          paths:
-            - integration-tests/node_modules
-            - integration-tests/.yarn/cache
+          command: yarn install --immutable-cache
       - when:
           condition: << parameters.local >>
           steps:
@@ -161,7 +155,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
-            yarn test $TESTS_TO_RUN --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            yarn test $TESTS_TO_RUN --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
@@ -186,17 +180,17 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps8-
-      - run: yarn install --immutable
-      - save_cache:
-          key: deps8-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules
-            - .yarn/cache
+            - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
+            - deps-{{ .Branch }}-
+      - run: yarn install --immutable-cache
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn test
+      - run: yarn test --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
+      - save_cache:
+          key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
+          paths:
+            - .yarn/unplugged
+            - node_modules/.cache
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz

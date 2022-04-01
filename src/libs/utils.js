@@ -189,7 +189,7 @@ export const entityAttributeText = (value, machineReadable) => {
 export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
   return cond(
     [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
-    [isLocked, () => 'This workspace is locked']
+    [isLocked, () => 'This workspace is locked.']
   )
 }
 
@@ -197,7 +197,7 @@ export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => 
 export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
   return cond(
     [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
-    [isLocked, () => 'This workspace is locked']
+    [isLocked, () => 'This workspace is locked.']
   )
 }
 
