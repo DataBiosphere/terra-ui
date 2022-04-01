@@ -3,7 +3,7 @@ import {
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
-  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
+  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
   faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle,
   faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt, faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
 } from '@fortawesome/free-solid-svg-icons'
@@ -72,6 +72,7 @@ const iconDict = {
   'ellipsis-v': fa(faEllipsisV),
   'ellipsis-v-circle': props => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
   'error-standard': fa(faExclamationCircle),
+  'expand-arrows-alt': fa(faExpandArrowsAlt),
   export: custom(fileExport),
   eye: fa(faEye),
   fileAlt: fa(faFileAlt),
