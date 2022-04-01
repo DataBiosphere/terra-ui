@@ -85,7 +85,7 @@ const DashboardAuthContainer = props => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setFeaturedWorkspaces(await Ajax().Buckets.getFeaturedWorkspaces())
+      setFeaturedWorkspaces(await Ajax().FirecloudBucket.getFeaturedWorkspaces())
     }
     if (isSignedIn === false) {
       fetchData()
