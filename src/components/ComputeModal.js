@@ -659,7 +659,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
-      console.log('currentPersistentDisk', currentPersistentDisk)
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
@@ -811,7 +810,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         },
         disabled: isUpdateDisabled,
         tooltipSide: 'left',
-        tooltip: isUpdateDisabled ? `Cannot perform change on environment in ( ${currentRuntimeDetails.status} ) status` : 'Update Environment'
+        tooltip: isUpdateDisabled ? `Cannot perform change on environment in (${currentRuntimeDetails.status}) status` : 'Update Environment'
       }, [
         Utils.cond(
           [viewMode === 'deleteEnvironment', () => 'Delete'],
