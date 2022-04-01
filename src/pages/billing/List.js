@@ -68,7 +68,7 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   }
 
   return div({ role: 'listitem' }, [
-    _.includes(billingRoles.user, roles) || _.includes(billingRoles.owner, roles) && status === 'Ready' ?
+    (_.includes(billingRoles.user, roles) || _.includes(billingRoles.owner, roles)) && status === 'Ready' ?
       selectableProject(project, isActive) :
       unselectableProject(project, isActive)
   ])
@@ -387,7 +387,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             authorizeAndLoadAccounts: authorizeAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
             isAlphaSpendReportUser,
-            isOwner: _.includes(billingRoles.owner, roles)
+            isOwner: true
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {
