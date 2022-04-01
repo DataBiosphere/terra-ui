@@ -374,21 +374,54 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => div({
-  role: 'listitem'
-}, [
-  h3({ style: Style.navList.heading }, [
-    title,
-    error ? h(Link, {
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
+  if (!isDataTabRedesignEnabled()) {
+    return div({ role: 'listitem' }, [
+      h3({ style: Style.navList.heading }, [
+        title,
+        error ? h(Link, {
+          onClick: retryFunction,
+          tooltip: 'Error loading, click to retry.'
+        }, [icon('sync', { size: 18 })]) : titleExtras
+      ]),
+      !!children?.length && div({
+        style: { display: 'flex', flexDirection: 'column', width: '100%' },
+        role: 'list'
+      }, [children])
+    ])
+  }
+
+  return h(Collapse, {
+    title: h3({
+      style: {
+        margin: 0,
+        fontSize: 16,
+        textTransform: 'uppercase'
+      }
+    }, title),
+    titleFirst: true,
+    initialOpenState: true,
+    summaryStyle: {
+      paddingRight: error ? '1rem' : 0,
+      borderBottom: `0.5px solid ${colors.dark(0.2)}`,
+      backgroundColor: colors.light(0.4),
+      fontSize: 16
+    },
+    buttonStyle: {
+      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
+      marginBottom: 0
+    },
+    afterToggle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
-    }, [icon('sync', { size: 18 })]) : titleExtras
-  ]),
-  !!children?.length && div({
-    style: { display: 'flex', flexDirection: 'column', width: '100%' },
-    role: 'list'
-  }, [children])
-])
+    }, [icon('sync', { size: 18 })])
+  }, [
+    !!children?.length && div({
+      style: { display: 'flex', flexDirection: 'column', width: '100%' },
+      role: 'list'
+    }, [children])
+  ])
+}
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
