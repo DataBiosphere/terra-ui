@@ -216,6 +216,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   })
   // State -- end
 
+  console.log('Component top: GPU type: ', computeConfig.gpuType, 'numGPUs: ', computeConfig.numGpus)
+
+
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
@@ -312,17 +315,18 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       })
     }
     if (shouldCreateRuntime) {
-      await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
-        runtimeConfig,
-        autopauseThreshold: computeConfig.autopauseThreshold,
-        toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: {
-          saturnWorkspaceNamespace: namespace,
-          saturnWorkspaceName: name
-        },
-        customEnvironmentVariables: customEnvVars,
-        ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
-      })
+      console.log('if (shouldCreateRuntime) GPU type: ', computeConfig.gpuType, 'numGPUs: ', computeConfig.numGpus)
+      // await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
+      //   runtimeConfig,
+      //   autopauseThreshold: computeConfig.autopauseThreshold,
+      //   toolDockerImage: desiredRuntime.toolDockerImage,
+      //   labels: {
+      //     saturnWorkspaceNamespace: namespace,
+      //     saturnWorkspaceName: name
+      //   },
+      //   customEnvironmentVariables: customEnvVars,
+      //   ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
+      // })
     }
 
     onSuccess()

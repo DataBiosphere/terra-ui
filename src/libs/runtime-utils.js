@@ -161,7 +161,7 @@ export const runtimeConfigCost = config => {
 }
 
 // Per GB following https://cloud.google.com/compute/pricing
-const getPersistentDiskPriceForRegionMonthly = computeRegion => {
+const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
   return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get(['monthlyDiskPrice']))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
