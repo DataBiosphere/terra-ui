@@ -304,7 +304,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
-          tabs: [{ title: 'File Import', key: 'file', width: 121 }, { title: 'Text Import', key: 'text', width: 127 }],
+          tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
           onChange: value => {
             setIsFileImportCurrMode(value === 'file')
