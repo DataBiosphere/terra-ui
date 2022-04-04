@@ -26,7 +26,7 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'))
   // await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Confirm' })) })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await findElement(page, img({ textContains: 'Jupyter Environment ( Creating )'}), { timeout: 60000 })
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )'}), { timeout: 60000 })
 
 })
 
