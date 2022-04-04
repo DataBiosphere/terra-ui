@@ -382,23 +382,25 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           'We have detected empty cells in your TSV. Please choose an option:',
-          div({ style: { paddingTop: '0.5rem' }, role: 'radiogroup', 'aria-label': 'We have detected empty cells in your TSV. Please choose an option.' }, [
-            h(RadioButton, {
-              text: 'Ignore empty cells (default)',
-              name: 'ignore-empty-cells',
-              checked: !deleteEmptyValues,
-              onChange: () => setDeleteEmptyValues(false),
-              labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
-            })
-          ]),
-          div({ style: { paddingTop: '0.5rem' } }, [
-            h(RadioButton, {
-              text: 'Overwrite existing cells with empty cells',
-              name: 'ignore-empty-cells',
-              checked: deleteEmptyValues,
-              onChange: () => setDeleteEmptyValues(true),
-              labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
-            })
+          div({ role: 'radiogroup', 'aria-label': 'we have detected empty cells in your tsv. please choose an option.' }, [
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Ignore empty cells (default)',
+                name: 'ignore-empty-cells',
+                checked: !deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(false),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ]),
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Overwrite existing cells with empty cells',
+                name: 'ignore-empty-cells',
+                checked: deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(true),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ])
           ])
         ]),
         currentFile && supportsFireCloudDataModel(newEntityType) && div([
