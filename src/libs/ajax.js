@@ -1326,7 +1326,6 @@ const Buckets = signal => ({
 const FirecloudBucket = signal => ({
   getServiceAlerts: async () => {
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
-    debugger
     return res.json()
   },
 
