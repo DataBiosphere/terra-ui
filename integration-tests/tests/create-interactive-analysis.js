@@ -23,7 +23,7 @@ const testCreateInteractiveAnalysisFn = _.flow(
   await dismissNotifications(page)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
   await click(page, navChild('analyses'))
-  await click(page, clickable({ textContains: 'Create' }))
+  await click(page, clickable({ textContains: 'Start' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
   await click(page, image({ text: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
