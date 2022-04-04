@@ -249,13 +249,13 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file, deleteEmptyValues)
+        await workspace.importEntitiesFile(file, { deleteEmptyValues })
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file, deleteEmptyValues)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
         } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, deleteEmptyValues)
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notifyDataImportProgress(jobId)
         }
