@@ -307,3 +307,18 @@ workflows:
     jobs:
       - integration-tests-alpha
       - integration-tests-staging
+  hotfix-integration-tests:
+    jobs:
+      - integration-tests-alpha:
+        filters:
+          tags:
+            only: /.*hotfix.*/
+          branches:
+            ignore: /.*/
+      - integration-tests-staging:
+        filters:
+          tags:
+            only: /.*hotfix.*/
+          branches:
+            ignore: /.*/
+
