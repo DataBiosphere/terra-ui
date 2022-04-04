@@ -1,0 +1,123 @@
+in withRuntime {
+  context: BrowserContext {
+    eventsMap: Map(0) {},
+    emitter: {
+      all: Map(0) {},
+      on: [Function: on],
+      off: [Function: off],
+      emit: [Function: emit]
+    },
+    _connection: Connection {
+      eventsMap: [Map],
+      emitter: [Object],
+      _lastId: 17,
+      _sessions: [Map],
+      _closed: false,
+      _callbacks: Map(0) {},
+      _url: 'ws://127.0.0.1:54956/devtools/browser/2187477b-3b55-4f08-9ad1-f038f54d298f',
+      _delay: 0,
+      _transport: [NodeWebSocketTransport]
+    },
+    _browser: Browser {
+      eventsMap: Map(0) {},
+      emitter: [Object],
+      _ignoredTargets: Set(0) {},
+      _ignoreHTTPSErrors: false,
+      _defaultViewport: [Object],
+      _process: null,
+      _screenshotTaskQueue: [TaskQueue],
+      _connection: [Connection],
+      _closeCallback: [Function (anonymous)],
+      _targetFilterCallback: [Function (anonymous)],
+      _defaultContext: [BrowserContext],
+      _contexts: [Map],
+      _targets: [Map]
+    },
+    _id: 'B6C2A701D83ADF35FAE94565B365298D'
+  },
+  page: <ref *1> Page {
+    eventsMap: Map(2) { 'pageerror' => [Array], 'response' => [Array] },
+    emitter: {
+      all: [Map],
+      on: [Function: on],
+      off: [Function: off],
+      emit: [Function: emit]
+    },
+    _closed: false,
+    _timeoutSettings: TimeoutSettings {
+      _defaultTimeout: null,
+      _defaultNavigationTimeout: null
+    },
+    _pageBindings: Map(0) {},
+    _javascriptEnabled: true,
+    _workers: Map(0) {},
+    _fileChooserInterceptors: Set(0) {},
+    _userDragInterceptionEnabled: false,
+    _handlerMap: WeakMap { <items unknown> },
+    _client: CDPSession {
+      eventsMap: [Map],
+      emitter: [Object],
+      _callbacks: Map(0) {},
+      _connection: [Connection],
+      _targetType: 'page',
+      _sessionId: '770B2F493CBE99D3BB5064F35CF031F5'
+    },
+    _target: Target {
+      _targetInfo: [Object],
+      _browserContext: [BrowserContext],
+      _targetId: 'AE696C4BDE60818B81AA622053F4759E',
+      _sessionFactory: [Function (anonymous)],
+      _ignoreHTTPSErrors: false,
+      _defaultViewport: [Object],
+      _screenshotTaskQueue: [TaskQueue],
+      _pagePromise: [Promise],
+      _workerPromise: null,
+      _initializedCallback: [Function (anonymous)],
+      _initializedPromise: [Promise],
+      _closedCallback: [Function (anonymous)],
+      _isClosedPromise: [Promise],
+      _isInitialized: true
+    },
+    _keyboard: Keyboard {
+      _modifiers: 0,
+      _pressedKeys: Set(0) {},
+      _client: [CDPSession]
+    },
+    _mouse: Mouse {
+      _x: 0,
+      _y: 0,
+      _button: 'none',
+      _client: [CDPSession],
+      _keyboard: [Keyboard]
+    },
+    _touchscreen: Touchscreen { _client: [CDPSession], _keyboard: [Keyboard] },
+    _accessibility: Accessibility { _client: [CDPSession] },
+    _frameManager: FrameManager {
+      eventsMap: [Map],
+      emitter: [Object],
+      _frames: [Map],
+      _contextIdToContext: [Map],
+      _isolatedWorlds: [Set],
+      _client: [CDPSession],
+      _page: [Circular *1],
+      _networkManager: [NetworkManager],
+      _timeoutSettings: [TimeoutSettings],
+      _mainFrame: [Frame]
+    },
+    _emulationManager: EmulationManager {
+      _emulatingMobile: false,
+      _hasTouch: false,
+      _client: [CDPSession]
+    },
+    _tracing: Tracing { _recording: false, _path: '', _client: [CDPSession] },
+    _coverage: Coverage { _jsCoverage: [JSCoverage], _cssCoverage: [CSSCoverage] },
+    _screenshotTaskQueue: TaskQueue { _chain: [Promise] },
+    _viewport: { width: 1200, height: 800 }
+  },
+  billingProject: 'saturn-integration-test-dev',
+  snapshotColumnName: 'name',
+  snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
+  snapshotTableName: 'tableA',
+  testUrl: 'http://localhost:3000',
+  workflowName: 'echo_to_file'
+}

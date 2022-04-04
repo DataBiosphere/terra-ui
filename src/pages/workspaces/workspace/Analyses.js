@@ -386,10 +386,10 @@ const Analyses = _.flow(
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Start'])
         ]),
-        div({ style: { flex: 1.5 } }),
+        div({ style: { flex: 1 } }),
         div({
           style: {
-            display: 'flex', flexDirection: 'column', marginLeft: '.5rem', padding: '1rem',
+            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem',
             backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
           }, hidden: false
         }, [
@@ -416,7 +416,6 @@ const Analyses = _.flow(
             tooltip: 'Exit the analysis tab beta feature'
           }, ['Revert layout'])
         ]),
-        div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
           style: { marginRight: '0.75rem', width: 220 },
