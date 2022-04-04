@@ -391,10 +391,8 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
 ])
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
-  const windowWidth = useRef(window.innerWidth)
-
   const minWidth = 280
-  const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, windowWidth.current - 200), [])
+  const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onDrag = useCallback(_.throttle(100, e => {
@@ -403,7 +401,6 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
   useOnMount(() => {
     const onResize = _.throttle(100, () => {
-      windowWidth.current = window.innerWidth
       setSidebarWidth(_.clamp(minWidth, getMaxWidth()))
     })
     window.addEventListener('resize', onResize)
