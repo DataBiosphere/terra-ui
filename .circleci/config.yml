@@ -310,15 +310,14 @@ workflows:
   hotfix-integration-tests:
     jobs:
       - integration-tests-alpha:
-        filters:
-          tags:
-            only: /.*hotfix.*/
-          branches:
-            ignore: /.*/
+          filters:
+            tags:
+              only: /.*hotfix.*/
+            branches:
+              ignore: /.*/
       - integration-tests-staging:
-        filters:
-          tags:
-            only: /.*hotfix.*/
-          branches:
-            ignore: /.*/
-
+          filters:
+            tags:
+              only: /.*hotfix.*/
+            branches:
+              ignore: /.*/
