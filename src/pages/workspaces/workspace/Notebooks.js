@@ -420,7 +420,7 @@ const Notebooks = _.flow(
           div({ style: { display: 'flex', flexDirection: 'row' } }, [
             div([
               span([
-                'New features are available! Help us improve Terra by trying it out and giving feedback. '
+                'Help us improve Terra by trying out our new layout! '
               ]),
               h(Link, {
                 href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
@@ -432,7 +432,7 @@ const Notebooks = _.flow(
               { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
           ]),
           h(ButtonPrimary, {
-            style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'left' },
+            style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'center' },
             tooltip: 'Enable analysis tab beta',
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
@@ -442,7 +442,7 @@ const Notebooks = _.flow(
               window.configOverridesStore.set({ isAnalysisTabVisible: true })
               Nav.goToPath(analysisTabName, { namespace, name: wsName })
             }
-          }, ['Try out the new layout'])
+          }, ['Try new layout'])
         ]),
         div({ style: { flex: 5 } }),
         h(DelayedSearchInput, {
