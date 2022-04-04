@@ -2,7 +2,6 @@ const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
-
 const notebookName = 'TestNotebook'
 
 const testRunNotebookFn = _.flow(
@@ -16,15 +15,15 @@ const testRunNotebookFn = _.flow(
   await dismissNotifications(page)
   await waitForNoSpinners(page)
 
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })), debugMessage: '1'})
   await click(page, navChild('notebooks'))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
 
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Notebook' })) })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: notebookName })) })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Edit' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Notebook' })), debugMessage: '2' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: notebookName })), debugMessage: '3'})
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '4'})
 
   await findElement(page, getAnimatedDrawer('Cloud Environment'))
   await click(page, clickable({ text: 'Create' }))
@@ -32,10 +31,12 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
   const frame = await findIframe(page)
+
   await findElement(frame, '//*[@title="Kernel Idle"]')
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
   await findText(frame, '123456789099886419754209')
+
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
 })
