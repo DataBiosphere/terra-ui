@@ -408,9 +408,15 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
       backgroundColor: colors.light(0.4),
       fontSize: 16
     },
+    buttonProps: {
+      hover: {
+        color: colors.dark(0.9)
+      }
+    },
     buttonStyle: {
       padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
-      marginBottom: 0
+      marginBottom: 0,
+      color: colors.dark()
     },
     afterToggle: error && h(Link, {
       onClick: retryFunction,
