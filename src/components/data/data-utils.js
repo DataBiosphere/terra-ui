@@ -253,7 +253,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, deleteEmptyValues)
         } else {
           const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, deleteEmptyValues)
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
@@ -284,7 +284,6 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       setFile(file)
       setFileContents(await Utils.readFileAsText(file.slice(0, 1000)))
       setIsFileImportLastUsedMode(true)
-      setDeleteEmptyValues(false)
     }
   }, [
     ({ dragging, openUploader }) => h(Fragment, [
@@ -359,7 +358,6 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               setFileContents(pastedText)
               setIsFileImportLastUsedMode(false)
               setShowInvalidEntryMethodWarning(false)
-              setDeleteEmptyValues(false)
             },
             onChange: () => setShowInvalidEntryMethodWarning(true),
             value: !isFileImportLastUsedMode ? fileContents : '',
@@ -379,7 +377,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && containsNullValues && !!_.includes(_.toLower(newEntityType), entityTypes) && div({
+        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),

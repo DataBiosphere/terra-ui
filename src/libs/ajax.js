@@ -964,7 +964,7 @@ const Workspaces = signal => ({
       importFlexibleEntitiesFileSynchronous: async (file, deleteEmptyValues = false) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues }, { async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res
       },
 
@@ -972,7 +972,7 @@ const Workspaces = signal => ({
         console.log(deleteEmptyValues)
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues }, { async: true })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: true })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res.json()
       },
 
