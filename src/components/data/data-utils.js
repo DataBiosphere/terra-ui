@@ -274,7 +274,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
-  const containsNullValues = fileContents.match('\t\t')
+  const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
   return h(Dropzone, {
     multiple: false,
