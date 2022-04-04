@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
+
 const notebookName = 'TestNotebook'
 
 const testRunNotebookFn = _.flow(
@@ -15,15 +16,15 @@ const testRunNotebookFn = _.flow(
   await dismissNotifications(page)
   await waitForNoSpinners(page)
 
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })), debugMessage: '1'})
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })), debugMessage: '1' })
   await click(page, navChild('notebooks'))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
 
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Notebook' })), debugMessage: '2' })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: notebookName })), debugMessage: '3'})
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '4'})
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: notebookName })), debugMessage: '3' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '4' })
 
   await findElement(page, getAnimatedDrawer('Cloud Environment'))
   await click(page, clickable({ text: 'Create' }))
