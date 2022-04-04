@@ -14,7 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -26,8 +26,11 @@ const contextBarStyles = {
   },
   contextBarButton: {
     display: 'flex',
+    justifyContent: 'center',
+    width: 70,
     borderBottom: `1px solid ${colors.accent()}`,
-    padding: '1rem',
+    padding: '.75rem',
+    height: 70,
     color: colors.accent(),
     backgroundColor: colors.accent(0.2)
   },
@@ -39,6 +42,7 @@ export const ContextBar = ({
   workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
+  const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -52,10 +56,10 @@ export const ContextBar = ({
   }
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 30, width: 30 } })],
-    [tools.galaxy.label, () => img({ src: galaxyLogo, style: { height: 12, width: 35 } })],
-    [tools.cromwell.label, () => img({ src: cromwellImg, style: { width: 30 } })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 30, width: 30 } })]
+    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: '' })],
+    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -65,58 +69,74 @@ export const ContextBar = ({
     [Utils.DEFAULT, () => colors.warning()])
 
   const getIconForTool = (toolLabel, status) => {
-    return div({ style: { display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '1rem' } }, [
+    return h(Clickable, {
+      style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
+      hover: contextBarStyles.hover,
+      onClick: () => {
+        setSelectedToolIcon(toolLabel)
+        setCloudEnvOpen(true)
+      },
+      tooltipSide: 'left',
+      tooltip: `${toolLabel} Environment ( ${getComputeStatusForDisplay(status)} )`,
+      tooltipDelay: 100,
+      useTooltipAsLabel: true
+    }, [
+      div({ style: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
         getImgForTool(toolLabel)
       ]),
-      div({ style: { display: 'flex', justifyContent: 'flex-end', color: getColorForStatus(status) } }, [
+      div({ style: { justifyContent: 'flex-end', display: 'flex', color: getColorForStatus(status) } }, [
         icon('circle', { style: { border: '1px solid white', borderRadius: '50%' }, size: 12 })
       ])
     ])
   }
 
   const getEnvironmentStatusIcons = () => {
-    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
-    const cromwellApp = !tools.cromwell.isAppHidden && getCurrentApp(tools.cromwell.appType)(apps)
+    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
+    const cromwellApp = !tools.Cromwell.isAppHidden && getCurrentApp(tools.Cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
-      ...(galaxyApp ? [getIconForTool(tools.galaxy.label, galaxyApp.status)] : []),
-      ...(cromwellApp ? [getIconForTool(tools.cromwell.label, cromwellApp.status)] : [])
+      ...(galaxyApp ? [getIconForTool(tools.Galaxy.label, galaxyApp.status)] : []),
+      ...(cromwellApp ? [getIconForTool(tools.Cromwell.label, cromwellApp.status)] : [])
     ])
   }
 
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
+      filterForTool: selectedToolIcon,
       onSuccess: async () => {
         setCloudEnvOpen(false)
+        setSelectedToolIcon(undefined)
         await refreshRuntimes(true)
         await refreshApps()
       },
       onDismiss: async () => {
         setCloudEnvOpen(false)
+        setSelectedToolIcon(undefined)
         await refreshRuntimes(true)
         await refreshApps()
       },
       runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, locationType
     }),
-    div({ style: Style.elements.contextBarContainer }, [
+    div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(Clickable, {
-          style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
-          hover: contextBarStyles.hover,
-          tooltipSide: 'left',
-          onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
-          tooltip: 'Environment Configuration',
-          tooltipDelay: 100,
-          useTooltipAsLabel: true
-        }, [
-          img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 26, width: 26 } }),
+        h(Fragment, [
+          h(Clickable, {
+            style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
+            hover: contextBarStyles.hover,
+            tooltipSide: 'left',
+            onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
+            tooltip: 'Environment Configuration',
+            tooltipDelay: 100,
+            useTooltipAsLabel: true
+          }, [
+            img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 40, width: 40 }, alt: '' })
+          ]),
           getEnvironmentStatusIcons()
         ]),
         h(Clickable, {
           'aria-label': 'Terminal button',
-          style: { ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
+          style: { borderTop: `1px solid ${colors.accent()}`, paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
           hover: contextBarStyles.hover,
           tooltipSide: 'left',
           disabled: !isTerminalEnabled,
@@ -132,7 +152,7 @@ export const ContextBar = ({
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
-        }, [icon('terminal', { size: 24 })])
+        }, [icon('terminal', { size: 40 })])
       ])
     ])
   ])

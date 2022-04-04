@@ -259,26 +259,26 @@ const mockAppDisksSameWorkspace = [galaxyDisk1Workspace1, galaxyDisk2Workspace1,
 
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
-    expect(getCurrentApp(tools.galaxy.appType)([])).toBeUndefined()
-    expect(getCurrentApp(tools.cromwell.appType)([galaxyRunning])).toBeUndefined()
+    expect(getCurrentApp(tools.Galaxy.appType)([])).toBeUndefined()
+    expect(getCurrentApp(tools.Cromwell.appType)([galaxyRunning])).toBeUndefined()
   })
   it('returns the most recent app for the given type (that is not deleting)', () => {
-    expect(getCurrentApp(tools.galaxy.appType)(mockApps)).toBe(galaxyRunning)
-    expect(getCurrentApp(tools.cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
+    expect(getCurrentApp(tools.Galaxy.appType)(mockApps)).toBe(galaxyRunning)
+    expect(getCurrentApp(tools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
   })
 })
 
 describe('getCurrentAppIncludingDeleting', () => {
   it('does not filter out deleting', () => {
-    expect(getCurrentAppIncludingDeleting(tools.galaxy.appType)(mockApps)).toBe(galaxyDeleting)
-    expect(getCurrentAppIncludingDeleting(tools.cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
+    expect(getCurrentAppIncludingDeleting(tools.Galaxy.appType)(mockApps)).toBe(galaxyDeleting)
+    expect(getCurrentAppIncludingDeleting(tools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
   })
 })
 
 describe('getDiskAppType', () => {
   it('returns the appType for disks attached to apps', () => {
-    expect(getDiskAppType(galaxyDeletingDisk)).toBe(tools.galaxy.appType)
-    expect(getDiskAppType(cromwellProvisioningDisk)).toBe(tools.cromwell.appType)
+    expect(getDiskAppType(galaxyDeletingDisk)).toBe(tools.Galaxy.appType)
+    expect(getDiskAppType(cromwellProvisioningDisk)).toBe(tools.Cromwell.appType)
   })
   it('returns undefined for runtime disks', () => {
     expect(getDiskAppType(jupyterDisk)).toBeUndefined()
@@ -287,36 +287,36 @@ describe('getDiskAppType', () => {
 
 describe('getCurrentPersistentDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
   })
   it('returns the newest attached disk, even if app is deleting', () => {
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(galaxyDeletingDisk)
-    expect(getCurrentPersistentDisk(tools.cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(cromwellProvisioningDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(galaxyDeletingDisk)
+    expect(getCurrentPersistentDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(cromwellProvisioningDisk)
   })
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
-    expect(getCurrentPersistentDisk(tools.cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toBe(cromwellUnattachedDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
+    expect(getCurrentPersistentDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toBe(cromwellUnattachedDisk)
   })
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
-    expect(getCurrentPersistentDisk(tools.galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
   })
 })
 
 describe('workspaceHasMultipleApps', () => {
   it('returns true when there are multiple galaxy apps in the same project and workspace', () => {
-    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.galaxy.appType)).toBe(true)
+    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.Galaxy.appType)).toBe(true)
   })
   it('returns false when there is not multiple cromwell apps', () => {
-    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.cromwell.appType)).toBe(false)
+    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.Cromwell.appType)).toBe(false)
   })
 })
 
 describe('workspaceHasMultipleDisks', () => {
   it('returns true when there are multiple galaxy disks in the same project and workspace', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.galaxy.appType)).toBe(true)
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.Galaxy.appType)).toBe(true)
   })
   it('returns false when there is not multiple cromwell disks', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.cromwell.appType)).toBe(false)
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.Cromwell.appType)).toBe(false)
   })
 })

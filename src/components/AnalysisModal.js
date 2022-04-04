@@ -101,8 +101,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, () => renderAppModal(GalaxyModalBase, tools.galaxy.label)],
-      [tools.cromwell.label, () => renderAppModal(CromwellModalBase, tools.cromwell.label)]
+      [tools.Galaxy.label, () => renderAppModal(GalaxyModalBase, tools.Galaxy.label)],
+      [tools.Cromwell.label, () => renderAppModal(CromwellModalBase, tools.Cromwell.label)]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -125,7 +125,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
       isOpen: viewMode === toolLabel,
-      isAnalysisMode: true,
       workspace,
       apps,
       appDataDisks,
@@ -148,8 +147,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    const galaxyApp = currentApp(tools.galaxy.label)
-    const cromwellApp = currentApp(tools.cromwell.label)
+    const galaxyApp = currentApp(tools.Galaxy.label)
+    const cromwellApp = currentApp(tools.Cromwell.label)
 
     // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
     const renderToolButtons = () => div({
@@ -171,16 +170,16 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
       h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentTool(tools.galaxy.label)
-          enterNextViewMode(tools.galaxy.label)
+          setCurrentTool(tools.Galaxy.label)
+          enterNextViewMode(tools.Galaxy.label)
         },
         hover: !galaxyApp ? styles.hover : undefined,
         disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
-      !tools.cromwell.isAppHidden && h(Clickable, {
+      !tools.Cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentTool(tools.cromwell.label)
-          enterNextViewMode(tools.cromwell.label)
+          setCurrentTool(tools.Cromwell.label)
+          enterNextViewMode(tools.Cromwell.label)
         },
         hover: !cromwellApp ? styles.hover : undefined,
         disabled: !!cromwellApp, tooltip: cromwellApp ? 'You already have a Cromwell instance' : ''
