@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import pluralize from 'pluralize'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -241,19 +242,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [fileContents, setFileContents] = useState('')
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file)
+        await workspace.importEntitiesFile(file, { deleteEmptyValues })
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
         } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file)
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notifyDataImportProgress(jobId)
         }
@@ -272,6 +274,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
+  const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
   return h(Dropzone, {
     multiple: false,
@@ -303,7 +306,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
-          tabs: [{ title: 'File Import', key: 'file', width: 121 }, { title: 'Text Import', key: 'text', width: 127 }],
+          tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
           onChange: value => {
             setIsFileImportCurrMode(value === 'file')
@@ -373,6 +376,32 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
+        }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          'We have detected empty cells in your TSV. Please choose an option:',
+          div({ role: 'radiogroup', 'aria-label': 'we have detected empty cells in your tsv. please choose an option.' }, [
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Ignore empty cells (default)',
+                name: 'ignore-empty-cells',
+                checked: !deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(false),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ]),
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Overwrite existing cells with empty cells',
+                name: 'ignore-empty-cells',
+                checked: deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(true),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ])
+          ])
         ]),
         currentFile && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
@@ -522,12 +551,11 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
 const renderInputForAttributeType = _.curry((attributeType, props) => {
   return Utils.switchCase(attributeType,
     ['string', () => {
-      const { value = '', onChange, ...otherProps } = props
+      const { value = '', ...otherProps } = props
       return h(TextInput, {
         autoFocus: true,
         placeholder: 'Enter a value',
         value,
-        onChange: v => onChange(_.trim(v)),
         ...otherProps
       })
     }],
@@ -537,7 +565,7 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
         autoFocus: true,
         placeholder: `Enter a ${value.entityType}_id`,
         value: value.entityName,
-        onChange: v => onChange({ ...value, entityName: _.trim(v) }),
+        onChange: v => onChange({ ...value, entityName: v }),
         ...otherProps
       })
     }],
@@ -563,7 +591,7 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -574,6 +602,18 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
     () => entityTypes[0]
   )
   const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+
+  const focusLastListItemInput = useRef(false)
+  const lastListItemInput = useRef(null)
+  useEffect(() => {
+    if (!isList) {
+      lastListItemInput.current = null
+    }
+    if (focusLastListItemInput.current && lastListItemInput.current) {
+      lastListItemInput.current.focus()
+      focusLastListItemInput.current = false
+    }
+  }, [attributeValue, isList])
 
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
@@ -638,7 +678,8 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
         }, [
           renderInput({
             'aria-label': `List value ${i + 1}`,
-            autoFocus: true,
+            autoFocus: i === 0 && autoFocus,
+            ref: i === attributeValue.items.length - 1 ? lastListItemInput : undefined,
             value,
             onChange: v => {
               const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
@@ -647,7 +688,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
           }),
           h(Link, {
             'aria-label': `Remove list value ${i + 1}`,
-            disabled: value.length === 1,
+            disabled: _.size(attributeValue.items) === 1,
             onClick: () => {
               const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
               onChange(newAttributeValue)
@@ -660,6 +701,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
         h(Link, {
           style: { display: 'block', marginTop: '1rem' },
           onClick: () => {
+            focusLastListItemInput.current = true
             const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
             onChange(newAttributeValue)
           }
@@ -667,7 +709,7 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
       ]) : div({ style: { marginTop: '1.5rem' } }, [
         renderInput({
           'aria-label': 'New value',
-          autoFocus: true,
+          autoFocus,
           value: attributeValue,
           onChange
         })
@@ -675,7 +717,21 @@ const AttributeInput = ({ value: attributeValue, onChange, entityTypes = [] }) =
   ])
 }
 
-export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+export const prepareAttributeForUpload = attributeValue => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const transform = Utils.switchCase(type,
+    ['string', () => _.trim],
+    ['reference', () => _.update('entityName', _.trim)],
+    [Utils.DEFAULT, () => _.identity]
+  )
+
+  return isList ?
+    _.update('items', _.map(transform), attributeValue) :
+    transform(attributeValue)
+}
+
+export const SingleEntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [newValue, setNewValue] = useState(attributeValue)
   const isUnchanged = _.isEqual(attributeValue, newValue)
 
@@ -691,7 +747,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         .workspace(namespace, name)
         .upsertEntities([{
           name: entityName, entityType,
-          attributes: { [attributeName]: newValue }
+          attributes: { [attributeName]: prepareAttributeForUpload(newValue) }
         }])
       onSuccess()
     } catch (e) {
@@ -731,6 +787,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
       ]) :
       h(Fragment, [
         h(AttributeInput, {
+          autoFocus: true,
           value: newValue,
           onChange: setNewValue,
           entityTypes
@@ -744,6 +801,138 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             disabled: isUnchanged || newValue === undefined || newValue === '',
             tooltip: isUnchanged && 'No changes to save'
           }, ['Save Changes'])
+        ])
+      ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [attributeToEdit, setAttributeToEdit] = useState('')
+  const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
+  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
+  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+
+  const [newValue, setNewValue] = useState('')
+
+  const signal = useCancellation()
+  const [isBusy, setIsBusy] = useState()
+  const [consideringDelete, setConsideringDelete] = useState()
+
+  const doEdit = async () => {
+    try {
+      setIsBusy(true)
+
+      const entityUpdates = _.map(entityName => ({
+        entityType,
+        name: entityName,
+        attributes: { [attributeToEdit]: prepareAttributeForUpload(newValue) }
+      }), entityNames)
+
+      await Ajax(signal)
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities(entityUpdates)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const doDelete = async () => {
+    try {
+      setIsBusy(true)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, entityNames)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const boldish = text => span({ style: { fontWeight: 600 } }, [text])
+
+  return h(Modal, {
+    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    onDismiss,
+    showButtons: false
+  }, [
+    consideringDelete ?
+      h(Fragment, [
+        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
+        div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
+        div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
+          div({ style: { flexGrow: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+        ])
+      ]) :
+      h(Fragment, [
+        div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+                h(AutocompleteTextInput, {
+                  id,
+                  value: attributeToEdit,
+                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
+                  placeholder: 'Attribute name',
+                  style: attributeToEditError ? {
+                    paddingRight: '2.25rem',
+                    border: `1px solid ${colors.danger()}`
+                  } : undefined,
+                  onChange: value => {
+                    setAttributeToEdit(value)
+                    setAttributeToEditTouched(true)
+                  }
+                }),
+                attributeToEditError && icon('error-standard', {
+                  size: 24,
+                  style: {
+                    position: 'absolute', right: '0.5rem',
+                    color: colors.danger()
+                  }
+                })
+              ]),
+              attributeToEditError && div({
+                'aria-live': 'assertive',
+                'aria-relevant': 'all',
+                style: {
+                  marginTop: '0.5rem',
+                  color: colors.danger()
+                }
+              }, attributeToEditError)
+            ])
+          ])
+        ]),
+        attributeToEditTouched ? h(Fragment, [
+          h(AttributeInput, {
+            value: newValue,
+            onChange: setNewValue,
+            entityTypes
+          }),
+          div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
+            h(ButtonOutline, {
+              disabled: attributeToEditError || isNewAttribute,
+              tooltip: Utils.cond(
+                [attributeToEditError, () => attributeToEditError],
+                [isNewAttribute, () => 'The selected attribute does not exist.']
+              ),
+              onClick: () => setConsideringDelete(true)
+            }, ['Delete']),
+            div({ style: { flexGrow: 1 } }),
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
+            h(ButtonPrimary, {
+              disabled: attributeToEditError,
+              tooltip: attributeToEditError,
+              onClick: doEdit
+            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+          ])
+        ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
+          h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
         ])
       ]),
     isBusy && spinnerOverlay
@@ -777,60 +966,14 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
-
-  const signal = useCancellation()
-
-  const deleteColumn = async () => {
-    try {
-      setDeleting(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
-      onDismiss()
-      onSuccess()
-    } catch (e) {
-      reportError('Unable to modify column', e)
-      setDeleting(false)
-    }
-  }
-
-  return h(Modal, {
-    title: 'Delete Column',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: deleteColumn,
-      disabled: _.toLower(deleteConfirmation) !== 'delete column',
-      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
-    }, 'Delete column')
-  }, [
-    div(['Are you sure you want to permanently delete the column ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
-      '?']),
-    div({
-      style: { fontWeight: 500, marginTop: '1rem' }
-    }, 'This cannot be undone.'),
-    div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
-      h(TextInput, {
-        id: 'delete-column-confirmation',
-        placeholder: 'Delete Column',
-        value: deleteConfirmation,
-        onChange: setDeleteConfirmation
-      })
-    ]),
-    deleting && spinnerOverlay
-  ])
-}
-
-export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
+      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [

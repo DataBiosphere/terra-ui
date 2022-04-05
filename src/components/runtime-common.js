@@ -174,7 +174,7 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
     },
     ...Utils.newTabLinkPropsWithReferrer, // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
     ...props
-  }, ['Launch Galaxy'])
+  }, ['Open Galaxy'])
 }
 
 export const appLauncherTabName = 'workspace-application-launch'

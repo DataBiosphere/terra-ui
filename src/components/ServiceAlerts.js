@@ -20,7 +20,7 @@ export const ServiceAlerts = () => {
   const prevAlerts = usePrevious(alerts)
 
   usePollingEffect(withErrorIgnoring(
-    async () => setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
+    async () => setAlerts(_.uniqWith(_.isEqual, await Ajax().FirecloudBucket.getServiceAlerts()))
   ), { ms: 60000, leading: true })
 
   const displayNewAlerts = async () => {

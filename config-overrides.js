@@ -1,12 +1,11 @@
 const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
 const _ = require('lodash/fp')
-const rewireReactHotLoader = require('react-app-rewire-hot-loader')
 const { addBabelPlugin, addWebpackPlugin } = require('customize-cra')
 
 
 module.exports = {
   webpack(config, env) {
-    const newConfig = _.flow(
+    return _.flow(
       addBabelPlugin([
         'prismjs', {
           languages: ['bash', 'python'],
@@ -33,15 +32,8 @@ module.exports = {
       })),
       _.update('ignoreWarnings', (old = []) => _.concat(old, /Failed to parse source map/))
     )(config)
-
-    return rewireReactHotLoader(newConfig, env)
   },
   jest(config) {
-    return _.merge(config, {
-      transformIgnorePatterns: [
-        'node_modules/(?!@ngrx|(?!deck.gl)|ng-dynamic)'
-      ],
-      moduleDirectories: ['node_modules', 'src'] // to allow Jest to resolve absolute module paths
-    })
+    return _.set('transformIgnorePatterns', [], config)
   }
 }

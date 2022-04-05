@@ -105,7 +105,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      appType === tools.galaxy.appType && h(SaveFilesHelpGalaxy)
+      appType === tools.Galaxy.appType && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -318,7 +318,7 @@ const Environments = () => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: getDiskAppType(disk) === tools.galaxy.appType,
+      isGalaxyDisk: getDiskAppType(disk) === tools.Galaxy.appType,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)

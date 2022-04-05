@@ -23,7 +23,8 @@ const withSignedInPage = fn => async options => {
 
 const clipToken = str => str.toString().substr(-10, 10)
 
-const getTestWorkspaceName = () => `terra-ui-test-workspace-${uuid.v4()}`
+const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
+const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
@@ -203,6 +204,7 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   enableDataCatalog,
+  testWorkspaceNamePrefix,
   overrideConfig,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,

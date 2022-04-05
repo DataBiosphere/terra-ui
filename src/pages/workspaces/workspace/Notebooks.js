@@ -104,7 +104,7 @@ const NotebookCard = ({
         disabled: locked || !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left'
-      }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+      }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('rocket'), 'Open']),
       h(MenuButton, {
         href: notebookPlaygroundLink,
         tooltip: canWrite && 'Open in playground mode',
@@ -300,7 +300,7 @@ const Notebooks = _.flow(
   // Render helpers
   const renderNotebooks = openUploader => {
     const { field, direction } = sortOrder
-    const galaxyApp = getCurrentApp(tools.galaxy.appType)(apps)
+    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
@@ -502,6 +502,7 @@ const Notebooks = _.flow(
         }),
         h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,
+          shouldHideCloseButton: false,
           workspace,
           apps,
           appDataDisks,

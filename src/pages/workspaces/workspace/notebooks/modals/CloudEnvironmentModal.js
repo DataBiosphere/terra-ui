@@ -34,7 +34,8 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
+  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } },
+  filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
@@ -66,7 +67,6 @@ export const CloudEnvironmentModal = ({
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
-    isAnalysisMode: true,
     workspace,
     apps,
     appDataDisks,
@@ -81,7 +81,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(getToolsToDisplay)
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay)
   )
 
   const toolPanelStyles = {
@@ -251,9 +251,9 @@ export const CloudEnvironmentModal = ({
 
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
-    [tools.galaxy.label, () => galaxyLogo],
+    [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
-    [tools.cromwell.label, () => cromwellImg])
+    [tools.Cromwell.label, () => cromwellImg])
 
   const getToolIconHeight = toolLabel => Utils.switchCase(toolLabel,
     [tools.RStudio.label, () => 30],
@@ -261,8 +261,8 @@ export const CloudEnvironmentModal = ({
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
-    [toolLabel === tools.cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -272,12 +272,15 @@ export const CloudEnvironmentModal = ({
   )
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
+    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
-      return runtime ?
-        !canCompute || busy || getIsRuntimeBusy(runtime) :
-        !canCompute || busy || getIsRuntimeBusy(currentRuntime) //TODO: multiple runtimes: change this to not have the last check in the or
+      // This asks 'does this tool have a runtime'
+      //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
+      //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
+      //  this check is not needed if we allow multiple runtimes, and cloud env modal will never be disabled in this case
+      return runtime ? false :
+        !canCompute || busy || getIsRuntimeBusy(currentRuntime)
     }]
   )
 
@@ -299,15 +302,15 @@ export const CloudEnvironmentModal = ({
       },
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
-        [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
+        [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
         [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
-          () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
+          () => 'Select or create a notebook in the analyses tab to open Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
     return Utils.switchCase(toolLabel,
-      [tools.galaxy.label, () => {
+      [tools.Galaxy.label, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls?.galaxy,
@@ -318,13 +321,13 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
-      [tools.cromwell.label, () => {
+      [tools.Cromwell.label, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.cromwell.appType })
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.Cromwell.appType })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -358,7 +361,8 @@ export const CloudEnvironmentModal = ({
         div({ style: toolLabelStyles }, [
           img({
             src: getToolIcon(toolLabel),
-            style: { height: getToolIconHeight(toolLabel) }
+            style: { height: getToolIconHeight(toolLabel) },
+            alt: `${toolLabel}`
           }),
           getCostForTool(toolLabel)
         ]),
@@ -386,7 +390,7 @@ export const CloudEnvironmentModal = ({
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
-            span('Launch'),
+            span('Open'),
             span(toolLabel)
           ])
         ])
@@ -396,8 +400,8 @@ export const CloudEnvironmentModal = ({
 
   const NEW_JUPYTER_MODE = tools.Jupyter.label
   const NEW_RSTUDIO_MODE = tools.RStudio.label
-  const NEW_GALAXY_MODE = tools.galaxy.label
-  const NEW_CROMWELL_MODE = tools.cromwell.label
+  const NEW_GALAXY_MODE = tools.Galaxy.label
+  const NEW_CROMWELL_MODE = tools.Cromwell.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
@@ -418,10 +422,13 @@ export const CloudEnvironmentModal = ({
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: 'Cloud Environment Details',
+      title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
-      onDismiss,
+      onDismiss: () => {
+        setViewMode(undefined)
+        onDismiss()
+      },
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),

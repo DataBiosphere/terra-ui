@@ -1,3 +1,5 @@
+import 'src/outdated-browser-message'
+
 import { loadedConfigStore } from 'src/configStore'
 
 
