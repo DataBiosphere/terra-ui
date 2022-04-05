@@ -85,7 +85,7 @@ const Showcase = () => {
 
   useOnMount(() => {
     const loadData = async () => {
-      const showcase = await Ajax().Buckets.getShowcaseWorkspaces()
+      const showcase = await Ajax().FirecloudBucket.getShowcaseWorkspaces()
 
       // Immediately lowercase the workspace tags so we don't have to think about it again.
       // Also pre-compute lower name and description.

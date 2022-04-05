@@ -1119,21 +1119,6 @@ const Buckets = signal => ({
     )
   },
 
-  getServiceAlerts: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
-    return res.json()
-  },
-
-  getFeaturedWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
-    return res.json()
-  },
-
-  getShowcaseWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
-    return res.json()
-  },
-
   listNotebooks: async (googleProject, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -1334,6 +1319,34 @@ const Buckets = signal => ({
         return doDelete()
       }
     }
+  }
+})
+
+
+const FirecloudBucket = signal => ({
+  getServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
+    return res.json()
+  },
+
+  getShowcaseWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedMethods: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal })
+    return res.json()
+  },
+
+  getTemplateWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal })
+    return res.json()
   }
 })
 
@@ -1695,7 +1708,8 @@ export const Ajax = signal => {
     Duos: Duos(signal),
     Metrics: Metrics(signal),
     Disks: Disks(signal),
-    CromIAM: CromIAM(signal)
+    CromIAM: CromIAM(signal),
+    FirecloudBucket: FirecloudBucket(signal)
   }
 }
 

@@ -11,7 +11,6 @@ import Modal from 'src/components/Modal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -170,7 +169,7 @@ const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
   useOnMount(() => {
     const load = async () => {
       const [featuredList, methods] = await Promise.all([
-        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
+        Ajax(signal).FirecloudBucket.getFeaturedMethods(),
         Ajax(signal).Methods.list({ namespace: 'gatk' })
       ])
 
