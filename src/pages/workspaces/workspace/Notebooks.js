@@ -69,7 +69,7 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   div([
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+  div({ style: { margin: '1rem 0 1rem 0', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
@@ -77,11 +77,13 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
-const activeFileTransferMessage = div({ style: { fontSize: 20 } }, [
-  div([
-    'The'
+const activeFileTransferMessage = div({ style: { display: 'flex',
+                                                 borderRadius: 5, padding: '1rem',
+                                                 backgroundColor: colors.warning(0.15),
+                                                 boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)' } }, [
+    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+    'Copying 1 or more notebooks from another workspace. ', span({ style: { fontWeight: 'bold' } }, ['This may take a few minutes.'])
   ])
-])
 
 const NotebookCard = ({
   namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
@@ -402,15 +404,17 @@ const Notebooks = _.flow(
           ])
         ])
       ]),
-      Utils.cond(
-//        [!activeFileTransfer, () => activeFileTransferMessage],
-        [_.isEmpty(notebooks), () => noNotebooksMessage],
-        [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
-          return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
-        }],
-        [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
-        () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
-      )
+      div({ style: { flexGrow: 1 } }, [
+        Utils.cond(
+          [_.isEmpty(notebooks), () => noNotebooksMessage],
+          [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
+          }],
+          [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
+          () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
+        ),
+        !activeFileTransfer && activeFileTransferMessage
+      ])
     ])
   }
 
