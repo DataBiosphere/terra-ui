@@ -306,8 +306,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     billingProjects
   )
 
-  console.log(projectsOwned)
-
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({ style: Style.breadcrumb.breadcrumb }, [
