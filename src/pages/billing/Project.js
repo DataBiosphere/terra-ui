@@ -322,7 +322,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )(workspacesInProject)
       ])
     ]),
-    users: h(Fragment, [
+    members: h(Fragment, [
       isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
