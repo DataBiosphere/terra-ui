@@ -148,9 +148,7 @@ const WorkspaceContainer = ({
             children
           ]),
           workspace && h(ContextBar, {
-            workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            setShowLockWorkspaceModal, apps, appDataDisks, refreshApps,
-            runtimes, persistentDisks, refreshRuntimes, location, locationType
+            workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
     deletingWorkspace && h(DeleteWorkspaceModal, {
