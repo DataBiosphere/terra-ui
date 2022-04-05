@@ -242,19 +242,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [fileContents, setFileContents] = useState('')
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file)
+        await workspace.importEntitiesFile(file, { deleteEmptyValues })
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
         } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file)
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notifyDataImportProgress(jobId)
         }
@@ -273,6 +274,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
+  const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
   return h(Dropzone, {
     multiple: false,
@@ -374,6 +376,32 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
+        }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          'We have detected empty cells in your TSV. Please choose an option:',
+          div({ role: 'radiogroup', 'aria-label': 'we have detected empty cells in your tsv. please choose an option.' }, [
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Ignore empty cells (default)',
+                name: 'ignore-empty-cells',
+                checked: !deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(false),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ]),
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Overwrite existing cells with empty cells',
+                name: 'ignore-empty-cells',
+                checked: deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(true),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ])
+          ])
         ]),
         currentFile && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
