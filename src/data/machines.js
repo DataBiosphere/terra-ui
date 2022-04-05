@@ -311,7 +311,7 @@ export const regionToPrices = [
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.6, k80HourlyPrice: 0.48, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
-  },
+  }
 ]
 
 export const version = '6' // updated jupyter-iframe-extension.js
