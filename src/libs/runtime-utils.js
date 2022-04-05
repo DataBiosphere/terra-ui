@@ -25,12 +25,12 @@ export const pdTypes = {
   standard: {
     label: 'pd-standard',
     displayName: 'Standard',
-    regionToPricesName: 'monthlyDiskPrice'
+    regionToPricesName: 'monthlyStandardDiskPrice'
   },
   ssd: {
     label: 'pd-ssd',
     displayName: 'Solid state drive (SSD)',
-    regionToPricesName: 'monthlySSDPrice'
+    regionToPricesName: 'monthlySSDDiskPrice'
   }
 }
 

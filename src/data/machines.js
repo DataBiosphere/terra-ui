@@ -145,173 +145,173 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
 // It parses the API and outputs the response data.
 export const regionToPrices = [
   {
-    name: 'ASIA-EAST1', monthlyDiskPrice: 0.04, monthlySSDPrice: 0.17,
+    name: 'ASIA-EAST1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17,
     n1HourlyGBRamPrice: 0.004906, n1HourlyCpuPrice: 0.036602, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732,
     t4HourlyPrice: 0.35, p4HourlyPrice: NaN, k80HourlyPrice: 0.49, v100HourlyPrice: 2.48, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'ASIA-EAST2', monthlyDiskPrice: 0.0498, monthlySSDPrice: 0.187,
+    name: 'ASIA-EAST2', monthlyStandardDiskPrice: 0.0498, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.000597, preemptibleN1HourlyCpuPrice: 0.004433,
     t4HourlyPrice: NaN, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: NaN, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'ASIA-NORTHEAST1', monthlyDiskPrice: 0.052, monthlySSDPrice: 0.221,
+    name: 'ASIA-NORTHEAST1', monthlyStandardDiskPrice: 0.052, monthlySSDDiskPrice: 0.221,
     n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
     t4HourlyPrice: 0.37, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'ASIA-NORTHEAST2', monthlyDiskPrice: 0.052, monthlySSDPrice: 0.221,
+    name: 'ASIA-NORTHEAST2', monthlyStandardDiskPrice: 0.052, monthlySSDDiskPrice: 0.221,
     n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: 0.0, v100HourlyPrice: 0.0, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'ASIA-NORTHEAST3', monthlyDiskPrice: 0.052, monthlySSDPrice: 0.221,
+    name: 'ASIA-NORTHEAST3', monthlyStandardDiskPrice: 0.052, monthlySSDDiskPrice: 0.221,
     n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: 0.0, v100HourlyPrice: 0.0, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'ASIA-SOUTH1', monthlyDiskPrice: 0.048, monthlySSDPrice: 0.204,
+    name: 'ASIA-SOUTH1', monthlyStandardDiskPrice: 0.048, monthlySSDDiskPrice: 0.204,
     n1HourlyGBRamPrice: 0.005088, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
     t4HourlyPrice: 0.41, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'ASIA-SOUTHEAST1', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'ASIA-SOUTHEAST1', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.005226, n1HourlyCpuPrice: 0.038999, preemptibleN1HourlyGBRamPrice: 0.00105, preemptibleN1HourlyCpuPrice: 0.0078,
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'ASIA-SOUTHEAST2', monthlyDiskPrice: 0.052, monthlySSDPrice: 0.221,
+    name: 'ASIA-SOUTHEAST2', monthlyStandardDiskPrice: 0.052, monthlySSDDiskPrice: 0.221,
     n1HourlyGBRamPrice: 0.00569634, n1HourlyCpuPrice: 0.04250891, preemptibleN1HourlyGBRamPrice: 0.0011445, preemptibleN1HourlyCpuPrice: 0.008502,
     t4HourlyPrice: 0.4033, p4HourlyPrice: 0.7085, k80HourlyPrice: 0.5559, v100HourlyPrice: 0.0, p100HourlyPrice: 1.744,
     preemptibleT4HourlyPrice: 0.1199, preemptibleP4HourlyPrice: 0.23544, preemptibleK80HourlyPrice: 0.14715,
     preemptibleV100HourlyPrice: 0.8066, preemptibleP100HourlyPrice: 0.4687
   },
   {
-    name: 'AUSTRALIA-SOUTHEAST1', monthlyDiskPrice: 0.054, monthlySSDPrice: 0.23,
+    name: 'AUSTRALIA-SOUTHEAST1', monthlyStandardDiskPrice: 0.054, monthlySSDDiskPrice: 0.23,
     n1HourlyGBRamPrice: 0.006011, n1HourlyCpuPrice: 0.044856, preemptibleN1HourlyGBRamPrice: 0.0012, preemptibleN1HourlyCpuPrice: 0.00898,
     t4HourlyPrice: 0.44, p4HourlyPrice: 0.65, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'EUROPE-NORTH1', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'EUROPE-NORTH1', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034806, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732,
     t4HourlyPrice: NaN, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: NaN, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'EUROPE-WEST1', monthlyDiskPrice: 0.04, monthlySSDPrice: 0.17,
+    name: 'EUROPE-WEST1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17,
     n1HourlyGBRamPrice: 0.004661, n1HourlyCpuPrice: 0.034773, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.007321,
     t4HourlyPrice: 0.35, p4HourlyPrice: NaN, k80HourlyPrice: 0.49, v100HourlyPrice: NaN, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: 0.0375,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'EUROPE-WEST2', monthlyDiskPrice: 0.048, monthlySSDPrice: 0.204,
+    name: 'EUROPE-WEST2', monthlyStandardDiskPrice: 0.048, monthlySSDDiskPrice: 0.204,
     n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815,
     t4HourlyPrice: 0.41, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'EUROPE-WEST3', monthlyDiskPrice: 0.048, monthlySSDPrice: 0.204,
+    name: 'EUROPE-WEST3', monthlyStandardDiskPrice: 0.048, monthlySSDDiskPrice: 0.204,
     n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815,
     t4HourlyPrice: 0.41, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'EUROPE-WEST4', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'EUROPE-WEST4', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325,
     t4HourlyPrice: 0.35, p4HourlyPrice: 0.65, k80HourlyPrice: NaN, v100HourlyPrice: 2.55, p100HourlyPrice: 1.6,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'EUROPE-WEST6', monthlyDiskPrice: 0.052, monthlySSDPrice: 0.221,
+    name: 'EUROPE-WEST6', monthlyStandardDiskPrice: 0.052, monthlySSDDiskPrice: 0.221,
     n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.001254, preemptibleN1HourlyCpuPrice: 0.009309,
     t4HourlyPrice: 0.45, p4HourlyPrice: 0.84, k80HourlyPrice: 0.63, v100HourlyPrice: 3.472, p100HourlyPrice: 2.044,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2808, preemptibleK80HourlyPrice: 0.1755,
     preemptibleV100HourlyPrice: 0.962, preemptibleP100HourlyPrice: 0.559
   },
   {
-    name: 'NORTHAMERICA-NORTHEAST1', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'NORTHAMERICA-NORTHEAST1', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325,
     t4HourlyPrice: NaN, p4HourlyPrice: 0.65, k80HourlyPrice: NaN, v100HourlyPrice: 0.0, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: NaN, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'SOUTHAMERICA-EAST1', monthlyDiskPrice: 0.06, monthlySSDPrice: 0.255,
+    name: 'SOUTHAMERICA-EAST1', monthlyStandardDiskPrice: 0.06, monthlySSDDiskPrice: 0.255,
     n1HourlyGBRamPrice: 0.006725, n1HourlyCpuPrice: 0.05018, preemptibleN1HourlyGBRamPrice: 0.000641, preemptibleN1HourlyCpuPrice: 0.00478,
     t4HourlyPrice: 0.48, p4HourlyPrice: NaN, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: NaN, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'US-CENTRAL1', monthlyDiskPrice: 0.04, monthlySSDPrice: 0.17,
+    name: 'US-CENTRAL1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17,
     n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
     t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'US-EAST1', monthlyDiskPrice: 0.04, monthlySSDPrice: 0.17,
+    name: 'US-EAST1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17,
     n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
     t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'US-EAST4', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'US-EAST4', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.00095444, preemptibleN1HourlyCpuPrice: 0.00712085,
     t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: NaN, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: NaN,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'US-WEST1', monthlyDiskPrice: 0.04, monthlySSDPrice: 0.17,
+    name: 'US-WEST1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17,
     n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
     t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
   {
-    name: 'US-WEST2', monthlyDiskPrice: 0.048, monthlySSDPrice: 0.204,
+    name: 'US-WEST2', monthlyStandardDiskPrice: 0.048, monthlySSDDiskPrice: 0.204,
     n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986,
     t4HourlyPrice: 0.41, p4HourlyPrice: 0.72, k80HourlyPrice: 0.54, v100HourlyPrice: NaN, p100HourlyPrice: NaN,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2592, preemptibleK80HourlyPrice: 0.162,
     preemptibleV100HourlyPrice: NaN, preemptibleP100HourlyPrice: NaN
   },
   {
-    name: 'US-WEST3', monthlyDiskPrice: 0.048, monthlySSDPrice: 0.204,
+    name: 'US-WEST3', monthlyStandardDiskPrice: 0.048, monthlySSDDiskPrice: 0.204,
     n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986,
     t4HourlyPrice: 0.41, p4HourlyPrice: 0.72, k80HourlyPrice: 0.54, v100HourlyPrice: 2.976, p100HourlyPrice: 1.752,
     preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2592, preemptibleK80HourlyPrice: 0.162,
     preemptibleV100HourlyPrice: 0.888, preemptibleP100HourlyPrice: 0.516
   },
   {
-    name: 'US-WEST4', monthlyDiskPrice: 0.044, monthlySSDPrice: 0.187,
+    name: 'US-WEST4', monthlyStandardDiskPrice: 0.044, monthlySSDDiskPrice: 0.187,
     n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.000454, preemptibleN1HourlyCpuPrice: 0.003391,
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.6, k80HourlyPrice: 0.48, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
-  }
+  },
 ]
 
 export const version = '6' // updated jupyter-iframe-extension.js
