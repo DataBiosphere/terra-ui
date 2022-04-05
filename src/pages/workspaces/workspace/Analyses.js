@@ -224,8 +224,9 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, appDataDisks
+  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  analysesData, analysesData : { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  onRequesterPaysError
 }, _ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)

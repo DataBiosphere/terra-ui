@@ -39,7 +39,8 @@ const ApplicationLauncher = _.flow(
     title: _.get('application'),
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
-)(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, _ref) => {
+)(({ name: workspaceName, sparkInterface, analysesData, analysesData : { runtimes, refreshRuntimes, persistentDisks },
+  application, workspace, workspace: { workspace: { googleProject, bucketName } } }, _ref) => {
   const cookieReady = useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)

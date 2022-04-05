@@ -101,8 +101,9 @@ const WorkspaceTabs = ({
 }
 
 const WorkspaceContainer = ({
-  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
+  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
+  analysesData = null, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
+  refresh, workspace, refreshWorkspace, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -129,7 +130,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      h(RuntimeManager, {
+      !!analysesData && h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
         apps, appDataDisks, workspace, refreshApps, location, locationType
@@ -147,7 +148,7 @@ const WorkspaceContainer = ({
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
           ]),
-          workspace && h(ContextBar, {
+          workspace && !!analysesData && h(ContextBar, {
             workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
@@ -357,21 +358,21 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
+        namespace, name, activeTab, showTabBar, workspace, refreshWorkspace,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
+        analysesData : { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
         refresh: async () => {
           await refreshWorkspace()
           if (child.current?.refresh) {
             child.current.refresh()
           }
         },
-        refreshRuntimes
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, appDataDisks, apps,
+          workspace, refreshWorkspace, analysesData : { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           ...props
         }),
         loadingWorkspace && spinnerOverlay
