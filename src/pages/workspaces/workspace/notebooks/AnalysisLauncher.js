@@ -49,10 +49,9 @@ const AnalysisLauncher = _.flow(
   })
 )(
   ({
-    queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
-    refreshRuntimes
-  },
-  _ref) => {
+    queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute },
+    analysesData: { runtimes, refreshRuntimes, persistentDisks }
+  }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}

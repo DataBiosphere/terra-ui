@@ -230,8 +230,9 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, appDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  refreshApps, onRequesterPaysError, listView, setListView
+  analysesData: { apps, refreshApps, appDataDisks }, name: wsName, namespace, workspace,
+  workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  onRequesterPaysError, listView, setListView
 }, _ref) => {
   // State
   const [renamingNotebookName, setRenamingNotebookName] = useState(undefined)
