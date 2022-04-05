@@ -1653,6 +1653,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderPersistentDiskSection = diskExists => {
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
+    const renderPersistentDiskType = id => h(div, [
+      label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+      div({ style: { marginTop: '0.5rem' } }, [
+        h(Select, {
+          id,
+          value: computeConfig.selectedPersistentDiskType,
+          isDisabled: diskExists || false,
+          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          options: [
+            { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
+          ]
+        })
+      ])
+    ])
+
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       h(IdContainer, [
         id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
@@ -1664,36 +1680,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
               h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
-                h(div, [
-                  label({ htmlFor: id, style: computeStyles.label }, ['Disk type']),
-                  div({ style: { marginTop: '0.5rem' } }, [
-                    h(Select, {
-                      id,
-                      value: computeConfig.selectedPersistentDiskType,
-                      isDisabled: diskExists || false,
-                      onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
-                      options: [
-                        { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-                        { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
-                      ]
-                    })
-                  ])
-                ])
-              ]) : h(div, [
-                label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
-                div({ style: { marginTop: '0.5rem' } }, [
-                  h(Select, {
-                    id,
-                    value: computeConfig.selectedPersistentDiskType,
-                    isDisabled: diskExists || false,
-                    onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
-                    options: [
-                      { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-                      { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
-                    ]
-                  })
-                ])
-              ]),
+                renderPersistentDiskType(id)
+              ]) : renderPersistentDiskType(id),
             h(div, [
               label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [

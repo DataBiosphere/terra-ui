@@ -16,14 +16,14 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import {
-  computeStyles, defaultPersistentDiskType, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const defaultDataDiskSize = 500 // GB
+const defaultDataDisk = { size: 500, diskType: pdTypes.standard.label }
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
@@ -40,10 +40,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const app = getCurrentApp(tools.galaxy.appType)(apps)
     const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
-    const [dataDisk, setDataDisk] = useState({
-      size: attachedDataDisk?.size || defaultDataDiskSize,
-      diskType: attachedDataDisk?.diskType || defaultPersistentDiskType
-    })
+    const [dataDisk, setDataDisk] = useState(attachedDataDisk || defaultDataDisk)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
     const [viewMode, setViewMode] = useState(undefined)
     const [loading, setLoading] = useState(false)
@@ -293,90 +290,72 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ]),
-        renderPersistentDiskSizeSection()
+        renderPersistentDiskConfigSection()
       ])
     }
 
-    const renderPersistentDiskSizeSection = () => {
+    const renderPersistentDiskConfigSection = () => {
       const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.75rem', alignItems: 'center' }
       return Utils.cond(
         [currentDataDisk, () => {
           return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
-                  h(div, [
-                    label({ htmlFor: id, style: computeStyles.label }, ['Disk type']),
-                    div({ style: { marginTop: '0.5rem' } }, [
-                      h(Select, {
-                        id,
-                        value: dataDisk.diskType,
-                        isDisabled: true,
-                        onChange: updateDataDisk('diskType'),
-                        options: [
-                          { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-                          { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
-                        ]
-                      })
-                    ])
-                  ])
-                ]),
-                h(TooltipTrigger, { content: ['Disk size can only be selected at creation time.'], side: 'bottom' }, [
-                  div([
-                    label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
-                    h(NumberInput, {
-                      id,
-                      min: 250, // Galaxy doesn't come up with a smaller data disk
-                      max: 64000,
-                      disabled: true,
-                      isClearable: false,
-                      onlyInteger: true,
-                      style: { marginTop: '0.5rem' },
-                      value: dataDisk.size,
-                      onChange: v => setDataDisk(_.set('size', v))
-                    })
-                  ])
-                ])
-              ])
+            h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
+              renderPersistentDiskType(true)
+            ]),
+            h(TooltipTrigger, { content: ['Disk size can only be selected at creation time.'], side: 'bottom' }, [
+              renderPersistentDiskSize(true)
             ])
           ])
         }],
         () => {
           return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                h(div, [
-                  label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
-                  div({ style: { marginTop: '0.5rem' } }, [
-                    h(Select, {
-                      id,
-                      value: dataDisk.diskType,
-                      onChange: value => setDataDisk(_.set('diskType', value.value)),
-                      options: [
-                        { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-                        { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
-                      ]
-                    })
-                  ])
-                ]),
-                div([
-                  label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
-                  h(NumberInput, {
-                    id,
-                    min: 250, // Galaxy doesn't come up with a smaller data disk
-                    max: 64000,
-                    isClearable: false,
-                    onlyInteger: true,
-                    style: { marginTop: '0.5rem' },
-                    value: dataDisk.size,
-                    onChange: v => setDataDisk(_.set('size', v))
-                  })
-                ])
-              ])
+            h(Fragment, [
+              renderPersistentDiskType(false),
+              renderPersistentDiskSize(false)
             ])
+
           ])
         })
     }
+
+    const renderPersistentDiskType = disabled => h(div, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(Select, {
+              id,
+              value: dataDisk.diskType,
+              isDisabled: disabled,
+              onChange: ({ value }) => updateDataDisk('diskType', value),
+              options: [
+                { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
+                { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
+              ]
+            })
+          ])
+        ])
+      ])
+    ])
+
+    const renderPersistentDiskSize = disabled => div([
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
+          h(NumberInput, {
+            id,
+            min: 250, // Galaxy doesn't come up with a smaller data disk
+            max: 64000,
+            isClearable: false,
+            disabled,
+            onlyInteger: true,
+            style: { marginTop: '0.5rem' },
+            value: dataDisk.size,
+            onChange: updateDataDisk('size')
+          })
+        ])
+      ])
+    ])
 
     const renderDeleteDiskChoices = () => {
       return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
