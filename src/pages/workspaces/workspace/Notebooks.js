@@ -264,7 +264,6 @@ const Notebooks = _.flow(
   })
 
   const getActiveFileTransfer = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading file transfer status'),
     Utils.withBusyState(setBusy)
   )(async () => {
