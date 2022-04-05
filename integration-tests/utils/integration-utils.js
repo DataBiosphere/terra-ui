@@ -133,7 +133,10 @@ const waitForNoSpinners = page => {
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
 // the action to ensure that the spinner rendering is captured by the observer, followed by
 // waiting for the spinner to be removed
-const noSpinnersAfter = async (page, { action }) => {
+const noSpinnersAfter = async (page, { action, debugMessage }) => {
+  if (debugMessage) {
+    rawConsole.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`)
+  }
   const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
   await Promise.all([foundSpinner, action()])
   return waitForNoSpinners(page)

@@ -36,6 +36,33 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
+const WorkspacePermissionNotice = ({ workspace }) => {
+  const isReadOnly = !Utils.canWrite(workspace.accessLevel)
+  const isLocked = workspace.workspace.isLocked
+
+  return (isReadOnly || isLocked) && span({
+    style: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      height: '2rem',
+      padding: '0 1rem',
+      borderRadius: '1rem',
+      marginRight: '2rem',
+      backgroundColor: colors.dark(0.15),
+      textTransform: 'none'
+    }
+  }, [
+    isLocked ? icon('lock', { size: 16 }) : icon('eye', { size: 20 }),
+    span({ style: { marginLeft: '1ch' } }, [
+      Utils.cond(
+        [isLocked && isReadOnly, () => 'Workspace is locked and read only'],
+        [isLocked, () => 'Workspace is locked'],
+        [isReadOnly, () => 'Workspace is read only']
+      )
+    ])
+  ])
+}
+
 const WorkspaceTabs = ({
   namespace, name, workspace, activeTab, refresh,
   setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
@@ -61,6 +88,7 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
+      workspace && h(WorkspacePermissionNotice, { workspace }),
       h(WorkspaceMenuTrigger, {
         canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace,
         setShowLockWorkspaceModal, setDeletingWorkspace
@@ -85,11 +113,7 @@ const WorkspaceContainer = ({
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
         div({ style: Style.noWrapEllipsis }, breadcrumbs),
-        h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [
-          title || `${namespace}/${name}`,
-          workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem' } }, '(read only)'),
-          workspace && workspace.workspace.isLocked && span({ style: { paddingLeft: '0.5rem' } }, '(locked)')
-        ])
+        h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [title || `${namespace}/${name}`])
       ]),
       topBarContent,
       div({ style: { flexGrow: 1 } }),

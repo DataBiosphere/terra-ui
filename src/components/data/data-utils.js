@@ -242,19 +242,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [fileContents, setFileContents] = useState('')
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file)
+        await workspace.importEntitiesFile(file, { deleteEmptyValues })
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
         } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file)
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notifyDataImportProgress(jobId)
         }
@@ -273,6 +274,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
+  const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
   return h(Dropzone, {
     multiple: false,
@@ -304,7 +306,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
-          tabs: [{ title: 'File Import', key: 'file', width: 121 }, { title: 'Text Import', key: 'text', width: 127 }],
+          tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
           onChange: value => {
             setIsFileImportCurrMode(value === 'file')
@@ -374,6 +376,32 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
+        }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          'We have detected empty cells in your TSV. Please choose an option:',
+          div({ role: 'radiogroup', 'aria-label': 'we have detected empty cells in your tsv. please choose an option.' }, [
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Ignore empty cells (default)',
+                name: 'ignore-empty-cells',
+                checked: !deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(false),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ]),
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Overwrite existing cells with empty cells',
+                name: 'ignore-empty-cells',
+                checked: deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(true),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ])
+          ])
         ]),
         currentFile && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
@@ -938,60 +966,14 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
-
-  const signal = useCancellation()
-
-  const deleteColumn = async () => {
-    try {
-      setDeleting(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
-      onDismiss()
-      onSuccess()
-    } catch (e) {
-      reportError('Unable to modify column', e)
-      setDeleting(false)
-    }
-  }
-
-  return h(Modal, {
-    title: 'Delete Column',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: deleteColumn,
-      disabled: _.toLower(deleteConfirmation) !== 'delete column',
-      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
-    }, 'Delete column')
-  }, [
-    div(['Are you sure you want to permanently delete the column ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
-      '?']),
-    div({
-      style: { fontWeight: 500, marginTop: '1rem' }
-    }, 'This cannot be undone.'),
-    div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
-      h(TextInput, {
-        id: 'delete-column-confirmation',
-        placeholder: 'Delete Column',
-        value: deleteConfirmation,
-        onChange: setDeleteConfirmation
-      })
-    ]),
-    deleting && spinnerOverlay
-  ])
-}
-
-export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
+      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [

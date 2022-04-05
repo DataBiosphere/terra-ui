@@ -182,9 +182,9 @@ const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
 const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
-export const getPersistentDiskCostMonthly = ({ size, status, diskType }, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionMonthly(computeRegion, diskType)
-  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
+export const getPersistentDiskCostMonthly = (currentPersistentDiskDetails, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionMonthly(computeRegion, currentPersistentDiskDetails?.diskType)
+  return _.includes(currentPersistentDiskDetails?.status, ['Deleting', 'Failed']) ? 0.0 : currentPersistentDiskDetails?.size * price
 }
 export const getPersistentDiskCostHourly = ({ size, status, diskType }, computeRegion) => {
   const price = getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
@@ -326,7 +326,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.galaxy.appType)(apps)
+  const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.Galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
@@ -398,7 +398,7 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
 
 export const getIsAppBusy = app => app?.status !== 'RUNNING' && _.includes('ING', app?.status)
 export const getIsRuntimeBusy = runtime => {
-  const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, [runtime])
-  return creating || updating || reconfiguring
+  const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring, Stopping: stopping, Starting: starting } = _.countBy(getConvertedRuntimeStatus, [runtime])
+  return creating || updating || reconfiguring || stopping || starting
 }
 

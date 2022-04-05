@@ -30,8 +30,7 @@ const DashboardPublic = ({ namespace, name }) => {
 
   useOnMount(() => {
     const loadData = async () => {
-      const showcaseList = await Ajax().Buckets.getShowcaseWorkspaces()
-
+      const showcaseList = await Ajax().FirecloudBucket.getShowcaseWorkspaces()
       setShowcaseList(showcaseList)
       StateHistory.update({ showcaseList })
     }

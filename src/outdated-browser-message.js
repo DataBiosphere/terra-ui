@@ -1,8 +1,3 @@
-/*
- * This is a special file.
- * It's not normally part of a react-scripts app; we've added it with this exact name, and we have some adapters for it in the config-overrides.
- * It's not likely, but an update to react-scripts could break something, and then we'd have to modify the override.
- */
 import 'outdated-browser-rework/dist/style.css'
 
 import outdatedBrowserRework from 'outdated-browser-rework'

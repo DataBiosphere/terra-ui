@@ -131,7 +131,6 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
-const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
@@ -955,23 +954,23 @@ const Workspaces = signal => ({
         return upsertEntities(payload)
       },
 
-      importEntitiesFile: file => {
+      importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        return fetchOrchestration(`api/${root}/importEntities?${qs.stringify({ deleteEmptyValues })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFileSynchronous: async file => {
+      importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=false`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res
       },
 
-      importFlexibleEntitiesFileAsync: async file => {
+      importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=true`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: true })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res.json()
       },
 
@@ -1118,21 +1117,6 @@ const Buckets = signal => ({
         previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
       ])
     )
-  },
-
-  getServiceAlerts: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
-    return res.json()
-  },
-
-  getFeaturedWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
-    return res.json()
-  },
-
-  getShowcaseWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
-    return res.json()
   },
 
   listNotebooks: async (googleProject, name) => {
@@ -1339,11 +1323,30 @@ const Buckets = signal => ({
 })
 
 
-const GoogleBilling = signal => ({
-  listProjectNames: async billingAccountName => {
-    const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
-    const json = await response.json()
-    return _.map('projectId', json.projectBillingInfo)
+const FirecloudBucket = signal => ({
+  getServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
+    return res.json()
+  },
+
+  getShowcaseWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedMethods: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal })
+    return res.json()
+  },
+
+  getTemplateWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal })
+    return res.json()
   }
 })
 
@@ -1697,7 +1700,6 @@ export const Ajax = signal => {
     Workspaces: Workspaces(signal),
     DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
-    GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
     Runtimes: Runtimes(signal),
@@ -1707,7 +1709,8 @@ export const Ajax = signal => {
     Duos: Duos(signal),
     Metrics: Metrics(signal),
     Disks: Disks(signal),
-    CromIAM: CromIAM(signal)
+    CromIAM: CromIAM(signal),
+    FirecloudBucket: FirecloudBucket(signal)
   }
 }
 

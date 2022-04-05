@@ -23,11 +23,11 @@ const titleId = 'cromwell-modal-title'
 export const CromwellModalBase = withDisplayName('CromwellModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
-    isAnalysisMode = false
+    shouldHideCloseButton = true
   }) => {
-    const app = getCurrentApp(tools.cromwell.appType)(apps)
+    const app = getCurrentApp(tools.Cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
-    const currentDataDisk = getCurrentPersistentDisk(tools.cromwell.appType, apps, appDataDisks, workspaceName)
+    const currentDataDisk = getCurrentPersistentDisk(tools.Cromwell.appType, apps, appDataDisks, workspaceName)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
@@ -35,9 +35,9 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
-        appType: tools.cromwell.appType, namespace, bucketName, workspaceName
+        appType: tools.Cromwell.appType, namespace, bucketName, workspaceName
       })
-      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: tools.cromwell.appType, ...extractWorkspaceDetails(workspace) })
+      Ajax().Metrics.captureEvent(Events.applicationCreate, { app: tools.Cromwell.appType, ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
 
@@ -69,7 +69,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
         h(TitleBar, {
           id: titleId,
           title: 'Cromwell Cloud Environment',
-          hideCloseButton: isAnalysisMode,
+          hideCloseButton: shouldHideCloseButton,
           style: { marginBottom: '0.5rem' },
           onDismiss,
           onPrevious: undefined

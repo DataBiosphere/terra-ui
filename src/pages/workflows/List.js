@@ -11,7 +11,6 @@ import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/tab
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
@@ -47,7 +46,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     const loadWorkflows = async () => {
       const [allWorkflows, featuredList] = await Promise.all([
         Ajax(signal).Methods.definitions(),
-        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json())
+        Ajax(signal).FirecloudBucket.getFeaturedMethods()
       ])
 
       setWorkflows({
