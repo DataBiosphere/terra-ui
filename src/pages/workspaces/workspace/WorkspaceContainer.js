@@ -142,7 +142,7 @@ const WorkspaceContainer = ({
     div({ role: 'main', style: Style.elements.pageContentContainer },
 
       // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && _.includes(activeTab, contextBarTabs) ?
+      (isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
