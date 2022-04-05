@@ -225,7 +225,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const signal = useCancellation()
 
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+  const projectHasMultipleOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
@@ -337,9 +337,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             adminLabel: billingRoles.owner,
             userLabel: billingRoles.user,
             member,
-            adminCanEdit: (adminCanEdit && isOwner),
+            adminCanEdit: (projectHasMultipleOwners && isOwner),
             onEdit: () => setEditingUser(member),
-            onDelete: () => setDeletingUser(member)
+            onDelete: () => setDeletingUser(member),
+            isOwner
           })
         }, _.orderBy([sort.field], [sort.direction], projectUsers))
         )

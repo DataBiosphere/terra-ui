@@ -77,7 +77,7 @@ export const MemberCardHeaders = memoWithName('MemberCardHeaders', ({ sort, onSo
   ])
 })
 
-export const MemberCard = memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
+export const MemberCard = memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel, isOwner }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
@@ -87,7 +87,7 @@ export const MemberCard = memoWithName('MemberCard', ({ member: { email, roles }
   }, [
     div({ role: 'rowheader', style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
     div({ role: 'cell', style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
-    div({ role: 'cell', style: { flex: 'none' } }, [
+    isOwner && div({ role: 'cell', style: { flex: 'none' } }, [
       h(MenuTrigger, {
         side: 'left',
         style: { height: menuCardSize, width: menuCardSize },
