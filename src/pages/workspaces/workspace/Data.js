@@ -391,10 +391,21 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
 ])
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
+  const minWidth = 280
+  const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onDrag = useCallback(_.throttle(100, e => {
-    setSidebarWidth(e.pageX)
+    setSidebarWidth(_.clamp(minWidth, getMaxWidth(), e.pageX))
   }), [setSidebarWidth])
+
+  useOnMount(() => {
+    const onResize = _.throttle(100, () => {
+      setSidebarWidth(_.clamp(minWidth, getMaxWidth()))
+    })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  })
 
   return h(DraggableCore, { onDrag }, [
     h(Interactive, {
@@ -402,8 +413,8 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       role: 'separator',
       'aria-label': 'Resize sidebar',
       'aria-valuenow': sidebarWidth,
-      'aria-valuemin': 0,
-      'aria-valuemax': window.innerWidth,
+      'aria-valuemin': minWidth,
+      'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
       className: 'custom-focus-style',
       style: styles.sidebarSeparator,
@@ -412,9 +423,9 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       },
       onKeyDown: e => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-          setSidebarWidth(w => w + 10)
+          setSidebarWidth(w => _.min([w + 10, getMaxWidth()]))
         } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-          setSidebarWidth(w => w - 10)
+          setSidebarWidth(w => _.max([w - 10, minWidth]))
         }
       }
     })
