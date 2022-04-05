@@ -414,7 +414,7 @@ const Notebooks = _.flow(
           [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
           () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
         ),
-        !activeFileTransfer && activeFileTransferMessage
+        activeFileTransfer && activeFileTransferMessage
       ])
     ])
   }
