@@ -245,7 +245,7 @@ const Notebooks = _.flow(
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
   const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
-  const [activeFileTransfer, setActiveFileTransfer] = useState(false)
+  const [activeFileTransfers, setActiveFileTransfers] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -263,12 +263,12 @@ const Notebooks = _.flow(
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
-  const getActiveFileTransfer = _.flow(
+  const getActiveFileTransfers = _.flow(
     withErrorReporting('Error loading file transfer status'),
     Utils.withBusyState(setBusy)
   )(async () => {
     const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
-    setActiveFileTransfer(!_.isEmpty(fileTransfers))
+    setActiveFileTransfers(!_.isEmpty(fileTransfers))
   })
 
   const doAppRefresh = _.flow(
@@ -305,7 +305,7 @@ const Notebooks = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
-      getActiveFileTransfer()
+      getActiveFileTransfers()
       refreshNotebooks()
     }
 
@@ -413,7 +413,7 @@ const Notebooks = _.flow(
           [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
           () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
         ),
-        activeFileTransfer && activeFileTransferMessage
+        activeFileTransfers && activeFileTransferMessage
       ])
     ])
   }
