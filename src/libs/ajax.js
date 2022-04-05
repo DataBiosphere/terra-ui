@@ -1031,7 +1031,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      listFileTransfers: async () => {
+      listActiveFileTransfers: async () => {
         const res = await fetchRawls(`${root}/fileTransfers`, _.merge(authOpts(), { signal }))
         return res.json()
       }

@@ -77,13 +77,14 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
-const activeFileTransferMessage = div({ style: { display: 'flex',
-                                                 borderRadius: 5, padding: '1rem',
-                                                 backgroundColor: colors.warning(0.15),
-                                                 boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)' } }, [
-    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-    'Copying 1 or more notebooks from another workspace. ', span({ style: { fontWeight: 'bold' } }, ['This may take a few minutes.'])
-  ])
+const activeFileTransferMessage = div({
+  style: _.merge(
+    Style.elements.card.container,
+    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start' })
+}, [
+  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+  'Copying 1 or more notebooks from another workspace. ', span({ style: { fontWeight: 'bold' } }, ['This may take a few minutes.'])
+])
 
 const NotebookCard = ({
   namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
@@ -267,7 +268,7 @@ const Notebooks = _.flow(
     withErrorReporting('Error loading file transfer status'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listFileTransfers()
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
     setActiveFileTransfer(!_.isEmpty(fileTransfers))
   })
 
