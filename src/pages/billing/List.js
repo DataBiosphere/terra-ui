@@ -67,8 +67,10 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
     ])
   }
 
+  const viewerRoles = _.intersection(roles, _.values(billingRoles))
+
   return div({ role: 'listitem' }, [
-    (_.includes(billingRoles.user, roles) || _.includes(billingRoles.owner, roles)) && status === 'Ready' ?
+    !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject(project, isActive) :
       unselectableProject(project, isActive)
   ])
