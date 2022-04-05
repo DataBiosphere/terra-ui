@@ -43,9 +43,10 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute },
-      analysesData, analysesData : { runtimes, refreshRuntimes, persistentDisks } },
-    _ref) => {
+  ({
+    queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute },
+    analysesData: { runtimes, refreshRuntimes, persistentDisks }
+  }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const [busy, setBusy] = useState()
     const [location, setLocation] = useState(defaultLocation)
