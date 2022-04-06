@@ -7,7 +7,7 @@ import { button, div, h, label, option, select } from 'react-hyperscript-helpers
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
@@ -147,11 +147,6 @@ const styles = {
     color: colors.accent(), backgroundColor: colors.light(0.4),
     border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5
-  },
-  columnName: {
-    paddingLeft: '0.25rem',
-    flex: 1, display: 'flex', alignItems: 'center',
-    ...Style.noWrapEllipsis
   },
   columnHandle: {
     paddingRight: '0.25rem', cursor: 'move',
@@ -746,16 +741,23 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
               h(SortableHandleDiv, { style: styles.columnHandle }, [
                 icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
               ]),
-              div({ style: { display: 'flex', alignItems: 'center' } }, [
-                h(LabeledCheckbox, {
-                  checked: visible,
-                  onChange: () => toggleVisibility(index)
+              h(IdContainer, [id => h(Fragment, [
+                label({
+                  htmlFor: id,
+                  style: {
+                    lineHeight: '30px', // match rowHeight of SortableList
+                    ...Style.noWrapEllipsis
+                  }
                 }, [
-                  h(Clickable, {
-                    style: styles.columnName
-                  }, [name])
+                  h(Checkbox, {
+                    id,
+                    checked: visible,
+                    onChange: () => toggleVisibility(index)
+                  }),
+                  ' ',
+                  name
                 ])
-              ])
+              ])])
             ])
           },
           onSortEnd: v => reorder(v)
