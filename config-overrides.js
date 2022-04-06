@@ -1,12 +1,11 @@
 const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
 const _ = require('lodash/fp')
-const rewireReactHotLoader = require('react-app-rewire-hot-loader')
 const { addBabelPlugin, addWebpackPlugin } = require('customize-cra')
 
 
 module.exports = {
   webpack(config, env) {
-    const newConfig = _.flow(
+    return _.flow(
       addBabelPlugin([
         'prismjs', {
           languages: ['bash', 'python'],
@@ -31,20 +30,8 @@ module.exports = {
         hashEnabled: { 'style-src': false },
         nonceEnabled: { 'style-src': false }
       })),
-      _.update('ignoreWarnings', (old = []) => _.concat(old, /Failed to parse source map/)),
-      _.update('entry', old => ({
-        main: old,
-        'outdated-browser-message': _.replace('index', 'outdated-browser-message', old)
-      })),
-      // When compiling for local dev, react-scripts gives the main entry chunk a special different name,
-      // `bundle.js`, which isn't related to its actual name. Because we add a second entrypoint, it needs
-      // to have a different name. In prod compilation, there's no problem, as the name is generated.
-      _.update('output.filename', old => pathData => {
-        return env === 'production' || pathData.chunk.name === 'main' ? old : 'static/js/[name].js'
-      })
+      _.update('ignoreWarnings', (old = []) => _.concat(old, /Failed to parse source map/))
     )(config)
-
-    return rewireReactHotLoader(newConfig, env)
   },
   jest(config) {
     return _.set('transformIgnorePatterns', [], config)

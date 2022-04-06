@@ -28,8 +28,6 @@ yarn-error.log*
 saturn-ui.iml
 *.iml
 
-.vscode/
-
 /integration-tests/failures
 /integration-tests/results
 /integration-tests/screenshots

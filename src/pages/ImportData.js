@@ -12,7 +12,6 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -122,7 +121,7 @@ const ImportData = () => {
       Utils.withBusyState(setIsImporting),
       withErrorReporting('Error loading templates')
     )(async () => {
-      setAllTemplates(await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json()))
+      setAllTemplates(await Ajax().FirecloudBucket.getTemplateWorkspaces())
     })
     loadTemplateWorkspaces()
   })

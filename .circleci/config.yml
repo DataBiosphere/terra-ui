@@ -297,6 +297,18 @@ workflows:
           filters:
             branches:
               only: dev
+      - integration-tests-alpha:
+          requires:
+            - deploy-alpha
+          filters:
+            branches:
+              only: dev
+      - integration-tests-staging:
+          requires:
+            - deploy-staging
+          filters:
+            branches:
+              only: dev
   nightly-integration-tests:
     triggers:
       - schedule:
