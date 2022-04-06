@@ -267,13 +267,13 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
 
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-    div({ style: { width: 'calc(50% - 1rem)' } }, [
+    div({ style: { flex: '1 1 0' } }, [
       h(ColumnSettings, {
         columnSettings,
         onChange
       })
     ]),
-    div({ style: { width: 'calc(50% - 1rem)', marginTop: '2rem' } }, [
+    div({ style: { flex: '0 0 265px', marginLeft: '1rem', marginTop: '2rem' } }, [
       h(SavedColumnSettings, {
         ...otherProps,
         columnSettings,
