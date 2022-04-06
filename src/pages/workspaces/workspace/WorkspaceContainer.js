@@ -70,16 +70,17 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
+  const isGoogleWorkspace = !!workspace && true // _.startsWith('2', workspace?.workspace.name)
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
-    ...(!isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
+    ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
-    { name: 'workflows', link: 'workspace-workflows' },
-    { name: 'job history', link: 'workspace-job-history' }
+    ...(isGoogleWorkspace && isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
   return h(Fragment, [
     h(TabBar, {
