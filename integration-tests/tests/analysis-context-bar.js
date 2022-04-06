@@ -1,7 +1,10 @@
+import { performAnalysisTabSetup } from 'integration-tests/utils/integration-helpers'
+
+
 const _ = require('lodash/fp')
-const { overrideConfig, withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, findText, dismissNotifications
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
 
 
@@ -9,17 +12,9 @@ const testAnalysisContextBarFn = _.flow(
   withWorkspace,
   withBilling,
   withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
+)(async ({ page, token, testUrl, workspaceName }) => {
   // Navigate to appropriate part of UI (the analysis tab)
-  await page.goto(testUrl)
-  await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
-  await click(page, navChild('analyses'))
-
+  await performAnalysisTabSetup(page, token, testUrl, workspaceName)
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))

@@ -1,8 +1,7 @@
 const _ = require('lodash/fp')
-const { overrideConfig, withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, image, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findText,
-  dismissNotifications
+  click, clickable, getAnimatedDrawer, image, findElement, noSpinnersAfter, select, fillIn, input, findText
 } = require('../utils/integration-utils')
 
 
@@ -12,17 +11,8 @@ const testCreateInteractiveAnalysisFn = _.flow(
   withWorkspace,
   withBilling,
   withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
-  await page.goto(testUrl)
-  await findText(page, 'View Workspaces')
-
-  await overrideConfig(page, { isAnalysisTabVisible: true })
-
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
-  await click(page, navChild('analyses'))
+)(async ({ page, token, testUrl, workspaceName }) => {
+  await performAnalysisTabSetup(page, token, testUrl, workspaceName)
   await click(page, clickable({ textContains: 'Start' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
   await click(page, image({ text: 'Create new notebook' }))
