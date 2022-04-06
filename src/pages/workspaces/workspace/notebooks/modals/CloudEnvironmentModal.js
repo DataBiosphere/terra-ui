@@ -15,7 +15,7 @@ import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
-import rstudioBioLogo from 'src/images/r-bio-logo.png'
+import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -256,7 +256,7 @@ export const CloudEnvironmentModal = ({
     [tools.Cromwell.label, () => cromwellImg])
 
   const getToolIconHeight = toolLabel => Utils.switchCase(toolLabel,
-    [tools.RStudio.label, () => 30],
+    [tools.RStudio.label, () => 20],
     [Utils.DEFAULT, () => 20])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
