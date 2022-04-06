@@ -80,14 +80,32 @@ const ApplicationLauncher = _.flow(
       onDismiss()
     })
 
+    const getDisplayList = (analyses) => {
+      let res = ''
+      let i = 1
+      const end = analyses?.length
+      for (const analysis of analyses) {
+        res += analysis?.name.split('/')[1]
+        if (i < end) {
+          res += ', '
+        }
+        i++
+      }
+      return res
+    }
+
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: outdatedAnalyses?.length > 1 ? 'R Markdown Files In Use' : 'R Markdown File Is In Use',
+      title: outdatedAnalyses?.length > 1 ? 'R Markdown Files In Use' : `R Markdown File Is In Use`,
       showButtons: false
     }, [
-      p(outdatedAnalyses?.length > 1 ? `These R markdown files are being edited by another user and are now outdated. The files will no longer sync with the workspace bucket.` : `${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and is now outdated. The file will no longer sync with the workspace bucket.`),
-      p(outdatedAnalyses?.length > 1 ? 'You can 1) save a copy of these outdated files to your VM to enable file syncing again or 2) continue working on the existing files without file syncing enabled.' : 'You can 1) save a copy of this outdated file version to your VM to enable file syncing again or 2) continue working on the existing file without file syncing enabled.'),
+      Utils.cond(
+        [outdatedAnalyses?.length > 1, () => [p(`These R markdown files are being edited by another user and are now outdated. The files will no longer sync with the workspace bucket.`),
+          p(getDisplayList(outdatedAnalyses)),
+          p('You can 1) save a copy of these outdated files to your VM to enable file syncing again or 2) continue working on the existing files without file syncing enabled.')]],
+        [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and is now outdated. The file will no longer sync with the workspace bucket.`),
+          p('You can 1) save a copy of this outdated file version to your VM to enable file syncing again or 2) continue working on the existing file without file syncing enabled.')]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
