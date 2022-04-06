@@ -88,6 +88,12 @@ export const isOwner = hasAccessLevel('OWNER')
 
 export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
 
+/**
+ * Convenience helper for debugging _.flow pipelines.
+ *
+ * To inspect intermediate values in a pipeline, use:
+ * _.flow(step1, Utils.log, step2)
+ */
 export const log = (...args) => {
   console.log.apply(null, args) // eslint-disable-line no-console
   return _.last(args)
