@@ -781,7 +781,7 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
  * @param {Object} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
-export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent = ColumnSettings, style, ...otherProps }) => {
+export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent = ColumnSettings, modalWidth = 600, style, ...otherProps }) => {
   const [open, setOpen] = useState(false)
   const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
 
@@ -798,7 +798,7 @@ export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent
     }, [icon('cog', { size: 20 })]),
     open && h(Modal, {
       title: 'Select columns',
-      width: 600,
+      width: modalWidth,
       onDismiss: () => setOpen(false),
       okButton: h(ButtonPrimary, {
         onClick: () => {
