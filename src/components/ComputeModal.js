@@ -216,7 +216,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   })
   // State -- end
 
-  console.log('Component top: GPU type: ', computeConfig.gpuType, 'numGPUs: ', computeConfig.numGpus)
+  console.log('Component top | GPU type:', computeConfig.gpuType, ' numGPUs:', computeConfig.numGpus)
 
 
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
@@ -314,8 +314,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         autopauseThreshold: computeConfig.autopauseThreshold
       })
     }
+    console.log('Before if (shouldCreateRuntime) | GPU type:', computeConfig.gpuType, ' numGPUs:', computeConfig.numGpus)
     if (shouldCreateRuntime) {
-      console.log('if (shouldCreateRuntime) GPU type: ', computeConfig.gpuType, 'numGPUs: ', computeConfig.numGpus)
       // await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
       //   runtimeConfig,
       //   autopauseThreshold: computeConfig.autopauseThreshold,
@@ -331,6 +331,21 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     onSuccess()
   })
+
+  const getMainMachineTypeByNumCpus = numCpus => _.find({ cpu: numCpus }, validMachineTypes)?.name || mainMachineType
+
+  const getGpuConfig = machineType => {
+    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(machineType)
+    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
+    const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
+    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
+      displayNameForGpuType(computeConfig.gpuType) :
+      _.head(validGpuNames)
+    const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
+    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+
+    return [validGpuName, validNumGpus]
+  }
 
   const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
@@ -877,6 +892,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const renderComputeProfileSection = computeExists => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
+    console.log('renderComputeProfiles | currentNumCpus:', currentNumCpus, 'currentMemory:', currentMemory)
     const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
     const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
@@ -884,6 +900,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
@@ -903,8 +920,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentNumCpus,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByNumCpus(value)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    const [gt, ng] = getGpuConfig(mainMachineType)
+                    updateComputeConfig('gpuType', gt)
+                    updateComputeConfig('numGpus', ng)
+                  },
                   options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
                 })
               ])
