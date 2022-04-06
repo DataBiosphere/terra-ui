@@ -89,7 +89,7 @@ export const isOwner = hasAccessLevel('OWNER')
 export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
 
 export const log = (...args) => {
-  console.log.apply(null, args)
+  console.log.apply(null, args) // eslint-disable-line no-console
   return _.last(args)
 }
 
