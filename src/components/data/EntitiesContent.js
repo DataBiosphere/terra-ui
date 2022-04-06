@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -218,6 +218,7 @@ const EntitiesContent = ({
   const [editingEntities, setEditingEntities] = useState(false)
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
+  const [addingEntity, setAddingEntity] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
@@ -377,18 +378,24 @@ const EntitiesContent = ({
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          onClick: () => setEditingEntities(true)
-        }, ['Edit Attribute']),
+          onClick: () => setAddingEntity(true)
+        }, 'Add row'),
         h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to edit in the table',
+          onClick: () => setEditingEntities(true)
+        }, 'Edit attribute'),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
         }, 'Delete')
       ])
     }, [h(ButtonSecondary, {
-      disabled: !canEdit || !entitiesSelected,
+      disabled: !canEdit,
       tooltip: Utils.cond(
         [!canEdit, () => editErrorMessage],
-        [!entitiesSelected, () => 'Select rows to edit in the table'],
-        () => 'Edit selected data'
+        () => 'Edit data'
       ),
       style: { marginRight: '1.5rem' }
     }, [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit'])])
@@ -480,6 +487,16 @@ const EntitiesContent = ({
             renderSelectedRowsMenu(columnSettings)
           ]),
         deleteColumnUpdateMetadata
+      }),
+      addingEntity && h(AddEntityModal, {
+        entityType: entityKey,
+        attributeNames: entityMetadata[entityKey].attributeNames,
+        entityTypes: _.keys(entityMetadata),
+        workspaceId: { namespace, name },
+        onDismiss: () => setAddingEntity(false),
+        onSuccess: () => {
+          setRefreshKey(_.add(1))
+        }
       }),
       editingEntities && h(MultipleEntityEditor, {
         entityType: entityKey,
