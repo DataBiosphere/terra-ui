@@ -82,8 +82,9 @@ const activeFileTransferMessage = div({
     Style.elements.card.container,
     { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start' })
 }, [
-  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-  'Copying 1 or more notebooks from another workspace. ', span({ style: { fontWeight: 'bold' } }, ['This may take a few minutes.'])
+  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+  'Copying 1 or more notebooks from another workspace.',
+  span({ style: { fontWeight: 'bold', marginLeft: '1ch' } }, ['This may take a few minutes.'])
 ])
 
 const NotebookCard = ({
