@@ -316,8 +316,8 @@ const Analyses = _.flow(
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '2rem' } }),
-      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '1rem' } }),
+      img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
+      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
       div([
         img({ src: galaxyLogo, style: { height: 60, width: 208 } })
         // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])

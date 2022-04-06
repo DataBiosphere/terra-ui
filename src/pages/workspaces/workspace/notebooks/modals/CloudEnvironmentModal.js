@@ -255,10 +255,6 @@ export const CloudEnvironmentModal = ({
     [tools.RStudio.label, () => rstudioBioLogo],
     [tools.Cromwell.label, () => cromwellImg])
 
-  const getToolIconHeight = toolLabel => Utils.switchCase(toolLabel,
-    [tools.RStudio.label, () => 20],
-    [Utils.DEFAULT, () => 20])
-
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
     [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
@@ -361,7 +357,7 @@ export const CloudEnvironmentModal = ({
         div({ style: toolLabelStyles }, [
           img({
             src: getToolIcon(toolLabel),
-            style: { height: getToolIconHeight(toolLabel) },
+            style: { height: 25 },
             alt: `${toolLabel}`
           }),
           getCostForTool(toolLabel)
