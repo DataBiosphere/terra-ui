@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
+import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
@@ -742,20 +742,27 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
                 icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
               ]),
               h(IdContainer, [id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: {
-                    lineHeight: '30px', // match rowHeight of SortableList
-                    ...Style.noWrapEllipsis
-                  }
+                h(TooltipTrigger, {
+                  // Since entity names don't contain spaces, word-break: break-all is necessary to
+                  // wrap the entity name instead of truncating it when the tooltip reaches its
+                  // max width of 400px.
+                  content: span({ style: { wordBreak: 'break-all' } }, name)
                 }, [
-                  h(Checkbox, {
-                    id,
-                    checked: visible,
-                    onChange: () => toggleVisibility(index)
-                  }),
-                  ' ',
-                  name
+                  label({
+                    htmlFor: id,
+                    style: {
+                      lineHeight: '30px', // match rowHeight of SortableList
+                      ...Style.noWrapEllipsis
+                    }
+                  }, [
+                    h(Checkbox, {
+                      id,
+                      checked: visible,
+                      onChange: () => toggleVisibility(index)
+                    }),
+                    ' ',
+                    name
+                  ])
                 ])
               ])])
             ])
