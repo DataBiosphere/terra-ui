@@ -382,7 +382,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       _.capitalize(key)
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || isAlphaSpendReportUser), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner)), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
