@@ -78,7 +78,7 @@ const IGVBrowser = _.flow(
 
     igvSetup()
 
-    return () => igvLibrary.current.removeAllBrowsers()
+    return () => !!igvLibrary.current && igvLibrary.current.removeAllBrowsers()
   })
 
   return h(Fragment, [
