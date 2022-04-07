@@ -31,7 +31,12 @@ export const pdTypes = {
     label: 'pd-ssd',
     displayName: 'Solid state drive (SSD)',
     regionToPricesName: 'monthlySSDDiskPrice'
-  }
+  },
+  fromString: str => Utils.switchCase(str,
+    [pdTypes.standard. label, () => pdTypes.standard],
+    [pdTypes.ssd. label, () => pdTypes.ssd],
+    [Utils. DEFAULT, () => console.error ('Should not be calling pdTypes. fromString for $(str), invalid disk type' )]
+  )
 }
 
 // Dataproc clusters don't have persistent disks.
