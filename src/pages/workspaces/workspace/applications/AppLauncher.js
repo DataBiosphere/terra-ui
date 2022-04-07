@@ -80,7 +80,7 @@ const ApplicationLauncher = _.flow(
       onDismiss()
     })
 
-    const getDisplayList = (analyses) => {
+    const getDisplayList = analyses => {
       let res = ''
       let i = 1
       const end = analyses?.length
