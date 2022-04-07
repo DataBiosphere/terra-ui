@@ -16,7 +16,7 @@ import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, datasetAccessTypes, datasetReleasePolicies, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
