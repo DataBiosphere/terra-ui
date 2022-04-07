@@ -273,7 +273,15 @@ export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange
         onChange
       })
     ]),
-    div({ style: { flex: '0 0 265px', marginLeft: '1rem', marginTop: '2rem' } }, [
+    div({
+      style: {
+        width: '275px',
+        paddingLeft: '1rem',
+        borderLeft: `1px solid ${colors.light()}`,
+        marginLeft: '1rem',
+        marginTop: '2rem'
+      }
+    }, [
       h(SavedColumnSettings, {
         ...otherProps,
         columnSettings,
