@@ -179,6 +179,7 @@ export const useLabelAssert = (componentName, {
     )) {
       printed.current = true
 
+      // eslint-disable-next-line no-console
       console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: ${allowContent ? `
   * add a child component with textual content or a label
   * if the child is an icon, add a label to it` : ''}${allowTooltip ? `
