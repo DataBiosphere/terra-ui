@@ -241,6 +241,7 @@ const Analyses = _.flow(
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
+  const [activeFileTransfers, setActiveFileTransfers] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -273,6 +274,14 @@ const Analyses = _.flow(
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   })
 
+  const getActiveFileTransfers = _.flow(
+    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
+    setActiveFileTransfers(!_.isEmpty(fileTransfers))
+  })
+
   const uploadFiles = Utils.withBusyState(setBusy, async files => {
     try {
       await Promise.all(_.map(async file => {
@@ -303,6 +312,7 @@ const Analyses = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
+      getActiveFileTransfers()
       refreshAnalyses()
     }
 
@@ -328,6 +338,16 @@ const Analyses = _.flow(
     ])
   ])
 
+  const activeFileTransferMessage = div({
+    style: _.merge(
+      Style.elements.card.container,
+      { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+  }, [
+    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+    'Copying 1 or more notebooks from another workspace.',
+    span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
+  ])
+
   // Render helpers
   const renderAnalyses = () => {
     const { field, direction } = sortOrder
@@ -351,6 +371,7 @@ const Analyses = _.flow(
           _.isEmpty(analyses) ? { alignItems: 'center', height: '80%' } : { flexDirection: 'column' })
       }
     }, [
+      activeFileTransfers && activeFileTransferMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
