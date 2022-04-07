@@ -344,7 +344,7 @@ const Analyses = _.flow(
       { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
   }, [
     icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
-    'Copying 1 or more analysis files from another workspace.',
+    'Copying 1 or more interactive analysis files from another workspace.',
     span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
   ])
 
