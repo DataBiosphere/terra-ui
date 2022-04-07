@@ -14,7 +14,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, datasetAccessTypes, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -140,11 +140,13 @@ export const SidebarComponent = ({ dataObj, id }) => {
           h3(['Access type']),
           div([
             Utils.switchCase(access,
-              [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
+              [datasetAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
                 style: { fontSize: 16, textTransform: 'none', height: 'unset' },
                 onClick: () => {
                   setShowRequestAccessModal(true)
                   Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                    // These are still using snapshot as a relic to ensure backwards search
+                    // capabilities within the data browser.
                     snapshotId: _.get('dct:identifier', dataObj),
                     snapshotName: dataObj['dct:title']
                   })
@@ -153,7 +155,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
                 'Request Access'
               ])],
-              [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
+              [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
                 icon('unlock', { size: 18, style: { marginRight: 10 } }),
                 'Pending Access'
               ])],
@@ -198,11 +200,13 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: dataObj.access !== snapshotAccessTypes.GRANTED,
-        tooltip: dataObj.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
+            // These are still using snapshot as a relic to ensure backwards search
+            // capabilities within the data browser.
             snapshotId: _.get('dct:identifier', dataObj),
             snapshotName: dataObj['dct:title']
           })
@@ -215,11 +219,13 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: dataObj.access !== snapshotAccessTypes.GRANTED,
-        tooltip: dataObj.access === snapshotAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+            // These are still using snapshot as a relic to ensure backwards search
+            // capabilities within the data browser.
             snapshotId: id,
             snapshotName: dataObj['dct:title']
           })

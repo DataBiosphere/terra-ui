@@ -123,6 +123,7 @@ export const SnapshotInfo = ({
   // Lifecycle
   useOnMount(() => {
     const loadSnapshotInfo = async () => {
+      // This is the only .DataRepo.snapshot call. Should it use the catalog?
       const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
       setSelectedSnapshotInfo(snapshotInfo)
     }
