@@ -384,7 +384,7 @@ const EntitiesContent = ({
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
           onClick: () => setEditingEntities(true)
-        }, 'Edit attribute'),
+        }, ['Edit attribute']),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
@@ -494,9 +494,7 @@ const EntitiesContent = ({
         entityTypes: _.keys(entityMetadata),
         workspaceId: { namespace, name },
         onDismiss: () => setAddingEntity(false),
-        onSuccess: () => {
-          setRefreshKey(_.add(1))
-        }
+        onSuccess: () => setRefreshKey(_.add(1))
       }),
       editingEntities && h(MultipleEntityEditor, {
         entityType: entityKey,

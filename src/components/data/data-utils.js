@@ -944,10 +944,8 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
   const [entityName, setEntityName] = useState('')
   const [entityNameInputTouched, setEntityNameInputTouched] = useState(false)
   const [takenNames, setTakenNames] = useState([])
-
   // Default all attribute values to empty strings
   const [attributeValues, setAttributeValues] = useState(_.fromPairs(_.map(attributeName => [attributeName, ''], attributeNames)))
-
   const [isBusy, setIsBusy] = useState(false)
 
   // The data table colum heading shows this as `${entityType}_id`, but `${entityType} ID` works better in a screen reader
@@ -998,7 +996,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       disabled: !!entityNameErrors,
       tooltip: Utils.summarizeErrors(entityNameErrors),
       onClick: createEntity
-    }, 'Add')
+    }, ['Add'])
   }, [
     label({ htmlFor: 'add-row-entity-name', style: { display: 'block', marginBottom: '0.5rem' } }, entityNameLabel),
     h(ValidatedInput, {
