@@ -69,7 +69,7 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   div([
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
-  div({ style: { margin: '1rem 0 1rem 0', fontSize: 16 } }, [
+  div({ style: { margin: '1rem 0', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
@@ -80,11 +80,11 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
 const activeFileTransferMessage = div({
   style: _.merge(
     Style.elements.card.container,
-    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start' })
+    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
 }, [
   icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
   'Copying 1 or more notebooks from another workspace.',
-  span({ style: { fontWeight: 'bold', marginLeft: '1ch' } }, ['This may take a few minutes.'])
+  span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
 ])
 
 const NotebookCard = ({
@@ -257,7 +257,7 @@ const Notebooks = _.flow(
 
   const refreshNotebooks = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading notebooks'),
+    withErrorReporting('Error loading notebooks.'),
     Utils.withBusyState(setBusy)
   )(async () => {
     const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
@@ -265,7 +265,7 @@ const Notebooks = _.flow(
   })
 
   const getActiveFileTransfers = _.flow(
-    withErrorReporting('Error loading file transfer status'),
+    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
     Utils.withBusyState(setBusy)
   )(async () => {
     const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
@@ -273,7 +273,7 @@ const Notebooks = _.flow(
   })
 
   const doAppRefresh = _.flow(
-    withErrorReporting('Error loading Apps'),
+    withErrorReporting('Error loading Apps.'),
     Utils.withBusyState(setBusy)
   )(refreshApps)
 
