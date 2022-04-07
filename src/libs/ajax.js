@@ -1036,6 +1036,11 @@ const Workspaces = signal => ({
       bucketUsage: async () => {
         const res = await fetchRawls(`${root}/bucketUsage`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      listActiveFileTransfers: async () => {
+        const res = await fetchRawls(`${root}/fileTransfers`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }
