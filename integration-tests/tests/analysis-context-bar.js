@@ -1,8 +1,5 @@
-import { performAnalysisTabSetup } from 'integration-tests/utils/integration-helpers'
-
-
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
   click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
