@@ -743,8 +743,8 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
               ]),
               h(IdContainer, [id => h(Fragment, [
                 h(TooltipTrigger, {
-                  // Since entity names don't contain spaces, word-break: break-all is necessary to
-                  // wrap the entity name instead of truncating it when the tooltip reaches its
+                  // Since attribute names don't contain spaces, word-break: break-all is necessary to
+                  // wrap the attribute name instead of truncating it when the tooltip reaches its
                   // max width of 400px.
                   content: span({ style: { wordBreak: 'break-all' } }, name)
                 }, [
