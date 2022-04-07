@@ -57,7 +57,7 @@ const ApplicationLauncher = _.flow(
   // See following tickets for status (both parts needed):
   // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
   // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label) // useState(application == tools.RStudio.label)
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
