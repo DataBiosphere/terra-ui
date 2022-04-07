@@ -113,7 +113,7 @@ export const useDataCatalog = () => {
     const normList = _.map(dataset => {
       const normalizedDataset = normalizeDataset(dataset)
       return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
-    }, datasets.result)
+    }, datasets.result || [])
 
     dataCatalogStore.set(normList)
   })
