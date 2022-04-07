@@ -222,9 +222,8 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
       }, 'Save this column selection')
     ]),
 
-    hr({ style: { margin: '1rem 0' } }),
-
     _.size(savedColumnSettings) > 0 && h(Fragment, [
+      hr({ style: { margin: '1rem 0' } }),
       p({ style: { marginTop: 0 } }, 'Your saved column selections:'),
       div({ style: { flex: '1 1 0', overflow: 'auto', paddingRight: '1rem' } }, [
         ul({ style: { padding: 0, margin: 0 } }, [
