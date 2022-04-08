@@ -478,10 +478,10 @@ const Analyses = _.flow(
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          title: getTool(deletingAnalysisName) ? `Delete ${getTool(deletingAnalysisName)} analysis` : 'Delete analysis',
+          objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
+          objectName: getDisplayName(deletingAnalysisName),
           confirmationPrompt: 'Delete analysis',
           buttonText: 'Delete analysis',
-          objectName: getDisplayName(deletingAnalysisName),
           onConfirm: async () => {
             try {
               await Ajax().Buckets.analysis(

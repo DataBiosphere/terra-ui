@@ -606,7 +606,7 @@ export const DeleteConfirmationModal = ({ objectName, objectType, children, ...p
     ...props
   }, [
     children || h(Fragment, [
-      div(['Are you sure you want to delete ',
+      div(['Are you sure you want to delete the ', objectType, ' ',
         span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
       div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
     ])
