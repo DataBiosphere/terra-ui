@@ -478,7 +478,9 @@ const Analyses = _.flow(
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          objectType: 'analysis',
+          title: getTool(deletingAnalysisName) ? `Delete ${getTool(deletingAnalysisName)} analysis` : 'Delete analysis',
+          confirmationPrompt: 'Delete analysis',
+          buttonText: 'Delete analysis',
           objectName: getDisplayName(deletingAnalysisName),
           onConfirm: async () => {
             try {
