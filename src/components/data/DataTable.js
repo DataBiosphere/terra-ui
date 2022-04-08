@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, PromptedConfirmationModal } from 'src/components/common'
+import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
@@ -416,7 +416,7 @@ const DataTable = props => {
       onConfirm: () => deleteColumn(deletingColumn),
       onDismiss: () => setDeletingColumn(undefined)
     }),
-    !!clearingColumn && h(PromptedConfirmationModal, {
+    !!clearingColumn && h(DeleteConfirmationModal, {
       title: 'Clear Column',
       confirmationPrompt: 'Clear column',
       buttonText: 'Clear column',
