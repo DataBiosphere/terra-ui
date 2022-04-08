@@ -209,6 +209,7 @@ const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await dismissNotifications(page)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
   await noSpinnersAfter(page, { action: () => click(page, navChild('analyses')) })
+  await dismissNotifications(page)
 }
 
 module.exports = {
