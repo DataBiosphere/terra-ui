@@ -1,5 +1,2 @@
-const { registerTest } = require('./jest-utils')
-const { testRequestAccess } = require('../tests/request-access')
-
-
-registerTest(testRequestAccess)
+// TODO: Reenable once data catalog supports controlled access datasets
+// registerTest(testRequestAccess)
