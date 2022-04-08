@@ -208,7 +208,7 @@ const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
-  await click(page, navChild('analyses'))
+  await noSpinnersAfter(page, { action: () => click(page, navChild('analyses')) })
 }
 
 module.exports = {

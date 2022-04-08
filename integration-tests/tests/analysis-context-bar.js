@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, delay
 } = require('../utils/integration-utils')
 
 
@@ -12,8 +12,10 @@ const testAnalysisContextBarFn = _.flow(
 )(async ({ page, token, testUrl, workspaceName }) => {
   // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
+
   // Create a runtime
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Environment Configuration' })) })
+  await delay(30000)
+  await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'))
