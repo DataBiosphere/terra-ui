@@ -101,6 +101,16 @@ module.exports = {
     'simple-import-sort/imports': 'warn',
 
     'import/newline-after-import': ['warn', { 'count': 2 }],
-    'import/no-anonymous-default-export': ['warn', { 'allowObject': true }]
-  }
+    'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
+
+    'no-debugger': 'warn'
+  },
+  'overrides': [
+    {
+      'files': 'src/**/*.js',
+      'rules': {
+        'no-console': ['warn', { 'allow': ['assert', 'error'] }]
+      }
+    }
+  ]
 }

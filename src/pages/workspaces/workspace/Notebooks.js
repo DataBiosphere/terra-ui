@@ -69,12 +69,22 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   div([
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+  div({ style: { margin: '1rem 0', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
     }, [`What's a notebook?`])
   ])
+])
+
+const activeFileTransferMessage = div({
+  style: _.merge(
+    Style.elements.card.container,
+    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+}, [
+  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+  'Copying 1 or more notebooks from another workspace.',
+  span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
 ])
 
 const NotebookCard = ({
@@ -236,6 +246,7 @@ const Notebooks = _.flow(
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
   const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
+  const [activeFileTransfers, setActiveFileTransfers] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -246,15 +257,23 @@ const Notebooks = _.flow(
 
   const refreshNotebooks = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading notebooks'),
+    withErrorReporting('Error loading notebooks.'),
     Utils.withBusyState(setBusy)
   )(async () => {
     const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
+  const getActiveFileTransfers = _.flow(
+    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
+    setActiveFileTransfers(!_.isEmpty(fileTransfers))
+  })
+
   const doAppRefresh = _.flow(
-    withErrorReporting('Error loading Apps'),
+    withErrorReporting('Error loading Apps.'),
     Utils.withBusyState(setBusy)
   )(refreshApps)
 
@@ -287,6 +306,7 @@ const Notebooks = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
+      getActiveFileTransfers()
       refreshNotebooks()
     }
 
@@ -385,14 +405,17 @@ const Notebooks = _.flow(
           ])
         ])
       ]),
-      Utils.cond(
-        [_.isEmpty(notebooks), () => noNotebooksMessage],
-        [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
-          return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
-        }],
-        [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
-        () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
-      )
+      div({ style: { flexGrow: 1 } }, [
+        Utils.cond(
+          [_.isEmpty(notebooks), () => noNotebooksMessage],
+          [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
+          }],
+          [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
+          () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
+        ),
+        activeFileTransfers && activeFileTransferMessage
+      ])
     ])
   }
 

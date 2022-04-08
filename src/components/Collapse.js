@@ -7,7 +7,7 @@ import { useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 
 
-const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, noTitleWrap, ...props }) => {
+const Collapse = ({ title, buttonStyle, buttonProps = {}, summaryStyle, detailsStyle, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, noTitleWrap, ...props }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState)
   const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
 
@@ -21,7 +21,7 @@ const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, chil
   }, [firstOpenRef, isOpened])
 
   return div(props, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
+    div({ style: { display: 'flex', alignItems: 'center', ...summaryStyle } }, [
       h(Link, {
         'aria-expanded': isOpened,
         'aria-controls': isOpened ? id : undefined,
@@ -36,7 +36,7 @@ const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, chil
       ]),
       afterToggle
     ]),
-    isOpened && div({ id }, [children])
+    isOpened && div({ id, style: detailsStyle }, [children])
   ])
 }
 
