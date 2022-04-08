@@ -33,9 +33,9 @@ export const pdTypes = {
     regionToPricesName: 'monthlySSDDiskPrice'
   },
   fromString: str => Utils.switchCase(str,
-    [pdTypes.standard. label, () => pdTypes.standard],
-    [pdTypes.ssd. label, () => pdTypes.ssd],
-    [Utils. DEFAULT, () => console.error ('Should not be calling pdTypes. fromString for $(str), invalid disk type' )]
+    [pdTypes.standard.label, () => pdTypes.standard],
+    [pdTypes.ssd.label, () => pdTypes.ssd],
+    [Utils.DEFAULT, () => console.error('Should not be calling pdTypes. fromString for $(str), invalid disk type')]
   )
 }
 
