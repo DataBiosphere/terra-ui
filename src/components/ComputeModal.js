@@ -316,23 +316,25 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
     console.log('Before if (shouldCreateRuntime) | GPU type:', computeConfig.gpuType, ' numGPUs:', computeConfig.numGpus)
     if (shouldCreateRuntime) {
-      // await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
-      //   runtimeConfig,
-      //   autopauseThreshold: computeConfig.autopauseThreshold,
-      //   toolDockerImage: desiredRuntime.toolDockerImage,
-      //   labels: {
-      //     saturnWorkspaceNamespace: namespace,
-      //     saturnWorkspaceName: name
-      //   },
-      //   customEnvironmentVariables: customEnvVars,
-      //   ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
-      // })
+      await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
+        runtimeConfig,
+        autopauseThreshold: computeConfig.autopauseThreshold,
+        toolDockerImage: desiredRuntime.toolDockerImage,
+        labels: {
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: name
+        },
+        customEnvironmentVariables: customEnvVars,
+        ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
+      })
     }
 
     onSuccess()
   })
 
   const getMainMachineTypeByNumCpus = numCpus => _.find({ cpu: numCpus }, validMachineTypes)?.name || mainMachineType
+
+  const getMainMachineTypeByMemory = (numCpus, memory) => _.find({ cpu: numCpus, memory }, validMachineTypes)?.name || mainMachineType
 
   const getGpuConfig = machineType => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(machineType)
@@ -922,8 +924,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   value: currentNumCpus,
                   onChange: ({ value }) => {
                     const mainMachineType = getMainMachineTypeByNumCpus(value)
-                    updateComputeConfig('masterMachineType', mainMachineType)
                     const [gt, ng] = getGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
                     updateComputeConfig('gpuType', gt)
                     updateComputeConfig('numGpus', ng)
                   },
@@ -940,8 +942,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentMemory,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: currentNumCpus, memory: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByMemory(currentNumCpus, value)
+                    const [gt, ng] = getGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    updateComputeConfig('gpuType', gt)
+                    updateComputeConfig('numGpus', ng)
+                  },
                   options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(
                     validMachineTypes)
                 })
