@@ -16,8 +16,6 @@ const getStrings = v => {
   )
 }
 
-const MAX_CONCURRENT_IGV_FILES = 10
-
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState('hg38')
   const [selections, setSelections] = useState(() => {
@@ -47,7 +45,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
 
   const toggleSelected = index => setSelections(_.update([index, 'isSelected'], v => !v))
   const numSelected = _.countBy('isSelected', selections).true
-  const isSelectionValid = !!numSelected && numSelected <= MAX_CONCURRENT_IGV_FILES
+  const isSelectionValid = !!numSelected
 
   return div({ style: Style.modalDrawer.content }, [
     h(IdContainer, [id => div({ style: { fontWeight: 500 } }, [
@@ -95,7 +93,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       style: Style.modalDrawer.buttonBar,
       okButton: h(ButtonPrimary, {
         disabled: !isSelectionValid,
-        tooltip: !isSelectionValid && `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files`,
+        tooltip: !isSelectionValid && 'Select at least one file',
         onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
       }, ['Launch IGV'])
     })

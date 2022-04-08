@@ -374,27 +374,78 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => div({
-  role: 'listitem'
-}, [
-  h3({ style: Style.navList.heading }, [
-    title,
-    error ? h(Link, {
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
+  if (!isDataTabRedesignEnabled()) {
+    return div({ role: 'listitem' }, [
+      h3({ style: Style.navList.heading }, [
+        title,
+        error ? h(Link, {
+          onClick: retryFunction,
+          tooltip: 'Error loading, click to retry.'
+        }, [icon('sync', { size: 18 })]) : titleExtras
+      ]),
+      !!children?.length && div({
+        style: { display: 'flex', flexDirection: 'column', width: '100%' },
+        role: 'list'
+      }, [children])
+    ])
+  }
+
+  return h(Collapse, {
+    role: 'listitem',
+    title: h3({
+      style: {
+        margin: 0,
+        fontSize: 16,
+        textTransform: 'uppercase'
+      }
+    }, title),
+    titleFirst: true,
+    initialOpenState: true,
+    summaryStyle: {
+      paddingRight: error ? '1rem' : 0,
+      borderBottom: `0.5px solid ${colors.dark(0.2)}`,
+      backgroundColor: colors.light(0.4),
+      fontSize: 16
+    },
+    buttonProps: {
+      hover: {
+        color: colors.dark(0.9)
+      }
+    },
+    buttonStyle: {
+      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
+      marginBottom: 0,
+      color: colors.dark()
+    },
+    afterToggle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
-    }, [icon('sync', { size: 18 })]) : titleExtras
-  ]),
-  !!children?.length && div({
-    style: { display: 'flex', flexDirection: 'column', width: '100%' },
-    role: 'list'
-  }, [children])
-])
+    }, [icon('sync', { size: 18 })])
+  }, [
+    !!children?.length && div({
+      style: { display: 'flex', flexDirection: 'column', width: '100%' },
+      role: 'list'
+    }, [children])
+  ])
+}
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
+  const minWidth = 280
+  const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onDrag = useCallback(_.throttle(100, e => {
-    setSidebarWidth(e.pageX)
+    setSidebarWidth(_.clamp(minWidth, getMaxWidth(), e.pageX))
   }), [setSidebarWidth])
+
+  useOnMount(() => {
+    const onResize = _.throttle(100, () => {
+      setSidebarWidth(_.clamp(minWidth, getMaxWidth()))
+    })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  })
 
   return h(DraggableCore, { onDrag }, [
     h(Interactive, {
@@ -402,8 +453,8 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       role: 'separator',
       'aria-label': 'Resize sidebar',
       'aria-valuenow': sidebarWidth,
-      'aria-valuemin': 0,
-      'aria-valuemax': window.innerWidth,
+      'aria-valuemin': minWidth,
+      'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
       className: 'custom-focus-style',
       style: styles.sidebarSeparator,
@@ -412,9 +463,9 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       },
       onKeyDown: e => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
-          setSidebarWidth(w => w + 10)
+          setSidebarWidth(w => _.min([w + 10, getMaxWidth()]))
         } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
-          setSidebarWidth(w => w - 10)
+          setSidebarWidth(w => _.max([w - 10, minWidth]))
         }
       }
     })
