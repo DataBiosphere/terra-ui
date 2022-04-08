@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, iframe, p } from 'react-hyperscript-helpers'
+import { b, div, h, iframe, p } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
@@ -101,11 +101,17 @@ const ApplicationLauncher = _.flow(
       showButtons: false
     }, [
       Utils.cond(
-        [outdatedAnalyses?.length > 1, () => [p(`These R markdown files are being edited by another user and are now outdated. The files will no longer sync with the workspace bucket.`),
+        [outdatedAnalyses?.length > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
           p(getDisplayList(outdatedAnalyses)),
-          p('You can 1) save a copy of these outdated files to your VM to enable file syncing again or 2) continue working on the existing files without file syncing enabled.')]],
-        [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and is now outdated. The file will no longer sync with the workspace bucket.`),
-          p('You can 1) save a copy of this outdated file version to your VM to enable file syncing again or 2) continue working on the existing file without file syncing enabled.')]]),
+          p('You can'),
+          p(['1) ', b('save your changes as new copies'), ' of your files which will enable file syncing on the copies']),
+          p([b('or')]),
+          p(['2) ', b('continue working on your versions'), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
+        [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
+          p('You can'),
+        p(['1) ', b('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
+        p([b('or')]),
+        p(['2) ', b('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
