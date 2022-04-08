@@ -15,7 +15,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 60000 } )
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 60000 })
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: '1'})
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: '2'})
@@ -27,7 +27,7 @@ const testAnalysisContextBarFn = _.flow(
   // Updating/modifying the environment should be disabled when the env is creating
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: '3'})
-  await findElement(page, clickable({ text: 'Update', isEnabled: false }), { timeout: 10000 })
+  await findElement(page, clickable({ text: 'Update', isEnabled: false }), { timeout: 40000 })
   await click(page, clickable({ textContains: 'Close' }))
 
   // Environment should eventually be running and the terminal icon should be enabled once the environment is running
