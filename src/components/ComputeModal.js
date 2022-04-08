@@ -182,7 +182,9 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 // Auxiliary functions -- end
 
-export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode }) => {
+export const ComputeModalBase = ({
+  onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+}) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -215,9 +217,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     computeZone: defaultComputeZone
   })
   // State -- end
-
-  console.log('Component top | GPU type:', computeConfig.gpuType, ' numGPUs:', computeConfig.numGpus)
-
 
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
@@ -314,7 +313,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         autopauseThreshold: computeConfig.autopauseThreshold
       })
     }
-    console.log('Before if (shouldCreateRuntime) | GPU type:', computeConfig.gpuType, ' numGPUs:', computeConfig.numGpus)
     if (shouldCreateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
@@ -894,12 +892,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderComputeProfileSection = computeExists => {
-    const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } = getValidCpuGpuConfig(mainMachineType)
-    console.log('renderComputeProfiles | computeConfig.gpuType:', computeConfig.gpuType)
-    console.log('renderComputeProfiles | currentNumCpus:', currentNumCpus, 'currentMemory:', currentMemory)
-    console.log('renderComputeProfiles | validGpuName:', validGpuName, 'validGpuNames:', validGpuNames)
-    console.log('renderComputeProfiles | validGpuOptions:', validGpuOptions)
-    console.log('renderComputeProfiles | validNumGpus:', validNumGpus, 'validNumGpusOptions:', validNumGpusOptions)
+    const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } = getValidCpuGpuConfig(
+      mainMachineType)
 
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
@@ -995,7 +989,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     id,
                     isSearchable: false,
                     value: validGpuName,
-                    onChange: ({ value }) => updateComputeConfig('gpuType', _.get('type', _.find({ name: value }, validGpuOptions))),
+                    onChange: ({ value }) => updateComputeConfig('gpuType',
+                      _.get('type', _.find({ name: value }, validGpuOptions))),
                     options: validGpuNames
                   })
                 ])
@@ -1009,12 +1004,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     id,
                     isSearchable: false,
                     value: validNumGpus,
-                    onChange: ({ value }) => {
-                      console.log('*** Setting numGpus to:', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions))
-                      console.log('*** computeConfig.gpuType:', computeConfig.gpuType)
-                      console.log('*** value:', value)
-                      updateComputeConfig('numGpus', _.get('numGpus', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions)))
-                    },
+                    onChange: ({ value }) => updateComputeConfig('numGpus',
+                      _.get('numGpus', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions))),
                     options: validNumGpusOptions
                   })
                 ])
