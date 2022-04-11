@@ -787,7 +787,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // Make sure we have a valid step once the workspaces have finished loading
   useEffect(() => {
-    if (!stepIsEnabled(currentStep) && workspaces) {
+    if (!stepIsEnabled(currentStep) && !!workspaces) {
       let last = steps[0]
       for (const step of steps) {
         if (!step.test()) {
