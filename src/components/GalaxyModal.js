@@ -23,7 +23,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const defaultDataDisk = { size: 500, diskType: pdTypes.standard.label }
+const defaultDataDisk = { size: 500, diskType: pdTypes.standard }
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
@@ -55,7 +55,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDisk.size,
-        diskType: dataDisk.diskType, appType: tools.Galaxy.appType, namespace, bucketName, workspaceName
+        diskType: dataDisk.diskType.label, appType: tools.Galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
@@ -240,7 +240,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     }
 
     // TODO Refactor this and the duplicate in ComputeModal.js
-    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, { size, diskType }) => {
+    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
 
@@ -264,7 +264,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(size, diskType)), unitLabel: 'per hr' }
+          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDisk)), unitLabel: 'per hr' }
         ])
       ])
     }
@@ -328,14 +328,15 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               isDisabled: disabled,
               onChange: ({ value }) => updateDataDisk('diskType', value),
               options: [
-                { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-                { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
+                { label: pdTypes.standard.displayName, value: pdTypes.standard },
+                { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
               ]
             })
           ])
         ])
       ])
     ])
+
 
     const renderPersistentDiskSize = disabled => div([
       h(IdContainer, [
@@ -384,7 +385,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               ]),
               p({ style: { marginBottom: 0 } }, [
                 'You will continue to incur persistent disk cost at ',
-                span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getGalaxyDiskCost(dataDisk.size)), ' per hour.'])
+                span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getGalaxyDiskCost(dataDisk)), ' per hour.'])
               ])
             ]),
             h(RadioBlock, {

@@ -184,6 +184,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 
 export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode }) => {
   // State -- begin
+
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
@@ -273,7 +274,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           } : {
             name: Utils.generatePersistentDiskName(),
             size: desiredPersistentDisk.size,
-            diskType: desiredPersistentDisk.diskType,
+            diskType: desiredPersistentDisk.diskType.label,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
         })),
@@ -721,7 +722,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: currentPersistentDiskDetails?.diskType || defaultPersistentDiskType,
+        selectedPersistentDiskType: pdTypes.fromString(currentPersistentDiskDetails?.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -1670,8 +1671,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           isDisabled: diskExists || false,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
           options: [
-            { label: pdTypes.standard.displayName, value: pdTypes.standard.label },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd.label }
+            { label: pdTypes.standard.displayName, value: pdTypes.standard },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
           ]
         })
       ])
