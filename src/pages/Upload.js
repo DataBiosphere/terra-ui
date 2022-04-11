@@ -741,19 +741,12 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
   const { query } = Nav.useRoute()
   const [workspaceId, setWorkspaceId] = useState(query.workspace)
   const [collection, setCollection] = useState(query.collection)
-  const [currentStep, setCurrentStep] = useState(() => {
-    if (StateHistory.get().currentStep) {
-      return StateHistory.get().currentStep
-    }
-    // If workspace and/or collection were provided in the URL, start at a later step
-    if (workspaceId) {
-      if (collection) {
-        return 'data'
-      }
-      return 'collection'
-    }
-    return 'workspaces'
-  })
+  const [currentStep, setCurrentStep] = useState(Utils.cond(
+    [!!StateHistory.get().currentStep, () => StateHistory.get().currentStep],
+    [!!workspaceId && !!collection, () => 'data'],
+    [!!workspaceId && !collection, () => 'collection'],
+    () => 'workspaces'
+  ))
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [numFiles, setNumFiles] = useState(StateHistory.get().numFiles)
   const [tableName, setTableName] = useState(StateHistory.get().tableName)
