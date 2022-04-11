@@ -557,7 +557,20 @@ export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) =
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
 
-export const PromptedConfirmationModal = ({ title, children, confirmationPrompt = 'Confirm', buttonText = 'Confirm', onConfirm, onDismiss }) => {
+export const DeleteConfirmationModal = ({
+  objectType,
+  objectName,
+  title: titleProp,
+  children,
+  confirmationPrompt: confirmationPromptProp,
+  buttonText: buttonTextProp,
+  onConfirm,
+  onDismiss
+}) => {
+  const title = titleProp || `Delete ${objectType}`
+  const confirmationPrompt = confirmationPromptProp || `Delete ${objectType}`
+  const buttonText = buttonTextProp || `Delete ${objectType}`
+
   const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
 
@@ -581,7 +594,11 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
     }, buttonText)
   }, [
-    children,
+    children || h(Fragment, [
+      div([`Are you sure you want to delete the ${objectType} `,
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
+      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    ]),
     div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [
         label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
@@ -595,20 +612,5 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
       ])])
     ]),
     busy && spinnerOverlay
-  ])
-}
-
-export const DeleteConfirmationModal = ({ objectName, objectType, children, ...props }) => {
-  return h(PromptedConfirmationModal, {
-    title: `Delete ${objectType}`,
-    confirmationPrompt: `Delete ${objectType}`,
-    buttonText: `Delete ${objectType}`,
-    ...props
-  }, [
-    children || h(Fragment, [
-      div([`Are you sure you want to delete the ${objectType} `,
-        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
-      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
-    ])
   ])
 }
