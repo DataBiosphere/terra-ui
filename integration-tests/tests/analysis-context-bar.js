@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, delay
 } = require('../utils/integration-utils')
 
 
@@ -14,11 +14,14 @@ const testAnalysisContextBarFn = _.flow(
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create a runtime
-  await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 60000 })
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: '1' })
+  // This delay is because the button in this tab is enabled right away, but the page isn't fully loaded
+  // It should not be used commonly, and is only necessary here to support the test in a high-concurrency environment
+  await delay(10000)
+  await click(page, clickable({ textContains: 'Environment Configuration' }))
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: '2' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
   // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
   await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
@@ -26,7 +29,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Updating/modifying the environment should be disabled when the env is creating
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: '3' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
   await findElement(page, clickable({ text: 'Update', isEnabled: false }), { timeout: 40000 })
   await click(page, clickable({ textContains: 'Close' }))
 
@@ -37,7 +40,7 @@ const testAnalysisContextBarFn = _.flow(
   // The environment should now be pausable, and the UI should display its pausing
   await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Pause' })), debugMessage: '4' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Pause' })) })
   await findElement(page, clickable({ textContains: 'Pausing', isEnabled: false }))
   await click(page, clickable({ textContains: 'Close' }))
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Pausing )' }), { timeout: 40000 })
