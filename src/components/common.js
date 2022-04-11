@@ -487,7 +487,7 @@ const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({
   }
 }, [isOn ? onLabel : offLabel])
 
-export const Switch = ({ onChange, onLabel = 'True', offLabel = 'False', ...props }) => {
+export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True', offLabel = 'False', ...props }, ref) => {
   return h(RSwitch, {
     onChange: value => onChange(value),
     offColor: colors.dark(0.5),
@@ -495,9 +495,17 @@ export const Switch = ({ onChange, onLabel = 'True', offLabel = 'False', ...prop
     checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
     uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
     width: 80,
-    ...props
+    ...props,
+    ref: rSwitch => {
+      const inputEl = rSwitch ? rSwitch.$inputRef : null
+      if (_.has('current', ref)) {
+        ref.current = inputEl
+      } else if (_.isFunction(ref)) {
+        ref(inputEl)
+      }
+    }
   })
-}
+})
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
