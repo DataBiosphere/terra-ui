@@ -6,13 +6,13 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, DeleteConfirmationModal, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash, tools
+  findPotentialNotebookLockers, NotebookCreator, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisTabName } from 'src/components/runtime-common'
@@ -515,13 +515,18 @@ const Notebooks = _.flow(
           printName: printName(exportingNotebookName), workspace,
           onDismiss: () => setExportingNotebookName(undefined)
         }),
-        deletingNotebookName && h(NotebookDeleter, {
-          printName: printName(deletingNotebookName), googleProject, bucketName,
-          onDismiss: () => setDeletingNotebookName(undefined),
-          onSuccess: () => {
-            setDeletingNotebookName(undefined)
-            refreshNotebooks()
-          }
+        deletingNotebookName && h(DeleteConfirmationModal, {
+          objectType: 'notebook',
+          objectName: printName(deletingNotebookName),
+          onConfirm: async () => {
+            try {
+              await Ajax().Buckets.notebook(googleProject, bucketName, printName(deletingNotebookName)).delete()
+              refreshNotebooks()
+            } catch (err) {
+              reportError('Error deleting notebook.', err)
+            }
+          },
+          onDismiss: () => setDeletingNotebookName(undefined)
         }),
         h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,

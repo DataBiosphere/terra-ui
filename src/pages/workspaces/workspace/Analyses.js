@@ -7,12 +7,12 @@ import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -498,14 +498,25 @@ const Analyses = _.flow(
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
-        deletingAnalysisName && h(AnalysisDeleter, {
-          printName: getDisplayName(deletingAnalysisName), googleProject, bucketName,
-          toolLabel: getTool(deletingAnalysisName),
-          onDismiss: () => setDeletingAnalysisName(undefined),
-          onSuccess: () => {
-            setDeletingAnalysisName(undefined)
-            refreshAnalyses()
-          }
+        deletingAnalysisName && h(DeleteConfirmationModal, {
+          objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
+          objectName: getDisplayName(deletingAnalysisName),
+          confirmationPrompt: 'Delete analysis',
+          buttonText: 'Delete analysis',
+          onConfirm: async () => {
+            try {
+              await Ajax().Buckets.analysis(
+                googleProject,
+                bucketName,
+                getDisplayName(deletingAnalysisName),
+                getTool(deletingAnalysisName)
+              ).delete()
+              refreshAnalyses()
+            } catch (err) {
+              reportError('Error deleting analysis.', err)
+            }
+          },
+          onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),
       renderAnalyses()
