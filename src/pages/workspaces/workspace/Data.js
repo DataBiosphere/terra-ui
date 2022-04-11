@@ -694,7 +694,7 @@ const WorkspaceData = _.flow(
               }, 'Upload TSV'),
               h(MenuButton, {
                 href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
-              }, 'Open data uploader'),
+              }, ['Open data uploader']),
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
                 onClick: () => setImportingReference(true)
