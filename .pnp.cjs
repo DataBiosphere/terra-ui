@@ -68,7 +68,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.5.0"],\
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
-            ["igv", "npm:2.3.5"],\
+            ["igv", "npm:2.11.2"],\
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
@@ -10967,10 +10967,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["igv", [\
-        ["npm:2.3.5", {\
-          "packageLocation": "./.yarn/cache/igv-npm-2.3.5-cb11a352d2-529591bd68.zip/node_modules/igv/",\
+        ["npm:2.11.2", {\
+          "packageLocation": "./.yarn/cache/igv-npm-2.11.2-ecb88934b3-d389340bf6.zip/node_modules/igv/",\
           "packageDependencies": [\
-            ["igv", "npm:2.3.5"]\
+            ["igv", "npm:2.11.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -18839,7 +18839,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.5.0"],\
             ["husky", "npm:7.0.2"],\
             ["iframe-resizer", "npm:4.3.2"],\
-            ["igv", "npm:2.3.5"],\
+            ["igv", "npm:2.11.2"],\
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\

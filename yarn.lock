@@ -7927,10 +7927,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"igv@npm:2.3.5":
-  version: 2.3.5
-  resolution: "igv@npm:2.3.5"
-  checksum: 529591bd68cb731514251be0a3cbe9c0cdf3f23dc9b71fa1a3045aa7c63c064ae8cdc4042a1e8b0b857045f0db85e7f527989ff1a6164d88b378279e5eb33582
+"igv@npm:2.11.2":
+  version: 2.11.2
+  resolution: "igv@npm:2.11.2"
+  checksum: d389340bf616dd85189a5719b50eb09824ea33e9b6c5c94519150565d176fd46b4c69358a4f2c71c7dab17403229d97c3678627dcaa15442524519b04ffdef46
   languageName: node
   linkType: hard
 
@@ -13999,7 +13999,7 @@ resolve@^2.0.0-next.3:
     history: ^4.10.1
     husky: ^7.0.2
     iframe-resizer: ^4.3.2
-    igv: 2.3.5
+    igv: 2.11.2
     jszip: ^3.7.1
     lodash: ^4.17.21
     marked: ^4.0.10
