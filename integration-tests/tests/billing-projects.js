@@ -78,6 +78,10 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, n
   const projectListResult = [{
     projectName: ownedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+  },
+  {
+    projectName: notOwnedBillingProjectName,
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
   }]
   return await testPage.evaluate((spendReturnResult, projectListResult) => {
     window.ajaxOverridesStore.set([
@@ -108,13 +112,14 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await dismissNotifications(page)
 
   // Interact with the Billing Page via mocked AJAX responses.
-  const billingProjectName = 'OwnedBillingProject'
-  await setAjaxMockValues(page, billingProjectName, '1110')
+  const ownedBillingProjectName = 'OwnedBillingProject'
+  const notOwnedBillingProjectName = 'NotOwnedBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
 
   // Select spend report and verify cost for default date ranges
   const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
-  await billingPage.selectSpendReport(billingProjectName)
+  await billingPage.selectSpendReport(ownedBillingProjectName)
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.00')
   await billingPage.assertText('Total compute$999.00')
@@ -131,7 +136,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, billingProjectName, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
