@@ -1060,12 +1060,6 @@ const DataRepo = signal => ({
     }
   },
 
-  requestAccess: async id => {
-    // TODO: Update this link to hit the real endpoint
-    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
   getPreviewMetadata: async id => {
     const res = await fetchDataRepo(`repository/v1/snapshots/${id}?include=TABLES,DATA_PROJECT`, _.merge(authOpts(), { signal }))
     return res.json()
