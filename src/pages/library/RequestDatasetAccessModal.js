@@ -103,11 +103,8 @@ const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
   return h(ButtonPrimary, {
     disabled: status,
     onClick: withErrorReporting('Error requesting dataset access', async () => {
-      // Should this point to catalog? My understanding is that we are fully public?
-      // But this is only used in the DataBrowser.
-      requestAccessEnabled ?
-        await Ajax(signal).DataRepo.requestAccess(id) :
-        setShowWipModal(true)
+      // TODO DC-309: Make Access Requests point to the data catalog
+      !requestAccessEnabled && setShowWipModal(true)
       setStatus('Request Sent')
       Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
         snapshotId: id,
