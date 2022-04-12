@@ -188,6 +188,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const total = selectedKeys.length + additionalDeletions.length
   return h(DeleteConfirmationModal, {
     objectType: 'data',
+    title: `Delete ${total} ${total > 1 ? 'entries' : 'entry'}`,
     dismissOnError: false,
     onConfirm: doDelete,
     onDismiss
@@ -211,10 +212,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
         }
       }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys))
-    ),
-    div({
-      style: { ...fullWidthWarning, textAlign: 'right' }
-    }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`])
+    )
   ])
 }
 
