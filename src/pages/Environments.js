@@ -20,7 +20,7 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   defaultComputeZone, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, mapDisksToPDTypes, runtimeCost,
+  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, mapToPdTypes, runtimeCost,
   workspaceHasMultipleApps,
   workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
@@ -178,7 +178,7 @@ const Environments = () => {
     cost: runtimeCost
   }[sort.field]], [sort.direction], runtimes)
 
-  const filteredDisks = mapDisksToPDTypes(_.orderBy([{
+  const filteredDisks = mapToPdTypes(_.orderBy([{
     project: 'googleProject',
     workspace: 'labels.saturnWorkspaceName',
     status: 'status',

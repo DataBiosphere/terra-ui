@@ -38,7 +38,7 @@ export const pdTypes = {
     [Utils.DEFAULT, () => console.error('Should not be calling pdTypes. fromString for $(str), invalid disk type')]
   )
 }
-export const mapDisksToPDTypes = disks => _.map(_.update('diskType', pdTypes.fromString), disks)
+export const mapToPdTypes = disks => _.map(_.update('diskType', pdTypes.fromString), disks)
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
@@ -253,14 +253,14 @@ export const getGalaxyComputeCost = app => {
  * - Disk cost is total for data (NFS) disk, metadata (postgres) disk, and boot disks (1 boot disk per nodepool)
  * - Size of a data disk is user-customizable. The other disks have fixed sizes.
  */
-export const getGalaxyDiskCost = ({ size, diskType }) => {
+export const getGalaxyDiskCost = ({ size: dataDiskType, diskType }) => {
   const metadataDiskSize = 10 // GB
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
   return getPersistentDiskCostHourly({
     status: 'Running',
-    size: size + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize,
+    size: dataDiskType + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize,
     diskType
   }, defaultComputeRegion)
 }
