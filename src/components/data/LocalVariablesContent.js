@@ -3,13 +3,12 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
+import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common'
 import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -284,22 +283,20 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         setEditDescription('')
       }
     }),
-    deleteIndex !== undefined && h(Modal, {
-      onDismiss: () => { setDeleteIndex(undefined) },
-      title: 'Are you sure you wish to delete this variable?',
-      okButton: h(ButtonPrimary, {
-        onClick: _.flow(
-          withErrorReporting('Error deleting workspace variable'),
-          Utils.withBusyState(setBusy)
-        )(async () => {
-          setDeleteIndex()
-          await Ajax().Workspaces.workspace(namespace, name)
-            .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])])
-          await loadAttributes()
-        })
-      },
-      'Delete Variable')
-    }, ['This will permanently delete the data from Workspace Data.']),
+    deleteIndex !== undefined && h(DeleteConfirmationModal, {
+      objectType: 'variable',
+      objectName: amendedAttributes[deleteIndex][0],
+      onConfirm: _.flow(
+        Utils.withBusyState(setBusy),
+        withErrorReporting('Error deleting workspace variable')
+      )(async () => {
+        setDeleteIndex(undefined)
+        await Ajax().Workspaces.workspace(namespace, name)
+          .deleteAttributes([amendedAttributes[deleteIndex][0], toDescriptionKey(amendedAttributes[deleteIndex][0])])
+        loadAttributes()
+      }),
+      onDismiss: () => setDeleteIndex(undefined)
+    }),
     busy && spinnerOverlay
   ])])
 }
