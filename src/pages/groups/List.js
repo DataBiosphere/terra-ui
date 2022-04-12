@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { a, b, div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ClipboardButton, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { a, div, h, h2 } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ClipboardButton, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -81,19 +81,6 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
       onChange: setAllowAccessRequests
     }),
     submitting && spinnerOverlay
-  ])
-}
-
-const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Group Delete',
-    okButton: h(ButtonPrimary, {
-      onClick: onSubmit
-    }, ['Delete Group'])
-  }, [
-    'Are you sure you want to delete the group ',
-    b([`${groupName}?`])
   ])
 }
 
@@ -266,17 +253,14 @@ const GroupList = () => {
         onDismiss: () => setCreatingNewGroup(false),
         onSuccess: refresh
       }),
-      deletingGroup && h(DeleteGroupModal, {
-        groupName: deletingGroup.groupName,
-        onDismiss: () => setDeletingGroup(false),
-        onSubmit: _.flow(
-          withErrorReporting('Error deleting group'),
-          Utils.withBusyState(setUpdating)
-        )(async () => {
-          setDeletingGroup(false)
+      deletingGroup && h(DeleteConfirmationModal, {
+        objectType: 'group',
+        objectName: deletingGroup.groupName,
+        onConfirm: withErrorReporting('Error deleting group.', async () => {
           await Ajax().Groups.group(deletingGroup.groupName).delete()
           refresh()
-        })
+        }),
+        onDismiss: () => setDeletingGroup(false)
       }),
       updating && spinnerOverlay
     ])
