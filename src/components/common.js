@@ -572,6 +572,7 @@ export const DeleteConfirmationModal = ({
   children,
   confirmationPrompt: confirmationPromptProp,
   buttonText: buttonTextProp,
+  dismissOnError = true,
   onConfirm,
   onDismiss
 }) => {
@@ -586,8 +587,14 @@ export const DeleteConfirmationModal = ({
     try {
       setBusy(true)
       await onConfirm()
-    } finally {
       onDismiss()
+    } catch (err) {
+      if (dismissOnError) {
+        onDismiss()
+      } else {
+        setBusy(false)
+        setConfirmation('')
+      }
     }
   }
 

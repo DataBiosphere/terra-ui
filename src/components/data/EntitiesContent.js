@@ -511,11 +511,14 @@ const EntitiesContent = ({
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),
         onSuccess: () => {
-          setDeletingEntities(false)
           setSelectedEntities({})
           setRefreshKey(_.add(1))
           Ajax().Metrics.captureEvent(Events.workspaceDataDelete, extractWorkspaceDetails(workspace.workspace))
-          loadMetadata()
+
+          // Avoid React warning about state update on unmounted component.
+          // Loading metadata will cause EntitiesComponent to be unmounted and replaced with a spinner while
+          // metadata is loading. Defer loading metadata until after the confirmation modal is dismissed.
+          Utils.onNextTick(loadMetadata)
         },
         namespace, name,
         selectedEntities, selectedDataType: entityKey, runningSubmissionsCount

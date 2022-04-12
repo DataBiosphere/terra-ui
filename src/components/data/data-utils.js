@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -154,7 +154,6 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
 
 export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([])
-  const [deleting, setDeleting] = useState(false)
 
   const selectedKeys = _.keys(selectedEntities)
 
@@ -164,8 +163,6 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       entities => _.concat(entities, additionalDeletions)
     )(selectedEntities)
 
-    setDeleting(true)
-
     try {
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
       onSuccess()
@@ -173,11 +170,9 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       switch (error.status) {
         case 409:
           setAdditionalDeletions(_.filter(entity => entity.entityType !== selectedDataType, await error.json()))
-          setDeleting(false)
-          break
+          throw error // re-throw error to prevent DeleteConfirmationModal from dismissing itself
         default:
-          await reportError('Error deleting data entries', error)
-          onDismiss()
+          reportError('Error deleting data entries', error)
       }
     }
   }
@@ -191,13 +186,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   }
 
   const total = selectedKeys.length + additionalDeletions.length
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Delete',
-    okButton: h(ButtonPrimary, {
-      disabled: deleting,
-      onClick: doDelete
-    }, ['Delete'])
+  return h(DeleteConfirmationModal, {
+    objectType: 'data',
+    dismissOnError: false,
+    onConfirm: doDelete,
+    onDismiss
   }, [
     runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
       icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
@@ -213,7 +206,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     div({ style: { maxHeight: 'calc((1em * 1.15 + 1.2rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } },
       _.map(([i, entity]) => div({
         style: {
-          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : `1px solid ${colors.light()}`,
           padding: '0.6rem 1.25rem'
         }
       }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
@@ -221,8 +214,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     ),
     div({
       style: { ...fullWidthWarning, textAlign: 'right' }
-    }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
-    deleting && spinnerOverlay
+    }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`])
   ])
 }
 
