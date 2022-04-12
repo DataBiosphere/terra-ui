@@ -35,7 +35,7 @@ export const pdTypes = {
   fromString: str => Utils.switchCase(str,
     [pdTypes.standard.label, () => pdTypes.standard],
     [pdTypes.ssd.label, () => pdTypes.ssd],
-    [Utils.DEFAULT, () => console.error('Should not be calling pdTypes. fromString for $(str), invalid disk type')]
+    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }
 export const mapDisksToPDTypes = disks => _.map(_.update('diskType', pdTypes.fromString), disks)
