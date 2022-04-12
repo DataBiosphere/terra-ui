@@ -287,7 +287,7 @@ export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingS
 
 export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   const disk = _.find({ name: app?.diskName }, appDataDisks)
-  return disk && _.set('diskType', pdTypes.fromString(disk.diskType), _.find({ name: app?.diskName }, appDataDisks))
+  return disk && _.set('diskType', pdTypes.fromString(disk.diskType), disk)
 }
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
