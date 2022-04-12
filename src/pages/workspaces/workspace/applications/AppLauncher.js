@@ -109,9 +109,9 @@ const ApplicationLauncher = _.flow(
           p(['2) ', b('continue working on your versions'), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
         [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
           p('You can'),
-        p(['1) ', b('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
-        p([b('or')]),
-        p(['2) ', b('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
+          p(['1) ', b('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
+          p([b('or')]),
+          p(['2) ', b('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
