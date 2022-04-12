@@ -3,7 +3,7 @@ import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, IdContainer, Link, methodLink, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, methodLink, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
@@ -19,6 +19,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code'
+import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -380,18 +381,10 @@ export const Workflows = _.flow(
           setWorkflowToCopy(undefined)
         }
       }),
-      workflowToDelete && h(DeleteConfirmationModal, {
-        objectType: 'workflow',
-        objectName: getConfig(workflowToDelete).name,
-        onConfirm: withErrorReporting('Error deleting workflow.', async () => {
-          const { namespace, name } = getConfig(workflowToDelete)
-          await Ajax().Workspaces
-            .workspace(workspace.namespace, workspace.name)
-            .methodConfig(namespace, name)
-            .delete()
-          refresh()
-        }),
-        onDismiss: () => setWorkflowToDelete(undefined)
+      workflowToDelete && h(DeleteWorkflowModal, {
+        workspace, methodConfig: getConfig(workflowToDelete),
+        onDismiss: () => setWorkflowToDelete(undefined),
+        onSuccess: () => refresh()
       })
     ]),
     div({ style: styles.cardContainer(listView) }, [

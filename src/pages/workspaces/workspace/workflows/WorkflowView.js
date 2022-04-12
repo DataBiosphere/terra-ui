@@ -4,7 +4,7 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -29,6 +29,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
+import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
@@ -917,23 +918,17 @@ const WorkflowView = _.flow(
         onDismiss: () => this.setState({ copying: false }),
         onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName })
       }),
-      deleting && h(DeleteConfirmationModal, {
-        objectType: 'workflow',
-        objectName: savedConfig.name,
-        onConfirm: withErrorReporting('Error deleting workspace.', async () => {
-          await Ajax().Workspaces
-            .workspace(workspace.namespace, workspace.name)
-            .methodConfig(savedConfig.namespace, savedConfig.name)
-            .delete()
-
-          // Return to workflows list after modal is dismissed. DeleteConfirmationModal calls
-          // onDismiss after onConfirm. Thus, navigating away from this page immediately causes
-          // a warning about a state update on an unmounted component.
+      deleting && h(DeleteWorkflowModal, {
+        workspace, methodConfig: savedConfig,
+        onDismiss: () => this.setState({ deleting: false }),
+        onSuccess: () => {
+          // Return to workflows list after modal is dismissed. DeleteWorkflowModal calls
+          // onDismiss after onSuccess. Thus, navigating away from this page immediately
+          // causes a warning about a state update on an unmounted component.
           setTimeout(() => {
             Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
           }, 0)
-        }),
-        onDismiss: () => this.setState({ deleting: false })
+        }
       }),
       selectingData && h(DataStepContent, {
         entityMetadata,
