@@ -362,7 +362,8 @@ const DataTable = props => {
           entityMetadata,
           entityType,
           snapshotName,
-          workspace
+          workspace,
+          modalWidth: 800
         }, {
           columnSettings,
           onSave: setColumnState

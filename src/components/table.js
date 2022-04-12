@@ -3,11 +3,11 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
-import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
+import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
@@ -147,11 +147,6 @@ const styles = {
     color: colors.accent(), backgroundColor: colors.light(0.4),
     border: `1px solid ${colors.dark(0.2)}`,
     borderRadius: 5
-  },
-  columnName: {
-    paddingLeft: '0.25rem',
-    flex: 1, display: 'flex', alignItems: 'center',
-    ...Style.noWrapEllipsis
   },
   columnHandle: {
     paddingRight: '0.25rem', cursor: 'move',
@@ -746,16 +741,30 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
               h(SortableHandleDiv, { style: styles.columnHandle }, [
                 icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
               ]),
-              div({ style: { display: 'flex', alignItems: 'center' } }, [
-                h(LabeledCheckbox, {
-                  checked: visible,
-                  onChange: () => toggleVisibility(index)
+              h(IdContainer, [id => h(Fragment, [
+                h(TooltipTrigger, {
+                  // Since attribute names don't contain spaces, word-break: break-all is necessary to
+                  // wrap the attribute name instead of truncating it when the tooltip reaches its
+                  // max width of 400px.
+                  content: span({ style: { wordBreak: 'break-all' } }, name)
                 }, [
-                  h(Clickable, {
-                    style: styles.columnName
-                  }, [name])
+                  label({
+                    htmlFor: id,
+                    style: {
+                      lineHeight: '30px', // match rowHeight of SortableList
+                      ...Style.noWrapEllipsis
+                    }
+                  }, [
+                    h(Checkbox, {
+                      id,
+                      checked: visible,
+                      onChange: () => toggleVisibility(index)
+                    }),
+                    ' ',
+                    name
+                  ])
                 ])
-              ])
+              ])])
             ])
           },
           onSortEnd: v => reorder(v)
@@ -772,7 +781,7 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
  * @param {Object} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
-export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent = ColumnSettings, style, ...otherProps }) => {
+export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent = ColumnSettings, modalWidth = 600, style, ...otherProps }) => {
   const [open, setOpen] = useState(false)
   const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
 
@@ -789,7 +798,7 @@ export const ColumnSelector = ({ onSave, columnSettings, columnSettingsComponent
     }, [icon('cog', { size: 20 })]),
     open && h(Modal, {
       title: 'Select columns',
-      width: 600,
+      width: modalWidth,
       onDismiss: () => setOpen(false),
       okButton: h(ButtonPrimary, {
         onClick: () => {
