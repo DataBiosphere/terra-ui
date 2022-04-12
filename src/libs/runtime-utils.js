@@ -38,7 +38,7 @@ export const pdTypes = {
     [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }
-export const mapToPdTypes = disks => _.map(_.update('diskType', pdTypes.fromString), disks)
+export const mapToPdTypes = _.map(_.update('diskType', pdTypes.fromString))
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
