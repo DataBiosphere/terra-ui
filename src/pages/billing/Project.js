@@ -227,6 +227,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const projectHasMultipleOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
+  const membersKey = isOwner ? 'members' : 'owners'
+
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
     _.map('workspace', workspaces)
@@ -322,7 +324,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )(workspacesInProject)
       ])
     ]),
-    members: h(Fragment, [
+    [membersKey]: h(Fragment, [
       isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
@@ -386,7 +388,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
-      ...query, tab: tab === tabs[0].key ? undefined : tab
+      ...query, tab: tab === tabs[0].key ? undefined : (tab === 'owners' ? 'members' : tab)
     }, { addQueryPrefix: true })
 
     if (newSearch !== Nav.history.location.search) {
