@@ -16,7 +16,7 @@ import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -49,10 +49,10 @@ const getUnique = (prop, data) => _.flow(
 const extractCatalogFilters = dataCatalog => {
   return [{
     name: 'Access type',
-    labels: _.values(snapshotAccessTypes),
+    labels: _.values(datasetAccessTypes),
     labelRenderer: accessValue => {
       const lowerKey = _.toLower(accessValue)
-      const iconKey = accessValue === snapshotAccessTypes.GRANTED ? 'unlock' : 'lock'
+      const iconKey = accessValue === datasetAccessTypes.GRANTED ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
         div([accessValue])
@@ -65,7 +65,7 @@ const extractCatalogFilters = dataCatalog => {
     name: 'Data use policy',
     labels: getUnique('dataReleasePolicy.policy', dataCatalog),
     labelRenderer: rawPolicy => {
-      const { label, desc } = snapshotReleasePolicies[rawPolicy] || snapshotReleasePolicies.releasepolicy_other
+      const { label, desc } = datasetReleasePolicies[rawPolicy] || datasetReleasePolicies.releasepolicy_other
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
         label ? label : rawPolicy,
         desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
@@ -113,6 +113,8 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:tableView`, {
+            // These are still using snapshot as a relic to ensure backwards search
+            // capabilities within the data browser.
             snapshotIds: _.map('dct:identifier', selectedData),
             snapshotName: _.map('dct:title', selectedData)
           })
@@ -158,10 +160,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
 
         return {
           checkbox: h(TooltipTrigger, {
-            ...(datum.access !== snapshotAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
+            ...(datum.access !== datasetAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
           }, [h(Checkbox, {
             'aria-label': datum['dct:title'],
-            disabled: datum.access !== snapshotAccessTypes.GRANTED,
+            disabled: datum.access !== datasetAccessTypes.GRANTED,
             checked: _.includes(datum, selectedData),
             onChange: () => toggleSelectedData(datum)
           })]),
@@ -184,17 +186,19 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                [datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                   onClick: () => {
                     setRequestDatasetAccessList([datum])
                     Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                      // These are still using snapshot as a relic to ensure backwards search
+                      // capabilities within the data browser.
                       snapshotId: _.get('dct:identifier', datum),
                       snapshotName: datum['dct:title']
                     })
                   }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-                [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],

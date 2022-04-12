@@ -132,6 +132,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
@@ -1046,38 +1047,15 @@ const Workspaces = signal => ({
   }
 })
 
+const Catalog = signal => ({
+  getDatasets: async () => {
+    const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
 
 const DataRepo = signal => ({
-  getSnapshots: async () => {
-    const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
-    //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
-    return _.map(snapshot => snapshot['dct:title'].length % 2 === 0 ?
-      {
-        ...snapshot,
-        roles: ['discoverer'],
-        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC',
-        dataSource: {
-          storageSystemName: 'the Terra workspace',
-          storageSystemId: '',
-          storageSourceId: 'testing',
-          storageSourceName: 'TARGET_WT_hg38_OpenAccess_GDCDR-12-0_DATA'
-        },
-        legacyDatasetAttributes: {
-          experimentalStrategy: 'Whole Exome',
-          cohortDescription: 'Whilms Tumor',
-          cohortName: 'TARGET Kidney Tumors Project: Wilms Tumor',
-          cohortPhenotype: 'metachronous kidney Wilms\' tumor',
-          datasetVersion: 'GDCDR-12-0',
-          datasetOwner: 'NCI',
-          datasetCustodian: 'Chet Birger',
-          noOfSubjects: 'Number of Subjects',
-          region: 'Multi-region - US',
-          studyDesign: 'Tumor/Norma',
-          projectName: 'TARGET'
-        }
-      } : snapshot, (await res.json())?.result)
-  },
-
   snapshot: snapshotId => {
     return {
       details: async () => {
@@ -1085,12 +1063,6 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
-  },
-
-  requestAccess: async id => {
-    //TODO: Update this link to hit the real endpoint
-    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
-    return res.json()
   },
 
   getPreviewMetadata: async id => {
@@ -1702,6 +1674,7 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
+    Catalog: Catalog(signal),
     DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
     Methods: Methods(signal),

@@ -8,9 +8,8 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { snapshotAccessTypes } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes } from 'src/pages/library/dataBrowser-utils'
 
 
 const sendCopyEnabled = false
@@ -85,8 +84,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
             ]),
             td([
               Utils.switchCase(access,
-                [snapshotAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
-                [snapshotAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+                [datasetAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
+                [datasetAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
                 [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
               )
             ])
@@ -98,14 +97,12 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 
 const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
   const [status, setStatus] = useState('')
-  const signal = useCancellation()
 
   return h(ButtonPrimary, {
     disabled: status,
-    onClick: withErrorReporting('Error requesting dataset access', async () => {
-      requestAccessEnabled ?
-        await Ajax(signal).DataRepo.requestAccess(id) :
-        setShowWipModal(true)
+    onClick: withErrorReporting('Error requesting dataset access', () => {
+      // TODO DC-309: Make Access Requests point to the data catalog
+      !requestAccessEnabled && setShowWipModal(true)
       setStatus('Request Sent')
       Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
         snapshotId: id,
