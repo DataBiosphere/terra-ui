@@ -112,11 +112,11 @@ export const getValidGpuTypesForZone = zone => {
   return _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
 }
 
-export const getValidGpuTypes = (numCpus, mem, zone) => {
-  const validGpuTypesForZone = getValidGpuTypesForZone(zone)
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type),
+export const getValidGpuOptions = (numCpus, mem, zone) => {
+  const validGpuOptionsForZone = getValidGpuTypesForZone(zone)
+  const validGpuOptions = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuOptionsForZone.includes(type),
     gpuTypes)
-  return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
+  return validGpuOptions || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
 const dataprocCost = (machineType, numInstances) => {

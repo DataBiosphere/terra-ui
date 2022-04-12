@@ -1,5 +1,6 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
@@ -28,6 +29,7 @@ import colors from 'src/libs/colors'
 import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -547,7 +549,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -690,6 +692,9 @@ const WorkspaceData = _.flow(
                 'aria-haspopup': 'dialog',
                 onClick: () => setUploadingFile(true)
               }, 'Upload TSV'),
+              h(MenuButton, {
+                href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
+              }, ['Open data uploader']),
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
                 onClick: () => setImportingReference(true)

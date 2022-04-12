@@ -739,9 +739,14 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // State
   const { query } = Nav.useRoute()
-  const [currentStep, setCurrentStep] = useState(StateHistory.get().currentStep || 'workspaces')
   const [workspaceId, setWorkspaceId] = useState(query.workspace)
   const [collection, setCollection] = useState(query.collection)
+  const [currentStep, setCurrentStep] = useState(Utils.cond(
+    [!!StateHistory.get().currentStep, () => StateHistory.get().currentStep],
+    [!!workspaceId && !!collection, () => 'data'],
+    [!!workspaceId && !collection, () => 'collection'],
+    () => 'workspaces'
+  ))
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [numFiles, setNumFiles] = useState(StateHistory.get().numFiles)
   const [tableName, setTableName] = useState(StateHistory.get().tableName)
@@ -775,7 +780,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // Make sure we have a valid step once the workspaces have finished loading
   useEffect(() => {
-    if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
+    if (!stepIsEnabled(currentStep) && !!workspaces) {
       let last = steps[0]
       for (const step of steps) {
         if (!step.test()) {

@@ -26,7 +26,7 @@ import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
-  getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone,
+  getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -182,7 +182,9 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 // Auxiliary functions -- end
 
-export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode }) => {
+export const ComputeModalBase = ({
+  onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+}) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -329,6 +331,24 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     onSuccess()
   })
+
+  const getMainMachineTypeByNumCpus = numCpus => _.find({ cpu: numCpus }, validMachineTypes)?.name || mainMachineType
+
+  const getMainMachineTypeByMemory = (numCpus, memory) => _.find({ cpu: numCpus, memory }, validMachineTypes)?.name || mainMachineType
+
+  const getValidCpuGpuConfig = machineType => {
+    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(machineType)
+    const validGpuOptions = getValidGpuOptions(currentNumCpus, currentMemory, computeConfig.computeZone)
+    const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
+    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
+      displayNameForGpuType(computeConfig.gpuType) :
+      _.head(validGpuNames)
+    const validGpuType = _.find({ name: validGpuName }, validGpuOptions)?.type
+    const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
+    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+
+    return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions }
+  }
 
   const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
@@ -875,14 +895,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderComputeProfileSection = computeExists => {
-    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
-    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
-    const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
-    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
-      displayNameForGpuType(computeConfig.gpuType) :
-      _.head(validGpuNames)
-    const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
-    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+    const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } = getValidCpuGpuConfig(
+      mainMachineType)
+
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
@@ -902,8 +917,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentNumCpus,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByNumCpus(value)
+                    const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    updateComputeConfig('gpuType', newGpuType)
+                    updateComputeConfig('numGpus', newNumGpus)
+                  },
                   options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
                 })
               ])
@@ -917,8 +937,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentMemory,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: currentNumCpus, memory: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByMemory(currentNumCpus, value)
+                    const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    updateComputeConfig('gpuType', newGpuType)
+                    updateComputeConfig('numGpus', newNumGpus)
+                  },
                   options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(
                     validMachineTypes)
                 })
@@ -967,7 +992,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     id,
                     isSearchable: false,
                     value: validGpuName,
-                    onChange: ({ value }) => updateComputeConfig('gpuType', _.find({ name: value }, validGpuOptions)?.type),
+                    onChange: ({ value }) => updateComputeConfig('gpuType',
+                      _.get('type', _.find({ name: value }, validGpuOptions))),
                     options: validGpuNames
                   })
                 ])
@@ -982,7 +1008,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     isSearchable: false,
                     value: validNumGpus,
                     onChange: ({ value }) => updateComputeConfig('numGpus',
-                      _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions)?.numGpus),
+                      _.get('numGpus', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions))),
                     options: validNumGpusOptions
                   })
                 ])

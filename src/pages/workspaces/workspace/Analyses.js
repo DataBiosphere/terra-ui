@@ -7,12 +7,12 @@ import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -21,7 +21,7 @@ import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
-import rstudioBioLogo from 'src/images/r-bio-logo.png'
+import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -327,7 +327,7 @@ const Analyses = _.flow(
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
       img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
-      img({ src: rstudioBioLogo, style: { width: 406, height: 75, marginRight: '1rem' } }),
+      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
       div([
         img({ src: galaxyLogo, style: { height: 60, width: 208 } })
         // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
@@ -498,14 +498,25 @@ const Analyses = _.flow(
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
-        deletingAnalysisName && h(AnalysisDeleter, {
-          printName: getDisplayName(deletingAnalysisName), googleProject, bucketName,
-          toolLabel: getTool(deletingAnalysisName),
-          onDismiss: () => setDeletingAnalysisName(undefined),
-          onSuccess: () => {
-            setDeletingAnalysisName(undefined)
-            refreshAnalyses()
-          }
+        deletingAnalysisName && h(DeleteConfirmationModal, {
+          objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
+          objectName: getDisplayName(deletingAnalysisName),
+          confirmationPrompt: 'Delete analysis',
+          buttonText: 'Delete analysis',
+          onConfirm: async () => {
+            try {
+              await Ajax().Buckets.analysis(
+                googleProject,
+                bucketName,
+                getDisplayName(deletingAnalysisName),
+                getTool(deletingAnalysisName)
+              ).delete()
+              refreshAnalyses()
+            } catch (err) {
+              reportError('Error deleting analysis.', err)
+            }
+          },
+          onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),
       renderAnalyses()

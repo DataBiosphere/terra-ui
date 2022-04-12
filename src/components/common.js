@@ -487,7 +487,7 @@ const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({
   }
 }, [isOn ? onLabel : offLabel])
 
-export const Switch = ({ onChange, onLabel = 'True', offLabel = 'False', ...props }) => {
+export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True', offLabel = 'False', ...props }, ref) => {
   return h(RSwitch, {
     onChange: value => onChange(value),
     offColor: colors.dark(0.5),
@@ -495,9 +495,17 @@ export const Switch = ({ onChange, onLabel = 'True', offLabel = 'False', ...prop
     checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
     uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
     width: 80,
-    ...props
+    ...props,
+    ref: rSwitch => {
+      const inputEl = rSwitch ? rSwitch.$inputRef : null
+      if (_.has('current', ref)) {
+        ref.current = inputEl
+      } else if (_.isFunction(ref)) {
+        ref(inputEl)
+      }
+    }
   })
-}
+})
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
@@ -557,7 +565,20 @@ export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) =
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
 
-export const PromptedConfirmationModal = ({ title, children, confirmationPrompt = 'Delete', buttonText = 'Delete', onConfirm, onDismiss }) => {
+export const DeleteConfirmationModal = ({
+  objectType,
+  objectName,
+  title: titleProp,
+  children,
+  confirmationPrompt: confirmationPromptProp,
+  buttonText: buttonTextProp,
+  onConfirm,
+  onDismiss
+}) => {
+  const title = titleProp || `Delete ${objectType}`
+  const confirmationPrompt = confirmationPromptProp || `Delete ${objectType}`
+  const buttonText = buttonTextProp || `Delete ${objectType}`
+
   const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
 
@@ -581,7 +602,11 @@ export const PromptedConfirmationModal = ({ title, children, confirmationPrompt 
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
     }, buttonText)
   }, [
-    children,
+    children || h(Fragment, [
+      div([`Are you sure you want to delete the ${objectType} `,
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
+      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    ]),
     div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [
         label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
