@@ -35,7 +35,7 @@ export const pdTypes = {
   fromString: str => Utils.switchCase(str,
     [pdTypes.standard.label, () => pdTypes.standard],
     [pdTypes.ssd.label, () => pdTypes.ssd],
-    [Utils.DEFAULT, () => console.error('Should not be calling pdTypes. fromString for $(str), invalid disk type')]
+    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }
 export const mapToPdTypes = disks => _.map(_.update('diskType', pdTypes.fromString), disks)
@@ -287,7 +287,7 @@ export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingS
 
 export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
   const disk = _.find({ name: app?.diskName }, appDataDisks)
-  return disk && _.set('diskType', pdTypes.fromString(disk.diskType), _.find({ name: app?.diskName }, appDataDisks))
+  return disk && _.set('diskType', pdTypes.fromString(disk.diskType), disk)
 }
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.

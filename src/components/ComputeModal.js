@@ -184,7 +184,6 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 
 export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode }) => {
   // State -- begin
-
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
