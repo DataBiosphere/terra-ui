@@ -360,67 +360,6 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
   ))
 }
 
-export const AnalysisDeleter = ({ printName, toolLabel, googleProject, bucketName, onDismiss, onSuccess }) => {
-  const [processing, setProcessing] = useState(false)
-
-  return h(Modal, {
-    onDismiss,
-    title: `Delete "${printName}"`,
-    okButton: h(ButtonPrimary, {
-      disabled: processing,
-      onClick: () => {
-        setProcessing(true)
-        Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).delete().then(
-          onSuccess,
-          error => reportError('Error deleting analysis', error)
-        )
-      }
-    }, 'Delete Analysis')
-  },
-  Utils.cond(
-    [processing, () => [centeredSpinner()]],
-    () => [
-      div({ style: { fontSize: '1rem', flexGrow: 1 } },
-        [
-          `Are you sure you want to delete "${printName}"?`,
-          div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
-        ]
-      )
-    ]
-  ))
-}
-
-//TODO: deprecate once notebooks tab is removed
-export const NotebookDeleter = ({ printName, googleProject, bucketName, onDismiss, onSuccess }) => {
-  const [processing, setProcessing] = useState(false)
-
-  return h(Modal, {
-    onDismiss,
-    title: `Delete "${printName}"`,
-    okButton: h(ButtonPrimary, {
-      disabled: processing,
-      onClick: () => {
-        setProcessing(true)
-        Ajax().Buckets.notebook(googleProject, bucketName, printName).delete().then(
-          onSuccess,
-          error => reportError('Error deleting notebook', error)
-        )
-      }
-    }, 'Delete Notebook')
-  },
-  Utils.cond(
-    [processing, () => [centeredSpinner()]],
-    () => [
-      div({ style: { fontSize: '1rem', flexGrow: 1 } },
-        [
-          `Are you sure you want to delete "${printName}"?`,
-          div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
-        ]
-      )
-    ]
-  ))
-}
-
 // In Python notebook, use ' instead of " in code cells, to avoid formatting problems.
 // Changes from raw .ipynb:
 // - In notebook cells, change \n to \\n

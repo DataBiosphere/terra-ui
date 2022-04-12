@@ -6,13 +6,13 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, DeleteConfirmationModal, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash, tools
+  findPotentialNotebookLockers, NotebookCreator, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisTabName } from 'src/components/runtime-common'
@@ -69,12 +69,22 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   div([
     'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Notebook'])
   ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+  div({ style: { margin: '1rem 0', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/sections/360004143932`
     }, [`What's a notebook?`])
   ])
+])
+
+const activeFileTransferMessage = div({
+  style: _.merge(
+    Style.elements.card.container,
+    { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+}, [
+  icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+  'Copying 1 or more notebooks from another workspace.',
+  span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
 ])
 
 const NotebookCard = ({
@@ -236,6 +246,7 @@ const Notebooks = _.flow(
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
   const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
+  const [activeFileTransfers, setActiveFileTransfers] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -246,15 +257,23 @@ const Notebooks = _.flow(
 
   const refreshNotebooks = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading notebooks'),
+    withErrorReporting('Error loading notebooks.'),
     Utils.withBusyState(setBusy)
   )(async () => {
     const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
+  const getActiveFileTransfers = _.flow(
+    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
+    setActiveFileTransfers(!_.isEmpty(fileTransfers))
+  })
+
   const doAppRefresh = _.flow(
-    withErrorReporting('Error loading Apps'),
+    withErrorReporting('Error loading Apps.'),
     Utils.withBusyState(setBusy)
   )(refreshApps)
 
@@ -287,6 +306,7 @@ const Notebooks = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
+      getActiveFileTransfers()
       refreshNotebooks()
     }
 
@@ -385,14 +405,17 @@ const Notebooks = _.flow(
           ])
         ])
       ]),
-      Utils.cond(
-        [_.isEmpty(notebooks), () => noNotebooksMessage],
-        [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
-          return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
-        }],
-        [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
-        () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
-      )
+      div({ style: { flexGrow: 1 } }, [
+        Utils.cond(
+          [_.isEmpty(notebooks), () => noNotebooksMessage],
+          [!_.isEmpty(notebooks) && _.isEmpty(renderedNotebooks), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching notebooks'])
+          }],
+          [listView, () => div({ style: { flex: 1 } }, [renderedNotebooks])],
+          () => div({ style: { display: 'flex', flexWrap: 'wrap' } }, renderedNotebooks)
+        ),
+        activeFileTransfers && activeFileTransferMessage
+      ])
     ])
   }
 
@@ -492,13 +515,18 @@ const Notebooks = _.flow(
           printName: printName(exportingNotebookName), workspace,
           onDismiss: () => setExportingNotebookName(undefined)
         }),
-        deletingNotebookName && h(NotebookDeleter, {
-          printName: printName(deletingNotebookName), googleProject, bucketName,
-          onDismiss: () => setDeletingNotebookName(undefined),
-          onSuccess: () => {
-            setDeletingNotebookName(undefined)
-            refreshNotebooks()
-          }
+        deletingNotebookName && h(DeleteConfirmationModal, {
+          objectType: 'notebook',
+          objectName: printName(deletingNotebookName),
+          onConfirm: async () => {
+            try {
+              await Ajax().Buckets.notebook(googleProject, bucketName, printName(deletingNotebookName)).delete()
+              refreshNotebooks()
+            } catch (err) {
+              reportError('Error deleting notebook.', err)
+            }
+          },
+          onDismiss: () => setDeletingNotebookName(undefined)
         }),
         h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,

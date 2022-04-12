@@ -1,5 +1,6 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
@@ -28,6 +29,7 @@ import colors from 'src/libs/colors'
 import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -374,21 +376,61 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => div({
-  role: 'listitem'
-}, [
-  h3({ style: Style.navList.heading }, [
-    title,
-    error ? h(Link, {
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
+  if (!isDataTabRedesignEnabled()) {
+    return div({ role: 'listitem' }, [
+      h3({ style: Style.navList.heading }, [
+        title,
+        error ? h(Link, {
+          onClick: retryFunction,
+          tooltip: 'Error loading, click to retry.'
+        }, [icon('sync', { size: 18 })]) : titleExtras
+      ]),
+      !!children?.length && div({
+        style: { display: 'flex', flexDirection: 'column', width: '100%' },
+        role: 'list'
+      }, [children])
+    ])
+  }
+
+  return h(Collapse, {
+    role: 'listitem',
+    title: h3({
+      style: {
+        margin: 0,
+        fontSize: 16,
+        textTransform: 'uppercase'
+      }
+    }, title),
+    titleFirst: true,
+    initialOpenState: true,
+    summaryStyle: {
+      paddingRight: error ? '1rem' : 0,
+      borderBottom: `0.5px solid ${colors.dark(0.2)}`,
+      backgroundColor: colors.light(0.4),
+      fontSize: 16
+    },
+    buttonProps: {
+      hover: {
+        color: colors.dark(0.9)
+      }
+    },
+    buttonStyle: {
+      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
+      marginBottom: 0,
+      color: colors.dark()
+    },
+    afterToggle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
-    }, [icon('sync', { size: 18 })]) : titleExtras
-  ]),
-  !!children?.length && div({
-    style: { display: 'flex', flexDirection: 'column', width: '100%' },
-    role: 'list'
-  }, [children])
-])
+    }, [icon('sync', { size: 18 })])
+  }, [
+    !!children?.length && div({
+      style: { display: 'flex', flexDirection: 'column', width: '100%' },
+      role: 'list'
+    }, [children])
+  ])
+}
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   const minWidth = 280
@@ -507,7 +549,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -650,6 +692,9 @@ const WorkspaceData = _.flow(
                 'aria-haspopup': 'dialog',
                 onClick: () => setUploadingFile(true)
               }, 'Upload TSV'),
+              h(MenuButton, {
+                href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
+              }, ['Open data uploader']),
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
                 onClick: () => setImportingReference(true)

@@ -15,7 +15,7 @@ import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
-import rstudioBioLogo from 'src/images/r-bio-logo.png'
+import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -357,7 +357,7 @@ export const CloudEnvironmentModal = ({
         div({ style: toolLabelStyles }, [
           img({
             src: getToolIcon(toolLabel),
-            style: { height: 20 },
+            style: { height: 25 },
             alt: `${toolLabel}`
           }),
           getCostForTool(toolLabel)

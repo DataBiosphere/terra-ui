@@ -222,9 +222,8 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
       }, 'Save this column selection')
     ]),
 
-    hr({ style: { margin: '1rem 0' } }),
-
     _.size(savedColumnSettings) > 0 && h(Fragment, [
+      hr({ style: { margin: '1rem 0' } }),
       p({ style: { marginTop: 0 } }, 'Your saved column selections:'),
       div({ style: { flex: '1 1 0', overflow: 'auto', paddingRight: '1rem' } }, [
         ul({ style: { padding: 0, margin: 0 } }, [
@@ -268,13 +267,21 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
 
 export const ColumnSettingsWithSavedColumnSettings = ({ columnSettings, onChange, ...otherProps }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-    div({ style: { width: 'calc(50% - 1rem)' } }, [
+    div({ style: { flex: '1 1 0' } }, [
       h(ColumnSettings, {
         columnSettings,
         onChange
       })
     ]),
-    div({ style: { width: 'calc(50% - 1rem)', marginTop: '2rem' } }, [
+    div({
+      style: {
+        width: '275px',
+        paddingLeft: '1rem',
+        borderLeft: `1px solid ${colors.light()}`,
+        marginLeft: '1rem',
+        marginTop: '2rem'
+      }
+    }, [
       h(SavedColumnSettings, {
         ...otherProps,
         columnSettings,

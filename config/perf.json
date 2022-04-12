@@ -3,6 +3,7 @@
   "bardRoot": "https://terra-bard-perf.appspot.com",
   "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-perf.broadinstitute.org",
+  "catalogUrlRoot": "https://catalog.dsde-perf.broadinstitute.org",
   "dataRepoUrlRoot": "https://jade-perf.datarepo-perf.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-perf.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
