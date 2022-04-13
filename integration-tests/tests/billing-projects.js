@@ -252,7 +252,7 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.selectMembers()
   // The billing project members tab should be titled "Members"
   await billingPage.assertText('Members')
-  await billingPage.assertText("Add User")
+  await billingPage.assertText('Add User')
   await billingPage.assertText('testuser1@example.com')
   await billingPage.assertText('testuser3@example.com')
 
@@ -262,9 +262,9 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.selectOwners()
   // The billing project members tab should be titled "Owners"
   await billingPage.assertText('Owners')
-  await assertTextNotFound(billingPage, "Add User")
+  await assertTextNotFound(billingPage, 'Add User')
   await billingPage.assertText('testuser1@example.com')
-  await assertTextNotFound(billingPage, "testuser3@example.com")
+  await assertTextNotFound(billingPage, 'testuser3@example.com')
 })
 
 const testBillingMembers = {
