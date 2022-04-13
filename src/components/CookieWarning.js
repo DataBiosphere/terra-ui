@@ -23,7 +23,11 @@ const CookieWarning = () => {
   const rejectCookies = async () => {
     const cookies = document.cookie.split(';')
     acceptCookies(false)
-    await Ajax(signal).Runtimes.invalidateCookie()
+    try {
+      await Ajax(signal).Runtimes.invalidateCookie()
+    } catch (err) {
+      // Do Nothing
+    }
     // Expire all cookies
     _.forEach(cookie => {
       // Find an equals sign and uses it to grab the substring of the cookie that is its name
@@ -33,7 +37,7 @@ const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-  return !cookiesAccepted && aside({
+  return cookiesAccepted === false && aside({
     'aria-label': 'cookie consent banner',
     style: {
       flex: 0, height: 100, width: '100%',
