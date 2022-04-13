@@ -1,31 +1,29 @@
-import { h } from 'react-hyperscript-helpers'
-import { ButtonPrimary } from 'src/components/common'
-import Modal from 'src/components/Modal'
+import { div, h, span } from 'react-hyperscript-helpers'
+import { DeleteConfirmationModal } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 
 
 const DeleteWorkflowModal = ({ workspace, onDismiss, onSuccess, methodConfig: { name, namespace } }) => {
-  const doDelete = async () => {
-    try {
+  return h(DeleteConfirmationModal, {
+    objectType: 'workflow',
+    objectName: name,
+    onConfirm: withErrorReporting('Error deleting workflow.', async () => {
       await Ajax().Workspaces
         .workspace(workspace.namespace, workspace.name)
         .methodConfig(namespace, name)
         .delete()
+
       onSuccess()
-    } catch (error) {
-      reportError('Error deleting workflow', error)
-    }
-  }
-
-
-  return h(Modal, {
-    title: 'Delete Workflow',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: doDelete
-    }, ['Delete'])
-  }, [`Are you sure you want to delete "${name}"?`])
+    }),
+    onDismiss
+  }, [
+    div([`Are you sure you want to delete the workflow `,
+      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [name]), '?']),
+    div({ style: { marginTop: '1rem' } }, [
+      'The workflow can be re-added to the workspace, but changes to workflow configuration will be lost.'
+    ])
+  ])
 }
 
 export default DeleteWorkflowModal

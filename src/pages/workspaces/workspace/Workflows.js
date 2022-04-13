@@ -384,10 +384,7 @@ export const Workflows = _.flow(
       workflowToDelete && h(DeleteWorkflowModal, {
         workspace, methodConfig: getConfig(workflowToDelete),
         onDismiss: () => setWorkflowToDelete(undefined),
-        onSuccess: () => {
-          refresh()
-          setWorkflowToDelete(undefined)
-        }
+        onSuccess: () => refresh()
       })
     ]),
     div({ style: styles.cardContainer(listView) }, [

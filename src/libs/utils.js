@@ -160,6 +160,8 @@ export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0)
+
 // Returns a promise that will never resolve or reject. Useful for cancelling async flows.
 export const abandonedPromise = () => {
   return new Promise(() => {})
