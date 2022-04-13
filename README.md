@@ -11,7 +11,7 @@ Web user interface for the Terra platform.
 [Email an issue](mailto:terra-support@broadinstitute.zendesk.com)
 [Board and backlog](https://broadworkbench.atlassian.net/projects/SATURN/issues?filter=allopenissues&orderby=status%20DESC)
 
------------------------
+------------------------
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
