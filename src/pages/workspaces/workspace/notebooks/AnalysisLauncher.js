@@ -52,7 +52,7 @@ const AnalysisLauncher = _.flow(
     queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
     refreshRuntimes
   },
-  ref) => {
+  _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
@@ -268,13 +268,13 @@ const PreviewHeader = ({
         ...(toolLabel === tools.Jupyter.label ? [
           Utils.cond(
             [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
-              makeMenuIcon('warning-standard'), 'Edit (Disabled)'
+              makeMenuIcon('warning-standard'), 'Open (Disabled)'
             ])],
             [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
-              makeMenuIcon('lock'), 'Edit (In use)'
+              makeMenuIcon('lock'), 'Open (In use)'
             ])],
             () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? setCreateOpen(true) : chooseMode('edit') }, [
-              makeMenuIcon('edit'), 'Edit'
+              makeMenuIcon('rocket'), 'Open'
             ])
           ),
           h(HeaderButton, {
@@ -294,7 +294,7 @@ const PreviewHeader = ({
               }
             }
           }, [
-            makeMenuIcon('rocket'), 'Launch'
+            makeMenuIcon('rocket'), 'Open'
           ])
         ]),
         h(MenuTrigger, {

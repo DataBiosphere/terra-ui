@@ -96,7 +96,7 @@ const Code = () => {
       withBusyState(setLoading)
     )(async () => {
       const [newFeaturedList, newMethods] = await Promise.all([
-        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json()),
+        Ajax(signal).FirecloudBucket.getFeaturedMethods(),
         Ajax(signal).Methods.list({ namespace: 'gatk' })
       ])
       setFeaturedList(newFeaturedList)

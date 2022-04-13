@@ -1,14 +1,17 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
-import { div, h, h3 } from 'react-hyperscript-helpers'
+import * as qs from 'qs'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { DraggableCore } from 'react-draggable'
+import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
+import ExportDataModal from 'src/components/data/ExportDataModal'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -16,13 +19,17 @@ import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -40,15 +47,25 @@ const styles = {
     maxHeight: '100%',
     overflow: 'hidden'
   },
-  dataTypeSelectionPanel: {
-    flex: 'none', width: 280, backgroundColor: 'white',
+  sidebarContainer: {
     overflow: 'auto',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
+    transition: 'width 100ms'
+  },
+  dataTypeSelectionPanel: {
+    flex: 'none',
+    backgroundColor: 'white'
+  },
+  sidebarSeparator: {
+    width: '0.75rem',
+    height: '100%',
+    cursor: 'ew-resize'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    padding: '1rem', width: '100%',
+    // Left padding is 0.25rem to make room for the sidebar separator
+    padding: '1rem 1rem 1rem 0.25rem', width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
@@ -75,7 +92,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
-      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
       isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
@@ -208,7 +225,7 @@ const BucketContent = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, targetPrefix)
+    const { items, prefixes } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: targetPrefix, delimiter: '/' })
     setPrefix(targetPrefix)
     setPrefixes(prefixes)
     setObjects(items)
@@ -359,21 +376,172 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => div({
-  role: 'listitem'
-}, [
-  h3({ style: Style.navList.heading }, [
-    title,
-    error ? h(Link, {
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
+  if (!isDataTabRedesignEnabled()) {
+    return div({ role: 'listitem' }, [
+      h3({ style: Style.navList.heading }, [
+        title,
+        error ? h(Link, {
+          onClick: retryFunction,
+          tooltip: 'Error loading, click to retry.'
+        }, [icon('sync', { size: 18 })]) : titleExtras
+      ]),
+      !!children?.length && div({
+        style: { display: 'flex', flexDirection: 'column', width: '100%' },
+        role: 'list'
+      }, [children])
+    ])
+  }
+
+  return h(Collapse, {
+    role: 'listitem',
+    title: h3({
+      style: {
+        margin: 0,
+        fontSize: 16,
+        textTransform: 'uppercase'
+      }
+    }, title),
+    titleFirst: true,
+    initialOpenState: true,
+    summaryStyle: {
+      paddingRight: error ? '1rem' : 0,
+      borderBottom: `0.5px solid ${colors.dark(0.2)}`,
+      backgroundColor: colors.light(0.4),
+      fontSize: 16
+    },
+    buttonProps: {
+      hover: {
+        color: colors.dark(0.9)
+      }
+    },
+    buttonStyle: {
+      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
+      marginBottom: 0,
+      color: colors.dark()
+    },
+    afterToggle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
-    }, [icon('sync', { size: 18 })]) : titleExtras
-  ]),
-  !!children?.length && div({
-    style: { display: 'flex', flexDirection: 'column', width: '100%' },
-    role: 'list'
-  }, [children])
-])
+    }, [icon('sync', { size: 18 })])
+  }, [
+    !!children?.length && div({
+      style: { display: 'flex', flexDirection: 'column', width: '100%' },
+      role: 'list'
+    }, [children])
+  ])
+}
+
+const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
+  const minWidth = 280
+  const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const onDrag = useCallback(_.throttle(100, e => {
+    setSidebarWidth(_.clamp(minWidth, getMaxWidth(), e.pageX))
+  }), [setSidebarWidth])
+
+  useOnMount(() => {
+    const onResize = _.throttle(100, () => {
+      setSidebarWidth(_.clamp(minWidth, getMaxWidth()))
+    })
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  })
+
+  return h(DraggableCore, { onDrag }, [
+    h(Interactive, {
+      as: 'div',
+      role: 'separator',
+      'aria-label': 'Resize sidebar',
+      'aria-valuenow': sidebarWidth,
+      'aria-valuemin': minWidth,
+      'aria-valuemax': getMaxWidth(),
+      tabIndex: 0,
+      className: 'custom-focus-style',
+      style: styles.sidebarSeparator,
+      hover: {
+        background: `linear-gradient(to right, ${colors.accent(1.2)}, transparent 3px)`
+      },
+      onKeyDown: e => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+          setSidebarWidth(w => _.min([w + 10, getMaxWidth()]))
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+          setSidebarWidth(w => _.max([w - 10, minWidth]))
+        }
+      }
+    })
+  ])
+}
+
+const DataTableActions = ({ workspace, tableName, rowCount }) => {
+  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+  const isSetOfSets = tableName.endsWith('_set_set')
+
+  const downloadForm = useRef()
+  const signal = useCancellation()
+
+  const [loading, setLoading] = useState(false)
+  const [entities, setEntities] = useState([])
+  const [exporting, setExporting] = useState(false)
+
+  return h(Fragment, [
+    h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        form({
+          ref: downloadForm,
+          action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${tableName}/tsv`,
+          method: 'POST'
+        }, [
+          input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
+          input({ type: 'hidden', name: 'model', value: 'flexible' })
+        ]),
+        h(MenuButton, {
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets ?
+            'Downloading sets of sets as TSV is not supported at this time.' :
+            'Download a TSV file containing all rows in this table.',
+          onClick: () => {
+            downloadForm.current.submit()
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'all rows',
+              fileType: '.tsv'
+            })
+          }
+        }, 'Download TSV'),
+        h(MenuButton, {
+          onClick: _.flow(
+            Utils.withBusyState(setLoading),
+            withErrorReporting('Error loading entities.')
+          )(async () => {
+            const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(tableName, { pageSize: rowCount })
+            setEntities(_.map(_.get('name'), queryResults.results))
+            setExporting(true)
+          })
+        }, 'Export to workspace')
+      ])
+    }, [
+      h(Clickable, {
+        disabled: loading,
+        tooltip: 'Table menu',
+        useTooltipAsLabel: true
+      }, [icon(loading ? 'loadingSpinner' : 'cardMenuIcon')])
+    ]),
+    exporting && h(ExportDataModal, {
+      onDismiss: () => {
+        setExporting(false)
+        setEntities([])
+      },
+      workspace,
+      selectedDataType: tableName,
+      selectedEntities: entities,
+      runningSubmissionsCount
+    })
+  ])
+}
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -381,7 +549,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -394,6 +562,7 @@ const WorkspaceData = _.flow(
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
+  const [sidebarWidth, setSidebarWidth] = useState(280)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -508,183 +677,217 @@ const WorkspaceData = _.flow(
   const sortedEntityPairs = toSortedPairs(entityMetadata)
   const sortedSnapshotPairs = toSortedPairs(snapshotDetails)
 
+  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
+  const canEditWorkspace = !editWorkspaceErrorMessage
+
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
-        div({ role: 'list' }, [
-          h(DataTypeSection, {
-            title: 'Tables',
-            titleExtras: h(Link, {
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-              onClick: () => setUploadingFile(true),
-              'aria-haspopup': 'dialog'
-            }, [icon('plus-circle', { size: 21 })]),
-            error: entityMetadataError,
-            retryFunction: loadEntityMetadata
-          }, [
-            _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-            _.map(([type, typeDetails]) => {
-              return h(DataTypeButton, {
-                key: type,
-                selected: selectedDataType === type,
-                entityName: type,
-                entityCount: typeDetails.count,
+      div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+        isDataTabRedesignEnabled() && div({ style: { display: 'flex', padding: '1rem 1.5rem', backgroundColor: colors.light(0.4) } }, [
+          h(MenuTrigger, {
+            side: 'bottom',
+            closeOnClick: true,
+            content: h(Fragment, [
+              h(MenuButton, {
+                'aria-haspopup': 'dialog',
+                onClick: () => setUploadingFile(true)
+              }, 'Upload TSV'),
+              h(MenuButton, {
+                href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
+              }, ['Open data uploader']),
+              h(MenuButton, {
+                'aria-haspopup': 'dialog',
+                onClick: () => setImportingReference(true)
+              }, 'Add reference data')
+            ])
+          }, [h(ButtonOutline, {
+            disabled: !canEditWorkspace,
+            tooltip: canEditWorkspace ? 'Add data to this workspace' : editWorkspaceErrorMessage,
+            style: { flex: 1 }
+          }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Import data'])])])
+        ]),
+        div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
+          div({ role: 'list' }, [
+            h(DataTypeSection, {
+              title: 'Tables',
+              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
+                disabled: !!Utils.editWorkspaceError(workspace),
+                tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
+                onClick: () => setUploadingFile(true),
+                'aria-haspopup': 'dialog'
+              }, [icon('plus-circle', { size: 21 })]),
+              error: entityMetadataError,
+              retryFunction: loadEntityMetadata
+            }, [
+              _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              _.map(([type, typeDetails]) => {
+                return h(DataTypeButton, {
+                  key: type,
+                  selected: selectedDataType === type,
+                  entityName: type,
+                  entityCount: typeDetails.count,
+                  onClick: () => {
+                    setSelectedDataType(type)
+                    forceRefresh()
+                  },
+                  after: isDataTabRedesignEnabled() && h(DataTableActions, {
+                    tableName: type,
+                    rowCount: typeDetails.count,
+                    workspace
+                  })
+                })
+              }, sortedEntityPairs)
+            ]),
+            (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
+              title: 'Snapshots',
+              error: snapshotMetadataError,
+              retryFunction: loadSnapshotMetadata
+            }, [
+              _.map(([snapshotName, { resource: { resourceId, snapshotId }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+                const snapshotTablePairs = toSortedPairs(snapshotTables)
+                return h(Collapse, {
+                  key: snapshotName,
+                  titleFirst: true,
+                  buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
+                  buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
+                  style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+                  title: snapshotName, noTitleWrap: true,
+                  role: 'listitem',
+                  afterToggle: h(Link, {
+                    style: { marginRight: '0.5rem' },
+                    tooltip: 'Snapshot Info',
+                    onClick: () => {
+                      setSelectedDataType([snapshotName])
+                      forceRefresh()
+                    }
+                  }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })]),
+                  initialOpenState: _.head(selectedDataType) === snapshotName,
+                  onFirstOpen: () => loadSnapshotEntities(snapshotName)
+                }, [Utils.cond(
+                  [snapshotTablesError, () => div({
+                    style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+                  }, [
+                    'Failed to load tables',
+                    h(Link, {
+                      onClick: () => loadSnapshotEntities(snapshotName),
+                      tooltip: 'Error loading, click to retry.'
+                    }, [icon('sync', { size: 24, style: { marginLeft: '1rem' } })])
+                  ])],
+                  [snapshotTables === undefined, () => div({
+                    style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+                  }, [
+                    'Loading snapshot contents...',
+                    spinner({ style: { marginLeft: '1rem' } })
+                  ])],
+                  () => div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
+                    _.map(([tableName, { count }]) => {
+                      const canCompute = !!(workspace?.canCompute)
+                      return h(DataTypeButton, {
+                        buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
+                        tooltip: canCompute ?
+                          tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
+                          [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
+                            'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                            'Contact the owner of this workspace to change your permissions.')],
+                        tooltipSide: canCompute ? 'bottom' : 'left',
+                        key: `${snapshotName}_${tableName}`,
+                        selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                        entityName: tableName,
+                        entityCount: count,
+                        onClick: () => {
+                          if (canCompute) {
+                            setSelectedDataType([snapshotName, tableName])
+                            Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
+                              ...extractWorkspaceDetails(workspace.workspace),
+                              resourceId,
+                              snapshotId,
+                              entityType: tableName
+                            })
+                            forceRefresh()
+                          }
+                        }
+                      }, [`${tableName} (${count})`])
+                    }, snapshotTablePairs)
+                  ])
+                )])
+              }, sortedSnapshotPairs)
+            ]),
+            h(DataTypeSection, {
+              title: 'Reference Data',
+              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
+                disabled: !!Utils.editWorkspaceError(workspace),
+                tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
+                onClick: () => setImportingReference(true),
+                'aria-haspopup': 'dialog'
+              }, [icon('plus-circle', { size: 21 })])
+            }, [_.map(type => h(DataTypeButton, {
+              key: type,
+              selected: selectedDataType === type,
+              onClick: () => {
+                setSelectedDataType(type)
+                refreshWorkspace()
+              },
+              after: h(Link, {
+                style: { flex: 0 },
+                disabled: !!Utils.editWorkspaceError(workspace),
+                tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+                onClick: e => {
+                  e.stopPropagation()
+                  setDeletingReference(type)
+                }
+              }, [icon('minus-circle', { size: 16 })])
+            }, [type]), _.keys(referenceData)
+            )]),
+            importingReference && h(ReferenceDataImporter, {
+              onDismiss: () => setImportingReference(false),
+              onSuccess: () => {
+                setImportingReference(false)
+                refreshWorkspace()
+              },
+              namespace, name
+            }),
+            deletingReference && h(ReferenceDataDeleter, {
+              onDismiss: () => setDeletingReference(false),
+              onSuccess: () => {
+                setDeletingReference(false)
+                setSelectedDataType(selectedDataType === deletingReference ? undefined : selectedDataType)
+                refreshWorkspace()
+              },
+              namespace, name, referenceDataType: deletingReference
+            }),
+            uploadingFile && h(EntityUploader, {
+              onDismiss: () => setUploadingFile(false),
+              onSuccess: () => {
+                setUploadingFile(false)
+                forceRefresh()
+                loadMetadata()
+              },
+              namespace, name,
+              entityTypes: _.keys(entityMetadata)
+            }),
+            h(DataTypeSection, {
+              title: 'Other Data'
+            }, [
+              h(DataTypeButton, {
+                selected: selectedDataType === localVariables,
                 onClick: () => {
-                  setSelectedDataType(type)
+                  setSelectedDataType(localVariables)
                   forceRefresh()
                 }
-              })
-            }, sortedEntityPairs)
-          ]),
-          (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
-            title: 'Snapshots',
-            error: snapshotMetadataError,
-            retryFunction: loadSnapshotMetadata
-          }, [
-            _.map(([snapshotName, { resource: { resourceId, snapshotId }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
-              const snapshotTablePairs = toSortedPairs(snapshotTables)
-              return h(Collapse, {
-                key: snapshotName,
-                titleFirst: true,
-                buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
-                buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
-                style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                title: snapshotName, noTitleWrap: true,
-                role: 'listitem',
-                afterToggle: h(Link, {
-                  style: { marginRight: '0.5rem' },
-                  tooltip: 'Snapshot Info',
-                  onClick: () => {
-                    setSelectedDataType([snapshotName])
-                    forceRefresh()
-                  }
-                }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })]),
-                initialOpenState: _.head(selectedDataType) === snapshotName,
-                onFirstOpen: () => loadSnapshotEntities(snapshotName)
-              }, [Utils.cond(
-                [snapshotTablesError, () => div({
-                  style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
-                }, [
-                  'Failed to load tables',
-                  h(Link, {
-                    onClick: () => loadSnapshotEntities(snapshotName),
-                    tooltip: 'Error loading, click to retry.'
-                  }, [icon('sync', { size: 24, style: { marginLeft: '1rem' } })])
-                ])],
-                [snapshotTables === undefined, () => div({
-                  style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
-                }, [
-                  'Loading snapshot contents...',
-                  spinner({ style: { marginLeft: '1rem' } })
-                ])],
-                () => div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
-                  _.map(([tableName, { count }]) => {
-                    const canCompute = !!(workspace?.canCompute)
-                    return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
-                      tooltip: canCompute ?
-                        tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
-                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } },
-                          'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                          'Contact the owner of this workspace to change your permissions.')],
-                      tooltipSide: canCompute ? 'bottom' : 'left',
-                      key: `${snapshotName}_${tableName}`,
-                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                      entityName: tableName,
-                      entityCount: count,
-                      onClick: () => {
-                        if (canCompute) {
-                          setSelectedDataType([snapshotName, tableName])
-                          Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
-                            ...extractWorkspaceDetails(workspace.workspace),
-                            resourceId,
-                            snapshotId,
-                            entityType: tableName
-                          })
-                          forceRefresh()
-                        }
-                      }
-                    }, [`${tableName} (${count})`])
-                  }, snapshotTablePairs)
-                ])
-              )])
-            }, sortedSnapshotPairs)
-          ]),
-          h(DataTypeSection, {
-            title: 'Reference Data',
-            titleExtras: h(Link, {
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-              onClick: () => setImportingReference(true),
-              'aria-haspopup': 'dialog'
-            }, [icon('plus-circle', { size: 21 })])
-          }, [_.map(type => h(DataTypeButton, {
-            key: type,
-            selected: selectedDataType === type,
-            onClick: () => {
-              setSelectedDataType(type)
-              refreshWorkspace()
-            },
-            after: h(Link, {
-              style: { flex: 0 },
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-              onClick: e => {
-                e.stopPropagation()
-                setDeletingReference(type)
-              }
-            }, [icon('minus-circle', { size: 16 })])
-          }, [type]), _.keys(referenceData)
-          )]),
-          importingReference && h(ReferenceDataImporter, {
-            onDismiss: () => setImportingReference(false),
-            onSuccess: () => {
-              setImportingReference(false)
-              refreshWorkspace()
-            },
-            namespace, name
-          }),
-          deletingReference && h(ReferenceDataDeleter, {
-            onDismiss: () => setDeletingReference(false),
-            onSuccess: () => {
-              setDeletingReference(false)
-              setSelectedDataType(selectedDataType === deletingReference ? undefined : selectedDataType)
-              refreshWorkspace()
-            },
-            namespace, name, referenceDataType: deletingReference
-          }),
-          uploadingFile && h(EntityUploader, {
-            onDismiss: () => setUploadingFile(false),
-            onSuccess: () => {
-              setUploadingFile(false)
-              forceRefresh()
-              loadMetadata()
-            },
-            namespace, name,
-            entityTypes: _.keys(entityMetadata)
-          }),
-          h(DataTypeSection, {
-            title: 'Other Data'
-          }, [
-            h(DataTypeButton, {
-              selected: selectedDataType === localVariables,
-              onClick: () => {
-                setSelectedDataType(localVariables)
-                forceRefresh()
-              }
-            }, ['Workspace Data']),
-            h(DataTypeButton, {
-              iconName: 'folder', iconSize: 18,
-              selected: selectedDataType === bucketObjects,
-              onClick: () => {
-                setSelectedDataType(bucketObjects)
-                forceRefresh()
-              }
-            }, ['Files'])
+              }, ['Workspace Data']),
+              h(DataTypeButton, {
+                iconName: 'folder', iconSize: 18,
+                selected: selectedDataType === bucketObjects,
+                onClick: () => {
+                  setSelectedDataType(bucketObjects)
+                  forceRefresh()
+                }
+              }, ['Files'])
+            ])
           ])
         ])
       ]),
+      h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
         Utils.switchCase(getSelectionType(),
           ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
@@ -729,7 +932,8 @@ const WorkspaceData = _.flow(
             entityKey: selectedDataType,
             loadMetadata,
             firstRender,
-            deleteColumnUpdateMetadata
+            deleteColumnUpdateMetadata,
+            forceRefresh
           })]
         )
       ])

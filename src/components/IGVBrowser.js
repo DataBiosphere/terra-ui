@@ -20,6 +20,7 @@ const IGVBrowser = _.flow(
   const containerRef = useRef()
   const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
+  const igvLibrary = useRef()
 
   useOnMount(() => {
     const igvSetup = async () => {
@@ -49,6 +50,7 @@ const IGVBrowser = _.flow(
       } else {
         try {
           const { default: igv } = await import('igv')
+          igvLibrary.current = igv
 
           const options = {
             genome: refGenome,
@@ -75,8 +77,9 @@ const IGVBrowser = _.flow(
     }
 
     igvSetup()
-  })
 
+    return () => !!igvLibrary.current && igvLibrary.current.removeAllBrowsers()
+  })
 
   return h(Fragment, [
     h(Link, {
@@ -86,6 +89,7 @@ const IGVBrowser = _.flow(
     div({
       ref: containerRef,
       style: {
+        overflowY: 'auto',
         padding: '10px 0',
         margin: 8,
         border: `1px solid ${colors.dark(0.25)}`

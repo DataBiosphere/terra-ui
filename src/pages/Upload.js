@@ -318,7 +318,7 @@ const CollectionSelectorPanel = _.flow(
   withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
+  workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
 }) => {
   // State
   const [collections, setCollections] = useState(undefined)
@@ -484,7 +484,7 @@ const MetadataUploadPanel = _.flow(
     )(async () => {
       // Fetch every object in the entire bucket so we don't have to do it recursively, but
       // filter out any that aren't in our base prefix
-      const items = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
+      const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: basePrefix })
 
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(
@@ -705,7 +705,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
     }, [
       p([
         h(Link, {
-          href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name }),
+          href: Nav.getLink('workspace-data', { namespace, name }),
           onClick: () => StateHistory.update({ selectedDataType: tableName })
         }, [
           icon('view-cards'),
@@ -734,14 +734,19 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
 
 const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
   forwardRefWithName('Upload')
-)((props, ref) => {
+)((props, _ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
 
   // State
   const { query } = Nav.useRoute()
-  const [currentStep, setCurrentStep] = useState(StateHistory.get().currentStep || 'workspaces')
   const [workspaceId, setWorkspaceId] = useState(query.workspace)
   const [collection, setCollection] = useState(query.collection)
+  const [currentStep, setCurrentStep] = useState(Utils.cond(
+    [!!StateHistory.get().currentStep, () => StateHistory.get().currentStep],
+    [!!workspaceId && !!collection, () => 'data'],
+    [!!workspaceId && !collection, () => 'collection'],
+    () => 'workspaces'
+  ))
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [numFiles, setNumFiles] = useState(StateHistory.get().numFiles)
   const [tableName, setTableName] = useState(StateHistory.get().tableName)
@@ -775,7 +780,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // Make sure we have a valid step once the workspaces have finished loading
   useEffect(() => {
-    if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
+    if (!stepIsEnabled(currentStep) && !!workspaces) {
       let last = steps[0]
       for (const step of steps) {
         if (!step.test()) {
@@ -875,7 +880,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
                 workspace,
                 collection,
                 setNumFiles,
-                setUploadedFiles: files => {
+                setUploadedFiles: () => {
                   setCurrentStep('metadata')
                 }
               }, [

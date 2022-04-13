@@ -6,8 +6,8 @@ import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Link } from 'src/components/common'
-import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
+import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -26,7 +26,7 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -215,8 +215,10 @@ const EntitiesContent = ({
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
+  const [editingEntities, setEditingEntities] = useState(false)
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
+  const [addingEntity, setAddingEntity] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
@@ -294,6 +296,19 @@ const EntitiesContent = ({
     }
   }
 
+  const downloadSelectedRows = async columnSettings => {
+    const tsv = buildTSV(columnSettings, selectedEntities)
+    const isSet = _.endsWith('_set', entityKey)
+    isSet ?
+      FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+      FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+    Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      downloadFrom: 'table data',
+      fileType: '.tsv'
+    })
+  }
+
   const renderCopyButton = (entities, columnSettings) => {
     return h(Fragment, [
       h(ButtonPrimary, {
@@ -315,7 +330,6 @@ const EntitiesContent = ({
   }
 
   const renderSelectedRowsMenu = columnSettings => {
-    const isSet = _.endsWith('_set', entityKey)
     const noEdit = Utils.editWorkspaceError(workspace)
     const disabled = entityKey.endsWith('_set_set')
 
@@ -328,18 +342,13 @@ const EntitiesContent = ({
           tooltip: disabled ?
             'Downloading sets of sets as TSV is not supported at this time' :
             `Download the selected data as a file`,
-          onClick: async () => {
-            const tsv = buildTSV(columnSettings, selectedEntities)
-            isSet ?
-              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownloadPartial, {
-              ...extractWorkspaceDetails(workspace.workspace),
-              downloadFrom: 'table data',
-              fileType: '.tsv'
-            })
-          }
+          onClick: () => downloadSelectedRows(columnSettings)
         }, ['Download as TSV']),
+        !snapshotName && h(MenuButton, {
+          disabled: noEdit,
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
+          onClick: () => setEditingEntities(true)
+        }, ['Edit Attribute']),
         !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
@@ -359,6 +368,85 @@ const EntitiesContent = ({
     ])])
   }
 
+  const entitiesSelected = !_.isEmpty(selectedEntities)
+  const editErrorMessage = Utils.editWorkspaceError(workspace)
+  const canEdit = !editErrorMessage
+
+  const renderEditMenu = () => {
+    return !snapshotName && h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setAddingEntity(true)
+        }, 'Add row'),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to edit in the table',
+          onClick: () => setEditingEntities(true)
+        }, ['Edit attribute']),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to delete in the table',
+          onClick: () => setDeletingEntities(true)
+        }, 'Delete')
+      ])
+    }, [h(ButtonSecondary, {
+      disabled: !canEdit,
+      tooltip: Utils.cond(
+        [!canEdit, () => editErrorMessage],
+        () => 'Edit data'
+      ),
+      style: { marginRight: '1.5rem' }
+    }, [icon('edit', { style: { marginRight: '0.5rem' } }), 'Edit'])])
+  }
+
+  const renderExportMenu = ({ columnSettings }) => {
+    const isSetOfSets = entityKey.endsWith('_set_set')
+
+    return h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets && 'Downloading sets of sets as TSV is not supported at this time.',
+          onClick: () => downloadSelectedRows(columnSettings)
+        }, 'Download as TSV'),
+        !snapshotName && h(MenuButton, {
+          onClick: () => setCopyingEntities(true)
+        }, 'Export to workspace'),
+        h(MenuButton, {
+          disabled: isSetOfSets,
+          tooltip: isSetOfSets && 'Copying sets of sets is not supported at this time.',
+          onClick: _.flow(
+            withErrorReporting('Error copying to clipboard.'),
+            Utils.withBusyState(setNowCopying)
+          )(async () => {
+            const str = buildTSV(columnSettings, _.values(selectedEntities))
+            await clipboard.writeText(str)
+            notify('success', 'Successfully copied to clipboard.', { timeout: 3000 })
+          })
+        }, 'Copy to clipboard')
+      ])
+    }, [h(ButtonSecondary, {
+      disabled: !entitiesSelected,
+      tooltip: entitiesSelected ? 'Export selected data' : 'Select rows to export in the table',
+      style: { marginRight: '1.5rem' }
+    }, [
+      icon(nowCopying ? 'loadingSpinner' : 'export', { style: { marginRight: '0.5rem' } }),
+      'Export'
+    ])])
+  }
+
+  const renderOpenWithMenu = () => {
+    return !snapshotName && h(ButtonSecondary, {
+      disabled: !entitiesSelected,
+      tooltip: entitiesSelected ? 'Open selected data' : 'Select rows to open in the table',
+      onClick: () => setShowToolSelector(true)
+    }, [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...'])
+  }
+
   // Render
   const { initialX, initialY } = firstRender ? StateHistory.get() : {}
   const selectedKeys = _.keys(selectedEntities)
@@ -376,20 +464,49 @@ const EntitiesContent = ({
           selected: selectedEntities,
           setSelected: setSelectedEntities
         },
-        childrenBefore: ({ entities, columnSettings }) => div({
-          style: { display: 'flex', alignItems: 'center', flex: 'none' }
-        }, [
-          !snapshotName && renderDownloadButton(columnSettings),
-          !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
-          div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-          div({
-            role: 'status',
-            'aria-atomic': true,
-            style: { marginRight: '0.5rem' }
-          }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
-          renderSelectedRowsMenu(columnSettings)
-        ]),
+        childrenBefore: ({ entities, columnSettings }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } },
+          isDataTabRedesignEnabled() ? [
+            renderExportMenu({ columnSettings }),
+            renderEditMenu(),
+            renderOpenWithMenu(),
+            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+            div({
+              role: 'status',
+              'aria-atomic': true,
+              style: { marginRight: '0.5rem' }
+            }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`])
+          ] : [
+            !snapshotName && renderDownloadButton(columnSettings),
+            !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
+            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+            div({
+              role: 'status',
+              'aria-atomic': true,
+              style: { marginRight: '0.5rem' }
+            }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+            renderSelectedRowsMenu(columnSettings)
+          ]),
         deleteColumnUpdateMetadata
+      }),
+      addingEntity && h(AddEntityModal, {
+        entityType: entityKey,
+        attributeNames: entityMetadata[entityKey].attributeNames,
+        entityTypes: _.keys(entityMetadata),
+        workspaceId: { namespace, name },
+        onDismiss: () => setAddingEntity(false),
+        onSuccess: () => setRefreshKey(_.add(1))
+      }),
+      editingEntities && h(MultipleEntityEditor, {
+        entityType: entityKey,
+        entityNames: _.keys(selectedEntities),
+        attributeNames: entityMetadata[entityKey].attributeNames,
+        entityTypes: _.keys(entityMetadata),
+        workspaceId: { namespace, name },
+        onDismiss: () => setEditingEntities(false),
+        onSuccess: () => {
+          setEditingEntities(false)
+          setRefreshKey(_.add(1))
+        }
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),

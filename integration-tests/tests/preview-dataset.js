@@ -3,7 +3,8 @@ const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const datasetName = 'Cell hashing with barcoded antibodies enables multiplexing and doublet detection for single cell genomics'
+const datasetName = 'Transcriptomic characterisation of haematopoietic stem and progenitor' +
+  ' cells from human adult bone marrow, spleen and peripheral blood'
 
 const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
@@ -16,13 +17,17 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 
-  const previewTableName = 'Cell Suspension Preview Data'
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'cell_suspension_id')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'version')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'content')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'f0caec4a-2a37-4895-8304-83d0fd0da588')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), '1558104905.862')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), 'View JSON')
+  const previewTableName = 'Analysis File Preview Data'
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'content')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'file_id')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'version')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 4), 'analysis_file_id')
+  await findTableCellText(page, getTableHeaderPath(previewTableName, 5), 'descriptor')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'View JSON')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), 'drs://jade.datarepo-dev.broadinstitute.org/v1_e0664f4e-cf09-488a-841d-4baf2cbf1507_71c2fd30-8721-437f-b884-6bae39e51206')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), '1612834200.0')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 4), 'dda27004-526a-54c8-bb46-01750aeb8d0d')
+  await findTableCellText(page, getTableCellPath(previewTableName, 2, 5), 'View JSON')
   await click(page, clickable({ textContains: 'View JSON' }))
   await findText(page, 'describedBy')
   await page.keyboard.press('Escape')

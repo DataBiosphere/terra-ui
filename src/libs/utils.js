@@ -88,8 +88,14 @@ export const isOwner = hasAccessLevel('OWNER')
 
 export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
 
+/**
+ * Convenience helper for debugging _.flow pipelines.
+ *
+ * To inspect intermediate values in a pipeline, use:
+ * _.flow(step1, Utils.log, step2)
+ */
 export const log = (...args) => {
-  console.log.apply(null, args)
+  console.log.apply(null, args) // eslint-disable-line no-console
   return _.last(args)
 }
 
@@ -189,7 +195,7 @@ export const entityAttributeText = (value, machineReadable) => {
 export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
   return cond(
     [!canWrite(accessLevel), () => 'You do not have permission to modify this workspace.'],
-    [isLocked, () => 'This workspace is locked']
+    [isLocked, () => 'This workspace is locked.']
   )
 }
 
@@ -197,7 +203,7 @@ export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => 
 export const computeWorkspaceError = ({ canCompute, workspace: { isLocked } }) => {
   return cond(
     [!canCompute, () => 'You do not have access to run analyses on this workspace.'],
-    [isLocked, () => 'This workspace is locked']
+    [isLocked, () => 'This workspace is locked.']
   )
 }
 
@@ -356,6 +362,6 @@ export const formatBytes = bytes => {
     ['G', 2 ** 30],
     ['M', 2 ** 20],
     ['K', 2 ** 10]
-  ].find(([p, d]) => bytes >= d)
+  ].find(([_p, d]) => bytes >= d)
   return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
 }

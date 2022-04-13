@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { concatenateAttributeNames, DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
+import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
+import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -99,6 +99,7 @@ const DataTable = props => {
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
+  const [clearingColumn, setClearingColumn] = useState()
 
   const table = useRef()
   const signal = useCancellation()
@@ -131,21 +132,41 @@ const DataTable = props => {
     setTotalRowCount(unfilteredCount)
   })
 
-  const deleteColumnUpdateEntities = attributeName => {
+  const getAllEntities = async () => {
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
+    const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
+    return queryResults.results
+  }
+
+  const deleteColumn = withErrorReporting('Unable to delete column')(async attributeName => {
+    await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
+    deleteColumnUpdateMetadata({ entityType, attributeName })
+
     const updatedEntities = _.map(entity => {
       return { ...entity, attributes: _.omit([attributeName], entity.attributes) }
     }, entities)
     setEntities(updatedEntities)
-  }
+  })
 
+  const clearColumn = withErrorReporting('Unable to clear column.')(async attributeName => {
+    const allEntities = await getAllEntities()
+    const entityUpdates = _.map(entity => ({
+      name: entity.name,
+      entityType: entity.entityType,
+      attributes: { [attributeName]: '' }
+    }), allEntities)
+    await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
+
+    const updatedEntities = _.map(_.update('attributes', _.set(attributeName, '')), entities)
+    setEntities(updatedEntities)
+  })
 
   const selectAll = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
-    const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
-    setSelected(entityMap(queryResults.results))
+    const allEntities = await getAllEntities()
+    setSelected(entityMap(allEntities))
   })
 
   const selectPage = () => {
@@ -268,7 +289,7 @@ const DataTable = props => {
                       setColumnWidths(_.set('name', nameWidth + delta))
                     }
                   }, [
-                    h(HeaderOptions, { sort, field: 'name', onSort: setSort, isEntityName: true },
+                    h(HeaderOptions, { sort, field: 'name', onSort: setSort },
                       [h(HeaderCell, [entityMetadata[entityType].idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
@@ -293,8 +314,13 @@ const DataTable = props => {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                     }, [
                       h(HeaderOptions, {
-                        sort, field: attributeName, onSort: setSort, isEntityName: false,
-                        beginDelete: () => setDeletingColumn({ entityType, attributeName })
+                        sort, field: attributeName, onSort: setSort,
+                        extraActions: [
+                          // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                          // Without this, autofocus doesn't work in the modals.
+                          { label: 'Delete Column', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                          { label: 'Clear Column', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                        ]
                       }, [
                         h(HeaderCell, [
                           !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
@@ -336,7 +362,8 @@ const DataTable = props => {
           entityMetadata,
           entityType,
           snapshotName,
-          workspace
+          workspace,
+          modalWidth: 800
         }, {
           columnSettings,
           onSave: setColumnState
@@ -373,7 +400,7 @@ const DataTable = props => {
       },
       onDismiss: () => setRenamingEntity(undefined)
     }),
-    !!updatingEntity && h(EntityEditor, {
+    !!updatingEntity && h(SingleEntityEditor, {
       entityType: _.find(entity => entity.name === updatingEntity.entityName, entities).entityType,
       ...updatingEntity,
       entityTypes: _.keys(entityMetadata),
@@ -384,16 +411,23 @@ const DataTable = props => {
       },
       onDismiss: () => setUpdatingEntity(undefined)
     }),
-    !!deletingColumn && h(DeleteEntityColumnModal, {
-      workspaceId: { namespace, name },
-      column: deletingColumn,
-      onSuccess: () => {
-        setDeletingColumn(undefined)
-        deleteColumnUpdateMetadata(deletingColumn)
-        deleteColumnUpdateEntities(deletingColumn.attributeName)
-      },
+    !!deletingColumn && h(DeleteConfirmationModal, {
+      objectType: 'column',
+      objectName: deletingColumn,
+      onConfirm: () => deleteColumn(deletingColumn),
       onDismiss: () => setDeletingColumn(undefined)
     }),
+    !!clearingColumn && h(DeleteConfirmationModal, {
+      title: 'Clear Column',
+      confirmationPrompt: 'Clear column',
+      buttonText: 'Clear column',
+      onConfirm: () => clearColumn(clearingColumn),
+      onDismiss: () => setClearingColumn(undefined)
+    }, [
+      div(['Are you sure you want to permanently delete all data in the column ',
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, clearingColumn), '?']),
+      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    ]),
     loading && fixedSpinnerOverlay
   ])
 }

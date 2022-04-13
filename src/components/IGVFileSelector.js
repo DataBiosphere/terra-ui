@@ -16,8 +16,6 @@ const getStrings = v => {
   )
 }
 
-const MAX_CONCURRENT_IGV_FILES = 10
-
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState('hg38')
   const [selections, setSelections] = useState(() => {
@@ -47,7 +45,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
 
   const toggleSelected = index => setSelections(_.update([index, 'isSelected'], v => !v))
   const numSelected = _.countBy('isSelected', selections).true
-  const isSelectionValid = !!numSelected && numSelected <= MAX_CONCURRENT_IGV_FILES
+  const isSelectionValid = !!numSelected
 
   return div({ style: Style.modalDrawer.content }, [
     h(IdContainer, [id => div({ style: { fontWeight: 500 } }, [
@@ -55,7 +53,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
         h(Select, {
           id,
-          options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
+          options: ['hg38', 'hg19', 'hg18', 'ASM985889v3', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
           value: refGenome,
           onChange: ({ value }) => setRefGenome(value)
         })
@@ -95,7 +93,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       style: Style.modalDrawer.buttonBar,
       okButton: h(ButtonPrimary, {
         disabled: !isSelectionValid,
-        tooltip: !isSelectionValid && `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files`,
+        tooltip: !isSelectionValid && 'Select at least one file',
         onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
       }, ['Launch IGV'])
     })

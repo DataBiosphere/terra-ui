@@ -162,7 +162,7 @@ export const GalaxyWarning = () => {
   ])
 }
 
-export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props }) => {
+export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
   const cookieReady = useStore(cookieReadyStore)
   return h(ButtonPrimary, {
     disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
@@ -174,7 +174,7 @@ export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props })
     },
     ...Utils.newTabLinkPropsWithReferrer, // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
     ...props
-  }, ['Launch Galaxy'])
+  }, ['Open Galaxy'])
 }
 
 export const appLauncherTabName = 'workspace-application-launch'

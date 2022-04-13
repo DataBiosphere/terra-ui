@@ -16,7 +16,7 @@ import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
-import rstudioBioLogo from 'src/images/r-bio-logo.png'
+import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -35,7 +35,7 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
+    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
@@ -101,8 +101,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, () => renderAppModal(GalaxyModalBase, tools.galaxy.label)],
-      [tools.cromwell.label, () => renderAppModal(CromwellModalBase, tools.cromwell.label)]
+      [tools.Galaxy.label, () => renderAppModal(GalaxyModalBase, tools.Galaxy.label)],
+      [tools.Cromwell.label, () => renderAppModal(CromwellModalBase, tools.Cromwell.label)]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -125,7 +125,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
       isOpen: viewMode === toolLabel,
-      isAnalysisMode: true,
       workspace,
       apps,
       appDataDisks,
@@ -148,8 +147,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    const galaxyApp = currentApp(tools.galaxy.label)
-    const cromwellApp = currentApp(tools.cromwell.label)
+    const galaxyApp = currentApp(tools.Galaxy.label)
+    const cromwellApp = currentApp(tools.Cromwell.label)
 
     // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
     const renderToolButtons = () => div({
@@ -168,19 +167,19 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           enterNextViewMode(tools.RStudio.label)
         },
         hover: styles.hover
-      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: _.merge(styles.image, { width: '50%' }) })]),
       h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentTool(tools.galaxy.label)
-          enterNextViewMode(tools.galaxy.label)
+          setCurrentTool(tools.Galaxy.label)
+          enterNextViewMode(tools.Galaxy.label)
         },
         hover: !galaxyApp ? styles.hover : undefined,
         disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
-      !tools.cromwell.isAppHidden && h(Clickable, {
+      !tools.Cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentTool(tools.cromwell.label)
-          enterNextViewMode(tools.cromwell.label)
+          setCurrentTool(tools.Cromwell.label)
+          enterNextViewMode(tools.Cromwell.label)
         },
         hover: !cromwellApp ? styles.hover : undefined,
         disabled: !!cromwellApp, tooltip: cromwellApp ? 'You already have a Cromwell instance' : ''
@@ -196,7 +195,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not a .ipynb otebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+          'The selected file is not a .ipynb notebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
@@ -205,7 +204,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             enterNextViewMode(tool, analysisMode)
           uploadFiles()
         }
-      }, [() => div({
+      }, [() => h(Clickable, {
         onClick: () => {
           resetView()
           onSuccess()
@@ -316,7 +315,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           resetView()
           onDismiss()
         },
-        onPrevious: () => !!viewMode && resetView()
+        onPrevious: !!viewMode ? () => resetView() : undefined
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
       getView()

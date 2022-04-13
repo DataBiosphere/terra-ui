@@ -1,6 +1,5 @@
 import 'src/libs/routes'
 
-import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import AuthContainer from 'src/components/AuthContainer'
@@ -41,4 +40,4 @@ const Main = () => {
   ])
 }
 
-export default hot(Main)
+export default Main

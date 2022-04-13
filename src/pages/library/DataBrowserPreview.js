@@ -14,7 +14,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -55,6 +55,7 @@ const DataBrowserPreview = ({ id }) => {
 
   useOnMount(() => {
     const loadData = async () => {
+      // TODO (DC-283): move to catalog service
       const { tables: newTables } = await Ajax(signal).DataRepo.getPreviewMetadata(id)
 
       const hasRows = _.flow(
@@ -105,6 +106,7 @@ const DataBrowserPreview = ({ id }) => {
 
       setColumns(newDisplayColumns)
 
+      // TODO (DC-283): move to catalog service
       const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({ id, limit: 50, offset: 0, table: selectedTable })
 
       const newPreviewRows = _.flow(
@@ -121,12 +123,12 @@ const DataBrowserPreview = ({ id }) => {
       setPreviewRows(newPreviewRows)
     })
 
-    if (!!tables && !!selectedTable && snapshot?.access === snapshotAccessTypes.GRANTED) {
+    if (!!tables && !!selectedTable && dataset?.access === datasetAccessTypes.GRANTED) {
       loadTable()
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const snapshot = _.find({ 'dct:identifier': id }, dataCatalog)
+  const dataset = _.find({ 'dct:identifier': id }, dataCatalog)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -134,7 +136,7 @@ const DataBrowserPreview = ({ id }) => {
       centeredSpinner() :
       div({ style: { padding: 20 } }, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', justifyContent: 'space-between', width: '100%', lineHeight: '26px' } }, [
-          h1([snapshot['dct:title']]),
+          h1([dataset['dct:title']]),
           h(Link, {
             onClick: Nav.history.goBack,
             'aria-label': 'Close',
@@ -143,15 +145,15 @@ const DataBrowserPreview = ({ id }) => {
             icon('times', { size: 30 })
           ])
         ]),
-        snapshot.access === snapshotAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
+        dataset.access === datasetAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
           h(RequestDatasetAccessModal, {
-            datasets: [snapshot],
+            datasets: [dataset],
             onDismiss: () => {
               Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
             }
           })
         ]),
-        snapshot.access === snapshotAccessTypes.GRANTED && h(GroupedSelect, {
+        dataset.access === datasetAccessTypes.GRANTED && h(GroupedSelect, {
           'aria-label': 'data type',
           styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
           isSearchable: true,

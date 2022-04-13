@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { div, h, h2, p } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, h2, label, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, Switch } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
+import Modal, { styles as modalStyles } from 'src/components/Modal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -16,6 +17,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
+
+const terraSupportEmail = 'Terra-Support@firecloud.org'
 
 const styles = {
   currentCollaboratorsArea: {
@@ -211,14 +214,20 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     }
   }
 
+  // The get workspace ACL API endpoint returns emails capitalized as they are registered in Terra.
+  // However, a user may type in the support email using different capitalization (terra-support, TERRA-SUPPORT, etc.)
+  // The email they entered will appear in the ACL stored in this component's state until updates are saved.
+  // We want the share with support switch to function with any variation of the support email.
+  const aclEntryIsTerraSupport = ({ email }) => _.toLower(email) === _.toLower(terraSupportEmail)
+  const currentTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, originalAcl)?.accessLevel
+  const newTerraSupportAccessLevel = _.find(aclEntryIsTerraSupport, acl)?.accessLevel
+  const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail)
+  const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport))
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
-    okButton: h(ButtonPrimary, {
-      disabled: searchValueValid,
-      tooltip: searchValueValid && addUserReminder,
-      onClick: save
-    }, ['Save']),
+    showButtons: false,
     onDismiss
   }, [
     div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
@@ -253,12 +262,58 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     searchValueValid && !searchHasFocus && p(addUserReminder),
     h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
     div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
-      h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
+      h(Fragment, _.flow(
+        _.remove(aclEntryIsTerraSupport),
+        Utils.toIndexPairs,
+        _.map(renderCollaborator)
+      )(acl)),
       !loaded && centeredSpinner()
     ]),
     updateError && div({ style: { marginTop: '1rem' } }, [
       div(['An error occurred:']),
       updateError
+    ]),
+    div({ style: { ...modalStyles.buttonRow, justifyContent: 'space-between' } }, [
+      h(IdContainer, [
+        id => h(TooltipTrigger, {
+          content: Utils.cond(
+            [!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => 'Allow Terra Support to view this workspace'],
+            [!currentTerraSupportAccessLevel && newTerraSupportAccessLevel, () => `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`],
+            [currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => `Saving will remove Terra Support's access to this workspace`],
+            [currentTerraSupportAccessLevel !== newTerraSupportAccessLevel, () => `Saving will change Terra Support's level of access to this workspace from ${_.toLower(currentTerraSupportAccessLevel)} to ${_.toLower(newTerraSupportAccessLevel)}`],
+            [currentTerraSupportAccessLevel === newTerraSupportAccessLevel, () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`]
+          )
+        }, [
+          label({ htmlFor: id }, [
+            span({ style: { marginRight: '1ch' } }, 'Share with support'),
+            h(Switch, {
+              id,
+              checked: !!newTerraSupportAccessLevel,
+              onLabel: 'Yes',
+              offLabel: 'No',
+              width: 70,
+              onChange: checked => {
+                if (checked) {
+                  addTerraSupportToAcl()
+                } else {
+                  removeTerraSupportFromAcl()
+                }
+              }
+            })
+          ])
+        ])
+      ]),
+      span([
+        h(ButtonSecondary, {
+          style: { marginRight: '1rem' },
+          onClick: onDismiss
+        }, 'Cancel'),
+        h(ButtonPrimary, {
+          disabled: searchValueValid,
+          tooltip: searchValueValid && addUserReminder,
+          onClick: save
+        }, 'Save')
+      ])
     ]),
     working && spinnerOverlay
   ])

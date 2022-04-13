@@ -10,12 +10,13 @@ const getDatasetCount = async page => {
 }
 
 const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
-  const searchText = 'stem cell'
-  const filterItem = 'Granted'
+  const searchText = 'blood'
+  const filterItem = 'cardiovascular disease'
+  const secondFilterItem = 'brain cancer'
 
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
-  await findText(page, 'Controlled')
+  await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)
 
@@ -37,10 +38,10 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 
   // Testing filter by multiple same facets
-  await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
+  await click(page, checkbox({ text: secondFilterItem, isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
   if (datasetSizeAfterFilter2 === 0) {
-    throw new Error(`Filters for 'Controlled' should be ORed between the same facet category in the table'`)
+    throw new Error(`Filters should be ORed between the same facet category in the table'`)
   }
 
   // Testing clearing filters

@@ -104,7 +104,7 @@ export const WorkspaceList = () => {
 
   useOnMount(() => {
     const loadFeatured = async () => {
-      setFeaturedList(await Ajax().Buckets.getFeaturedWorkspaces())
+      setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces())
     }
 
     loadFeatured()

@@ -7,12 +7,12 @@ import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -21,7 +21,7 @@ import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
-import rstudioBioLogo from 'src/images/r-bio-logo.png'
+import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -104,7 +104,7 @@ const AnalysisCard = ({
           tooltip: Utils.cond([!canWrite, () => noWrite],
             [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
-        }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+        }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
           'aria-label': `Playground`,
           href: analysisPlaygroundLink,
@@ -119,7 +119,7 @@ const AnalysisCard = ({
           tooltip: Utils.cond([!canWrite, () => noWrite],
             [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
-        }, [makeMenuIcon('rocket'), 'Launch'])
+        }, [makeMenuIcon('rocket'), 'Open'])
       ]),
       h(MenuButton, {
         'aria-label': `Copy`,
@@ -226,7 +226,7 @@ const Analyses = _.flow(
 )(({
   apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, appDataDisks
-}, ref) => {
+}, _ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
@@ -241,6 +241,7 @@ const Analyses = _.flow(
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
+  const [activeFileTransfers, setActiveFileTransfers] = useState(false)
 
   const authState = useStore(authStore)
   const signal = useCancellation()
@@ -273,6 +274,14 @@ const Analyses = _.flow(
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   })
 
+  const getActiveFileTransfers = _.flow(
+    withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
+    setActiveFileTransfers(!_.isEmpty(fileTransfers))
+  })
+
   const uploadFiles = Utils.withBusyState(setBusy, async files => {
     try {
       await Promise.all(_.map(async file => {
@@ -303,6 +312,7 @@ const Analyses = _.flow(
         [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
+      getActiveFileTransfers()
       refreshAnalyses()
     }
 
@@ -317,7 +327,7 @@ const Analyses = _.flow(
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
       img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
-      img({ src: rstudioBioLogo, style: { width: 406, height: 75, marginRight: '1rem' } }),
+      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
       div([
         img({ src: galaxyLogo, style: { height: 60, width: 208 } })
         // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
@@ -326,6 +336,16 @@ const Analyses = _.flow(
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
       `Click the button above to create an analysis.`
     ])
+  ])
+
+  const activeFileTransferMessage = div({
+    style: _.merge(
+      Style.elements.card.container,
+      { backgroundColor: colors.warning(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+  }, [
+    icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+    'Copying 1 or more interactive analysis files from another workspace.',
+    span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
   ])
 
   // Render helpers
@@ -351,6 +371,7 @@ const Analyses = _.flow(
           _.isEmpty(analyses) ? { alignItems: 'center', height: '80%' } : { flexDirection: 'column' })
       }
     }, [
+      activeFileTransfers && activeFileTransferMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
@@ -477,14 +498,25 @@ const Analyses = _.flow(
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
-        deletingAnalysisName && h(AnalysisDeleter, {
-          printName: getDisplayName(deletingAnalysisName), googleProject, bucketName,
-          toolLabel: getTool(deletingAnalysisName),
-          onDismiss: () => setDeletingAnalysisName(undefined),
-          onSuccess: () => {
-            setDeletingAnalysisName(undefined)
-            refreshAnalyses()
-          }
+        deletingAnalysisName && h(DeleteConfirmationModal, {
+          objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
+          objectName: getDisplayName(deletingAnalysisName),
+          confirmationPrompt: 'Delete analysis',
+          buttonText: 'Delete analysis',
+          onConfirm: async () => {
+            try {
+              await Ajax().Buckets.analysis(
+                googleProject,
+                bucketName,
+                getDisplayName(deletingAnalysisName),
+                getTool(deletingAnalysisName)
+              ).delete()
+              refreshAnalyses()
+            } catch (err) {
+              reportError('Error deleting analysis.', err)
+            }
+          },
+          onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),
       renderAnalyses()

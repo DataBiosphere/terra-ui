@@ -9,6 +9,7 @@ import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
+import { TextInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
@@ -287,7 +288,7 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
   const menuId = useUniqueId()
   const myId = useUniqueId()
@@ -477,26 +478,34 @@ export const CromwellVersionLink = props => {
     'Cromwell version loading...'
 }
 
-const SwitchLabel = ({ isOn }) => div({
+const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({
   style: {
     display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
     fontSize: 15, fontWeight: 'bold', color: 'white',
     height: '100%', lineHeight: '28px',
     ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
   }
-}, [isOn ? 'True' : 'False'])
+}, [isOn ? onLabel : offLabel])
 
-export const Switch = ({ onChange, ...props }) => {
+export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True', offLabel = 'False', ...props }, ref) => {
   return h(RSwitch, {
     onChange: value => onChange(value),
     offColor: colors.dark(0.5),
     onColor: colors.success(1.2),
-    checkedIcon: h(SwitchLabel, { isOn: true }),
-    uncheckedIcon: h(SwitchLabel, { isOn: false }),
+    checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
+    uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
     width: 80,
-    ...props
+    ...props,
+    ref: rSwitch => {
+      const inputEl = rSwitch ? rSwitch.$inputRef : null
+      if (_.has('current', ref)) {
+        ref.current = inputEl
+      } else if (_.isFunction(ref)) {
+        ref(inputEl)
+      }
+    }
   })
-}
+})
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
@@ -555,3 +564,61 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
 export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
+
+export const DeleteConfirmationModal = ({
+  objectType,
+  objectName,
+  title: titleProp,
+  children,
+  confirmationPrompt: confirmationPromptProp,
+  buttonText: buttonTextProp,
+  onConfirm,
+  onDismiss
+}) => {
+  const title = titleProp || `Delete ${objectType}`
+  const confirmationPrompt = confirmationPromptProp || `Delete ${objectType}`
+  const buttonText = buttonTextProp || `Delete ${objectType}`
+
+  const [busy, setBusy] = useState(false)
+  const [confirmation, setConfirmation] = useState('')
+
+  const confirm = async () => {
+    try {
+      setBusy(true)
+      await onConfirm()
+    } finally {
+      onDismiss()
+    }
+  }
+
+  const isConfirmed = _.toLower(confirmation) === _.toLower(confirmationPrompt)
+
+  return h(Modal, {
+    title,
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      onClick: confirm,
+      disabled: !isConfirmed,
+      tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
+    }, buttonText)
+  }, [
+    children || h(Fragment, [
+      div([`Are you sure you want to delete the ${objectType} `,
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
+      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    ]),
+    div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
+        h(TextInput, {
+          autoFocus: true,
+          id,
+          placeholder: confirmationPrompt,
+          value: confirmation,
+          onChange: setConfirmation
+        })
+      ])])
+    ]),
+    busy && spinnerOverlay
+  ])
+}

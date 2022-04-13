@@ -3,6 +3,7 @@
   "bardRoot": "https://terra-bard-alpha.appspot.com",
   "bondUrlRoot": "https://broad-bond-alpha.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-alpha.broadinstitute.org",
+  "catalogUrlRoot": "https://catalog.dsde-alpha.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.alpha.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-alpha.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

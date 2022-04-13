@@ -46,10 +46,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     const response = await fetchImportStatus()
     const { message, status } = response
 
-    // avro-import statuses: PENDING, RUNNING, SUCCESS, ERROR
     // import service statuses: Pending, Translating, ReadyForUpsert, Upserting, Done, Error
-    // TODO: only need to support both sets of statuses during the transition from avro-import to import service.
-    // once import service is fully adopted, we can/should remove the avro-import status values.
     const successNotify = () => notify('success', 'Data imported successfully.', {
       message: h(Fragment, [
         p([`Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`]),
@@ -66,11 +63,9 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
 
     const errorNotify = () => notify('error', 'Error importing data.', { message })
 
-    if (!_.includes(status, ['PENDING', 'RUNNING', 'Pending', 'Translating', 'ReadyForUpsert', 'Upserting'])) {
+    if (!_.includes(status, ['Pending', 'Translating', 'ReadyForUpsert', 'Upserting'])) {
       Utils.switchCase(status,
-        ['SUCCESS', successNotify],
         ['Done', successNotify],
-        ['ERROR', errorNotify],
         ['Error', errorNotify],
         [Utils.DEFAULT, () => notify('error', 'Unexpected error importing data', response)]
       )

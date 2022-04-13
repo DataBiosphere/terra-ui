@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
+import pluralize from 'pluralize'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
-import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -241,19 +243,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [fileContents, setFileContents] = useState('')
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file)
+        await workspace.importEntitiesFile(file, { deleteEmptyValues })
       } else {
         const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file)
+          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
         } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file)
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notifyDataImportProgress(jobId)
         }
@@ -272,6 +275,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
+  const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
   return h(Dropzone, {
     multiple: false,
@@ -303,7 +307,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
-          tabs: [{ title: 'File Import', key: 'file', width: 121 }, { title: 'Text Import', key: 'text', width: 127 }],
+          tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
           onChange: value => {
             setIsFileImportCurrMode(value === 'file')
@@ -373,6 +377,32 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
+        }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          'We have detected empty cells in your TSV. Please choose an option:',
+          div({ role: 'radiogroup', 'aria-label': 'we have detected empty cells in your tsv. please choose an option.' }, [
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Ignore empty cells (default)',
+                name: 'ignore-empty-cells',
+                checked: !deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(false),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ]),
+            div({ style: { paddingTop: '0.5rem' } }, [
+              h(RadioButton, {
+                text: 'Overwrite existing cells with empty cells',
+                name: 'ignore-empty-cells',
+                checked: deleteEmptyValues,
+                onChange: () => setDeleteEmptyValues(true),
+                labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+              })
+            ])
+          ])
         ]),
         currentFile && supportsFireCloudDataModel(newEntityType) && div([
           h(LabeledCheckbox, {
@@ -472,68 +502,242 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   ])
 }
 
-export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
-  const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
-  const initialIsList = _.isObject(attributeValue) && attributeValue.items
-  const initialType = Utils.cond(
-    [initialIsReference, () => 'reference'],
+export const getAttributeType = attributeValue => {
+  const isList = Boolean(_.isObject(attributeValue) && attributeValue.items)
+
+  const isReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
+  const type = Utils.cond(
+    [isReference, () => 'reference'],
     // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
     // eslint-disable-next-line eqeqeq
-    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
-    [initialIsList, () => typeof attributeValue.items[0]],
+    [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
+    [isList, () => typeof attributeValue.items[0]],
     () => typeof attributeValue
   )
 
-  const [newValue, setNewValue] = useState(() => Utils.cond(
-    [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
-    [initialIsList, () => attributeValue.items],
-    [initialIsReference, () => attributeValue.entityName],
-    () => attributeValue
-  ))
-  const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
-    [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
-    [initialIsReference, () => attributeValue.entityType],
+  return { type, isList }
+}
+
+export const convertAttributeValue = (attributeValue, newType, referenceEntityType) => {
+  if (newType === 'reference' && !referenceEntityType) {
+    throw new Error('An entity type is required to convert an attribute to a reference')
+  }
+
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const baseConvertFn = Utils.switchCase(
+    newType,
+    ['reference', () => value => ({
+      entityType: referenceEntityType,
+      entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
+    })],
+    ['number', () => value => {
+      const numberVal = _.toNumber(value)
+      return _.isNaN(numberVal) ? 0 : numberVal
+    }],
+    [Utils.DEFAULT, () => Utils.convertValue(newType)]
+  )
+  const convertFn = type === 'reference' ? _.flow(_.get('entityName'), baseConvertFn) : baseConvertFn
+
+  if (isList) {
+    return _.flow(
+      _.update('items', _.map(convertFn)),
+      _.set('itemsType', newType === 'reference' ? 'EntityReference' : 'AttributeValue')
+    )(attributeValue)
+  }
+
+  return convertFn(attributeValue)
+}
+
+const renderInputForAttributeType = _.curry((attributeType, props) => {
+  return Utils.switchCase(attributeType,
+    ['string', () => {
+      const { value = '', ...otherProps } = props
+      return h(TextInput, {
+        autoFocus: true,
+        placeholder: 'Enter a value',
+        value,
+        ...otherProps
+      })
+    }],
+    ['reference', () => {
+      const { value, onChange, ...otherProps } = props
+      return h(TextInput, {
+        autoFocus: true,
+        placeholder: `Enter a ${value.entityType}_id`,
+        value: value.entityName,
+        onChange: v => onChange({ ...value, entityName: v }),
+        ...otherProps
+      })
+    }],
+    ['number', () => {
+      const { value = 0, ...otherProps } = props
+      return h(NumberInput, { autoFocus: true, isClearable: false, value, ...otherProps })
+    }],
+    ['boolean', () => {
+      const { value = false, ...otherProps } = props
+      return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
+        [h(Switch, { checked: value, ...otherProps })])
+    }]
+  )
+})
+
+const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
+  return Utils.switchCase(
+    attributeType,
+    ['string', () => ''],
+    ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
+    ['number', () => 0],
+    ['boolean', () => false]
+  )
+}
+
+const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
+  const { type: attributeType, isList } = getAttributeType(attributeValue)
+
+  const renderInput = renderInputForAttributeType(attributeType)
+
+  const defaultReferenceEntityType = Utils.cond(
+    [attributeType === 'reference' && isList, () => !_.isEmpty(attributeValue.items) ? attributeValue.items[0].entityType : entityTypes[0]],
+    [attributeType === 'reference', () => attributeValue.entityType],
     () => entityTypes[0]
-  ))
-  const [editType, setEditType] = useState(() => Utils.cond(
-    [initialIsReference, () => 'reference'],
-    // explicit double-equal to check for null and undefined, since entity attribute lists can contain nulls
-    // eslint-disable-next-line eqeqeq
-    [(initialIsList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
-    [initialIsList, () => typeof attributeValue.items[0]],
-    () => typeof attributeValue
-  ))
+  )
+  const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+
+  const focusLastListItemInput = useRef(false)
+  const lastListItemInput = useRef(null)
+  useEffect(() => {
+    if (!isList) {
+      lastListItemInput.current = null
+    }
+    if (focusLastListItemInput.current && lastListItemInput.current) {
+      lastListItemInput.current.focus()
+      focusLastListItemInput.current = false
+    }
+  }, [attributeValue, isList])
+
+  return h(Fragment, [
+    div({ style: { marginBottom: '1rem' } }, [
+      fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { marginRight: '1.2rem' } }, [
+            h(RadioButton, {
+              text: _.startCase(type),
+              name: 'edit-type',
+              checked: attributeType === type,
+              onChange: () => {
+                const newAttributeValue = convertAttributeValue(attributeValue, type, defaultReferenceEntityType)
+                onChange(newAttributeValue)
+              },
+              labelStyle: { paddingLeft: '0.5rem' }
+            })
+          ])
+        ]),
+        [
+          { type: 'string' },
+          { type: 'reference', tooltip: 'A link to another entity' },
+          { type: 'number' },
+          { type: 'boolean' }
+        ])
+        )
+      ]),
+      attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+          h(Select, {
+            id,
+            value: defaultReferenceEntityType,
+            options: entityTypes,
+            onChange: ({ value }) => {
+              const newAttributeValue = isList ?
+                _.update('items', _.map(_.set('entityType', value)), attributeValue) :
+                _.set('entityType', value, attributeValue)
+              onChange(newAttributeValue)
+            }
+          })
+        ])])
+      ])
+    ]),
+    div({ style: { marginBottom: '0.5rem' } }, [
+      h(LabeledCheckbox, {
+        checked: isList,
+        onChange: willBeList => {
+          const newAttributeValue = willBeList ?
+            { items: [attributeValue], itemsType: attributeType === 'reference' ? 'EntityReference' : 'AttributeValue' } :
+            attributeValue.items[0]
+          onChange(newAttributeValue)
+        }
+      }, [
+        span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])
+      ])
+    ]),
+    isList ?
+      h(Fragment, [
+        div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+          style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+        }, [
+          renderInput({
+            'aria-label': `List value ${i + 1}`,
+            autoFocus: i === 0 && autoFocus,
+            ref: i === attributeValue.items.length - 1 ? lastListItemInput : undefined,
+            value,
+            onChange: v => {
+              const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
+              onChange(newAttributeValue)
+            }
+          }),
+          h(Link, {
+            'aria-label': `Remove list value ${i + 1}`,
+            disabled: _.size(attributeValue.items) === 1,
+            onClick: () => {
+              const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
+              onChange(newAttributeValue)
+            },
+            style: { marginLeft: '0.5rem' }
+          }, [
+            icon('times', { size: 20 })
+          ])
+        ]), Utils.toIndexPairs(attributeValue.items))),
+        h(Link, {
+          style: { display: 'block', marginTop: '1rem' },
+          onClick: () => {
+            focusLastListItemInput.current = true
+            const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
+            onChange(newAttributeValue)
+          }
+        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item'])
+      ]) : div({ style: { marginTop: '1.5rem' } }, [
+        renderInput({
+          'aria-label': 'New value',
+          autoFocus,
+          value: attributeValue,
+          onChange
+        })
+      ])
+  ])
+}
+
+export const prepareAttributeForUpload = attributeValue => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const transform = Utils.switchCase(type,
+    ['string', () => _.trim],
+    ['reference', () => _.update('entityName', _.trim)],
+    [Utils.DEFAULT, () => _.identity]
+  )
+
+  return isList ?
+    _.update('items', _.map(transform), attributeValue) :
+    transform(attributeValue)
+}
+
+export const SingleEntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [newValue, setNewValue] = useState(attributeValue)
+  const isUnchanged = _.isEqual(attributeValue, newValue)
+
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
-
-  const isList = _.isArray(newValue)
-  const isUnchanged = (initialType === editType && initialIsList === isList && _.isEqual(attributeValue, newValue))
-
-  const makeTextInput = placeholder => ({ value = '', ...props }) => h(TextInput, { autoFocus: true, placeholder, value, ...props })
-
-  const { prepForUpload, makeInput, blankVal } = Utils.switchCase(editType,
-    ['string', () => ({
-      prepForUpload: _.trim,
-      makeInput: makeTextInput('Enter a value'),
-      blankVal: ''
-    })],
-    ['reference', () => ({
-      prepForUpload: v => ({ entityName: _.trim(v), entityType: linkedEntityType }),
-      makeInput: makeTextInput(`Enter a ${linkedEntityType}_id`),
-      blankVal: ''
-    })],
-    ['number', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = 0, ...props }) => h(NumberInput, { autoFocus: true, isClearable: false, value, ...props }),
-      blankVal: 0
-    })],
-    ['boolean', () => ({
-      prepForUpload: _.identity,
-      makeInput: ({ value = false, ...props }) => div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
-        [h(Switch, { checked: value, ...props })]),
-      blankVal: false
-    })]
-  )
 
   const doEdit = async () => {
     try {
@@ -544,7 +748,7 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         .workspace(namespace, name)
         .upsertEntities([{
           name: entityName, entityType,
-          attributes: { [attributeName]: isList ? _.map(prepForUpload, newValue) : prepForUpload(newValue) }
+          attributes: { [attributeName]: prepareAttributeForUpload(newValue) }
         }])
       onSuccess()
     } catch (e) {
@@ -583,86 +787,12 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
         ])
       ]) :
       h(Fragment, [
-        div({ style: { marginBottom: '1rem' } }, [
-          fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-            legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
-            h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
-              content: tooltip
-            }, [
-              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
-                text: _.startCase(type),
-                name: 'edit-type',
-                checked: editType === type,
-                onChange: () => {
-                  const convertFn = type === 'number' ?
-                    v => {
-                      const numberVal = _.toNumber(v)
-                      return _.isNaN(numberVal) ? 0 : numberVal
-                    } :
-                    Utils.convertValue(type === 'reference' ? 'string' : type)
-                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
-
-                  setNewValue(convertedValue)
-                  setEditType(type)
-                },
-                labelStyle: { paddingLeft: '0.5rem' }
-              })])
-            ]), [
-              { type: 'string' },
-              { type: 'reference', tooltip: 'A link to another entity' },
-              { type: 'number' },
-              { type: 'boolean' }
-            ]))
-          ]),
-          editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-            h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-              h(Select, {
-                id,
-                value: linkedEntityType,
-                options: entityTypes,
-                onChange: ({ value }) => setLinkedEntityType(value)
-              })
-            ])])
-          ])
-        ]),
-        div({ style: { marginBottom: '0.5rem' } }, [
-          h(LabeledCheckbox, {
-            checked: isList,
-            onChange: willBeList => setNewValue(willBeList ? [newValue] : newValue[0])
-          }, [span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])])
-        ]),
-        isList ?
-          div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
-            style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
-          }, [
-            makeInput({
-              'aria-label': `List value ${i + 1}`,
-              autoFocus: true,
-              value,
-              onChange: v => setNewValue(_.set(i, v))
-            }),
-            h(Link, {
-              'aria-label': `Remove list value ${i + 1}`,
-              disabled: newValue.length === 1,
-              onClick: () => setNewValue(_.pullAt(i)),
-              style: { marginLeft: '0.5rem' }
-            }, [
-              icon('times', { size: 20 })
-            ])
-          ]), Utils.toIndexPairs(newValue))) :
-          div({ style: { marginTop: '1.5rem' } }, [
-            makeInput({
-              'aria-label': 'New value',
-              autoFocus: true,
-              value: newValue,
-              onChange: setNewValue
-            })
-          ]),
-        isList && h(Link, {
-          style: { display: 'block', marginTop: '1rem' },
-          onClick: () => setNewValue(Utils.append(blankVal))
-        }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item']),
+        h(AttributeInput, {
+          autoFocus: true,
+          value: newValue,
+          onChange: setNewValue,
+          entityTypes
+        }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
           div({ style: { flexGrow: 1 } }),
@@ -674,6 +804,241 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
           }, ['Save Changes'])
         ])
       ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [attributeToEdit, setAttributeToEdit] = useState('')
+  const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
+  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
+  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+
+  const [newValue, setNewValue] = useState('')
+
+  const signal = useCancellation()
+  const [isBusy, setIsBusy] = useState()
+  const [consideringDelete, setConsideringDelete] = useState()
+
+  const doEdit = async () => {
+    try {
+      setIsBusy(true)
+
+      const entityUpdates = _.map(entityName => ({
+        entityType,
+        name: entityName,
+        attributes: { [attributeToEdit]: prepareAttributeForUpload(newValue) }
+      }), entityNames)
+
+      await Ajax(signal)
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities(entityUpdates)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const doDelete = async () => {
+    try {
+      setIsBusy(true)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, entityNames)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to modify entities.', e)
+    }
+  }
+
+  const boldish = text => span({ style: { fontWeight: 600 } }, [text])
+
+  return h(Modal, {
+    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    onDismiss,
+    showButtons: false
+  }, [
+    consideringDelete ?
+      h(Fragment, [
+        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
+        div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
+        div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
+          div({ style: { flexGrow: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+        ])
+      ]) :
+      h(Fragment, [
+        div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+                h(AutocompleteTextInput, {
+                  id,
+                  value: attributeToEdit,
+                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
+                  placeholder: 'Attribute name',
+                  style: attributeToEditError ? {
+                    paddingRight: '2.25rem',
+                    border: `1px solid ${colors.danger()}`
+                  } : undefined,
+                  onChange: value => {
+                    setAttributeToEdit(value)
+                    setAttributeToEditTouched(true)
+                  }
+                }),
+                attributeToEditError && icon('error-standard', {
+                  size: 24,
+                  style: {
+                    position: 'absolute', right: '0.5rem',
+                    color: colors.danger()
+                  }
+                })
+              ]),
+              attributeToEditError && div({
+                'aria-live': 'assertive',
+                'aria-relevant': 'all',
+                style: {
+                  marginTop: '0.5rem',
+                  color: colors.danger()
+                }
+              }, attributeToEditError)
+            ])
+          ])
+        ]),
+        attributeToEditTouched ? h(Fragment, [
+          h(AttributeInput, {
+            value: newValue,
+            onChange: setNewValue,
+            entityTypes
+          }),
+          div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
+            h(ButtonOutline, {
+              disabled: attributeToEditError || isNewAttribute,
+              tooltip: Utils.cond(
+                [attributeToEditError, () => attributeToEditError],
+                [isNewAttribute, () => 'The selected attribute does not exist.']
+              ),
+              onClick: () => setConsideringDelete(true)
+            }, ['Delete']),
+            div({ style: { flexGrow: 1 } }),
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: onDismiss }, ['Cancel']),
+            h(ButtonPrimary, {
+              disabled: attributeToEditError,
+              tooltip: attributeToEditError,
+              onClick: doEdit
+            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+          ])
+        ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
+          h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
+        ])
+      ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, attributeNames, entityTypes, onDismiss, onSuccess }) => {
+  const [entityName, setEntityName] = useState('')
+  const [entityNameInputTouched, setEntityNameInputTouched] = useState(false)
+  const [takenNames, setTakenNames] = useState([])
+  // Default all attribute values to empty strings
+  const [attributeValues, setAttributeValues] = useState(_.fromPairs(_.map(attributeName => [attributeName, ''], attributeNames)))
+  const [isBusy, setIsBusy] = useState(false)
+
+  // The data table colum heading shows this as `${entityType}_id`, but `${entityType} ID` works better in a screen reader
+  const entityNameLabel = `${entityType} ID`
+
+  const entityNameErrors = validate.single(entityName, {
+    presence: {
+      allowEmpty: false,
+      message: `${entityNameLabel} is required`
+    },
+    format: {
+      pattern: '[a-z0-9_.-]*',
+      flags: 'i',
+      message: `${entityNameLabel} may only contain alphanumeric characters, underscores, dashes, and periods.`
+    },
+    exclusion: {
+      within: takenNames,
+      message: `A ${entityType} with this name already exists`
+    }
+  })
+
+  const createEntity = async () => {
+    setIsBusy(true)
+    try {
+      await Ajax().Workspaces.workspace(namespace, name).createEntity({
+        entityType,
+        name: _.trim(entityName),
+        attributes: _.mapValues(prepareAttributeForUpload, attributeValues)
+      })
+      setIsBusy(false)
+      onDismiss()
+      onSuccess()
+    } catch (err) {
+      setIsBusy(false)
+      if (err.status === 409) {
+        setTakenNames(prevTakenNames => _.uniq(Utils.append(entityName, prevTakenNames)))
+      } else {
+        onDismiss()
+        reportError('Unable to add row.', err)
+      }
+    }
+  }
+
+  return h(Modal, {
+    onDismiss,
+    title: `Add ${entityType}`,
+    okButton: h(ButtonPrimary, {
+      disabled: !!entityNameErrors,
+      tooltip: Utils.summarizeErrors(entityNameErrors),
+      onClick: createEntity
+    }, ['Add'])
+  }, [
+    label({ htmlFor: 'add-row-entity-name', style: { display: 'block', marginBottom: '0.5rem' } }, entityNameLabel),
+    h(ValidatedInput, {
+      inputProps: {
+        id: 'add-row-entity-name',
+        value: entityName,
+        onChange: value => {
+          setEntityName(value)
+          setEntityNameInputTouched(true)
+        }
+      },
+      error: entityNameInputTouched && Utils.summarizeErrors(entityNameErrors)
+    }),
+    p({ id: 'add-row-attributes-label' }, 'Expand each attribute to edit its value.'),
+    ul({ 'aria-labelledby': 'add-row-attributes-label', style: { padding: 0, margin: 0 } }, [
+      _.map(([i, attributeName]) => li({
+        key: attributeName,
+        style: {
+          borderTop: i === 0 ? undefined : `1px solid ${colors.light()}`,
+          listStyleType: 'none'
+        }
+      }, [
+        h(Collapse, {
+          title: span({ style: { ...Style.noWrapEllipsis } }, [
+            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
+          ]),
+          buttonStyle: {
+            maxWidth: '100%',
+            padding: '0.5rem 0',
+            marginBottom: 0
+          }
+        }, [
+          div({ style: { margin: '0.5rem 0' } }, [
+            h(AttributeInput, {
+              value: attributeValues[attributeName],
+              onChange: value => setAttributeValues(_.set(attributeName, value)),
+              entityTypes
+            })
+          ])
+        ])
+      ]), Utils.toIndexPairs(attributeNames))
+    ]),
     isBusy && spinnerOverlay
   ])
 }
@@ -705,60 +1070,14 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState(false)
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
-
-  const signal = useCancellation()
-
-  const deleteColumn = async () => {
-    try {
-      setDeleting(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
-      onDismiss()
-      onSuccess()
-    } catch (e) {
-      reportError('Unable to modify column', e)
-      setDeleting(false)
-    }
-  }
-
-  return h(Modal, {
-    title: 'Delete Column',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: deleteColumn,
-      disabled: _.toLower(deleteConfirmation) !== 'delete column',
-      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
-    }, 'Delete column')
-  }, [
-    div(['Are you sure you want to permanently delete the column ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
-      '?']),
-    div({
-      style: { fontWeight: 500, marginTop: '1rem' }
-    }, 'This cannot be undone.'),
-    div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
-      h(TextInput, {
-        id: 'delete-column-confirmation',
-        placeholder: 'Delete Column',
-        value: deleteConfirmation,
-        onChange: setDeleteConfirmation
-      })
-    ]),
-    deleting && spinnerOverlay
-  ])
-}
-
-export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
+      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [

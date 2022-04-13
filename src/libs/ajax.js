@@ -131,8 +131,8 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
-const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
@@ -575,7 +575,7 @@ const Billing = signal => ({
    */
   getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
     const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace' })}`,
+      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace~Category' })}&${qs.stringify({ aggregationKey: 'Category' })}`,
       _.merge(authOpts(), { signal })
     )
     return res.json()
@@ -906,6 +906,14 @@ const Workspaces = signal => ({
           { signal, method: 'PATCH' }]))
       },
 
+      deleteAttributeFromEntities: (entityType, attributeName, entityNames) => {
+        const body = _.map(name => ({
+          entityType, name, operations: [{ op: 'RemoveAttribute', attributeName }]
+        }), entityNames)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+      },
+
       deleteEntityColumn: (type, attributeName) => {
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
@@ -947,23 +955,23 @@ const Workspaces = signal => ({
         return upsertEntities(payload)
       },
 
-      importEntitiesFile: file => {
+      importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        return fetchOrchestration(`api/${root}/importEntities?${qs.stringify({ deleteEmptyValues })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFileSynchronous: async file => {
+      importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=false`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res
       },
 
-      importFlexibleEntitiesFileAsync: async file => {
+      importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=true`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: true })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
         return res.json()
       },
 
@@ -1029,43 +1037,25 @@ const Workspaces = signal => ({
       bucketUsage: async () => {
         const res = await fetchRawls(`${root}/bucketUsage`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+
+      listActiveFileTransfers: async () => {
+        const res = await fetchRawls(`${root}/fileTransfers`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }
 })
 
+const Catalog = signal => ({
+  getDatasets: async () => {
+    const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
 
 const DataRepo = signal => ({
-  getSnapshots: async () => {
-    const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
-    //  For beta test: if the title length is even, pretend that this is a controlled snapshot.
-    return _.map(snapshot => snapshot['dct:title'].length % 2 === 0 ?
-      {
-        ...snapshot,
-        roles: ['discoverer'],
-        'TerraDCAT_ap:hasDataUsePermission': 'TerraCore:CC',
-        dataSource: {
-          storageSystemName: 'the Terra workspace',
-          storageSystemId: '',
-          storageSourceId: 'testing',
-          storageSourceName: 'TARGET_WT_hg38_OpenAccess_GDCDR-12-0_DATA'
-        },
-        legacyDatasetAttributes: {
-          experimentalStrategy: 'Whole Exome',
-          cohortDescription: 'Whilms Tumor',
-          cohortName: 'TARGET Kidney Tumors Project: Wilms Tumor',
-          cohortPhenotype: 'metachronous kidney Wilms\' tumor',
-          datasetVersion: 'GDCDR-12-0',
-          datasetOwner: 'NCI',
-          datasetCustodian: 'Chet Birger',
-          noOfSubjects: 'Number of Subjects',
-          region: 'Multi-region - US',
-          studyDesign: 'Tumor/Norma',
-          projectName: 'TARGET'
-        }
-      } : snapshot, (await res.json())?.result)
-  },
-
   snapshot: snapshotId => {
     return {
       details: async () => {
@@ -1073,12 +1063,6 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
-  },
-
-  requestAccess: async id => {
-    //TODO: Update this link to hit the real endpoint
-    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
-    return res.json()
   },
 
   getPreviewMetadata: async id => {
@@ -1112,21 +1096,6 @@ const Buckets = signal => ({
     )
   },
 
-  getServiceAlerts: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
-    return res.json()
-  },
-
-  getFeaturedWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
-    return res.json()
-  },
-
-  getShowcaseWorkspaces: async () => {
-    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
-    return res.json()
-  },
-
   listNotebooks: async (googleProject, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
@@ -1153,20 +1122,34 @@ const Buckets = signal => ({
     return res.json()
   },
 
-  listAll: async (googleProject, bucket, prefix = null, pageToken = null) => {
+  /**
+   * Recursively returns all objects in the specified bucket, iterating through all pages until
+   * results have been exhausted and all objects have been collected.
+   *
+   * @param googleProject
+   * @param bucket Name of the bucket in which to look for objects.
+   * @param {Object} options to pass into the GCS API. Accepted options are:
+   *    prefix: Filter results to include only objects whose names begin with this prefix.
+   *    pageToken: A previously-returned page token representing part of the larger set of results to view.
+   *    delimiter: Returns results in a directory-like mode, with / being a common value for the delimiter.
+   * @returns {Promise<*>}
+   * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
+   */
+  listAll: async (googleProject, bucket, { prefix = null, pageToken = null, delimiter = null } = {}) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const body = await res.json()
     const items = body.items || []
+    const prefixes = body.prefixes || []
 
     // Get the next page recursively if there is one
     if (body.nextPageToken) {
-      const next = await Buckets(signal).listAll(googleProject, bucket, prefix, body.nextPageToken)
-      return _.concat(items, next)
+      const next = await Buckets(signal).listAll(googleProject, bucket, { prefix, pageToken: body.nextPageToken, delimiter })
+      return { items: _.concat(items, next.items), prefixes: _.concat(prefixes, next.prefixes) }
     }
-    return items
+    return { items, prefixes }
   },
 
   delete: async (googleProject, bucket, name) => {
@@ -1317,11 +1300,30 @@ const Buckets = signal => ({
 })
 
 
-const GoogleBilling = signal => ({
-  listProjectNames: async billingAccountName => {
-    const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
-    const json = await response.json()
-    return _.map('projectId', json.projectBillingInfo)
+const FirecloudBucket = signal => ({
+  getServiceAlerts: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
+    return res.json()
+  },
+
+  getShowcaseWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
+    return res.json()
+  },
+
+  getFeaturedMethods: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal })
+    return res.json()
+  },
+
+  getTemplateWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal })
+    return res.json()
   }
 })
 
@@ -1672,9 +1674,9 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
+    Catalog: Catalog(signal),
     DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
-    GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
     Runtimes: Runtimes(signal),
@@ -1684,7 +1686,8 @@ export const Ajax = signal => {
     Duos: Duos(signal),
     Metrics: Metrics(signal),
     Disks: Disks(signal),
-    CromIAM: CromIAM(signal)
+    CromIAM: CromIAM(signal),
+    FirecloudBucket: FirecloudBucket(signal)
   }
 }
 

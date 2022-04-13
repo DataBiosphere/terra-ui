@@ -26,8 +26,8 @@ import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
-  getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes, getValidGpuTypesForZone, isAutopauseEnabled, RadioBlock,
-  runtimeConfigBaseCost, runtimeConfigCost
+  getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
+  isAutopauseEnabled, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -149,7 +149,7 @@ const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
               style: { marginRight: 'auto' },
               onClick: onDismiss,
               ...Utils.newTabLinkProps
-            }, ['Launch', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
+            }, ['Open', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
           ])
         ])
       ])
@@ -182,7 +182,9 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 // Auxiliary functions -- end
 
-export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false }) => {
+export const ComputeModalBase = ({
+  onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+}) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -327,6 +329,24 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     onSuccess()
   })
+
+  const getMainMachineTypeByNumCpus = numCpus => _.find({ cpu: numCpus }, validMachineTypes)?.name || mainMachineType
+
+  const getMainMachineTypeByMemory = (numCpus, memory) => _.find({ cpu: numCpus, memory }, validMachineTypes)?.name || mainMachineType
+
+  const getValidCpuGpuConfig = machineType => {
+    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(machineType)
+    const validGpuOptions = getValidGpuOptions(currentNumCpus, currentMemory, computeConfig.computeZone)
+    const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
+    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
+      displayNameForGpuType(computeConfig.gpuType) :
+      _.head(validGpuNames)
+    const validGpuType = _.find({ name: validGpuName }, validGpuOptions)?.type
+    const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
+    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+
+    return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions }
+  }
 
   const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
 
@@ -748,7 +768,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         id: titleId,
         style: computeStyles.titleBar,
         title: 'About persistent disk',
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         onDismiss,
         onPrevious: () => setViewMode()
       }),
@@ -783,6 +803,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
+
+    const isRuntimeError = existingRuntime?.status === 'Error'
+    const shouldErrorDisableUpdate = existingRuntime?.toolDockerImage === desiredRuntime?.toolDockerImage
+    const isUpdateDisabled = getIsRuntimeBusy(currentRuntimeDetails) || (shouldErrorDisableUpdate && isRuntimeError)
+
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
     return Utils.cond([
@@ -802,7 +827,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ...commonButtonProps,
         onClick: () => {
           applyChanges()
-        }
+        },
+        disabled: isUpdateDisabled,
+        tooltipSide: 'left',
+        tooltip: isUpdateDisabled ? `Cannot perform change on environment in (${currentRuntimeDetails.status}) status` : 'Update Environment'
       }, [
         Utils.cond(
           [viewMode === 'deleteEnvironment', () => 'Delete'],
@@ -864,14 +892,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderComputeProfileSection = computeExists => {
-    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
-    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
-    const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
-    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
-      displayNameForGpuType(computeConfig.gpuType) :
-      _.head(validGpuNames)
-    const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
-    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+    const { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuOptions, validNumGpus, validNumGpusOptions } = getValidCpuGpuConfig(
+      mainMachineType)
+
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : isDataproc(runtimeType) || isRStudioImage
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
@@ -891,8 +914,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentNumCpus,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByNumCpus(value)
+                    const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    updateComputeConfig('gpuType', newGpuType)
+                    updateComputeConfig('numGpus', newNumGpus)
+                  },
                   options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
                 })
               ])
@@ -906,8 +934,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: currentMemory,
-                  onChange: ({ value }) => updateComputeConfig('masterMachineType',
-                    _.find({ cpu: currentNumCpus, memory: value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: ({ value }) => {
+                    const mainMachineType = getMainMachineTypeByMemory(currentNumCpus, value)
+                    const { validGpuType: newGpuType, validNumGpus: newNumGpus } = getValidCpuGpuConfig(mainMachineType)
+                    updateComputeConfig('masterMachineType', mainMachineType)
+                    updateComputeConfig('gpuType', newGpuType)
+                    updateComputeConfig('numGpus', newNumGpus)
+                  },
                   options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(
                     validMachineTypes)
                 })
@@ -956,7 +989,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     id,
                     isSearchable: false,
                     value: validGpuName,
-                    onChange: ({ value }) => updateComputeConfig('gpuType', _.find({ name: value }, validGpuOptions)?.type),
+                    onChange: ({ value }) => updateComputeConfig('gpuType',
+                      _.get('type', _.find({ name: value }, validGpuOptions))),
                     options: validGpuNames
                   })
                 ])
@@ -971,7 +1005,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     isSearchable: false,
                     value: validNumGpus,
                     onChange: ({ value }) => updateComputeConfig('numGpus',
-                      _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions)?.numGpus),
+                      _.get('numGpus', _.find({ type: computeConfig.gpuType, numGpus: value }, validGpuOptions))),
                     options: validNumGpusOptions
                   })
                 ])
@@ -1162,7 +1196,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Unverified Docker image']),
         onDismiss,
@@ -1188,7 +1222,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Compute location differs from workspace bucket location']),
         onDismiss,
@@ -1220,7 +1254,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Non-US Compute Location']),
         onDismiss,
@@ -1311,7 +1345,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         id: titleId,
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Delete environment']),
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         onDismiss,
         onPrevious: () => {
           setViewMode(undefined)
@@ -1396,7 +1430,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       h(TitleBar, {
         id: titleId,
         style: computeStyles.titleBar,
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         title: h(WarningTitle, [
           Utils.cond(
             [willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
@@ -1503,8 +1537,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         h(TitleBar, {
           id: titleId,
           style: { marginBottom: '0.5rem' },
-          title: 'Cloud Environment',
-          hideCloseButton: isAnalysisMode,
+          title: isAnalysisMode ? `${tool} Cloud Environment` : 'Cloud Environment',
+          hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
         div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
@@ -1612,7 +1646,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         id: titleId,
         style: computeStyles.titleBar,
         title: 'Installed packages',
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         onDismiss,
         onPrevious: () => setViewMode(undefined)
       }),
@@ -1630,7 +1664,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         id: titleId,
         title: 'Spark Console',
         style: { marginBottom: '0.5rem' },
-        hideCloseButton: isAnalysisMode,
+        hideCloseButton: shouldHideCloseButton,
         onDismiss,
         onPrevious: () => setViewMode(undefined)
       }),

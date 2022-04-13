@@ -146,44 +146,48 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
-export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }) => {
+export const NumberInput = forwardRefWithName('NumberInput', ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }, ref) => {
   // If the user provided a tooltip but no other label, use the tooltip as the label for the input
   useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true })
 
   const [internalValue, setInternalValue] = useState()
 
-  const numberInputChild = div([input(_.merge({
-    type: 'number',
-    'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
-    className: 'focus-style',
-    min, max,
-    value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
-    onChange: ({ target: { value: newValue } }) => {
-      setInternalValue(newValue)
-      // note: floor and clamp implicitly convert the value to a number
-      onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue))
-    },
-    onBlur: (...args) => {
-      onBlur && onBlur(...args)
-      setInternalValue(undefined)
-    },
-    style: {
-      ...styles.input,
-      width: '100%',
-      paddingLeft: '1rem',
-      paddingRight: '0.25rem',
-      fontWeight: 400,
-      fontSize: 14,
-      backgroundColor: props.disabled ? colors.dark(0.25) : undefined
-    }
-  }, props))])
+  const numberInputChild = div([input({
+    ..._.merge({
+      type: 'number',
+      'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
+      className: 'focus-style',
+      min, max,
+      value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
+      onChange: ({ target: { value: newValue } }) => {
+        setInternalValue(newValue)
+        // note: floor and clamp implicitly convert the value to a number
+        onChange(newValue === '' && isClearable ? null : _.clamp(min, max, onlyInteger ? _.floor(newValue) : newValue))
+      },
+      onBlur: (...args) => {
+        onBlur && onBlur(...args)
+        setInternalValue(undefined)
+      },
+      style: {
+        ...styles.input,
+        width: '100%',
+        paddingLeft: '1rem',
+        paddingRight: '0.25rem',
+        fontWeight: 400,
+        fontSize: 14,
+        backgroundColor: props.disabled ? colors.dark(0.25) : undefined
+      }
+    }, props),
+    // _.merge merges recursively, and thus does not set ref correctly.
+    ref
+  })])
 
   if (tooltip) {
     return h(TooltipTrigger, { content: tooltip, side: 'right' }, [numberInputChild])
   } else {
     return numberInputChild
   }
-}
+})
 
 /**
  * @param {object} props.inputProps
@@ -231,7 +235,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => forwardRefWithName(`withAutocomplete(${WrappedComponent.displayName || WrappedComponent.name || 'Component'})`, ({
-  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
+  itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }, ref) => {
   useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })

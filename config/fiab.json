@@ -3,6 +3,7 @@
   "bardRoot": "https://terra-bard-dev.appspot.com",
   "bondUrlRoot": "https://broad-bond-dev.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-dev.broadinstitute.org",
+  "catalogUrlRoot": "https://catalog.dsde-dev.broadinstitute.org",
   "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",

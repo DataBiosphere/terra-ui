@@ -1,4 +1,4 @@
-import { concatenateAttributeNames } from 'src/components/data/data-utils.js'
+import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload } from 'src/components/data/data-utils.js'
 
 
 describe('concatenateAttributeNames', () => {
@@ -59,5 +59,137 @@ describe('concatenateAttributeNames', () => {
     const attrList2 = ['namespace:bbb', 'aaa']
     const expected = ['aaa', 'ddd', 'namespace:aaa', 'namespace:bbb', 'namespace:ccc']
     expect(concatenateAttributeNames(attrList1, attrList2)).toEqual(expected)
+  })
+})
+
+describe('getAttributeType', () => {
+  it('returns type of attribute value', () => {
+    expect(getAttributeType('value')).toEqual({ type: 'string', isList: false })
+    expect(getAttributeType(3)).toEqual({ type: 'number', isList: false })
+    expect(getAttributeType(false)).toEqual({ type: 'boolean', isList: false })
+    expect(getAttributeType({
+      entityType: 'thing',
+      entityName: 'thing_one'
+    })).toEqual({ type: 'reference', isList: false })
+
+    expect(getAttributeType({ items: ['a', 'b', 'c'], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+    expect(getAttributeType({ items: [1, 2, 3], itemsType: 'AttributeValue' })).toEqual({ type: 'number', isList: true })
+    expect(getAttributeType({ items: [true, false], itemsType: 'AttributeValue' })).toEqual({ type: 'boolean', isList: true })
+    expect(getAttributeType({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one' },
+        { entityType: 'thing', entityName: 'thing_two' }
+      ],
+      itemsType: 'EntityReference'
+    })).toEqual({ type: 'reference', isList: true })
+  })
+
+  it('returns string for null values', () => {
+    expect(getAttributeType(null)).toEqual({ type: 'string', isList: false })
+    expect(getAttributeType({ items: [], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+    expect(getAttributeType({ items: [null], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+  })
+})
+
+describe('convertAttributeValue', () => {
+  it('converts between different attribute types', () => {
+    expect(convertAttributeValue('42', 'number')).toEqual(42)
+    expect(convertAttributeValue('a_string', 'number')).toEqual(0)
+    expect(convertAttributeValue('a_string', 'boolean')).toEqual(true)
+    expect(convertAttributeValue('a_string', 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: 'a_string' })
+
+    expect(convertAttributeValue(7, 'string')).toEqual('7')
+    expect(convertAttributeValue(7, 'boolean')).toEqual(true)
+    expect(convertAttributeValue(7, 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: '7' })
+
+    expect(convertAttributeValue(true, 'string')).toEqual('true')
+    expect(convertAttributeValue(true, 'number')).toEqual(1)
+    expect(convertAttributeValue(false, 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: 'false' })
+
+    expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'string')).toEqual('thing_one')
+    expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'number')).toEqual(0)
+    expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'boolean')).toEqual(true)
+  })
+
+  it('throws an error if attempting to convert to a reference without an entity type', () => {
+    expect(() => convertAttributeValue('thing_one', 'reference')).toThrowError()
+  })
+
+  it('converts each value of lists', () => {
+    expect(convertAttributeValue({ items: ['42', 'value'], itemsType: 'AttributeValue' }, 'number')).toEqual({ items: [42, 0], itemsType: 'AttributeValue' })
+
+    expect(convertAttributeValue({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one' },
+        { entityType: 'thing', entityName: 'thing_two' }
+      ],
+      itemsType: 'EntityReference'
+    }, 'string')).toEqual({ items: ['thing_one', 'thing_two'], itemsType: 'AttributeValue' })
+  })
+
+  it('adds itemsType to reference lists', () => {
+    expect(convertAttributeValue({ items: ['thing_one', 'thing_two'], itemsType: 'AttributeValue' }, 'reference', 'thing')).toEqual({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one' },
+        { entityType: 'thing', entityName: 'thing_two' }
+      ],
+      itemsType: 'EntityReference'
+    })
+  })
+})
+
+describe('prepareAttributeForUpload', () => {
+  it('trims string values', () => {
+    expect(prepareAttributeForUpload('foo ')).toEqual('foo')
+    expect(prepareAttributeForUpload({
+      items: [' foo', ' bar '],
+      itemsType: 'AttributeValue'
+    })).toEqual({
+      items: ['foo', 'bar'],
+      itemsType: 'AttributeValue'
+    })
+  })
+
+  it('trims entity names in references', () => {
+    expect(prepareAttributeForUpload({
+      entityType: 'thing',
+      entityName: 'thing_one '
+    })).toEqual({
+      entityType: 'thing',
+      entityName: 'thing_one'
+    })
+    expect(prepareAttributeForUpload({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one ' },
+        { entityType: 'thing', entityName: ' thing_two' }
+      ],
+      itemsType: 'EntityReference'
+    })).toEqual({
+      items: [
+        { entityType: 'thing', entityName: 'thing_one' },
+        { entityType: 'thing', entityName: 'thing_two' }
+      ],
+      itemsType: 'EntityReference'
+    })
+  })
+
+  it('leaves other types unchanged', () => {
+    expect(prepareAttributeForUpload(false)).toEqual(false)
+    expect(prepareAttributeForUpload({
+      items: [true, false],
+      itemsType: 'AttributeValue'
+    })).toEqual({
+      items: [true, false],
+      itemsType: 'AttributeValue'
+    })
+
+    expect(prepareAttributeForUpload(42)).toEqual(42)
+    expect(prepareAttributeForUpload({
+      items: [1, 2, 3],
+      itemsType: 'AttributeValue'
+    })).toEqual({
+      items: [1, 2, 3],
+      itemsType: 'AttributeValue'
+    })
   })
 })

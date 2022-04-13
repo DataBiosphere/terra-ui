@@ -1,6 +1,6 @@
 /* eslint-disable quote-props */
 module.exports = {
-  'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
+  'plugins': ['lodash-fp', 'simple-import-sort'],
   'extends': 'react-app',
   'rules': {
     // Best Practices
@@ -30,6 +30,13 @@ module.exports = {
     'no-multiple-empty-lines': 'warn',
     'no-trailing-spaces': 'warn',
     'no-unneeded-ternary': 'warn',
+    'no-unused-vars': [
+      'warn', {
+        'vars': 'all',
+        'args': 'all',
+        'argsIgnorePattern': '^_|^props'
+      }
+    ],
     'no-whitespace-before-property': 'warn',
     'nonblock-statement-body-position': 'warn',
     'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
@@ -49,6 +56,8 @@ module.exports = {
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',
+    // TODO: Set 'variables' to 'true' after fixing the existing issues
+    'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
     'no-useless-rename': 'warn',
     'no-var': 'warn',
     'object-shorthand': 'warn',
@@ -59,6 +68,7 @@ module.exports = {
     'prefer-spread': 'warn',
     'rest-spread-spacing': 'warn',
     'template-curly-spacing': 'warn',
+    'vars-on-top': 'warn',
 
 
     'lodash-fp/consistent-name': ['warn', '_'],
@@ -91,6 +101,16 @@ module.exports = {
     'simple-import-sort/imports': 'warn',
 
     'import/newline-after-import': ['warn', { 'count': 2 }],
-    'import/no-anonymous-default-export': ['warn', { 'allowObject': true }]
-  }
+    'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
+
+    'no-debugger': 'warn'
+  },
+  'overrides': [
+    {
+      'files': 'src/**/*.js',
+      'rules': {
+        'no-console': ['warn', { 'allow': ['assert', 'error'] }]
+      }
+    }
+  ]
 }

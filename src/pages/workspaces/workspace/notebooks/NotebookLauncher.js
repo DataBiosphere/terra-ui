@@ -44,7 +44,7 @@ const NotebookLauncher = _.flow(
   })
 )(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
-    ref) => {
+    _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const [busy, setBusy] = useState()
     const [location, setLocation] = useState(defaultLocation)
@@ -237,13 +237,13 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, {
             onClick: () => setEditModeDisabledOpen(true)
-          }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
+          }, [makeMenuIcon('warning-standard'), 'Open (Disabled)'])],
           [locked, () => h(HeaderButton, {
             onClick: () => setFileInUseOpen(true)
-          }, [makeMenuIcon('lock'), 'Edit (In use)'])],
+          }, [makeMenuIcon('lock'), 'Open (In use)'])],
           () => h(HeaderButton, {
             onClick: () => chooseMode('edit')
-          }, [makeMenuIcon('edit'), 'Edit'])
+          }, [makeMenuIcon('rocket'), 'Open'])
         ),
         h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
