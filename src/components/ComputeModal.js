@@ -741,7 +741,7 @@ export const ComputeModalBase = ({
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: pdTypes.fromString(currentPersistentDiskDetails?.diskType) || defaultPersistentDiskType,
+        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && pdTypes.fromString(currentPersistentDiskDetails.diskType)) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :

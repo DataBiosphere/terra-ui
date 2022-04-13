@@ -321,14 +321,14 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
   const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
   // return the newest unattached disk that was provisioned by the desired appType.
-  return !!currentDiskName ?
+  return _.update('diskType', pdTypes.fromString, (!!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
       _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) &&
         disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
-    )(appDataDisks)
+    )(appDataDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {

@@ -324,7 +324,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           div({ style: { marginTop: '0.5rem' } }, [
             h(Select, {
               id,
-              value: dataDisk.diskType,
+              value: disabled ? currentDataDisk.diskType : dataDisk.diskType,
               isDisabled: disabled,
               onChange: ({ value }) => updateDataDisk('diskType', value),
               options: [
@@ -336,7 +336,6 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         ])
       ])
     ])
-
 
     const renderPersistentDiskSize = disabled => div([
       h(IdContainer, [
@@ -350,7 +349,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             disabled,
             onlyInteger: true,
             style: { marginTop: '0.5rem' },
-            value: dataDisk.size,
+            value: disabled ? currentDataDisk.size : dataDisk.size,
             onChange: updateDataDisk('size')
           })
         ])
