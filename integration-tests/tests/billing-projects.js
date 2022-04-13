@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -151,8 +151,8 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
 
-  //Check that the Spend report tab is not visible in this case
-  await billingPage.assertText("Spend report")
+  //Check that the Spend report tab is not visible on this page
+  await assertTextNotFound(billingPage, 'Spend report')
 })
 
 const testBillingSpendReport = {
