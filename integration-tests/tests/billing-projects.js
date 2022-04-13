@@ -7,7 +7,7 @@ const billingProjectsPage = (testPage, testUrl) => {
   return {
     visit: async () => await testPage.goto(`${testUrl}/#billing`),
 
-    selectSpendReport: async billingProjectName => {
+    selectSpendReport: async () => {
       await click(testPage, clickable({ text: 'Spend report' }))
     },
 
@@ -123,7 +123,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
   await billingPage.selectProject(ownedBillingProjectName)
-  await billingPage.selectSpendReport(ownedBillingProjectName)
+  await billingPage.selectSpendReport()
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.00')
   await billingPage.assertText('Total compute$999.00')
