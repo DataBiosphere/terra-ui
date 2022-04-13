@@ -96,7 +96,7 @@ const assertTextNotFound = async (page, text) => {
     found = true
   } catch (e) {}
   if (found) {
-    throw new Error('The specified text was found on the page, but it was not expected')
+    throw new Error(`The specified text ${text} was found on the page, but it was not expected`)
   }
 }
 

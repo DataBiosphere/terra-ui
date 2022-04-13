@@ -11,6 +11,14 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ text: 'Spend report' }))
     },
 
+    selectMembers: async () => {
+      await click(testPage, clickable({ text: 'Members' }))
+    },
+
+    selectOwners: async () => {
+      await click(testPage, clickable({ text: 'Owners' }))
+    },
+
     selectProject: async billingProjectName => {
       await noSpinnersAfter(
         testPage,
@@ -86,7 +94,25 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     projectName: notOwnedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
   }]
-  return await testPage.evaluate((spendReturnResult, projectListResult) => {
+
+  const ownedProjectMembersListResult = [{
+    email: 'testuser1@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser2@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser3@example.com', role: 'User'
+  }]
+
+  const notOwnedProjectMembersListResult = [{
+    email: 'testuser1@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser2@example.com', role: 'Owner'
+  }]
+
+  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult) => {
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
@@ -101,11 +127,19 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
       },
       {
+        filter: { url: /api\/billing\/v2\/OwnedBillingProject\/members$/ },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(ownedProjectMembersListResult), { status: 200 }))
+      },
+      {
+        filter: { url: /api\/billing\/v2\/NotOwnedBillingProject\/members$/ },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
+      },
+      {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult)
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult)
 }
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
@@ -160,4 +194,86 @@ const testBillingSpendReport = {
   fn: testBillingSpendReportFn
 }
 
-module.exports = { testBillingSpendReport }
+const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
+  // Sign in. This portion of the test is not mocked.
+  await page.goto(testUrl)
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+
+  // Interact with the Billing Page via mocked AJAX responses.
+  const ownedBillingProjectName = 'OwnedBillingProject'
+  const notOwnedBillingProjectName = 'NotOwnedBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '0')
+
+  const billingPage = billingProjectsPage(page, testUrl)
+
+  // Select a billing project that is owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(ownedBillingProjectName)
+
+  // Check that the Workspaces tab is visible on this page
+  await billingPage.assertText('Workspaces')
+  await billingPage.assertText('Name')
+  await billingPage.assertText('Created By')
+  await billingPage.assertText('Last Modified')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+
+  // Check that the Workspaces tab is visible on this page
+  await billingPage.assertText('Workspaces')
+  await billingPage.assertText('Name')
+  await billingPage.assertText('Created By')
+  await billingPage.assertText('Last Modified')
+})
+
+const testBillingWorkspaces = {
+  name: 'billing-workspaces',
+  fn: testBillingWorkspacesFn
+}
+
+const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
+  // Sign in. This portion of the test is not mocked.
+  await page.goto(testUrl)
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+
+  // Interact with the Billing Page via mocked AJAX responses.
+  const ownedBillingProjectName = 'OwnedBillingProject'
+  const notOwnedBillingProjectName = 'NotOwnedBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '0')
+
+  const billingPage = billingProjectsPage(page, testUrl)
+
+  // Select a billing project that is owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(ownedBillingProjectName)
+  await billingPage.selectMembers()
+  // The billing project members tab should be titled "Members"
+  await billingPage.assertText('Members')
+  await billingPage.assertText("Add User")
+  await billingPage.assertText('testuser1@example.com')
+  await billingPage.assertText('testuser3@example.com')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+  await billingPage.selectOwners()
+  // The billing project members tab should be titled "Owners"
+  await billingPage.assertText('Owners')
+  await assertTextNotFound(billingPage, "Add User")
+  await billingPage.assertText('testuser1@example.com')
+  await assertTextNotFound(billingPage, "testuser3@example.com")
+})
+
+const testBillingMembers = {
+  name: 'billing-members',
+  fn: testBillingMembersFn
+}
+
+module.exports = {
+  testBillingSpendReport,
+  testBillingWorkspaces,
+  testBillingMembers
+}
