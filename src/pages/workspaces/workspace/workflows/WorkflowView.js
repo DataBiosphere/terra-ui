@@ -925,9 +925,9 @@ const WorkflowView = _.flow(
           // Return to workflows list after modal is dismissed. DeleteWorkflowModal calls
           // onDismiss after onSuccess. Thus, navigating away from this page immediately
           // causes a warning about a state update on an unmounted component.
-          setTimeout(() => {
+          Utils.onNextTick(() => {
             Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
-          }, 0)
+          })
         }
       }),
       selectingData && h(DataStepContent, {
