@@ -1,3 +1,4 @@
+// This test is owned by the Data Explorer Team.
 const _ = require('lodash/fp')
 const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')

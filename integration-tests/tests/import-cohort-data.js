@@ -1,3 +1,4 @@
+// This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
