@@ -34,6 +34,7 @@ const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStar
   }
 }
 
+// This monitor is to support a particular use case and UI skin, which was mandated by a contract.
 const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
   countdownStart = Utils.durationToMillis({ minutes: 3 })
