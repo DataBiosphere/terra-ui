@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, delay
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
 
 
@@ -14,9 +14,6 @@ const testAnalysisContextBarFn = _.flow(
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create a runtime
-  // This delay is because the button in this tab is enabled right away, but the page isn't fully loaded
-  // It should not be used commonly, and is only necessary here to support the test in a high-concurrency environment
-  await delay(10000)
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
