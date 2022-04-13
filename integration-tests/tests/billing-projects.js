@@ -8,11 +8,14 @@ const billingProjectsPage = (testPage, testUrl) => {
     visit: async () => await testPage.goto(`${testUrl}/#billing`),
 
     selectSpendReport: async billingProjectName => {
+      await click(testPage, clickable({ text: 'Spend report' }))
+    },
+
+    selectProject: async billingProjectName => {
       await noSpinnersAfter(
         testPage,
         { action: () => click(testPage, clickable({ text: billingProjectName })) }
       )
-      await click(testPage, clickable({ text: 'Spend report' }))
     },
 
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
@@ -26,7 +29,7 @@ const billingProjectsPage = (testPage, testUrl) => {
   }
 }
 
-const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
@@ -119,6 +122,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Select spend report and verify cost for default date ranges
   const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
+  await billingPage.selectProject(ownedBillingProjectName)
   await billingPage.selectSpendReport(ownedBillingProjectName)
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.00')
@@ -136,12 +140,19 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, ownedBillingProjectName, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Top 10 Spending Workspaces')
   await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace', 'Compute', '$0.01')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+
+  //Check that the Spend report tab is not visible in this case
+  await billingPage.assertText("Spend report")
 })
 
 const testBillingSpendReport = {
