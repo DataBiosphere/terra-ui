@@ -250,9 +250,14 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.visit()
   await billingPage.selectProject(ownedBillingProjectName)
   await billingPage.selectMembers()
-  // The billing project members tab should be titled "Members"
+
+  // The test user has the Owner role, so the billing project members tab should be titled "Members"
   await billingPage.assertText('Members')
+
+  // The Owner role should see the Add User button
   await billingPage.assertText('Add User')
+
+  // The test user has the Owner role, so they should see all members
   await billingPage.assertText('testuser1@example.com')
   await billingPage.assertText('testuser3@example.com')
 
@@ -260,9 +265,14 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
   await billingPage.selectOwners()
-  // The billing project members tab should be titled "Owners"
+
+  // The test user has the User role, so the billing project members tab should be titled "Owners"
   await billingPage.assertText('Owners')
+
+  // The User role should not see the Add User button
   await assertTextNotFound(billingPage, 'Add User')
+
+  // The test user has the User role, so they should see members with the Owner role, but not with the User role
   await billingPage.assertText('testuser1@example.com')
   await assertTextNotFound(billingPage, 'testuser3@example.com')
 })
