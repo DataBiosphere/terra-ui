@@ -851,7 +851,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: isAnalysisMode ? tool !== tools.RStudio.label : true })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
