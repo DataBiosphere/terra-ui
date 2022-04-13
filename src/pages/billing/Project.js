@@ -388,7 +388,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
-      ...query, tab: tab === tabs[0].key ? undefined : (tab === 'owners' ? 'members' : tab) //this doesn't quite work, actually
+      ...query, tab: tab === tabs[0].key ? undefined : tab
     }, { addQueryPrefix: true })
 
     if (newSearch !== Nav.history.location.search) {
