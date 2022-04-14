@@ -280,20 +280,42 @@ const WorkspaceDashboard = _.flow(
     div({ style: Style.dashboard.rightBox }, [
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
-          div({ style: Style.dashboard.newHeader }, ['Workspace information']),
-          'stuff'
-        ])
-      ]),
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
-          div({ style: Style.dashboard.newHeader }, ['Cloud information'])
-        ])
-      ]),
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
-        h(Collapse, {
-            title: h2({ style: Style.dashboard.newHeader }, ['Owners']),
+          h(Collapse, {
+            title: h2({ style: Style.dashboard.newHeader }, ['Workspace information']),
             initialOpenState: true,
+            titleFirst: true,
+            style: {}
+          }, [
+            div({ style: { margin: '1rem 0.5rem' } }, ['Last Updated']),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Creation Date']),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Workflow Submissions'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Access Level'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Google Project ID')
+          ])
+        ])
+      ]),
+      div({ style: { paddingTop: '1rem' } }, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+          h(Collapse, {
+            title: h2({ style: Style.dashboard.newHeader }, ['Cloud information']),
+            initialOpenState: false,
+            titleFirst: true,
+            style: {}
+          }, [
+            div({ style: { margin: '1rem 0.5rem' } }, 'Cloud Name'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Location'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Bucket Last Updated'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Estimated Storage Cost'),
+            div({ style: { margin: '1rem 0.5rem' } }, 'Bucket Size')
+          ])
+        ])
+      ]),
+      div({ style: { paddingTop: '1rem' } }, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+          h(Collapse, {
+            title: h2({ style: Style.dashboard.newHeader }, ['Owners']),
+            initialOpenState: false,
+            titleFirst: true,
             style: {}
           }, [
             div({ style: { margin: '0.5rem' } },
@@ -302,59 +324,64 @@ const WorkspaceDashboard = _.flow(
                   h(Link, { href: `mailto:${email}` }, [email])
                 ])
               }, owners))
-        ])
-//          div({ style: Style.dashboard.newHeader }, ['Owners']),
-//          div({ style: { margin: '0.5rem' } },
-//            _.map(email => {
-//              return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } }, [
-//                h(Link, { href: `mailto:${email}` }, [email])
-//              ])
-//            }, owners))
+          ])
         ])
       ]),
       !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
-          div({ style: Style.dashboard.newHeader }, ['Authorization domains']),
-          div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
-            'Collaborators must be a member of all of these ',
-            h(Link, {
-              href: Nav.getLink('groups'),
-              ...Utils.newTabLinkProps
-            }, 'groups'),
-            ' to access this workspace.'
-          ]),
-          ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
+          h(Collapse, {
+            title: h2({ style: Style.dashboard.newHeader }, ['Authorization domains']),
+            initialOpenState: false,
+            titleFirst: true,
+            style: {}
+          }, [
+            div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
+              'Collaborators must be a member of all of these ',
+              h(Link, {
+                href: Nav.getLink('groups'),
+                ...Utils.newTabLinkProps
+              }, 'groups'),
+              ' to access this workspace.'
+            ]),
+            ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
+          ])
         ])
       ]),
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
-          div({ style: Style.dashboard.newHeader }, ['Tags',
-            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-              social security number, or medical record number.`
-            ])]),
-          div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
-            !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
-              h(WorkspaceTagSelect, {
-                value: null,
-                placeholder: 'Add a tag',
-                'aria-label': 'Add a tag',
-                onChange: ({ value }) => addTag(value)
-              })
-            ]),
-            div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
-              _.map(tag => {
-                return span({ key: tag, style: styles.tag }, [
-                  tag,
-                  !Utils.editWorkspaceError(workspace) && h(Link, {
-                    tooltip: 'Remove tag',
-                    disabled: busy,
-                    onClick: () => deleteTag(tag),
-                    style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
-                  }, [icon('times', { size: 14 })])
-                ])
-              }, tagsList),
-              !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
+          h(Collapse, {
+            title: h2({ style: Style.dashboard.newHeader }, ['Tags',
+              h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+                `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+                social security number, or medical record number.`
+              ])]),
+            initialOpenState: false,
+            titleFirst: true,
+            style: {}
+          }, [
+            div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
+              !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
+                h(WorkspaceTagSelect, {
+                  value: null,
+                  placeholder: 'Add a tag',
+                  'aria-label': 'Add a tag',
+                  onChange: ({ value }) => addTag(value)
+                })
+              ]),
+              div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
+                _.map(tag => {
+                  return span({ key: tag, style: styles.tag }, [
+                    tag,
+                    !Utils.editWorkspaceError(workspace) && h(Link, {
+                      tooltip: 'Remove tag',
+                      disabled: busy,
+                      onClick: () => deleteTag(tag),
+                      style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
+                    }, [icon('times', { size: 14 })])
+                  ])
+                }, tagsList),
+                !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
+              ])
             ])
           ])
         ])

@@ -145,7 +145,7 @@ export const dashboard = {
   },
   newHeader: {
     ...elements.sectionHeader, color: colors.accent(0.8), textTransform: 'uppercase',
-    margin: '0.5rem', display: 'flex'
+    margin: '0.5rem 0.5rem 0 0.5rem', display: 'flex', fontSize: 14
   },
   infoTile: {
     backgroundColor: colors.dark(0.15), color: 'black',
