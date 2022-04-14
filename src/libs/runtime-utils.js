@@ -7,6 +7,7 @@ import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
+import { isCromwellAppVisible } from 'src/libs/config'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -65,6 +66,19 @@ export const defaultComputeRegion = 'US-CENTRAL1'
 
 export const defaultAutopauseThreshold = 30
 export const autopauseDisabledValue = 0
+
+export const defaultAzureMachineType = 'DS1_v2'
+export const azureMachineTypes = { DS1_v2: { label: 'DS1v2', cpu: 1, ramInGb: 7.75 } }
+
+// export const tools = {
+//   RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
+//   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
+//   jupyterTerminal: { label: 'terminal' },
+//   spark: { label: 'spark' },
+//   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
+//   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+// }
+
 // Leonardo considers autopause disabled when the threshold is set to 0
 export const isAutopauseEnabled = threshold => threshold > autopauseDisabledValue
 export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue
@@ -154,6 +168,36 @@ export const runtimeConfigBaseCost = config => {
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
       (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard))
+  ])
+}
+
+export const renderCostBreakdown = () => {
+  return div({
+    style: {
+      backgroundColor: colors.accent(0.2),
+      display: 'flex',
+      borderRadius: 5,
+      padding: '0.5rem 1rem',
+      marginTop: '1rem'
+    }
+  }, [
+    _.map(({ cost, label, unitLabel }) => {
+      return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
+        div({ style: { fontSize: 10 } }, [label]),
+        div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
+          span({ style: { fontSize: 20 } }, [cost]),
+          span([' ', unitLabel])
+        ])
+      ])
+    }, [
+      { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
+      { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
+      {
+        label: 'Persistent disk cost',
+        cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
+        unitLabel: isPersistentDisk ? 'per month' : ''
+      }
+    ])
   ])
 }
 
