@@ -1,7 +1,7 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace } = require('integration-tests/utils/integration-helpers')
-const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('integration-tests/utils/integration-utils')
+const { withRegisteredUser, withBilling, withWorkspace } = require('../../utils/integration-helpers')
+const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'

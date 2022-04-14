@@ -1,7 +1,7 @@
 // This test is owned by the Data Catalog Team.
-const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('integration-tests/utils/integration-utils')
-const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../../utils/integration-utils')
+const { enableDataCatalog } = require('../../utils/integration-helpers')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const datasetName = 'Transcriptomic characterisation of haematopoietic stem and progenitor' +

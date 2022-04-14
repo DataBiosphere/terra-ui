@@ -1,8 +1,8 @@
 // This test is owned by the Data Catalog Team.
-const { linkDataToWorkspace, eitherThrow } = require('integration-tests/utils/catalog-utils')
-const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('integration-tests/utils/integration-utils')
-const { checkBucketAccess, testWorkspaceName } = require('integration-tests/utils/integration-helpers')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { linkDataToWorkspace, eitherThrow } = require('../../utils/catalog-utils')
+const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../../utils/integration-utils')
+const { checkBucketAccess, testWorkspaceName } = require('../../utils/integration-helpers')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {

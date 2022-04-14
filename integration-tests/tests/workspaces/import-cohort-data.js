@@ -1,8 +1,8 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { withWorkspace } = require('integration-tests/utils/integration-helpers')
-const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('integration-tests/utils/integration-utils')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { withWorkspace } = require('../../utils/integration-helpers')
+const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../../utils/integration-utils')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const cohortName = `terra-ui-test-cohort`

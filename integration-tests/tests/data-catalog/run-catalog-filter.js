@@ -1,8 +1,8 @@
 // This test is owned by the Data Catalog Team.
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('integration-tests/utils/integration-utils')
-const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../../utils/integration-utils')
+const { enableDataCatalog } = require('../../utils/integration-helpers')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const getDatasetCount = async page => {

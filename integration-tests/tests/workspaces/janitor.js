@@ -2,9 +2,9 @@
 const rawConsole = require('console')
 const dateFns = require('date-fns/fp')
 const _ = require('lodash/fp')
-const { testWorkspaceNamePrefix } = require('integration-tests/utils/integration-helpers')
-const { dismissNotifications, signIntoTerra } = require('integration-tests/utils/integration-utils')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { testWorkspaceNamePrefix } = require('../../utils/integration-helpers')
+const { dismissNotifications, signIntoTerra } = require('../../utils/integration-utils')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const olderThanDays = 2

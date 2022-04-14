@@ -1,7 +1,7 @@
 // This test is owned by the Data Catalog Team.
-const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('integration-tests/utils/integration-utils')
-const { enableDataCatalog } = require('integration-tests/utils/integration-helpers')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../../utils/integration-utils')
+const { enableDataCatalog } = require('../../utils/integration-helpers')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {

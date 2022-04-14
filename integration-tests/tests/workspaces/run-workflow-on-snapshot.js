@@ -1,10 +1,10 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const { launchWorkflowAndWaitForSuccess } = require('integration-tests/tests/batch-workflows/run-workflow')
-const { checkBucketAccess, withWorkspace } = require('integration-tests/utils/integration-helpers')
-const { click, clickable, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('integration-tests/utils/integration-utils')
-const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { launchWorkflowAndWaitForSuccess } = require('../../tests/batch-workflows/run-workflow')
+const { checkBucketAccess, withWorkspace } = require('../../utils/integration-helpers')
+const { click, clickable, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../../utils/integration-utils')
+const { withUserToken } = require('../../utils/terra-sa-utils')
 
 
 const snapshotName = 'testsnapshot'
