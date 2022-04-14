@@ -277,10 +277,53 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
+      div({ style: { paddingTop: '1rem' }}, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' }}, [
+          div({ style: Style.dashboard.newHeader }, ['Workspace information']),
+          'stuff'
+        ]),
+      ]),
+      div({ style: { paddingTop: '1rem' }}, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' }}, [
+          div({ style: Style.dashboard.newHeader }, ['Cloud information'])
+        ]),
+      ]),
+      div({ style: { paddingTop: '1rem' }}, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' }}, [
+          div({ style: Style.dashboard.newHeader }, ['Owners']),
+          div({ style: { margin: '0.5rem' } },
+          _.map(email => {
+            return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } }, [
+              h(Link, { href: `mailto:${email}` }, [email])
+            ])
+          }, owners)),
+        ]),
+      ]),
+      !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' }}, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' }}, [
+          div({ style: Style.dashboard.newHeader }, ['Authorization domains']),
+          div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
+            'Collaborators must be a member of all of these ',
+            h(Link, {
+              href: Nav.getLink('groups'),
+              ...Utils.newTabLinkProps
+            }, 'groups'),
+            ' to access this workspace.'
+          ]),
+          ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
+        ]),
+      ]),
+      div({ style: { paddingTop: '1rem' }}, [
+        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' }}, [
+          div({ style: Style.dashboard.newHeader }, ['Tags'])
+        ]),
+      ]),
+    ]),
+    false && div({ style: Style.dashboard.rightBox }, [
       div({ style: Style.dashboard.header }, ['Workspace information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
+        h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
         h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
         Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [

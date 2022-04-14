@@ -136,12 +136,16 @@ export const dashboard = {
     flex: 1, padding: '0 2rem 2rem 2rem'
   },
   rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem 2rem'
+    flex: 'none', width: 450, backgroundColor: colors.light(0.4),
+    padding: '1rem 1rem 2rem'
   },
   header: {
     ...elements.sectionHeader, textTransform: 'uppercase',
-    margin: '2.5rem 0 1rem 0', display: 'flex'
+    margin: '2.5rem 1rem 1rem 0', display: 'flex'
+  },
+  newHeader: {
+    ...elements.sectionHeader, color: colors.accent(0.8), textTransform: 'uppercase',
+    margin: '0.5rem', display: 'flex'
   },
   infoTile: {
     backgroundColor: colors.dark(0.15), color: 'black',
