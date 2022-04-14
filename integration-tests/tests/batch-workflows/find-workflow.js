@@ -1,9 +1,9 @@
 // This test is owned by the Batch Workflows Team.
 const _ = require('lodash/fp')
-const firecloud = require('../utils/firecloud-utils')
-const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
-const { withUserToken } = require('../utils/terra-sa-utils')
+const firecloud = require('integration-tests/utils/firecloud-utils')
+const { withWorkspace } = require('integration-tests/utils/integration-helpers')
+const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('integration-tests/utils/integration-utils')
+const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
 
 
 const testFindWorkflowFn = _.flow(

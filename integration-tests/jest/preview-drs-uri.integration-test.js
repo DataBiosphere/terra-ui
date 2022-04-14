@@ -1,5 +1,5 @@
 const { registerTest } = require('./jest-utils')
-const { testPreviewDrsUri } = require('../tests/preview-drs-uri')
+const { testPreviewDrsUri } = require('../tests/batch-tasks/preview-drs-uri')
 
 
 registerTest(testPreviewDrsUri)

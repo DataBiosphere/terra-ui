@@ -1,8 +1,8 @@
 // This test is owned by the Batch Tasks Team.
 const _ = require('lodash/fp')
-const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
-const { withUserToken } = require('../utils/terra-sa-utils')
-const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { withWorkspace, createEntityInWorkspace } = require('integration-tests/utils/integration-helpers')
+const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
+const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('integration-tests/utils/integration-utils')
 
 
 const testPreviewDrsUriFn = _.flow(

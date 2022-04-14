@@ -4,7 +4,7 @@
  */
 
 const { registerTest } = require('./jest-utils')
-const { testRunWorkflow } = require('../tests/run-workflow')
+const { testRunWorkflow } = require('../tests/batch-workflows/run-workflow')
 
 
 registerTest(testRunWorkflow)

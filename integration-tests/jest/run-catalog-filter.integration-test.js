@@ -1,5 +1,5 @@
 const { registerTest } = require('./jest-utils')
-const { testCatalogFilter } = require('../tests/run-catalog-filter')
+const { testCatalogFilter } = require('../tests/data-catalog/run-catalog-filter')
 
 
 registerTest(testCatalogFilter)

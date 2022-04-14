@@ -3,15 +3,15 @@ const express = require('express')
 const { Firestore } = require('@google-cloud/firestore')
 const http = require('http')
 const { promiseHandler, Response, withAuth, withPuppeteer } = require('./utils')
-const { testFindWorkflow } = require('../tests/find-workflow')
-const { testImportCohortData } = require('../tests/import-cohort-data')
-const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
-const { testRegisterUser } = require('../tests/register-user')
-const { testRunNotebook } = require('../tests/run-notebook')
-const { testCreateInteractiveAnalysis } = require('../tests/create-interactive-analysis')
+const { testFindWorkflow } = require('integration-tests/tests/batch-workflows/find-workflow')
+const { testImportCohortData } = require('integration-tests/tests/workspaces/import-cohort-data')
+const { testImportDockstoreWorkflow } = require('integration-tests/tests/batch-workflows/import-dockstore-workflow')
+const { testRegisterUser } = require('integration-tests/tests/workspaces/register-user')
+const { testRunNotebook } = require('integration-tests/tests/interactive-analysis/run-notebook')
+const { testCreateInteractiveAnalysis } = require('../tests/interactive-analysis/create-interactive-analysis')
 const { testAnalysisContextBar } = require('../tests/analysis-context-bar')
-const { testRunWorkflow } = require('../tests/run-workflow')
-const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
+const { testRunWorkflow } = require('integration-tests/tests/batch-workflows/run-workflow')
+const { testRunWorkflowOnSnapshot } = require('integration-tests/tests/workspaces/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
@@ -77,7 +77,6 @@ const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
 }
 
 _.forEach(registerTestEndpoint, [
-  testAnalysisContextBar,
   testCreateInteractiveAnalysis,
   testFindWorkflow,
   testImportCohortData,

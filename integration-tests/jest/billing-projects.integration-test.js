@@ -1,5 +1,5 @@
 const { registerTest } = require('./jest-utils')
-const { testBillingSpendReport } = require('../tests/billing-projects')
+const { testBillingSpendReport } = require('../tests/workspaces/billing-projects')
 
 
 registerTest(testBillingSpendReport)

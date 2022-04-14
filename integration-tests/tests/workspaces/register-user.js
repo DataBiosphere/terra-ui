@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
-const { withUser } = require('../utils/integration-helpers')
-const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { withUser } = require('integration-tests/utils/integration-helpers')
+const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotifications } = require('integration-tests/utils/integration-utils')
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {

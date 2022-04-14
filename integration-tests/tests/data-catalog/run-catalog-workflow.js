@@ -1,9 +1,9 @@
-// This test is owned by the Data Explorer Team.
+// This test is owned by the Data Catalog Team.
 const _ = require('lodash/fp')
-const { linkDataToWorkspace } = require('../utils/catalog-utils')
-const { click, clickable, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
-const { withWorkspace } = require('../utils/integration-helpers')
-const { withUserToken } = require('../utils/terra-sa-utils')
+const { linkDataToWorkspace } = require('integration-tests/utils/catalog-utils')
+const { click, clickable, findText, noSpinnersAfter, select } = require('integration-tests/utils/integration-utils')
+const { withWorkspace } = require('integration-tests/utils/integration-helpers')
+const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
 
 
 const testCatalogFlowFn = _.flow(

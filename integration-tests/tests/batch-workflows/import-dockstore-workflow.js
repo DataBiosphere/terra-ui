@@ -1,9 +1,9 @@
 // This test is owned by the Batch Workflows Team.
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findText, select, signIntoTerra } = require('../utils/integration-utils')
-const { withUserToken } = require('../utils/terra-sa-utils')
+const { withWorkspace } = require('integration-tests/utils/integration-helpers')
+const { click, clickable, dismissNotifications, findText, select, signIntoTerra } = require('integration-tests/utils/integration-utils')
+const { withUserToken } = require('integration-tests/utils/terra-sa-utils')
 
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.31.0'
