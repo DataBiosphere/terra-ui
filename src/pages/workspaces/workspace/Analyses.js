@@ -414,12 +414,10 @@ const Analyses = _.flow(
             backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
           }, hidden: false
         }, [
-          //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
           div({ style: { maxWidth: 250 } }, [
             span(['We\'d love to hear your thoughts. ']),
             h(Link, {
-              //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
-              href: '', ...Utils.newTabLinkProps
+              href: 'https://www.surveymonkey.com/r/HBXP537', ...Utils.newTabLinkProps
             }, [
               'Submit feedback'
             ])

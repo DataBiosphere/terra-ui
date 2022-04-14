@@ -433,10 +433,9 @@ const Notebooks = _.flow(
       div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
         div({ style: { flex: 1 } }),
-        //hidden will be removed, and this will be released in this ticket https://broadworkbench.atlassian.net/browse/IA-3225
         div({
           style: {
-            display: 'none', /*display: 'flex', */flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
+            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 450, padding: '1rem',
             border: `1px solid ${colors.accent()}`, borderRadius: 3
           }
         }, [
@@ -446,7 +445,7 @@ const Notebooks = _.flow(
                 'Help us improve Terra by trying out our new layout! '
               ]),
               h(Link, {
-                href: '', ...Utils.newTabLinkProps //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
+                href: 'https://terra.bio/try-out-terras-updated-interactive-analysis-interface', ...Utils.newTabLinkProps
               }, [
                 'Learn more'
               ])
