@@ -1,9 +1,9 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../../utils/integration-helpers')
 const {
   click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
-} = require('../utils/integration-utils')
+} = require('../../utils/integration-utils')
 
 
 const testAnalysisContextBarFn = _.flow(
