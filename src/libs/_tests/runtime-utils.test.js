@@ -121,9 +121,9 @@ const galaxyDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: "Standard",
-    label: "pd-standard",
-    regionToPricesName: "monthlyStandardDiskPrice",
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
   },
   googleProject: 'terra-test-e4000484',
   id: 10,
@@ -141,9 +141,9 @@ const galaxyDeletingDisk = {
   },
   blockSize: 4096,
   diskType: {
-    displayName: "Standard",
-    label: "pd-standard",
-    regionToPricesName: "monthlyStandardDiskPrice",
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
   },
   googleProject: 'terra-test-e4000484',
   id: 10,
@@ -192,9 +192,9 @@ const jupyterDisk = {
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
   diskType: {
-    displayName: "Standard",
-    label: "pd-standard",
-    regionToPricesName: "monthlyStandardDiskPrice",
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
   },
   googleProject: 'terra-test-f828b4cd',
   id: 29,
