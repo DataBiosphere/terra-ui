@@ -518,14 +518,14 @@ const Notebooks = _.flow(
         deletingNotebookName && h(DeleteConfirmationModal, {
           objectType: 'notebook',
           objectName: printName(deletingNotebookName),
-          onConfirm: async () => {
-            try {
-              await Ajax().Buckets.notebook(googleProject, bucketName, printName(deletingNotebookName)).delete()
-              refreshNotebooks()
-            } catch (err) {
-              reportError('Error deleting notebook.', err)
-            }
-          },
+          onConfirm: _.flow(
+            Utils.withBusyState(setBusy),
+            withErrorReporting('Error deleting notebook.')
+          )(async () => {
+            setDeletingNotebookName(undefined)
+            await Ajax().Buckets.notebook(googleProject, bucketName, printName(deletingNotebookName)).delete()
+            refreshNotebooks()
+          }),
           onDismiss: () => setDeletingNotebookName(undefined)
         }),
         h(GalaxyModal, {

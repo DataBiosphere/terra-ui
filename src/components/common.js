@@ -572,7 +572,6 @@ export const DeleteConfirmationModal = ({
   children,
   confirmationPrompt: confirmationPromptProp,
   buttonText: buttonTextProp,
-  dismissOnError = true,
   onConfirm,
   onDismiss
 }) => {
@@ -580,23 +579,7 @@ export const DeleteConfirmationModal = ({
   const confirmationPrompt = confirmationPromptProp || `Delete ${objectType}`
   const buttonText = buttonTextProp || `Delete ${objectType}`
 
-  const [busy, setBusy] = useState(false)
   const [confirmation, setConfirmation] = useState('')
-
-  const confirm = async () => {
-    try {
-      setBusy(true)
-      await onConfirm()
-      onDismiss()
-    } catch (err) {
-      if (dismissOnError) {
-        onDismiss()
-      } else {
-        setBusy(false)
-        setConfirmation('')
-      }
-    }
-  }
 
   const isConfirmed = _.toLower(confirmation) === _.toLower(confirmationPrompt)
 
@@ -604,7 +587,7 @@ export const DeleteConfirmationModal = ({
     title,
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: confirm,
+      onClick: onConfirm,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
     }, buttonText)
@@ -625,7 +608,6 @@ export const DeleteConfirmationModal = ({
           onChange: setConfirmation
         })
       ])])
-    ]),
-    busy && spinnerOverlay
+    ])
   ])
 }

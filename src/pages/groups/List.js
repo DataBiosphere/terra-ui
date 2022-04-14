@@ -170,15 +170,17 @@ const GroupList = () => {
   const [creatingNewGroup, setCreatingNewGroup] = useState(false)
   const [deletingGroup, setDeletingGroup] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
 
   const signal = useCancellation()
 
 
   // Helpers
-  const refresh = withErrorReporting('Error loading group list', async () => {
-    setIsDataLoaded(false)
+  const refresh = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error loading group list')
+  )(async () => {
     setCreatingNewGroup(false)
     setDeletingGroup(false)
     setUpdating(false)
@@ -190,7 +192,6 @@ const GroupList = () => {
       _.sortBy('groupName')
     )(rawGroups)
     setGroups(groups)
-    setIsDataLoaded(true)
   })
 
 
@@ -246,7 +247,7 @@ const GroupList = () => {
             ])
           }
         ),
-        !isDataLoaded && spinnerOverlay
+        busy && spinnerOverlay
       ]),
       creatingNewGroup && h(NewGroupModal, {
         existingGroups: _.map('groupName', groups),
@@ -256,7 +257,11 @@ const GroupList = () => {
       deletingGroup && h(DeleteConfirmationModal, {
         objectType: 'group',
         objectName: deletingGroup.groupName,
-        onConfirm: withErrorReporting('Error deleting group.', async () => {
+        onConfirm: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error deleting group.')
+        )(async () => {
+          setDeletingGroup(false)
           await Ajax().Groups.group(deletingGroup.groupName).delete()
           refresh()
         }),

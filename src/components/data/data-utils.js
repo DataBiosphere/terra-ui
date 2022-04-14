@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
+  absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -154,6 +154,7 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
 
 export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
   const [additionalDeletions, setAdditionalDeletions] = useState([])
+  const [deleting, setDeleting] = useState(false)
 
   const selectedKeys = _.keys(selectedEntities)
 
@@ -163,6 +164,8 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       entities => _.concat(entities, additionalDeletions)
     )(selectedEntities)
 
+    setDeleting(true)
+
     try {
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
       onSuccess()
@@ -170,9 +173,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
       switch (error.status) {
         case 409:
           setAdditionalDeletions(_.filter(entity => entity.entityType !== selectedDataType, await error.json()))
-          throw error // re-throw error to prevent DeleteConfirmationModal from dismissing itself
+          setDeleting(false)
+          break
         default:
           reportError('Error deleting data entries', error)
+          onDismiss()
       }
     }
   }
@@ -189,7 +194,6 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   return h(DeleteConfirmationModal, {
     objectType: 'data',
     title: `Delete ${total} ${total > 1 ? 'entries' : 'entry'}`,
-    dismissOnError: false,
     onConfirm: doDelete,
     onDismiss
   }, [
@@ -212,7 +216,8 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
         }
       }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys))
-    )
+    ),
+    deleting && absoluteSpinnerOverlay
   ])
 }
 
