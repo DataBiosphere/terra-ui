@@ -19,7 +19,7 @@ const CookieWarning = () => {
   const [showWarning, setShowWarning] = useState(false)
   const [opacity, setOpacity] = useState(0)
   const { cookiesAccepted } = useStore(authStore)
-  const timeout = useRef(null)
+  const timeout = useRef()
 
   const acceptCookies = acceptedCookies => {
     authStore.update(_.set('cookiesAccepted', acceptedCookies))
