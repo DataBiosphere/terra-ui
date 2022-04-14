@@ -56,6 +56,13 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
+const InfoRow = ({ title, children }) => {
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
+    div({ style: { fontWeight: 500 } }, [title]),
+    div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [children])
+  ])
+}
+
 const displayAttributeValue = v => {
   return Utils.cond(
     [_.isArray(v), () => v.join(', ')],
@@ -169,7 +176,7 @@ const WorkspaceDashboard = _.flow(
   const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
     if (Utils.canWrite(accessLevel)) {
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-      setBucketSize(usageInBytes)
+      setBucketSize(Utils.formatBytes(usageInBytes))
       setBucketSizeUpdated(lastUpdated)
     }
   })
@@ -300,11 +307,11 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             style: {}
           }, [
-            div({ style: { margin: '1rem 0.5rem' } }, ['Last Updated: ', new Date(lastModified).toLocaleDateString()]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Creation Date: ', new Date(createdDate).toLocaleDateString()]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Workflow Submissions: ', submissionsCount]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Access Level: ', roleString[accessLevel]]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Google Project ID: ', googleProject])
+            h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
+            h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
+            h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
+            h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
+            h(InfoRow, { title: 'Google Project ID' }, [googleProject, h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })])
           ])
         ])
       ]),
@@ -312,15 +319,23 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Cloud information']),
-            initialOpenState: false,
+            initialOpenState: true,
             titleFirst: true,
             style: {}
           }, [
-            div({ style: { margin: '1rem 0.5rem' } }, ['Cloud Name: ', h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } })]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Location: ', regionDescription]),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Bucket Last Updated: ']),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Estimated Storage Cost: ']),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Bucket Size: ', bucketSize])
+            h(InfoRow, { title: 'Cloud Name' }, [div({}, h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } }))]),
+            h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+              div({ style: { marginRight: '0.5rem' } }, [flag]),
+              regionDescription
+            ]) : 'Loading...']),
+            h(InfoRow, { title: 'Bucket Name' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, ['my-bucket-name']), h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })]),
+            Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Estimated Storage Cost' }, [storageCostEstimate || '$ ...']),
+            h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
+            h(Link, {
+              style: { margin: '1rem 0.5rem' },
+              ...Utils.newTabLinkProps,
+              href: bucketBrowserUrl(bucketName)
+            }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem', marginBottom: '0.25rem' } })])
           ])
         ])
       ]),
@@ -401,10 +416,10 @@ const WorkspaceDashboard = _.flow(
         ])
       ])
     ]),
-    false && div({ style: Style.dashboard.rightBox }, [
+    true && div({ style: Style.dashboard.rightBox }, [
       div({ style: Style.dashboard.header }, ['Workspace information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
+        h(InfoTile, { title: 'Last updated' }, [h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } })]),
         h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
         h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
