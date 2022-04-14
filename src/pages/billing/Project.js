@@ -227,8 +227,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const projectHasMultipleOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  const membersKey = isOwner ? 'members' : 'owners'
-
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
     _.map('workspace', workspaces)
@@ -324,7 +322,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )(workspacesInProject)
       ])
     ]),
-    [membersKey]: h(Fragment, [
+    members: h(Fragment, [
       isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
@@ -381,7 +379,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const tabs = _.map(key => ({
     key,
     title: span({ style: { padding: '0 0.5rem' } }, [
-      _.capitalize(key)
+      _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
   }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner)), _.keys(tabToTable)))
