@@ -1071,17 +1071,19 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = h(MenuTrigger, {
-    closeOnClick: true,
-    side: 'bottom',
-    content: h(Fragment, [
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
-    ])
-  }, [
-    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
-      icon('cardMenuIcon', { size: 16 })
+  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
+    h(MenuTrigger, {
+      closeOnClick: true,
+      side: 'bottom',
+      content: h(Fragment, [
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+        _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
+      ])
+    }, [
+      h(Link, { 'aria-label': 'Column menu' }, [
+        icon('cardMenuIcon', { size: 16 })
+      ])
     ])
   ])
 
