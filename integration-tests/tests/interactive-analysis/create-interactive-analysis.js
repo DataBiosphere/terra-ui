@@ -1,9 +1,9 @@
 // This test is owned by the Interactive Analysis (IA) Team.
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../../utils/integration-helpers')
 const {
   click, clickable, getAnimatedDrawer, image, findElement, noSpinnersAfter, select, fillIn, input, findText
-} = require('../utils/integration-utils')
+} = require('../../utils/integration-utils')
 
 
 const notebookName = 'analysis-test-notebook'
