@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { useEffect, useRef, useState } from 'react'
 import { aside, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
@@ -13,11 +14,45 @@ import { authStore } from 'src/libs/state'
 export const cookiesAcceptedKey = 'cookiesAccepted'
 
 const CookieWarning = () => {
+  const animTime = 0.3
   const signal = useCancellation()
+  const [showWarning, setShowWarning] = useState(false)
+  const [opacity, setOpacity] = useState(0)
   const { cookiesAccepted } = useStore(authStore)
+  const timeout = useRef(null)
 
   const acceptCookies = acceptedCookies => {
     authStore.update(_.set('cookiesAccepted', acceptedCookies))
+  }
+
+  useEffect(() => {
+    if (cookiesAccepted === undefined) {
+      timeout.current = setTimeout(showComponent, 3000)
+    } else {
+      cookiesAccepted ? hideComponent() : showComponent()
+    }
+  })
+
+  const showComponent = () => {
+    setShowWarning(true)
+    if (timeout.current) {
+      clearTimeout(timeout.current)
+    }
+    timeout.current = setTimeout(() => {
+      setOpacity(1)
+      timeout.current = undefined
+    }, 0)
+  }
+
+  const hideComponent = () => {
+    setOpacity(0)
+    if (timeout.current) {
+      clearTimeout(timeout.current)
+    }
+    timeout.current = setTimeout(() => {
+      setShowWarning(false)
+      timeout.current = undefined
+    }, animTime * 1000)
   }
 
   const rejectCookies = async () => {
@@ -37,27 +72,34 @@ const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-  return cookiesAccepted === false && aside({
+  return showWarning && aside({
     'aria-label': 'cookie consent banner',
     style: {
-      flex: 0, height: 100, width: '100%',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: colors.dark(0.15), borderBottom: `6px solid ${colors.primary()}`
+      display: 'block', width: '100%',
+      position: 'fixed', bottom: 0, zIndex: 100,
+      transition: `opacity ${animTime}s ease-in`, opacity
     }
   }, [
-    div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
-      div({ style: { overflowY: 'auto', height: '100%' } }, [
-        `${getAppName()} uses cookies to enable the proper functioning and security of our website,
-        and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
-        cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
-        to use our site. To find out more, read our `,
-        h(Link, { style: { textDecoration: 'underline', color: colors.accent(1.1) }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+    div({
+      style: {
+        flex: 0, height: 100, width: '100%',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: colors.dark(0.15), borderBottom: `6px solid ${colors.primary()}`
+      }
+    }, [
+      div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
+        div({ style: { overflowY: 'auto', height: '100%' } }, [
+          `${getAppName()} uses cookies to enable the proper functioning and security of our website,
+          and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
+          cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
+          to use our site. To find out more, read our `,
+          h(Link, { style: { textDecoration: 'underline', color: colors.accent(1.1) }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+        ])
+      ]),
+      div({ style: { padding: '2rem', display: 'flex' } }, [
+        h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
+        h(ButtonSecondary, { style: { marginLeft: '2rem', color: colors.accent(1.1) }, onClick: rejectCookies }, ['Reject'])
       ])
-
-    ]),
-    div({ style: { padding: '2rem', display: 'flex' } }, [
-      h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
-      h(ButtonSecondary, { style: { marginLeft: '2rem', color: colors.accent(1.1) }, onClick: rejectCookies }, ['Reject'])
     ])
   ])
 }
