@@ -38,7 +38,8 @@ export const pdTypes = {
     [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }
-export const mapToPdTypes = _.map(_.update('diskType', pdTypes.fromString))
+export const updatePdType = disk => !!disk && _.update('diskType', pdTypes.fromString, disk)
+export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
@@ -286,8 +287,7 @@ export const getCurrentApp = appType => getCurrentAppExcludingStatuses(appType, 
 export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingStatuses(appType, [])
 
 export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
-  const disk = _.find({ name: app?.diskName }, appDataDisks)
-  return !!disk && _.set('diskType', pdTypes.fromString(disk.diskType), disk)
+  return updatePdType(_.find({ name: app?.diskName }, appDataDisks))
 }
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
@@ -321,14 +321,15 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
   const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
   // return the newest unattached disk that was provisioned by the desired appType.
-  return _.update('diskType', pdTypes.fromString, (!!currentDiskName ?
+
+  return updatePdType(!!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
       _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) &&
         disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
-    )(appDataDisks)))
+    )(appDataDisks))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {

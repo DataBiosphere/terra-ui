@@ -120,7 +120,11 @@ const galaxyDisk = {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    displayName: "Standard",
+    label: "pd-standard",
+    regionToPricesName: "monthlyStandardDiskPrice",
+  },
   googleProject: 'terra-test-e4000484',
   id: 10,
   labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
@@ -136,7 +140,11 @@ const galaxyDeletingDisk = {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
   },
   blockSize: 4096,
-  diskType: 'pd-standard',
+  diskType: {
+    displayName: "Standard",
+    label: "pd-standard",
+    regionToPricesName: "monthlyStandardDiskPrice",
+  },
   googleProject: 'terra-test-e4000484',
   id: 10,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
@@ -183,7 +191,11 @@ const jupyterDisk = {
   },
   blockSize: 4096,
   cloudContext: { cloudProvider: 'GCP', cloudResource: 'terra-test-f828b4cd' },
-  diskType: 'pd-standard',
+  diskType: {
+    displayName: "Standard",
+    label: "pd-standard",
+    regionToPricesName: "monthlyStandardDiskPrice",
+  },
   googleProject: 'terra-test-f828b4cd',
   id: 29,
   labels: {},
