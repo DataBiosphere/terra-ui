@@ -144,7 +144,7 @@ export const dashboard = {
     margin: '2.5rem 1rem 1rem 0', display: 'flex'
   },
   newHeader: {
-    ...elements.sectionHeader, color: colors.accent(0.8), textTransform: 'uppercase',
+    ...elements.sectionHeader, color: colors.accent(), textTransform: 'uppercase',
     margin: '0.5rem 0.5rem 0 0.5rem', display: 'flex', fontSize: 14
   },
   infoTile: {

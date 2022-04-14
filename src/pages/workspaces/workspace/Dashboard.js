@@ -13,6 +13,7 @@ import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -45,7 +46,7 @@ const roleString = {
   READER: 'Reader',
   WRITER: 'Writer',
   OWNER: 'Owner',
-  PROJECT_OWNER: 'Proj. Owner'
+  PROJECT_OWNER: 'Project Owner'
 }
 
 const InfoTile = ({ title, children }) => {
@@ -126,6 +127,9 @@ const WorkspaceDashboard = _.flow(
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
+  const [storageCostEstimateUpdated, setStorageCostEstimateUpdated] = useState(undefined)
+  const [bucketSize, setBucketSize] = useState(undefined)
+  const [bucketSizeUpdated, setBucketSizeUpdated] = useState(undefined)
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -139,6 +143,7 @@ const WorkspaceDashboard = _.flow(
   const refresh = () => {
     loadSubmissionCount()
     loadStorageCost()
+    loadBucketSize()
     loadConsent()
     loadWsTags()
     loadBucketLocation()
@@ -155,8 +160,17 @@ const WorkspaceDashboard = _.flow(
 
   const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { estimate } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
       setStorageCostEstimate(estimate)
+      setStorageCostEstimateUpdated(lastUpdated)
+    }
+  })
+
+  const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
+    if (Utils.canWrite(accessLevel)) {
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      setBucketSize(usageInBytes)
+      setBucketSizeUpdated(lastUpdated)
     }
   })
 
@@ -286,11 +300,11 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             style: {}
           }, [
-            div({ style: { margin: '1rem 0.5rem' } }, ['Last Updated']),
-            div({ style: { margin: '1rem 0.5rem' } }, ['Creation Date']),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Workflow Submissions'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Access Level'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Google Project ID')
+            div({ style: { margin: '1rem 0.5rem' } }, ['Last Updated: ', new Date(lastModified).toLocaleDateString()]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Creation Date: ', new Date(createdDate).toLocaleDateString()]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Workflow Submissions: ', submissionsCount]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Access Level: ', roleString[accessLevel]]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Google Project ID: ', googleProject])
           ])
         ])
       ]),
@@ -302,11 +316,11 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             style: {}
           }, [
-            div({ style: { margin: '1rem 0.5rem' } }, 'Cloud Name'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Location'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Bucket Last Updated'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Estimated Storage Cost'),
-            div({ style: { margin: '1rem 0.5rem' } }, 'Bucket Size')
+            div({ style: { margin: '1rem 0.5rem' } }, ['Cloud Name: ', h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } })]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Location: ', regionDescription]),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Bucket Last Updated: ']),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Estimated Storage Cost: ']),
+            div({ style: { margin: '1rem 0.5rem' } }, ['Bucket Size: ', bucketSize])
           ])
         ])
       ]),
