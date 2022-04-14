@@ -428,7 +428,6 @@ const DataTable = props => {
     }),
     !!clearingColumn && h(DeleteConfirmationModal, {
       title: 'Clear Column',
-      confirmationPrompt: 'Clear column',
       buttonText: 'Clear column',
       onConfirm: () => {
         setClearingColumn(undefined)

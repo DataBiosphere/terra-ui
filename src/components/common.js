@@ -570,18 +570,17 @@ export const DeleteConfirmationModal = ({
   objectName,
   title: titleProp,
   children,
-  confirmationPrompt: confirmationPromptProp,
+  confirmationPrompt,
   buttonText: buttonTextProp,
   onConfirm,
   onDismiss
 }) => {
   const title = titleProp || `Delete ${objectType}`
-  const confirmationPrompt = confirmationPromptProp || `Delete ${objectType}`
   const buttonText = buttonTextProp || `Delete ${objectType}`
 
   const [confirmation, setConfirmation] = useState('')
 
-  const isConfirmed = _.toLower(confirmation) === _.toLower(confirmationPrompt)
+  const isConfirmed = !confirmationPrompt || _.toLower(confirmation) === _.toLower(confirmationPrompt)
 
   return h(Modal, {
     title,
@@ -597,7 +596,7 @@ export const DeleteConfirmationModal = ({
         span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
       div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
-    div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+    confirmationPrompt && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [
         label({ htmlFor: id, style: { marginBottom: '0.25rem' } }, [`Type "${confirmationPrompt}" to continue:`]),
         h(TextInput, {
