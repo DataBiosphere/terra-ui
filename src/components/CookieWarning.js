@@ -47,11 +47,7 @@ const CookieWarning = () => {
   const rejectCookies = async () => {
     const cookies = document.cookie.split(';')
     acceptCookies(false)
-    try {
-      await Ajax(signal).Runtimes.invalidateCookie()
-    } catch (err) {
-      // Do Nothing
-    }
+    await Ajax(signal).Runtimes.invalidateCookie().catch(() => {})
     // Expire all cookies
     _.forEach(cookie => {
       // Find an equals sign and uses it to grab the substring of the cookie that is its name
