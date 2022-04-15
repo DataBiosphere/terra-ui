@@ -348,7 +348,7 @@ const WorkspaceDashboard = _.flow(
             }, [storageCostEstimate || '$ ...']),
             Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
             div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
-              style: { margin: '1rem 0.5rem', paddingBottom: '1rem' },
+              style: { margin: '1rem 0.5rem' },
               ...Utils.newTabLinkProps,
               href: bucketBrowserUrl(bucketName)
             }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])])
@@ -404,7 +404,7 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             onClick: () => setTagsPanelOpen(!tagsPanelOpen)
           }, [
-            div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
+            div({ style: { margin: '0.5rem' } }, [
               !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
                 h(WorkspaceTagSelect, {
                   value: null,
