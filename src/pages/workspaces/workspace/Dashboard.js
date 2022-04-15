@@ -304,11 +304,7 @@ const WorkspaceDashboard = _.flow(
             h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
             h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
             h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
-            h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
-            h(InfoRow, { title: 'Google Project ID' }, [
-              h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [googleProject]),
-              h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
-            ])
+            h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
           ])
         ])
       ]),
@@ -324,10 +320,14 @@ const WorkspaceDashboard = _.flow(
               h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
             ]),
             h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-              div({ style: { marginRight: '0.5rem' } }, [flag]), [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [regionDescription])]
+              h(TooltipCell, [flag, ' ', regionDescription])
             ]) : 'Loading...']),
+            h(InfoRow, { title: 'Google Project ID' }, [
+              h(TooltipCell, [googleProject]),
+              h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+            ]),
             h(InfoRow, { title: 'Bucket Name' }, [
-              h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [bucketName]),
+              h(TooltipCell, [bucketName]),
               h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
             ]),
             Utils.canWrite(accessLevel) && h(InfoRow, {
