@@ -70,17 +70,30 @@ const ApplicationLauncher = _.flow(
     )(async shouldCopy => {
       await Promise.all(_.flatMap(async analysis => {
         const currentMetadata = analysis.metadata
-        const file = analysis.name.split('/')[1]
+        const file = getFileName(file)
         const newMetadata = currentMetadata
         if (shouldCopy) {
           newMetadata[hashedOwnerEmail] = ''
-          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(stripExtension(file).concat(`_copy${Date.now().toString()}.`).concat(tools.RStudio.ext), bucketName, newMetadata)
+          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
         }
         newMetadata[hashedOwnerEmail] = 'doNotSync'
         await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, newMetadata)
       }, outdatedAnalyses))
       onDismiss()
     })
+
+    const getCopyName = file => `${stripExtension(file)}_copy${Date.now()}.${tools.RStudio.ext}`
+
+    const getFileName = _.flow(
+      _.split('/'),
+      _.nth(1)
+    )
+
+    const getAnalysisNameFromList = _.flow(
+      _.head,
+      _.get('name'),
+      getFileName
+    )
 
     const getDisplayList = _.flow(
       _.map(
@@ -97,21 +110,21 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: outdatedAnalyses?.length > 1 ? 'R Markdown Files In Use' : `R Markdown File Is In Use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'R Markdown Files In Use' : `R Markdown File Is In Use`,
       showButtons: false
     }, [
       Utils.cond(
-        [outdatedAnalyses?.length > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
+        [_.size(outdatedAnalyses) > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
           p(getDisplayList(outdatedAnalyses)),
           p('You can'),
-          p(['1) ', strong('save your changes as new copies'), ' of your files which will enable file syncing on the copies']),
+          p(['1) ', strong( ['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
           p([strong('or')]),
-          p(['2) ', strong('continue working on your versions'), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
-        [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
+          p(['2) ', strong(['continue working on your versions']), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
+        [_.size(outdatedAnalyses) === 1, () => [p(`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
           p('You can'),
-          p(['1) ', strong('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
+          p(['1) ', strong(['save your changes as a new copy']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`]),
           p([strong('or')]),
-          p(['2) ', strong('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
+          p(['2) ', strong(['continue working on your outdated version']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} with file syncing disabled.`])]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
