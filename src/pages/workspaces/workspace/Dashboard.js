@@ -156,7 +156,7 @@ const WorkspaceDashboard = _.flow(
 
   useImperativeHandle(ref, () => ({ refresh }))
 
-  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen || true)
+  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
   const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
   const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
   const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
@@ -309,9 +309,9 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Workspace information']),
-            initialOpenState: workspaceInfoPanelOpen,
+            initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
             titleFirst: true,
-            onClick: () => setWorkspaceInfoPanelOpen(!workspaceInfoPanelOpen)
+            onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
           }, [
             h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
             h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
