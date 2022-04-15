@@ -282,11 +282,11 @@ export const FileBrowserPanel = _.flow(
         abort: abortUpload
       }),
       deletingName && h(DeleteConfirmationModal, {
-        objectType: 'object',
+        objectType: 'file',
         objectName: deletingName,
         onConfirm: _.flow(
           Utils.withBusyState(setLoading),
-          withErrorReporting('Error deleting object')
+          withErrorReporting('Error deleting file')
         )(async () => {
           setDeletingName(undefined)
           await Ajax().Buckets.delete(googleProject, bucketName, deletingName)
