@@ -78,7 +78,10 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const isDeleteDisabledFromApps = hasApps() && !_.isEmpty(nonDeletableApps)
 
   return h(Modal, {
-    title: 'Delete workspace',
+    title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 24, color: colors.warning() }),
+      span({ style: { marginLeft: '1ch' } }, ['Delete workspace'])
+    ]),
     onDismiss,
     okButton: h(ButtonPrimary, {
       disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps,
@@ -87,7 +90,8 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         [isDeleteDisabledFromApps, () => 'You must ensure all apps in this workspace are deletable'],
         [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
         () => 'Delete Workspace')
-    }, 'Delete workspace')
+    }, 'Delete workspace'),
+    styles: { modal: { background: colors.warning(0.1) } }
   }, [
     div(['Are you sure you want to permanently delete the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
@@ -115,13 +119,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         div(`and ${collaboratorEmails.length - 5} more`)
       )
     ]),
-    !isDeleteDisabledFromApps && div({
-      style: {
-        color: colors.danger(),
-        fontWeight: 500,
-        marginTop: '1rem'
-      }
-    }, 'This cannot be undone.'),
+    !isDeleteDisabledFromApps && div({ style: { marginTop: '1rem', fontWeight: 500 } }, 'This cannot be undone.'),
     !isDeleteDisabledFromApps && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {

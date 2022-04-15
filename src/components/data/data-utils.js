@@ -185,12 +185,6 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
   const moreToDelete = !!additionalDeletions.length
 
-  const fullWidthWarning = {
-    ...warningBoxStyle,
-    borderLeft: 'none', borderRight: 'none',
-    margin: '0 -1.25rem'
-  }
-
   const total = selectedKeys.length + additionalDeletions.length
   return h(DeleteConfirmationModal, {
     objectType: 'data',
@@ -198,13 +192,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     onConfirm: doDelete,
     onDismiss
   }, [
-    runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+    runningSubmissionsCount > 0 && div({ style: { margin: '1rem 0', fontWeight: 600 } }, [
       `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
       'Deleting the following data could cause failures if a workflow is using this data.'
     ]),
-    moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+    moreToDelete && div({ style: { margin: '1rem 0', fontWeight: 600 } }, [
       'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
     ]),
     // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view

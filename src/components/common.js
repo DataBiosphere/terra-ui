@@ -583,13 +583,17 @@ export const DeleteConfirmationModal = ({
   const isConfirmed = !confirmationPrompt || _.toLower(confirmation) === _.toLower(confirmationPrompt)
 
   return h(Modal, {
-    title,
+    title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 24, color: colors.warning() }),
+      span({ style: { marginLeft: '1ch' } }, [title])
+    ]),
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: onConfirm,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
-    }, buttonText)
+    }, buttonText),
+    styles: { modal: { backgroundColor: colors.warning(0.1) } }
   }, [
     children || h(Fragment, [
       div([`Are you sure you want to delete the ${objectType} `,
