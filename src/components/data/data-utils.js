@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -615,32 +615,32 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
-        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { marginRight: '1.2rem' } }, [
-            h(RadioButton, {
-              text: _.startCase(type),
-              name: 'edit-type',
-              checked: attributeType === type,
-              onChange: () => {
-                const newAttributeValue = convertAttributeValue(attributeValue, type, defaultReferenceEntityType)
-                onChange(newAttributeValue)
-              },
-              labelStyle: { paddingLeft: '0.5rem' }
-            })
-          ])
-        ]),
-        [
-          { type: 'string' },
-          { type: 'reference', tooltip: 'A link to another entity' },
-          { type: 'number' },
-          { type: 'boolean' }
-        ])
-        )
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { display: 'block', marginBottom: '0.5rem' } }, [
+            isList ? 'List item type:' : 'Attribute type:'
+          ]),
+          h(Select, {
+            id,
+            value: attributeType,
+            options: _.map(
+              ({ type, description }) => ({ value: type, label: description ? `${_.startCase(type)} (${description})` : _.startCase(type) }),
+              [
+                { type: 'string' },
+                { type: 'reference', description: 'A link to another entity' },
+                { type: 'number' },
+                { type: 'boolean' }
+              ]
+            ),
+            onChange: ({ value: newType }) => {
+              const newAttributeValue = convertAttributeValue(attributeValue, newType, defaultReferenceEntityType)
+              onChange(newAttributeValue)
+            }
+          })
+        ])])
       ]),
       attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
         h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+          label({ htmlFor: id, style: { display: 'block', marginBottom: '0.5rem' } }, 'Referenced entity type:'),
           h(Select, {
             id,
             value: defaultReferenceEntityType,
