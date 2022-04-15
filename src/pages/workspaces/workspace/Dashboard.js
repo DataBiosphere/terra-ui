@@ -5,7 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getRegionInfo } from 'src/components/region-common'
@@ -49,9 +49,12 @@ const roleString = {
   PROJECT_OWNER: 'Project Owner'
 }
 
-const InfoRow = ({ title, children }) => {
+const InfoRow = ({ title, subtitle, children }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
-    div({ style: { width: 225, fontWeight: 500 } }, [title]),
+    div({ style: { width: 225 } }, [
+      div({ style: { fontWeight: 500 } }, [title]),
+      subtitle && div({ style: { fontWeight: 400, fontSize: 12 } }, [subtitle])
+    ]),
     div({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children])
   ])
 }
@@ -302,7 +305,10 @@ const WorkspaceDashboard = _.flow(
             h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
             h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
             h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
-            h(InfoRow, { title: 'Google Project ID' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [googleProject]), h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })])
+            h(InfoRow, { title: 'Google Project ID' }, [
+              h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [googleProject]),
+              h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+            ])
           ])
         ])
       ]),
@@ -314,13 +320,20 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             style: {}
           }, [
-            googleProject && h(InfoRow, { title: 'Cloud Name' }, [h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })]),
+            googleProject && h(InfoRow, { title: 'Cloud Name' }, [
+              h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
+            ]),
             h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-              div({ style: { marginRight: '0.5rem' } }, [flag]),
-              [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [regionDescription])]
+              div({ style: { marginRight: '0.5rem' } }, [flag]), [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [regionDescription])]
             ]) : 'Loading...']),
-            h(InfoRow, { title: 'Bucket Name' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [bucketName]), h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })]),
-            Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Estimated Storage Cost' }, [storageCostEstimate || '$ ...']),
+            h(InfoRow, { title: 'Bucket Name' }, [
+              h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [bucketName]),
+              h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
+            ]),
+            Utils.canWrite(accessLevel) && h(InfoRow, {
+              title: 'Estimated Storage Cost',
+              subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
+            }, [storageCostEstimate || '$ ...']),
             Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
             div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
               style: { margin: '1rem 0.5rem', paddingBottom: '1rem' },
