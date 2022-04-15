@@ -306,7 +306,7 @@ const WorkspaceDashboard = _.flow(
     ]),
     div({ style: Style.dashboard.rightBox }, [
       div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+        div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.collapsableHeader }, ['Workspace information']),
             initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
@@ -321,7 +321,7 @@ const WorkspaceDashboard = _.flow(
         ])
       ]),
       div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+        div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.collapsableHeader }, ['Cloud information']),
             initialOpenState: cloudInfoPanelOpen,
@@ -356,7 +356,7 @@ const WorkspaceDashboard = _.flow(
         ])
       ]),
       div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+        div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.collapsableHeader }, ['Owners']),
             initialOpenState: ownersPanelOpen,
@@ -373,7 +373,7 @@ const WorkspaceDashboard = _.flow(
         ])
       ]),
       !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+        div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.collapsableHeader }, ['Authorization domain']),
             initialOpenState: authDomainPanelOpen,
@@ -393,7 +393,7 @@ const WorkspaceDashboard = _.flow(
         ])
       ]),
       div({ style: { paddingTop: '1rem' } }, [
-        div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
+        div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.collapsableHeader }, ['Tags',
               h(InfoBox, { style: { marginLeft: '0.25rem' } }, [

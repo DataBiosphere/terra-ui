@@ -139,6 +139,9 @@ export const dashboard = {
     flex: 'none', width: 450, backgroundColor: colors.light(0.4),
     padding: '1rem 1rem 2rem'
   },
+  rightBoxContainer: {
+    borderRadius: 5, backgroundColor: 'white', padding: '0.5rem'
+  },
   header: {
     ...elements.sectionHeader, textTransform: 'uppercase',
     margin: '2.5rem 0 1rem 0', display: 'flex'
