@@ -68,14 +68,18 @@ const ApplicationLauncher = _.flow(
       withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
       Utils.withBusyState(setBusy)
     )(async shouldCopy => {
-      await Promise.all(_.flatMap(async analysis => {
-        const currentMetadata = analysis.metadata
-        const file = getFileName(analysis.name)
+      // this modal only opens when the state variable outdatedAnalyses is non empty (keeps track of a user's outdated RStudio files). it gives users two options when their files are in use by another user
+      // 1) make copies of those files and continue working on the copies or 2) do nothing.
+      // in either case, their original version of the analysis is outdated and we will no longer sync that file to the workspace bucket for the current user
+      await Promise.all(_.flatMap(async ({ name, metadata: currentMetadata }) => {
+        const file = getFileName(name)
         const newMetadata = currentMetadata
         if (shouldCopy) {
+          // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
           newMetadata[hashedOwnerEmail] = ''
           await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
         }
+        // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
         newMetadata[hashedOwnerEmail] = 'doNotSync'
         await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, newMetadata)
       }, outdatedAnalyses))
@@ -102,12 +106,14 @@ const ApplicationLauncher = _.flow(
       showButtons: false
     }, [
       Utils.cond(
+        // if user has more than one outdated rstudio analysis, display plural phrasing
         [_.size(outdatedAnalyses) > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
           p(getAnalysesDisplayList(outdatedAnalyses)),
           p('You can'),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
           p([strong('or')]),
           p(['2) ', strong(['continue working on your versions']), ` of ${getAnalysesDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
+        // if user has one outdated rstudio analysis, display singular phrasing
         [_.size(outdatedAnalyses) === 1, () => [p(`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
           p('You can'),
           p(['1) ', strong(['save your changes as a new copy']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`]),
