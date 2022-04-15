@@ -308,7 +308,7 @@ const WorkspaceDashboard = _.flow(
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsableHeader }, ['Workspace information']),
+            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Workspace information']),
             initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
             titleFirst: true,
             onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
@@ -323,7 +323,7 @@ const WorkspaceDashboard = _.flow(
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsableHeader }, ['Cloud information']),
+            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Cloud information']),
             initialOpenState: cloudInfoPanelOpen,
             titleFirst: true,
             onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
@@ -358,7 +358,7 @@ const WorkspaceDashboard = _.flow(
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsableHeader }, ['Owners']),
+            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Owners']),
             initialOpenState: ownersPanelOpen,
             titleFirst: true,
             onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
@@ -375,7 +375,7 @@ const WorkspaceDashboard = _.flow(
       !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsableHeader }, ['Authorization domain']),
+            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Authorization domain']),
             initialOpenState: authDomainPanelOpen,
             titleFirst: true,
             onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
@@ -395,7 +395,7 @@ const WorkspaceDashboard = _.flow(
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsableHeader }, ['Tags',
+            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Tags',
               h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
                 `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
                 social security number, or medical record number.`
