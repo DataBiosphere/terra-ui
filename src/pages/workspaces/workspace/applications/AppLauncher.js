@@ -53,12 +53,12 @@ const ApplicationLauncher = _.flow(
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
 
-  // We've already init Welder if app is Jupyter.
-  // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
-  // See following tickets for status (both parts needed):
-  // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
-  // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
+  // We've already init Welder if app is Jupyter
+  // This sets up welder for .rmd files, which is slightly different from Jupyter
+  // Jupyter is always launched with a specific file, which is localized
+  // RStudio is launched in a general sense, and all files are localized.
+  // This line ensures storageLinks are setup whenever RSTudio is launched
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -143,6 +143,8 @@ const ApplicationLauncher = _.flow(
       const hashedEmail = await notebookLockHash(bucketName, email)
       setHashedOwnerEmail(hashedEmail)
     })
+
+    refreshRuntimes()
     findHashedEmail()
   })
 
