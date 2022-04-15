@@ -141,9 +141,9 @@ export const dashboard = {
   },
   header: {
     ...elements.sectionHeader, textTransform: 'uppercase',
-    margin: '2.5rem 1rem 1rem 0', display: 'flex'
+    margin: '2.5rem 0 1rem 0', display: 'flex'
   },
-  newHeader: {
+  collapsableHeader: {
     ...elements.sectionHeader, color: colors.accent(), textTransform: 'uppercase',
     margin: '0.5rem 0.5rem 0 0.5rem', display: 'flex', fontSize: 14
   },
