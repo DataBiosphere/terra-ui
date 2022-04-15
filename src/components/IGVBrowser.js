@@ -52,7 +52,8 @@ const IGVBrowser = _.flow(
           const { default: igv } = await import('igv')
           igvLibrary.current = igv
 
-          const sarsCov2ref = { reference: { id: 'MN908947.3', indexed: false, fastaURL: 'https://storage.cloud.google.com/firecloud-alerts-dev/nCoV-2019.reference.fasta' } }
+          const sarsCov2RefId = 'MN908947.3'
+          const sarsCov2Ref = { reference: { id: 'sarsCov2RefId.3', indexed: false, fastaURL: 'https://storage.cloud.google.com/firecloud-alerts-dev/nCoV-2019.reference.fasta' } }
 
           const options = {
             genome: refGenome,
@@ -68,7 +69,7 @@ const IGVBrowser = _.flow(
             }, selectedFiles))
           }
 
-          const mergedOptions = refGenome === 'MN908947.3' ? _.merge(options, sarsCov2ref) : options
+          const mergedOptions = refGenome === sarsCov2RefId ? _.merge(options, sarsCov2Ref) : options
 
           igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject))
           igv.createBrowser(containerRef.current, mergedOptions)
