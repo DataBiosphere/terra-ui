@@ -131,25 +131,26 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
 export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {
   const [deleting, setDeleting] = useState(false)
 
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Delete',
-    okButton: h(ButtonPrimary, {
-      disabled: deleting,
-      onClick: async () => {
-        setDeleting(true)
-        try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
-            _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
-          )
-          onSuccess()
-        } catch (error) {
-          await reportError('Error deleting reference data', error)
-          onDismiss()
-        }
+  return h(DeleteConfirmationModal, {
+    objectType: 'reference',
+    objectName: referenceDataType,
+    onConfirm: async () => {
+      setDeleting(true)
+      try {
+        await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
+          _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
+        )
+        onSuccess()
+      } catch (error) {
+        reportError('Error deleting reference data', error)
+        onDismiss()
       }
-    }, ['Delete'])
-  }, [`Are you sure you want to delete ${referenceDataType}?`])
+    },
+    onDismiss
+  }, [
+    div(['Are you sure you want to delete the ', span({ style: { fontWeight: 600 } }, [referenceDataType]), ' reference data?']),
+    deleting && absoluteSpinnerOverlay
+  ])
 }
 
 export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
