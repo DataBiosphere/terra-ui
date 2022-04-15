@@ -94,8 +94,9 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
   const footerExists = isBioDataCatalyst() || alwaysShow
   const expandedFooterVisible = isExpanded || alwaysShow
 
+  console.log('AlwaysShow! - ' + alwaysShow)
   return div({ style: { display: 'flex', flexDirection: 'column', height: fixedHeight ? `calc(100vh - ${scrollBarHeight}px)` : '100%', flexGrow: 1 } }, [
-    div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: `calc(100% - ${footerExists ? (!alwaysShow ? shrunkFooterHeight : 0) + (expandedFooterVisible ? expandedFooterHeight : 0) : 0}px)` } }, [children]),
+    div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: 'max-content' } }, [children]),
     footerExists && h(div, {
       role: 'contentinfo',
       style: styles.footer
