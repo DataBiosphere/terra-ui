@@ -500,21 +500,20 @@ const Analyses = _.flow(
         deletingAnalysisName && h(DeleteConfirmationModal, {
           objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
           objectName: getDisplayName(deletingAnalysisName),
-          confirmationPrompt: 'Delete analysis',
           buttonText: 'Delete analysis',
-          onConfirm: async () => {
-            try {
-              await Ajax().Buckets.analysis(
-                googleProject,
-                bucketName,
-                getDisplayName(deletingAnalysisName),
-                getTool(deletingAnalysisName)
-              ).delete()
-              refreshAnalyses()
-            } catch (err) {
-              reportError('Error deleting analysis.', err)
-            }
-          },
+          onConfirm: _.flow(
+            Utils.withBusyState(setBusy),
+            withErrorReporting('Error deleting analysis.')
+          )(async () => {
+            setDeletingAnalysisName(undefined)
+            await Ajax().Buckets.analysis(
+              googleProject,
+              bucketName,
+              getDisplayName(deletingAnalysisName),
+              getTool(deletingAnalysisName)
+            ).delete()
+            refreshAnalyses()
+          }),
           onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),
