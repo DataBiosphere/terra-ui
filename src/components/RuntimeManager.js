@@ -335,6 +335,7 @@ export default class RuntimeManager extends PureComponent {
           })
       }
     }
+
     const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
 
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
