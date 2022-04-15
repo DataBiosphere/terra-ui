@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -148,7 +148,7 @@ export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, re
     },
     onDismiss
   }, [
-    div(['Are you sure you want to delete the ', span({ style: { fontWeight: 600 } }, [referenceDataType]), ' reference data?']),
+    div(['Are you sure you want to delete the ', b([referenceDataType]), ' reference data?']),
     deleting && absoluteSpinnerOverlay
   ])
 }
@@ -192,11 +192,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     onConfirm: doDelete,
     onDismiss
   }, [
-    runningSubmissionsCount > 0 && div({ style: { margin: '1rem 0', fontWeight: 600 } }, [
+    runningSubmissionsCount > 0 && b({ style: { display: 'block', margin: '1rem 0' } }, [
       `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
       'Deleting the following data could cause failures if a workflow is using this data.'
     ]),
-    moreToDelete && div({ style: { margin: '1rem 0', fontWeight: 600 } }, [
+    moreToDelete && b({ style: { display: 'block', margin: '1rem 0' } }, [
       'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
     ]),
     // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view

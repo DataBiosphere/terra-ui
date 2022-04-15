@@ -596,9 +596,8 @@ export const DeleteConfirmationModal = ({
     styles: { modal: { backgroundColor: colors.warning(0.1) } }
   }, [
     children || h(Fragment, [
-      div([`Are you sure you want to delete the ${objectType} `,
-        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
-      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+      div([`Are you sure you want to delete the ${objectType} `, b({ style: { wordBreak: 'break-word' } }, [objectName]), '?']),
+      b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
     confirmationPrompt && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [

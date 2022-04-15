@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { useState } from 'react'
-import { div, h, label, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
@@ -119,7 +119,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         div(`and ${collaboratorEmails.length - 5} more`)
       )
     ]),
-    !isDeleteDisabledFromApps && div({ style: { marginTop: '1rem', fontWeight: 500 } }, 'This cannot be undone.'),
+    !isDeleteDisabledFromApps && b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.'),
     !isDeleteDisabledFromApps && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       label({ htmlFor: 'delete-workspace-confirmation', style: { marginBottom: '0.25rem' } }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {

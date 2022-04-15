@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
@@ -436,8 +436,8 @@ const DataTable = props => {
       onDismiss: () => setClearingColumn(undefined)
     }, [
       div(['Are you sure you want to permanently delete all data in the column ',
-        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, clearingColumn), '?']),
-      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+        b({ style: { wordBreak: 'break-word' } }, clearingColumn), '?']),
+      b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
     loading && fixedSpinnerOverlay
   ])
