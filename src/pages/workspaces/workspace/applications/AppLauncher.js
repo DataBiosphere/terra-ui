@@ -70,7 +70,7 @@ const ApplicationLauncher = _.flow(
     )(async shouldCopy => {
       await Promise.all(_.flatMap(async analysis => {
         const currentMetadata = analysis.metadata
-        const file = getFileName(analysis)
+        const file = getFileName(analysis.name)
         const newMetadata = currentMetadata
         if (shouldCopy) {
           newMetadata[hashedOwnerEmail] = ''
@@ -141,7 +141,7 @@ const ApplicationLauncher = _.flow(
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     return _.filter(analysis => _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) &&
-      analysis?.metadata?.hashedOwnerEmail === 'outdated', analyses)
+      analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
   useOnMount(() => {
@@ -191,7 +191,7 @@ const ApplicationLauncher = _.flow(
     const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
       const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
       setOutdatedAnalyses(outdatedRAnalyses)
-      !!_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
+      !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
     findOutdatedAnalyses()
