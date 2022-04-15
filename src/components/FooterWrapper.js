@@ -78,6 +78,13 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     }, [
       'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
     ]),
+    div({ style: styles.item }, '|'),
+    a({
+      href: 'https://terra.bio', ...Utils.newTabLinkProps,
+      style: { ...styles.item, display: 'flex', alignItems: 'center' }
+    }, [
+      'Terra.bio', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+    ]),
     div({ style: { flexGrow: 1 } }),
     div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
       `Copyright ©${buildTimestamp.getFullYear()}`
