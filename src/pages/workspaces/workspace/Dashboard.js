@@ -49,17 +49,10 @@ const roleString = {
   PROJECT_OWNER: 'Project Owner'
 }
 
-const InfoTile = ({ title, children }) => {
-  return div({ style: Style.dashboard.infoTile }, [
-    div({ style: Style.dashboard.tinyCaps }, [title]),
-    div({ style: { fontSize: 12 } }, [children])
-  ])
-}
-
 const InfoRow = ({ title, children }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
-    div({ style: { fontWeight: 500 } }, [title]),
-    div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [children])
+    div({ style: { width: 225, fontWeight: 500 } }, [title]),
+    div({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children])
   ])
 }
 
@@ -136,7 +129,6 @@ const WorkspaceDashboard = _.flow(
   const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
   const [storageCostEstimateUpdated, setStorageCostEstimateUpdated] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [bucketSizeUpdated, setBucketSizeUpdated] = useState(undefined)
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -175,9 +167,8 @@ const WorkspaceDashboard = _.flow(
 
   const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      const { usageInBytes } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize(Utils.formatBytes(usageInBytes))
-      setBucketSizeUpdated(lastUpdated)
     }
   })
 
@@ -311,7 +302,7 @@ const WorkspaceDashboard = _.flow(
             h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
             h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
             h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]]),
-            h(InfoRow, { title: 'Google Project ID' }, [googleProject, h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })])
+            h(InfoRow, { title: 'Google Project ID' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [googleProject]), h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })])
           ])
         ])
       ]),
@@ -323,19 +314,19 @@ const WorkspaceDashboard = _.flow(
             titleFirst: true,
             style: {}
           }, [
-            h(InfoRow, { title: 'Cloud Name' }, [div({}, h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } }))]),
+            googleProject && h(InfoRow, { title: 'Cloud Name' }, [h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })]),
             h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
               div({ style: { marginRight: '0.5rem' } }, [flag]),
-              regionDescription
+              [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [regionDescription])]
             ]) : 'Loading...']),
-            h(InfoRow, { title: 'Bucket Name' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, ['my-bucket-name']), h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })]),
+            h(InfoRow, { title: 'Bucket Name' }, [h(TooltipCell, { style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [bucketName]), h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })]),
             Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Estimated Storage Cost' }, [storageCostEstimate || '$ ...']),
-            h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
-            h(Link, {
-              style: { margin: '1rem 0.5rem' },
+            Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
+            div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+              style: { margin: '1rem 0.5rem', paddingBottom: '1rem' },
               ...Utils.newTabLinkProps,
               href: bucketBrowserUrl(bucketName)
-            }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem', marginBottom: '0.25rem' } })])
+            }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])])
           ])
         ])
       ]),
@@ -359,7 +350,7 @@ const WorkspaceDashboard = _.flow(
       !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
-            title: h2({ style: Style.dashboard.newHeader }, ['Authorization domains']),
+            title: h2({ style: Style.dashboard.newHeader }, ['Authorization domain']),
             initialOpenState: false,
             titleFirst: true,
             style: {}
@@ -415,92 +406,6 @@ const WorkspaceDashboard = _.flow(
           ])
         ])
       ])
-    ]),
-    true && div({ style: Style.dashboard.rightBox }, [
-      div({ style: Style.dashboard.header }, ['Workspace information']),
-      div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Last updated' }, [h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 16, maxWidth: 132 } })]),
-        h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
-        h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
-        Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
-          storageCostEstimate || '$ ...'
-        ]),
-        h(InfoTile, { title: 'Google Project Id' }, [
-          div({ style: { display: 'flex' } }, [
-            h(TooltipCell, [googleProject]),
-            h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
-          ])
-        ])
-      ]),
-      div({ style: Style.dashboard.header }, ['Owners']),
-      _.map(email => {
-        return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-          h(Link, { href: `mailto:${email}` }, [email])
-        ])
-      }, owners),
-      div({ style: Style.dashboard.header }, [
-        'Tags',
-        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-          `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-          social security number, or medical record number.`
-        ]),
-        (busy || !tagsList) && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
-      ]),
-      !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
-        h(WorkspaceTagSelect, {
-          value: null,
-          placeholder: 'Add a tag',
-          'aria-label': 'Add a tag',
-          onChange: ({ value }) => addTag(value)
-        })
-      ]),
-      div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
-        _.map(tag => {
-          return span({ key: tag, style: styles.tag }, [
-            tag,
-            !Utils.editWorkspaceError(workspace) && h(Link, {
-              tooltip: 'Remove tag',
-              disabled: busy,
-              onClick: () => deleteTag(tag),
-              style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
-            }, [icon('times', { size: 14 })])
-          ])
-        }, tagsList),
-        !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
-      ]),
-      !_.isEmpty(authorizationDomain) && h(Fragment, [
-        div({ style: Style.dashboard.header }, ['Authorization Domain']),
-        div({ style: { marginBottom: '0.5rem' } }, [
-          'Collaborators must be a member of all of these ',
-          h(Link, {
-            href: Nav.getLink('groups'),
-            ...Utils.newTabLinkProps
-          }, 'groups'),
-          ' to access this workspace.'
-        ]),
-        ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
-      ]),
-      div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
-      div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
-        'Google Bucket'
-      ]),
-      div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-        div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Name:']),
-        h(TooltipCell, { style: { marginRight: '0.5rem' } }, [bucketName]),
-        h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
-      ]),
-      div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-        div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Location:']),
-        bucketLocation ? h(Fragment, [
-          div({ style: { marginRight: '0.5rem' } }, [flag]),
-          regionDescription
-        ]) : 'Loading...'
-      ]),
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: bucketBrowserUrl(bucketName)
-      }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
     ])
   ])
 })
