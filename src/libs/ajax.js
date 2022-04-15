@@ -1246,14 +1246,14 @@ const Buckets = signal => ({
       _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
     )
 
-    const copy = async (newName, newBucket, clearMetadata) => {
+    const copy = (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
-      doCopy(newName, newBucket, body)
+      return doCopy(newName, newBucket, body)
     }
 
-    const copyWithMetadata = async (newName, newBucket, copyMetadata) => {
+    const copyWithMetadata = (newName, newBucket, copyMetadata) => {
       const body = { metadata: copyMetadata }
-      doCopy(newName, newBucket, body)
+      return doCopy(newName, newBucket, body)
     }
 
     const updateMetadata = async (fileName, newMetadata) => {

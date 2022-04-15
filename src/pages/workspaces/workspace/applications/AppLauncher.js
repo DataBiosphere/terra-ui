@@ -70,7 +70,7 @@ const ApplicationLauncher = _.flow(
     )(async shouldCopy => {
       await Promise.all(_.flatMap(async analysis => {
         const currentMetadata = analysis.metadata
-        const file = getFileName(file)
+        const file = getFileName(analysis)
         const newMetadata = currentMetadata
         if (shouldCopy) {
           newMetadata[hashedOwnerEmail] = ''
@@ -117,7 +117,7 @@ const ApplicationLauncher = _.flow(
         [_.size(outdatedAnalyses) > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
           p(getDisplayList(outdatedAnalyses)),
           p('You can'),
-          p(['1) ', strong( ['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
+          p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
           p([strong('or')]),
           p(['2) ', strong(['continue working on your versions']), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
         [_.size(outdatedAnalyses) === 1, () => [p(`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
@@ -140,8 +140,7 @@ const ApplicationLauncher = _.flow(
 
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    return _.filter(analysis =>
-      _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) &&
+    return _.filter(analysis => _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) &&
       analysis?.metadata?.hashedOwnerEmail === 'outdated', analyses)
   }
 
