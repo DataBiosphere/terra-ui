@@ -1,4 +1,8 @@
-import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload } from 'src/components/data/data-utils.js'
+import '@testing-library/jest-dom'
+
+import { render } from '@testing-library/react'
+import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils.js'
+import { entityAttributeText } from 'src/libs/utils'
 
 
 describe('concatenateAttributeNames', () => {
@@ -92,6 +96,73 @@ describe('getAttributeType', () => {
     expect(getAttributeType(null)).toEqual({ type: 'string', isList: false })
     expect(getAttributeType({ items: [], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
     expect(getAttributeType({ items: [null], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+  })
+})
+
+describe('renderDataCell', () => {
+  // renderDataCell is called on the output of entityAttributeText here because that is how it's called in DataTable.
+
+  describe('basic data types', () => {
+    it('renders strings', () => {
+      expect(render(renderDataCell(entityAttributeText('abc'))).container).toHaveTextContent('abc')
+      expect(render(renderDataCell(entityAttributeText({ items: ['a', 'b', 'c'], itemsType: 'AttributeValue' }))).container).toHaveTextContent('a, b, c')
+    })
+
+    it('renders numbers', () => {
+      expect(render(renderDataCell(entityAttributeText(42))).container).toHaveTextContent('42')
+      expect(render(renderDataCell(entityAttributeText({ items: [1, 2, 3], itemsType: 'AttributeValue' }))).container).toHaveTextContent('1, 2, 3')
+    })
+
+    it('renders booleans', () => {
+      expect(render(renderDataCell(entityAttributeText(true))).container).toHaveTextContent('true')
+      expect(render(renderDataCell(entityAttributeText(false))).container).toHaveTextContent('false')
+      expect(render(renderDataCell(entityAttributeText({ items: [true, false], itemsType: 'AttributeValue' }))).container).toHaveTextContent('true, false')
+    })
+
+    it('renders entity name for references', () => {
+      expect(render(renderDataCell(entityAttributeText({ entityType: 'thing', entityName: 'thing_one' }))).container).toHaveTextContent('thing_one')
+      expect(render(renderDataCell(entityAttributeText({
+        items: [
+          { entityType: 'thing', entityName: 'thing_one' },
+          { entityType: 'thing', entityName: 'thing_two' }
+        ],
+        itemsType: 'EntityReference'
+      }))).container).toHaveTextContent('thing_one, thing_two')
+    })
+  })
+
+  describe('JSON values', () => {
+    it('renders each item of arrays containing basic data types', () => {
+      expect(render(renderDataCell(entityAttributeText(['one', 'two', 'three']))).container).toHaveTextContent('one,two,three')
+    })
+
+    it('renders JSON for arrays of objects', () => {
+      expect(render(renderDataCell(entityAttributeText([
+        { key1: 'value1' },
+        { key2: 'value2' },
+        { key3: 'value3' }
+      ]))).container).toHaveTextContent('[{"key1":"value1"},{"key2":"value2"},{"key3":"value3"}]')
+    })
+
+    it('renders JSON for other values', () => {
+      expect(render(renderDataCell(entityAttributeText({ key: 'value' }))).container).toHaveTextContent('{ "key": "value" }')
+    })
+  })
+
+  describe('URLs', () => {
+    it('renders links to GCS URLs', () => {
+      const { container, getByRole } = render(renderDataCell(entityAttributeText('gs://bucket/file.txt')))
+      expect(container).toHaveTextContent('file.txt')
+      const link = getByRole('link')
+      expect(link).toHaveAttribute('href', 'gs://bucket/file.txt')
+    })
+
+    it('renders links to DRS URLs', () => {
+      const { container, getByRole } = render(renderDataCell(entityAttributeText('drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce')))
+      expect(container).toHaveTextContent('drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce')
+      const link = getByRole('link')
+      expect(link).toHaveAttribute('href', 'drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce')
+    })
   })
 })
 
