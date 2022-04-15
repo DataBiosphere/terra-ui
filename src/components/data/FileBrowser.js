@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { Link, topSpinnerOverlay } from 'src/components/common'
+import { DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
 import { saveScroll } from 'src/components/data/data-utils'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -20,7 +20,6 @@ import { useCancelable, useCancellation, withDisplayName } from 'src/libs/react-
 import * as StateHistory from 'src/libs/state-history'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
-import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 
 
 export const FileBrowserPanel = _.flow(
@@ -282,14 +281,19 @@ export const FileBrowserPanel = _.flow(
         status: uploadStatus,
         abort: abortUpload
       }),
-      deletingName && h(DeleteObjectModal, {
-        workspace, name: deletingName,
-        onDismiss: setDeletingName,
-        onSuccess: () => {
-          setDeletingName()
+      deletingName && h(DeleteConfirmationModal, {
+        objectType: 'object',
+        objectName: deletingName,
+        onConfirm: _.flow(
+          Utils.withBusyState(setLoading),
+          withErrorReporting('Error deleting object')
+        )(async () => {
+          setDeletingName(undefined)
+          await Ajax().Buckets.delete(googleProject, bucketName, deletingName)
           load(prefix)
           count()
-        }
+        }),
+        onDismiss: () => setDeletingName(undefined)
       }),
       viewingName && h(UriViewer, {
         googleProject, uri: `gs://${bucketName}/${viewingName}`,
