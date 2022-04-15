@@ -70,7 +70,8 @@ const CookieWarning = () => {
       position: 'fixed', bottom: 0, zIndex: 100,
       transition: `opacity ${animTime}s ease-in`,
       ...transitionStyle[transitionState]
-    }
+    },
+    className: 'alert'
   }, [
     div({
       style: {
