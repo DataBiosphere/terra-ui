@@ -12,7 +12,7 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -95,18 +95,6 @@ const ApplicationLauncher = _.flow(
       getFileName
     )
 
-    const getDisplayList = _.flow(
-      _.map(
-        _.flow(
-          _.get('name'),
-          _.split('/'),
-          _.nth(1)
-        )
-      ),
-      _.without([undefined]),
-      _.join(', ')
-    )
-
     return h(Modal, {
       onDismiss,
       width: 530,
@@ -115,11 +103,11 @@ const ApplicationLauncher = _.flow(
     }, [
       Utils.cond(
         [_.size(outdatedAnalyses) > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
-          p(getDisplayList(outdatedAnalyses)),
+          p(getAnalysesDisplayList(outdatedAnalyses)),
           p('You can'),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
           p([strong('or')]),
-          p(['2) ', strong(['continue working on your versions']), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
+          p(['2) ', strong(['continue working on your versions']), ` of ${getAnalysesDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
         [_.size(outdatedAnalyses) === 1, () => [p(`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
           p('You can'),
           p(['1) ', strong(['save your changes as a new copy']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`]),

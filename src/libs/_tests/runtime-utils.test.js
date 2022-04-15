@@ -1,6 +1,6 @@
 import { tools } from 'src/components/notebook-utils'
 import {
-  getCurrentApp, getCurrentAppIncludingDeleting, getCurrentPersistentDisk, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getAnalysesDisplayList, getCurrentApp, getCurrentAppIncludingDeleting, getCurrentPersistentDisk, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 
 
@@ -257,6 +257,52 @@ const cromwellDisk1Workspace1 = {
 
 const mockAppDisksSameWorkspace = [galaxyDisk1Workspace1, galaxyDisk2Workspace1, galaxyDisk3Workspace2, cromwellDisk1Workspace1]
 
+const mockBucketAnalyses = [
+  {
+    kind: 'storage#object',
+    id: 'fc-703dc22f-e644-4349-b613-87f20a385429/notebooks/testA.Rmd/1650041141891593',
+    name: 'notebooks/testA.Rmd',
+    bucket: 'fc-703dc22f-e644-4349-b613-87f20a385429',
+    generation: '1650041141891593',
+    contentType: 'application/octet-stream',
+    storageClass: 'STANDARD',
+    size: '830',
+    md5Hash: 'oOU8DFHszwwo9BbLKxmOyw==',
+    crc32c: '6sSeiw==',
+    etag: 'CImkgqHClvcCEB0=',
+    timeCreated: '2022-04-15T16:45:41.962Z',
+    updated: '2022-04-15T17:03:58.139Z',
+    timeStorageClassUpdated: '2022-04-15T16:45:41.962Z',
+    customTime: '1970-01-01T00:00:00Z',
+    metadata:
+      {
+        be789c74f6bc6d9df95b9f1b7ce07b4b8b6392c1a937f3a69e2de1b508d8690d: 'doNotSync',
+        lastModifiedBy: '904998e4258c146e4f94e8bd9c4689b1f759ec384199e58067bfe7efbdd79d68'
+      }
+  },
+  {
+    kind: 'storage#object',
+    id: 'fc-703dc22f-e644-4349-b613-87f20a385429/notebooks/testB.Rmd/1650042135115055',
+    name: 'notebooks/testB.Rmd',
+    bucket: 'fc-703dc22f-e644-4349-b613-87f20a385429',
+    generation: '1650042135115055',
+    contentType: 'application/octet-stream',
+    storageClass: 'STANDARD',
+    size: '825',
+    md5Hash: 'BW6DMzy4jK74aB2FQikGxA==',
+    crc32c: '2GXfVA==',
+    etag: 'CK/qz/rFlvcCEAM=',
+    timeCreated: '2022-04-15T17:02:15.185Z',
+    updated: '2022-04-15T17:03:58.177Z',
+    timeStorageClassUpdated: '2022-04-15T17:02:15.185Z',
+    metadata:
+      {
+        be789c74f6bc6d9df95b9f1b7ce07b4b8b6392c1a937f3a69e2de1b508d8690d: 'doNotSync',
+        lastModifiedBy: '904998e4258c146e4f94e8bd9c4689b1f759ec384199e58067bfe7efbdd79d68'
+      }
+  }
+]
+
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
     expect(getCurrentApp(tools.Galaxy.appType)([])).toBeUndefined()
@@ -318,5 +364,11 @@ describe('workspaceHasMultipleDisks', () => {
   })
   it('returns false when there is not multiple cromwell disks', () => {
     expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.Cromwell.appType)).toBe(false)
+  })
+})
+
+describe('getDisplayList', () => {
+  it('getDisplayList should return a string of the analysis names, comma separated', () => {
+    expect(getAnalysesDisplayList(mockBucketAnalyses)).toBe('testA.Rmd, testB.Rmd')
   })
 })

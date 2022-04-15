@@ -320,6 +320,18 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
     [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
+export const getAnalysesDisplayList = _.flow(
+  _.map(
+    _.flow(
+      _.get('name'),
+      _.split('/'),
+      _.nth(1)
+    )
+  ),
+  _.without([undefined]),
+  _.join(', ')
+)
+
 /**
  * 'Deletable' and 'Pausable' statuses are defined in a resource's respective model in Leonardo repo:
  * https://github.com/DataBiosphere/leonardo/blob/3339ae218b4258f704702475be1431b48a5e2932/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/runtimeModels.scala
