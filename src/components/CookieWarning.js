@@ -17,7 +17,7 @@ export const cookiesAcceptedKey = 'cookiesAccepted'
 const transitionStyle = {
   entering: { opacity: 0 },
   entered: { opacity: 1 },
-  exiting: { opacity: 1 },
+  exiting: { opacity: 0 },
   exited: { opacity: 0 }
 }
 
@@ -71,7 +71,7 @@ const CookieWarning = () => {
       transition: `opacity ${animTime}s ease-in`,
       ...transitionStyle[transitionState]
     },
-    className: 'alert'
+    className : 'alert'
   }, [
     div({
       style: {
