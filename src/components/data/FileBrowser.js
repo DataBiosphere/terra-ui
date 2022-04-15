@@ -22,6 +22,23 @@ import { uploadFiles, useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
 
 
+export const DeleteObjectConfirmationModal = ({ object, ...props }) => {
+  const objectSize = _.toNumber(object.size)
+  return h(DeleteConfirmationModal, {
+    ...props,
+    objectType: 'file',
+    objectName: object.name
+  }, [
+    div(['Are you sure you want to delete the file ',
+      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [object.name]), '?']),
+    !_.isNaN(objectSize) && div({ style: { marginTop: '1rem' } }, [
+      `File size: ${Utils.formatBytes(objectSize)}`
+    ]),
+    div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+  ])
+}
+
+
 export const FileBrowserPanel = _.flow(
   withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
@@ -30,7 +47,7 @@ export const FileBrowserPanel = _.flow(
   const [prefixes, setPrefixes] = useState([])
   const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(false)
-  const [deletingName, setDeletingName] = useState(undefined)
+  const [deletingObject, setDeletingObject] = useState(undefined)
   const [viewingName, setViewingName] = useState(undefined)
   const [isCreating, setCreating] = useState(false)
 
@@ -214,10 +231,10 @@ export const FileBrowserPanel = _.flow(
                 headerRenderer: () => '',
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex >= numPrefixes) {
-                    const { name } = objects[rowIndex - numPrefixes]
+                    const object = objects[rowIndex - numPrefixes]
                     return h(Link, {
                       style: { display: 'flex' },
-                      onClick: () => setDeletingName(name),
+                      onClick: () => setDeletingObject(object),
                       tooltip: 'Delete file'
                     }, [
                       icon('trash', {
@@ -281,19 +298,18 @@ export const FileBrowserPanel = _.flow(
         status: uploadStatus,
         abort: abortUpload
       }),
-      deletingName && h(DeleteConfirmationModal, {
-        objectType: 'file',
-        objectName: deletingName,
+      deletingObject && h(DeleteObjectConfirmationModal, {
+        object: deletingObject,
         onConfirm: _.flow(
           Utils.withBusyState(setLoading),
           withErrorReporting('Error deleting file')
         )(async () => {
-          setDeletingName(undefined)
-          await Ajax().Buckets.delete(googleProject, bucketName, deletingName)
+          setDeletingObject(undefined)
+          await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
           load(prefix)
           count()
         }),
-        onDismiss: () => setDeletingName(undefined)
+        onDismiss: () => setDeletingObject(undefined)
       }),
       viewingName && h(UriViewer, {
         googleProject, uri: `gs://${bucketName}/${viewingName}`,
