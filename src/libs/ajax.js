@@ -1241,20 +1241,19 @@ const Buckets = signal => ({
     const encodeFileName = n => Utils.switchCase(toolLabel,
       [tools.Jupyter.label, () => nbName(getDisplayName(n))], [tools.RStudio.label, () => rName(getDisplayName(n))])
 
+    const doCopy = async (newName, newBucket, body) => fetchBuckets(
+      `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
+    )
+
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
-      return fetchBuckets(
-        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-      )
+      doCopy(newName, newBucket, body)
     }
 
     const copyWithMetadata = async (newName, newBucket, copyMetadata) => {
       const body = { metadata: copyMetadata }
-      return fetchBuckets(
-        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-      )
+      doCopy(newName, newBucket, body)
     }
 
     const updateMetadata = async (fileName, newMetadata) => {

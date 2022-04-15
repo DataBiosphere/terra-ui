@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { b, div, h, iframe, p } from 'react-hyperscript-helpers'
+import { div, h, iframe, p, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
@@ -41,16 +41,17 @@ const ApplicationLauncher = _.flow(
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, _ref) => {
-  const cookieReady = useStore(cookieReadyStore)
-  const signal = useCancellation()
-  const interval = useRef()
-  const { user: { email } } = useStore(authStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [location, setLocation] = useState(defaultLocation)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
+
+  const cookieReady = useStore(cookieReadyStore)
+  const signal = useCancellation()
+  const interval = useRef()
+  const { user: { email } } = useStore(authStore)
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
@@ -70,29 +71,28 @@ const ApplicationLauncher = _.flow(
       await Promise.all(_.flatMap(async analysis => {
         const currentMetadata = analysis.metadata
         const file = analysis.name.split('/')[1]
+        const newMetadata = currentMetadata
         if (shouldCopy) {
-          currentMetadata[hashedOwnerEmail] = ''
-          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(stripExtension(file).concat(`_copy${Date.now().toString()}.`).concat(tools.RStudio.ext), bucketName, currentMetadata)
+          newMetadata[hashedOwnerEmail] = ''
+          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(stripExtension(file).concat(`_copy${Date.now().toString()}.`).concat(tools.RStudio.ext), bucketName, newMetadata)
         }
-        currentMetadata[hashedOwnerEmail] = 'doNotSync'
-        await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, currentMetadata)
+        newMetadata[hashedOwnerEmail] = 'doNotSync'
+        await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, newMetadata)
       }, outdatedAnalyses))
       onDismiss()
     })
 
-    const getDisplayList = analyses => {
-      let res = ''
-      let i = 1
-      const end = analyses?.length
-      for (const analysis of analyses) {
-        res += analysis?.name.split('/')[1]
-        if (i < end) {
-          res += ', '
-        }
-        i++
-      }
-      return res
-    }
+    const getDisplayList = _.flow(
+      _.map(
+        _.flow(
+          _.get('name'),
+          _.split('/'),
+          _.nth(1)
+        )
+      ),
+      _.without([undefined]),
+      _.join(', ')
+    )
 
     return h(Modal, {
       onDismiss,
@@ -104,14 +104,14 @@ const ApplicationLauncher = _.flow(
         [outdatedAnalyses?.length > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
           p(getDisplayList(outdatedAnalyses)),
           p('You can'),
-          p(['1) ', b('save your changes as new copies'), ' of your files which will enable file syncing on the copies']),
-          p([b('or')]),
-          p(['2) ', b('continue working on your versions'), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
+          p(['1) ', strong('save your changes as new copies'), ' of your files which will enable file syncing on the copies']),
+          p([strong('or')]),
+          p(['2) ', strong('continue working on your versions'), ` of ${getDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
         [outdatedAnalyses?.length === 1, () => [p(`${outdatedAnalyses[0].name.split('/')[1]} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
           p('You can'),
-          p(['1) ', b('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
-          p([b('or')]),
-          p(['2) ', b('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
+          p(['1) ', strong('save your changes as a new copy'), ` of ${outdatedAnalyses[0].name.split('/')[1]} which will enable file syncing on the copy`]),
+          p([strong('or')]),
+          p(['2) ', strong('continue working on your outdated version'), ` of ${outdatedAnalyses[0].name.split('/')[1]} with file syncing disabled.`])]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
           style: { padding: '0 1rem' },
@@ -127,10 +127,9 @@ const ApplicationLauncher = _.flow(
 
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    const rAnalyses = _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), analyses)
-    return _.filter(
-      analysis => analysis && Object.keys(analysis).includes('metadata') && Object.keys(analysis.metadata).includes(hashedOwnerEmail) &&
-        analysis.metadata[hashedOwnerEmail] === 'outdated', rAnalyses)
+    return _.filter(analysis =>
+      _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) &&
+      analysis?.metadata?.hashedOwnerEmail === 'outdated', analyses)
   }
 
   useOnMount(() => {
@@ -180,9 +179,7 @@ const ApplicationLauncher = _.flow(
     const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
       const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
       setOutdatedAnalyses(outdatedRAnalyses)
-      if (outdatedRAnalyses?.length >= 1) {
-        setFileOutdatedOpen(true)
-      }
+      !!_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
     findOutdatedAnalyses()
