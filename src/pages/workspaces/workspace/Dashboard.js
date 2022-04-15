@@ -20,6 +20,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -140,6 +141,8 @@ const WorkspaceDashboard = _.flow(
   const [bucketLocation, setBucketLocation] = useState(undefined)
   const [bucketLocationType, setBucketLocationType] = useState(undefined)
 
+  const persistenceId = `workspaces/${namespace}/${name}/dashboard`
+
   const signal = useCancellation()
 
   const refresh = () => {
@@ -153,6 +156,15 @@ const WorkspaceDashboard = _.flow(
 
   useImperativeHandle(ref, () => ({ refresh }))
 
+  const [workspacePanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen || true)
+  const [cloudPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
+  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
+  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
+  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
+
+  useEffect(() => {
+    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+  }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -297,9 +309,9 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Workspace information']),
-            initialOpenState: true,
+            initialOpenState: workspaceInfoPanelOpen,
             titleFirst: true,
-            style: {}
+            onClick: () => setWorkspaceInfoPanelOpen(!workspaceInfoPanelOpen)
           }, [
             h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
             h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
@@ -312,9 +324,9 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Cloud information']),
-            initialOpenState: true,
+            initialOpenState: cloudInfoPanelOpen,
             titleFirst: true,
-            style: {}
+            onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
           }, [
             googleProject && h(InfoRow, { title: 'Cloud Name' }, [
               h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
@@ -347,9 +359,9 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Owners']),
-            initialOpenState: false,
+            initialOpenState: ownersPanelOpen,
             titleFirst: true,
-            style: {}
+            onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
           }, [
             div({ style: { margin: '0.5rem' } },
               _.map(email => {
@@ -364,9 +376,9 @@ const WorkspaceDashboard = _.flow(
         div({ style: { borderRadius: 5, backgroundColor: 'white', padding: '0.5rem' } }, [
           h(Collapse, {
             title: h2({ style: Style.dashboard.newHeader }, ['Authorization domain']),
-            initialOpenState: false,
+            initialOpenState: authDomainPanelOpen,
             titleFirst: true,
-            style: {}
+            onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
           }, [
             div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
               'Collaborators must be a member of all of these ',
@@ -388,9 +400,9 @@ const WorkspaceDashboard = _.flow(
                 `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
                 social security number, or medical record number.`
               ])]),
-            initialOpenState: false,
+            initialOpenState: tagsPanelOpen,
             titleFirst: true,
-            style: {}
+            onClick: () => setTagsPanelOpen(!tagsPanelOpen)
           }, [
             div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
               !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
