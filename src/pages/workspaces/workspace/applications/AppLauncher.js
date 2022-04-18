@@ -107,17 +107,17 @@ const ApplicationLauncher = _.flow(
     }, [
       Utils.cond(
         // if user has more than one outdated rstudio analysis, display plural phrasing
-        [_.size(outdatedAnalyses) > 1, () => [p(`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`),
+        [_.size(outdatedAnalyses) > 1, () => [p([`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
           p(getAnalysesDisplayList(outdatedAnalyses)),
-          p('You can'),
+          p(['You can']),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
-          p([strong('or')]),
+          p([strong(['or'])]),
           p(['2) ', strong(['continue working on your versions']), ` of ${getAnalysesDisplayList(outdatedAnalyses)} with file syncing disabled.`])]],
         // if user has one outdated rstudio analysis, display singular phrasing
-        [_.size(outdatedAnalyses) === 1, () => [p(`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`),
-          p('You can'),
+        [_.size(outdatedAnalyses) === 1, () => [p([`${getAnalysisNameFromList(outdatedAnalyses)} is being edited by another user and your version is now outdated. Your file will no longer sync with the workspace bucket.`]),
+          p(['You can']),
           p(['1) ', strong(['save your changes as a new copy']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} which will enable file syncing on the copy`]),
-          p([strong('or')]),
+          p([strong(['or'])]),
           p(['2) ', strong(['continue working on your outdated version']), ` of ${getAnalysisNameFromList(outdatedAnalyses)} with file syncing disabled.`])]]),
       div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, {
