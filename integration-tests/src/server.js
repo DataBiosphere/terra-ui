@@ -9,6 +9,7 @@ const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workf
 const { testRegisterUser } = require('../tests/register-user')
 const { testRunNotebook } = require('../tests/run-notebook')
 const { testCreateInteractiveAnalysis } = require('../tests/create-interactive-analysis')
+const { testAnalysisContextBar } = require('../tests/analysis-context-bar')
 const { testRunWorkflow } = require('../tests/run-workflow')
 const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
@@ -76,6 +77,7 @@ const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
 }
 
 _.forEach(registerTestEndpoint, [
+  testAnalysisContextBar,
   testCreateInteractiveAnalysis,
   testFindWorkflow,
   testImportCohortData,

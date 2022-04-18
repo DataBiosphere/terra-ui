@@ -392,7 +392,7 @@ const Analyses = _.flow(
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      'The selected file is not a .ipynb notebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+      'The selected file is not a .ipynb notebook file or an .Rmd RStudio file. Ensure your file has the proper extension.'),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     analyses && h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [
@@ -405,18 +405,18 @@ const Analyses = _.flow(
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
           icon('plus', { size: 14, style: { color: colors.accent() } }),
-          div({ style: { marginLeft: '0.5rem' } }, ['Create'])
+          div({ style: { marginLeft: '0.5rem' } }, ['Start'])
         ]),
-        div({ style: { flex: 1.5 } }),
+        div({ style: { flex: 1 } }),
         div({
           style: {
-            display: 'flex', flexDirection: 'column', marginLeft: '.5rem', padding: '1rem',
+            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem',
             backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
           }, hidden: false
         }, [
           //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
-          div({ style: { maxWidth: 300 } }, [
-            span(['What did you think? We\'d love to hear your thoughts. ']),
+          div({ style: { maxWidth: 250 } }, [
+            span(['We\'d love to hear your thoughts. ']),
             h(Link, {
               //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
               href: '', ...Utils.newTabLinkProps
@@ -425,7 +425,7 @@ const Analyses = _.flow(
             ])
           ]),
           h(ButtonPrimary, {
-            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'left' },
+            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'center' },
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
                 workspaceName: wsName,
@@ -437,7 +437,6 @@ const Analyses = _.flow(
             tooltip: 'Exit the analysis tab beta feature'
           }, ['Revert layout'])
         ]),
-        div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
           style: { marginRight: '0.75rem', width: 220 },
@@ -501,21 +500,20 @@ const Analyses = _.flow(
         deletingAnalysisName && h(DeleteConfirmationModal, {
           objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
           objectName: getDisplayName(deletingAnalysisName),
-          confirmationPrompt: 'Delete analysis',
           buttonText: 'Delete analysis',
-          onConfirm: async () => {
-            try {
-              await Ajax().Buckets.analysis(
-                googleProject,
-                bucketName,
-                getDisplayName(deletingAnalysisName),
-                getTool(deletingAnalysisName)
-              ).delete()
-              refreshAnalyses()
-            } catch (err) {
-              reportError('Error deleting analysis.', err)
-            }
-          },
+          onConfirm: _.flow(
+            Utils.withBusyState(setBusy),
+            withErrorReporting('Error deleting analysis.')
+          )(async () => {
+            setDeletingAnalysisName(undefined)
+            await Ajax().Buckets.analysis(
+              googleProject,
+              bucketName,
+              getDisplayName(deletingAnalysisName),
+              getTool(deletingAnalysisName)
+            ).delete()
+            refreshAnalyses()
+          }),
           onDismiss: () => setDeletingAnalysisName(undefined)
         })
       ]),

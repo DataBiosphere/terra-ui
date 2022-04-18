@@ -10,7 +10,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { locationTypes } from 'src/components/region-common'
-import { analysisTabName, contextBarTabs } from 'src/components/runtime-common'
+import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
@@ -22,7 +22,9 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType } from 'src/libs/runtime-utils'
+import {
+  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
+} from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -140,16 +142,13 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-
-      // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && _.includes(activeTab, contextBarTabs) ?
+      (isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
           ]),
           workspace && h(ContextBar, {
-            workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            setShowLockWorkspaceModal, apps, appDataDisks, refreshApps,
+            workspace, apps, appDataDisks, refreshApps,
             runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
@@ -219,7 +218,7 @@ const useCloudEnvironmentPolling = googleProject => {
       ]) : [[], []]
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
-      setPersistentDisks(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
+      setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?

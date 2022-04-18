@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
+  absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -131,25 +131,26 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
 export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {
   const [deleting, setDeleting] = useState(false)
 
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Delete',
-    okButton: h(ButtonPrimary, {
-      disabled: deleting,
-      onClick: async () => {
-        setDeleting(true)
-        try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
-            _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
-          )
-          onSuccess()
-        } catch (error) {
-          await reportError('Error deleting reference data', error)
-          onDismiss()
-        }
+  return h(DeleteConfirmationModal, {
+    objectType: 'reference',
+    objectName: referenceDataType,
+    onConfirm: async () => {
+      setDeleting(true)
+      try {
+        await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
+          _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
+        )
+        onSuccess()
+      } catch (error) {
+        reportError('Error deleting reference data', error)
+        onDismiss()
       }
-    }, ['Delete'])
-  }, [`Are you sure you want to delete ${referenceDataType}?`])
+    },
+    onDismiss
+  }, [
+    div(['Are you sure you want to delete the ', span({ style: { fontWeight: 600 } }, [referenceDataType]), ' reference data?']),
+    deleting && absoluteSpinnerOverlay
+  ])
 }
 
 export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
@@ -176,7 +177,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
           setDeleting(false)
           break
         default:
-          await reportError('Error deleting data entries', error)
+          reportError('Error deleting data entries', error)
           onDismiss()
       }
     }
@@ -191,13 +192,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   }
 
   const total = selectedKeys.length + additionalDeletions.length
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Delete',
-    okButton: h(ButtonPrimary, {
-      disabled: deleting,
-      onClick: doDelete
-    }, ['Delete'])
+  return h(DeleteConfirmationModal, {
+    objectType: 'data',
+    title: `Delete ${total} ${total > 1 ? 'entries' : 'entry'}`,
+    onConfirm: doDelete,
+    onDismiss
   }, [
     runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
       icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
@@ -213,16 +212,13 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     div({ style: { maxHeight: 'calc((1em * 1.15 + 1.2rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } },
       _.map(([i, entity]) => div({
         style: {
-          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : `1px solid ${colors.light()}`,
           padding: '0.6rem 1.25rem'
         }
       }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
       Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys))
     ),
-    div({
-      style: { ...fullWidthWarning, textAlign: 'right' }
-    }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
-    deleting && spinnerOverlay
+    deleting && absoluteSpinnerOverlay
   ])
 }
 
@@ -1071,17 +1067,19 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = h(MenuTrigger, {
-    closeOnClick: true,
-    side: 'bottom',
-    content: h(Fragment, [
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
-    ])
-  }, [
-    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
-      icon('cardMenuIcon', { size: 16 })
+  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
+    h(MenuTrigger, {
+      closeOnClick: true,
+      side: 'bottom',
+      content: h(Fragment, [
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+        _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
+      ])
+    }, [
+      h(Link, { 'aria-label': 'Column menu' }, [
+        icon('cardMenuIcon', { size: 16 })
+      ])
     ])
   ])
 

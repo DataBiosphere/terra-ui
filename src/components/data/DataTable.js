@@ -138,7 +138,10 @@ const DataTable = props => {
     return queryResults.results
   }
 
-  const deleteColumn = withErrorReporting('Unable to delete column')(async attributeName => {
+  const deleteColumn = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Unable to delete column')
+  )(async attributeName => {
     await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
     deleteColumnUpdateMetadata({ entityType, attributeName })
 
@@ -148,7 +151,10 @@ const DataTable = props => {
     setEntities(updatedEntities)
   })
 
-  const clearColumn = withErrorReporting('Unable to clear column.')(async attributeName => {
+  const clearColumn = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Unable to clear column.')
+  )(async attributeName => {
     const allEntities = await getAllEntities()
     const entityUpdates = _.map(entity => ({
       name: entity.name,
@@ -414,14 +420,19 @@ const DataTable = props => {
     !!deletingColumn && h(DeleteConfirmationModal, {
       objectType: 'column',
       objectName: deletingColumn,
-      onConfirm: () => deleteColumn(deletingColumn),
+      onConfirm: () => {
+        setDeletingColumn(undefined)
+        deleteColumn(deletingColumn)
+      },
       onDismiss: () => setDeletingColumn(undefined)
     }),
     !!clearingColumn && h(DeleteConfirmationModal, {
       title: 'Clear Column',
-      confirmationPrompt: 'Clear column',
       buttonText: 'Clear column',
-      onConfirm: () => clearColumn(clearingColumn),
+      onConfirm: () => {
+        setClearingColumn(undefined)
+        clearColumn(clearingColumn)
+      },
       onDismiss: () => setClearingColumn(undefined)
     }, [
       div(['Are you sure you want to permanently delete all data in the column ',

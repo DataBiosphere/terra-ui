@@ -19,7 +19,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code'
-import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -381,10 +381,21 @@ export const Workflows = _.flow(
           setWorkflowToCopy(undefined)
         }
       }),
-      workflowToDelete && h(DeleteWorkflowModal, {
+      workflowToDelete && h(DeleteWorkflowConfirmationModal, {
         workspace, methodConfig: getConfig(workflowToDelete),
         onDismiss: () => setWorkflowToDelete(undefined),
-        onSuccess: () => refresh()
+        onConfirm: _.flow(
+          Utils.withBusyState(setLoading),
+          withErrorReporting('Error deleting workflow.')
+        )(async () => {
+          setWorkflowToDelete(undefined)
+          const { namespace, name } = getConfig(workflowToDelete)
+          await Ajax().Workspaces
+            .workspace(workspace.namespace, workspace.name)
+            .methodConfig(namespace, name)
+            .delete()
+          refresh()
+        })
       })
     ]),
     div({ style: styles.cardContainer(listView) }, [
