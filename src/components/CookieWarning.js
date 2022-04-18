@@ -64,7 +64,7 @@ const CookieWarning = () => {
     mountOnEnter: true,
     unmountOnExit: true
   }, [transitionState => aside({
-    'aria-label': 'cookie consent banner',
+    'aria-label': 'Cookie consent banner',
     style: {
       display: 'block', width: '100%',
       position: 'fixed', bottom: 0, zIndex: 100,
