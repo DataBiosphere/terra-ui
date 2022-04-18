@@ -29,7 +29,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
-import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
+import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
@@ -918,10 +918,24 @@ const WorkflowView = _.flow(
         onDismiss: () => this.setState({ copying: false }),
         onSuccess: () => Nav.goToPath('workspace-workflows', { namespace, name: workspaceName })
       }),
-      deleting && h(DeleteWorkflowModal, {
+      deleting && h(DeleteWorkflowConfirmationModal, {
         workspace, methodConfig: savedConfig,
         onDismiss: () => this.setState({ deleting: false }),
-        onSuccess: () => Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
+        onConfirm: async () => {
+          this.setState({ deleting: false, updatingConfig: true })
+
+          try {
+            await Ajax().Workspaces
+              .workspace(workspace.namespace, workspace.name)
+              .methodConfig(savedConfig.namespace, savedConfig.name)
+              .delete()
+
+            Nav.goToPath('workspace-workflows', _.pick(['namespace', 'name'], workspace))
+          } catch (err) {
+            this.setState({ updatingConfig: false })
+            reportError('Error deleting workflow.', err)
+          }
+        }
       }),
       selectingData && h(DataStepContent, {
         entityMetadata,

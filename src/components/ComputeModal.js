@@ -25,9 +25,9 @@ import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
   getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
-  isAutopauseEnabled, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -201,6 +201,7 @@ export const ComputeModalBase = ({
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
+    selectedPersistentDiskType: defaultPersistentDiskType,
     masterMachineType: defaultGceMachineType,
     masterDiskSize: defaultGceBootDiskSize,
     numberOfWorkers: defaultNumDataprocWorkers,
@@ -274,6 +275,7 @@ export const ComputeModalBase = ({
           } : {
             name: Utils.generatePersistentDiskName(),
             size: desiredPersistentDisk.size,
+            diskType: desiredPersistentDisk.diskType.label,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
         })),
@@ -432,7 +434,7 @@ export const ComputeModalBase = ({
           })
         })
       } : undefined,
-      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
+      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size, diskType: currentPersistentDiskDetails.diskType } : undefined
     }
   }
 
@@ -481,7 +483,7 @@ export const ComputeModalBase = ({
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
         [viewMode !== 'deleteEnvironment' && shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected),
-          () => ({ size: computeConfig.selectedPersistentDiskSize })],
+          () => ({ size: computeConfig.selectedPersistentDiskSize, diskType: computeConfig.selectedPersistentDiskType })],
         () => existingPersistentDisk
       )
     }
@@ -494,7 +496,7 @@ export const ComputeModalBase = ({
    */
   const getPendingDisk = () => {
     const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-    return { size: desiredPersistentDisk.size, status: 'Ready' }
+    return { size: desiredPersistentDisk.size, status: 'Ready', diskType: desiredPersistentDisk.diskType }
   }
 
   /**
@@ -608,8 +610,8 @@ export const ComputeModalBase = ({
       desiredRuntime_exists: !!desiredRuntime,
       desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
       desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig()),
-      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
+      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk()),
+      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk()),
       ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
       existingRuntime_exists: !!existingRuntime,
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
@@ -739,6 +741,7 @@ export const ComputeModalBase = ({
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
+        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && pdTypes.fromString(currentPersistentDiskDetails.diskType)) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -851,7 +854,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: isAnalysisMode ? tool !== tools.RStudio.label : true })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -1181,8 +1184,8 @@ export const ComputeModalBase = ({
           ])
         ])
       }, [
-        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
-        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig(), getPendingDisk())), unitLabel: 'per hr' },
         {
           label: 'Persistent disk cost',
           cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
@@ -1623,7 +1626,7 @@ export const ComputeModalBase = ({
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
           renderComputeProfileSection(existingRuntime),
-          !!isPersistentDisk && renderPersistentDiskSection(),
+          !!isPersistentDisk && renderPersistentDiskSection(existingPersistentDisk),
           isGce(runtimeType) && !isPersistentDisk && div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
@@ -1681,25 +1684,53 @@ export const ComputeModalBase = ({
     ])
   }
 
-  const renderPersistentDiskSection = () => {
+  const renderPersistentDiskSection = diskExists => {
+    const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
+
+    const renderPersistentDiskType = id => h(div, [
+      label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+      div({ style: { marginTop: '0.5rem' } }, [
+        h(Select, {
+          id,
+          value: computeConfig.selectedPersistentDiskType,
+          isDisabled: diskExists || false,
+          onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          options: [
+            { label: pdTypes.standard.displayName, value: pdTypes.standard },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
+          ]
+        })
+      ])
+    ])
+
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       h(IdContainer, [
         id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk size (GB)']),
+          label({ htmlFor: id, style: computeStyles.label }, ['Persistent disk']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
-          h(NumberInput, {
-            id,
-            min: 10,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value: computeConfig.selectedPersistentDiskSize,
-            style: { marginTop: '0.5rem', width: '5rem' },
-            onChange: updateComputeConfig('selectedPersistentDiskSize')
-          })
+          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
+            diskExists ?
+              h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
+                renderPersistentDiskType(id)
+              ]) : renderPersistentDiskType(id),
+            h(div, [
+              label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
+              div({ style: { marginTop: '0.5rem' } }, [
+                h(NumberInput, {
+                  id,
+                  min: 10,
+                  max: 64000,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: computeConfig.selectedPersistentDiskSize,
+                  onChange: updateComputeConfig('selectedPersistentDiskSize')
+                })
+              ])
+            ])
+          ])
         ])
       ])
     ])

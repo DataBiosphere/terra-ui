@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { a, b, div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ClipboardButton, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { a, div, h, h2 } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ClipboardButton, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -81,19 +81,6 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
       onChange: setAllowAccessRequests
     }),
     submitting && spinnerOverlay
-  ])
-}
-
-const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Group Delete',
-    okButton: h(ButtonPrimary, {
-      onClick: onSubmit
-    }, ['Delete Group'])
-  }, [
-    'Are you sure you want to delete the group ',
-    b([`${groupName}?`])
   ])
 }
 
@@ -183,15 +170,17 @@ const GroupList = () => {
   const [creatingNewGroup, setCreatingNewGroup] = useState(false)
   const [deletingGroup, setDeletingGroup] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
 
   const signal = useCancellation()
 
 
   // Helpers
-  const refresh = withErrorReporting('Error loading group list', async () => {
-    setIsDataLoaded(false)
+  const refresh = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error loading group list')
+  )(async () => {
     setCreatingNewGroup(false)
     setDeletingGroup(false)
     setUpdating(false)
@@ -203,7 +192,6 @@ const GroupList = () => {
       _.sortBy('groupName')
     )(rawGroups)
     setGroups(groups)
-    setIsDataLoaded(true)
   })
 
 
@@ -259,24 +247,25 @@ const GroupList = () => {
             ])
           }
         ),
-        !isDataLoaded && spinnerOverlay
+        busy && spinnerOverlay
       ]),
       creatingNewGroup && h(NewGroupModal, {
         existingGroups: _.map('groupName', groups),
         onDismiss: () => setCreatingNewGroup(false),
         onSuccess: refresh
       }),
-      deletingGroup && h(DeleteGroupModal, {
-        groupName: deletingGroup.groupName,
-        onDismiss: () => setDeletingGroup(false),
-        onSubmit: _.flow(
-          withErrorReporting('Error deleting group'),
-          Utils.withBusyState(setUpdating)
+      deletingGroup && h(DeleteConfirmationModal, {
+        objectType: 'group',
+        objectName: deletingGroup.groupName,
+        onConfirm: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error deleting group.')
         )(async () => {
           setDeletingGroup(false)
           await Ajax().Groups.group(deletingGroup.groupName).delete()
           refresh()
-        })
+        }),
+        onDismiss: () => setDeletingGroup(false)
       }),
       updating && spinnerOverlay
     ])

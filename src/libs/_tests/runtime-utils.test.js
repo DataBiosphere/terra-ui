@@ -130,6 +130,25 @@ const galaxyDisk = {
   zone: 'us-central1-a'
 }
 
+const galaxyDiskUpdatedPd = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+  },
+  blockSize: 4096,
+  diskType: {
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
+  googleProject: 'terra-test-e4000484',
+  id: 10,
+  labels: { saturnApplication: 'galaxy', saturnWorkspaceName: 'test-workspace' }, // Note 'galaxy' vs. 'GALAXY', to represent our older naming scheme
+  name: 'saturn-pd-026594ac-d829-423d-a8df-76fe96f5b4e7',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a'
+}
+
 // Newer than galaxyDisk, attached to galaxyDeleting app.
 const galaxyDeletingDisk = {
   auditInfo: {
@@ -137,6 +156,25 @@ const galaxyDeletingDisk = {
   },
   blockSize: 4096,
   diskType: 'pd-standard',
+  googleProject: 'terra-test-e4000484',
+  id: 10,
+  labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
+  name: 'saturn-pd-1236594ac-d829-423d-a8df-76fe96f5897',
+  size: 500,
+  status: 'Deleting',
+  zone: 'us-central1-a'
+}
+
+const galaxyDeletingDiskUpdatedPd = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-30T20:19:14.114Z'
+  },
+  blockSize: 4096,
+  diskType: {
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
   googleProject: 'terra-test-e4000484',
   id: 10,
   labels: { saturnApplication: 'GALAXY', saturnWorkspaceName: 'test-workspace' },
@@ -161,6 +199,25 @@ const cromwellUnattachedDisk = {
   zone: 'us-central1-a'
 }
 
+const cromwellUnattachedDiskUpdatedPd = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-30T02:21:00.705505Z', destroyedDate: null, dateAccessed: '2021-11-30T02:21:00.705505Z'
+  },
+  blockSize: 4096,
+  diskType: {
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
+  googleProject: 'terra-test-e4000484',
+  id: 12,
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
+  name: 'saturn-pd-7fc0c398-63fe-4441-aea5-1e794c961310',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a'
+}
+
 // Older than cromwellUnattachedDisk, attached to cromwellProvisioning app.
 const cromwellProvisioningDisk = {
   auditInfo: {
@@ -168,6 +225,25 @@ const cromwellProvisioningDisk = {
   },
   blockSize: 4096,
   diskType: 'pd-standard',
+  googleProject: 'terra-test-e4000484',
+  id: 11,
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
+  name: 'saturn-pd-693a9707-634d-4134-bb3a-cbb73cd5a8ce',
+  size: 500,
+  status: 'Creating',
+  zone: 'us-central1-a'
+}
+
+const cromwellProvisioningDiskUpdatedPd = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-29T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-29T20:28:03.109Z'
+  },
+  blockSize: 4096,
+  diskType: {
+    displayName: 'Standard',
+    label: 'pd-standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
   googleProject: 'terra-test-e4000484',
   id: 11,
   labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
@@ -336,15 +412,15 @@ describe('getCurrentPersistentDisk', () => {
     expect(getCurrentPersistentDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
   })
   it('returns the newest attached disk, even if app is deleting', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(galaxyDeletingDisk)
-    expect(getCurrentPersistentDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toBe(cromwellProvisioningDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)
+    expect(getCurrentPersistentDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(cromwellProvisioningDiskUpdatedPd)
   })
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
-    expect(getCurrentPersistentDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toBe(cromwellUnattachedDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
+    expect(getCurrentPersistentDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toStrictEqual(cromwellUnattachedDiskUpdatedPd)
   })
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toBe(galaxyDisk)
+    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
     expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
   })
 })

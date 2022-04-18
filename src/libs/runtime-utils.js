@@ -21,6 +21,26 @@ export const computeStyles = {
   warningView: { backgroundColor: colors.warning(0.1) }
 }
 
+export const pdTypes = {
+  standard: {
+    label: 'pd-standard',
+    displayName: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
+  ssd: {
+    label: 'pd-ssd',
+    displayName: 'Solid state drive (SSD)',
+    regionToPricesName: 'monthlySSDDiskPrice'
+  },
+  fromString: str => Utils.switchCase(str,
+    [pdTypes.standard.label, () => pdTypes.standard],
+    [pdTypes.ssd.label, () => pdTypes.ssd],
+    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
+  )
+}
+export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromString, disk)
+export const mapToPdTypes = _.map(updatePdType)
+
 // Dataproc clusters don't have persistent disks.
 export const defaultDataprocMasterDiskSize = 100
 export const defaultDataprocWorkerDiskSize = 150
@@ -28,6 +48,7 @@ export const defaultDataprocWorkerDiskSize = 150
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
 export const defaultGceBootDiskSize = 100
 export const defaultGcePersistentDiskSize = 50
+export const defaultPersistentDiskType = pdTypes.standard
 
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
@@ -129,10 +150,10 @@ export const runtimeConfigBaseCost = config => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion),
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion))
+      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard))
   ])
 }
 
@@ -152,7 +173,7 @@ export const runtimeConfigCost = config => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion),
+    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion, pdTypes.standard),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
@@ -161,18 +182,18 @@ export const runtimeConfigCost = config => {
 }
 
 // Per GB following https://cloud.google.com/compute/pricing
-const getPersistentDiskPriceForRegionMonthly = computeRegion => {
-  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get(['monthlyDiskPrice']))(regionToPrices)
+const getPersistentDiskPriceForRegionMonthly = (computeRegion, diskType) => {
+  return _.flow(_.find({ name: _.toUpper(computeRegion) }), _.get([diskType.regionToPricesName]))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
-const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth
+const getPersistentDiskPriceForRegionHourly = (computeRegion, diskType) => getPersistentDiskPriceForRegionMonthly(computeRegion, diskType) / numberOfHoursPerMonth
 
 export const getPersistentDiskCostMonthly = (currentPersistentDiskDetails, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionMonthly(computeRegion)
+  const price = getPersistentDiskPriceForRegionMonthly(computeRegion, currentPersistentDiskDetails?.diskType)
   return _.includes(currentPersistentDiskDetails?.status, ['Deleting', 'Failed']) ? 0.0 : currentPersistentDiskDetails?.size * price
 }
-export const getPersistentDiskCostHourly = ({ size, status }, computeRegion) => {
-  const price = getPersistentDiskPriceForRegionHourly(computeRegion)
+export const getPersistentDiskCostHourly = ({ size, status, diskType }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionHourly(computeRegion, diskType)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
 
@@ -195,8 +216,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
 
-export const getGalaxyCost = (app, dataDiskSize) => {
-  return getGalaxyDiskCost(dataDiskSize) + getGalaxyComputeCost(app)
+export const getGalaxyCost = (app, dataDisk) => {
+  return getGalaxyDiskCost(dataDisk) + getGalaxyComputeCost(app)
 }
 
 /*
@@ -233,14 +254,15 @@ export const getGalaxyComputeCost = app => {
  * - Disk cost is total for data (NFS) disk, metadata (postgres) disk, and boot disks (1 boot disk per nodepool)
  * - Size of a data disk is user-customizable. The other disks have fixed sizes.
  */
-export const getGalaxyDiskCost = dataDiskSize => {
+export const getGalaxyDiskCost = ({ size: dataDiskType, diskType }) => {
   const metadataDiskSize = 10 // GB
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
   return getPersistentDiskCostHourly({
     status: 'Running',
-    size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
+    size: dataDiskType + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize,
+    diskType
   }, defaultComputeRegion)
 }
 
@@ -265,7 +287,7 @@ export const getCurrentApp = appType => getCurrentAppExcludingStatuses(appType, 
 export const getCurrentAppIncludingDeleting = appType => getCurrentAppExcludingStatuses(appType, [])
 
 export const getCurrentAttachedDataDisk = (app, appDataDisks) => {
-  return _.find({ name: app?.diskName }, appDataDisks)
+  return updatePdType(_.find({ name: app?.diskName }, appDataDisks))
 }
 
 // If the disk was attached to an app, return the appType. Otherwise return undefined.
@@ -299,14 +321,15 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
   const attachedDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // If the disk is attached to an app (or being detached from a deleting app), return that disk. Otherwise,
   // return the newest unattached disk that was provisioned by the desired appType.
-  return !!currentDiskName ?
+
+  return updatePdType(!!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
       _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) &&
         disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
-    )(appDataDisks)
+    )(appDataDisks))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
@@ -317,7 +340,7 @@ export const isCurrentGalaxyDiskDetaching = apps => {
 export const getGalaxyCostTextChildren = (app, appDataDisks) => {
   const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
   return app ?
-    [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
+    [getComputeStatusForDisplay(app.status), dataDisk ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk))} / hr)` : ``] : ['None']
 }
 
 export const getAnalysesDisplayList = _.flow(

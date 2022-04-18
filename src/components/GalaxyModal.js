@@ -17,13 +17,13 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
-  RadioBlock
+  pdTypes, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const defaultDataDiskSize = 500 // GB
+const defaultDataDisk = { size: 500, diskType: pdTypes.standard }
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
@@ -39,7 +39,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const app = getCurrentApp(tools.Galaxy.appType)(apps)
     const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
-    const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
+    const [dataDisk, setDataDisk] = useState(attachedDataDisk || defaultDataDisk)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
     const [viewMode, setViewMode] = useState(undefined)
     const [loading, setLoading] = useState(false)
@@ -47,13 +47,15 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const currentDataDisk = getCurrentPersistentDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
 
+    const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)))
+
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
-        kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
-        appType: tools.Galaxy.appType, namespace, bucketName, workspaceName
+        kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDisk.size,
+        diskType: dataDisk.diskType.label, appType: tools.Galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
@@ -238,7 +240,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     }
 
     // TODO Refactor this and the duplicate in ComputeModal.js
-    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDiskSize) => {
+    const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDisk) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
 
@@ -262,7 +264,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per hr' }
+          { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDisk)), unitLabel: 'per hr' }
         ])
       ])
     }
@@ -287,46 +289,72 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ]),
-        renderPersistentDiskSizeSection()
+        renderPersistentDiskConfigSection()
       ])
     }
 
-    const renderPersistentDiskSizeSection = () => {
-      const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
+    const renderPersistentDiskConfigSection = () => {
+      const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.75rem', alignItems: 'center' }
       return Utils.cond(
         [currentDataDisk, () => {
-          return h(Fragment, [
-            div({ style: { ...gridStyle, marginTop: '0.5rem' } }, [
-              div({ style: computeStyles.label }, ['Size (GB): ']), h(TooltipTrigger,
-                { content: ['Persistent disk of size ', currentDataDisk.size, ' GB already exists and will be attached upon Galaxy creation'] }, [
-                  div([currentDataDisk.size])
-                ])
+          return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
+            h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
+              renderPersistentDiskType(true)
+            ]),
+            h(TooltipTrigger, { content: ['Disk size can only be selected at creation time.'], side: 'bottom' }, [
+              renderPersistentDiskSize(true)
             ])
           ])
         }],
         () => {
-          return div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
-                div([
-                  h(NumberInput, {
-                    id,
-                    min: 250, // Galaxy doesn't come up with a smaller data disk
-                    max: 64000,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: dataDiskSize,
-                    style: { marginTop: '0.5rem', width: '5rem' },
-                    onChange: v => setDataDiskSize(v)
-                  })
-                ])
-              ])
+          return div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
+            h(Fragment, [
+              renderPersistentDiskType(false),
+              renderPersistentDiskSize(false)
             ])
+
           ])
-        }
-      )
+        })
     }
+
+    const renderPersistentDiskType = disabled => h(div, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(Select, {
+              id,
+              value: disabled ? currentDataDisk.diskType : dataDisk.diskType,
+              isDisabled: disabled,
+              onChange: ({ value }) => updateDataDisk('diskType', value),
+              options: [
+                { label: pdTypes.standard.displayName, value: pdTypes.standard },
+                { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
+              ]
+            })
+          ])
+        ])
+      ])
+    ])
+
+    const renderPersistentDiskSize = disabled => div([
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: computeStyles.label }, ['Size (GB)']),
+          h(NumberInput, {
+            id,
+            min: 250, // Galaxy doesn't come up with a smaller data disk
+            max: 64000,
+            isClearable: false,
+            disabled,
+            onlyInteger: true,
+            style: { marginTop: '0.5rem' },
+            value: disabled ? currentDataDisk.size : dataDisk.size,
+            onChange: updateDataDisk('size')
+          })
+        ])
+      ])
+    ])
 
     const renderDeleteDiskChoices = () => {
       return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
@@ -356,7 +384,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               ]),
               p({ style: { marginBottom: 0 } }, [
                 'You will continue to incur persistent disk cost at ',
-                span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), ' per hour.'])
+                span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getGalaxyDiskCost(dataDisk)), ' per hour.'])
               ])
             ]),
             h(RadioBlock, {
@@ -396,7 +424,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
           getEnvMessageBasedOnStatus(app)
         ]),
         div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
-          renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDiskSize)
+          renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDisk)
         ]),
         div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
           div([

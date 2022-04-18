@@ -2,7 +2,7 @@ const rawConsole = require('console')
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 
-const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners } = require('./integration-utils')
+const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -39,7 +39,6 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   }
   return workspaceName
 })
-
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
@@ -199,6 +198,20 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await dismissNotifications(page)
 }
 
+const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
+  await page.goto(testUrl)
+  await findText(page, 'View Workspaces')
+
+  await overrideConfig(page, { isAnalysisTabVisible: true })
+
+  await click(page, clickable({ textContains: 'View Workspaces' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
+  await noSpinnersAfter(page, { action: () => click(page, navChild('analyses')) })
+  await dismissNotifications(page)
+}
+
 module.exports = {
   checkBucketAccess,
   createEntityInWorkspace,
@@ -210,5 +223,6 @@ module.exports = {
   withWorkspace,
   withBilling,
   withUser,
-  withRegisteredUser
+  withRegisteredUser,
+  performAnalysisTabSetup
 }

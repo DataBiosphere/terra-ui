@@ -8,6 +8,7 @@ import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -84,7 +85,7 @@ const Showcase = () => {
   const [fullList, setFullList] = useState(stateHistory.featuredWorkspaces)
 
   useOnMount(() => {
-    const loadData = async () => {
+    const loadData = withErrorReporting('Error loading showcase', async () => {
       const showcase = await Ajax().FirecloudBucket.getShowcaseWorkspaces()
 
       // Immediately lowercase the workspace tags so we don't have to think about it again.
@@ -100,7 +101,7 @@ const Showcase = () => {
       // Saves in Session Storage so there is no loading spinner while awaiting fresh data
       // when user returns via back button
       StateHistory.update({ featuredWorkspaces })
-    }
+    })
 
     loadData()
   })
