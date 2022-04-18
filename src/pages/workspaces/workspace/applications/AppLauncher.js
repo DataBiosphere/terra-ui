@@ -108,7 +108,7 @@ const ApplicationLauncher = _.flow(
       Utils.cond(
         // if user has more than one outdated rstudio analysis, display plural phrasing
         [_.size(outdatedAnalyses) > 1, () => [p([`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
-          p(getAnalysesDisplayList(outdatedAnalyses)),
+          p([getAnalysesDisplayList(outdatedAnalyses)]),
           p(['You can']),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
           p([strong(['or'])]),
