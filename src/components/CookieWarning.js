@@ -71,7 +71,7 @@ const CookieWarning = () => {
       transition: `opacity ${animTime}s ease-in`,
       ...transitionStyle[transitionState]
     },
-    className : 'alert'
+    role: 'alert'
   }, [
     div({
       style: {
