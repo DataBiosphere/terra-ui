@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
@@ -29,12 +29,11 @@ export const DeleteObjectConfirmationModal = ({ object, ...props }) => {
     objectType: 'file',
     objectName: object.name
   }, [
-    div(['Are you sure you want to delete the file ',
-      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [object.name]), '?']),
+    div(['Are you sure you want to delete the file ', b({ style: { wordBreak: 'break-word' } }, [object.name]), '?']),
     !_.isNaN(objectSize) && div({ style: { marginTop: '1rem' } }, [
       `File size: ${Utils.formatBytes(objectSize)}`
     ]),
-    div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+    b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
   ])
 }
 
