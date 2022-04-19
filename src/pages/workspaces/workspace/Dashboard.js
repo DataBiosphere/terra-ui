@@ -392,9 +392,11 @@ const WorkspaceDashboard = _.flow(
       ]),
       h(RightBoxSection, {
         title: ['Tags',
-          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-            social security number, or medical record number.`
+          span({ onClick: e => e.stopPropagation() }, [
+            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+              social security number, or medical record number.`
+            ])
           ])],
         initialOpenState: tagsPanelOpen,
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
