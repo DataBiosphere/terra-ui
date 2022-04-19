@@ -427,7 +427,14 @@ const WorkflowView = _.flow(
       return await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate()
     } catch (e) {
       if (e.status === 404) {
-        return false
+        const errmsg = await e.text()
+        // distinguish between snapshot-reference-not-found and workflow-not-found
+        if (errmsg?.includes('Reference name') && errmsg?.includes('does not exist in workspace')) {
+          this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
+          return true
+        } else {
+          return false
+        }
       } else {
         throw e
       }
@@ -469,9 +476,14 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName) :
-        undefined
+      let selectedSnapshotEntityMetadata = undefined
+      if (modifiedConfig.dataReferenceName) {
+        try {
+          selectedSnapshotEntityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
+        } catch (error) {
+          // noop
+        }
+      }
 
       this.setState({
         savedConfig: config, modifiedConfig,
