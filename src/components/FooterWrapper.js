@@ -42,6 +42,17 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     }
   })
 
+  const popoutItem = ({ link, displayName }) => {
+    return [
+      div({ style: styles.item }, '|'),
+      a({
+        href: link, ...Utils.newTabLinkProps,
+        style: styles.item
+      }, [
+        displayName, icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+      ])
+    ]
+  }
 
   const expandedFooterHeight = 60
   const shrunkFooterHeight = 20
@@ -65,26 +76,18 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
-    div({ style: styles.item }, '|'),
-    a({
-      href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', ...Utils.newTabLinkProps,
-      style: styles.item
-    },
-    ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
-    div({ style: styles.item }, '|'),
-    a({
-      href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,
-      style: { ...styles.item, display: 'flex', alignItems: 'center' }
-    }, [
-      'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-    ]),
-    div({ style: styles.item }, '|'),
-    a({
-      href: 'https://terra.bio', ...Utils.newTabLinkProps,
-      style: { ...styles.item, display: 'flex', alignItems: 'center' }
-    }, [
-      'Terra.bio', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-    ]),
+    popoutItem({
+      link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
+      displayName: 'Security'
+    }),
+    popoutItem({
+      link: 'https://support.terra.bio/hc/en-us',
+      displayName: 'Documentation'
+    }),
+    popoutItem({
+      link: 'https://terra.bio',
+      displayName: 'Terra.bio'
+    }),
     div({ style: { flexGrow: 1 } }),
     div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
       `Copyright ©${buildTimestamp.getFullYear()}`
