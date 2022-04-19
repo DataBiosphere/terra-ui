@@ -410,7 +410,7 @@ const Analyses = _.flow(
         div({ style: { flex: 1 } }),
         div({
           style: {
-            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem',
+            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem', width: 275,
             backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
           }, hidden: false
         }, [

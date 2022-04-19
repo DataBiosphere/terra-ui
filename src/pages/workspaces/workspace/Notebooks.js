@@ -435,36 +435,36 @@ const Notebooks = _.flow(
         div({ style: { flex: 1 } }),
         div({
           style: {
-            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 350, padding: '1rem',
+            display: 'flex', flexDirection: 'column', backgroundColor: colors.secondary(0.1), width: 275, padding: '1rem',
             border: `1px solid ${colors.accent()}`, borderRadius: 3
           }
         }, [
-          div({ style: { display: 'flex', flexDirection: 'row' } }, [
-            div([
-              span([
-                'Help us improve Terra by trying out our new layout! '
-              ]),
-              h(Link, {
-                href: 'https://terra.bio/try-out-terras-updated-interactive-analysis-interface', ...Utils.newTabLinkProps
-              }, [
-                'Learn more'
-              ])
+          div([
+            span([
+              'Help us improve Terra by trying out our new layout! '
             ]),
+            h(Link, {
+              href: 'https://terra.bio/try-out-terras-updated-interactive-analysis-interface', ...Utils.newTabLinkProps
+            }, [
+              'Learn more'
+            ])
+          ]),
+          div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' } }, [
+            h(ButtonPrimary, {
+              style: { marginTop: '.5rem', maxWidth: 250 },
+              tooltip: 'Enable analysis tab beta',
+              onClick: () => {
+                Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
+                  workspaceName: wsName,
+                  workspaceNamespace: namespace
+                })
+                window.configOverridesStore.set({ isAnalysisTabVisible: true })
+                Nav.goToPath(analysisTabName, { namespace, name: wsName })
+              }
+            }, ['Try new layout']),
             versionTag('Beta',
               { marginLeft: '1rem', maxHeight: 15, color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })
-          ]),
-          h(ButtonPrimary, {
-            style: { marginTop: '.5rem', maxWidth: 250, alignSelf: 'center' },
-            tooltip: 'Enable analysis tab beta',
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.analysisEnableBeta, {
-                workspaceName: wsName,
-                workspaceNamespace: namespace
-              })
-              window.configOverridesStore.set({ isAnalysisTabVisible: true })
-              Nav.goToPath(analysisTabName, { namespace, name: wsName })
-            }
-          }, ['Try new layout'])
+          ])
         ]),
         div({ style: { flex: 5 } }),
         h(DelayedSearchInput, {
