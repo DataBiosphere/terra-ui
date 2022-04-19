@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
-import { dd, div, dl, dt, h, h2, i, span } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -112,7 +112,7 @@ const RightBoxSection = ({ title, initialOpenState, onClick, children }) => {
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
-        title: h2({ style: Style.dashboard.collapsibleHeader }, [title]),
+        title: h3({ style: Style.dashboard.collapsibleHeader }, [title]),
         initialOpenState,
         titleFirst: true,
         onClick
