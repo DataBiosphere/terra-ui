@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
-import { div, h, h2, i, span } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h2, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -51,12 +51,12 @@ const roleString = {
 }
 
 const InfoRow = ({ title, subtitle, children }) => {
-  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
-    div({ style: { width: 225 } }, [
+  return dl({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
+    dt({ style: { width: 225 } }, [
       div({ style: { fontWeight: 500 } }, [title]),
       subtitle && div({ style: { fontWeight: 400, fontSize: 12 } }, [subtitle])
     ]),
-    div({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children])
+    dd({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children])
   ])
 }
 
