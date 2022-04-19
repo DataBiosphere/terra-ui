@@ -108,6 +108,15 @@ const DashboardAuthContainer = props => {
   )
 }
 
+const RightBoxSection = ({ title, initialOpenState, onClick, children }) => {
+  return h(Collapse, {
+    title: h2({ style: Style.dashboard.collapsibleHeader }, [title]),
+    initialOpenState,
+    titleFirst: true,
+    onClick
+  }, [children])
+}
+
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   requesterPaysWrapper({ onDismiss: () => Nav.history.goBack() }),
@@ -309,10 +318,9 @@ const WorkspaceDashboard = _.flow(
     div({ style: Style.dashboard.rightBox }, [
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
-          h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Workspace information']),
+          h(RightBoxSection, {
+            title: 'Workspace information',
             initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
-            titleFirst: true,
             onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
           }, [
             h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
@@ -324,10 +332,9 @@ const WorkspaceDashboard = _.flow(
       ]),
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
-          h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Cloud information']),
+          h(RightBoxSection, {
+            title: 'Cloud information',
             initialOpenState: cloudInfoPanelOpen,
-            titleFirst: true,
             onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
           }, [
             googleProject && h(InfoRow, { title: 'Cloud Name' }, [
@@ -362,10 +369,9 @@ const WorkspaceDashboard = _.flow(
       ]),
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
-          h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Owners']),
+          h(RightBoxSection, {
+            title: 'Owners',
             initialOpenState: ownersPanelOpen,
-            titleFirst: true,
             onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
           }, [
             div({ style: { margin: '0.5rem' } },
@@ -379,10 +385,9 @@ const WorkspaceDashboard = _.flow(
       ]),
       !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
-          h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Authorization domain']),
+          h(RightBoxSection, {
+            title: 'Authorization domain',
             initialOpenState: authDomainPanelOpen,
-            titleFirst: true,
             onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
           }, [
             div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
@@ -399,14 +404,13 @@ const WorkspaceDashboard = _.flow(
       ]),
       div({ style: { paddingTop: '1rem' } }, [
         div({ style: Style.dashboard.rightBoxContainer }, [
-          h(Collapse, {
-            title: h2({ style: Style.dashboard.collapsibleHeader }, ['Tags',
+          h(RightBoxSection, {
+            title: ['Tags',
               h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
                 `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
                 social security number, or medical record number.`
-              ])]),
+              ])],
             initialOpenState: tagsPanelOpen,
-            titleFirst: true,
             onClick: () => setTagsPanelOpen(!tagsPanelOpen)
           }, [
             div({ style: { margin: '0.5rem' } }, [
