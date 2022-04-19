@@ -108,11 +108,11 @@ const DashboardAuthContainer = props => {
   )
 }
 
-const RightBoxSection = ({ title, initialOpenState, onClick, children }) => {
+const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) => {
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
-        title: h3({ style: Style.dashboard.collapsibleHeader }, [title]),
+        title: h3({ style: Style.dashboard.collapsibleHeader }, [title, info]),
         initialOpenState,
         titleFirst: true,
         onClick
@@ -391,13 +391,13 @@ const WorkspaceDashboard = _.flow(
         ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
       ]),
       h(RightBoxSection, {
-        title: ['Tags',
-          span({ onClick: e => e.stopPropagation() }, [
-            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-              social security number, or medical record number.`
-            ])
-          ])],
+        title: 'Tags',
+        info: span({ onClick: e => e.stopPropagation() }, [
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+            social security number, or medical record number.`
+          ])
+        ]),
         initialOpenState: tagsPanelOpen,
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
       }, [
