@@ -133,6 +133,7 @@ const WorkspaceDashboard = _.flow(
   const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
   const [storageCostEstimateUpdated, setStorageCostEstimateUpdated] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
+  const [bucketSizeUpdated, setBucketSizeUpdated] = useState(undefined)
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -182,8 +183,9 @@ const WorkspaceDashboard = _.flow(
 
   const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { usageInBytes } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize(Utils.formatBytes(usageInBytes))
+      setBucketSizeUpdated(lastUpdated)
     }
   })
 
@@ -346,7 +348,10 @@ const WorkspaceDashboard = _.flow(
               title: 'Estimated Storage Cost',
               subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
             }, [storageCostEstimate || '$ ...']),
-            Utils.canWrite(accessLevel) && h(InfoRow, { title: 'Bucket Size' }, [bucketSize]),
+            Utils.canWrite(accessLevel) && h(InfoRow, {
+              title: 'Bucket Size',
+              subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
+            }, [bucketSize]),
             div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
               style: { margin: '1rem 0.5rem' },
               ...Utils.newTabLinkProps,
