@@ -109,12 +109,16 @@ const DashboardAuthContainer = props => {
 }
 
 const RightBoxSection = ({ title, initialOpenState, onClick, children }) => {
-  return h(Collapse, {
-    title: h2({ style: Style.dashboard.collapsibleHeader }, [title]),
-    initialOpenState,
-    titleFirst: true,
-    onClick
-  }, [children])
+  return div({ style: { paddingTop: '1rem' } }, [
+    div({ style: Style.dashboard.rightBoxContainer }, [
+      h(Collapse, {
+        title: h2({ style: Style.dashboard.collapsibleHeader }, [title]),
+        initialOpenState,
+        titleFirst: true,
+        onClick
+      }, [children])
+    ])
+  ])
 }
 
 const WorkspaceDashboard = _.flow(
@@ -316,127 +320,107 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: Style.dashboard.rightBoxContainer }, [
-          h(RightBoxSection, {
-            title: 'Workspace information',
-            initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
-            onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
-          }, [
-            h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
-            h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
-            h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
-            h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
-          ])
-        ])
+      h(RightBoxSection, {
+        title: 'Workspace information',
+        initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
+        onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
+      }, [
+        h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
+        h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
+        h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
+        h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
       ]),
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: Style.dashboard.rightBoxContainer }, [
-          h(RightBoxSection, {
-            title: 'Cloud information',
-            initialOpenState: cloudInfoPanelOpen,
-            onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
-          }, [
-            googleProject && h(InfoRow, { title: 'Cloud Name' }, [
-              h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
-            ]),
-            h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-              h(TooltipCell, [flag, ' ', regionDescription])
-            ]) : 'Loading...']),
-            h(InfoRow, { title: 'Google Project ID' }, [
-              h(TooltipCell, [googleProject]),
-              h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
-            ]),
-            h(InfoRow, { title: 'Bucket Name' }, [
-              h(TooltipCell, [bucketName]),
-              h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
-            ]),
-            Utils.canWrite(accessLevel) && h(InfoRow, {
-              title: 'Estimated Storage Cost',
-              subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
-            }, [storageCostEstimate || '$ ...']),
-            Utils.canWrite(accessLevel) && h(InfoRow, {
-              title: 'Bucket Size',
-              subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
-            }, [bucketSize]),
-            div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
-              style: { margin: '1rem 0.5rem' },
-              ...Utils.newTabLinkProps,
-              href: bucketBrowserUrl(bucketName)
-            }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])])
-          ])
-        ])
+      h(RightBoxSection, {
+        title: 'Cloud information',
+        initialOpenState: cloudInfoPanelOpen,
+        onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
+      }, [
+        googleProject && h(InfoRow, { title: 'Cloud Name' }, [
+          h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
+        ]),
+        h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+          h(TooltipCell, [flag, ' ', regionDescription])
+        ]) : 'Loading...']),
+        h(InfoRow, { title: 'Google Project ID' }, [
+          h(TooltipCell, [googleProject]),
+          h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Bucket Name' }, [
+          h(TooltipCell, [bucketName]),
+          h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
+        ]),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Estimated Storage Cost',
+          subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [storageCostEstimate || '$ ...']),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Bucket Size',
+          subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [bucketSize]),
+        div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+          style: { margin: '1rem 0.5rem' },
+          ...Utils.newTabLinkProps,
+          href: bucketBrowserUrl(bucketName)
+        }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])])
       ]),
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: Style.dashboard.rightBoxContainer }, [
-          h(RightBoxSection, {
-            title: 'Owners',
-            initialOpenState: ownersPanelOpen,
-            onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
-          }, [
-            div({ style: { margin: '0.5rem' } },
-              _.map(email => {
-                return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } }, [
-                  h(Link, { href: `mailto:${email}` }, [email])
-                ])
-              }, owners))
-          ])
-        ])
-      ]),
-      !_.isEmpty(authorizationDomain) && div({ style: { paddingTop: '1rem' } }, [
-        div({ style: Style.dashboard.rightBoxContainer }, [
-          h(RightBoxSection, {
-            title: 'Authorization domain',
-            initialOpenState: authDomainPanelOpen,
-            onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
-          }, [
-            div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
-              'Collaborators must be a member of all of these ',
-              h(Link, {
-                href: Nav.getLink('groups'),
-                ...Utils.newTabLinkProps
-              }, 'groups'),
-              ' to access this workspace.'
-            ]),
-            ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
-          ])
-        ])
-      ]),
-      div({ style: { paddingTop: '1rem' } }, [
-        div({ style: Style.dashboard.rightBoxContainer }, [
-          h(RightBoxSection, {
-            title: ['Tags',
-              h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-                `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-                social security number, or medical record number.`
-              ])],
-            initialOpenState: tagsPanelOpen,
-            onClick: () => setTagsPanelOpen(!tagsPanelOpen)
-          }, [
-            div({ style: { margin: '0.5rem' } }, [
-              !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
-                h(WorkspaceTagSelect, {
-                  value: null,
-                  placeholder: 'Add a tag',
-                  'aria-label': 'Add a tag',
-                  onChange: ({ value }) => addTag(value)
-                })
-              ]),
-              div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
-                _.map(tag => {
-                  return span({ key: tag, style: styles.tag }, [
-                    tag,
-                    !Utils.editWorkspaceError(workspace) && h(Link, {
-                      tooltip: 'Remove tag',
-                      disabled: busy,
-                      onClick: () => deleteTag(tag),
-                      style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
-                    }, [icon('times', { size: 14 })])
-                  ])
-                }, tagsList),
-                !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
-              ])
+      h(RightBoxSection, {
+        title: 'Owners',
+        initialOpenState: ownersPanelOpen,
+        onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem' } },
+          _.map(email => {
+            return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } }, [
+              h(Link, { href: `mailto:${email}` }, [email])
             ])
+          }, owners))
+      ]),
+      !_.isEmpty(authorizationDomain) && h(RightBoxSection, {
+        title: 'Authorization domain',
+        initialOpenState: authDomainPanelOpen,
+        onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
+          'Collaborators must be a member of all of these ',
+          h(Link, {
+            href: Nav.getLink('groups'),
+            ...Utils.newTabLinkProps
+          }, 'groups'),
+          ' to access this workspace.'
+        ]),
+        ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
+      ]),
+      h(RightBoxSection, {
+        title: ['Tags',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+            social security number, or medical record number.`
+          ])],
+        initialOpenState: tagsPanelOpen,
+        onClick: () => setTagsPanelOpen(!tagsPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem' } }, [
+          !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
+            h(WorkspaceTagSelect, {
+              value: null,
+              placeholder: 'Add a tag',
+              'aria-label': 'Add a tag',
+              onChange: ({ value }) => addTag(value)
+            })
+          ]),
+          div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
+            _.map(tag => {
+              return span({ key: tag, style: styles.tag }, [
+                tag,
+                !Utils.editWorkspaceError(workspace) && h(Link, {
+                  tooltip: 'Remove tag',
+                  disabled: busy,
+                  onClick: () => deleteTag(tag),
+                  style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
+                }, [icon('times', { size: 14 })])
+              ])
+            }, tagsList),
+            !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
           ])
         ])
       ])
