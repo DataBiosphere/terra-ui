@@ -495,7 +495,11 @@ export const ComputeModalBase = ({
    * is necessary to compute the cost for potential new disk configurations.
    */
   const getPendingDisk = () => {
+<<<<<<< HEAD
     const { persistentDisk: { size = 0, diskType = pdTypes.standard } = {} } = getDesiredEnvironmentConfig()
+=======
+    const { persistentDisk: { size = 0, diskType = pdTypes.standard } } = getDesiredEnvironmentConfig()
+>>>>>>> e93c36ee (feedback)
     return { size, status: 'Ready', diskType }
   }
 
