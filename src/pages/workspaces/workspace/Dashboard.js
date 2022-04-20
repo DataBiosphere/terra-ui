@@ -404,6 +404,7 @@ const WorkspaceDashboard = _.flow(
         div({ style: { margin: '0.5rem' } }, [
           !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
             h(WorkspaceTagSelect, {
+              menuShouldScrollIntoView: false,
               value: null,
               placeholder: 'Add a tag',
               'aria-label': 'Add a tag',
