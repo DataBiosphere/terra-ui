@@ -145,19 +145,19 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
-    // Sign in. This portion of the test is not mocked.
-    await page.goto(testUrl)
-    await signIntoTerra(page, token)
-    await dismissNotifications(page)
+  // Sign in. This portion of the test is not mocked.
+  await page.goto(testUrl)
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
 
-    // Interact with the Billing Page via mocked AJAX responses.
-    const ownedBillingProjectName = 'OwnedBillingProject'
-    const notOwnedBillingProjectName = 'NotOwnedBillingProject'
-    await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
+  // Interact with the Billing Page via mocked AJAX responses.
+  const ownedBillingProjectName = 'OwnedBillingProject'
+  const notOwnedBillingProjectName = 'NotOwnedBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
 
-    const billingPage = billingProjectsPage(page, testUrl)
+  const billingPage = billingProjectsPage(page, testUrl)
 
-    return { ownedBillingProjectName, notOwnedBillingProjectName, billingPage }
+  return { ownedBillingProjectName, notOwnedBillingProjectName, billingPage }
 }
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
