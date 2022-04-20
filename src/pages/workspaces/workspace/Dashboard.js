@@ -51,7 +51,7 @@ const roleString = {
 }
 
 const InfoRow = ({ title, subtitle, children }) => {
-  return dl({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
+  return div({ style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
     dt({ style: { width: 225 } }, [
       div({ style: { fontWeight: 500 } }, [title]),
       subtitle && div({ style: { fontWeight: 400, fontSize: 12 } }, [subtitle])
@@ -325,38 +325,42 @@ const WorkspaceDashboard = _.flow(
         initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
         onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
       }, [
-        h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
-        h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
-        h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
-        h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
+        dl({}, [
+          h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
+          h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
+          h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
+          h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
+        ])
       ]),
       h(RightBoxSection, {
         title: 'Cloud information',
         initialOpenState: cloudInfoPanelOpen,
         onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
       }, [
-        googleProject && h(InfoRow, { title: 'Cloud Name' }, [
-          h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
+        dl({}, [
+          googleProject && h(InfoRow, { title: 'Cloud Name' }, [
+            h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
+          ]),
+          h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+            h(TooltipCell, [flag, ' ', regionDescription])
+          ]) : 'Loading...']),
+          h(InfoRow, { title: 'Google Project ID' }, [
+            h(TooltipCell, [googleProject]),
+            h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+          ]),
+          h(InfoRow, { title: 'Bucket Name' }, [
+            h(TooltipCell, [bucketName]),
+            h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
+          ]),
+          Utils.canWrite(accessLevel) && h(InfoRow, {
+            title: 'Estimated Storage Cost',
+            subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
+          }, [storageCostEstimate || '$ ...']),
+          Utils.canWrite(accessLevel) && h(InfoRow, {
+            title: 'Bucket Size',
+            subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
+          }, [bucketSize])
         ]),
-        h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-          h(TooltipCell, [flag, ' ', regionDescription])
-        ]) : 'Loading...']),
-        h(InfoRow, { title: 'Google Project ID' }, [
-          h(TooltipCell, [googleProject]),
-          h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
-        ]),
-        h(InfoRow, { title: 'Bucket Name' }, [
-          h(TooltipCell, [bucketName]),
-          h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
-        ]),
-        Utils.canWrite(accessLevel) && h(InfoRow, {
-          title: 'Estimated Storage Cost',
-          subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
-        }, [storageCostEstimate || '$ ...']),
-        Utils.canWrite(accessLevel) && h(InfoRow, {
-          title: 'Bucket Size',
-          subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
-        }, [bucketSize]),
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
