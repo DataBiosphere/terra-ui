@@ -346,11 +346,11 @@ const WorkspaceDashboard = _.flow(
           ]) : 'Loading...']),
           h(InfoRow, { title: 'Google Project ID' }, [
             h(TooltipCell, [googleProject]),
-            h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+            h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
           ]),
           h(InfoRow, { title: 'Bucket Name' }, [
             h(TooltipCell, [bucketName]),
-            h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
+            h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
           ]),
           Utils.canWrite(accessLevel) && h(InfoRow, {
             title: 'Estimated Storage Cost',
