@@ -5,7 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getRegionInfo } from 'src/components/region-common'
@@ -396,7 +396,8 @@ const WorkspaceDashboard = _.flow(
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
             social security number, or medical record number.`
-          ])
+          ]),
+          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
         ]),
         initialOpenState: tagsPanelOpen,
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
