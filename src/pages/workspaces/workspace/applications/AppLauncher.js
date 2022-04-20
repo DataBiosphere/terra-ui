@@ -134,11 +134,8 @@ const ApplicationLauncher = _.flow(
 
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    return _.filter(({ analysis }) => {
-      const metadataMap = analysis?.metadata
-      return _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) && metadataMap &&
-      analysis?.metadata[hashedOwnerEmail] === 'outdated'
-    }, analyses)
+    return _.filter(analysis => _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) && analysis?.metadata &&
+      analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
   useOnMount(() => {
