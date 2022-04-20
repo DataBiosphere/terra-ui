@@ -30,6 +30,8 @@ const billingProjectsPage = (testPage, testUrl) => {
 
     assertText: async expectedText => await findText(testPage, expectedText),
 
+    assertTextNotFound: async unexpectedText => await assertTextNotFound(testPage, unexpectedText),
+
     assertChartValue: async (number, workspaceName, category, cost) => {
       // This checks the accessible text for chart values.
       await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`)
@@ -186,7 +188,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectProject(notOwnedBillingProjectName)
 
   //Check that the Spend report tab is not visible on this page
-  await assertTextNotFound(billingPage, 'Spend report')
+  await billingPage.assertTextNotFound('Spend report')
 })
 
 const testBillingSpendReport = {
@@ -270,11 +272,11 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.assertText('Owners')
 
   // The User role should not see the Add User button
-  await assertTextNotFound(billingPage, 'Add User')
+  await billingPage.assertTextNotFound('Add User')
 
   // The test user has the User role, so they should see members with the Owner role, but not with the User role
   await billingPage.assertText('testuser1@example.com')
-  await assertTextNotFound(billingPage, 'testuser3@example.com')
+  await billingPage.assertTextNotFound('testuser3@example.com')
 })
 
 const testBillingMembers = {

@@ -92,7 +92,7 @@ const findText = (page, textContains, options) => {
 const assertTextNotFound = async (page, text) => {
   let found = false
   try {
-    await page.assertText(text)
+    await findText(page, text, { timeout: 5 * 1000 })
     found = true
   } catch (e) {}
   if (found) {
