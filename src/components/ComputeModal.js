@@ -496,7 +496,7 @@ export const ComputeModalBase = ({
    */
   const getPendingDisk = () => {
     const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-    return { size: desiredPersistentDisk.size, status: 'Ready', diskType: desiredPersistentDisk.diskType }
+    return { size: desiredPersistentDisk ? desiredPersistentDisk.size : 0, status: 'Ready', diskType: desiredPersistentDisk ? desiredPersistentDisk.diskType : pdTypes.standard }
   }
 
   /**
