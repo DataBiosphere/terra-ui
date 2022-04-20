@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -578,6 +579,21 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
       const { value = false, ...otherProps } = props
       return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
         [h(Switch, { checked: value, ...otherProps })])
+    }],
+    ['json', () => {
+      const { value, onChange, ...otherProps } = props
+      return h(ReactJson, {
+        ...otherProps,
+        style: { ...otherProps.style, whiteSpace: 'pre-wrap' },
+        src: value,
+        displayObjectSize: false,
+        displayDataTypes: false,
+        enableClipboard: false,
+        name: false,
+        onAdd: _.flow(_.get('updated_src'), onChange),
+        onDelete: _.flow(_.get('updated_src'), onChange),
+        onEdit: _.flow(_.get('updated_src'), onChange)
+      })
     }]
   )
 })
@@ -588,7 +604,8 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
     ['string', () => ''],
     ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
     ['number', () => 0],
-    ['boolean', () => false]
+    ['boolean', () => false],
+    ['json', () => ({})]
   )
 }
 
@@ -620,10 +637,10 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
         legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
-        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { marginRight: '1.2rem' } }, [
+        div({ style: { columns: 3 } }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { display: 'inline-block', width: '100%', marginBottom: '0.5rem' } }, [
             h(RadioButton, {
-              text: _.startCase(type),
+              text: label || _.startCase(type),
               name: 'edit-type',
               checked: attributeType === type,
               onChange: () => {
@@ -638,7 +655,8 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           { type: 'string' },
           { type: 'reference', tooltip: 'A link to another entity' },
           { type: 'number' },
-          { type: 'boolean' }
+          { type: 'boolean' },
+          { type: 'json', label: 'JSON' }
         ])
         )
       ]),
@@ -659,7 +677,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
         ])])
       ])
     ]),
-    div({ style: { marginBottom: '0.5rem' } }, [
+    attributeType !== 'json' && div({ style: { marginBottom: '0.5rem' } }, [
       h(LabeledCheckbox, {
         checked: isList,
         onChange: willBeList => {
@@ -674,7 +692,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     ]),
     isList ?
       h(Fragment, [
-        div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+        div({ style: { marginTop: '1rem' } }, _.map(([i, value]) => div({
           style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
         }, [
           renderInput({
