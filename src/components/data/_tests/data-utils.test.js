@@ -82,6 +82,10 @@ describe('getAttributeType', () => {
       ],
       itemsType: 'EntityReference'
     })).toEqual({ type: 'reference', isList: true })
+
+    expect(getAttributeType({ key: 'value' })).toEqual({ type: 'json', isList: false })
+    expect(getAttributeType(['a', 'b', 'c'])).toEqual({ type: 'json', isList: false })
+    expect(getAttributeType([{ idx: 0 }, { idx: 1 }, { idx: 2 }])).toEqual({ type: 'json', isList: false })
   })
 
   it('returns string for null values', () => {
@@ -97,18 +101,28 @@ describe('convertAttributeValue', () => {
     expect(convertAttributeValue('a_string', 'number')).toEqual(0)
     expect(convertAttributeValue('a_string', 'boolean')).toEqual(true)
     expect(convertAttributeValue('a_string', 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: 'a_string' })
+    expect(convertAttributeValue('a_string', 'json')).toEqual({ value: 'a_string' })
 
     expect(convertAttributeValue(7, 'string')).toEqual('7')
     expect(convertAttributeValue(7, 'boolean')).toEqual(true)
     expect(convertAttributeValue(7, 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: '7' })
+    expect(convertAttributeValue(7, 'json')).toEqual({ value: 7 })
 
     expect(convertAttributeValue(true, 'string')).toEqual('true')
     expect(convertAttributeValue(true, 'number')).toEqual(1)
     expect(convertAttributeValue(false, 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: 'false' })
+    expect(convertAttributeValue(true, 'json')).toEqual({ value: true })
 
     expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'string')).toEqual('thing_one')
     expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'number')).toEqual(0)
     expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'boolean')).toEqual(true)
+
+    expect(convertAttributeValue({ key: 'value' }, 'string')).toEqual('{"key":"value"}')
+    expect(convertAttributeValue({ key: 'value' }, 'number')).toEqual(0)
+    expect(convertAttributeValue({ key: 'value' }, 'boolean')).toEqual(true)
+    expect(convertAttributeValue({ key: 'value' }, 'json')).toEqual({ key: 'value' })
+
+    expect(() => convertAttributeValue('abc', 'notatype')).toThrow('Invalid attribute type "notatype"')
   })
 
   it('throws an error if attempting to convert to a reference without an entity type', () => {
@@ -134,6 +148,36 @@ describe('convertAttributeValue', () => {
         { entityType: 'thing', entityName: 'thing_two' }
       ],
       itemsType: 'EntityReference'
+    })
+  })
+
+  it('converts lists to arrays', () => {
+    expect(convertAttributeValue({
+      items: ['a', 'b', 'c'],
+      itemsType: 'AttributeValue'
+    }, 'json')).toEqual(['a', 'b', 'c'])
+    expect(convertAttributeValue({
+      items: [1, 2, 3],
+      itemsType: 'AttributeValue'
+    }, 'json')).toEqual([1, 2, 3])
+    expect(convertAttributeValue({
+      items: [true, false, true],
+      itemsType: 'AttributeValue'
+    }, 'json')).toEqual([true, false, true])
+  })
+
+  it('converts arrays to lists', () => {
+    expect(convertAttributeValue(['a', 'b', 'c'], 'string')).toEqual({
+      items: ['a', 'b', 'c'],
+      itemsType: 'AttributeValue'
+    })
+    expect(convertAttributeValue(['1', '2', '3'], 'number')).toEqual({
+      items: [1, 2, 3],
+      itemsType: 'AttributeValue'
+    })
+    expect(convertAttributeValue(['true', 'false', 'true'], 'boolean')).toEqual({
+      items: [true, false, true],
+      itemsType: 'AttributeValue'
     })
   })
 })

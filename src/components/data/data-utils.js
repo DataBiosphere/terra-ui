@@ -500,6 +500,7 @@ export const getAttributeType = attributeValue => {
     // eslint-disable-next-line eqeqeq
     [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [isList, () => typeof attributeValue.items[0]],
+    [typeof attributeValue === 'object', () => 'json'],
     () => typeof attributeValue
   )
 
@@ -512,9 +513,13 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
   }
 
   const { type, isList } = getAttributeType(attributeValue)
+  if (type === newType) {
+    return attributeValue
+  }
 
   const baseConvertFn = Utils.switchCase(
     newType,
+    ['string', () => _.toString],
     ['reference', () => value => ({
       entityType: referenceEntityType,
       entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
@@ -523,18 +528,25 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
       const numberVal = _.toNumber(value)
       return _.isNaN(numberVal) ? 0 : numberVal
     }],
-    [Utils.DEFAULT, () => Utils.convertValue(newType)]
+    ['boolean', () => Utils.convertValue('boolean')],
+    ['json', () => value => ({ value })],
+    [Utils.DEFAULT, () => { throw new Error(`Invalid attribute type "${newType}"`) }]
   )
   const convertFn = type === 'reference' ? _.flow(_.get('entityName'), baseConvertFn) : baseConvertFn
 
-  if (isList) {
-    return _.flow(
+  return Utils.cond(
+    [isList && newType === 'json', () => _.get('items', attributeValue)],
+    [isList, () => _.flow(
       _.update('items', _.map(convertFn)),
       _.set('itemsType', newType === 'reference' ? 'EntityReference' : 'AttributeValue')
-    )(attributeValue)
-  }
-
-  return convertFn(attributeValue)
+    )(attributeValue)],
+    [type === 'json' && _.isArray(attributeValue), () => ({
+      items: _.map(convertFn, attributeValue),
+      itemsType: newType === 'reference' ? 'EntityReference' : 'AttributeValue'
+    })],
+    [type === 'json' && newType === 'string', () => JSON.stringify(attributeValue)],
+    () => convertFn(attributeValue)
+  )
 }
 
 const renderInputForAttributeType = _.curry((attributeType, props) => {
