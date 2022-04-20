@@ -401,7 +401,7 @@ const WorkspaceDashboard = _.flow(
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
             social security number, or medical record number.`
           ]),
-          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
+          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1.5ch', style: { marginLeft: '0.5rem' } })
         ]),
         initialOpenState: tagsPanelOpen,
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
