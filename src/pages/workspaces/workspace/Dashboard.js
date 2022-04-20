@@ -7,7 +7,6 @@ import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
-import { InfoBox } from 'src/components/PopupTrigger'
 import { getRegionInfo } from 'src/components/region-common'
 import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -396,17 +395,17 @@ const WorkspaceDashboard = _.flow(
       ]),
       h(RightBoxSection, {
         title: 'Tags',
-        info: span({ onClick: e => e.stopPropagation() }, [
-          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-            `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-            social security number, or medical record number.`
-          ]),
-          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1.5ch', style: { marginLeft: '0.5rem' } })
+        info: span({}, [
+          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1ch', style: { marginLeft: '0.5rem' } })
         ]),
         initialOpenState: tagsPanelOpen,
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
       }, [
         div({ style: { margin: '0.5rem' } }, [
+          div({ style: { marginBottom: '0.5rem' } }, [
+            `${getAppName()} is not intended to host personally identifiable information. Do not use
+             any patient identifier including name, social security number, or medical record number.`
+          ]),
           !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
             h(WorkspaceTagSelect, {
               menuShouldScrollIntoView: false,
