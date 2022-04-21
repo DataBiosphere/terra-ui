@@ -402,7 +402,7 @@ const WorkspaceDashboard = _.flow(
         onClick: () => setTagsPanelOpen(!tagsPanelOpen)
       }, [
         div({ style: { margin: '0.5rem' } }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
+          div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use
              any patient identifier including name, social security number, or medical record number.`
           ]),
