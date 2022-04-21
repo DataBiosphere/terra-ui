@@ -67,8 +67,10 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
     ])
   }
 
+  const viewerRoles = _.intersection(roles, _.values(billingRoles))
+
   return div({ role: 'listitem' }, [
-    _.includes(billingRoles.owner, roles) && status === 'Ready' ?
+    !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject(project, isActive) :
       unselectableProject(project, isActive)
   ])
@@ -378,7 +380,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [selectedName && _.some({ projectName: selectedName }, projectsOwned), () => {
+        [selectedName && _.some({ projectName: selectedName }, billingProjects), () => {
           const billingProject = _.find({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
             key: selectedName,
@@ -386,7 +388,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingAccounts,
             authorizeAndLoadAccounts: authorizeAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-            isAlphaSpendReportUser
+            isAlphaSpendReportUser,
+            isOwner: _.find({ projectName: selectedName }, projectsOwned)
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {

@@ -89,6 +89,17 @@ const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
+const assertTextNotFound = async (page, text) => {
+  let found = false
+  try {
+    await findText(page, text, { timeout: 5 * 1000 })
+    found = true
+  } catch (e) {}
+  if (found) {
+    throw new Error(`The specified text ${text} was found on the page, but it was not expected`)
+  }
+}
+
 const input = ({ labelContains, placeholder }) => {
   const base = '(//input | //textarea)'
   if (labelContains) {
@@ -271,6 +282,7 @@ const withPageLogging = fn => options => {
 }
 
 module.exports = {
+  assertTextNotFound,
   checkbox,
   click,
   clickable,

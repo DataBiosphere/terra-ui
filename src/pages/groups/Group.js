@@ -113,7 +113,8 @@ const GroupDetails = ({ groupName }) => {
                 userLabel: 'member',
                 member, adminCanEdit,
                 onEdit: () => setEditingUser(member),
-                onDelete: () => setDeletingUser(member)
+                onDelete: () => setDeletingUser(member),
+                isOwner: true
               })
             }, _.orderBy([sort.field], [sort.direction], _.filter(({ email }) => Utils.textMatch(filter, email), members)))
           )

@@ -195,7 +195,7 @@ const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
 
-const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, reloadBillingProject }) => {
+const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -225,7 +225,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const signal = useCancellation()
 
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+  const projectHasMultipleOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const workspacesInProject = useMemo(() => _.filter(
     { namespace: billingProject.projectName },
@@ -322,8 +322,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )(workspacesInProject)
       ])
     ]),
-    users: h(Fragment, [
-      h(NewUserCard, {
+    members: h(Fragment, [
+      isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
         icon('plus-circle', { size: 14 }),
@@ -336,9 +336,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             key: member.email,
             adminLabel: billingRoles.owner,
             userLabel: billingRoles.user,
-            member, adminCanEdit,
+            member,
+            adminCanEdit: (projectHasMultipleOwners && isOwner),
             onEdit: () => setEditingUser(member),
-            onDelete: () => setDeletingUser(member)
+            onDelete: () => setDeletingUser(member),
+            isOwner
           })
         }, _.orderBy([sort.field], [sort.direction], projectUsers))
         )
@@ -377,10 +379,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const tabs = _.map(key => ({
     key,
     title: span({ style: { padding: '0 0.5rem' } }, [
-      _.capitalize(key)
+      _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || isAlphaSpendReportUser), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner)), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
@@ -530,7 +532,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
-        h(Link, {
+        isOwner && h(Link, {
           tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
@@ -542,7 +544,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           }
         }, [icon('edit', { size: 12 })]),
-        h(Link, {
+        isOwner && h(Link, {
           tooltip: 'Remove Billing Account',
           style: { marginLeft: '0.5rem' },
           // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
@@ -595,7 +597,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
-      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+      isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
