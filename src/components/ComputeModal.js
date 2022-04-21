@@ -262,38 +262,6 @@ export const ComputeModalBase = ({
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
 
-    const runtimeConfig = desiredRuntime && {
-      cloudService: desiredRuntime.cloudService,
-      ...(desiredRuntime.cloudService === cloudServices.GCE ? {
-        zone: desiredRuntime.zone.toLowerCase(),
-        machineType: desiredRuntime.machineType || defaultGceMachineType,
-        ...(desiredRuntime.diskSize ? {
-          diskSize: desiredRuntime.diskSize
-        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
-          persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
-            name: currentPersistentDiskDetails.name
-          } : {
-            name: Utils.generatePersistentDiskName(),
-            size: desiredPersistentDisk.size,
-            diskType: desiredPersistentDisk.diskType.label,
-            labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
-          }
-        })),
-        ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
-      } : {
-        region: desiredRuntime.region.toLowerCase(),
-        masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
-        masterDiskSize: desiredRuntime.masterDiskSize,
-        numberOfWorkers: desiredRuntime.numberOfWorkers,
-        componentGatewayEnabled: desiredRuntime.componentGatewayEnabled,
-        ...(desiredRuntime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
-          workerMachineType: desiredRuntime.workerMachineType,
-          workerDiskSize: desiredRuntime.workerDiskSize
-        })
-      })
-    }
-
     const customEnvVars = {
       WORKSPACE_NAME: name,
       WORKSPACE_NAMESPACE: namespace,
@@ -309,24 +277,59 @@ export const ComputeModalBase = ({
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
       await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
-    if (shouldUpdateRuntime) {
-      await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
-        runtimeConfig,
-        autopauseThreshold: computeConfig.autopauseThreshold
-      })
-    }
-    if (shouldCreateRuntime) {
-      await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
-        runtimeConfig,
-        autopauseThreshold: computeConfig.autopauseThreshold,
-        toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: {
-          saturnWorkspaceNamespace: namespace,
-          saturnWorkspaceName: name
-        },
-        customEnvironmentVariables: customEnvVars,
-        ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
-      })
+
+    if (shouldUpdateRuntime || shouldCreateRuntime) {
+      const runtimeConfig = desiredRuntime && {
+        cloudService: desiredRuntime.cloudService,
+        ...(desiredRuntime.cloudService === cloudServices.GCE ? {
+          zone: desiredRuntime.zone.toLowerCase(),
+          machineType: desiredRuntime.machineType || defaultGceMachineType,
+          ...(desiredRuntime.diskSize ? {
+            diskSize: desiredRuntime.diskSize
+          } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
+            persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
+              name: currentPersistentDiskDetails.name
+            } : {
+              name: Utils.generatePersistentDiskName(),
+              size: desiredPersistentDisk.size,
+              diskType: desiredPersistentDisk.diskType.label,
+              labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
+            }
+          })),
+          ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
+        } : {
+          region: desiredRuntime.region.toLowerCase(),
+          masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
+          masterDiskSize: desiredRuntime.masterDiskSize,
+          numberOfWorkers: desiredRuntime.numberOfWorkers,
+          componentGatewayEnabled: desiredRuntime.componentGatewayEnabled,
+          ...(desiredRuntime.numberOfWorkers && {
+            numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
+            workerMachineType: desiredRuntime.workerMachineType,
+            workerDiskSize: desiredRuntime.workerDiskSize
+          })
+        })
+      }
+
+      if (shouldUpdateRuntime) {
+        await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
+          runtimeConfig,
+          autopauseThreshold: computeConfig.autopauseThreshold
+        })
+      }
+      if (shouldCreateRuntime) {
+        await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
+          runtimeConfig,
+          autopauseThreshold: computeConfig.autopauseThreshold,
+          toolDockerImage: desiredRuntime.toolDockerImage,
+          labels: {
+            saturnWorkspaceNamespace: namespace,
+            saturnWorkspaceName: name
+          },
+          customEnvironmentVariables: customEnvVars,
+          ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
+        })
+      }
     }
 
     onSuccess()
