@@ -136,7 +136,7 @@ export const dashboard = {
     flex: 1, padding: '0 2rem 2rem 2rem'
   },
   rightBox: {
-    flex: 'none', width: 450, backgroundColor: colors.light(0.4),
+    flex: 'none', width: 470, backgroundColor: colors.light(0.4),
     padding: '1rem 1rem 2rem'
   },
   rightBoxContainer: {
