@@ -284,18 +284,6 @@ export const ComputeModalBase = ({
         ...(desiredRuntime.cloudService === cloudServices.GCE ? {
           zone: desiredRuntime.zone.toLowerCase(),
           machineType: desiredRuntime.machineType || defaultGceMachineType,
-          ...(desiredRuntime.diskSize ? {
-            diskSize: desiredRuntime.diskSize
-          } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
-            persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
-              name: currentPersistentDiskDetails.name
-            } : {
-              name: Utils.generatePersistentDiskName(),
-              size: desiredPersistentDisk.size,
-              diskType: desiredPersistentDisk.diskType.label,
-              labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
-            }
-          })),
           ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
         } : {
           region: desiredRuntime.region.toLowerCase(),
@@ -312,14 +300,26 @@ export const ComputeModalBase = ({
       }
 
       if (shouldUpdateRuntime) {
+        const updateRuntimeConfig = _.merge(shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {}, runtimeConfig)
+
         await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({
-          runtimeConfig,
+          runtimeConfig: updateRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold
         })
       }
       if (shouldCreateRuntime) {
+        const diskConfig = existingPersistentDisk && !shouldDeletePersistentDisk ? {
+          name: currentPersistentDiskDetails.name
+        } : {
+          name: Utils.generatePersistentDiskName(),
+          size: desiredPersistentDisk.size,
+          diskType: desiredPersistentDisk.diskType.label,
+          labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
+        }
+        const createRuntimeConfig = { ...runtimeConfig, persistentDisk: diskConfig }
+
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
-          runtimeConfig,
+          runtimeConfig: createRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold,
           toolDockerImage: desiredRuntime.toolDockerImage,
           labels: {
