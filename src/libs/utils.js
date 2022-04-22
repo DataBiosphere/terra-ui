@@ -193,6 +193,11 @@ export const entityAttributeText = (value, machineReadable) => {
   )
 }
 
+// Returns a message explaining that the desired snapshot reference could not be found by name
+export const snapshotReferenceMissingError = snapshotReferenceName => {
+  return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`
+}
+
 // Returns a message explaining why the user can't edit the workspace, or undefined if they can
 export const editWorkspaceError = ({ accessLevel, workspace: { isLocked } }) => {
   return cond(
