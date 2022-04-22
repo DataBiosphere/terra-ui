@@ -19,7 +19,7 @@ const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {}, t
         style: { marginLeft: '2rem' },
         onClick: onPrevious
       }, [icon('arrowLeftRegular', { size: '22' })]),
-      onDismiss && h(Link, {
+      onDismiss && !hideCloseButton && h(Link, {
         'aria-label': 'Close',
         style: { marginLeft: '2rem' },
         onClick: onDismiss
