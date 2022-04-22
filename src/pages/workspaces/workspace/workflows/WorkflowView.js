@@ -441,6 +441,16 @@ const WorkflowView = _.flow(
     }
   }
 
+  async safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) {
+    const { namespace, name, signal } = this.props
+
+    try {
+      return await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
+    } catch (error) {
+      return undefined
+    }
+  }
+
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
@@ -476,15 +486,8 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotEntityMetadata = async () => {
-        if (modifiedConfig.dataReferenceName) {
-          try {
-            return await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
-          } catch (error) {
-            return undefined
-          }
-        }
-      }
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
+        await this.safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) : undefined
 
       this.setState({
         savedConfig: config, modifiedConfig,
