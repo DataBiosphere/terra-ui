@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners, getTableRowNumber } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -17,6 +17,10 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await waitForNoSpinners(page)
 
   const previewTableName = 'Participant Preview Data'
+
+  const rownum = await getTableRowNumber(previewTableName, 'participant_id')
+  console.log(rownum)
+
   await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'participant_id')
   await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'biological_sex')
   await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'age')

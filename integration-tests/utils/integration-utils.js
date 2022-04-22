@@ -70,6 +70,16 @@ const getTableHeaderPath = (tableName, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][1]//*[@role="columnheader"][${column}]`
 }
 
+const getTableRowNumber = (tableName, text) => {
+  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and contains(.,"${text}")]/@aria-colindex`
+}
+ //[@role="row"][${row}]//*[contains(.,"${text}")]`
+ ////*[@role="table" and @aria-label="Participant Preview Data"]//*[@role="columnheader" and contains(.,"age")]/@aria-colindex`
+
+const getTableRowColumnNumber = (tableName, row, text) => {
+  return `//*[@role="table"] and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[count([contains(.,"${text}")]/preceding-sibling::div)+1]`
+}
+
 const findTableCellText = async (page, path, textContains, options) => {
   const xpath = `${path}[contains(normalize-space(.),"${textContains}")]`
   return (await page.waitForXPath(xpath, options))
@@ -315,5 +325,6 @@ module.exports = {
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
-  openError
+  openError,
+  getTableRowNumber
 }

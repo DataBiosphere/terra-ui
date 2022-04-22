@@ -576,13 +576,15 @@ export const SimpleTable = ({
     'aria-label': ariaLabel
   }, [
     !_.isEmpty(columns) && div({ role: 'row', style: { display: 'flex', alignItems: 'center', ...headerRowStyle } }, [
-      _.map(({ key, header, size }) => {
+      _.map(([i,{ key, header, size }]) => {
         return div({
           key,
           role: 'columnheader',
+          'aria-rowindex': 1, // The header row is 1
+          'aria-colindex': i + 1, // The first column is 1
           style: { ...cellStyles, ...styles.flexCell(size) }
         }, [header])
-      }, columns)
+      }, Utils.toIndexPairs(columns))
     ]),
     _.map(([i, row]) => {
       return h(Interactive, {
