@@ -476,12 +476,13 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      let selectedSnapshotEntityMetadata = undefined
-      if (modifiedConfig.dataReferenceName) {
-        try {
-          selectedSnapshotEntityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
-        } catch (error) {
-          // noop
+      const selectedSnapshotEntityMetadata = async () => {
+        if (modifiedConfig.dataReferenceName) {
+          try {
+            return await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
+          } catch (error) {
+            return undefined
+          }
         }
       }
 
