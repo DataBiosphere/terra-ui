@@ -487,7 +487,8 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await this.safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) : undefined
+        await this.safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) :
+        undefined
 
       this.setState({
         savedConfig: config, modifiedConfig,
