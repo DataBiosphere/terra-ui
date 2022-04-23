@@ -1,12 +1,13 @@
 import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
+import { UserManager } from 'oidc-client-ts'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -19,8 +20,22 @@ import {
 import * as Utils from 'src/libs/utils'
 
 
+export const getOidcConfig = () => {
+  return {
+    authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
+    client_id: getConfig().oidcClientId,
+    redirect_uri: window.origin,
+    prompt: 'login',
+    scope: 'openid email profile',
+    metadata: {
+      authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
+      token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
+    }
+  }
+}
+
 const getAuthInstance = () => {
-  return window.gapi.auth2.getAuthInstance()
+  return authStore.get().authContext
 }
 
 export const signOut = () => {
@@ -28,15 +43,25 @@ export const signOut = () => {
   // When IA-2236 is done, add that call here.
   cookieReadyStore.reset()
   sessionStorage.clear()
-  getAuthInstance().signOut()
+  getAuthInstance().removeUser()
 }
 
+export const signIn = includeBillingScope => {
+  if (includeBillingScope) {
+    return getAuthInstance().signinPopup({'scope': 'openid email profile https://www.googleapis.com/auth/cloud-billing'})
+  } else {
+    return getAuthInstance().signinPopup()
+  }
+}
+
+// TODO: does this work?
 export const reloadAuthToken = () => {
-  return getAuthInstance().currentUser.get().reloadAuthResponse().catch(() => false)
+  return getAuthInstance().signinSilent().catch(() => false)
 }
 
 export const hasBillingScope = () => {
-  return getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')
+  const scope = getAuthInstance().user?.scope
+  return scope && scope.includes('https://www.googleapis.com/auth/cloud-billing')
 }
 
 const becameRegistered = (oldState, state) => {
@@ -52,8 +77,7 @@ const becameRegistered = (oldState, state) => {
  */
 export const ensureBillingScope = async () => {
   if (!hasBillingScope()) {
-    const options = new window.gapi.auth2.SigninOptionsBuilder({ scope: 'https://www.googleapis.com/auth/cloud-billing' })
-    await getAuthInstance().currentUser.get().grant(options)
+    await signIn(true)
     // Wait 250ms before continuing to avoid errors due to delays in applying the new scope grant
     await Utils.delay(250)
   }
@@ -86,14 +110,13 @@ export const bucketBrowserUrl = id => {
 }
 
 export const initializeAuth = _.memoize(async () => {
-  await new Promise(resolve => window.gapi.load('auth2', resolve))
-  await window.gapi.auth2.init({ clientId: getConfig().googleClientId })
   const processUser = user => {
     return authStore.update(state => {
-      const authResponse = user.getAuthResponse(true)
-      const profile = user.getBasicProfile()
-      const isSignedIn = user.isSignedIn()
-      //The following few lines of code are to handle sign-in failures due to privacy tools.
+      const isSignedIn = user !== null && user !== undefined
+      const profile = user?.profile
+      const userId = profile?.sub
+
+      // The following few lines of code are to handle sign-in failures due to privacy tools.
       if (state.isSignedIn === false && isSignedIn === false) {
         //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
         //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
@@ -103,7 +126,6 @@ export const initializeAuth = _.memoize(async () => {
           timeout: 30000
         })
       }
-
       return {
         ...state,
         isSignedIn,
@@ -118,21 +140,23 @@ export const initializeAuth = _.memoize(async () => {
         cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
-          token: authResponse ? authResponse.access_token : undefined,
-          id: user.getId() || undefined,
+          token: user?.access_token || undefined,
+          id: userId || undefined,
           ...(profile ? {
-            email: profile.getEmail(),
-            name: profile.getName(),
-            givenName: profile.getGivenName(),
-            familyName: profile.getFamilyName(),
-            imageUrl: profile.getImageUrl()
+            email: profile.email,
+            name: profile.name,
+            givenName: profile.givenName,
+            familyName: profile.familyName,
+            imageUrl: profile.picture
           } : {})
         }
       }
     })
   }
-  processUser(getAuthInstance().currentUser.get())
-  getAuthInstance().currentUser.listen(processUser)
+  const userManager = new UserManager(getOidcConfig())
+  processUser(await userManager.getUser())
+  getAuthInstance().events.addUserLoaded(processUser)
+  getAuthInstance().events.addUserUnloaded(processUser)
 })
 
 // This is intended for tests to short circuit the login flow

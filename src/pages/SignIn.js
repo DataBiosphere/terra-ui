@@ -22,11 +22,6 @@ const styles = {
 const SignIn = () => {
   return h(HeroWrapper, { showMenu: false }, [
     div({ style: { maxWidth: 600 } }, [
-      div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
-      div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${getAppName()} requires a Google Account.`]),
-      div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
-        `${getAppName()} uses your Google account. Once you have signed in and completed the user profile registration step, you can start using ${getAppName()}.`
-      ]),
       h(SignInButton),
       !isAnvil() && !isElwazi() && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),

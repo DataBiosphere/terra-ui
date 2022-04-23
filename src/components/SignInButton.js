@@ -7,13 +7,13 @@ import { authStore } from 'src/libs/state'
 
 
 const SignInButton = () => {
-  const store = useStore(authStore)
+  const auth = useStore(authStore)
 
-  const isAuthInitialized = isAuthSettled(store)
+  const isAuthInitialized = isAuthSettled(auth)
 
   return !isAuthInitialized ? spinner() : h(ButtonPrimary, {
     id: 'signInButton',
-    onClick: signIn,
+    onClick: () => signIn(false),
     style: { outlineOffset: 5 }
   }, ['login'])
 }
