@@ -50,6 +50,7 @@ const IdleStatusMonitor = ({
   const doSignOut = () => {
     setLastActive()
     Nav.history.replace({ search: qs.stringify(_.set(['sessionExpired'], true, qs.parse(query))) })
+    // TODO: update this
     window.gapi.auth2.getAuthInstance().disconnect()
     setSignOutRequired(true)
   }
