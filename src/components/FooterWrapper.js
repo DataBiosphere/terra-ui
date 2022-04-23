@@ -43,7 +43,7 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
   })
 
   const popoutItem = ({ link, displayName }) => {
-    return [
+    return h(Fragment, [
       div({ style: styles.item }, '|'),
       a({
         href: link, ...Utils.newTabLinkProps,
@@ -51,7 +51,7 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
       }, [
         displayName, icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
       ])
-    ]
+    ])
   }
 
   const expandedFooterHeight = 60
