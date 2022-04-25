@@ -899,7 +899,7 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v, filter: '' }),
             finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
