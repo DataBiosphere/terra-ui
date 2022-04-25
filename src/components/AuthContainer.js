@@ -4,8 +4,8 @@ import { h } from 'react-hyperscript-helpers'
 import { useAuth } from 'react-oidc-context'
 import { centeredSpinner } from 'src/components/icons'
 import { useRoute } from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore, userStatus } from 'src/libs/state'
+import { useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Disabled } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'
@@ -19,9 +19,7 @@ const AuthContainer = ({ children }) => {
   const auth = useAuth()
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
-  useEffect(() => {
-    authStore.update(_.set(['authContext'], auth))
-  }, [auth])
+  useOnMount(() => authStore.update(_.set(['authContext'], auth)))
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
