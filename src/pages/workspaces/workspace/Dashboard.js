@@ -133,6 +133,7 @@ const WorkspaceDashboard = _.flow(
   refreshWorkspace,
   workspace, workspace: {
     accessLevel,
+    azureContext,
     owners,
     workspace: {
       authorizationDomain, createdDate, lastModified, bucketName, googleProject,
@@ -161,11 +162,13 @@ const WorkspaceDashboard = _.flow(
 
   const refresh = () => {
     loadSubmissionCount()
-    loadStorageCost()
-    loadBucketSize()
     loadConsent()
     loadWsTags()
-    loadBucketLocation()
+    if (!azureContext) {
+      loadStorageCost()
+      loadBucketLocation()
+      loadBucketSize()
+    }
   }
 
   useImperativeHandle(ref, () => ({ refresh }))

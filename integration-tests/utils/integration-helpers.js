@@ -2,7 +2,9 @@ const rawConsole = require('console')
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 
-const { click, clickable, dismissNotifications, findText, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter } = require('./integration-utils')
+const {
+  click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
+} = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -198,22 +200,30 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await dismissNotifications(page)
 }
 
-const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl)
-  await findText(page, 'View Workspaces')
+const clickNavChildAndLoad = async (page, tab) => {
+  await noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
+}
 
-  await overrideConfig(page, { isAnalysisTabVisible: true })
-
+const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
   await dismissNotifications(page)
+  await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
-  await noSpinnersAfter(page, { action: () => click(page, navChild('analyses')) })
+}
+
+const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
+  await page.goto(testUrl)
+  await findText(page, 'View Workspaces')
+  await overrideConfig(page, { isAnalysisTabVisible: true })
+  await viewWorkspaceDashboard(page, token, workspaceName)
+  await clickNavChildAndLoad(page, 'analyses')
   await dismissNotifications(page)
 }
 
 module.exports = {
   checkBucketAccess,
+  clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
   enableDataCatalog,
@@ -224,5 +234,6 @@ module.exports = {
   withBilling,
   withUser,
   withRegisteredUser,
-  performAnalysisTabSetup
+  performAnalysisTabSetup,
+  viewWorkspaceDashboard
 }

@@ -1,3 +1,4 @@
+// This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { assertTextNotFound, click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
