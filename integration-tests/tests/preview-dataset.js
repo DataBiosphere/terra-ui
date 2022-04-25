@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners, getTableRowNumber } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, waitForNoSpinners, findTableTextWithinColumn } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -16,17 +16,15 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 
-  const previewTableName = 'Participant Preview Data'
+  const tableName = 'Participant Preview Data'
+  // findText(page, getTableColumn({tableName, column}))
+  await findTableTextWithinColumn(page, {tableName, column:'participant_id', textContains: 'participant1'})
+  await findTableTextWithinColumn(page, {tableName, column:'biological_sex', textContains: 'male'})
+  await findTableTextWithinColumn(page, {tableName, column:'age', textContains: '36'})
 
-  const rownum = await getTableRowNumber(previewTableName, 'participant_id')
-  console.log(rownum)
-
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'participant_id')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'biological_sex')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'age')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'participant1')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), 'male')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), '36')
+//   await findElement(page, getTableCellWithinColumn(page, {tableName, column:'participant_id', textContains: 'participant1'}))
+//    await findElement(page, getTableCellWithinColumn(page, {tableName, column:'biological_sex', textContains: 'male'}))
+//    await findElement(page, getTableCellWithinColumn(page, {tableName, column:'age', textContains: '36'}))
 })
 
 const testPreviewDataset = {

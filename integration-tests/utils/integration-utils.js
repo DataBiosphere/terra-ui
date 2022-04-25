@@ -66,24 +66,28 @@ const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
 
-const getTableHeaderPath = (tableName, column) => {
-  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][1]//*[@role="columnheader"][${column}]`
+const getTableColIndex = async (page, {tableName, textContains}) => {
+   const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${textContains}")]`)
+   return page.evaluate(node => node.getAttribute("aria-colindex"), colHeaderNode)
 }
 
-const getTableRowNumber = (tableName, text) => {
-  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and contains(.,"${text}")]/@aria-colindex`
-}
- //[@role="row"][${row}]//*[contains(.,"${text}")]`
- ////*[@role="table" and @aria-label="Participant Preview Data"]//*[@role="columnheader" and contains(.,"age")]/@aria-colindex`
+// 1. Have findTableTextWithinColumn return an xpath, rename to getTableCellWithinColumn and have it return an xpath
+// 2. Instead of calling findTableTextWithinColumn, call findElement(page, getTableCellWithinColumn(...)) - in preview-dataset
+// 3. Use click(page, getTableCellWithinColumn(...)) in request-access
+// 4. remove clickTableCell function
 
-const getTableRowColumnNumber = (tableName, row, text) => {
-  return `//*[@role="table"] and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[count([contains(.,"${text}")]/preceding-sibling::div)+1]`
+const findTableTextWithinColumn = async (page, {tableName, column, textContains, isDescendant=false}, options) => {
+  const colIndex = await getTableColIndex(page,{tableName,textContains:column})
+  const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+  return page.waitForXPath(xpath, options)
 }
 
-const findTableCellText = async (page, path, textContains, options) => {
-  const xpath = `${path}[contains(normalize-space(.),"${textContains}")]`
-  return (await page.waitForXPath(xpath, options))
-}
+//const getTableCellWithinColumn = async (page, {tableName, column, textContains, isDescendant=false}) => {
+//  const colIndex = await getTableColIndex(page,{tableName,textContains:column})
+//  const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
+//  return `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+//}
 
 const clickTableCell = async (page, tableName, row, column, options) => {
   const tableCellPath = getTableCellPath(tableName, row, column)
@@ -305,10 +309,8 @@ module.exports = {
   findText,
   fillIn,
   fillInReplace,
-  findTableCellText,
   getAnimatedDrawer,
   getTableCellPath,
-  getTableHeaderPath,
   heading,
   image,
   input,
@@ -326,5 +328,6 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  getTableRowNumber
+  getTableColIndex,
+  findTableTextWithinColumn
 }

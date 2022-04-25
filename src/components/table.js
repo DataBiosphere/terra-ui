@@ -595,17 +595,19 @@ export const SimpleTable = ({
         hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
         div({ style: { display: 'flex' } }, [
-          _.map(({ key, size }) => {
+          _.map(([colindex, { key, size }]) => {
             return div({
               key,
               role: 'cell',
+              'aria-rowindex': i + 2,
+              'aria-colindex': colindex + 1, // The first column is 1
               className: 'table-cell',
               style: {
                 borderTop: `1px solid ${colors.dark(0.2)}`,
                 ...cellStyles, ...styles.flexCell(size)
               }
             }, [row[key]])
-          }, columns)
+          }, Utils.toIndexPairs(columns))
         ]),
         underRowKey && row[underRowKey]
       ])
