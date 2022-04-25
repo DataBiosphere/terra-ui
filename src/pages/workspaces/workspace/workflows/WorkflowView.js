@@ -782,10 +782,10 @@ const WorkflowView = _.flow(
               ]),
               entitySelectionModel.type === processSnapshotTable ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
-                  isDisabled: !!Utils.editWorkspaceError(ws),
+                  isDisabled: !!Utils.editWorkspaceError(ws) || !!snapshotReferenceError,
                   'aria-label': 'Snapshot table selector',
                   isClearable: false,
-                  value: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
+                  value: modifiedConfig.dataReferenceName && !!!snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
                   onChange: ({ value }) => {
                     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
