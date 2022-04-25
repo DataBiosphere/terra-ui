@@ -72,7 +72,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
-            ["oidc-client", "npm:1.11.5"],\
             ["oidc-client-ts", "npm:2.0.3"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
@@ -13806,20 +13805,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["oidc-client", [\
-        ["npm:1.11.5", {\
-          "packageLocation": "./.yarn/cache/oidc-client-npm-1.11.5-d4bb3eb626-3d0a84667d.zip/node_modules/oidc-client/",\
-          "packageDependencies": [\
-            ["oidc-client", "npm:1.11.5"],\
-            ["acorn", "npm:7.4.1"],\
-            ["base64-js", "npm:1.5.1"],\
-            ["core-js", "npm:3.21.1"],\
-            ["crypto-js", "npm:4.1.1"],\
-            ["serialize-javascript", "npm:4.0.0"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["oidc-client-ts", [\
         ["npm:2.0.3", {\
           "packageLocation": "./.yarn/cache/oidc-client-ts-npm-2.0.3-a3be8f2340-84becba240.zip/node_modules/oidc-client-ts/",\
@@ -18914,7 +18899,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
-            ["oidc-client", "npm:1.11.5"],\
             ["oidc-client-ts", "npm:2.0.3"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
