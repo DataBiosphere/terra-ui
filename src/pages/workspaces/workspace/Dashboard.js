@@ -13,6 +13,7 @@ import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -144,10 +145,8 @@ const WorkspaceDashboard = _.flow(
 }, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
-  const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
-  const [storageCostEstimateUpdated, setStorageCostEstimateUpdated] = useState(undefined)
+  const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [bucketSizeUpdated, setBucketSizeUpdated] = useState(undefined)
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -192,16 +191,14 @@ const WorkspaceDashboard = _.flow(
   const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     if (Utils.canWrite(accessLevel)) {
       const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-      setStorageCostEstimate(estimate)
-      setStorageCostEstimateUpdated(lastUpdated)
+      setStorageCost({ estimate, lastUpdated })
     }
   })
 
   const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
     if (Utils.canWrite(accessLevel)) {
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-      setBucketSize(Utils.formatBytes(usageInBytes))
-      setBucketSizeUpdated(lastUpdated)
+      setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
   })
 
@@ -270,6 +267,50 @@ const WorkspaceDashboard = _.flow(
     refresh()
   })
 
+  const getCloudInformation = () => {
+    return !googleProject && !azureContext ? [] : [
+      dl({},
+        !!googleProject ? [
+          googleProject && h(InfoRow, { title: 'Cloud Name' }, [
+            h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
+          ]),
+          h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+            h(TooltipCell, [flag, ' ', regionDescription])
+          ]) : 'Loading...']),
+          h(InfoRow, { title: 'Google Project ID' }, [
+            h(TooltipCell, [googleProject]),
+            h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
+          ]),
+          h(InfoRow, { title: 'Bucket Name' }, [
+            h(TooltipCell, [bucketName]),
+            h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
+          ]),
+          Utils.canWrite(accessLevel) && h(InfoRow, {
+            title: 'Estimated Storage Cost',
+            subtitle: !!storageCost ? `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+          }, [storageCost?.estimate || '$ ...']),
+          Utils.canWrite(accessLevel) && h(InfoRow, {
+            title: 'Bucket Size',
+            subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.updated).toLocaleDateString()}` : 'Loading last updated...'
+          }, [bucketSize?.usage])
+        ] : [
+          h(InfoRow, { title: 'Cloud Name' }, [
+            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+          ]),
+          h(InfoRow, { title: 'Resource Group ID' }, [
+            h(TooltipCell, [azureContext.managedResourceGroupId]),
+            h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+          ])
+        ]
+      ),
+      !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+        style: { margin: '1rem 0.5rem' },
+        ...Utils.newTabLinkProps,
+        href: bucketBrowserUrl(bucketName)
+      }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      )])
+    ]
+  }
 
   // Render
   const isEditing = _.isString(editDescription)
@@ -339,37 +380,7 @@ const WorkspaceDashboard = _.flow(
         title: 'Cloud information',
         initialOpenState: cloudInfoPanelOpen,
         onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
-      }, [
-        dl({}, [
-          googleProject && h(InfoRow, { title: 'Cloud Name' }, [
-            h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16, width: 132, marginLeft: -15 } })
-          ]),
-          h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-            h(TooltipCell, [flag, ' ', regionDescription])
-          ]) : 'Loading...']),
-          h(InfoRow, { title: 'Google Project ID' }, [
-            h(TooltipCell, [googleProject]),
-            h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
-          ]),
-          h(InfoRow, { title: 'Bucket Name' }, [
-            h(TooltipCell, [bucketName]),
-            h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
-          ]),
-          Utils.canWrite(accessLevel) && h(InfoRow, {
-            title: 'Estimated Storage Cost',
-            subtitle: storageCostEstimate ? `Updated on ${new Date(storageCostEstimateUpdated).toLocaleDateString()}` : 'Loading last updated...'
-          }, [storageCostEstimate || '$ ...']),
-          Utils.canWrite(accessLevel) && h(InfoRow, {
-            title: 'Bucket Size',
-            subtitle: bucketSize ? `Updated on ${new Date(bucketSizeUpdated).toLocaleDateString()}` : 'Loading last updated...'
-          }, [bucketSize])
-        ]),
-        div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
-          style: { margin: '1rem 0.5rem' },
-          ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName)
-        }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])])
-      ]),
+      }, getCloudInformation()),
       h(RightBoxSection, {
         title: 'Owners',
         initialOpenState: ownersPanelOpen,
