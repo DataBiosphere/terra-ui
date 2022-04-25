@@ -271,7 +271,7 @@ const WorkspaceDashboard = _.flow(
     return !googleProject && !azureContext ? [] : [
       dl({},
         !!googleProject ? [
-          googleProject && h(InfoRow, { title: 'Cloud Name' }, [
+          h(InfoRow, { title: 'Cloud Name' }, [
             h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
           ]),
           h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
