@@ -291,7 +291,7 @@ const WorkspaceDashboard = _.flow(
           }, [storageCost?.estimate || '$ ...']),
           Utils.canWrite(accessLevel) && h(InfoRow, {
             title: 'Bucket Size',
-            subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.updated).toLocaleDateString()}` : 'Loading last updated...'
+            subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
           }, [bucketSize?.usage])
         ] : [
           h(InfoRow, { title: 'Cloud Name' }, [

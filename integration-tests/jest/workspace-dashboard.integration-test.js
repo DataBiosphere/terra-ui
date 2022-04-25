@@ -3,4 +3,4 @@ const { googleWorkspaceDashboard, azureWorkspaceDashboard } = require('../tests/
 
 
 registerTest(googleWorkspaceDashboard)
-//registerTest(azureWorkspaceDashboard)
+registerTest(azureWorkspaceDashboard)

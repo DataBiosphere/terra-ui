@@ -13,10 +13,11 @@ const testGoogleWorkspace = _.flow(
   await viewWorkspaceDashboard(page, token, workspaceName)
   await findText(page, 'About the workspace')
 
-  // Check cloud information
+  // Check selected items in cloud information
+  const currentDate = new Date().toLocaleDateString()
   await click(page, clickable({ text: 'Cloud information' }))
   await findText(page, 'Cloud NameGoogle Cloud Platform')
-  await findText(page, 'Cloud Project ID')
+  await findText(page, `Bucket SizeUpdated on ${currentDate}0 B`)
 
   // Click on each of the expected tabs
   await clickNavChildAndLoad(page, 'data')
