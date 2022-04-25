@@ -803,7 +803,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // Render
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }),
+    h(TopBar, { title: 'Data Uploader' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: '1 1 auto', fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces ?
         h(NoWorkspacesMessage, { onClick: () => setCreatingNewWorkspace(true) }) :
