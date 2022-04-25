@@ -785,7 +785,7 @@ const WorkflowView = _.flow(
                   isDisabled: !!Utils.editWorkspaceError(ws) || !!snapshotReferenceError,
                   'aria-label': 'Snapshot table selector',
                   isClearable: false,
-                  value: modifiedConfig.dataReferenceName && !!!snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
+                  value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
                   onChange: ({ value }) => {
                     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
