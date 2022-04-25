@@ -442,7 +442,7 @@ const WorkflowView = _.flow(
     }
   }
 
-  async safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) {
+  async maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig) {
     const { namespace, name, signal } = this.props
 
     try {
@@ -488,7 +488,7 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await this.safeGetSnapshotEntityMetadata(googleProject, modifiedConfig) :
+        await this.maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig) :
         undefined
 
       this.setState({
