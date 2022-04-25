@@ -54,7 +54,6 @@ export const signIn = includeBillingScope => {
   }
 }
 
-// TODO: does this work?
 export const reloadAuthToken = () => {
   return getAuthInstance().signinSilent().catch(() => false)
 }
