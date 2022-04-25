@@ -152,8 +152,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
           const { name, optional, inputType } = io
-          const value = config[which][name] || ''
-          const error = errors[which][name]
+          const value = _.get([which, name], config) || ''
+          const error = _.get([which, name], errors)
           const isFile = (inputType === 'File') || (inputType === 'File?')
           const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
