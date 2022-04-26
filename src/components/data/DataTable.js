@@ -326,8 +326,8 @@ const DataTable = props => {
                         extraActions: [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
-                          { label: 'Delete Column', disabled: noEdit, tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
-                          { label: 'Clear Column', disabled: noEdit, tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                          { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                          { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
                       }, [
                         h(HeaderCell, [
