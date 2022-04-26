@@ -72,7 +72,7 @@ const getTableColIndex = async (page, { tableName, columnText }) => {
 }
 
 const getTableTextWithinColumn = async (page, { tableName, columnText, textContains, isDescendant = false }) => {
-  const colIndex = await getTableColIndex( page,{ tableName, columnText })
+  const colIndex = await getTableColIndex(page, { tableName, columnText })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
   const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
   return xpath
@@ -323,6 +323,5 @@ module.exports = {
   withPageLogging,
   openError,
   getTableColIndex,
-  findTableTextWithinColumn,
-  clickTableCell
+  findTableTextWithinColumn
 }
