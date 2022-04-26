@@ -1487,6 +1487,48 @@ const Runtimes = signal => ({
     }
   },
 
+  listV2: async (labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  listV2WithWorkspace: async (workspaceId, labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  runtimeV2: (workspaceId, name, cloudProvider = "azure") => {
+    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
+
+    return {
+
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
+      },
+
+      create: options => {
+        const body = _.merge(options, {
+          labels: { saturnAutoCreated: 'true', saturnVersion: version },
+        })
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      },
+
+      delete: (deleteDisk = true) => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      }
+    }
+  },
+
   fileSyncing: (project, name) => {
     const root = `proxy/${project}/${name}`
 

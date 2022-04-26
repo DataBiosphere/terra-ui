@@ -79,7 +79,7 @@ const WorkspaceTabs = ({
     ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isGoogleWorkspace && isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
     ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
@@ -147,6 +147,7 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
+      //TODO: handle in IA-3265
       (isGoogleWorkspace && isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -203,7 +204,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = googleProject => {
+const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -219,7 +220,10 @@ const useCloudEnvironmentPolling = googleProject => {
       const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
-      ]) : [[], []]
+      ]) : await Promise.all([
+          Promise.resolve([]),
+          workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email} ) : Promise.resolve([])
+        ])
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
@@ -292,7 +296,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = usePrevious(googleProject)
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
+    console.log('before cloudenv polling, {workspace}', workspace, googleProject)
+    //TODO: revert before merge, used for testing
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(null, workspace?.workspace.workspaceId)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
