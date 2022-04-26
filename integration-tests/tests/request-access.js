@@ -15,7 +15,7 @@ const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'Close modal' }))
 
   // Request access from the dataset details page
-  await clickTableCell (page, {tableName:'dataset list', column:'Dataset Name', textContains:'Discoverable Catalog Snapshot 1'})
+  await clickTableCell (page, { tableName:'dataset list', column: 'Dataset Name', textContains: 'Discoverable Catalog Snapshot 1' })
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Request Access' }))
   await findText(page, 'Request Access')

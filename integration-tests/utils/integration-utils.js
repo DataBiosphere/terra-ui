@@ -66,7 +66,7 @@ const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
 
-const getTableColIndex = async (page, {tableName, textContains}) => {
+const getTableColIndex = async (page, { tableName, textContains }) => {
    const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${textContains}")]`)
    return page.evaluate(node => node.getAttribute("aria-colindex"), colHeaderNode)
 }
@@ -83,7 +83,7 @@ const getTableTextWithinColumn = async (page, { tableName, column, textContains,
   return xpath
 }
 
-const findTableTextWithinColumn = async (page, {tableName, column, textContains}, options) => {
+const findTableTextWithinColumn = async (page, { tableName, column, textContains }, options) => {
   const xpath = await getTableTextWithinColumn(page, {tableName, column, textContains})
   return page.waitForXPath(xpath, options)
 }
