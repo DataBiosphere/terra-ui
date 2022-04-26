@@ -1056,7 +1056,7 @@ const Catalog = signal => ({
     const res = await fetchCatalog(`v1/datasets/${id}/tables`, _.merge(authOpts(), { signal }))
     return res.json()
   },
-  getDatasetPreviewTable: async ({id, tableName}) => {
+  getDatasetPreviewTable: async ({ id, tableName }) => {
     const res = await fetchCatalog(`v1/datasets/${id}/tables/${tableName}`, _.merge(authOpts(), { signal }))
     return res.json()
   }
