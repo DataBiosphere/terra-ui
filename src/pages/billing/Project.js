@@ -562,7 +562,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }, ['Remove Billing Account'])
           ])
         }, [
-          h(Link, { 'aria-label': 'Column menu' }, [
+          h(Link, { 'aria-label': 'Billing account menu' }, [
             icon('cardMenuIcon', { size: 16 })
           ])
         ]),
