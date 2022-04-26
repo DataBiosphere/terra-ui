@@ -1,7 +1,7 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { clickNavChildAndLoad, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
-const { assertNavChildNotFound, findText } = require('../utils/integration-utils')
+const { assertNavChildNotFound, click, clickable, findText } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -12,6 +12,13 @@ const testGoogleWorkspace = _.flow(
   await page.goto(testUrl)
   await viewWorkspaceDashboard(page, token, workspaceName)
   await findText(page, 'About the workspace')
+
+  // Check selected items in cloud information
+  const currentDate = new Date().toLocaleDateString()
+  await click(page, clickable({ text: 'Cloud information' }))
+  await findText(page, 'Cloud NameGoogle Cloud Platform')
+  await findText(page, `Bucket SizeUpdated on ${currentDate}0 B`)
+
   // Click on each of the expected tabs
   await clickNavChildAndLoad(page, 'data')
   await clickNavChildAndLoad(page, 'notebooks')
@@ -101,6 +108,12 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
 
   await viewWorkspaceDashboard(page, token, workspaceName)
   await findText(page, workspaceDescription)
+
+  // Check cloud information
+  await click(page, clickable({ text: 'Cloud information' }))
+  await findText(page, 'Cloud NameMicrosoft Azure')
+  await findText(page, 'Resource Group IDdummy-mrg-id')
+
   // Verify tabs that currently depend on Google project ID are not present.
   await assertNavChildNotFound(page, 'data')
   await assertNavChildNotFound(page, 'notebooks')
