@@ -76,8 +76,8 @@ const getTableColIndex = async (page, {tableName, textContains}) => {
 // 4. Update request-access
 // 5. remove clickTableCell function
 
-const getTableTextWithinColumn = async (page, {tableName, column, textContains, isDescendant=false}, options) => {
-  const colIndex = await getTableColIndex(page,{tableName,textContains:column})
+const getTableTextWithinColumn = async (page, { tableName, column, textContains, isDescendant=false }, options) => {
+  const colIndex = await getTableColIndex( page,{ tableName,textContains:column } )
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
   const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
   return xpath
@@ -88,8 +88,8 @@ const findTableTextWithinColumn = async (page, {tableName, column, textContains}
   return page.waitForXPath(xpath, options)
 }
 
-const clickTableCell = async (page, {tableName, column, textContains}, options) =>{
-  const tableCellPath = await getTableTextWithinColumn(page, {tableName, column, textContains})
+const clickTableCell = async (page, { tableName, column, textContains }, options) =>{
+  const tableCellPath = await getTableTextWithinColumn(page, { tableName, column, textContains })
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }
