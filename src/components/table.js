@@ -576,7 +576,7 @@ export const SimpleTable = ({
     'aria-label': ariaLabel
   }, [
     !_.isEmpty(columns) && div({ role: 'row', style: { display: 'flex', alignItems: 'center', ...headerRowStyle } }, [
-      _.map(([i,{ key, header, size }]) => {
+      _.map(([i, { key, header, size }]) => {
         return div({
           key,
           role: 'columnheader',
