@@ -324,8 +324,8 @@ const DataTable = props => {
                         extraActions: [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
-                          { label: 'Delete Column', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
-                          { label: 'Clear Column', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                          { label: 'Delete Column', disabled: true, onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                          { label: 'Clear Column', disabled: true, onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
                       }, [
                         h(HeaderCell, [
