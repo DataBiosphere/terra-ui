@@ -66,25 +66,25 @@ const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
 
-const getTableColIndex = async (page, { tableName, columnText }) => {
-  const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${columnText}")]`)
+const getTableColIndex = async (page, { tableName, columnHeader }) => {
+  const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${columnHeader}")]`)
   return page.evaluate(node => node.getAttribute('aria-colindex'), colHeaderNode)
 }
 
-const getTableTextWithinColumn = async (page, { tableName, columnText, textContains, isDescendant = false }) => {
-  const colIndex = await getTableColIndex(page, { tableName, columnText })
+const getTableTextWithinColumn = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
+  const colIndex = await getTableColIndex(page, { tableName, columnHeader })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
   const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
   return xpath
 }
 
-const findTableTextWithinColumn = async (page, { tableName, columnText, textContains, isDescendant = false }, options) => {
-  const xpath = await getTableTextWithinColumn(page, { tableName, columnText, textContains, isDescendant })
+const findTableTextWithinColumn = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
+  const xpath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
   return page.waitForXPath(xpath, options)
 }
 
-const clickTableCell = async (page, { tableName, columnText, textContains, isDescendant = false }, options) => {
-  const tableCellPath = await getTableTextWithinColumn(page, { tableName, columnText, textContains, isDescendant })
+const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
+  const tableCellPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }
