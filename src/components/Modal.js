@@ -32,9 +32,15 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
 
+  console.log('AE:', document.activeElement)
   useOnMount(() => {
     previouslyFocusedNode.current = document.activeElement
-    return () => previouslyFocusedNode.current?.focus()
+    console.log('Prev:', document.activeElement)
+
+    return () => {
+      console.log('Return:', previouslyFocusedNode.current)
+      previouslyFocusedNode.current?.focus()
+    }
   })
 
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
@@ -52,6 +58,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       // Add the focus update to the end of the event queue
       // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
       await Utils.delay(0)
+      console.log('NODE:', nodeToFocus)
       previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement
       nodeToFocus.focus()
     },

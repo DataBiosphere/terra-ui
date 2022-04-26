@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { forwardRef, useState } from 'react'
+import { div, h, input } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -12,7 +12,7 @@ import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
+import { forwardRefWithName, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
@@ -149,26 +149,41 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         }, {
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
           size: { grow: 1 }, key: 'lastUpdated'
+        },
+        {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'access', onSort: setSort }, ['Access Status'])]),
+          size: { grow: 1 }, key: 'accessStatus'
         }
       ],
       rowStyle: styles.table.row,
       cellStyle: { border: 'none', paddingRight: 15 },
       useHover: false,
-      underRowKey: 'underRow',
+      // underRowKey: 'underRow',
       rows: _.map(datum => {
         const { project, dataType, access } = datum
 
         return {
-          checkbox: h(TooltipTrigger, {
-            ...(datum.access !== datasetAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
-          }, [h(Checkbox, {
-            'aria-label': datum['dct:title'],
-            disabled: datum.access !== datasetAccessTypes.GRANTED,
-            checked: _.includes(datum, selectedData),
-            onChange: () => toggleSelectedData(datum)
-          })]),
-          name: h(Link,
+
+          // checkbox: ({ focusRef }) => {
+          //   console.log(focusRef)
+          //   return h(Checkbox, { style: { height: 20, width: 20, border: '1px solid black' }, focusRef })
+          // }
+          checkbox: ({ focusRef }) => {
+            return h(TooltipTrigger, {
+              ...(datum.access !== datasetAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
+            }, [h(Checkbox, {
+              focusRef,
+              tabIndex: -1,
+              'aria-label': datum['dct:title'],
+              disabled: datum.access !== datasetAccessTypes.GRANTED,
+              checked: _.includes(datum, selectedData),
+              onChange: () => toggleSelectedData(datum)
+            })])
+          },
+          name: ({ focusRef }) => h(Link,
             {
+              ref: focusRef,
+              tabIndex: -1,
               onClick: () => {
                 Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
                   id: datum['dct:identifier'],
@@ -183,31 +198,34 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           subjects: datum?.counts?.donors,
           dataType: dataType.join(', '),
           lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
-          underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              Utils.switchCase(access,
-                [datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  onClick: () => {
-                    setRequestDatasetAccessList([datum])
-                    Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+          accessStatus: ({ focusRef }) => {
+            return div({ style: { display: 'flex', alignItems: 'flex-start' } }, [
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                Utils.switchCase(access,
+                  [datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                    style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                    ref: focusRef,
+                    onClick: () => {
+                      setRequestDatasetAccessList([datum])
+                      Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
                       // These are still using snapshot as a relic to ensure backwards search
                       // capabilities within the data browser.
-                      snapshotId: _.get('dct:identifier', datum),
-                      snapshotName: datum['dct:title']
-                    })
-                  }
-                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-                [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
-                  icon('lock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
-                ])],
-                [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
-                  icon('unlock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
-                ])])
+                        snapshotId: _.get('dct:identifier', datum),
+                        snapshotName: datum['dct:title']
+                      })
+                    }
+                  }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+                  [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                    icon('lock'),
+                    div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
+                  ])],
+                  [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
+                    icon('unlock'),
+                    div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
+                  ])])
+              ])
             ])
-          ])
+          }
         }
       }, filteredList)
     })])

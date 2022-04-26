@@ -254,15 +254,15 @@ const BucketContentModal = ({ workspace: { workspace: { googleProject, bucketNam
       rows: [
         ..._.map(p => {
           return {
-            name: h(TextCell, [
-              h(Link, { onClick: () => load(p) }, [p.slice(prefix.length)])
+            name: ({ focusRef }) => h(TextCell, [
+              h(Link, { ref: focusRef, tabIndex: -1, onClick: () => load(p) }, [p.slice(prefix.length)])
             ])
           }
         }, prefixes),
         ..._.map(({ name }) => {
           return {
-            name: h(TextCell, [
-              h(Link, { onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
+            name: ({ focusRef }) => h(TextCell, [
+              h(Link, { ref: focusRef, tabIndex: -1, onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
                 name.slice(prefix.length)
               ])
             ])

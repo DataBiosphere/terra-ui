@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { forwardRef, Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -89,7 +89,7 @@ export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ?
 })
 
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
-  return h(Clickable, _.merge({
+  return h(Clickable, {
     ref,
     style: { // 0.72 is the min to meet ANDI's contrast requirement
       color: disabled ? colors.dark(0.72) : baseColor(variant === 'light' ? 0.3 : 1),
@@ -97,23 +97,27 @@ export const Link = forwardRefWithName('Link', ({ disabled, variant, children, b
       fontWeight: 500, display: 'inline'
     },
     hover: disabled ? undefined : { color: baseColor(variant === 'light' ? 0.1 : 0.8) },
-    disabled
-  }, props), [children])
+    disabled,
+    ...props
+  }, [children])
 })
 
-export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
+export const ButtonPrimary = forwardRefWithName('ButtonPrimary', ({ disabled, danger = false, children, style, ...props }, ref) => {
+  return h(Clickable, {
+    ref,
     disabled,
     style: {
       ...styles.button,
       border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
       backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      ...style
     },
-    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) }
-  }, props), [children])
-}
+    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) },
+    ...props
+  }, [children])
+})
 
 export const ButtonSecondary = ({ disabled, children, ...props }) => {
   return h(Clickable, _.merge({
@@ -127,29 +131,35 @@ export const ButtonSecondary = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
+export const ButtonOutline = forwardRefWithName('ButtonOutline', ({ disabled, children, style, ...props }, ref) => {
+  return h(ButtonPrimary, {
+    ref,
     disabled,
     style: {
       border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
       color: colors.accent(),
-      backgroundColor: disabled ? colors.dark(0.25) : 'white'
+      backgroundColor: disabled ? colors.dark(0.25) : 'white',
+      ...style
     },
-    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), [children])
-}
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) },
+    ...props
+  }, [children])
+})
 
-export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+export const Checkbox = ({ checked, onChange, disabled, focusRef, ...props }) => {
   useLabelAssert('Checkbox', { ...props, allowId: true })
-  return h(Interactive, _.merge({
+  return h(Interactive, {
     as: 'span',
     className: 'fa-layers fa-fw',
+    tabIndex: -1,
     role: 'checkbox',
     'aria-checked': checked,
     onClick: () => !disabled && onChange?.(!checked),
     style: { verticalAlign: 'middle' },
-    disabled
-  }, props), [
+    disabled,
+    ref: focusRef,
+    ...props
+  }, [
     icon('squareSolid', { style: { color: Utils.cond([disabled, () => colors.light(1.2)], [checked, () => colors.accent()], () => 'white') } }), // bg
     !disabled && icon('squareLight', { style: { color: checked ? colors.accent(1.2) : colors.dark(0.75) } }), // border
     checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }) // check

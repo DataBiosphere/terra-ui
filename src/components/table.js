@@ -1,9 +1,10 @@
 import { arrayMoveImmutable as arrayMove } from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers'
+import { isElement, isForwardRef } from 'react-is'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
@@ -13,7 +14,7 @@ import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
+import { forwardRefWithName, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -561,6 +562,50 @@ GridTable.propTypes = {
   readOnly: PropTypes.bool
 }
 
+const Cell = ({ row, colIndex, colIndexNum, rowIndex, isFocused, focusedCell, size, cellStyles }) => {
+  const focusRef = useRef()
+  const hasFocusRef = _.isFunction(row[colIndex])
+
+  const tabIndex = Utils.cond(
+    [rowIndex === 0 && colIndexNum === 0 && focusedCell[0] === -1 && focusedCell[1] === -1, () => 0],
+    [hasFocusRef, () => undefined],
+    [!hasFocusRef && isFocused, () => 0],
+    [!hasFocusRef, () => -1]
+  )
+
+  useEffect(() => {
+    if (rowIndex === 0 && colIndexNum === 0 && focusedCell[0] === -1 && focusedCell[1] === -1) {
+      focusRef?.current?.setAttribute('tabIndex', 0)
+    } else if (isFocused) {
+      focusedCell[0] !== -1 && focusRef?.current?.focus()
+      // focusRef?.current?.setAttribute('tabIndex', tabIndex)
+    } else {
+      focusRef?.current?.setAttribute('tabIndex', -1)
+    }
+  }, [isFocused, focusedCell])
+
+  return div({
+    role: 'cell',
+    tabIndex: hasFocusRef ? undefined : tabIndex,
+    ref: hasFocusRef ? undefined : focusRef,
+    className: 'table-cell',
+    style: {
+      // borderTop: `1px solid ${colors.dark(0.2)}`,
+      ...cellStyles, ...styles.flexCell(size)
+    }
+  },
+  [_.isFunction(row[colIndex]) ? row[colIndex]({ focusRef }) : row[colIndex]])
+}
+
+// const Row = ({ row, underRowKey, columns, rowIndex }) => {
+//   return div({ style: { display: 'flex' } }, [
+//     _.map(([col, { key, size }]) => {
+//       return h(Cell, { key, row, isFocused: _.isEqual(focusedCell, [rowIndex, col]), colIndex: key, size, cellStyles })
+//     }, Utils.toIndexPairs(columns))
+//   ]),
+//   underRowKey && row[underRowKey]
+// }
+
 export const SimpleTable = ({
   columns, rows, 'aria-label': ariaLabel,
   rowStyle = {}, evenRowStyle = {}, oddRowStyle = {},
@@ -569,11 +614,41 @@ export const SimpleTable = ({
   useHover = true, underRowKey
 }) => {
   useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+  const [focusedCell, setFocusedCell] = useState([0, 0])
+  // const [nextAction, setNextAction] = useState()
+  // const tableRef = useRef()
+  const tableRef = useRef()
+
+  useEffect(() => {
+    console.log('RESET Effect', columns, rows, focusedCell)
+    const [row, column] = focusedCell
+    setFocusedCell([Math.min(_.size(rows), row), Math.min(_.size(columns), column)])
+  }, [columns, rows])
 
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides }
-  return h(div, {
+  return div({
+    ref: tableRef,
     role: 'table',
-    'aria-label': ariaLabel
+    'aria-label': ariaLabel,
+    onBlur: ({ relatedTarget }) => {
+      if (!tableRef.current.contains(relatedTarget) && relatedTarget !== null) {
+        console.log('RESET')
+        setFocusedCell([-1, -1])
+      }
+    },
+    onKeyDown: event => {
+      const { code } = event
+      if (_.includes(code, ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'])) {
+        event.preventDefault()
+      }
+
+      Utils.switchCase(code,
+        ['ArrowUp', () => setFocusedCell(([row, col]) => [Math.max(0, row - 1), Math.max(col, 0)])],
+        ['ArrowDown', () => setFocusedCell(([row, col]) => [Math.min(_.size(rows) - 1, row + 1), Math.max(col, 0)])],
+        ['ArrowLeft', () => setFocusedCell(([row, col]) => [Math.max(row, 0), Math.max(0, col - 1)])],
+        ['ArrowRight', () => setFocusedCell(([row, col]) => [Math.max(row, 0), Math.min(col + 1, _.size(columns) - 1)])]
+      )
+    }
   }, [
     !_.isEmpty(columns) && div({ role: 'row', style: { display: 'flex', alignItems: 'center', ...headerRowStyle } }, [
       _.map(({ key, header, size }) => {
@@ -592,20 +667,13 @@ export const SimpleTable = ({
         style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) }, className: 'table-row',
         hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
-        div({ style: { display: 'flex' } }, [
-          _.map(({ key, size }) => {
-            return div({
-              key,
-              role: 'cell',
-              className: 'table-cell',
-              style: {
-                borderTop: `1px solid ${colors.dark(0.2)}`,
-                ...cellStyles, ...styles.flexCell(size)
-              }
-            }, [row[key]])
-          }, columns)
-        ]),
-        underRowKey && row[underRowKey]
+        // h(Row, { row, underRowKey, columns, rowIndex: I })
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          _.map(([col, { key, size }]) => {
+            return h(Cell, { key, row, rowIndex: i, colIndexNum: col, focusedCell, isFocused: _.isEqual(focusedCell, [i, col]), colIndex: key, size, cellStyles })
+          }, Utils.toIndexPairs(columns))
+        ])
+        // underRowKey && row[underRowKey]
       ])
     }, Utils.toIndexPairs(rows))
   ])

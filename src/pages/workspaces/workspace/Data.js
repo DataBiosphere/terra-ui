@@ -287,6 +287,8 @@ const BucketContent = _.flow(
     div({ style: { flex: '1 1 0', overflow: 'auto' } }, [
       h(SimpleTable, {
         'aria-label': 'file browser',
+        rowStyle: { borderTop: `1px solid ${colors.dark(0.2)}` },
+        cellStyle: { lineHeight: '1.5rem' },
         columns: [
           { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
           { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
@@ -299,8 +301,11 @@ const BucketContent = _.flow(
               button: div({ style: { display: 'flex' } }, [
                 icon('folder', { size: 16, 'aria-label': 'folder' })
               ]),
-              name: h(TextCell, [
+              name: ({ focusRef }) => h(TextCell, [
                 makeBucketLink({
+                  ref: focusRef,
+                  style: { marginLeft: '0.25rem' },
+                  tabIndex: -1,
                   label: p.slice(prefix.length),
                   target: `gs://${bucketName}/${p}`,
                   onClick: () => load(p),
@@ -312,22 +317,28 @@ const BucketContent = _.flow(
           ..._.map(object => {
             const { name, size, updated } = object
             return {
-              button: h(Link, {
+              button: ({ focusRef }) => h(Link, {
+                ref: focusRef,
                 style: { display: 'flex' }, onClick: () => setDeletingObject(object),
                 tooltip: 'Delete file'
               }, [
                 icon('trash', { size: 16, className: 'hover-only' })
               ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: name.slice(prefix.length),
-                  target: `gs://${bucketName}/${name}`,
-                  onClick: () => setViewingName(name),
-                  'aria-haspopup': 'dialog',
-                  'aria-label': `${name.slice(prefix.length)} (file)`
-                })
-              ]),
-              size: filesize(size, { round: 0 }),
+              name: ({ focusRef }) => {
+                return h(TextCell, [
+                  makeBucketLink({
+                    ref: focusRef,
+                    style: { marginLeft: '0.25rem' },
+                    tabIndex: -1,
+                    label: name.slice(prefix.length),
+                    target: `gs://${bucketName}/${name}`,
+                    onClick: () => setViewingName(name),
+                    'aria-haspopup': 'dialog',
+                    'aria-label': `${name.slice(prefix.length)} (file)`
+                  })
+                ])
+              },
+              size: h(TextCell, { style: { height: '100%' } }, [filesize(size, { round: 0 })]),
               updated: Utils.makePrettyDate(updated)
             }
           }, objects)
