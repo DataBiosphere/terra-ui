@@ -75,7 +75,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
         ]),
         tbody(
-          _.map(({ 'dct:title': title, access, 'dct:identifier': id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+          // TODO: Use a data catalog title, rather than a data repo title.
+          _.map(({ 'dct:title': title, access, id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
             td({ style: { paddingRight: 20 } }, [
               title,
               div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
@@ -105,8 +106,8 @@ const RequestDatasetAccessButton = ({ title, id, setShowWipModal }) => {
       !requestAccessEnabled && setShowWipModal(true)
       setStatus('Request Sent')
       Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:confirmed`, {
-        snapshotId: id,
-        snapshotName: title
+        id,
+        title
       })
     })
   }, [

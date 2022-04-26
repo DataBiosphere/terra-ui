@@ -56,19 +56,19 @@ const DataBrowserPreview = ({ id }) => {
   useOnMount(() => {
     const loadData = async () => {
       // TODO (DC-283): move to catalog service
-      const { tables: newTables } = await Ajax(signal).DataRepo.getPreviewMetadata(id)
+      const { tables: newTables } = await Ajax(signal).Catalog.getDatasetTables(id)
 
-      const hasRows = _.flow(
+      const hasData = _.flow(
         _.sortBy('name'),
-        _.map(({ name, rowCount }) => ({ value: name, rowCount })),
-        _.filter(({ rowCount }) => rowCount > 0)
+        _.map(({ name, hasData }) => ({ value: name, hasData })),
+        _.filter(({ hasData }) => hasData)
       )(newTables)
 
-      const newSelectOptions = [{ label: '', options: hasRows }]
+      const newSelectOptions = [{ label: '', options: hasData }]
 
       setTables(newTables)
       setSelectOptions(newSelectOptions)
-      setSelectedTable(hasRows[0]?.value)
+      setSelectedTable(hasData[0]?.value)
     }
 
     loadData()
@@ -91,7 +91,7 @@ const DataBrowserPreview = ({ id }) => {
       Utils.withBusyState(setLoading),
       withErrorReporting('Error loading table')
     )(async () => {
-      const { columns: newTableColumns } = _.find({ name: selectedTable }, tables) || {}
+      const previewTableData = await Ajax(signal).Catalog.getDatasetPreviewTable({ id, tableName: selectedTable })
 
       const newDisplayColumns = _.flow(
         Utils.toIndexPairs,
@@ -102,21 +102,18 @@ const DataBrowserPreview = ({ id }) => {
           visible: index < 6,
           header: div({ style: styles.table.header }, [name])
         }))
-      )(newTableColumns)
+      )(previewTableData.columns)
 
       setColumns(newDisplayColumns)
 
-      // TODO (DC-283): move to catalog service
-      const previewTableData = await Ajax(signal).DataRepo.getPreviewTable({ id, limit: 50, offset: 0, table: selectedTable })
-
       const newPreviewRows = _.flow(
-        _.getOr([], 'result'),
+        _.getOr([], 'rows'),
         Utils.toIndexPairs,
         _.map(([rowIndex, row]) => {
           return _.reduce((acc, { name }) => {
             const formattedCell = formatTableCell({ cellKey: name, cellContent: row[name], rowIndex, table: selectedTable })
             return _.set([name], formattedCell, acc)
-          }, {}, newTableColumns)
+          }, {}, previewTableData.columns)
         })
       )(previewTableData)
 
@@ -128,7 +125,7 @@ const DataBrowserPreview = ({ id }) => {
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const dataset = _.find({ 'dct:identifier': id }, dataCatalog)
+  const dataset = _.find({ id }, dataCatalog)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),

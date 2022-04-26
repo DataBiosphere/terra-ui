@@ -147,8 +147,9 @@ export const SidebarComponent = ({ dataObj, id }) => {
                   Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
                     // These are still using snapshot as a relic to ensure backwards search
                     // capabilities within the data browser.
-                    snapshotId: _.get('dct:identifier', dataObj),
-                    snapshotName: dataObj['dct:title']
+                    id: dataObj.id,
+                    // TODO: Make point at a data catalog title, rather than the underlying storage system
+                    title: dataObj['dct:title']
                   })
                 }
               }, [
@@ -207,10 +208,11 @@ export const SidebarComponent = ({ dataObj, id }) => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
             // These are still using snapshot as a relic to ensure backwards search
             // capabilities within the data browser.
-            snapshotId: _.get('dct:identifier', dataObj),
-            snapshotName: dataObj['dct:title']
+            id: dataObj.id,
+            // TODO: Use a data catalog title, rather than a data repo one.
+            title: dataObj['dct:title']
           })
-          Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', dataObj) })
+          Nav.goToPath('library-catalog-preview', { id: dataObj.id })
         }
       }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
@@ -242,7 +244,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
 
 const DataBrowserDetails = ({ id }) => {
   const { dataCatalog } = useDataCatalog()
-  const dataMap = _.keyBy('dct:identifier', dataCatalog)
+  const dataMap = _.keyBy('id', dataCatalog)
   const dataObj = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
