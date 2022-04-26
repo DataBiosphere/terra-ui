@@ -533,7 +533,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, displayName),
-        h(MenuTrigger, {
+        isOwner && h(MenuTrigger, {
           closeOnClick: true,
           side: 'bottom',
           style: { marginLeft: '0.5rem' },
