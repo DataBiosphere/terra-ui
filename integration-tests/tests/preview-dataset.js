@@ -17,14 +17,9 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await waitForNoSpinners(page)
 
   const tableName = 'Participant Preview Data'
-  // findText(page, getTableColumn({tableName, column}))
   await findTableTextWithinColumn(page, {tableName, column:'participant_id', textContains: 'participant1'})
   await findTableTextWithinColumn(page, {tableName, column:'biological_sex', textContains: 'male'})
   await findTableTextWithinColumn(page, {tableName, column:'age', textContains: '36'})
-
-//   await findElement(page, getTableCellWithinColumn(page, {tableName, column:'participant_id', textContains: 'participant1'}))
-//    await findElement(page, getTableCellWithinColumn(page, {tableName, column:'biological_sex', textContains: 'male'}))
-//    await findElement(page, getTableCellWithinColumn(page, {tableName, column:'age', textContains: '36'}))
 })
 
 const testPreviewDataset = {
