@@ -269,40 +269,38 @@ const WorkspaceDashboard = _.flow(
 
   const getCloudInformation = () => {
     return !googleProject && !azureContext ? [] : [
-      dl({},
-        !!googleProject ? [
-          h(InfoRow, { title: 'Cloud Name' }, [
-            h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
-          ]),
-          h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-            h(TooltipCell, [flag, ' ', regionDescription])
-          ]) : 'Loading...']),
-          h(InfoRow, { title: 'Google Project ID' }, [
-            h(TooltipCell, [googleProject]),
-            h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
-          ]),
-          h(InfoRow, { title: 'Bucket Name' }, [
-            h(TooltipCell, [bucketName]),
-            h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
-          ]),
-          Utils.canWrite(accessLevel) && h(InfoRow, {
-            title: 'Estimated Storage Cost',
-            subtitle: !!storageCost ? `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
-          }, [storageCost?.estimate || '$ ...']),
-          Utils.canWrite(accessLevel) && h(InfoRow, {
-            title: 'Bucket Size',
-            subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
-          }, [bucketSize?.usage])
-        ] : [
-          h(InfoRow, { title: 'Cloud Name' }, [
-            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
-          ]),
-          h(InfoRow, { title: 'Resource Group ID' }, [
-            h(TooltipCell, [azureContext.managedResourceGroupId]),
-            h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
-          ])
-        ]
-      ),
+      dl(!!googleProject ? [
+        h(InfoRow, { title: 'Cloud Name' }, [
+          h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
+        ]),
+        h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+          h(TooltipCell, [flag, ' ', regionDescription])
+        ]) : 'Loading...']),
+        h(InfoRow, { title: 'Google Project ID' }, [
+          h(TooltipCell, [googleProject]),
+          h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Bucket Name' }, [
+          h(TooltipCell, [bucketName]),
+          h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
+        ]),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Estimated Storage Cost',
+          subtitle: !!storageCost ? `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [storageCost?.estimate || '$ ...']),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Bucket Size',
+          subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [bucketSize?.usage])
+      ] : [
+        h(InfoRow, { title: 'Cloud Name' }, [
+          h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+        ]),
+        h(InfoRow, { title: 'Resource Group ID' }, [
+          h(TooltipCell, [azureContext.managedResourceGroupId]),
+          h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+        ])
+      ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
         style: { margin: '1rem 0.5rem' },
         ...Utils.newTabLinkProps,
