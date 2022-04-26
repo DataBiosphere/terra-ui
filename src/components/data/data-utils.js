@@ -1066,7 +1066,7 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) =
       content: h(Fragment, [
         h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
         h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-        _.map(({ label, disabled, onClick }) => h(MenuButton, { key: label, disabled, onClick }, [label]), extraActions)
+        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
       ])
     }, [
       h(Link, { 'aria-label': 'Column menu' }, [
