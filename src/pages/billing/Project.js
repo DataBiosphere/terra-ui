@@ -558,7 +558,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                 }
               },
               // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-              disabled: billingProject.billingAccount === 'null' || billingProject.billingAccount === undefined || billingProject.billingAccount === null
+              disabled: billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount)
             }, ['Remove Billing Account'])
           ])
         }, [
