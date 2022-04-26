@@ -66,30 +66,25 @@ const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
 
-const getTableColIndex = async (page, { tableName, textContains }) => {
-   const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${textContains}")]`)
-   return page.evaluate(node => node.getAttribute("aria-colindex"), colHeaderNode)
+const getTableColIndex = async (page, { tableName, columnText }) => {
+  const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${columnText}")]`)
+  return page.evaluate(node => node.getAttribute('aria-colindex'), colHeaderNode)
 }
 
-// 2. [Option 1] Write a clickElement(elementHandle) - can be invoked like clickElement(findTableTextWithinColumn(...))
-// 3. [Option 2] Implement the two functions below
-// 4. Update request-access
-// 5. remove clickTableCell function
-
-const getTableTextWithinColumn = async (page, { tableName, column, textContains, isDescendant=false }, options) => {
-  const colIndex = await getTableColIndex( page,{ tableName,textContains:column } )
+const getTableTextWithinColumn = async (page, { tableName, columnText, textContains, isDescendant=false }, options) => {
+  const colIndex = await getTableColIndex( page,{ tableName, columnText })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
   const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
   return xpath
 }
 
-const findTableTextWithinColumn = async (page, { tableName, column, textContains }, options) => {
-  const xpath = await getTableTextWithinColumn(page, {tableName, column, textContains})
+const findTableTextWithinColumn = async (page, { tableName, columnText, textContains }, options) => {
+  const xpath = await getTableTextWithinColumn(page, { tableName, columnText, textContains })
   return page.waitForXPath(xpath, options)
 }
 
-const clickTableCell = async (page, { tableName, column, textContains }, options) =>{
-  const tableCellPath = await getTableTextWithinColumn(page, { tableName, column, textContains })
+const clickTableCell = async (page, { tableName, columnText, textContains }, options) =>{
+  const tableCellPath = await getTableTextWithinColumn(page, { tableName, columnText, textContains })
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }

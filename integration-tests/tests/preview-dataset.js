@@ -5,7 +5,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const datasetName = 'Readable Catalog Snapshot 1'
 
-const testPreviewDatasetFn = withUserToken(async ({testUrl, page, token}) => {
+const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
   await waitForNoSpinners(page)
@@ -17,9 +17,9 @@ const testPreviewDatasetFn = withUserToken(async ({testUrl, page, token}) => {
   await waitForNoSpinners(page)
 
   const tableName = 'Participant Preview Data'
-  await findTableTextWithinColumn(page, { tableName, column: 'participant_id', textContains: 'participant1' })
-  await findTableTextWithinColumn(page, { tableName, column: 'biological_sex', textContains: 'male' })
-  await findTableTextWithinColumn(page, { tableName, column: 'age', textContains: '36' })
+  await findTableTextWithinColumn(page, { tableName, columnText: 'participant_id', textContains: 'participant1' })
+  await findTableTextWithinColumn(page, { tableName, columnText: 'biological_sex', textContains: 'male' })
+  await findTableTextWithinColumn(page, { tableName, columnText: 'age', textContains: '36' })
 })
 
 const testPreviewDataset = {
