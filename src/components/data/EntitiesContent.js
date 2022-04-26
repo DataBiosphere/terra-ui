@@ -348,7 +348,7 @@ const EntitiesContent = ({
           disabled: noEdit,
           tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
           onClick: () => setEditingEntities(true)
-        }, ['Edit Attributez']),
+        }, ['Edit Attribute']),
         !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
