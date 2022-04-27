@@ -10,7 +10,6 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
     throw new Error(`${cleanupMessage}: ${cleanupFailure.message}`)
   }
 }
-//Transcriptomic and clonal characterization of T cells in the human central nervous system.
 const linkDataToWorkspace = async (page, testUrl, token) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
