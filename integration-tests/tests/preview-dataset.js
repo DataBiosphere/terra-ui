@@ -12,7 +12,7 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await click(page, clickable({ textContains: `${datasetName}` }))
   await waitForNoSpinners(page)
-  await findText(page, 'Contributors')
+  await findText(page, 'Contributorsx')
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 

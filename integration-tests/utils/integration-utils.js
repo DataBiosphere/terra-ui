@@ -236,12 +236,14 @@ const openError = async page => {
 }
 
 const maybeSaveScreenshot = async (page, testName) => {
+  console.log(`screenshotDirPath: ${screenshotDirPath}`)
   if (!screenshotDirPath) { return }
   try {
     const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
 
     await page.screenshot({ path, fullPage: true })
+    console.log(`took a screenshot ${path}`)
 
     const errorsPresent = await openError(page)
 
