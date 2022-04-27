@@ -422,3 +422,5 @@ export const getIsRuntimeBusy = runtime => {
   return creating || updating || reconfiguring || stopping || starting
 }
 
+export const cloudProviders = { azure: { label: 'azure' }, gcp: {} }
+

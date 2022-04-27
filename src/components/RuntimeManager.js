@@ -24,7 +24,8 @@ import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useOnMount } from 'src/libs/react-utils'
 import {
-  appIsSettingUp, getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getPersistentDiskCostHourly, runtimeCost,
+  appIsSettingUp, cloudProviders, getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime,
+  getPersistentDiskCostHourly, runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
@@ -72,7 +73,9 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     withErrorReporting('Error loading cloud environment details'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: runtimeErrors } = await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
+    console.log('in loadRuntimeError', runtime, _.lowerCase(runtime.cloudContext.cloudProvider))
+    const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ? await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
+      await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
       setError(
         await Ajax()

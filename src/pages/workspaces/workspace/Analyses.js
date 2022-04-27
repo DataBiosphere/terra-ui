@@ -225,13 +225,13 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { /*googleProject,*/ bucketName, azureContext } },
+  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName, azureContext } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   onRequesterPaysError
 }, _ref) => {
   // State
-  //TODO: this is for testing azure functionality, delete soon
-  const googleProject = false
+  //TODO: revert after testing
+  var googleProject = false
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
@@ -277,7 +277,7 @@ const Analyses = _.flow(
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setLocation(location)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
-  }): () => setAnalyses([])
+  }) : () => setAnalyses([])
 
   const getActiveFileTransfers = _.flow(
     withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
@@ -329,16 +329,15 @@ const Analyses = _.flow(
     StateHistory.update({ analyses, sortOrder, filter })
   }, [analyses, sortOrder, filter])
 
-  //TODO: fix for azure in this PR
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
+    !!googleProject ? div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
       img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
       img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
       div([
         img({ src: galaxyLogo, style: { height: 60, width: 208 } })
       ])
-    ]),
+    ]) : undefined,
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
       `Click the button above to create an analysis.`
     ])

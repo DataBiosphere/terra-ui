@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
+import { Fragment, useState } from 'react'
+import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { div, p, span, h, label } from 'react-hyperscript-helpers'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
-import { Fragment, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import {
   azureMachineTypes, azureRegions, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel, getRegionLabel
@@ -32,6 +32,8 @@ export const AzureComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
 
+  //TODO: revert before merging
+  var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
   //TODO: move to utils
   const defaultAzureComputeConfig = {
     machineType: defaultAzureMachineType,
@@ -54,7 +56,7 @@ export const AzureComputeModalBase = ({
 
       setComputeConfig({
         machineType: currentRuntimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-        diskSize:  currentRuntimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+        diskSize: currentRuntimeDetails?.diskConfig?.size || defaultAzureDiskSize,
         region: currentRuntime?.runtimeConfig?.region || defaultAzureRegion
       })
     })
@@ -96,11 +98,10 @@ export const AzureComputeModalBase = ({
           ]),
           p({ style: { marginBottom: '2rem' } }, ['Azure Data Science Virtual Machine']),
           div([
-            //TODO: add documentation
-            h(Link, { href: '', ...Utils.newTabLinkProps }, [
+            h(Link, { href: 'https://azure.microsoft.com/en-us/services/virtual-machines/data-science-virtual-machines/#product-overview', ...Utils.newTabLinkProps }, [
               'Learn more about this Azure Data Science VMs',
               icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-            ]),
+            ])
           ])
         ])
       ])
@@ -111,18 +112,18 @@ export const AzureComputeModalBase = ({
     console.log('compute config machine type', computeConfig)
     console.log('currentRuntimeDetails', currentRuntimeDetails)
 
-    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem'} }, [
+    return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { marginBottom: '2rem' } }, [
         h(IdContainer, [
           id => h(Fragment, [
-            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label  } }, ['Cloud compute profile']),
+            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label } }, ['Cloud compute profile']),
             div({ style: { width: 400 } }, [
               h(Select, {
                 id,
                 isSearchable: false,
                 isClearable: false,
                 value: computeConfig.machineType,
-                onChange: v => updateComputeConfig('machineType', v),
+                onChange: ({ value }) => updateComputeConfig('machineType', value),
                 options: _.keys(azureMachineTypes),
                 getOptionLabel: ({ value }) => getMachineTypeLabel(value),
                 styles: { width: '400' }
@@ -134,21 +135,21 @@ export const AzureComputeModalBase = ({
           h(Link, { href: 'https://azure.microsoft.com/en-us/pricing/details/virtual-machines/series/', ...Utils.newTabLinkProps }, [
             'Learn more about cloud compute profiles',
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ]),
+          ])
         ])
       ]),
       div({ style: { marginBottom: '2rem' } }, [
         h(IdContainer, [
           id => h(Fragment, [
-            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label  } }, ['Location']),
+            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label } }, ['Location']),
             div({ style: { width: 400 } }, [
               h(Select, {
                 id,
                 isSearchable: false,
                 isClearable: false,
                 value: computeConfig.region,
-                isDisabled: true, //this is currently locked to workspace locatio
-                onChange: v => updateComputeConfig('region', v),
+                isDisabled: true, //this is currently locked to workspace location
+                onChange: ({ value }) => updateComputeConfig('region', value),
                 options: _.keys(azureRegions),
                 getOptionLabel: ({ value }) => getRegionLabel(value)
               })
@@ -159,7 +160,7 @@ export const AzureComputeModalBase = ({
       div({ style: { marginBottom: '2rem' } }, [
         h(IdContainer, [
           id => h(Fragment, [
-            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label  } }, ['Disk Size (GB)']),
+            div({ htmlFor: id, style: { marginBottom: '.5rem', ...computeStyles.label } }, ['Disk Size (GB)']),
             div({ style: { width: 75 } }, [
               h(NumberInput, {
                 id,
@@ -168,7 +169,7 @@ export const AzureComputeModalBase = ({
                 isClearable: false,
                 onlyInteger: true,
                 value: computeConfig.diskSize,
-                onChange: v => updateComputeConfig('diskSize', v),
+                onChange: v => updateComputeConfig('diskSize', v)
               })
             ])
           ])
@@ -180,7 +181,7 @@ export const AzureComputeModalBase = ({
   const adaptRuntimeDetailsToFormConfig = () => {
     return currentRuntimeDetails ? {
       machineType: currentRuntimeDetails.runtimeConfig?.machineType || defaultAzureMachineType,
-      diskSize:  currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
+      diskSize: currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
       region: currentRuntimeDetails.runtimeConfig?.region || defaultAzureRegion
     } : {}
   }
@@ -194,23 +195,25 @@ export const AzureComputeModalBase = ({
   const doesRuntimeExist = () => !!currentRuntimeDetails
 
   const renderActionButton = () => {
-    const commonButtonProps = { tooltipSide: 'left',
+    const commonButtonProps = {
+      tooltipSide: 'left',
       disabled: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
         () => doesRuntimeExist()),
       tooltip: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
-        () => undefined) }
+        () => undefined)
+    }
 
     return h(ButtonPrimary, {
-        ...commonButtonProps,
-        onClick: () => applyChanges(),
-      }, [
-        Utils.cond(
-          [viewMode === 'deleteEnvironment', () => 'Delete'],
-          [doesRuntimeExist(), () => 'Update'],
-          () => 'Create'
-        )
-      ]
+      ...commonButtonProps,
+      onClick: () => applyChanges()
+    }, [
+      Utils.cond(
+        [viewMode === 'deleteEnvironment', () => 'Delete'],
+        [doesRuntimeExist(), () => 'Update'],
+        () => 'Create'
+      )
+    ]
     )
   }
 
@@ -219,12 +222,11 @@ export const AzureComputeModalBase = ({
     Utils.withBusyState(setLoading),
     withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
-
     //TODO: metrics onclick
     //sendCloudEnvironmentMetrics()
 
     //each branch of the cond should return a promise
-    await Utils.cond([viewMode === 'deleteEnvironment', () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete() ], //delete runtime
+    await Utils.cond([viewMode === 'deleteEnvironment', () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
       [Utils.DEFAULT, () => {
         const disk = {
           size: computeConfig.diskSize,
@@ -238,7 +240,7 @@ export const AzureComputeModalBase = ({
           machineSize: computeConfig.machineType,
           labels: {
             saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: workspaceName,
+            saturnWorkspaceName: workspaceName
           },
           disk
         })
@@ -324,8 +326,6 @@ export const AzureComputeModalBase = ({
     ),
     loading && spinnerOverlay
   ])
-
-
 }
 
 export const AzureComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(

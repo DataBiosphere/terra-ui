@@ -1505,7 +1505,7 @@ const Runtimes = signal => ({
     return res.json()
   },
 
-  runtimeV2: (workspaceId, name, cloudProvider = "azure") => {
+  runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
     const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
 
     return {
@@ -1517,7 +1517,7 @@ const Runtimes = signal => ({
 
       create: options => {
         const body = _.merge(options, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version },
+          labels: { saturnAutoCreated: 'true', saturnVersion: version }
         })
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },

@@ -114,7 +114,9 @@ const WorkspaceContainer = ({
 
   // If googleProject is not undefined (server info not yet loaded)
   // and not the empty string, we know that we have a Google workspace.
+  //TODO: revert before merging testing
   const isGoogleWorkspace = !!workspace?.workspace.googleProject
+  console.log('is googleWorkspace in workspaceContainer', isGoogleWorkspace)
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -136,7 +138,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      isGoogleWorkspace && h(RuntimeManager, {
+      h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
         apps, appDataDisks, workspace, refreshApps, location, locationType
@@ -210,6 +212,8 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
+  //TODO: revert before merging
+  var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -221,9 +225,9 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
       ]) : await Promise.all([
-          Promise.resolve([]),
-          workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email} ) : Promise.resolve([])
-        ])
+        Promise.resolve([]),
+        workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
+      ])
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
