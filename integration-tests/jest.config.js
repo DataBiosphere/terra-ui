@@ -6,7 +6,7 @@ module.exports = {
     [
       'jest-junit',
       {
-        outputDirectory: '/tmp/test-results',
+        outputDirectory: 'test-results',
         outputName: 'integration-test-results.xml',
         suiteName: 'Integration tests',
         addFileAttribute: 'true',

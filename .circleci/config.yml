@@ -127,9 +127,6 @@ commands:
       env:
         type: string
         default: local
-      tmp:
-        type: string
-        default: /mnt/ramdisk/tmp
     steps:
       - checkout
       - attach_workspace:
@@ -140,9 +137,6 @@ commands:
       - run:
           working_directory: integration-tests
           command: yarn install --immutable-cache
-      - run:
-          name: Creating temporary directory
-          command: mkdir << parameters.tmp >>
       - when:
           condition: << parameters.local >>
           steps:
@@ -162,8 +156,7 @@ commands:
           name: "Run integration tests"
           working_directory: integration-tests
           environment:
-            JEST_JUNIT_OUTPUT_DIR: "<< parameters.tmp >>/test-results/integration-test-results.xml"
-            SCREENSHOT_DIR: "<< parameters.tmp >>/failure-screenshots"
+            SCREENSHOT_DIR: "screenshots"
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
@@ -171,10 +164,9 @@ commands:
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
-          path: "<< parameters.tmp >>/test-results"
+          path: "test-results"
       - store_artifacts:
-          path: "<< parameters.tmp >>/failure-screenshots"
-          destination: screenshots
+          path: "screenshots"
   notify-qa:
     parameters:
       channel:
