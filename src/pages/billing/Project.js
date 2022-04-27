@@ -563,7 +563,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           ])
         }, [
           h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
-            icon('cardMenuIcon', { size: 16 })
+            icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
           ])
         ]),
         showBillingModal && h(Modal, {
