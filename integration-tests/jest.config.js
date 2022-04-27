@@ -8,7 +8,7 @@ module.exports = {
       'jest-junit',
       {
         suiteName: 'Integration tests',
-        addFileAttribute: true,
+        addFileAttribute: 'true',
         includeConsoleOutput: true
       }
     ]
