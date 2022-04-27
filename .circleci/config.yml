@@ -9,7 +9,7 @@ executors:
     docker:
       - image: cimg/node:16.14
   puppeteer:
-    working_directory: /mnt/ramdisk
+    working_directory: /mnt/ramdisk/terra-ui
     docker:
       - image: cimg/node:16.14-browsers
   gcloud:
@@ -127,6 +127,9 @@ commands:
       env:
         type: string
         default: local
+      tmp:
+        type: string
+        default: /mnt/ramdisk/tmp
     steps:
       - checkout
       - attach_workspace:
@@ -137,6 +140,9 @@ commands:
       - run:
           working_directory: integration-tests
           command: yarn install --immutable-cache
+      - run:
+          name: Creating temporary directory
+          command: mkdir << parameters.tmp >>
       - when:
           condition: << parameters.local >>
           steps:
@@ -156,8 +162,8 @@ commands:
           name: "Run integration tests"
           working_directory: integration-tests
           environment:
-            JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
-            SCREENSHOT_DIR: "/tmp/failure-screenshots"
+            JEST_JUNIT_OUTPUT_DIR: "<< parameters.tmp >>/test-results/integration-test-results.xml"
+            SCREENSHOT_DIR: "<< parameters.tmp >>/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
@@ -165,9 +171,9 @@ commands:
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
-          path: /tmp/test-results
+          path: "<< parameters.tmp >>/test-results"
       - store_artifacts:
-          path: /tmp/failure-screenshots
+          path: "<< parameters.tmp >>/failure-screenshots"
           destination: screenshots
   notify-qa:
     parameters:
