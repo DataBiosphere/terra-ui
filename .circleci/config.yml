@@ -149,9 +149,6 @@ commands:
                 name: "Watch the port for local UI server start up"
                 command: dockerize -wait http://localhost:3000 -timeout 4m
       - run:
-          name: Creating screenshots and test-results directories
-          command: mkdir screenshots && mkdir test-results && pwd && ls -al
-      - run:
           name: "Create integration_tests.txt (contains integration test names)"
           working_directory: ./integration-tests
           command: yarn jest --listTests | grep -o 'jest/.*.integration-test.js$' > integration_tests.txt
@@ -163,7 +160,8 @@ commands:
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
-            mkdir -p ${SCREENSHOT_DIR}
+            mkdir -pv test-results
+            mkdir -pv screenshots
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
