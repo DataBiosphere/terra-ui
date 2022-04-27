@@ -148,7 +148,7 @@ commands:
       - run:
           name: "Create integration_tests.txt (contains integration test names)"
           working_directory: integration-tests
-          command: yarn jest --listTests | grep -o 'jest/**.integration-test.js$' > integration_tests.txt
+          command: yarn jest --listTests | grep -o 'jest/.*.integration-test.js$' > integration_tests.txt
       - run:
           name: "Run integration tests"
           working_directory: integration-tests
