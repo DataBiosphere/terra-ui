@@ -157,14 +157,16 @@ commands:
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
+            pwd
             mkdir -pv test-results
             mkdir -pv screenshots
+            ls
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
-          path: /mnt/ramdisk/terra-ui/test-results
+          path: /mnt/ramdisk/terra-ui/integration-tests/test-results
       - store_artifacts:
-          path: test-results/screenshots
+          path: /mnt/ramdisk/terra-ui/integration-tests/test-results/screenshots
   notify-qa:
     parameters:
       channel:
