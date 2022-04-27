@@ -308,15 +308,22 @@ export const ComputeModalBase = ({
         })
       }
       if (shouldCreateRuntime) {
-        const diskConfig = existingPersistentDisk && !shouldDeletePersistentDisk ? {
-          name: currentPersistentDiskDetails.name
-        } : {
-          name: Utils.generatePersistentDiskName(),
-          size: desiredPersistentDisk.size,
-          diskType: desiredPersistentDisk.diskType.label,
-          labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
-        }
-        const createRuntimeConfig = { ...runtimeConfig, persistentDisk: diskConfig }
+        const diskConfig = Utils.cond(
+          [desiredRuntime.cloudService === cloudServices.DATAPROC, () => { return {} }],
+          [existingPersistentDisk && !shouldDeletePersistentDisk, () => { return { persistentDisk: { name: currentPersistentDiskDetails.name } } }],
+          [Utils.DEFAULT, () => {
+            return {
+              persistentDisk: {
+                name: Utils.generatePersistentDiskName(),
+                size: desiredPersistentDisk.size,
+                diskType: desiredPersistentDisk.diskType.label,
+                labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
+              }
+            }
+          }]
+        )
+
+        const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
 
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
           runtimeConfig: createRuntimeConfig,
