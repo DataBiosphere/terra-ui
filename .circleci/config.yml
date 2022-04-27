@@ -160,7 +160,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
-            yarn test $TESTS_TO_RUN --maxWorkers=2 --reporters=default --reporters=jest-junit
+            yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
           path: /tmp/test-results
           destination: test-results
