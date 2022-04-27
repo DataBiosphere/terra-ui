@@ -158,8 +158,7 @@ commands:
           no_output_timeout: 16m
           command: |
             pwd
-            mkdir -pv test-results
-            mkdir -pv screenshots
+            mkdir -pv test-results/screenshots
             ls
             TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2
