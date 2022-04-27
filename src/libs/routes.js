@@ -15,6 +15,7 @@ import * as DataBrowserDetails from 'src/pages/library/DataBrowserDetails'
 import * as DataBrowserPreview from 'src/pages/library/DataBrowserPreview'
 import * as Datasets from 'src/pages/library/Datasets'
 import * as DataExplorer from 'src/pages/library/datasets/DataExplorer'
+import * as GPDataSelector from 'src/pages/library/GPDataSelector'
 import * as Showcase from 'src/pages/library/Showcase'
 import * as NotFound from 'src/pages/NotFound'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
@@ -66,6 +67,7 @@ const routes = _.flatten([
   DataBrowser.navPaths,
   DataBrowserDetails.navPaths,
   DataBrowserPreview.navPaths,
+  GPDataSelector.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
   Showcase.navPaths,
