@@ -153,7 +153,7 @@ commands:
           name: "Run integration tests"
           working_directory: integration-tests
           environment:
-            SCREENSHOT_DIR: "test-results/screenshots"
+            SCREENSHOT_DIR: "/mnt/ramdisk/terra-ui/integration-tests/test-results/screenshots"
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
