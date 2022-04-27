@@ -5,12 +5,12 @@ import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import {
-  azureMachineTypes, azureRegions, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel, getRegionLabel
+  azureMachineTypes, azureRegions, defaultAzureComputeConfig, defaultAzureDiskSize, defaultAzureMachineType, defaultAzureRegion, getMachineTypeLabel,
+  getRegionLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -25,21 +25,14 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, workspace, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes
+  onDismiss, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes
 }) => {
   const [loading, setLoading] = useState(false)
-  const [azureRuntimes, setAzureRuntimes] = useState()
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
 
   //TODO: revert before merging
   var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
-  //TODO: move to utils
-  const defaultAzureComputeConfig = {
-    machineType: defaultAzureMachineType,
-    diskSize: defaultAzureDiskSize,
-    region: defaultAzureRegion
-  }
 
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
@@ -109,9 +102,6 @@ export const AzureComputeModalBase = ({
   }
 
   const renderComputeProfileSection = () => {
-    console.log('compute config machine type', computeConfig)
-    console.log('currentRuntimeDetails', currentRuntimeDetails)
-
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { marginBottom: '2rem' } }, [
         h(IdContainer, [
@@ -178,19 +168,20 @@ export const AzureComputeModalBase = ({
     ])
   }
 
-  const adaptRuntimeDetailsToFormConfig = () => {
-    return currentRuntimeDetails ? {
-      machineType: currentRuntimeDetails.runtimeConfig?.machineType || defaultAzureMachineType,
-      diskSize: currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
-      region: currentRuntimeDetails.runtimeConfig?.region || defaultAzureRegion
-    } : {}
-  }
-
-  const hasChanges = () => {
-    const existingConfig = adaptRuntimeDetailsToFormConfig()
-
-    return !_.isEqual(existingConfig, computeConfig)
-  }
+  // Will be used once we support update
+  // const hasChanges = () => {
+  //   const existingConfig = adaptRuntimeDetailsToFormConfig()
+  //
+  //   return !_.isEqual(existingConfig, computeConfig)
+  // }
+  //
+  // const adaptRuntimeDetailsToFormConfig = () => {
+  //   return currentRuntimeDetails ? {
+  //     machineType: currentRuntimeDetails.runtimeConfig?.machineType || defaultAzureMachineType,
+  //     diskSize: currentRuntimeDetails.diskConfig?.size || defaultAzureDiskSize,
+  //     region: currentRuntimeDetails.runtimeConfig?.region || defaultAzureRegion
+  //   } : {}
+  // }
 
   const doesRuntimeExist = () => !!currentRuntimeDetails
 

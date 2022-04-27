@@ -73,7 +73,6 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     withErrorReporting('Error loading cloud environment details'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    console.log('in loadRuntimeError', runtime, _.lowerCase(runtime.cloudContext.cloudProvider))
     const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ? await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
       await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
@@ -289,7 +288,7 @@ export default class RuntimeManager extends PureComponent {
     const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, appDataDisks, refreshApps, location, locationType, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     const { computeRegion } = getRegionInfo(location, locationType)
-    if (!runtimes || !apps) {
+    if (!runtimes || !apps || !workspace?.workspace.googleProject) {
       return null
     }
     const currentRuntime = this.getCurrentRuntime()

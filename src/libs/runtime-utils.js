@@ -128,9 +128,9 @@ const dataprocCost = (machineType, numInstances) => {
 }
 
 const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
-  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes)
+  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || {}
   const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
-    regionToPrices)
+    regionToPrices) || {}
   return isPreemptible ?
     (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice) :
     (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice)

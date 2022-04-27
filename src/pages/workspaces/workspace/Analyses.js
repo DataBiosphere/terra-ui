@@ -225,11 +225,10 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName, azureContext } },
+  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   onRequesterPaysError
 }, _ref) => {
-  // State
   //TODO: revert after testing
   var googleProject = false
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)

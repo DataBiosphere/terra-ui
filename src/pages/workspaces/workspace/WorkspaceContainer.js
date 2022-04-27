@@ -116,7 +116,6 @@ const WorkspaceContainer = ({
   // and not the empty string, we know that we have a Google workspace.
   //TODO: revert before merging testing
   const isGoogleWorkspace = !!workspace?.workspace.googleProject
-  console.log('is googleWorkspace in workspaceContainer', isGoogleWorkspace)
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -300,7 +299,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = usePrevious(googleProject)
-    console.log('before cloudenv polling, {workspace}', workspace, googleProject)
     //TODO: revert before merge, used for testing
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(null, workspace?.workspace.workspaceId)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
