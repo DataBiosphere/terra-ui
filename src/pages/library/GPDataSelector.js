@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { div, h, p, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -22,15 +23,15 @@ const GPDataSelector = () => {
       // TODO: Factor out acknowledgement styling
       style: {
         border: `2px solid ${colors.accent()}`, borderRadius: 3,
-        backgroundColor: colors.light(),
+        backgroundColor: colors.grey(0.3),
         padding: '1px 20px', margin: '10px 1000px 10px 30px',
         fontSize: '0.9rem',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between'
       }
     }, [
       div({ style: { lineHeight: '0.5rem' } }, [
-        p(['The data displayed on this page is solely for proof-of-concept testing of GP Data Selector.']),
-        p([strong('Not for research purposes.')])
+        p([strong(_.toUpper('Not for research purposes!'))]),
+        p(['The data displayed on this page is solely for proof-of-concept testing of GP Data Selector.'])
       ]),
       h(ButtonPrimary, {
         style: { minWidth: 88, minHeight: 40 },
