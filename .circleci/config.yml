@@ -146,6 +146,11 @@ commands:
                 background: true
             - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run:
+          name: "Create integration_tests.txt (contains integration test names)"
+          working_directory: integration-tests
+          command: yarn jest --listTests | grep -o 'jest/**.integration-test.js$' > integration_tests.txt
+      - run:
+          name: "Run integration tests"
           working_directory: integration-tests
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
@@ -154,12 +159,14 @@ commands:
           no_output_timeout: 16m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
-            TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
+            TESTS_TO_RUN=$(circleci tests split --split-by=timings integration_tests.txt)
             yarn test $TESTS_TO_RUN --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
+          destination: test-results
       - store_artifacts:
           path: /tmp/failure-screenshots
+          destination: screenshots
   notify-qa:
     parameters:
       channel:
