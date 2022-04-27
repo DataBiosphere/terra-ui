@@ -13,7 +13,7 @@ executors:
     docker:
       - image: cimg/node:16.14-browsers
   gcloud:
-    working_directory: /mnt/ramdisk
+    working_directory: /mnt/ramdisk/terra-ui
     docker:
       - image: google/cloud-sdk:alpine
 
@@ -135,7 +135,7 @@ commands:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run:
-          working_directory: integration-tests
+          working_directory: /mnt/ramdisk/terra-ui/integration-tests
           command: yarn install --immutable-cache
       - when:
           condition: << parameters.local >>
@@ -150,14 +150,14 @@ commands:
                 command: dockerize -wait http://localhost:3000 -timeout 4m
       - run:
           name: Creating screenshots and test-results directories
-          command: mkdir screenshots && mkdir test-results
+          command: mkdir screenshots && mkdir test-results && pwd && ls -al
       - run:
           name: "Create integration_tests.txt (contains integration test names)"
-          working_directory: integration-tests
+          working_directory: ./integration-tests
           command: yarn jest --listTests | grep -o 'jest/.*.integration-test.js$' > integration_tests.txt
       - run:
           name: "Run integration tests"
-          working_directory: integration-tests
+          working_directory: ./integration-tests
           environment:
             SCREENSHOT_DIR: "screenshots"
             ENVIRONMENT: << parameters.env >>
