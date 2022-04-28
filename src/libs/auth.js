@@ -169,6 +169,8 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
+        // Once the ToS grace period has ended in production, if Sam returns `enabled` above, `acceptedTos` should also be true.
+        // At that point, we can add an assertion here.
         return state.acceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled

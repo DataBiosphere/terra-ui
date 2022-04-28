@@ -17,7 +17,6 @@ export const authStore = Utils.atom({
 
 export const userStatus = {
   unregistered: 'unregistered',
-  createdProfile: 'createdProfile',
   registeredWithoutTos: 'registeredWithoutTos',
   registeredWithTos: 'registered',
   disabled: 'disabled'

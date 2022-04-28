@@ -35,7 +35,7 @@ const Register = () => {
         lastName: familyName,
         contactEmail: email
       })
-      authStore.update(state => ({ ...state, registrationStatus: userStatus.createdProfile }))
+      authStore.update(state => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }))
       await refreshTerraProfile()
       Ajax().Metrics.captureEvent(Events.userRegister)
     } catch (error) {
