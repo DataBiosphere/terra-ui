@@ -288,7 +288,7 @@ export default class RuntimeManager extends PureComponent {
     const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, appDataDisks, refreshApps, location, locationType, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     const { computeRegion } = getRegionInfo(location, locationType)
-    if (!runtimes || !apps || !workspace?.workspace.googleProject) {
+    if (!runtimes || !apps) {
       return null
     }
     const currentRuntime = this.getCurrentRuntime()
