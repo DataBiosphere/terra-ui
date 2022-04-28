@@ -14,6 +14,7 @@ import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { DeleteObjectConfirmationModal } from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
+import RenameTableModal from 'src/components/data/RenameTableModal'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
@@ -467,6 +468,7 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
   const [loading, setLoading] = useState(false)
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
+  const [renaming, setRenaming] = useState(false)
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -504,7 +506,12 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
             setEntities(_.map(_.get('name'), queryResults.results))
             setExporting(true)
           })
-        }, 'Export to workspace')
+        }, 'Export to workspace'),
+        h(MenuButton, {
+          onClick: () => {
+            setRenaming(true)
+          }
+        }, 'Rename table')
       ])
     }, [
       h(Clickable, {
@@ -522,6 +529,11 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
       selectedDataType: tableName,
       selectedEntities: entities,
       runningSubmissionsCount
+    }),
+    renaming && h(RenameTableModal, {
+      onDismiss: () => setRenaming(false),
+      workspace,
+      selectedDataType: tableName
     })
   ])
 }
