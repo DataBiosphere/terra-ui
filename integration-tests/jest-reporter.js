@@ -13,7 +13,6 @@ module.exports = class JestReporter {
 
   onTestResult(_testRunConfig, testResult, _runResults) {
     console.log({ testResult })
-    
     // Save log if a test has failed. Ignore test that has passed.
     const testName = path.parse(testResult.testFilePath).name
     const logFileName = `${this.logDir}/${testName}.log`
