@@ -39,7 +39,7 @@ const contextBarStyles = {
 
 export const ContextBar = ({
   runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
+  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName, googleProject } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
@@ -59,7 +59,8 @@ export const ContextBar = ({
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
     [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: '' })],
     [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -125,7 +126,12 @@ export const ContextBar = ({
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
+            onClick: () => {
+              setCloudEnvOpen(!isCloudEnvOpen)
+              if (!googleProject) {
+                setSelectedToolIcon(tools.Azure.label)
+              }
+            },
             tooltip: 'Environment Configuration',
             tooltipDelay: 100,
             useTooltipAsLabel: true

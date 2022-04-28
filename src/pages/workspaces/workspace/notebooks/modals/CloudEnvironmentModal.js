@@ -28,6 +28,7 @@ import {
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 
 
 const titleId = 'cloud-env-modal'
@@ -55,6 +56,20 @@ export const CloudEnvironmentModal = ({
     runtimes,
     persistentDisks,
     location,
+    onDismiss: () => {
+      setViewMode(undefined)
+      onDismiss()
+    },
+    onSuccess: () => {
+      setViewMode(undefined)
+      onSuccess()
+    }
+  })
+
+  const renderAzureModal = () => h(AzureComputeModalBase, {
+    isOpen: viewMode === NEW_AZURE_MODE,
+    workspace,
+    runtimes,
     onDismiss: () => {
       setViewMode(undefined)
       onDismiss()
@@ -192,7 +207,7 @@ export const CloudEnvironmentModal = ({
           shape: 'play',
           toolLabel,
           onClick: () => startApp(toolLabel),
-          disabled: busy || !canCompute,
+          disabled: busy || !canCompute || toolLabel === tools.Azure.label, //TODO: Azure stop/start
           messageChildren: [span('Resume'),
             span('Environment')],
           tooltip: canCompute ? 'Resume Environment' : noCompute
@@ -202,7 +217,7 @@ export const CloudEnvironmentModal = ({
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
-          disabled: busy || !canCompute,
+          disabled: busy || !canCompute || toolLabel === tools.Azure.label, //TODO: Azure stop/start,
           messageChildren: [span('Pause'),
             span('Environment')],
           tooltip: canCompute ? 'Pause Environment' : noCompute
@@ -253,12 +268,14 @@ export const CloudEnvironmentModal = ({
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
-    [tools.Cromwell.label, () => cromwellImg])
+    [tools.Cromwell.label, () => cromwellImg],
+    [tools.Azure.label, () => jupyterLogo])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
     [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
     [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -287,7 +304,7 @@ export const CloudEnvironmentModal = ({
     const isToolBusy = isToolAnApp(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
-    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label
+    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label || toolLabel === tools.Azure.label
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -398,9 +415,11 @@ export const CloudEnvironmentModal = ({
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.Galaxy.label
   const NEW_CROMWELL_MODE = tools.Cromwell.label
+  const NEW_AZURE_MODE = tools.Azure.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
+    [NEW_AZURE_MODE, () => renderAzureModal()],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
     [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
     [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
@@ -412,6 +431,7 @@ export const CloudEnvironmentModal = ({
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
     [NEW_CROMWELL_MODE, () => 675],
+    [NEW_AZURE_MODE, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 

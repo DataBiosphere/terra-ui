@@ -148,8 +148,7 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      //TODO: handle in IA-3265
-      (isGoogleWorkspace && isAnalysisTabVisible() ?
+      (isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
