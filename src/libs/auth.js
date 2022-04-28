@@ -37,6 +37,10 @@ export const hasBillingScope = () => {
   return getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')
 }
 
+const registeredAndAcceptedTos = (oldState, state) => {
+  return (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered' && state.acceptedTos) ||
+    (state.registrationStatus === 'registered' && state.acceptedTos && !oldState.acceptedTos)
+}
 /*
  * Request Google Cloud Billing scope if necessary.
  *
@@ -110,7 +114,7 @@ export const initializeAuth = _.memoize(async () => {
         fenceStatus: isSignedIn ? state.fenceStatus : {},
         // Load whether a user has input a cookie acceptance in a previous session on this system,
         // or whether they input cookie acceptance previously in this session
-        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
+        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : false,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: authResponse ? authResponse.access_token : undefined,
@@ -210,7 +214,7 @@ authStore.subscribe(state => {
 })
 
 authStore.subscribe(withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (registeredAndAcceptedTos(oldState, state)) {
     const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list())
     authStore.update(state => ({ ...state, isTimeoutEnabled }))
   }
@@ -228,20 +232,20 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 }))
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (registeredAndAcceptedTos(oldState, state)) {
     const nihStatus = await Ajax().User.getNihStatus()
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
 
 authStore.subscribe(async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (registeredAndAcceptedTos(oldState, state)) {
     await Ajax().Metrics.syncProfile()
   }
 })
 
 authStore.subscribe(async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (registeredAndAcceptedTos(oldState, state)) {
     if (state.anonymousId) {
       return await Ajax().Metrics.identify(state.anonymousId)
     }
@@ -274,7 +278,7 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+  if (registeredAndAcceptedTos(oldState, state)) {
     await Promise.all(_.map(async ({ key }) => {
       const status = await Ajax().User.getFenceStatus(key)
       authStore.update(_.set(['fenceStatus', key], status))
