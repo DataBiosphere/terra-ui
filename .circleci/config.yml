@@ -155,7 +155,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
-            yarn test $TESTS_TO_RUN --maxWorkers=2 --reporters=default --reporters=jest-junit
+            yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
