@@ -300,11 +300,13 @@ module.exports = {
   findInGrid,
   findElement,
   findHeading,
+  findTableTextWithinColumn,
   findText,
   fillIn,
   fillInReplace,
   getAnimatedDrawer,
   getTableCellPath,
+  getTableColIndex,
   heading,
   image,
   input,
@@ -321,7 +323,5 @@ module.exports = {
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
-  openError,
-  getTableColIndex,
-  findTableTextWithinColumn
+  openError
 }
