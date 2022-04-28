@@ -599,7 +599,7 @@ export const SimpleTable = ({
             return div({
               key,
               role: 'cell',
-              'aria-rowindex': i + 2,
+              'aria-rowindex': i + 2, // The first row of data is 2
               'aria-colindex': colindex + 1, // The first column is 1
               className: 'table-cell',
               style: {
