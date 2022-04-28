@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, waitForNoSpinners, getTableCellPath, getTableColIndex findTableTextWithinColumn } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, waitForNoSpinners, getTableCellPath, getTableColIndex, findTableTextWithinColumn } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
