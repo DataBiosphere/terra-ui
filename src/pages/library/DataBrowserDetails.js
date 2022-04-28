@@ -145,10 +145,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 onClick: () => {
                   setShowRequestAccessModal(true)
                   Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                    // These are still using snapshot as a relic to ensure backwards search
-                    // capabilities within the data browser.
                     id: dataObj.id,
-                    // TODO: Make point at a data catalog title, rather than the underlying storage system
                     title: dataObj['dct:title']
                   })
                 }
@@ -206,10 +203,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
-            // These are still using snapshot as a relic to ensure backwards search
-            // capabilities within the data browser.
             id: dataObj.id,
-            // TODO: Use a data catalog title, rather than a data repo one.
             title: dataObj['dct:title']
           })
           Nav.goToPath('library-catalog-preview', { id: dataObj.id })
@@ -226,10 +220,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-            // These are still using snapshot as a relic to ensure backwards search
-            // capabilities within the data browser.
-            snapshotId: id,
-            snapshotName: dataObj['dct:title']
+            id,
+            title: dataObj['dct:title']
           })
           importDataToWorkspace([dataObj])
         }

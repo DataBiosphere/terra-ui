@@ -173,7 +173,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
               onClick: () => {
                 Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
                   id: datum.id,
-                  // TODO: Make this point at a title in the catalog
                   title: datum['dct:title']
                 })
                 Nav.goToPath('library-details', { id: datum.id })
@@ -194,7 +193,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                     setRequestDatasetAccessList([datum])
                     Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
                       id: datum.id,
-                      // TODO: Make this use a catalog name
                       title: datum['dct:title']
                     })
                   }
