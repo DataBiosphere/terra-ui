@@ -277,8 +277,16 @@ const logPageConsoleMessages = page => {
 }
 
 const logPageAjaxResponses = page => {
+  const terraRequests = [
+    'broad',
+    'terra'
+  ]
   const handle = res => {
-    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+    const request = res.request()
+    if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
+      console.log('page.http.res', `${request.method()}\t${res.status()}  ${res.url()}`)
+      // rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+    }
   }
   page.on('response', handle)
   return () => page.off('response', handle)
