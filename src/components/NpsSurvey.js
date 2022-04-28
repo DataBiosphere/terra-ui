@@ -27,7 +27,7 @@ const NpsSurvey = () => {
   const [reasonComment, setReasonComment] = useState('')
   const [changeComment, setChangeComment] = useState('')
 
-  const { registrationStatus } = useStore(authStore)
+  const { registrationStatus, acceptedTos } = useStore(authStore)
 
   const loadStatus = async () => {
     const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
@@ -42,12 +42,12 @@ const NpsSurvey = () => {
   }
 
   useEffect(() => {
-    if (registrationStatus === 'registered') {
+    if (registrationStatus === 'registered' && acceptedTos) {
       loadStatus()
     } else {
       setRequestable(false)
     }
-  }, [registrationStatus])
+  }, [registrationStatus, acceptedTos])
 
   const goAway = shouldSubmit => () => {
     setRequestable(false)
