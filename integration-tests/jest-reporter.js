@@ -13,45 +13,42 @@ module.exports = class JestReporter {
 
   onTestResult(_testRunConfig, testResult, _runResults) {
     console.log({ testResult })
-    const hasFailure = testResult.testResults.some(result => result.status === 'failed')
-    console.log(`hasFailure: ${hasFailure}`)
-    if (hasFailure) {
-      // Save log if a test has failed. Ignore test that has passed.
-      const testName = path.parse(testResult.testFilePath).name
-      const logFileName = `${this.logDir}/${testName}.log`
-      !existsSync(this.logDir) && mkdirSync(this.logDir)
+    
+    // Save log if a test has failed. Ignore test that has passed.
+    const testName = path.parse(testResult.testFilePath).name
+    const logFileName = `${this.logDir}/${testName}.log`
+    !existsSync(this.logDir) && mkdirSync(this.logDir)
 
-      const writableStream = createWriteStream(logFileName)
-      writableStream.on('error', error => {
-        console.error(`Error occurred while writing Console logs to ${logFileName}.\n${error.message}`)
+    const writableStream = createWriteStream(logFileName)
+    writableStream.on('error', error => {
+      console.error(`Error occurred while writing Console logs to ${logFileName}.\n${error.message}`)
+    })
+
+    if (testResult.console && testResult.console.length > 0) {
+      testResult.console.forEach(log => {
+        writableStream.write(`${log.message}\n`)
       })
-
-      if (testResult.console && testResult.console.length > 0) {
-        testResult.console.forEach(log => {
-          writableStream.write(`${log.message}\n`)
-        })
-      }
-
-      // Get failure messages.
-      writableStream.write('\n\nTests Summary\n')
-      testResult.testResults.forEach(result => {
-        writableStream.write('----------------------------------------------\n')
-        writableStream.write(`Test: ${result.title}\n`)
-        writableStream.write(`Status: ${result.status}\n`)
-        // Get failure message.
-        if (result.failureMessages.length > 0) {
-          const failure = result.failureMessages
-          writableStream.write(`Failure message: ${failure}\n`)
-        }
-        writableStream.write('\n')
-      })
-
-      writableStream.end()
-      writableStream.on('finish', () => {
-        console.log(`Finished writing logs to ${logFileName}`)
-      })
-      console.log(`saved tet log ${logFileName}`)
     }
+
+    // Get failure messages.
+    writableStream.write('\n\nTests Summary\n')
+    testResult.testResults.forEach(result => {
+      writableStream.write('----------------------------------------------\n')
+      writableStream.write(`Test: ${result.title}\n`)
+      writableStream.write(`Status: ${result.status}\n`)
+      // Get failure message.
+      if (result.failureMessages.length > 0) {
+        const failure = result.failureMessages
+        writableStream.write(`Failure message: ${failure}\n`)
+      }
+      writableStream.write('\n')
+    })
+
+    writableStream.end()
+    writableStream.on('finish', () => {
+      console.log(`Finished writing logs to ${logFileName}`)
+    })
+    console.log(`saved tet log ${logFileName}`)
   }
 
   timeNow() {
