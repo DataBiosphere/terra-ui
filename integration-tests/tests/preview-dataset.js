@@ -19,6 +19,7 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   const tableName = 'Participant Preview Data'
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'participant_id', textContains: 'participant1' })
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'biological_sex', textContains: 'male' })
+  await getTableCellPath( page, { row: 2 , column: getTableColIndex(page, {tableName, columnHeader: 'age' }) })
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'age', textContains: '36' })
 })
 
