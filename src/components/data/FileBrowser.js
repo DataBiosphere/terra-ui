@@ -1,10 +1,10 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { Link, topSpinnerOverlay } from 'src/components/common'
+import { DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
 import { saveScroll } from 'src/components/data/data-utils'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -20,7 +20,22 @@ import { useCancelable, useCancellation, withDisplayName } from 'src/libs/react-
 import * as StateHistory from 'src/libs/state-history'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
-import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
+
+
+export const DeleteObjectConfirmationModal = ({ object, ...props }) => {
+  const objectSize = _.toNumber(object.size)
+  return h(DeleteConfirmationModal, {
+    ...props,
+    objectType: 'file',
+    objectName: object.name
+  }, [
+    div(['Are you sure you want to delete the file ', b({ style: { wordBreak: 'break-word' } }, [object.name]), '?']),
+    !_.isNaN(objectSize) && div({ style: { marginTop: '1rem' } }, [
+      `File size: ${Utils.formatBytes(objectSize)}`
+    ]),
+    b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
+  ])
+}
 
 
 export const FileBrowserPanel = _.flow(
@@ -31,7 +46,7 @@ export const FileBrowserPanel = _.flow(
   const [prefixes, setPrefixes] = useState([])
   const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(false)
-  const [deletingName, setDeletingName] = useState(undefined)
+  const [deletingObject, setDeletingObject] = useState(undefined)
   const [viewingName, setViewingName] = useState(undefined)
   const [isCreating, setCreating] = useState(false)
 
@@ -215,10 +230,10 @@ export const FileBrowserPanel = _.flow(
                 headerRenderer: () => '',
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex >= numPrefixes) {
-                    const { name } = objects[rowIndex - numPrefixes]
+                    const object = objects[rowIndex - numPrefixes]
                     return h(Link, {
                       style: { display: 'flex' },
-                      onClick: () => setDeletingName(name),
+                      onClick: () => setDeletingObject(object),
                       tooltip: 'Delete file'
                     }, [
                       icon('trash', {
@@ -282,14 +297,18 @@ export const FileBrowserPanel = _.flow(
         status: uploadStatus,
         abort: abortUpload
       }),
-      deletingName && h(DeleteObjectModal, {
-        workspace, name: deletingName,
-        onDismiss: setDeletingName,
-        onSuccess: () => {
-          setDeletingName()
+      deletingObject && h(DeleteObjectConfirmationModal, {
+        object: deletingObject,
+        onConfirm: _.flow(
+          Utils.withBusyState(setLoading),
+          withErrorReporting('Error deleting file')
+        )(async () => {
+          setDeletingObject(undefined)
+          await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
           load(prefix)
           count()
-        }
+        }),
+        onDismiss: () => setDeletingObject(undefined)
       }),
       viewingName && h(UriViewer, {
         googleProject, uri: `gs://${bucketName}/${viewingName}`,

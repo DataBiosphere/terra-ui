@@ -66,7 +66,7 @@ const WorkspacePermissionNotice = ({ workspace }) => {
 }
 
 const WorkspaceTabs = ({
-  namespace, name, workspace, activeTab, refresh,
+  namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
   setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
@@ -75,13 +75,13 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    { name: 'data', link: 'workspace-data' },
-    ...(!isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
+    ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
-    { name: 'workflows', link: 'workspace-workflows' },
-    { name: 'job history', link: 'workspace-job-history' }
+    ...(isGoogleWorkspace && isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
+    ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
   return h(Fragment, [
     h(TabBar, {
@@ -103,13 +103,18 @@ const WorkspaceTabs = ({
 }
 
 const WorkspaceContainer = ({
-  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType, children
+  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
+  refresh, workspace, refreshWorkspace, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
+
+  // If googleProject is not undefined (server info not yet loaded)
+  // and not the empty string, we know that we have a Google workspace.
+  const isGoogleWorkspace = !!workspace?.workspace.googleProject
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -131,7 +136,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      h(RuntimeManager, {
+      isGoogleWorkspace && h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
         apps, appDataDisks, workspace, refreshApps, location, locationType
@@ -139,17 +144,16 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
-      setSharingWorkspace, setShowLockWorkspaceModal
+      setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      (isAnalysisTabVisible() ?
+      (isGoogleWorkspace && isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
           ]),
           workspace && h(ContextBar, {
-            workspace, apps, appDataDisks, refreshApps,
-            runtimes, persistentDisks, refreshRuntimes, location, locationType
+            workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
     deletingWorkspace && h(DeleteWorkspaceModal, {
@@ -212,7 +216,7 @@ const useCloudEnvironmentPolling = googleProject => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes] = googleProject ? await Promise.all([
+      const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
       ]) : [[], []]
@@ -248,7 +252,7 @@ const useAppPolling = (googleProject, workspaceName) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = googleProject ?
+      const newApps = !!googleProject ?
         await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) :
         []
       setApps(newApps)
@@ -290,14 +294,17 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
-    if (googleProject !== prevGoogleProject) {
+    const isGoogleWorkspace = !!googleProject
+    if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
       refreshRuntimes()
       refreshApps()
     }
 
     const loadBucketLocation = async (googleProject, bucketName) => {
-      const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-      setBucketLocation(bucketLocation)
+      if (isGoogleWorkspace) {
+        const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+        setBucketLocation(bucketLocation)
+      }
     }
 
     const refreshWorkspace = _.flow(
@@ -306,7 +313,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     )(async () => {
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
-          'accessLevel', 'canCompute', 'canShare', 'owners',
+          'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
           'workspace.isLocked', 'workspaceSubmissionStats'
         ])
@@ -314,12 +321,13 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         setGoogleProject(workspace.workspace.googleProject)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
+        const isGoogleWorkspace = !!googleProject
 
         loadBucketLocation(googleProject, bucketName)
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
-        if (Utils.canWrite(accessLevel)) {
+        if (Utils.canWrite(accessLevel) && isGoogleWorkspace) {
           saToken(googleProject)
         }
 
@@ -358,21 +366,21 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, refreshWorkspace, runtimes, persistentDisks, appDataDisks, apps, refreshApps, location, locationType,
+        namespace, name, activeTab, showTabBar, workspace, refreshWorkspace,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
+        analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location, locationType },
         refresh: async () => {
           await refreshWorkspace()
           if (child.current?.refresh) {
             child.current.refresh()
           }
-        },
-        refreshRuntimes
+        }
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, appDataDisks, apps,
+          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
           ...props
         }),
         loadingWorkspace && spinnerOverlay

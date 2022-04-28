@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
@@ -100,6 +100,8 @@ const DataTable = props => {
   const [updatingEntity, setUpdatingEntity] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
+
+  const noEdit = Utils.editWorkspaceError(workspace)
 
   const table = useRef()
   const signal = useCancellation()
@@ -324,8 +326,8 @@ const DataTable = props => {
                         extraActions: [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
-                          { label: 'Delete Column', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
-                          { label: 'Clear Column', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                          { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                          { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
                       }, [
                         h(HeaderCell, [
@@ -436,8 +438,8 @@ const DataTable = props => {
       onDismiss: () => setClearingColumn(undefined)
     }, [
       div(['Are you sure you want to permanently delete all data in the column ',
-        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, clearingColumn), '?']),
-      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+        b({ style: { wordBreak: 'break-word' } }, clearingColumn), '?']),
+      b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
     loading && fixedSpinnerOverlay
   ])

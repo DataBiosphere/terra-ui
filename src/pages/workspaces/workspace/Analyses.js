@@ -224,8 +224,9 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, appDataDisks
+  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  onRequesterPaysError
 }, _ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -410,16 +411,14 @@ const Analyses = _.flow(
         div({ style: { flex: 1 } }),
         div({
           style: {
-            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem',
+            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem', width: 275,
             backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
           }, hidden: false
         }, [
-          //Will be released with this ticket https://broadworkbench.atlassian.net/browse/IA-3225
           div({ style: { maxWidth: 250 } }, [
             span(['We\'d love to hear your thoughts. ']),
             h(Link, {
-              //TODO href when user ed makes documentation, see: https://broadworkbench.atlassian.net/browse/IA-3085
-              href: '', ...Utils.newTabLinkProps
+              href: 'https://www.surveymonkey.com/r/HBXP537', ...Utils.newTabLinkProps
             }, [
               'Submit feedback'
             ])
@@ -458,16 +457,16 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles, openUploader,
           location,
-          onDismiss: () => {
-            refreshAnalyses()
-            refreshRuntimes()
-            refreshApps()
+          onDismiss: async () => {
+            await refreshAnalyses()
+            await refreshRuntimes()
+            await refreshApps()
             setCreating(false)
           },
-          onSuccess: () => {
-            refreshAnalyses()
-            refreshRuntimes()
-            refreshApps()
+          onSuccess: async () => {
+            await refreshAnalyses()
+            await refreshRuntimes()
+            await refreshApps()
             setCreating(false)
           }
         }),

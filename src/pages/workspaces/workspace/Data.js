@@ -12,13 +12,13 @@ import { ButtonOutline, Clickable, Link, spinnerOverlay } from 'src/components/c
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
+import { DeleteObjectConfirmationModal } from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -178,28 +178,6 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
   )
 }
 
-export const DeleteObjectModal = ({ name, workspace: { workspace: { googleProject, bucketName } }, onSuccess, onDismiss }) => {
-  const [deleting, setDeleting] = useState(false)
-
-  const doDelete = _.flow(
-    withErrorReporting('Error deleting object'),
-    Utils.withBusyState(setDeleting)
-  )(async () => {
-    await Ajax().Buckets.delete(googleProject, bucketName, name)
-    onSuccess()
-  })
-
-  return h(Modal, {
-    onDismiss,
-    okButton: doDelete,
-    title: 'Delete this file?',
-    danger: true
-  }, [
-    'Are you sure you want to delete this file from the Google bucket?',
-    deleting && spinnerOverlay
-  ])
-}
-
 const BucketContent = _.flow(
   withDisplayName('BucketContent'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
@@ -213,7 +191,7 @@ const BucketContent = _.flow(
   const [objects, setObjects] = useState(() => firstRender ? StateHistory.get().objects : undefined)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [deletingName, setDeletingName] = useState(undefined)
+  const [deletingObject, setDeletingObject] = useState(undefined)
   const [viewingName, setViewingName] = useState(undefined)
 
   const signal = useCancellation()
@@ -331,10 +309,11 @@ const BucketContent = _.flow(
               ])
             }
           }, prefixes),
-          ..._.map(({ name, size, updated }) => {
+          ..._.map(object => {
+            const { name, size, updated } = object
             return {
               button: h(Link, {
-                style: { display: 'flex' }, onClick: () => setDeletingName(name),
+                style: { display: 'flex' }, onClick: () => setDeletingObject(object),
                 tooltip: 'Delete file'
               }, [
                 icon('trash', { size: 16, className: 'hover-only' })
@@ -355,13 +334,17 @@ const BucketContent = _.flow(
         ]
       })
     ]),
-    deletingName && h(DeleteObjectModal, {
-      workspace, name: deletingName,
-      onDismiss: () => setDeletingName(),
-      onSuccess: () => {
-        setDeletingName()
+    deletingObject && h(DeleteObjectConfirmationModal, {
+      object: deletingObject,
+      onConfirm: _.flow(
+        Utils.withBusyState(setLoading),
+        withErrorReporting('Error deleting file')
+      )(async () => {
+        setDeletingObject(undefined)
+        await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
         load()
-      }
+      }),
+      onDismiss: () => setDeletingObject(undefined)
     }),
     viewingName && h(UriViewer, {
       googleProject, uri: `gs://${bucketName}/${viewingName}`,

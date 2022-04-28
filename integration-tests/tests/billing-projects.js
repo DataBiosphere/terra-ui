@@ -1,5 +1,6 @@
+// This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -7,17 +8,30 @@ const billingProjectsPage = (testPage, testUrl) => {
   return {
     visit: async () => await testPage.goto(`${testUrl}/#billing`),
 
-    selectSpendReport: async billingProjectName => {
+    selectSpendReport: async () => {
+      await click(testPage, clickable({ text: 'Spend report' }))
+    },
+
+    selectMembers: async () => {
+      await click(testPage, clickable({ text: 'Members' }))
+    },
+
+    selectOwners: async () => {
+      await click(testPage, clickable({ text: 'Owners' }))
+    },
+
+    selectProject: async billingProjectName => {
       await noSpinnersAfter(
         testPage,
         { action: () => click(testPage, clickable({ text: billingProjectName })) }
       )
-      await click(testPage, clickable({ text: 'Spend report' }))
     },
 
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
 
     assertText: async expectedText => await findText(testPage, expectedText),
+
+    assertTextNotFound: async unexpectedText => await assertTextNotFound(testPage, unexpectedText),
 
     assertChartValue: async (number, workspaceName, category, cost) => {
       // This checks the accessible text for chart values.
@@ -26,7 +40,7 @@ const billingProjectsPage = (testPage, testUrl) => {
   }
 }
 
-const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
@@ -78,8 +92,30 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, n
   const projectListResult = [{
     projectName: ownedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+  },
+  {
+    projectName: notOwnedBillingProjectName,
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
   }]
-  return await testPage.evaluate((spendReturnResult, projectListResult) => {
+
+  const ownedProjectMembersListResult = [{
+    email: 'testuser1@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser2@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser3@example.com', role: 'User'
+  }]
+
+  const notOwnedProjectMembersListResult = [{
+    email: 'testuser1@example.com', role: 'Owner'
+  },
+  {
+    email: 'testuser2@example.com', role: 'Owner'
+  }]
+
+  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult) => {
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
@@ -94,27 +130,44 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, spendCost, n
         fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
       },
       {
+        filter: { url: /api\/billing\/v2\/OwnedBillingProject\/members$/ },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(ownedProjectMembersListResult), { status: 200 }))
+      },
+      {
+        filter: { url: /api\/billing\/v2\/NotOwnedBillingProject\/members$/ },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
+      },
+      {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult)
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult)
 }
 
-const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
+const setUpBillingTest = async (page, testUrl, token) => {
   // Sign in. This portion of the test is not mocked.
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
 
   // Interact with the Billing Page via mocked AJAX responses.
-  const billingProjectName = 'OwnedBillingProject'
-  await setAjaxMockValues(page, billingProjectName, '1110')
+  const ownedBillingProjectName = 'OwnedBillingProject'
+  const notOwnedBillingProjectName = 'NotOwnedBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
+
+  const billingPage = billingProjectsPage(page, testUrl)
+
+  return { ownedBillingProjectName, notOwnedBillingProjectName, billingPage }
+}
+
+const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
+  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
 
   // Select spend report and verify cost for default date ranges
-  const billingPage = billingProjectsPage(page, testUrl)
   await billingPage.visit()
-  await billingPage.selectSpendReport(billingProjectName)
+  await billingPage.selectProject(ownedBillingProjectName)
+  await billingPage.selectSpendReport()
   // Title and cost are in different elements, but check both in same text assert to verify that category is correctly associated to its cost.
   await billingPage.assertText('Total spend$1,110.00')
   await billingPage.assertText('Total compute$999.00')
@@ -131,12 +184,19 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, billingProjectName, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
   await billingPage.assertText('Top 10 Spending Workspaces')
   await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace', 'Compute', '$0.01')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+
+  //Check that the Spend report tab is not visible on this page
+  await billingPage.assertTextNotFound('Spend report')
 })
 
 const testBillingSpendReport = {
@@ -144,4 +204,76 @@ const testBillingSpendReport = {
   fn: testBillingSpendReportFn
 }
 
-module.exports = { testBillingSpendReport }
+const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
+  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+
+  // Select a billing project that is owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(ownedBillingProjectName)
+
+  // Check that the Workspaces tab is visible on this page
+  await billingPage.assertText('Workspaces')
+  await billingPage.assertText('Name')
+  await billingPage.assertText('Created By')
+  await billingPage.assertText('Last Modified')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+
+  // Check that the Workspaces tab is visible on this page
+  await billingPage.assertText('Workspaces')
+  await billingPage.assertText('Name')
+  await billingPage.assertText('Created By')
+  await billingPage.assertText('Last Modified')
+})
+
+const testBillingWorkspaces = {
+  name: 'billing-workspaces',
+  fn: testBillingWorkspacesFn
+}
+
+const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
+  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+
+  // Select a billing project that is owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(ownedBillingProjectName)
+  await billingPage.selectMembers()
+
+  // The test user has the Owner role, so the billing project members tab should be titled "Members"
+  await billingPage.assertText('Members')
+
+  // The Owner role should see the Add User button
+  await billingPage.assertText('Add User')
+
+  // The test user has the Owner role, so they should see all members
+  await billingPage.assertText('testuser1@example.com')
+  await billingPage.assertText('testuser3@example.com')
+
+  // Select a billing project that is not owned by the user
+  await billingPage.visit()
+  await billingPage.selectProject(notOwnedBillingProjectName)
+  await billingPage.selectOwners()
+
+  // The test user has the User role, so the billing project members tab should be titled "Owners"
+  await billingPage.assertText('Owners')
+
+  // The User role should not see the Add User button
+  await billingPage.assertTextNotFound('Add User')
+
+  // The test user has the User role, so they should see members with the Owner role, but not with the User role
+  await billingPage.assertText('testuser1@example.com')
+  await billingPage.assertTextNotFound('testuser3@example.com')
+})
+
+const testBillingMembers = {
+  name: 'billing-members',
+  fn: testBillingMembersFn
+}
+
+module.exports = {
+  testBillingSpendReport,
+  testBillingWorkspaces,
+  testBillingMembers
+}

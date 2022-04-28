@@ -89,6 +89,17 @@ const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
+const assertTextNotFound = async (page, text) => {
+  let found = false
+  try {
+    await findText(page, text, { timeout: 5 * 1000 })
+    found = true
+  } catch (e) {}
+  if (found) {
+    throw new Error(`The specified text '${text}' was found on the page, but it was not expected`)
+  }
+}
+
 const input = ({ labelContains, placeholder }) => {
   const base = '(//input | //textarea)'
   if (labelContains) {
@@ -194,6 +205,17 @@ const navChild = text => {
   return `//*[@role="navigation"]//a[contains(normalize-space(.),"${text}")]`
 }
 
+const assertNavChildNotFound = async (page, text) => {
+  let found = false
+  try {
+    await page.waitForXPath(navChild(text), { timeout: 5 * 1000 })
+    found = true
+  } catch (e) {}
+  if (found) {
+    throw new Error(`The specified nav child '${text}' was found on the page, but it was not expected`)
+  }
+}
+
 const elementInDataTableRow = (entityName, text) => {
   return `//*[@role="table"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`
 }
@@ -271,6 +293,8 @@ const withPageLogging = fn => options => {
 }
 
 module.exports = {
+  assertNavChildNotFound,
+  assertTextNotFound,
   checkbox,
   click,
   clickable,

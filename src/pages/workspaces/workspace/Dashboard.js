@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
-import { div, h, i, span } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
@@ -12,12 +13,15 @@ import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -44,13 +48,16 @@ const roleString = {
   READER: 'Reader',
   WRITER: 'Writer',
   OWNER: 'Owner',
-  PROJECT_OWNER: 'Proj. Owner'
+  PROJECT_OWNER: 'Project Owner'
 }
 
-const InfoTile = ({ title, children }) => {
-  return div({ style: Style.dashboard.infoTile }, [
-    div({ style: Style.dashboard.tinyCaps }, [title]),
-    div({ style: { fontSize: 12 } }, [children])
+const InfoRow = ({ title, subtitle, children }) => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', margin: '1rem 0.5rem' } }, [
+    dt({ style: { width: 225 } }, [
+      div({ style: { fontWeight: 500 } }, [title]),
+      subtitle && div({ style: { fontWeight: 400, fontSize: 12 } }, [subtitle])
+    ]),
+    dd({ style: { width: 225, display: 'flex', overflow: 'hidden' } }, [children])
   ])
 }
 
@@ -102,6 +109,19 @@ const DashboardAuthContainer = props => {
   )
 }
 
+const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) => {
+  return div({ style: { paddingTop: '1rem' } }, [
+    div({ style: Style.dashboard.rightBoxContainer }, [
+      h(Collapse, {
+        title: h3({ style: Style.dashboard.collapsibleHeader }, [title, info]),
+        initialOpenState,
+        titleFirst: true,
+        onClick
+      }, [children])
+    ])
+  ])
+}
+
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   requesterPaysWrapper({ onDismiss: () => Nav.history.goBack() }),
@@ -114,6 +134,7 @@ const WorkspaceDashboard = _.flow(
   refreshWorkspace,
   workspace, workspace: {
     accessLevel,
+    azureContext,
     owners,
     workspace: {
       authorizationDomain, createdDate, lastModified, bucketName, googleProject,
@@ -124,7 +145,8 @@ const WorkspaceDashboard = _.flow(
 }, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
-  const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
+  const [storageCost, setStorageCost] = useState(undefined)
+  const [bucketSize, setBucketSize] = useState(undefined)
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -133,18 +155,32 @@ const WorkspaceDashboard = _.flow(
   const [bucketLocation, setBucketLocation] = useState(undefined)
   const [bucketLocationType, setBucketLocationType] = useState(undefined)
 
+  const persistenceId = `workspaces/${namespace}/${name}/dashboard`
+
   const signal = useCancellation()
 
   const refresh = () => {
     loadSubmissionCount()
-    loadStorageCost()
     loadConsent()
     loadWsTags()
-    loadBucketLocation()
+    if (!azureContext) {
+      loadStorageCost()
+      loadBucketLocation()
+      loadBucketSize()
+    }
   }
 
   useImperativeHandle(ref, () => ({ refresh }))
 
+  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
+  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
+  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
+  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
+  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
+
+  useEffect(() => {
+    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+  }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -154,8 +190,15 @@ const WorkspaceDashboard = _.flow(
 
   const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { estimate } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-      setStorageCostEstimate(estimate)
+      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+      setStorageCost({ estimate, lastUpdated })
+    }
+  })
+
+  const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
+    if (Utils.canWrite(accessLevel)) {
+      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+      setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
   })
 
@@ -224,6 +267,48 @@ const WorkspaceDashboard = _.flow(
     refresh()
   })
 
+  const getCloudInformation = () => {
+    return !googleProject && !azureContext ? [] : [
+      dl(!!googleProject ? [
+        h(InfoRow, { title: 'Cloud Name' }, [
+          h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
+        ]),
+        h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
+          h(TooltipCell, [flag, ' ', regionDescription])
+        ]) : 'Loading...']),
+        h(InfoRow, { title: 'Google Project ID' }, [
+          h(TooltipCell, [googleProject]),
+          h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Bucket Name' }, [
+          h(TooltipCell, [bucketName]),
+          h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
+        ]),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Estimated Storage Cost',
+          subtitle: !!storageCost ? `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [storageCost?.estimate || '$ ...']),
+        Utils.canWrite(accessLevel) && h(InfoRow, {
+          title: 'Bucket Size',
+          subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+        }, [bucketSize?.usage])
+      ] : [
+        h(InfoRow, { title: 'Cloud Name' }, [
+          h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+        ]),
+        h(InfoRow, { title: 'Resource Group ID' }, [
+          h(TooltipCell, [azureContext.managedResourceGroupId]),
+          h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+        ])
+      ]),
+      !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+        style: { margin: '1rem 0.5rem' },
+        ...Utils.newTabLinkProps,
+        href: bucketBrowserUrl(bucketName)
+      }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      )])
+    ]
+  }
 
   // Render
   const isEditing = _.isString(editDescription)
@@ -277,61 +362,41 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      div({ style: Style.dashboard.header }, ['Workspace information']),
-      div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
-        h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
-        h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
-        Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
-          storageCostEstimate || '$ ...'
-        ]),
-        h(InfoTile, { title: 'Google Project Id' }, [
-          div({ style: { display: 'flex' } }, [
-            h(TooltipCell, [googleProject]),
-            h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
-          ])
+      h(RightBoxSection, {
+        title: 'Workspace information',
+        initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
+        onClick: () => setWorkspaceInfoPanelOpen(workspaceInfoPanelOpen === undefined ? false : !workspaceInfoPanelOpen)
+      }, [
+        dl({}, [
+          h(InfoRow, { title: 'Last Updated' }, [new Date(lastModified).toLocaleDateString()]),
+          h(InfoRow, { title: 'Creation Date' }, [new Date(createdDate).toLocaleDateString()]),
+          h(InfoRow, { title: 'Workflow Submissions' }, [submissionsCount]),
+          h(InfoRow, { title: 'Access Level' }, [roleString[accessLevel]])
         ])
       ]),
-      div({ style: Style.dashboard.header }, ['Owners']),
-      _.map(email => {
-        return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
-          h(Link, { href: `mailto:${email}` }, [email])
-        ])
-      }, owners),
-      div({ style: Style.dashboard.header }, [
-        'Tags',
-        h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-          `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
-          social security number, or medical record number.`
-        ]),
-        (busy || !tagsList) && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
+      h(RightBoxSection, {
+        title: 'Cloud information',
+        initialOpenState: cloudInfoPanelOpen,
+        onClick: () => setCloudInfoPanelOpen(!cloudInfoPanelOpen)
+      }, getCloudInformation()),
+      h(RightBoxSection, {
+        title: 'Owners',
+        initialOpenState: ownersPanelOpen,
+        onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem' } },
+          _.map(email => {
+            return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '0.5rem' } }, [
+              h(Link, { href: `mailto:${email}` }, [email])
+            ])
+          }, owners))
       ]),
-      !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
-        h(WorkspaceTagSelect, {
-          value: null,
-          placeholder: 'Add a tag',
-          'aria-label': 'Add a tag',
-          onChange: ({ value }) => addTag(value)
-        })
-      ]),
-      div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
-        _.map(tag => {
-          return span({ key: tag, style: styles.tag }, [
-            tag,
-            !Utils.editWorkspaceError(workspace) && h(Link, {
-              tooltip: 'Remove tag',
-              disabled: busy,
-              onClick: () => deleteTag(tag),
-              style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
-            }, [icon('times', { size: 14 })])
-          ])
-        }, tagsList),
-        !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
-      ]),
-      !_.isEmpty(authorizationDomain) && h(Fragment, [
-        div({ style: Style.dashboard.header }, ['Authorization Domain']),
-        div({ style: { marginBottom: '0.5rem' } }, [
+      !_.isEmpty(authorizationDomain) && h(RightBoxSection, {
+        title: 'Authorization domain',
+        initialOpenState: authDomainPanelOpen,
+        onClick: () => setAuthDomainPanelOpen(!authDomainPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem 0.5rem 1rem 0.5rem' } }, [
           'Collaborators must be a member of all of these ',
           h(Link, {
             href: Nav.getLink('groups'),
@@ -339,28 +404,49 @@ const WorkspaceDashboard = _.flow(
           }, 'groups'),
           ' to access this workspace.'
         ]),
-        ..._.map(({ membersGroupName }) => div({ style: styles.authDomain }, [membersGroupName]), authorizationDomain)
+        ..._.map(({ membersGroupName }) => div({ style: { margin: '0.5rem', fontWeight: 500 } }, [membersGroupName]), authorizationDomain)
       ]),
-      div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
-      div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
-        'Google Bucket'
-      ]),
-      div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-        div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Name:']),
-        h(TooltipCell, { style: { marginRight: '0.5rem' } }, [bucketName]),
-        h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
-      ]),
-      div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-        div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Location:']),
-        bucketLocation ? h(Fragment, [
-          div({ style: { marginRight: '0.5rem' } }, [flag]),
-          regionDescription
-        ]) : 'Loading...'
-      ]),
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: bucketBrowserUrl(bucketName)
-      }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+      h(RightBoxSection, {
+        title: 'Tags',
+        info: span({}, [
+          (busy || !tagsList) && tagsPanelOpen && spinner({ size: '1ch', style: { marginLeft: '0.5rem' } })
+        ]),
+        initialOpenState: tagsPanelOpen,
+        onClick: () => setTagsPanelOpen(!tagsPanelOpen)
+      }, [
+        div({ style: { margin: '0.5rem' } }, [
+          div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
+            `${getAppName()} is not intended to host personally identifiable information.`,
+            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+              social security number, or medical record number.`
+            ])
+          ]),
+          !Utils.editWorkspaceError(workspace) && div({ style: { marginBottom: '0.5rem' } }, [
+            h(WorkspaceTagSelect, {
+              menuShouldScrollIntoView: false,
+              value: null,
+              placeholder: 'Add a tag',
+              'aria-label': 'Add a tag',
+              onChange: ({ value }) => addTag(value)
+            })
+          ]),
+          div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
+            _.map(tag => {
+              return span({ key: tag, style: styles.tag }, [
+                tag,
+                !Utils.editWorkspaceError(workspace) && h(Link, {
+                  tooltip: 'Remove tag',
+                  disabled: busy,
+                  onClick: () => deleteTag(tag),
+                  style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }
+                }, [icon('times', { size: 14 })])
+              ])
+            }, tagsList),
+            !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
+          ])
+        ])
+      ])
     ])
   ])
 })

@@ -10,9 +10,9 @@ const getDatasetCount = async page => {
 }
 
 const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
-  const searchText = 'blood'
-  const filterItem = 'cardiovascular disease'
-  const secondFilterItem = 'brain cancer'
+  const searchText = 'kidney'
+  const filterItem = 'acoustic neuroma'
+  const secondFilterItem = 'adrenal cortex adenoma'
 
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))

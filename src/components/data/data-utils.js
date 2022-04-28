@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -131,25 +131,26 @@ export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name })
 export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {
   const [deleting, setDeleting] = useState(false)
 
-  return h(Modal, {
-    onDismiss,
-    title: 'Confirm Delete',
-    okButton: h(ButtonPrimary, {
-      disabled: deleting,
-      onClick: async () => {
-        setDeleting(true)
-        try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
-            _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
-          )
-          onSuccess()
-        } catch (error) {
-          await reportError('Error deleting reference data', error)
-          onDismiss()
-        }
+  return h(DeleteConfirmationModal, {
+    objectType: 'reference',
+    objectName: referenceDataType,
+    onConfirm: async () => {
+      setDeleting(true)
+      try {
+        await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
+          _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
+        )
+        onSuccess()
+      } catch (error) {
+        reportError('Error deleting reference data', error)
+        onDismiss()
       }
-    }, ['Delete'])
-  }, [`Are you sure you want to delete ${referenceDataType}?`])
+    },
+    onDismiss
+  }, [
+    div(['Are you sure you want to delete the ', b([referenceDataType]), ' reference data?']),
+    deleting && absoluteSpinnerOverlay
+  ])
 }
 
 export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
@@ -184,12 +185,6 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
   const moreToDelete = !!additionalDeletions.length
 
-  const fullWidthWarning = {
-    ...warningBoxStyle,
-    borderLeft: 'none', borderRight: 'none',
-    margin: '0 -1.25rem'
-  }
-
   const total = selectedKeys.length + additionalDeletions.length
   return h(DeleteConfirmationModal, {
     objectType: 'data',
@@ -197,13 +192,11 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     onConfirm: doDelete,
     onDismiss
   }, [
-    runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+    runningSubmissionsCount > 0 && b({ style: { display: 'block', margin: '1rem 0' } }, [
       `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
       'Deleting the following data could cause failures if a workflow is using this data.'
     ]),
-    moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+    moreToDelete && b({ style: { display: 'block', margin: '1rem 0' } }, [
       'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
     ]),
     // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view
@@ -1066,17 +1059,19 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = h(MenuTrigger, {
-    closeOnClick: true,
-    side: 'bottom',
-    content: h(Fragment, [
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      _.map(({ label, onClick }) => h(MenuButton, { key: label, onClick }, [label]), extraActions)
-    ])
-  }, [
-    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
-      icon('cardMenuIcon', { size: 16 })
+  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
+    h(MenuTrigger, {
+      closeOnClick: true,
+      side: 'bottom',
+      content: h(Fragment, [
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+      ])
+    }, [
+      h(Link, { 'aria-label': 'Column menu' }, [
+        icon('cardMenuIcon', { size: 16 })
+      ])
     ])
   ])
 

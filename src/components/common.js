@@ -583,18 +583,21 @@ export const DeleteConfirmationModal = ({
   const isConfirmed = !confirmationPrompt || _.toLower(confirmation) === _.toLower(confirmationPrompt)
 
   return h(Modal, {
-    title,
+    title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 24, color: colors.warning() }),
+      span({ style: { marginLeft: '1ch' } }, [title])
+    ]),
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: onConfirm,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'
-    }, buttonText)
+    }, buttonText),
+    styles: { modal: { backgroundColor: colors.warning(0.1) } }
   }, [
     children || h(Fragment, [
-      div([`Are you sure you want to delete the ${objectType} `,
-        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, [objectName]), '?']),
-      div({ style: { fontWeight: 500, marginTop: '1rem' } }, 'This cannot be undone.')
+      div([`Are you sure you want to delete the ${objectType} `, b({ style: { wordBreak: 'break-word' } }, [objectName]), '?']),
+      b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
     ]),
     confirmationPrompt && div({ style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
       h(IdContainer, [id => h(Fragment, [
