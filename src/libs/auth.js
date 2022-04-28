@@ -114,7 +114,7 @@ export const initializeAuth = _.memoize(async () => {
         fenceStatus: isSignedIn ? state.fenceStatus : {},
         // Load whether a user has input a cookie acceptance in a previous session on this system,
         // or whether they input cookie acceptance previously in this session
-        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
+        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : false,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: authResponse ? authResponse.access_token : undefined,
