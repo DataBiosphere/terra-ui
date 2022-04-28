@@ -4080,7 +4080,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@surma-rollup-plugin-off-main-thread-npm-2.2.3-1f57d3eded-2c02134944.zip/node_modules/@surma/rollup-plugin-off-main-thread/",\
           "packageDependencies": [\
             ["@surma/rollup-plugin-off-main-thread", "npm:2.2.3"],\
-            ["ejs", "npm:3.1.6"],\
+            ["ejs", "npm:3.1.7"],\
             ["json5", "npm:2.2.1"],\
             ["magic-string", "npm:0.25.7"],\
             ["string.prototype.matchall", "npm:4.0.7"]\
@@ -8423,10 +8423,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["ejs", [\
-        ["npm:3.1.6", {\
-          "packageLocation": "./.yarn/cache/ejs-npm-3.1.6-03db39fd15-81a9cdea0b.zip/node_modules/ejs/",\
+        ["npm:3.1.7", {\
+          "packageLocation": "./.yarn/cache/ejs-npm-3.1.7-ac170c215c-fe40764af3.zip/node_modules/ejs/",\
           "packageDependencies": [\
-            ["ejs", "npm:3.1.6"],\
+            ["ejs", "npm:3.1.7"],\
             ["jake", "npm:10.8.5"]\
           ],\
           "linkType": "HARD"\
@@ -18054,7 +18054,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["btoa", "npm:1.2.1"],\
             ["chalk", "npm:4.1.2"],\
             ["convert-source-map", "npm:1.8.0"],\
-            ["ejs", "npm:3.1.6"],\
+            ["ejs", "npm:3.1.7"],\
             ["escape-html", "npm:1.0.3"],\
             ["glob", "npm:7.1.7"],\
             ["gzip-size", "npm:6.0.0"],\
