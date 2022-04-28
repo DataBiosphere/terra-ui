@@ -30,18 +30,18 @@ const NpsSurvey = () => {
 
   const { registrationStatus, acceptedTos } = useStore(authStore)
 
-  const loadStatus = withErrorIgnoring(async () => {
-    const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
-    // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
-    // Once user has interacted with the NPS survey, wait 90 days to show the survey.
-    const askTheUser = !!lastResponseTimestamp ?
-      differenceInCalendarDays(parseJSON(lastResponseTimestamp), Date.now()) >= 90 :
-      differenceInCalendarDays(parseJSON((await Ajax().User.firstTimestamp()).timestamp), Date.now()) >= 7
-    setRequestable(askTheUser)
-  })
-
   useEffect(() => {
     if (registrationStatus === 'registered' && acceptedTos) {
+      const loadStatus = withErrorIgnoring(async () => {
+        const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
+        // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
+        // Once user has interacted with the NPS survey, wait 90 days to show the survey.
+        const askTheUser = !!lastResponseTimestamp ?
+          differenceInCalendarDays(parseJSON(lastResponseTimestamp), Date.now()) >= 90 :
+          differenceInCalendarDays(parseJSON((await Ajax().User.firstTimestamp()).timestamp), Date.now()) >= 7
+        setRequestable(askTheUser)
+      })
+
       loadStatus()
     } else {
       setRequestable(false)
