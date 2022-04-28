@@ -47,7 +47,6 @@ module.exports = class JestReporter {
     writableStream.on('finish', () => {
       console.log(`Finished writing logs to ${logFileName}`)
     })
-    console.log(`saved tet log ${logFileName}`)
   }
 
   timeNow() {
