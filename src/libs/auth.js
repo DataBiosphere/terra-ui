@@ -6,14 +6,16 @@ import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/co
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
-import { asyncImportJobStore, authStore, cookieReadyStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
+import {
+  asyncImportJobStore, authStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+} from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -37,9 +39,8 @@ export const hasBillingScope = () => {
   return getAuthInstance().currentUser.get().hasGrantedScopes('https://www.googleapis.com/auth/cloud-billing')
 }
 
-const registeredAndAcceptedTos = (oldState, state) => {
-  return (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered' && state.acceptedTos) ||
-    (state.registrationStatus === 'registered' && state.acceptedTos && !oldState.acceptedTos)
+const becameRegistered = (oldState, state) => {
+  return (oldState.registrationStatus !== userStatus.registeredWithTos && state.registrationStatus === userStatus.registeredWithTos)
 }
 /*
  * Request Google Cloud Billing scope if necessary.
@@ -167,10 +168,14 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
   const getRegistrationStatus = async () => {
     try {
       const { enabled } = await Ajax().User.getStatus()
-      return enabled ? 'registered' : 'disabled'
+      if (enabled) {
+        return state.acceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
+      } else {
+        return userStatus.disabled
+      }
     } catch (error) {
       if (error.status === 404) {
-        return 'unregistered'
+        return userStatus.unregistered
       } else {
         throw error
       }
@@ -192,7 +197,7 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
   }
 }))
 
-authStore.subscribe(async (state, oldState) => {
+authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
   if (!oldState.acceptedTos && state.acceptedTos) {
     if (window.Appcues) {
       window.Appcues.identify(state.user.id, {
@@ -201,7 +206,7 @@ authStore.subscribe(async (state, oldState) => {
       window.Appcues.on('all', captureAppcuesEvent)
     }
   }
-})
+}))
 
 authStore.subscribe(state => {
   // We can't guarantee that someone reopening the window is the same user,
@@ -214,7 +219,7 @@ authStore.subscribe(state => {
 })
 
 authStore.subscribe(withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
-  if (registeredAndAcceptedTos(oldState, state)) {
+  if (becameRegistered(oldState, state)) {
     const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list())
     authStore.update(state => ({ ...state, isTimeoutEnabled }))
   }
@@ -232,25 +237,25 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 }))
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  if (registeredAndAcceptedTos(oldState, state)) {
+  if (becameRegistered(oldState, state)) {
     const nihStatus = await Ajax().User.getNihStatus()
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
 
-authStore.subscribe(async (state, oldState) => {
-  if (registeredAndAcceptedTos(oldState, state)) {
+authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
+  if (becameRegistered(oldState, state)) {
     await Ajax().Metrics.syncProfile()
   }
-})
+}))
 
-authStore.subscribe(async (state, oldState) => {
-  if (registeredAndAcceptedTos(oldState, state)) {
+authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
+  if (becameRegistered(oldState, state)) {
     if (state.anonymousId) {
       return await Ajax().Metrics.identify(state.anonymousId)
     }
   }
-})
+}))
 
 authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
@@ -278,7 +283,7 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
-  if (registeredAndAcceptedTos(oldState, state)) {
+  if (becameRegistered(oldState, state)) {
     await Promise.all(_.map(async ({ key }) => {
       const status = await Ajax().User.getFenceStatus(key)
       authStore.update(_.set(['fenceStatus', key], status))

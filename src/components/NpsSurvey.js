@@ -11,7 +11,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, userStatus } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -28,10 +28,10 @@ const NpsSurvey = () => {
   const [reasonComment, setReasonComment] = useState('')
   const [changeComment, setChangeComment] = useState('')
 
-  const { registrationStatus, acceptedTos } = useStore(authStore)
+  const { registrationStatus } = useStore(authStore)
 
   useEffect(() => {
-    if (registrationStatus === 'registered' && acceptedTos) {
+    if (registrationStatus === userStatus.registeredWithTos) {
       const loadStatus = withErrorIgnoring(async () => {
         const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
         // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
@@ -46,7 +46,7 @@ const NpsSurvey = () => {
     } else {
       setRequestable(false)
     }
-  }, [registrationStatus, acceptedTos])
+  }, [registrationStatus])
 
   const goAway = shouldSubmit => () => {
     setRequestable(false)

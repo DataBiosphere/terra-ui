@@ -11,7 +11,7 @@ import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
-import { authStore, cookieReadyStore } from 'src/libs/state'
+import { authStore, cookieReadyStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -96,7 +96,7 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 
 export const AuthenticatedCookieSetter = () => {
   const { registrationStatus } = useStore(authStore)
-  return registrationStatus === 'registered' && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
+  return registrationStatus === userStatus.registeredWithTos && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {

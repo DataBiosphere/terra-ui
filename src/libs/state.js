@@ -15,6 +15,14 @@ export const authStore = Utils.atom({
   cookiesAccepted: undefined
 })
 
+export const userStatus = {
+  unregistered: 'unregistered',
+  createdProfile: 'createdProfile',
+  registeredWithoutTos: 'registeredWithoutTos',
+  registeredWithTos: 'registered',
+  disabled: 'disabled'
+}
+
 export const cookieReadyStore = Utils.atom(false)
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
