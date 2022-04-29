@@ -152,8 +152,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
           const { name, optional, inputType } = io
-          const value = config[which][name] || ''
-          const error = errors[which][name]
+          const value = config?.[which]?.[name] || ''
+          const error = errors?.[which]?.[name]
           const isFile = (inputType === 'File') || (inputType === 'File?')
           const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
@@ -423,14 +423,32 @@ const WorkflowView = _.flow(
   async getValidation() {
     const { namespace, name, workflowNamespace, workflowName, signal } = this.props
 
+    this.setState({ snapshotReferenceError: undefined })
     try {
       return await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate()
     } catch (e) {
       if (e.status === 404) {
-        return false
+        const errmsg = await e.text()
+        // distinguish between snapshot-reference-not-found and workflow-not-found
+        if (errmsg?.includes('Reference name') && errmsg?.includes('does not exist in workspace')) {
+          this.setState(_.set(['snapshotReferenceError', errmsg]))
+          return true
+        } else {
+          return false
+        }
       } else {
         throw e
       }
+    }
+  }
+
+  async maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig) {
+    const { namespace, name, signal } = this.props
+
+    try {
+      return await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName)
+    } catch (error) {
+      return undefined
     }
   }
 
@@ -470,7 +488,7 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName) :
+        await this.maybeGetSnapshotEntityMetadata(googleProject, modifiedConfig) :
         undefined
 
       this.setState({
@@ -589,7 +607,8 @@ const WorkflowView = _.flow(
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       availableSnapshots, selectedSnapshotEntityMetadata, selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache,
-      deleteIntermediateOutputFiles, useReferenceDisks, retryWithMoreMemory, retryMemoryFactor, currentSnapRedacted, savedSnapRedacted, wdl
+      deleteIntermediateOutputFiles, useReferenceDisks, retryWithMoreMemory, retryMemoryFactor, currentSnapRedacted, savedSnapRedacted, wdl,
+      snapshotReferenceError
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const entityTypes = _.keys(entityMetadata)
@@ -709,6 +728,11 @@ const WorkflowView = _.flow(
               div([
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
+                snapshotReferenceError && h(TooltipTrigger, { content: Utils.snapshotReferenceMissingError(modifiedConfig.dataReferenceName) }, [
+                  icon('error-standard', {
+                    size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+                  })
+                ]),
                 h(GroupedSelect, {
                   'aria-label': 'Entity type selector',
                   isClearable: false,
@@ -718,6 +742,7 @@ const WorkflowView = _.flow(
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                   value: selectedEntityType,
                   onChange: async ({ value, source }) => {
+                    this.setState({ snapshotReferenceError: undefined })
                     if (source === 'snapshot') {
                       const selectedSnapshotEntityMetadata = await Ajax(signal)
                         .Workspaces
@@ -757,10 +782,10 @@ const WorkflowView = _.flow(
               ]),
               entitySelectionModel.type === processSnapshotTable ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
-                  isDisabled: !!Utils.editWorkspaceError(ws),
+                  isDisabled: !!Utils.editWorkspaceError(ws) || !!snapshotReferenceError,
                   'aria-label': 'Snapshot table selector',
                   isClearable: false,
-                  value: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
+                  value: modifiedConfig.dataReferenceName && !snapshotReferenceError ? modifiedConfig.rootEntityType : undefined,
                   onChange: ({ value }) => {
                     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
@@ -874,7 +899,7 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v, filter: '' }),
             finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
-              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
+              disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted || !!snapshotReferenceError,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])

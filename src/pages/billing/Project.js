@@ -8,6 +8,7 @@ import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserC
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -531,34 +532,40 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        !!displayName && span({ style: { flexShrink: 0 } }, displayName),
-        isOwner && h(Link, {
-          tooltip: 'Change Billing Account',
+        !!displayName && span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, displayName),
+        isOwner && h(MenuTrigger, {
+          closeOnClick: true,
+          side: 'bottom',
           style: { marginLeft: '0.5rem' },
-          onClick: async () => {
-            if (Auth.hasBillingScope()) {
-              setShowBillingModal(true)
-            } else {
-              await authorizeAndLoadAccounts()
-              setShowBillingModal(Auth.hasBillingScope())
-            }
-          }
-        }, [icon('edit', { size: 12 })]),
-        isOwner && h(Link, {
-          tooltip: 'Remove Billing Account',
-          style: { marginLeft: '0.5rem' },
-          // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-          disabled: billingProject.billingAccount === 'null' || billingProject.billingAccount === undefined || billingProject.billingAccount === null,
-          baseColor: colors.danger,
-          onClick: async () => {
-            if (Auth.hasBillingScope()) {
-              setShowBillingRemovalModal(true)
-            } else {
-              await authorizeAndLoadAccounts()
-              setShowBillingRemovalModal(Auth.hasBillingScope())
-            }
-          }
-        }, [icon('times-circle', { size: 12 })]),
+          content: h(Fragment, [
+            h(MenuButton, {
+              onClick: async () => {
+                if (Auth.hasBillingScope()) {
+                  setShowBillingModal(true)
+                } else {
+                  await authorizeAndLoadAccounts()
+                  setShowBillingModal(Auth.hasBillingScope())
+                }
+              }
+            }, ['Change Billing Account']),
+            h(MenuButton, {
+              onClick: async () => {
+                if (Auth.hasBillingScope()) {
+                  setShowBillingRemovalModal(true)
+                } else {
+                  await authorizeAndLoadAccounts()
+                  setShowBillingRemovalModal(Auth.hasBillingScope())
+                }
+              },
+              // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
+              disabled: billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount)
+            }, ['Remove Billing Account'])
+          ])
+        }, [
+          h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
+            icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
+          ])
+        ]),
         showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),

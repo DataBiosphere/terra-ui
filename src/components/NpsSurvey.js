@@ -8,9 +8,10 @@ import { TextArea } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorIgnoring } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, userStatus } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -29,20 +30,18 @@ const NpsSurvey = () => {
 
   const { registrationStatus } = useStore(authStore)
 
-  const loadStatus = async () => {
-    const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
-
-    // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
-    // Once user has interacted with the NPS survey, wait 90 days to show the survey.
-    const askTheUser = !!lastResponseTimestamp ?
-      differenceInCalendarDays(parseJSON(lastResponseTimestamp), Date.now()) >= 90 :
-      differenceInCalendarDays(parseJSON((await Ajax().User.firstTimestamp()).timestamp), Date.now()) >= 7
-
-    setRequestable(askTheUser)
-  }
-
   useEffect(() => {
-    if (registrationStatus === 'registered') {
+    if (registrationStatus === userStatus.registeredWithTos) {
+      const loadStatus = withErrorIgnoring(async () => {
+        const lastResponseTimestamp = (await Ajax().User.lastNpsResponse()).timestamp
+        // Behavior of the following logic: When a user first accesses Terra, wait 7 days to show the NPS survey.
+        // Once user has interacted with the NPS survey, wait 90 days to show the survey.
+        const askTheUser = !!lastResponseTimestamp ?
+          differenceInCalendarDays(parseJSON(lastResponseTimestamp), Date.now()) >= 90 :
+          differenceInCalendarDays(parseJSON((await Ajax().User.firstTimestamp()).timestamp), Date.now()) >= 7
+        setRequestable(askTheUser)
+      })
+
       loadStatus()
     } else {
       setRequestable(false)

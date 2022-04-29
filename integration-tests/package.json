@@ -17,11 +17,6 @@
     "prompts": "^2.4.1",
     "puppeteer-cluster": "^0.23.0"
   },
-  "jest-junit": {
-    "suiteName": "Integration tests",
-    "addFileAttribute": "true",
-    "includeConsoleOutput": true
-  },
   "dependencies": {
     "@google-cloud/firestore": "^4.15.1",
     "@google-cloud/secret-manager": "^3.10.1",
