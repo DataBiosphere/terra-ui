@@ -164,6 +164,7 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
+          destination: test-results
   notify-qa:
     parameters:
       channel:
