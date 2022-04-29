@@ -532,7 +532,7 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
     }),
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
-      workspace,
+      namespace, name,
       selectedDataType: tableName
     })
   ])
