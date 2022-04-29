@@ -7,7 +7,7 @@ import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -1657,7 +1657,7 @@ const Metrics = signal => ({
   captureEvent: withErrorIgnoring(async (event, details = {}) => {
     await ensureAuthSettled()
     const { isSignedIn, registrationStatus } = authStore.get() // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = isSignedIn && registrationStatus === 'registered'
+    const isRegistered = isSignedIn && registrationStatus === userStatus.registeredWithTos
     if (!isRegistered) {
       authStore.update(_.update('anonymousId', id => {
         return id || uuid()

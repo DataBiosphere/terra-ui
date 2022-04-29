@@ -10,7 +10,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { registrationLogo } from 'src/libs/logos'
-import { authStore } from 'src/libs/state'
+import { authStore, userStatus } from 'src/libs/state'
 import validate from 'validate.js'
 
 
@@ -35,7 +35,7 @@ const Register = () => {
         lastName: familyName,
         contactEmail: email
       })
-      authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
+      authStore.update(state => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }))
       await refreshTerraProfile()
       Ajax().Metrics.captureEvent(Events.userRegister)
     } catch (error) {
