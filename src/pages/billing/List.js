@@ -44,7 +44,7 @@ const styles = {
 
 const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
+    style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
       billingProjectName: projectName
