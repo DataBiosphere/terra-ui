@@ -73,6 +73,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
           loadProjects()
         } catch (err) {
           reportError('Error deleting billing project.', err)
+          setDeleting(false)
         }
       }
     })
