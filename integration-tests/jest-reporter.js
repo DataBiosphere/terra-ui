@@ -27,13 +27,12 @@ module.exports = class JestReporter {
       })
     }
 
-    // Get failure messages.
+    // Write failure summaries
     writableStream.write('\n\nTests Summary\n')
     testResult.testResults.forEach(result => {
       writableStream.write('----------------------------------------------\n')
       writableStream.write(`Test: ${result.title}\n`)
       writableStream.write(`Status: ${result.status}\n`)
-      // Get failure message.
       if (result.failureMessages.length > 0) {
         const failure = result.failureMessages
         writableStream.write(`Failure message: ${failure}\n`)
