@@ -8,13 +8,13 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow } from 'src/libs/error'
+import { reportError, reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -22,6 +22,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
@@ -42,6 +43,41 @@ const styles = {
   }
 }
 
+const BillingProjectActions = ({ project: { projectName } }) => {
+  const signal = useCancellation()
+
+  const [deleting, setDeleting] = useState(false)
+
+  return h(Fragment, [
+    h(MenuTrigger, {
+      closeOnClick: true,
+      side: 'right',
+      style: { marginRight: '0.5rem' },
+      content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setDeleting(true)
+        }, ['Delete Billing Project'])
+      ])
+    }, [
+      h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center' } }, [
+        icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
+      ])
+    ]),
+    deleting && h(DeleteBillingProjectModal, {
+      projectName,
+      onDismiss: () => setDeleting(false),
+      onConfirm: async () => {
+        try {
+          await Ajax(signal).Billing.getProject(projectName)
+          setDeleting(false)
+        } catch (err) {
+          reportError('Error deleting billing project.', err)
+        }
+      }
+    })
+  ])
+}
+
 const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
@@ -56,10 +92,15 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   const unselectableProject = ({ projectName, status, message }, isActive) => {
     const iconAndTooltip =
       status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(InfoBox, { style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right' }, [
-          div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-            message || 'Error during project creation.'
-          ])
+        status === 'Error' ? h(Fragment, [
+          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
+            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+              message || 'Error during project creation.'
+            ])
+          ]),
+          //Currently, only billing projects that failed to create can have actions performed on them.
+          //If that changes in the future, this should be moved elsewhere
+          h(BillingProjectActions, { project })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
