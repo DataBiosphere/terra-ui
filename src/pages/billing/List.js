@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay, absoluteSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -46,6 +46,7 @@ const styles = {
 const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   const signal = useCancellation()
 
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   return h(Fragment, [
@@ -55,7 +56,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
       style: { marginRight: '0.5rem' },
       content: h(Fragment, [
         h(MenuButton, {
-          onClick: () => setDeleting(true)
+          onClick: () => setShowDeleteProjectModal(true)
         }, ['Delete Billing Project'])
       ])
     }, [
@@ -63,18 +64,20 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
         icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
       ])
     ]),
-    deleting && h(DeleteBillingProjectModal, {
-      projectName,
-      onDismiss: () => setDeleting(false),
+    showDeleteProjectModal && h(DeleteBillingProjectModal, {
+      projectName, deleting,
+      onDismiss: () => setShowDeleteProjectModal(false),
       onConfirm: async () => {
+        setDeleting(true)
         try {
           await Ajax(signal).Billing.deleteProject(projectName)
-          setDeleting(false)
+          setShowDeleteProjectModal(false)
           loadProjects()
         } catch (err) {
           reportError('Error deleting billing project.', err)
-          setDeleting(false)
+          setShowDeleteProjectModal(false)
         }
+        setDeleting(false)
       }
     })
   ])
