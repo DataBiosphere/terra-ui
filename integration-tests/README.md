@@ -37,7 +37,7 @@ The following environment variables are parsed by the tests:
   * _Default `https://terra-lyle.appspot.com`_
 - `SCREENSHOT_DIR`: without this, screenshots won't be saved on test failure.
 - `LOG_DIR`: Directory where to save test logs.
-  * _Default `/tmp/test-results`
+  * _Default_ `/tmp/test-results`
 - `TERRA_USER_EMAIL`: account that already has access to `BILLING_PROJECT`
   * _Default `Scarlett.Flowerpicker@test.firecloud.org`_
 

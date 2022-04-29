@@ -13,9 +13,7 @@ module.exports = class JestReporter {
 
   onTestResult(_testRunConfig, testResult, _runResults) {
     const testName = path.parse(testResult.testFilePath).name
-    const hasFailure = testResult.testResults.some((result) => {
-      return result.status === 'failed'
-    })
+    const hasFailure = testResult.testResults.some(result => result.status === 'failed')
     const logDir = hasFailure ? `${this.logRootDir}/failures` : `${this.logRootDir}/successes`
     const logFileName = `${logDir}/${testName}-${Date.now()}.log`
     !existsSync(logDir) && mkdirSync(logDir, { recursive: true })
@@ -31,7 +29,7 @@ module.exports = class JestReporter {
       })
     }
 
-    // Write failure summaries
+    // Write pass/failure summaries
     writableStream.write('\n\nTests Summary\n')
     testResult.testResults.forEach(result => {
       writableStream.write('----------------------------------------------\n')
