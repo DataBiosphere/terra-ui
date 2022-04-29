@@ -3,7 +3,6 @@ import { DeleteConfirmationModal, spinnerOverlay } from 'src/components/common'
 
 
 const DeleteBillingProjectModal = ({ projectName, deleting, ...props }) => {
-
   return h(DeleteConfirmationModal, {
     ...props,
     objectType: 'billing project',
