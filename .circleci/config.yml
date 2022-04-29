@@ -161,7 +161,7 @@ commands:
             TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
-          path: << parameters.log_dir >>/<< parameters.env >>/test-results/
+          path: << parameters.log_dir >>/<< parameters.env >>/
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/
   notify-qa:
