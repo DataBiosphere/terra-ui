@@ -152,7 +152,7 @@ commands:
           working_directory: integration-tests
           environment:
             LOG_DIR: "/<< parameters.log_dir >>/<< parameters.env >>/test-results"
-            JEST_JUNIT_OUTPUT_DIR: "/<< parameters.log_dir >>/<< parameters.env >>/test-results"
+            JEST_JUNIT_OUTPUT_DIR: "/<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "/<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m

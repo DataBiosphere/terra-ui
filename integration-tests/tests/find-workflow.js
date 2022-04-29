@@ -12,8 +12,8 @@ const testFindWorkflowFn = _.flow(
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
-  await click(page, clickable({ textContains: 'View Examples' }))
-  await click(page, clickable({ textContains: 'code & workflows' }))
+  // await click(page, clickable({ textContains: 'View Examples' }))
+  // await click(page, clickable({ textContains: 'code & workflows' }))
   await click(page, clickable({ textContains: workflowName }))
 
   await firecloud.signIntoFirecloud(page, token)
