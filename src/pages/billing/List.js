@@ -43,7 +43,7 @@ const styles = {
   }
 }
 
-const BillingProjectActions = ({ project: { projectName } }) => {
+const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   const signal = useCancellation()
 
   const [deleting, setDeleting] = useState(false)
@@ -68,8 +68,9 @@ const BillingProjectActions = ({ project: { projectName } }) => {
       onDismiss: () => setDeleting(false),
       onConfirm: async () => {
         try {
-          await Ajax(signal).Billing.getProject(projectName)
+          await Ajax(signal).Billing.deleteProject(projectName)
           setDeleting(false)
+          loadProjects()
         } catch (err) {
           reportError('Error deleting billing project.', err)
         }
@@ -78,7 +79,7 @@ const BillingProjectActions = ({ project: { projectName } }) => {
   ])
 }
 
-const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
+const ProjectListItem = ({ project, project: { roles, status }, loadProjects, isActive }) => {
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
@@ -100,7 +101,7 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
           ]),
           //Currently, only billing projects that failed to create can have actions performed on them.
           //If that changes in the future, this should be moved elsewhere
-          h(BillingProjectActions, { project })
+          h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
@@ -382,7 +383,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
-              project, key: project.projectName,
+              project, key: project.projectName, loadProjects,
               isActive: !!selectedName && project.projectName === selectedName
             }), projectsOwned)
           ])
@@ -390,7 +391,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
-              project, key: project.projectName,
+              project, key: project.projectName, loadProjects,
               isActive: !!selectedName && project.projectName === selectedName
             }), projectsShared)
           ])

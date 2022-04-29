@@ -543,7 +543,7 @@ const Billing = signal => ({
   deleteProject: async projectName => {
     const route = `billing/v2/${projectName}`
     const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    return res.json()
+    return res
   },
 
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
