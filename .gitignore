@@ -31,6 +31,7 @@ saturn-ui.iml
 /integration-tests/failures
 /integration-tests/results
 /integration-tests/screenshots
+/integration-tests/junit.xml
 
 .yarn/*
 !.yarn/cache

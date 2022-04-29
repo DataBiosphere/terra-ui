@@ -12,14 +12,14 @@ const testFindWorkflowFn = _.flow(
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
-  await click(page, clickable({ textContains: 'View Examples' }))
+  // await click(page, clickable({ textContains: 'View Examples' }))
   await click(page, clickable({ textContains: 'code & workflows' }))
   await click(page, clickable({ textContains: workflowName }))
 
   await firecloud.signIntoFirecloud(page, token)
   await findText(page, workflowName)
   await findText(page, 'Synopsis') // wait for spinner overlay
-  await click(page, clickable({ textContains: 'Export to Workspace...' }))
+  // await click(page, clickable({ textContains: 'Export to Workspace...' }))
   await click(page, clickable({ textContains: `${workflowName}-configured` }))
   await click(page, clickable({ textContains: 'Use Selected Configuration' }))
   await findText(page, 'Select a workspace')
