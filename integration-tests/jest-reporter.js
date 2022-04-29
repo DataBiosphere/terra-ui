@@ -4,7 +4,7 @@ const path = require('path')
 
 module.exports = class JestReporter {
   constructor(_globalConfig, _options) {
-    this.logDir = process.env.SCREENSHOT_DIR || 'failures'
+    this.logRootDir = process.env.LOG_DIR || '/tmp/test-results'
   }
 
   onTestStart(test) {
@@ -13,8 +13,12 @@ module.exports = class JestReporter {
 
   onTestResult(_testRunConfig, testResult, _runResults) {
     const testName = path.parse(testResult.testFilePath).name
-    const logFileName = `${this.logDir}/${testName}.log`
-    !existsSync(this.logDir) && mkdirSync(this.logDir)
+    const hasFailure = testResult.testResults.some((result) => {
+      return result.status === 'failed'
+    })
+    const logDir = hasFailure ? `${this.logRootDir}/failures` : `${this.logRootDir}/successes`
+    const logFileName = `${logDir}/${testName}-${Date.now()}.log`
+    !existsSync(logDir) && mkdirSync(logDir, { recursive: true })
 
     const writableStream = createWriteStream(logFileName)
     writableStream.on('error', error => {
