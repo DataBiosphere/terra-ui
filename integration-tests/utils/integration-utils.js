@@ -279,7 +279,8 @@ const logPageConsoleMessages = page => {
 const logPageAjaxResponses = page => {
   const terraRequests = [
     'broad',
-    'terra'
+    'terra',
+    'googleapis'
   ]
   const handle = res => {
     const request = res.request()
