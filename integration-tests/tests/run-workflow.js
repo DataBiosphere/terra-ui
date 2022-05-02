@@ -2,7 +2,8 @@ const rawConsole = require('console')
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
+const { click, clickable, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require(
+  '../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
