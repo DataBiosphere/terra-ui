@@ -78,53 +78,27 @@ const getTableTextWithinColumn = async (page, { tableName, columnHeader, textCon
   return xpath
 }
 
-// 1. Add a new function "findRowValuesFor" similar to getTableTextWithinColumn
-//    a. This will need to use the row index AND col index to fetch the data / text
-//    b. The signature should look something like: (page, { keyColumns: {participant: 'participant1'}, columnsToMatch: {age: 30, biological_sex: 'male'}})
+const assertRowMatches = async (page, { tableName, expectedColumnValues, forRowContaining:{ column, textContains }, isDescendant = false }) => {
+  const rowIndex = await getTableRowIndex(page, { tableName, columnHeader:column, textContains })
+  console.log('expectedColumnValues', expectedColumnValues)
 
-// assertRowMatches(page, { expectedColumnValues, forRowContaining}}
-// assertRowMatches(page, { expectedColumnValues: {age: 30, biological_sex: 'male'}, forRowContaining: {column: participant_id, textContains:'participant1'}}
-// 1. The funcion will attempt to find each item. If it does not, puppeteer will throw an error (this is the default behavior)
+  //const trace = message => value => {
+  //  console.log(message, value)
+  //  return value
+  //}
 
-const assertRowMatches = async (page, { tableName, expectedColumnValues, forRowContaining:{column, textContains}}) => {
-  const rowIndex = await getTableRowIndex(page, {tableName, columnHeader:column, textContains})
-  console.log("expectedColumnValues", expectedColumnValues)
-
-  const trace = message => value => {
-    console.log(message, value)
-    return value
-  }
-
-// construct the xpath -> findElement -> return
-// if finding the element fails, it should throw an error
-// test by passing in incorrect strings to look for
-// v[0] is header, v[1] is text
-  const helperFn = async v => {
-    // Find the row in the table... or not
-    // returns a promise
-
-    if (v){
-        const columnHeader = v[0]
-        const text = v[1]
-        const colIndex = await getTableColIndex(page, { tableName, columnHeader})
-        const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"]`
-//        const colXPath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${text}")]`
-        const colXPath = `${baseXpath}[contains(normalize-space(.),"${text}")]`
-        return await findElement(page, colXPath)
-    }
-    return 'null'
+  const findTextInColumn = async ([columnHeader, text]) => {
+    const colIndex = await getTableColIndex(page, { tableName, columnHeader })
+    const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"]`
+    const colXPath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${text}")]`
+    return await findElement(page, colXPath, {timeout:5000})
   }
 
   // this flow will return an array of promises you can use Promise.all to resolve
   const findAllItemsInRow = _.flow(
     _.toPairs,
-    trace('Input to helper fn:'),
-    // For each pair run the xpath to find the element. Each of these will return a promise, resulting in an array of promises
-    _.map(helperFn)
+    _.map(findTextInColumn)
   )(expectedColumnValues)
-
-  //console.log('findAllItemsInRow:', findAllItemsInRow)
-
   return Promise.all(findAllItemsInRow)
 }
 

@@ -18,19 +18,13 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
 
   const tableName = 'Participant Preview Data'
 
-//  const getcellPath = await getTableCellPath(page, 2, getTableColIndex(page, { tableName, columnHeader: 'age' }))
-//  console.log(getcellPath)
-//  const readcellPath = page.waitForXPath(getcellPath)
-//  console.log(getcellPath)
-
-
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'participant_id', textContains: 'participant1' })
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'biological_sex', textContains: 'male' })
-//  await getTableCellPath(page, 2, getTableColIndex(page, { tableName, columnHeader: 'age' }))
+  //  await getTableCellPath(page, 2, getTableColIndex(page, { tableName, columnHeader: 'age' }))
   const row = await getTableRowIndex(page, { tableName, columnHeader: 'participant_id', textContains: 'participant1' })
   console.log(row)
-  const matchRow = await assertRowMatches(page, { tableName, expectedColumnValues: {age: 36, biological_sex: 'male'}, forRowContaining: {column: 'participant_id', textContains:'participant1'}})
-  //console.log('assertRowMatches', matchRow)
+  const matchRow = await assertRowMatches(page, { tableName, expectedColumnValues: { age: 36, biological_sex: 'male' }, forRowContaining: { column: 'participant_id', textContains: 'participant1' } })
+  console.log('assertRowMatches', matchRow)
   await findTableTextWithinColumn(page, { tableName, columnHeader: 'age', textContains: '36' })
 })
 
