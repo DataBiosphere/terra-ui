@@ -39,7 +39,7 @@ const contextBarStyles = {
 
 export const ContextBar = ({
   runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName, googleProject } }
+  workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
@@ -128,9 +128,6 @@ export const ContextBar = ({
             tooltipSide: 'left',
             onClick: () => {
               setCloudEnvOpen(!isCloudEnvOpen)
-              if (!googleProject) {
-                setSelectedToolIcon(tools.Azure.label)
-              }
             },
             tooltip: 'Environment Configuration',
             tooltipDelay: 100,

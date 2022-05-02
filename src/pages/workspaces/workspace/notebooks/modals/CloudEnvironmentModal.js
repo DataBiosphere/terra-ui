@@ -35,7 +35,7 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName, azureContext } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -68,6 +68,7 @@ export const CloudEnvironmentModal = ({
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
     isOpen: viewMode === NEW_AZURE_MODE,
+    shouldHideCloseButton: true,
     workspace,
     runtimes,
     onDismiss: () => {
@@ -96,7 +97,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay)
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay(azureContext))
   )
 
   const toolPanelStyles = {
@@ -135,6 +136,7 @@ export const CloudEnvironmentModal = ({
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
   const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
+  const isLaunchSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isLaunchUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -207,7 +209,7 @@ export const CloudEnvironmentModal = ({
           shape: 'play',
           toolLabel,
           onClick: () => startApp(toolLabel),
-          disabled: busy || !canCompute || toolLabel === tools.Azure.label, //TODO: Azure stop/start
+          disabled: busy || !canCompute,
           messageChildren: [span('Resume'),
             span('Environment')],
           tooltip: canCompute ? 'Resume Environment' : noCompute
@@ -217,7 +219,7 @@ export const CloudEnvironmentModal = ({
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
-          disabled: busy || !canCompute || toolLabel === tools.Azure.label, //TODO: Azure stop/start,
+          disabled: busy || !canCompute,
           messageChildren: [span('Pause'),
             span('Environment')],
           tooltip: canCompute ? 'Pause Environment' : noCompute
@@ -304,7 +306,7 @@ export const CloudEnvironmentModal = ({
     const isToolBusy = isToolAnApp(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
-    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label || toolLabel === tools.Azure.label
+    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || isLaunchSupported(toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,

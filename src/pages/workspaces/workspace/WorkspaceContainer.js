@@ -211,7 +211,7 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
   //TODO: revert before merging
-  var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
+  // var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -224,7 +224,7 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
       ]) : await Promise.all([
         Promise.resolve([]),
-        workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
+        !!workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
       ])
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
@@ -298,8 +298,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = usePrevious(googleProject)
-    //TODO: revert before merge, used for testing
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(null, workspace?.workspace.workspaceId)
+    // TODO: revert before merge, used for testing
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.workspaceId)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
