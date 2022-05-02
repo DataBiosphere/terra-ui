@@ -14,7 +14,6 @@ const testRunWorkflowFn = _.flow(
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
   await signIntoTerra(page, { token, testUrl })
-  await dismissNotifications(page)
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
   // Wait for bucket access to avoid sporadic failure when launching workflow.

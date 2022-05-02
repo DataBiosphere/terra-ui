@@ -175,7 +175,9 @@ const signIntoTerra = async (page, { token, url }) => {
   }
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
-  return page.evaluate(token => window.forceSignIn(token), token)
+  await page.evaluate(token => window.forceSignIn(token), token)
+  await dismissNotifications(page)
+  await waitForNoSpinners(page)
 }
 
 const findElement = (page, xpath, options) => {

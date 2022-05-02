@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const firecloud = require('../utils/firecloud-utils')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
+const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -10,7 +10,7 @@ const testFindWorkflowFn = _.flow(
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
   await signIntoTerra(page, { token, testUrl })
-  await dismissNotifications(page)
+
   await click(page, clickable({ textContains: 'View Examples' }))
   await click(page, clickable({ textContains: 'code & workflows' }))
   await click(page, clickable({ textContains: workflowName }))

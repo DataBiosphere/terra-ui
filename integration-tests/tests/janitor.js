@@ -3,7 +3,7 @@ const rawConsole = require('console')
 const dateFns = require('date-fns/fp')
 const _ = require('lodash/fp')
 const { testWorkspaceNamePrefix } = require('../utils/integration-helpers')
-const { dismissNotifications, signIntoTerra } = require('../utils/integration-utils')
+const { signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -12,7 +12,6 @@ const olderThanDays = 2
 const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
   await signIntoTerra(page, { token, testUrl })
-  await dismissNotifications(page)
 
   // Delete old orphaned workspaces. These can result from local integration test runs where the
   // process was prematurely terminated, but a few also appear in alpha and staging indicating that

@@ -1,12 +1,11 @@
 const { withUser } = require('../utils/integration-helpers')
-const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { fillIn, findText, click, clickable, input, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
-  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
+  await signIntoTerra(page, { token, testUrl })
+
   await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
   await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
   await click(page, clickable({ textContains: 'Register' }))

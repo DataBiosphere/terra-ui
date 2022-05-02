@@ -189,7 +189,7 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
@@ -197,7 +197,6 @@ const enableDataCatalog = async (page, testUrl, token) => {
 
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, token)
-  await dismissNotifications(page)
 }
 
 const clickNavChildAndLoad = async (page, tab) => {
@@ -213,7 +212,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
