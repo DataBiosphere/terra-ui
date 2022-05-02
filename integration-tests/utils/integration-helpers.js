@@ -195,7 +195,7 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token })
 }
 
 const clickNavChildAndLoad = async (page, tab) => {
@@ -204,7 +204,7 @@ const clickNavChildAndLoad = async (page, tab) => {
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token })
   await dismissNotifications(page)
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })

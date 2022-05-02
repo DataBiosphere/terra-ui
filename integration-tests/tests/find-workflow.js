@@ -45,7 +45,7 @@ const testFindWorkflowFn = _.flow(
     backToTerra()
   ])
 
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token })
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
 })
