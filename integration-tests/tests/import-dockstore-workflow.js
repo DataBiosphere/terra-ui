@@ -23,8 +23,8 @@ const testImportDockstoreWorkflowFn = _.flow(
   withUserToken,
   withDockstoreCheck
 )(async ({ page, testUrl, token, workspaceName }) => {
-  await page.goto(`${testUrl}/#import-tool/dockstore/${testWorkflowIdentifier}`)
-  await signIntoTerra(page, token)
+  const url = `${testUrl}/#import-tool/dockstore/${testWorkflowIdentifier}`
+  await signIntoTerra(page, { token, url })
   await dismissNotifications(page)
   await findText(page, 'workflow TopMedVariantCaller')
   await select(page, 'Select a workspace', workspaceName)

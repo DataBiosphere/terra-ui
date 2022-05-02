@@ -11,8 +11,7 @@ const olderThanDays = 2
 
 const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }) => {
   // Sign into Terra so we have the correct credentials.
-  await page.goto(testUrl)
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token, testUrl })
   await dismissNotifications(page)
 
   // Delete old orphaned workspaces. These can result from local integration test runs where the

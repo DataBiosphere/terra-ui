@@ -16,8 +16,7 @@ const testPreviewDrsUriFn = _.flow(
     }
   }
 
-  await page.goto(testUrl)
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token, testUrl })
   await dismissNotifications(page)
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)

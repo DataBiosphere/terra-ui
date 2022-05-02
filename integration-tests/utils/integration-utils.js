@@ -169,8 +169,11 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const signIntoTerra = async (page, token) => {
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
+const signIntoTerra = async (page, { token, url }) => {
+  if (url) {
+    await page.goto(url, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
+  }
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
   return page.evaluate(token => window.forceSignIn(token), token)
 }

@@ -9,7 +9,7 @@ const testGoogleWorkspace = _.flow(
   withWorkspace,
   withUserToken
 )(async ({ page, token, testUrl, workspaceName }) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
   await viewWorkspaceDashboard(page, token, workspaceName)
   await findText(page, 'About the workspace')
 

@@ -147,8 +147,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
 
 const setUpBillingTest = async (page, testUrl, token) => {
   // Sign in. This portion of the test is not mocked.
-  await page.goto(testUrl)
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token, testUrl })
   await dismissNotifications(page)
 
   // Interact with the Billing Page via mocked AJAX responses.

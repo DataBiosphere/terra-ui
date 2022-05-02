@@ -3,7 +3,7 @@ const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotific
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
   await dismissNotifications(page)
