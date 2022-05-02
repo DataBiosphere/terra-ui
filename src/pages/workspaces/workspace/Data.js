@@ -462,6 +462,8 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
+  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
+
   const downloadForm = useRef()
   const signal = useCancellation()
 
@@ -510,7 +512,9 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
         h(MenuButton, {
           onClick: () => {
             setRenaming(true)
-          }
+          },
+          disabled: !!editWorkspaceErrorMessage,
+          tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table')
       ])
     }, [
