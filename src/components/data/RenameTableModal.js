@@ -5,6 +5,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
 
@@ -17,6 +18,8 @@ export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
     placeholder: 'Enter a name'
   }
 })
+
+const captureTableRenameEvent = (oldName, newName) => Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
 
 const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataType }) => {
   // State
@@ -32,6 +35,7 @@ const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataT
       disabled: renaming,
       onClick: async () => {
         setRenaming(true)
+        captureTableRenameEvent(selectedDataType, newName)
         try {
           await Ajax(signal).Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
           onSuccess()
