@@ -91,7 +91,7 @@ const assertRowMatches = async (page, { tableName, expectedColumnValues, forRowC
     const colIndex = await getTableColIndex(page, { tableName, columnHeader })
     const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"]`
     const colXPath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${text}")]`
-    return await findElement(page, colXPath, { timeout:5000 })
+    return await findElement(page, colXPath, { timeout: 5000 })
   }
 
   // this flow will return an array of promises you can use Promise.all to resolve
