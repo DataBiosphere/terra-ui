@@ -297,8 +297,6 @@ const withPageLogging = fn => options => {
   const { page } = options
   logPageAjaxResponses(page)
   logPageConsoleMessages(page)
-  // Leaving console logging off for now since it is mostly request failures already logged above.
-  // logPageConsoleMessages(page)
   return fn(options)
 }
 
