@@ -15,8 +15,7 @@ const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
   const page = await context.newPage()
   try {
-    await page.goto(testUrl)
-    await signIntoTerra(page, token)
+    await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
   } finally {
     await page.close()

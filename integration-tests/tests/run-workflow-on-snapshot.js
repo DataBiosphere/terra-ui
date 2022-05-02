@@ -31,7 +31,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   }
   // IMPORT SNAPSHOT
   const url = `${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
-  await signIntoTerra(page, { token, url })
+  await signIntoTerra(page, { token, testUrl: url })
 
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
