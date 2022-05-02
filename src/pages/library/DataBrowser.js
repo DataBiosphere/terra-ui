@@ -113,6 +113,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:tableView`, {
+            id: _.map('id', selectedData),
             // These are still using snapshot as a relic to ensure backwards search
             // capabilities within the data browser.
             snapshotIds: _.map('dct:identifier', selectedData),
@@ -171,10 +172,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             {
               onClick: () => {
                 Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
-                  id: datum['dct:identifier'],
+                  id: datum.id,
                   title: datum['dct:title']
                 })
-                Nav.goToPath('library-details', { id: datum['dct:identifier'] })
+                Nav.goToPath('library-details', { id: datum.id })
               }
             },
             [datum['dct:title']]
@@ -191,10 +192,8 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   onClick: () => {
                     setRequestDatasetAccessList([datum])
                     Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                      // These are still using snapshot as a relic to ensure backwards search
-                      // capabilities within the data browser.
-                      snapshotId: _.get('dct:identifier', datum),
-                      snapshotName: datum['dct:title']
+                      id: datum.id,
+                      title: datum['dct:title']
                     })
                   }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
@@ -252,7 +251,7 @@ const Browser = () => {
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description',
-      idField: 'dct:identifier'
+      idField: 'id'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })]),
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {

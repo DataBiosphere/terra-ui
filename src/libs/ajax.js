@@ -1051,6 +1051,14 @@ const Catalog = signal => ({
   getDatasets: async () => {
     const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
     return res.json()
+  },
+  getDatasetTables: async id => {
+    const res = await fetchCatalog(`v1/datasets/${id}/tables`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  getDatasetPreviewTable: async ({ id, tableName }) => {
+    const res = await fetchCatalog(`v1/datasets/${id}/tables/${tableName}`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
@@ -1063,16 +1071,6 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
-  },
-
-  getPreviewMetadata: async id => {
-    const res = await fetchDataRepo(`repository/v1/snapshots/${id}?include=TABLES,DATA_PROJECT`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  getPreviewTable: async ({ id, table, offset, limit }) => {
-    const res = await fetchDataRepo(`repository/v1/snapshots/${id}/data/${table}?limit=${limit}&offset=${offset}`, _.merge(authOpts(), { signal }))
-    return res.json()
   }
 })
 

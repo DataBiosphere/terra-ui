@@ -145,10 +145,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 onClick: () => {
                   setShowRequestAccessModal(true)
                   Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                    // These are still using snapshot as a relic to ensure backwards search
-                    // capabilities within the data browser.
-                    snapshotId: _.get('dct:identifier', dataObj),
-                    snapshotName: dataObj['dct:title']
+                    id: dataObj.id,
+                    title: dataObj['dct:title']
                   })
                 }
               }, [
@@ -205,12 +203,10 @@ export const SidebarComponent = ({ dataObj, id }) => {
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
-            // These are still using snapshot as a relic to ensure backwards search
-            // capabilities within the data browser.
-            snapshotId: _.get('dct:identifier', dataObj),
-            snapshotName: dataObj['dct:title']
+            id: dataObj.id,
+            title: dataObj['dct:title']
           })
-          Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', dataObj) })
+          Nav.goToPath('library-catalog-preview', { id: dataObj.id })
         }
       }, [
         div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
@@ -224,10 +220,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-            // These are still using snapshot as a relic to ensure backwards search
-            // capabilities within the data browser.
-            snapshotId: id,
-            snapshotName: dataObj['dct:title']
+            id,
+            title: dataObj['dct:title']
           })
           importDataToWorkspace([dataObj])
         }
@@ -242,7 +236,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
 
 const DataBrowserDetails = ({ id }) => {
   const { dataCatalog } = useDataCatalog()
-  const dataMap = _.keyBy('dct:identifier', dataCatalog)
+  const dataMap = _.keyBy('id', dataCatalog)
   const dataObj = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
