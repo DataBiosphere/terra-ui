@@ -12,6 +12,14 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+const customReferences = [
+  {
+    name: 'MN908947.3',
+    referenceDefinition: { reference: { id: 'sarsCov2RefId.3', indexed: false, fastaURL: 'https://storage.googleapis.com/gcp-public-data--broad-references/sars-cov-2/MN908947.3/nCoV-2019.reference.fasta' } }
+  }
+]
+
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = _.flow(
   withDisplayName('IGVBrowser'),
@@ -52,9 +60,6 @@ const IGVBrowser = _.flow(
           const { default: igv } = await import('igv')
           igvLibrary.current = igv
 
-          const sarsCov2RefId = 'MN908947.3'
-          const sarsCov2Ref = { reference: { id: 'sarsCov2RefId.3', indexed: false, fastaURL: 'https://storage.cloud.google.com/firecloud-alerts-dev/nCoV-2019.reference.fasta' } }
-
           const options = {
             genome: refGenome,
             tracks: await Promise.all(_.map(async ({ filePath, indexFilePath }) => {
@@ -69,7 +74,9 @@ const IGVBrowser = _.flow(
             }, selectedFiles))
           }
 
-          const mergedOptions = refGenome === sarsCov2RefId ? _.merge(options, sarsCov2Ref) : options
+          const customReference = _.find({ name: refGenome }, customReferences)
+
+          const mergedOptions = customReference ? _.merge(options, customReference.referenceDefinition) : options
 
           igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject))
           igv.createBrowser(containerRef.current, mergedOptions)
