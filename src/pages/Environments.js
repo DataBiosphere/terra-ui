@@ -202,7 +202,7 @@ const Environments = () => {
   const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
-  const totalDiskCost = _.sum(_.map(disk => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), disks))
+  const totalDiskCost = _.sum(_.map(disk => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), mapToPdTypes(disks)))
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)

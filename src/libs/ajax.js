@@ -7,7 +7,7 @@ import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -1051,6 +1051,14 @@ const Catalog = signal => ({
   getDatasets: async () => {
     const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
     return res.json()
+  },
+  getDatasetTables: async id => {
+    const res = await fetchCatalog(`v1/datasets/${id}/tables`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  getDatasetPreviewTable: async ({ id, tableName }) => {
+    const res = await fetchCatalog(`v1/datasets/${id}/tables/${tableName}`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
@@ -1063,16 +1071,6 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
-  },
-
-  getPreviewMetadata: async id => {
-    const res = await fetchDataRepo(`repository/v1/snapshots/${id}?include=TABLES,DATA_PROJECT`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  getPreviewTable: async ({ id, table, offset, limit }) => {
-    const res = await fetchDataRepo(`repository/v1/snapshots/${id}/data/${table}?limit=${limit}&offset=${offset}`, _.merge(authOpts(), { signal }))
-    return res.json()
   }
 })
 
@@ -1657,7 +1655,7 @@ const Metrics = signal => ({
   captureEvent: withErrorIgnoring(async (event, details = {}) => {
     await ensureAuthSettled()
     const { isSignedIn, registrationStatus } = authStore.get() // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = isSignedIn && registrationStatus === 'registered'
+    const isRegistered = isSignedIn && registrationStatus === userStatus.registeredWithTos
     if (!isRegistered) {
       authStore.update(_.update('anonymousId', id => {
         return id || uuid()

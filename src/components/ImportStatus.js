@@ -13,6 +13,7 @@ import * as Utils from 'src/libs/utils'
 const ImportStatus = () => {
   const jobs = useStore(asyncImportJobStore)
   return h(Fragment, _.map(job => h(ImportStatusItem, {
+    key: job.jobId,
     job,
     onDone: () => {
       asyncImportJobStore.update(_.reject({ jobId: job.jobId }))
