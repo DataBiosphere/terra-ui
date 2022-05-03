@@ -19,10 +19,9 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   const tableName = 'Participant Preview Data'
   await assertRowMatches(page, {
     tableName,
-    expectedColumnValues: [['age', 36],['biological_sex', 'male']],
+    expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
     withKey: { column: 'participant_id', textContains: 'participant1' }
   })
-
 })
 
 const testPreviewDataset = {
