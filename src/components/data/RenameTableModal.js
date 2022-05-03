@@ -19,8 +19,6 @@ export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   }
 })
 
-const captureTableRenameEvent = (oldName, newName) => Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
-
 const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataType }) => {
   // State
   const [newName, setNewName] = useState('')
@@ -35,7 +33,7 @@ const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataT
       disabled: renaming,
       onClick: async () => {
         setRenaming(true)
-        captureTableRenameEvent(selectedDataType, newName)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
         try {
           await Ajax(signal).Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
           onSuccess()
