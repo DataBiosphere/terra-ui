@@ -25,13 +25,15 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ billingProject, dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+)(async ({
+  billingProject, dataRepoUrlRoot, page, testUrl: testUrlRoot, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName
+}) => {
   if (!snapshotId) {
     return
   }
   // IMPORT SNAPSHOT
-  const url = `${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
-  await signIntoTerra(page, { token, testUrl: url })
+  const testUrl = `${testUrlRoot}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
+  await signIntoTerra(page, { token, testUrl })
 
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)

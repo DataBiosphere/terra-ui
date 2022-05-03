@@ -297,6 +297,8 @@ const withPageLogging = fn => options => {
   return fn(options)
 }
 
+const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
@@ -332,5 +334,6 @@ module.exports = {
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
-  openError
+  openError,
+  waitUntilLoadedOrTimeout
 }

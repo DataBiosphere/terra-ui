@@ -7,6 +7,7 @@ const {
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -188,7 +189,7 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
+  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
@@ -211,7 +212,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl, { waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout: 60 * 1000 })
+  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
