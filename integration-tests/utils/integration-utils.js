@@ -78,39 +78,22 @@ const getTableTextWithinColumn = async (page, { tableName, columnHeader, textCon
   return xpath
 }
 
-const assertRowMatches = async (page, { tableName, expectedColumnValues, forRowContaining: { column, textContains }, isDescendant = false }) => {
+const assertRowMatches = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
   const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, textContains })
-  console.log('expectedColumnValues', expectedColumnValues)
-
-  //const trace = message => value => {
-  //  console.log(message, value)
-  //  return value
-  //}
 
   const findTextInColumn = async ([columnHeader, text]) => {
     const colIndex = await getTableColIndex(page, { tableName, columnHeader })
-    const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"]`
-    const colXPath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${text}")]`
-    return await findElement(page, colXPath, { timeout: 5000 })
+    const xPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}" and contains(normalize-space(.),"${text}")]`
+    return await findElement(page, xPath, { timeout: 5000 })
   }
 
-  // this flow will return an array of promises you can use Promise.all to resolve
-  const findAllItemsInRow = _.flow(
-    _.toPairs,
-    _.map(findTextInColumn)
-  )(expectedColumnValues)
-  return Promise.all(findAllItemsInRow)
+  return Promise.all(_.map(findTextInColumn, expectedColumnValues))
 }
 
 const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
   const colXPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
   const findCol = await findElement(page, colXPath)
   return page.evaluate(node => node.getAttribute('aria-rowindex'), findCol)
-}
-
-const findTableTextWithinColumn = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
-  const xpath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
-  return page.waitForXPath(xpath, options)
 }
 
 const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
@@ -331,14 +314,12 @@ module.exports = {
   findInGrid,
   findElement,
   findHeading,
-  findTableTextWithinColumn,
   findText,
   fillIn,
   fillInReplace,
   getAnimatedDrawer,
   getTableCellPath,
   getTableColIndex,
-  getTableRowIndex,
   heading,
   image,
   input,

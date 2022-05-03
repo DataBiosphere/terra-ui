@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, waitForNoSpinners, getTableRowIndex, assertRowMatches, findTableTextWithinColumn } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowMatches } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -17,15 +17,12 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await waitForNoSpinners(page)
 
   const tableName = 'Participant Preview Data'
+  await assertRowMatches(page, {
+    tableName,
+    expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
+    withKey: { column: 'participant_id', textContains: 'participant1' }
+  })
 
-  await findTableTextWithinColumn(page, { tableName, columnHeader: 'participant_id', textContains: 'participant1' })
-  await findTableTextWithinColumn(page, { tableName, columnHeader: 'biological_sex', textContains: 'male' })
-  //  await getTableCellPath(page, 2, getTableColIndex(page, { tableName, columnHeader: 'age' }))
-  const row = await getTableRowIndex(page, { tableName, columnHeader: 'participant_id', textContains: 'participant1' })
-  console.log(row)
-  const matchRow = await assertRowMatches(page, { tableName, expectedColumnValues: { age: 36, biological_sex: 'male' }, forRowContaining: { column: 'participant_id', textContains: 'participant1' } })
-  console.log('assertRowMatches', matchRow)
-  await findTableTextWithinColumn(page, { tableName, columnHeader: 'age', textContains: '36' })
 })
 
 const testPreviewDataset = {
