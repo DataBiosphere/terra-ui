@@ -49,7 +49,14 @@ export const signOut = () => {
 
 export const signIn = includeBillingScope => {
   if (includeBillingScope) {
-    return getAuthInstance().signinPopup({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })
+    return getAuthInstance().signinPopup({
+      scope: `
+      openid
+      email
+      profile
+      https://www.googleapis.com/auth/cloud-billing
+    `.trim().split(/\s+/).join(' ')
+    })
   } else {
     return getAuthInstance().signinPopup()
   }
