@@ -1,6 +1,6 @@
 import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
-import { UserManager } from 'oidc-client-ts'
+import { UserManager, WebStorageStateStore } from 'oidc-client-ts'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
@@ -30,7 +30,8 @@ export const getOidcConfig = () => {
     metadata: {
       authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
       token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
-    }
+    },
+    userStore: new WebStorageStateStore({ store: window.localStorage })
   }
 }
 
@@ -59,7 +60,7 @@ export const reloadAuthToken = () => {
 }
 
 export const hasBillingScope = () => {
-  const scope = getAuthInstance().user?.scope
+  const scope = getUser().scope
   return scope && scope.includes('https://www.googleapis.com/auth/cloud-billing')
 }
 
@@ -140,6 +141,7 @@ export const initializeAuth = _.memoize(async () => {
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: user?.access_token,
+          scope: user?.scope,
           id: userId,
           ...(profile ? {
             email: profile.email,
