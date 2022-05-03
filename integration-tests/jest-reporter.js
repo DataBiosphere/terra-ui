@@ -10,7 +10,7 @@ module.exports = class JestReporter {
 
   onTestStart(test) {
     const { path } = test
-    console.info(`\n**  Running ${parse(path).name} at ${this.timeNow()}\n`)
+    console.info(`**  Running ${parse(path).name} at ${this.timeNow()}`)
   }
 
   onTestResult(_testRunConfig, testResult, _runResults) {
@@ -22,9 +22,7 @@ module.exports = class JestReporter {
     !existsSync(logDir) && mkdirSync(logDir, { recursive: true })
 
     const writableStream = createWriteStream(logFileName)
-    writableStream.on('error', ({ message }) => {
-      console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`)
-    })
+    writableStream.on('error', ({ message }) => console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`))
 
     _.forEach(({ message }) => writableStream.write(`${message}\n`), testResult.console)
 
@@ -40,9 +38,7 @@ module.exports = class JestReporter {
     }, testResults)
 
     writableStream.end()
-    writableStream.on('finish', () => {
-      console.log(`Finished writing logs to ${logFileName}`)
-    })
+    writableStream.on('finish', () => console.log(`Finished writing logs to ${logFileName}`))
   }
 
   timeNow() {
