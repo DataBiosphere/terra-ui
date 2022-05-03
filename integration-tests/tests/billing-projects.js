@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -147,9 +147,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
 
 const setUpBillingTest = async (page, testUrl, token) => {
   // Sign in. This portion of the test is not mocked.
-  await page.goto(testUrl)
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
+  await signIntoTerra(page, { token, testUrl })
 
   // Interact with the Billing Page via mocked AJAX responses.
   const ownedBillingProjectName = 'OwnedBillingProject'

@@ -1,6 +1,8 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
+const {
+  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findIframe, findText
+} = require('../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'
@@ -10,12 +12,9 @@ const testRunNotebookFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
-  await page.goto(testUrl)
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await waitForNoSpinners(page)
+  await signIntoTerra(page, { token, testUrl })
 
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })), debugMessage: '1' })
   await click(page, navChild('notebooks'))
   await click(page, clickable({ textContains: 'Create a' }))

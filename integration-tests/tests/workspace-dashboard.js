@@ -3,13 +3,14 @@ const _ = require('lodash/fp')
 const { clickNavChildAndLoad, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const { assertNavChildNotFound, click, clickable, findText } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const testGoogleWorkspace = _.flow(
   withWorkspace,
   withUserToken
 )(async ({ page, token, testUrl, workspaceName }) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
   await viewWorkspaceDashboard(page, token, workspaceName)
   await findText(page, 'About the workspace')
 

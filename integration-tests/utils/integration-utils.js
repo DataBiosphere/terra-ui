@@ -169,10 +169,13 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const signIntoTerra = async (page, token) => {
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
+const signIntoTerra = async (page, { token, testUrl }) => {
+  !!testUrl && await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
-  return page.evaluate(token => window.forceSignIn(token), token)
+  await page.evaluate(token => window.forceSignIn(token), token)
+  await dismissNotifications(page)
+  await waitForNoSpinners(page)
 }
 
 const findElement = (page, xpath, options) => {
@@ -292,6 +295,8 @@ const withPageLogging = fn => options => {
   return fn(options)
 }
 
+const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
@@ -327,5 +332,6 @@ module.exports = {
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
-  openError
+  openError,
+  waitUntilLoadedOrTimeout
 }

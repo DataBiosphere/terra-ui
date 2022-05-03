@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, findText, select, signIntoTerra } = require('../utils/integration-utils')
+const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -22,10 +22,10 @@ const testImportDockstoreWorkflowFn = _.flow(
   withWorkspace,
   withUserToken,
   withDockstoreCheck
-)(async ({ page, testUrl, token, workspaceName }) => {
-  await page.goto(`${testUrl}/#import-tool/dockstore/${testWorkflowIdentifier}`)
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
+)(async ({ page, testUrl: testUrlRoot, token, workspaceName }) => {
+  const testUrl = `${testUrlRoot}/#import-tool/dockstore/${testWorkflowIdentifier}`
+  await signIntoTerra(page, { token, testUrl })
+
   await findText(page, 'workflow TopMedVariantCaller')
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))

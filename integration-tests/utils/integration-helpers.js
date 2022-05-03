@@ -7,6 +7,7 @@ const {
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -15,8 +16,7 @@ const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
   const page = await context.newPage()
   try {
-    await page.goto(testUrl)
-    await signIntoTerra(page, token)
+    await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
   } finally {
     await page.close()
@@ -189,15 +189,14 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
   await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
+  await signIntoTerra(page, { token })
 }
 
 const clickNavChildAndLoad = async (page, tab) => {
@@ -206,14 +205,14 @@ const clickNavChildAndLoad = async (page, tab) => {
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
+  await signIntoTerra(page, { token })
   await dismissNotifications(page)
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl)
+  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
