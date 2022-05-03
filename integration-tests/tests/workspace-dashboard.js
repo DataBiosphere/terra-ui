@@ -3,7 +3,7 @@ const _ = require('lodash/fp')
 const { clickNavChildAndLoad, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const { assertNavChildNotFound, click, clickable, findText } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { waitUntilLoadedOrTimeout } = require('integration-tests/utils/integration-utils')
+const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const testGoogleWorkspace = _.flow(
