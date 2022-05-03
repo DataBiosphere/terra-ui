@@ -1,4 +1,3 @@
-const rawConsole = require('console')
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
@@ -65,9 +64,9 @@ const launchWorkflowAndWaitForSuccess = async page => {
     } catch (e) {
       try {
         await findInGrid(page, 'Running', { timeout: 1000 })
-        rawConsole.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+        console.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
       } catch (e) {
-        rawConsole.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
+        console.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
       }
       throw new Error(e)
     }

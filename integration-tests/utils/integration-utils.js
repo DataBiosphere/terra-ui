@@ -1,4 +1,3 @@
-const rawConsole = require('console')
 const _ = require('lodash/fp')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
@@ -146,7 +145,7 @@ const waitForNoSpinners = page => {
 // waiting for the spinner to be removed
 const noSpinnersAfter = async (page, { action, debugMessage }) => {
   if (debugMessage) {
-    rawConsole.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`)
+    console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`)
   }
   const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
   await Promise.all([foundSpinner, action()])
@@ -260,7 +259,7 @@ const maybeSaveScreenshot = async (page, testName) => {
       }
     }
   } catch (e) {
-    rawConsole.error('Failed to capture screenshot', e)
+    console.error('Failed to capture screenshot', e)
   }
 }
 
@@ -274,14 +273,22 @@ const withScreenshot = _.curry((testName, fn) => async options => {
 })
 
 const logPageConsoleMessages = page => {
-  const handle = msg => rawConsole.log('page.console', msg.text(), msg)
+  const handle = msg => console.log('page.console', msg)
   page.on('console', handle)
   return () => page.off('console', handle)
 }
 
 const logPageAjaxResponses = page => {
+  const terraRequests = [
+    'broad',
+    'terra',
+    'googleapis'
+  ]
   const handle = res => {
-    rawConsole.log('page.http.res', `${res.status()} ${res.request().method()} ${res.url()}`)
+    const request = res.request()
+    if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
+      console.log('page.http', `${request.method()}\t${res.status()}  ${res.url()}`)
+    }
   }
   page.on('response', handle)
   return () => page.off('response', handle)
@@ -290,8 +297,7 @@ const logPageAjaxResponses = page => {
 const withPageLogging = fn => options => {
   const { page } = options
   logPageAjaxResponses(page)
-  // Leaving console logging off for now since it is mostly request failures already logged above.
-  // logPageConsoleMessages(page)
+  logPageConsoleMessages(page)
   return fn(options)
 }
 

@@ -127,6 +127,9 @@ commands:
       env:
         type: string
         default: local
+      log_dir:
+        type: string
+        default: "/tmp"
     steps:
       - checkout
       - attach_workspace:
@@ -148,8 +151,9 @@ commands:
       - run:
           working_directory: integration-tests
           environment:
-            JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
-            SCREENSHOT_DIR: "/tmp/failure-screenshots"
+            LOG_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results"
+            JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
+            SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
           no_output_timeout: 16m
           command: |
@@ -157,9 +161,10 @@ commands:
             TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
-          path: /tmp/test-results
+          path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
-          path: /tmp/failure-screenshots
+          path: << parameters.log_dir >>/<< parameters.env >>/test-results
+          destination: results
   notify-qa:
     parameters:
       channel:
