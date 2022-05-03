@@ -12,7 +12,7 @@ const CookieRejectModal = () => {
     showCancel: false,
     showX: false,
     onDismiss: () => authStore.update(_.set('cookiesAccepted', true))
-  }, ['By clicking \'OK\', you agree to use cookies in Terra.'])
+  }, ['By clicking OK, you agree to use cookies in Terra.'])
 }
 
 export default CookieRejectModal
