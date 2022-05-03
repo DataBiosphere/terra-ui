@@ -21,7 +21,6 @@ import {
 import * as Utils from 'src/libs/utils'
 
 
-// Change to true to enable a debugging panel (intended for dev mode only)
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
@@ -31,31 +30,23 @@ export const AzureComputeModalBase = ({
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
 
-  // //TODO: revert before merging
-  // var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
-
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
 
   // Lifecycle
-  useOnMount(() => {
-    // Can't pass an async function into useEffect so we define the function in the body and then call it
-    const doUseOnMount = _.flow(
-      withErrorReporting('Error loading cloud environment'),
-      Utils.withBusyState(setLoading)
-    )(async () => {
-      const currentRuntime = getCurrentRuntime(runtimes)
-      setCurrentRuntimeDetails(currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null)
+  useOnMount(_.flow(
+    withErrorReporting('Error loading cloud environment'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    const currentRuntime = getCurrentRuntime(runtimes)
+    setCurrentRuntimeDetails(currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null)
 
-      setComputeConfig({
-        machineType: currentRuntimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-        diskSize: currentRuntimeDetails?.diskConfig?.size || defaultAzureDiskSize,
-        region: currentRuntime?.runtimeConfig?.region || defaultAzureRegion
-      })
+    setComputeConfig({
+      machineType: currentRuntimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
+      diskSize: currentRuntimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+      region: currentRuntime?.runtimeConfig?.region || defaultAzureRegion
     })
-
-    doUseOnMount()
-  })
+  }))
 
   const renderTitleAndTagline = () => {
     return h(Fragment, [
@@ -195,9 +186,12 @@ export const AzureComputeModalBase = ({
   const renderActionButton = () => {
     const commonButtonProps = {
       tooltipSide: 'left',
-      disabled: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
+      disabled: Utils.cond(
+        [viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails)],
         () => doesRuntimeExist()),
-      tooltip: Utils.cond([viewMode === 'deleteEnvironment', () => getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined],
+      tooltip: Utils.cond(
+        [viewMode === 'deleteEnvironment',
+          () => getIsRuntimeBusy(currentRuntimeDetails) ? 'Cannot delete a runtime while it is busy' : undefined],
         [doesRuntimeExist(), () => 'Update not supported for azure runtimes'],
         () => undefined)
     }
@@ -205,13 +199,11 @@ export const AzureComputeModalBase = ({
     return h(ButtonPrimary, {
       ...commonButtonProps,
       onClick: () => applyChanges()
-    }, [
-      Utils.cond(
-        [viewMode === 'deleteEnvironment', () => 'Delete'],
-        [doesRuntimeExist(), () => 'Update'],
-        () => 'Create'
-      )
-    ]
+    }, [Utils.cond(
+      [viewMode === 'deleteEnvironment', () => 'Delete'],
+      [doesRuntimeExist(), () => 'Update'],
+      () => 'Create'
+    )]
     )
   }
 
@@ -224,8 +216,10 @@ export const AzureComputeModalBase = ({
     //sendCloudEnvironmentMetrics()
 
     //each branch of the cond should return a promise
-    await Utils.cond([viewMode === 'deleteEnvironment', async () => await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
-      [Utils.DEFAULT, async () => {
+    await Utils.cond(
+      [viewMode === 'deleteEnvironment',
+        () => Ajax().Runtimes.runtimeV2(workspaceId, currentRuntimeDetails.runtimeName).delete()], //delete runtime
+      [Utils.DEFAULT, () => {
         const disk = {
           size: computeConfig.diskSize,
           //We do not currently support re-attaching azure disks
@@ -233,7 +227,7 @@ export const AzureComputeModalBase = ({
           labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: workspaceName }
         }
 
-        await Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
+        return Ajax().Runtimes.runtimeV2(workspaceId, Utils.generateRuntimeName()).create({
           region: computeConfig.region,
           machineSize: computeConfig.machineType,
           labels: {
@@ -302,9 +296,7 @@ export const AzureComputeModalBase = ({
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Delete environment']),
         onDismiss,
-        onPrevious: () => {
-          setViewMode(undefined)
-        }
+        onPrevious: () => setViewMode(undefined)
       }),
       div({ style: { lineHeight: '1.5rem' } }, [
         p([

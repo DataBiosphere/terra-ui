@@ -126,9 +126,7 @@ export const ContextBar = ({
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            onClick: () => {
-              setCloudEnvOpen(!isCloudEnvOpen)
-            },
+            onClick: () => setCloudEnvOpen(true),
             tooltip: 'Environment Configuration',
             tooltipDelay: 100,
             useTooltipAsLabel: true

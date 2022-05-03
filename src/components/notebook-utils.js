@@ -84,9 +84,8 @@ export const tools = {
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.remove(tool => tool.isAppHidden),
-  isAzureWorkspace ? _.remove(tool => !tool.isAzureCompatible) : _.remove(tool => tool.isAzureCompatible))(
-  [tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure]
-)
+  _.filter(tool => tool.isAzureCompatible === isAzureWorkspace)
+)([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 

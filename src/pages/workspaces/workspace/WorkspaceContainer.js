@@ -114,7 +114,6 @@ const WorkspaceContainer = ({
 
   // If googleProject is not undefined (server info not yet loaded)
   // and not the empty string, we know that we have a Google workspace.
-  //TODO: revert before merging testing
   const isGoogleWorkspace = !!workspace?.workspace.googleProject
 
   return h(FooterWrapper, [
@@ -210,8 +209,6 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
-  //TODO: revert before merging
-  // var workspaceId = '1aa85f64-5717-4562-b3fc-2c963f66afa6'
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -298,7 +295,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = usePrevious(googleProject)
-    // TODO: revert before merge, used for testing
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.workspaceId)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject

@@ -70,10 +70,11 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
 
   const loadRuntimeError = _.flow(
-    withErrorReporting('Error loading cloud environment details'),
+    withErrorReporting('Could Not Retrieve Cloud Environment Log Info'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ? await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
+    const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ?
+      await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
       await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
       setError(

@@ -229,8 +229,6 @@ const Analyses = _.flow(
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   onRequesterPaysError
 }, _ref) => {
-  // TODO: revert after testing
-  // var googleProject = false
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
@@ -313,12 +311,14 @@ const Analyses = _.flow(
   // Lifecycle
   useOnMount(() => {
     const load = async () => {
-      const [currentUserHash, potentialLockers] = await Promise.all(
-        [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
+      const [currentUserHash, potentialLockers] = !!googleProject ?
+        await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
+        await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
       setCurrentUserHash(currentUserHash)
       setPotentialLockers(potentialLockers)
       getActiveFileTransfers()
-      refreshAnalyses()
+      await refreshAnalyses()
+      await refreshRuntimes()
     }
 
     load()
