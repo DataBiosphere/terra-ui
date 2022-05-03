@@ -14,7 +14,7 @@ const SignInButton = () => {
   return !isAuthInitialized ? spinner() : h(ButtonPrimary, {
     id: 'signInButton',
     onClick: () => signIn(false),
-    style: { marginTop: '0.875rem', width: '6rem', height: '2.8rem' }
+    style: { marginTop: '0.875rem', width: '7rem', height: '2.8rem' }
   }, ['login'])
 }
 
