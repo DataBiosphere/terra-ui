@@ -11,6 +11,8 @@ const CookieRejectModal = () => {
     title: 'Cookies are required for Terra',
     showCancel: false,
     showX: false,
+    shouldCloseOnOverlayClick: false,
+    shouldCloseOnEsc: false,
     onDismiss: () => authStore.update(_.set('cookiesAccepted', true))
   }, ['By clicking OK, you agree to use cookies in Terra.'])
 }
