@@ -7,7 +7,7 @@ import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/co
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
