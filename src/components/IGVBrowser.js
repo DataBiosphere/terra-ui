@@ -13,12 +13,13 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils'
 
 
-const customReferences = [
-  {
-    name: 'MN908947.3',
-    referenceDefinition: { reference: { id: 'sarsCov2RefId.3', indexed: false, fastaURL: 'https://storage.googleapis.com/gcp-public-data--broad-references/sars-cov-2/MN908947.3/nCoV-2019.reference.fasta' } }
+// Additional references supported by Terra that are not included in IGV
+const customReferences = {
+  'MN908947.3': {
+    id: 'sarsCov2RefId.3', indexed: false,
+    fastaURL: 'https://storage.googleapis.com/gcp-public-data--broad-references/sars-cov-2/MN908947.3/nCoV-2019.reference.fasta'
   }
-]
+}
 
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = _.flow(
@@ -60,8 +61,11 @@ const IGVBrowser = _.flow(
           const { default: igv } = await import('igv')
           igvLibrary.current = igv
 
+          const customReference = customReferences[refGenome]
+
           const options = {
             genome: refGenome,
+            reference: customReference,
             tracks: await Promise.all(_.map(async ({ filePath, indexFilePath }) => {
               const [bucket] = parseGsUri(filePath)
               const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? await getUserProjectForWorkspace(workspace) : undefined }
@@ -74,12 +78,8 @@ const IGVBrowser = _.flow(
             }, selectedFiles))
           }
 
-          const customReference = _.find({ name: refGenome }, customReferences)
-
-          const mergedOptions = customReference ? _.merge(options, customReference.referenceDefinition) : options
-
           igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject))
-          igv.createBrowser(containerRef.current, mergedOptions)
+          igv.createBrowser(containerRef.current, options)
         } catch (e) {
           reportError('Error loading IGV.js', e)
         } finally {
