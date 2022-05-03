@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import { useAuth } from 'react-oidc-context'
 import { centeredSpinner } from 'src/components/icons'
 import { useRoute } from 'src/libs/nav'
-import { useOnMount, useStore } from 'src/libs/react-utils'
+import { useStore } from 'src/libs/react-utils'
 import { authStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Disabled } from 'src/pages/Disabled'
@@ -15,10 +14,7 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, profile } = useStore(authStore)
-  const auth = useAuth()
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
-
-  useOnMount(() => authStore.update(_.set(['authContext'], auth)))
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
