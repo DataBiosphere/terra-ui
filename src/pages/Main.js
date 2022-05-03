@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import { AuthProvider } from 'react-oidc-context'
 import AuthContainer from 'src/components/AuthContainer'
+import AuthStoreSetter from 'src/components/AuthStoreSetter'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import CookieRejectModal from 'src/components/CookieRejectModal'
 import CookieWarning from 'src/components/CookieWarning'
@@ -35,7 +36,10 @@ const Main = () => {
       h(TitleManager),
       h(FirecloudNotification),
       h(AuthenticatedCookieSetter),
-      h(AuthContainer, [h(Router)])
+      h(AuthProvider, getOidcConfig(), [
+        h(AuthStoreSetter),
+        h(AuthContainer, [h(Router)])
+      ])
     ]),
     h(PageViewReporter),
     h(SupportRequest),

@@ -24,7 +24,7 @@ export const getOidcConfig = () => {
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     client_id: getConfig().oidcClientId,
-    redirect_uri: window.origin,
+    redirect_uri: `${window.origin}/redirect-from-oauth`,
     prompt: 'login',
     scope: 'openid email profile',
     metadata: {
@@ -111,7 +111,7 @@ export const bucketBrowserUrl = id => {
 export const initializeAuth = _.memoize(async () => {
   const processUser = user => {
     return authStore.update(state => {
-      const isSignedIn = user !== null && user !== undefined
+      const isSignedIn = !_.isNil(user)
       const profile = user?.profile
       const userId = profile?.sub
 
@@ -139,8 +139,8 @@ export const initializeAuth = _.memoize(async () => {
         cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
-          token: user?.access_token || undefined,
-          id: userId || undefined,
+          token: user?.access_token,
+          id: userId,
           ...(profile ? {
             email: profile.email,
             name: profile.name,
