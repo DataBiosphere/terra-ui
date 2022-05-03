@@ -70,7 +70,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
 
   const loadRuntimeError = _.flow(
-    withErrorReporting('Could Not Retrieve Cloud Environment Log Info'),
+    withErrorReporting('Could Not Retrieve Cloud Environment Error Info'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
     const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ?
