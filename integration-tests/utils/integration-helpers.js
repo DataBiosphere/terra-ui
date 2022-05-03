@@ -59,6 +59,8 @@ const withWorkspace = test => async options => {
 
   try {
     await test({ ...options, workspaceName })
+  } catch (err) {
+    console.error(err)
   } finally {
     await deleteWorkspace({ ...options, workspaceName })
   }
@@ -97,6 +99,8 @@ const withUser = test => async args => {
 
   try {
     await test({ ...args, email, token })
+  } catch (err) {
+    console.error(err)
   } finally {
     await fetchLyle('delete', email)
   }
@@ -131,6 +135,8 @@ const withBilling = test => async options => {
 
   try {
     await test({ ...options })
+  } catch (err) {
+    console.error(err)
   } finally {
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
@@ -179,9 +185,14 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
 })
 
 const withRegisteredUser = test => withUser(async options => {
-  await registerUser(options)
-  await test(options)
-})
+    await registerUser(options)
+    try {
+      await test(options)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+)
 
 const overrideConfig = async (page, configToPassIn) => {
   await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)
