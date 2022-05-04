@@ -1,13 +1,15 @@
+import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
@@ -31,18 +33,14 @@ const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataT
     title: 'Rename Data Table',
     okButton: h(ButtonPrimary, {
       disabled: renaming,
-      onClick: async () => {
-        setRenaming(true)
-        Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
-        try {
-          await Ajax(signal).Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
-          onSuccess()
-        } catch (err) {
-          reportError('Error renaming data table.', err)
-        }
-        setRenaming(false)
-        onDismiss()
-      }
+      onClick: _.flow(
+        Utils.withBusyState(setRenaming),
+        withErrorReporting('Error renaming data table.')
+      )(async () => {
+        await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
+        await Ajax(signal).Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
+        onSuccess()
+      })
     }, ['Rename'])
   }, [h(IdContainer, [id => h(Fragment, [
     h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
