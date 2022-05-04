@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { parse } = require('path')
-const { createWriteStream, existsSync, mkdirSync } = require('fs')
+const { createWriteStream, mkdirSync } = require('fs')
 
 
 module.exports = class JestReporter {
@@ -28,7 +28,7 @@ module.exports = class JestReporter {
       console.error(err)
       throw err
     }
-    
+
     const writableStream = createWriteStream(logFileName)
     writableStream.on('error', ({ message }) => console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`))
 
