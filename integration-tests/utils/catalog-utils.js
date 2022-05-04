@@ -10,6 +10,7 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
     throw new Error(`${cleanupMessage}: ${cleanupFailure.message}`)
   }
 }
+
 const linkDataToWorkspace = async (page, testUrl, token) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'browse & explore' }))
