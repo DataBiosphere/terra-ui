@@ -18,6 +18,8 @@ const withSignedInPage = fn => async options => {
   try {
     await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
+  } catch (err) {
+    throw Error(err)
   } finally {
     await page.close()
   }
@@ -60,7 +62,7 @@ const withWorkspace = test => async options => {
   try {
     await test({ ...options, workspaceName })
   } catch (err) {
-    console.error(err)
+    throw Error(err)
   } finally {
     await deleteWorkspace({ ...options, workspaceName })
   }
@@ -100,7 +102,7 @@ const withUser = test => async args => {
   try {
     await test({ ...args, email, token })
   } catch (err) {
-    console.error(err)
+    throw Error(err)
   } finally {
     await fetchLyle('delete', email)
   }
@@ -136,7 +138,7 @@ const withBilling = test => async options => {
   try {
     await test({ ...options })
   } catch (err) {
-    console.error(err)
+    throw Error(err)
   } finally {
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
@@ -189,7 +191,7 @@ const withRegisteredUser = test => withUser(async options => {
     try {
       await test(options)
     } catch (err) {
-      console.error(err)
+      throw Error(err)
     }
   }
 )
