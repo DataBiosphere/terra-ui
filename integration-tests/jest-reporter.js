@@ -25,7 +25,7 @@ module.exports = class JestReporter {
     try {
       mkdirSync(logDir, { recursive: true })
     } catch (err) {
-      console.error(e)
+      console.error(err)
       throw err
     }
 
