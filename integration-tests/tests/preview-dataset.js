@@ -1,4 +1,4 @@
-const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowMatches } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowHas } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -17,7 +17,7 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await waitForNoSpinners(page)
 
   const tableName = 'Participant Preview Data'
-  await assertRowMatches(page, {
+  await assertRowHas(page, {
     tableName,
     expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
     withKey: { column: 'participant_id', textContains: 'participant1' }
