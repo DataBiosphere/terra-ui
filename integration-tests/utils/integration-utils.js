@@ -78,7 +78,7 @@ const getTableTextWithinColumn = async (page, { tableName, columnHeader, textCon
   return xpath
 }
 
-const assertRowMatches = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
+const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
   const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, textContains })
 
   const findTextInColumn = async ([columnHeader, text]) => {
@@ -304,7 +304,7 @@ const withPageLogging = fn => options => {
 
 module.exports = {
   assertTextNotFound,
-  assertRowMatches,
+  assertRowHas,
   checkbox,
   click,
   clickable,
