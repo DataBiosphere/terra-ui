@@ -20,4 +20,4 @@ export const isDatastage = () => (window.location.hostname === 'datastage.terra.
 export const isElwazi = () => (window.location.hostname === 'elwazi.terra.bio') || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
 export const isRareX = () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi()
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isRareX()
