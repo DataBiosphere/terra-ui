@@ -1,4 +1,3 @@
-const rawConsole = require('console')
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 
@@ -35,7 +34,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
 
-    rawConsole.info(`Created workspace: ${workspaceName}`)
+    console.info(`Created workspace: ${workspaceName}`)
   } catch (e) {
     throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}`)
   }
@@ -48,7 +47,7 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
       return window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, workspaceName, billingProject)
 
-    rawConsole.info(`Deleted workspace: ${workspaceName}`)
+    console.info(`Deleted workspace: ${workspaceName}`)
   } catch (e) {
     throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}`)
   }
@@ -75,7 +74,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
     return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
   }, billingProject, workspaceName)
   const bucketName = details.workspace.bucketName
-  rawConsole.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
+  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
   // Try polling for workspace bucket access to be available.
   await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
     try {
@@ -88,7 +87,7 @@ const checkBucketAccess = async (page, billingProject, workspaceName, accessLeve
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
-  rawConsole.info(`created a user with token: ...${clipToken(token)}`)
+  console.info(`created a user "${email}" with token: ...${clipToken(token)}`)
   return { email, token }
 }
 
@@ -107,7 +106,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  rawConsole.info(`added user to: ${billingProject}`)
+  console.info(`added user to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.listProjectUsers(billingProject)
@@ -115,7 +114,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  rawConsole.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -123,7 +122,7 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  rawConsole.info(`removed user from: ${billingProject}`)
+  console.info(`removed user from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {
@@ -145,12 +144,12 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
       return runtime.runtimeName
     }, _.remove({ status: 'Deleting' }, runtimes)))
   }, billingProject, email)
-  rawConsole.info(`deleted runtimes: ${deletedRuntimes}`)
+  console.info(`deleted runtimes: ${deletedRuntimes}`)
 })
 
 const registerUser = withSignedInPage(async ({ page, token }) => {
   // TODO: make this available to all puppeteer browser windows
-  rawConsole.info(`token of user in registerUser(): ...${clipToken(token)}`)
+  console.info(`token of user in registerUser(): ...${clipToken(token)}`)
   await page.evaluate(() => {
     window.catchErrorResponse = async fn => {
       try {

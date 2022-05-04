@@ -4,6 +4,7 @@ module.exports = {
   testRegex: '\\.integration-test\\.js$',
   reporters: [
     'default',
+    '<rootDir>/jest-reporter.js',
     [
       'jest-junit',
       {
