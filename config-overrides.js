@@ -22,9 +22,7 @@ module.exports = {
           'https://us.jsagent.tcell.insight.rapid7.com', // secondary script loaded by tcell
           'https://cdnjs.cloudflare.com' // libraries loaded by notebook preview
         ],
-        'style-src-elem' : [
-          '\'unsafe-inline\''
-        ]
+        'style-src-elem': ['\'unsafe-inline\'']
       }, {
         // The local development environment uses dynamic scripts to push updates to the browser.
         // The restrictive CSP blocks that functionality, so we need to disable the plugin in dev mode.
