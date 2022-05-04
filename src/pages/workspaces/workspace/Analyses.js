@@ -312,20 +312,20 @@ const Analyses = _.flow(
   }) : () => {}
 
   // Lifecycle
-  useOnMount(() => {
-    const load = async () => {
-      const [currentUserHash, potentialLockers] = !!googleProject ?
-        await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
-        await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
-      setCurrentUserHash(currentUserHash)
-      setPotentialLockers(potentialLockers)
-      getActiveFileTransfers()
-      await refreshAnalyses()
-      await refreshRuntimes()
-    }
-
-    load()
+  useOnMount(_.flow(
+    withErrorReporting('Error loading analyses'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const [currentUserHash, potentialLockers] = !!googleProject ?
+      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
+      await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
+    setCurrentUserHash(currentUserHash)
+    setPotentialLockers(potentialLockers)
+    getActiveFileTransfers()
+    await refreshAnalyses()
+    await refreshRuntimes()
   })
+  )
 
   useEffect(() => {
     StateHistory.update({ analyses, sortOrder, filter })
