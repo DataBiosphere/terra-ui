@@ -87,7 +87,7 @@ const assertRowMatches = async (page, { tableName, expectedColumnValues, withKey
     return await findElement(page, xPath, { timeout: 5000 })
   }
 
-  return Promise.all(_.map(findTextInColumn, expectedColumnValues))
+await Promise.all(_.map(findTextInColumn, expectedColumnValues))
 }
 
 const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
