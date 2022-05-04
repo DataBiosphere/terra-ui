@@ -27,6 +27,18 @@ const billingProjectsPage = (testPage, testUrl) => {
       )
     },
 
+    selectProjectMenu: async billingProjectName => {
+      await click(testPage, clickable({ text: 'Billing project menu' }))
+    },
+
+    selectDeleteProjectMenuOption: async billingProjectName => {
+      await click(testPage, clickable({ text: 'Delete Billing Project' }))
+    },
+
+    confirmDeleteBillingProject: async billingProjectName => {
+      await click(testPage, clickable({ textContains: 'Delete' }))
+    },
+
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
 
     assertText: async expectedText => await findText(testPage, expectedText),
@@ -40,7 +52,7 @@ const billingProjectsPage = (testPage, testUrl) => {
   }
 }
 
-const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, erroredProjectVisible, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
@@ -93,6 +105,10 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     projectName: ownedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
   },
+  erroredProjectVisible && {
+    projectName: erroredBillingProjectName,
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error'
+  },
   {
     projectName: notOwnedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
@@ -138,11 +154,15 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
       },
       {
+        filter: { url: /api\/billing\/v2\/ErroredBillingProject$/ },
+        fn: () => () => Promise.resolve(new Response({ status: 204 }))
+      },
+      {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult)
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult, erroredBillingProjectName)
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
@@ -152,15 +172,16 @@ const setUpBillingTest = async (page, testUrl, token) => {
   // Interact with the Billing Page via mocked AJAX responses.
   const ownedBillingProjectName = 'OwnedBillingProject'
   const notOwnedBillingProjectName = 'NotOwnedBillingProject'
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
+  const erroredBillingProjectName = 'ErroredBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110')
 
   const billingPage = billingProjectsPage(page, testUrl)
 
-  return { ownedBillingProjectName, notOwnedBillingProjectName, billingPage }
+  return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage }
 }
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
 
   // Select spend report and verify cost for default date ranges
   await billingPage.visit()
@@ -182,7 +203,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
@@ -270,8 +291,42 @@ const testBillingMembers = {
   fn: testBillingMembersFn
 }
 
+const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }) => {
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+
+  await billingPage.visit()
+
+  // Assert that the errored billing project is visible
+  await billingPage.assertText(erroredBillingProjectName)
+
+  // Click on the menu for that errored billing project
+  await billingPage.selectProjectMenu()
+
+  // Click the Delete Billing Project button
+  await billingPage.selectDeleteProjectMenuOption()
+
+  // Assert that the confirmation modal is visible
+  await billingPage.assertText('Are you sure you want to delete the billing project')
+
+  // Reset the ajax values to NOT include the errored billing project before confirming the deletion
+  // This is so we can test that the project list refreshes properly
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, false, '1110.17', 20)
+
+  // Confirm delete
+  await billingPage.confirmDeleteBillingProject()
+
+  // Assert that the errored billing project is no longer visible
+  await billingPage.assertTextNotFound(erroredBillingProjectName)
+})
+
+const testDeleteBillingProject = {
+  name: 'billing-project-delete',
+  fn: testDeleteBillingProjectFn
+}
+
 module.exports = {
   testBillingSpendReport,
   testBillingWorkspaces,
-  testBillingMembers
+  testBillingMembers,
+  testDeleteBillingProject
 }
