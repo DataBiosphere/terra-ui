@@ -78,6 +78,12 @@ const getTableTextWithinColumn = async (page, { tableName, columnHeader, textCon
   return xpath
 }
 
+const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
+  const colXPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
+  const findCol = await findElement(page, colXPath)
+  return page.evaluate(node => node.getAttribute('aria-rowindex'), findCol)
+}
+
 const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
   const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, textContains })
 
@@ -88,12 +94,6 @@ const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { 
   }
 
   await Promise.all(_.map(findTextInColumn, expectedColumnValues))
-}
-
-const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
-  const colXPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
-  const findCol = await findElement(page, colXPath)
-  return page.evaluate(node => node.getAttribute('aria-rowindex'), findCol)
 }
 
 const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
