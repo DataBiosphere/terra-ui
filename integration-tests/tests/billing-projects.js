@@ -27,15 +27,15 @@ const billingProjectsPage = (testPage, testUrl) => {
       )
     },
 
-    selectProjectMenu: async billingProjectName => {
+    selectProjectMenu: async () => {
       await click(testPage, clickable({ text: 'Billing project menu' }))
     },
 
-    selectDeleteProjectMenuOption: async billingProjectName => {
+    selectDeleteProjectMenuOption: async () => {
       await click(testPage, clickable({ text: 'Delete Billing Project' }))
     },
 
-    confirmDeleteBillingProject: async billingProjectName => {
+    confirmDeleteBillingProject: async () => {
       await click(testPage, clickable({ textContains: 'Delete' }))
     },
 
