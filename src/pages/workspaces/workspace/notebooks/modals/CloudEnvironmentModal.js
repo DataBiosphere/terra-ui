@@ -68,7 +68,7 @@ export const CloudEnvironmentModal = ({
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
     isOpen: viewMode === NEW_AZURE_MODE,
-    shouldHideCloseButton: true,
+    hideCloseButton: true,
     workspace,
     runtimes,
     onDismiss: () => {
@@ -306,7 +306,7 @@ export const CloudEnvironmentModal = ({
     const isToolBusy = isToolAnApp(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
-    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || isLaunchSupported(toolLabel)
+    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,

@@ -285,7 +285,10 @@ const Analyses = _.flow(
   })
 
   //TODO: define update function for azure
-  const uploadFiles = !!googleProject ? Utils.withBusyState(setBusy, async files => {
+  const uploadFiles = !!googleProject ? _.flow(
+    withErrorReporting('Error uploading files'),
+    Utils.withBusyState(setBusy)
+  )(async files => {
     try {
       await Promise.all(_.map(async file => {
         const name = stripExtension(file.name)

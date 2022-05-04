@@ -24,7 +24,7 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, shouldHideCloseButton = false
+  onDismiss, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
@@ -52,7 +52,7 @@ export const AzureComputeModalBase = ({
     return h(Fragment, [
       h(TitleBar, {
         id: titleId,
-        shouldHideCloseButton,
+        hideCloseButton,
         style: { marginBottom: '0.5rem' },
         title: 'Azure Cloud Environment',
         onDismiss
@@ -78,7 +78,7 @@ export const AzureComputeModalBase = ({
           div({ style: { marginBottom: '1rem' } }, [
             label({ htmlFor: id, style: computeStyles.label }, ['Application configuration']),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              'Currently, the azure vm is pre-configured. '
+              'Currently, the Azure VM is pre-configured. '
             ])
           ]),
           p({ style: { marginBottom: '1.5rem' } }, ['Azure Data Science Virtual Machine']),
@@ -292,7 +292,7 @@ export const AzureComputeModalBase = ({
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
-        shouldHideCloseButton,
+        hideCloseButton,
         style: computeStyles.titleBar,
         title: h(WarningTitle, ['Delete environment']),
         onDismiss,
