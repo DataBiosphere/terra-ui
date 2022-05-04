@@ -187,13 +187,13 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
 })
 
 const withRegisteredUser = test => withUser(async options => {
-    await registerUser(options)
-    try {
-      await test(options)
-    } catch (err) {
-      throw Error(err)
-    }
+  await registerUser(options)
+  try {
+    await test(options)
+  } catch (err) {
+    throw Error(err)
   }
+}
 )
 
 const overrideConfig = async (page, configToPassIn) => {
