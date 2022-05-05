@@ -65,17 +65,38 @@ const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
 
-const getTableHeaderPath = (tableName, column) => {
-  return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][1]//*[@role="columnheader"][${column}]`
+const getTableColIndex = async (page, { tableName, columnHeader }) => {
+  const colHeaderNode = await findElement(page, `//*[@role="table" and @aria-label="${tableName}"]//*[@role="columnheader" and @aria-colindex and contains(normalize-space(.),"${columnHeader}")]`)
+  return page.evaluate(node => node.getAttribute('aria-colindex'), colHeaderNode)
 }
 
-const findTableCellText = async (page, path, textContains, options) => {
-  const xpath = `${path}[contains(normalize-space(.),"${textContains}")]`
-  return (await page.waitForXPath(xpath, options))
+const getTableTextWithinColumn = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
+  const colIndex = await getTableColIndex(page, { tableName, columnHeader })
+  const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+  return xpath
 }
 
-const clickTableCell = async (page, tableName, row, column, options) => {
-  const tableCellPath = getTableCellPath(tableName, row, column)
+const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
+  const colXPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
+  const findCol = await findElement(page, colXPath)
+  return page.evaluate(node => node.getAttribute('aria-rowindex'), findCol)
+}
+
+const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
+  const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, textContains })
+
+  const findTextInColumn = async ([columnHeader, text]) => {
+    const colIndex = await getTableColIndex(page, { tableName, columnHeader })
+    const xPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}" and contains(normalize-space(.),"${text}")]`
+    return await findElement(page, xPath, { timeout: 5000 })
+  }
+
+  await Promise.all(_.map(findTextInColumn, expectedColumnValues))
+}
+
+const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
+  const tableCellPath = await getTableTextWithinColumn(page, { tableName, columnHeader, textContains, isDescendant })
   const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }
@@ -306,6 +327,7 @@ const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentlo
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
+  assertRowHas,
   checkbox,
   click,
   clickable,
@@ -318,10 +340,9 @@ module.exports = {
   findText,
   fillIn,
   fillInReplace,
-  findTableCellText,
   getAnimatedDrawer,
   getTableCellPath,
-  getTableHeaderPath,
+  getTableColIndex,
   heading,
   image,
   input,
