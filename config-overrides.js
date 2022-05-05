@@ -19,7 +19,8 @@ module.exports = {
         'script-src': [
           'https://fast.appcues.com', // secondary script loaded by appcues
           'https://us.jsagent.tcell.insight.rapid7.com', // secondary script loaded by tcell
-          'https://cdnjs.cloudflare.com' // libraries loaded by notebook preview
+          'https://cdnjs.cloudflare.com', // libraries loaded by notebook preview
+          'https://apis.google.com/'
         ]
       }, {
         // The local development environment uses dynamic scripts to push updates to the browser.
