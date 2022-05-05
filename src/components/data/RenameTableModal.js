@@ -34,7 +34,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         withErrorReporting('Error renaming data table.'),
         Utils.withBusyState(setRenaming)
       )(async () => {
-        Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
+        await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
         await Ajax().Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
         onUpdateSuccess()
       })
