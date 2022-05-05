@@ -101,7 +101,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     })
   }, _.range(0, numExtraWorkspaces))
 
-  const projectListResult = [{
+  const projectListResult = _.compact([{
     projectName: ownedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
   },
@@ -112,7 +112,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
   {
     projectName: notOwnedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
-  }]
+  }])
 
   const ownedProjectMembersListResult = [{
     email: 'testuser1@example.com', role: 'Owner'
@@ -131,7 +131,13 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     email: 'testuser2@example.com', role: 'Owner'
   }]
 
-  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult) => {
+  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
+    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName) => {
+
+    const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g')
+    const notOwnedMembersUrl = new RegExp(`api/billing/v2/${notOwnedBillingProjectName}/members`, 'g')
+    const erroredBillingProjectUrl = new RegExp(`api/billing/v2/${erroredBillingProjectName}$`, 'g')
+
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
@@ -146,15 +152,15 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
       },
       {
-        filter: { url: /api\/billing\/v2\/OwnedBillingProject\/members$/ },
+        filter: { url: ownedMembersUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(ownedProjectMembersListResult), { status: 200 }))
       },
       {
-        filter: { url: /api\/billing\/v2\/NotOwnedBillingProject\/members$/ },
+        filter: { url: notOwnedMembersUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
       },
       {
-        filter: { url: /api\/billing\/v2\/ErroredBillingProject$/ },
+        filter: { url: erroredBillingProjectUrl, method: 'DELETE' },
         fn: () => () => Promise.resolve(new Response({ status: 204 }))
       },
       {
@@ -162,7 +168,8 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult, erroredBillingProjectName)
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
+    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
