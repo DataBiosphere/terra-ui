@@ -44,8 +44,6 @@ const styles = {
 }
 
 const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
-  const signal = useCancellation()
-
   const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -70,7 +68,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
       onConfirm: async () => {
         setDeleting(true)
         try {
-          await Ajax(signal).Billing.deleteProject(projectName)
+          await Ajax().Billing.deleteProject(projectName)
           setShowDeleteProjectModal(false)
           loadProjects()
         } catch (err) {
