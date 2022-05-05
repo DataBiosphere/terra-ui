@@ -8,7 +8,6 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -26,8 +25,6 @@ const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataT
   const [newName, setNewName] = useState('')
   const [renaming, setRenaming] = useState(false)
 
-  const signal = useCancellation()
-
   return h(Modal, {
     onDismiss,
     title: 'Rename Data Table',
@@ -38,7 +35,7 @@ const RenameTableModal = ({ onDismiss, onSuccess, namespace, name, selectedDataT
         withErrorReporting('Error renaming data table.')
       )(async () => {
         await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
-        await Ajax(signal).Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
+        await Ajax().Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
         onSuccess()
       })
     }, ['Rename'])
