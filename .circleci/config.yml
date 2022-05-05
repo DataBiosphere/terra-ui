@@ -217,6 +217,7 @@ jobs:
     steps:
       - deploy-env:
           pr: true
+          yaml: "app.dev.yaml"
   deploy-dev:
     executor: gcloud
     steps:
