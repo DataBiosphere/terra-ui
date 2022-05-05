@@ -133,7 +133,6 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
 
   return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
     ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName) => {
-
     const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g')
     const notOwnedMembersUrl = new RegExp(`api/billing/v2/${notOwnedBillingProjectName}/members`, 'g')
     const erroredBillingProjectUrl = new RegExp(`api/billing/v2/${erroredBillingProjectName}$`, 'g')
@@ -169,7 +168,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
       }
     ])
   }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
-    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
+  ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
