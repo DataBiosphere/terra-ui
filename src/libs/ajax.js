@@ -540,6 +540,12 @@ const Billing = signal => ({
     return res
   },
 
+  deleteProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
+    return res
+  },
+
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
     const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([
