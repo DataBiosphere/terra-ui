@@ -20,9 +20,9 @@ module.exports = {
           '\'self\'',
           'https://fast.appcues.com', // secondary script loaded by appcues
           'https://us.jsagent.tcell.insight.rapid7.com', // secondary script loaded by tcell
-          'https://cdnjs.cloudflare.com', // libraries loaded by notebook preview
-          'https://apis.google.com'
-        ]
+          'https://cdnjs.cloudflare.com' // libraries loaded by notebook preview
+        ],
+        'style-src': ['\'self\'']
       }, {
         // The local development environment uses dynamic scripts to push updates to the browser.
         // The restrictive CSP blocks that functionality, so we need to disable the plugin in dev mode.
