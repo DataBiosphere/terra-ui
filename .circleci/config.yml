@@ -79,6 +79,9 @@ commands:
       pr:
         type: boolean
         default: false
+      yaml:
+        type: string
+        default: "app.yaml"
     steps:
       - when:
           condition: << parameters.pr >>
@@ -106,8 +109,11 @@ commands:
                 command: |
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
                   if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-                    gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
-                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" --no-promote --quiet
+                    gcloud app deploy \ 
+		      --project=bvdp-saturn-<< parameters.env >> \
+                      --appyaml=<< parameters.yaml >> \
+                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" \ 
+                      --no-promote --quiet
                   fi
       - unless:
           condition: << parameters.pr >>
@@ -221,6 +227,7 @@ jobs:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
+          yaml: "app.alpha.yaml"
       - notify-qa:
           channel: "C7H40L71D" # dsde-qa-notify
   deploy-perf:
@@ -235,6 +242,7 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
+          yaml: "app.alpha.yaml"
       - notify-qa:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-branch-against-dev:
