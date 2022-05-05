@@ -47,8 +47,8 @@ export const signOut = () => {
   getAuthInstance().removeUser()
 }
 
-export const signIn = includeBillingScope => {
-  if (includeBillingScope) {
+export const signIn = (includeBillingScope = false) => {
+  if (includeBillingScope === true) {
     return getAuthInstance().signinPopup({
       scope: `
       openid
@@ -60,10 +60,6 @@ export const signIn = includeBillingScope => {
   } else {
     return getAuthInstance().signinPopup()
   }
-}
-
-export const reloadAuthToken = () => {
-  return getAuthInstance().signinSilent().catch(() => false)
 }
 
 export const hasBillingScope = () => {
@@ -116,55 +112,56 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
-export const initializeAuth = _.memoize(async () => {
-  const processUser = user => {
-    return authStore.update(state => {
-      const isSignedIn = !_.isNil(user)
-      const profile = user?.profile
-      const userId = profile?.sub
+export const processUser = user => {
+  return authStore.update(state => {
+    const isSignedIn = !_.isNil(user)
+    const profile = user?.profile
+    const userId = profile?.sub
 
-      // The following few lines of code are to handle sign-in failures due to privacy tools.
-      if (state.isSignedIn === false && isSignedIn === false) {
-        //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
-        //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
-        notify('error', 'Could not sign in', {
-          message: 'Click for more information',
-          detail: 'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
-          timeout: 30000
-        })
+    // The following few lines of code are to handle sign-in failures due to privacy tools.
+    if (state.isSignedIn === false && isSignedIn === false) {
+      //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
+      //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
+      notify('error', 'Could not sign in', {
+        message: 'Click for more information',
+        detail: 'If you are using privacy blockers, they may be preventing you from signing in. Please disable those tools, refresh, and try signing in again.',
+        timeout: 30000
+      })
+    }
+    return {
+      ...state,
+      isSignedIn,
+      anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
+      registrationStatus: isSignedIn ? state.registrationStatus : undefined,
+      acceptedTos: isSignedIn ? state.acceptedTos : undefined,
+      profile: isSignedIn ? state.profile : {},
+      nihStatus: isSignedIn ? state.nihStatus : undefined,
+      fenceStatus: isSignedIn ? state.fenceStatus : {},
+      // Load whether a user has input a cookie acceptance in a previous session on this system,
+      // or whether they input cookie acceptance previously in this session
+      cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
+      isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
+      user: {
+        token: user?.access_token,
+        scope: user?.scope,
+        id: userId,
+        ...(profile ? {
+          email: profile.email,
+          name: profile.name,
+          givenName: profile.givenName,
+          familyName: profile.familyName,
+          imageUrl: profile.picture
+        } : {})
       }
-      return {
-        ...state,
-        isSignedIn,
-        anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
-        registrationStatus: isSignedIn ? state.registrationStatus : undefined,
-        acceptedTos: isSignedIn ? state.acceptedTos : undefined,
-        profile: isSignedIn ? state.profile : {},
-        nihStatus: isSignedIn ? state.nihStatus : undefined,
-        fenceStatus: isSignedIn ? state.fenceStatus : {},
-        // Load whether a user has input a cookie acceptance in a previous session on this system,
-        // or whether they input cookie acceptance previously in this session
-        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
-        isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
-        user: {
-          token: user?.access_token,
-          scope: user?.scope,
-          id: userId,
-          ...(profile ? {
-            email: profile.email,
-            name: profile.name,
-            givenName: profile.givenName,
-            familyName: profile.familyName,
-            imageUrl: profile.picture
-          } : {})
-        }
-      }
-    })
-  }
+    }
+  })
+}
+
+export const initializeAuth = _.memoize(async () => {
+  // Instiante a UserManager directly to populate the logged-in user at app initialization time.
+  // All other auth usage should use the AuthContext from authStore.
   const userManager = new UserManager(getOidcConfig())
   processUser(await userManager.getUser())
-  getAuthInstance().events.addUserLoaded(processUser)
-  getAuthInstance().events.addUserUnloaded(processUser)
 })
 
 // This is intended for tests to short circuit the login flow
