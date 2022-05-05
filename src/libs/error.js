@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { reloadAuthToken, signOut } from 'src/libs/auth'
+import { signOut } from 'src/libs/auth'
 import { notify, sessionTimeoutProps } from 'src/libs/notifications'
 
 
 export const reportError = async (title, obj) => {
-  if (obj instanceof Response && obj.status === 401 && !(await reloadAuthToken())) {
+  if (obj instanceof Response && obj.status === 401) {
     notify('info', 'Session timed out', sessionTimeoutProps)
     signOut()
   } else {

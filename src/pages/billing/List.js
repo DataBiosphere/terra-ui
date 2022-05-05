@@ -309,12 +309,13 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     }
   })
 
+  const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
+
   const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
       setCreatingBillingProject(true)
     } else {
-      await authorizeAccounts()
-      await loadAccounts()
+      await authorizeAndLoadAccounts()
       Auth.hasBillingScope() && setCreatingBillingProject(true)
     }
   }
@@ -430,7 +431,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             key: selectedName,
             billingProject,
             billingAccounts,
-            authorizeAndLoadAccounts: authorizeAccounts,
+            authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
             isAlphaSpendReportUser,
             isOwner: _.find({ projectName: selectedName }, projectsOwned)
