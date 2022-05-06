@@ -64,27 +64,25 @@ const withCancellation = wrappedFetch => async (...args) => {
 // keep retrying until timeout or success
 // on timeout return the error observed
 
-const withRetryOnError = wrappedFetch => async (...args) => {
+// Naming - better name for the wrapper - withRetryUntil ?
+const withRetryOnError = ({ ms = 10000 }, wrappedFetch) => async (...args) => {
+  const somePointInTheFuture = Date.now() + ms
+  const maxDelayIncrement = 1500
+  const minDelay = 500
 
-  let randomWait = 0
-
-  for(let maxoutTimer = 0; maxoutTimer < 3000; maxoutTimer = maxoutTimer + randomWait){
-
-    randomWait = Math.random() * 1500 + 500
-    console.log('Random Milliseconds', randomWait, 'Timer so Far:', maxoutTimer) // wait between 500ms and 2000ms
+  while(Date.now() < somePointInTheFuture) {
+    const until = Math.random() * maxDelayIncrement + minDelay
 
     try {
       console.log('try promise')
-      await Utils.withDelay(wrappedFetch,randomWait)(...args)
-    }
-    catch (error){
-      console.log('was connection error')
+      return await Utils.withDelay(until, wrappedFetch)(...args)
+    } catch (error){
+      // ignore error will retry
     }
   }
-  console.log('loop end')
+  console.log('loop timed out')
+  return wrappedFetch(...args)
 }
-
-
 
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
@@ -210,8 +208,8 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
 }, { keyFn: (...args) => JSON.stringify(args) })
 
 const Test = signal => ({
-  flakeyFetch: withRetryOnError(async () => {
-      if (Math.random() < 0.5) {
+  flakeyFetch: withRetryOnError(3000, async () => {
+      if (Math.random() < 0.9) {
         throw new Error(new Response(null, { status: 404 }))
       } else {
         return new Response(null, { status: 200 })
