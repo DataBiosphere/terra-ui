@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -40,6 +40,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
       })
     }, ['Rename'])
   }, [h(IdContainer, [id => h(Fragment, [
+    div('Workflow configurations that reference the current table name will need to be updated manually.'),
     h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
     tableNameInput({
       inputProps: {
