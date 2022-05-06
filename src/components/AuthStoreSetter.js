@@ -11,6 +11,10 @@ const AuthStoreSetter = () => {
   useOnMount(() => authStore.update(_.set(['authContext'], auth)))
 
   useEffect(() => {
+    return auth.events.addAccessTokenExpiring(() => auth.signinSilent())
+  }, [auth])
+
+  useEffect(() => {
     return auth.events.addUserLoaded(processUser)
   }, [auth])
 
