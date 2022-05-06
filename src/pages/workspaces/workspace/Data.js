@@ -92,7 +92,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      isFiltered && div({ style: { flex: 0, paddingRight: '0.5em' } }, `(${count})`),
+      isFiltered && div({ style: { flex: 0, padding: '0.25rem', borderRadius: 20, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
       !isFiltered && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
