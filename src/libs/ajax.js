@@ -65,8 +65,9 @@ const withCancellation = wrappedFetch => async (...args) => {
 // on timeout return the error observed
 
 // Naming - better name for the wrapper - withRetryUntil ?
-const withRetryOnError = ({ ms = 10000 }, wrappedFetch) => async (...args) => {
+const withRetryOnError = _.curry(({ ms = 10000 }, wrappedFetch) => async (...args) => {
   const somePointInTheFuture = Date.now() + ms
+  console.log('somePointInTheFuture', somePointInTheFuture, Date.now() < somePointInTheFuture)
   const maxDelayIncrement = 1500
   const minDelay = 500
 
@@ -82,7 +83,7 @@ const withRetryOnError = ({ ms = 10000 }, wrappedFetch) => async (...args) => {
   }
   console.log('loop timed out')
   return wrappedFetch(...args)
-}
+})
 
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
