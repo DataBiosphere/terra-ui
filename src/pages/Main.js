@@ -37,9 +37,9 @@ const Main = () => {
       h(FirecloudNotification),
       h(AuthenticatedCookieSetter),
       h(AuthProvider, getOidcConfig(), [
-        h(AuthStoreSetter),
-        h(AuthContainer, [h(Router)])
-      ])
+        h(AuthStoreSetter)
+      ]),
+      h(AuthContainer, [h(Router)])
     ]),
     h(PageViewReporter),
     h(SupportRequest),
