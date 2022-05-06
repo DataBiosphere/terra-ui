@@ -32,13 +32,10 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
 
-  console.log('AE:', document.activeElement)
   useOnMount(() => {
     previouslyFocusedNode.current = document.activeElement
-    console.log('Prev:', document.activeElement)
 
     return () => {
-      console.log('Return:', previouslyFocusedNode.current)
       previouslyFocusedNode.current?.focus()
     }
   })

@@ -163,11 +163,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         const { project, dataType, access } = datum
 
         return {
-
-          // checkbox: ({ focusRef }) => {
-          //   console.log(focusRef)
-          //   return h(Checkbox, { style: { height: 20, width: 20, border: '1px solid black' }, focusRef })
-          // }
           checkbox: ({ focusRef }) => {
             return h(TooltipTrigger, {
               ...(datum.access !== datasetAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })

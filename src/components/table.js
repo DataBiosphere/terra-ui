@@ -4,7 +4,6 @@ import PropTypes from 'prop-types'
 import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select, span } from 'react-hyperscript-helpers'
-import { isElement, isForwardRef } from 'react-is'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
@@ -14,7 +13,7 @@ import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import { forwardRefWithName, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
+import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -578,7 +577,6 @@ const Cell = ({ row, colIndex, colIndexNum, rowIndex, isFocused, focusedCell, si
       focusRef?.current?.setAttribute('tabIndex', 0)
     } else if (isFocused) {
       focusedCell[0] !== -1 && focusRef?.current?.focus()
-      // focusRef?.current?.setAttribute('tabIndex', tabIndex)
     } else {
       focusRef?.current?.setAttribute('tabIndex', -1)
     }
@@ -597,30 +595,18 @@ const Cell = ({ row, colIndex, colIndexNum, rowIndex, isFocused, focusedCell, si
   [_.isFunction(row[colIndex]) ? row[colIndex]({ focusRef }) : row[colIndex]])
 }
 
-// const Row = ({ row, underRowKey, columns, rowIndex }) => {
-//   return div({ style: { display: 'flex' } }, [
-//     _.map(([col, { key, size }]) => {
-//       return h(Cell, { key, row, isFocused: _.isEqual(focusedCell, [rowIndex, col]), colIndex: key, size, cellStyles })
-//     }, Utils.toIndexPairs(columns))
-//   ]),
-//   underRowKey && row[underRowKey]
-// }
-
 export const SimpleTable = ({
   columns, rows, 'aria-label': ariaLabel,
   rowStyle = {}, evenRowStyle = {}, oddRowStyle = {},
   cellStyle: cellStyleOverrides = {},
   headerRowStyle = {},
-  useHover = true, underRowKey
+  useHover = true
 }) => {
   useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
   const [focusedCell, setFocusedCell] = useState([0, 0])
-  // const [nextAction, setNextAction] = useState()
-  // const tableRef = useRef()
   const tableRef = useRef()
 
   useEffect(() => {
-    console.log('RESET Effect', columns, rows, focusedCell)
     const [row, column] = focusedCell
     setFocusedCell([Math.min(_.size(rows), row), Math.min(_.size(columns), column)])
   }, [columns, rows])
@@ -632,7 +618,6 @@ export const SimpleTable = ({
     'aria-label': ariaLabel,
     onBlur: ({ relatedTarget }) => {
       if (!tableRef.current.contains(relatedTarget) && relatedTarget !== null) {
-        console.log('RESET')
         setFocusedCell([-1, -1])
       }
     },
@@ -667,13 +652,11 @@ export const SimpleTable = ({
         style: { ...rowStyle, ...(i % 2 ? oddRowStyle : evenRowStyle) }, className: 'table-row',
         hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
-        // h(Row, { row, underRowKey, columns, rowIndex: I })
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           _.map(([col, { key, size }]) => {
             return h(Cell, { key, row, rowIndex: i, colIndexNum: col, focusedCell, isFocused: _.isEqual(focusedCell, [i, col]), colIndex: key, size, cellStyles })
           }, Utils.toIndexPairs(columns))
         ])
-        // underRowKey && row[underRowKey]
       ])
     }, Utils.toIndexPairs(rows))
   ])
