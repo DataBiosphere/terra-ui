@@ -24,14 +24,16 @@ export const getOidcConfig = () => {
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     client_id: getConfig().oidcClientId,
-    redirect_uri: `${window.origin}/redirect-from-oauth`,
+    popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
+    silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     prompt: 'login',
     scope: 'openid email profile',
     metadata: {
       authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
       token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
     },
-    userStore: new WebStorageStateStore({ store: window.localStorage })
+    userStore: new WebStorageStateStore({ store: window.localStorage }),
+    automaticSilentRenew: true
   }
 }
 
@@ -60,6 +62,10 @@ export const signIn = (includeBillingScope = false) => {
   } else {
     return getAuthInstance().signinPopup()
   }
+}
+
+export const reloadAuthToken = () => {
+  return getAuthInstance().signinSilent().catch(() => false)
 }
 
 export const hasBillingScope = () => {
