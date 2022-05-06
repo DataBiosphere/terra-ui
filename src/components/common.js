@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { forwardRef, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'

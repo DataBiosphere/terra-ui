@@ -55,7 +55,6 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       // Add the focus update to the end of the event queue
       // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
       await Utils.delay(0)
-      console.log('NODE:', nodeToFocus)
       previouslyFocusedNode.current = modalNode.current.contains(document.activeElement) ? previouslyFocusedNode.current : document.activeElement
       nodeToFocus.focus()
     },

@@ -580,7 +580,7 @@ const Cell = ({ row, colIndex, colIndexNum, rowIndex, isFocused, focusedCell, si
     } else {
       focusRef?.current?.setAttribute('tabIndex', -1)
     }
-  }, [isFocused, focusedCell])
+  }, [isFocused, focusedCell, colIndexNum, rowIndex])
 
   return div({
     role: 'cell',
@@ -607,8 +607,7 @@ export const SimpleTable = ({
   const tableRef = useRef()
 
   useEffect(() => {
-    const [row, column] = focusedCell
-    setFocusedCell([Math.min(_.size(rows), row), Math.min(_.size(columns), column)])
+    setFocusedCell(([row, column]) => ([Math.min(_.size(rows), row), Math.min(_.size(columns), column)]))
   }, [columns, rows])
 
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides }
