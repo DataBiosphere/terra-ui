@@ -74,7 +74,8 @@ commands:
         type: env_var_name
         default: "SA_KEY_JSON"
       env:
-        type: string
+        type: enum
+        enum: ["dev", "staging", "alpha", "perf"]
         default: "dev"
       pr:
         type: boolean
@@ -92,6 +93,13 @@ commands:
                   fi
       - attach_workspace:
           at: .
+      - when:
+          condition:
+            or:
+              - equal: [ "alpha", << parameters.env >> ]
+              - equal: [ "staging", << parameters.env >> ]
+          steps:
+            - run: cp app.test.yaml app.yaml
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
@@ -106,8 +114,10 @@ commands:
                 command: |
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
                   if [[ ! -z "$CIRCLE_PR_NUMBER" ]]; then
-                    gcloud app deploy --project=bvdp-saturn-<< parameters.env >> \
-                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" --no-promote --quiet
+                    gcloud app deploy \
+                      --project=bvdp-saturn-<< parameters.env >> \
+                      --version="pr-$(expr "$CIRCLE_PR_NUMBER" % $NUM_PR_SITES)" \
+                      --no-promote --quiet
                   fi
       - unless:
           condition: << parameters.pr >>
@@ -196,7 +206,7 @@ jobs:
           paths:
             - .yarn/unplugged
             - node_modules/.cache
-      - run: tar -czf build.tgz .gcloudignore app.yaml build config
+      - run: tar -czf build.tgz .gcloudignore app.yaml app.test.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
@@ -204,6 +214,7 @@ jobs:
           paths:
             - .gcloudignore
             - app.yaml
+            - app.test.yaml
             - build
             - config
   deploy-pr:
