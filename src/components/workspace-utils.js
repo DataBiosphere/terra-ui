@@ -2,13 +2,16 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import {
+  AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -180,6 +183,11 @@ export const SnapshotInfo = ({
       ]),
       div({ style: { paddingLeft: '1rem' } }, [
         div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
+        h(SnapshotLabeledInfo, {
+          title: 'Data Repo Id:', text: [h(Link, {
+            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`
+          }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+        }),
         h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
         h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
         div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
@@ -190,6 +198,7 @@ export const SnapshotInfo = ({
             key: id,
             style: { marginBottom: '1rem' }
           }, [
+            h(SnapshotLabeledInfo, { title: 'Source Data Repo Id:', text: [id, h(ClipboardButton, { 'aria-label': 'Copy source data repo id to clipboard', text: id, style: { marginLeft: '0.25rem' } })] }),
             h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
             h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
             div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
