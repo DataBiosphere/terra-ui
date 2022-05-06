@@ -17,7 +17,7 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { DelayedSearchInput, SearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -70,8 +70,11 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, after, ...props }) => {
   const isEntity = entityName !== undefined
+  const isFiltered = filteredCount !== undefined
+
+  const count = filteredCount?.count
 
   return h(Interactive, {
     style: { ...Style.navList.itemContainer(selected) },
@@ -89,7 +92,8 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      isFiltered && div({ style: { flex: 0, paddingRight: '0.5em' } }, `(${count})`),
+      !isFiltered && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
       div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
@@ -547,6 +551,7 @@ const WorkspaceData = _.flow(
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [crossTableSearchTerm, setCrossTableSearchTerm] = useState('')
+  const [filteredTypeCounts, setFilteredTypeCounts] = useState({})
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -638,6 +643,14 @@ const WorkspaceData = _.flow(
     setEntityMetadata(updatedMetadata)
   }
 
+  const searchAcrossTables = async (types, filterTerms) => {
+    const bar = await Promise.all(_.map(async ([type]) => {
+      const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms })
+      return { typeName: type, count: filteredCount }
+    }, types))
+    setFilteredTypeCounts(bar)
+  }
+
   // Lifecycle
   useOnMount(() => {
     loadMetadata()
@@ -704,11 +717,14 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              h(DelayedSearchInput, {
+              h(SearchInput, {
                 'aria-label': 'Search all tables',
-                style: { width: sidebarWidth - 50, margin: '1rem 1rem' },
+                style: { width: sidebarWidth - '1rem', margin: '1rem 1rem 1rem 1rem' },
                 placeholder: 'Search all tables',
-                onChange: setCrossTableSearchTerm,
+                onChange: filterTerms => {
+                  setCrossTableSearchTerm(filterTerms)
+                  searchAcrossTables(sortedEntityPairs, filterTerms)
+                },
                 value: crossTableSearchTerm
               }),
               _.map(([type, typeDetails]) => {
@@ -717,6 +733,7 @@ const WorkspaceData = _.flow(
                   selected: selectedDataType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
+                  filteredCount: _.find({typeName: type}, filteredTypeCounts),
                   onClick: () => {
                     setSelectedDataType(type)
                     forceRefresh()
