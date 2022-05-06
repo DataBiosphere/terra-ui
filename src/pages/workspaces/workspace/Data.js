@@ -546,6 +546,7 @@ const WorkspaceData = _.flow(
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
+  const [crossTableSearchTerm, setCrossTableSearchTerm] = useState('')
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -703,6 +704,13 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              h(DelayedSearchInput, {
+                'aria-label': 'Search all tables',
+                style: { width: sidebarWidth - 50, margin: '1rem 1rem' },
+                placeholder: 'Search all tables',
+                onChange: setCrossTableSearchTerm,
+                value: crossTableSearchTerm
+              }),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
