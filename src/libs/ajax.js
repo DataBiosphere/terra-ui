@@ -52,6 +52,40 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+// 1. Add Button to catalog - when clicked makes fake Ajax call
+// 2. Add Fake Ajax request
+// 3. Add retry wrapper, wrap our fake Ajax request
+
+// TODO: slucas to Implement
+// On a failure, this wrapper should attempt to retry the fetch call.
+// This should hapen every N milliseconds, with a max timeout.
+// When the max timeout is reached, throw an error
+// For random millis have the wait be between 500ms and 2000ms
+// keep retrying until timeout or success
+// on timeout return the error observed
+
+const withRetryOnError = wrappedFetch => async (...args) => {
+
+  let randomWait = 0
+
+  for(let maxoutTimer = 0; maxoutTimer < 3000; maxoutTimer = maxoutTimer + randomWait){
+
+    randomWait = Math.random() * 1500 + 500
+    console.log('Random Milliseconds', randomWait, 'Timer so Far:', maxoutTimer) // wait between 500ms and 2000ms
+
+    try {
+      console.log('try promise')
+      await Utils.withDelay(wrappedFetch,randomWait)(...args)
+    }
+    catch (error){
+      console.log('was connection error')
+    }
+  }
+  console.log('loop end')
+}
+
+
+
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
@@ -174,6 +208,17 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
+
+const Test = signal => ({
+  flakeyFetch: withRetryOnError(async () => {
+      if (Math.random() < 0.5) {
+        throw new Error(new Response(null, { status: 404 }))
+      } else {
+        return new Response(null, { status: 200 })
+      }
+    })
+  })
+
 
 const User = signal => ({
   getStatus: async () => {
@@ -1690,6 +1735,7 @@ const Metrics = signal => ({
 
 export const Ajax = signal => {
   return {
+    Test: Test(signal),
     User: User(signal),
     Groups: Groups(signal),
     Billing: Billing(signal),
