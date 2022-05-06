@@ -160,7 +160,7 @@ export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export const withDelay = _.curry((ms,wrappedFn) => async (...args) => {
+export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
   await delay(ms)
   return wrappedFn(...args)
 })
