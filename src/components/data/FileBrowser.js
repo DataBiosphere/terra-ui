@@ -101,8 +101,9 @@ export const FileBrowserPanel = _.flow(
 
   useEffect(() => {
     if (!uploadStatus.active) {
-      // If the uploader has completed, count all the files in the bucket
+      // If the uploader has completed, count all the files in the bucket and reload the files list
       count()
+      load(prefix)
     } else {
       // While the uploader is working, refresh the table no more often than every 5 seconds
       const now = Date.now()
