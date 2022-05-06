@@ -65,7 +65,7 @@ export const signIn = (includeBillingScope = false) => {
 }
 
 export const reloadAuthToken = () => {
-  return getAuthInstance().signinSilent().catch(() => false)
+  return getAuthInstance().signinSilent().then(processUser).catch(() => false)
 }
 
 export const hasBillingScope = () => {

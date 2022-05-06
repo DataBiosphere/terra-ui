@@ -8,7 +8,7 @@ import { useOnMount } from 'src/libs/react-utils'
 const RedirectFromOAuth = silent => {
   const userManager = new UserManager(getOidcConfig())
   const url = window.location.href.replace('#', '')
-  useOnMount(() => silent ? userManager.signinSilentCallback(url) : userManager.signinPopupCallback(url))
+  useOnMount(() => silent === true ? userManager.signinSilentCallback(url) : userManager.signinPopupCallback(url))
   return div({ role: 'main' }, [
     h(centeredSpinner, { style: { position: 'fixed' } })
   ])
