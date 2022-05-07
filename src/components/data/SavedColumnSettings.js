@@ -52,7 +52,7 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
 
   const signal = useCancellation()
 
-  // Column settings are now stored as JSON in the rawls database (max size 16mb)
+  // Column settings are now stored as JSON in the rawls database (max size 4gb)
   // In an earlier version of this feature, they were stored as Strings in rawls (max size 64kb)
   // For backwards-compatibility purposes, we need to support both cases. So we will try to parse
   // the column settings as a String and if that fails then we will parse it as regular JSON
