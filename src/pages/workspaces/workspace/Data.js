@@ -77,7 +77,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
   const count = filteredCount?.count
 
   return h(Interactive, {
-    style: { ...Style.navList.itemContainer(selected) },
+    style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
     hover: Style.navList.itemHover(selected),
     as: 'div',
     role: 'listitem'
