@@ -17,7 +17,7 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -721,16 +721,17 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              isDataTabRedesignEnabled() && h(DelayedSearchInput, {
-                'aria-label': 'Search all tables',
-                style: { width: sidebarWidth - '1rem', margin: '1rem 1rem 1rem 1rem' },
-                placeholder: 'Search all tables',
-                onChange: filterTerms => {
-                  setCrossTableSearchTerm(filterTerms)
-                  searchAcrossTables(sortedEntityPairs, filterTerms)
-                },
-                value: crossTableSearchTerm
-              }),
+              isDataTabRedesignEnabled() && !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
+                h(ConfirmedSearchInput, {
+                  'aria-label': 'Search all tables',
+                  placeholder: 'Search all tables',
+                  onChange: filterTerms => {
+                    setCrossTableSearchTerm(filterTerms)
+                    searchAcrossTables(sortedEntityPairs, filterTerms)
+                  },
+                  defaultValue: crossTableSearchTerm
+                })
+              ]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
