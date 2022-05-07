@@ -219,7 +219,7 @@ const DataTable = props => {
 
 
   // Render
-  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
+  const columnSettings = filterTerms ? applyColumnSettings([], entityMetadata[entityType].attributeNames) : applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   return h(Fragment, [
