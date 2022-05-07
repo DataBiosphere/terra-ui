@@ -17,7 +17,7 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput, SearchInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -70,7 +70,7 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearching, after, ...props }) => {
   const isEntity = entityName !== undefined
   const isFiltered = filteredCount !== undefined
 
@@ -92,7 +92,8 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
+      !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
+      crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, [icon('loadingSpinner')]),
       !isFiltered && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
@@ -552,6 +553,7 @@ const WorkspaceData = _.flow(
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [crossTableSearchTerm, setCrossTableSearchTerm] = useState('')
   const [filteredTypeCounts, setFilteredTypeCounts] = useState({})
+  const [crossTableSearching, setCrossTableSearching] = useState(false)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -644,11 +646,13 @@ const WorkspaceData = _.flow(
   }
 
   const searchAcrossTables = async (types, filterTerms) => {
+    setCrossTableSearching(true)
     const bar = await Promise.all(_.map(async ([type]) => {
       const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms })
       return { typeName: type, count: filteredCount }
     }, types))
     setFilteredTypeCounts(bar)
+    setCrossTableSearching(false)
   }
 
   // Lifecycle
@@ -717,7 +721,7 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              h(SearchInput, {
+              h(DelayedSearchInput, {
                 'aria-label': 'Search all tables',
                 style: { width: sidebarWidth - '1rem', margin: '1rem 1rem 1rem 1rem' },
                 placeholder: 'Search all tables',
@@ -734,6 +738,7 @@ const WorkspaceData = _.flow(
                   entityName: type,
                   entityCount: typeDetails.count,
                   filteredCount: _.find({typeName: type}, filteredTypeCounts),
+                  crossTableSearching,
                   onClick: () => {
                     setSelectedDataType(type)
                     forceRefresh()
@@ -939,6 +944,7 @@ const WorkspaceData = _.flow(
             setEntityMetadata,
             entityKey: selectedDataType,
             filterTerms: crossTableSearchTerm,
+            crossTableSearching,
             loadMetadata,
             firstRender,
             deleteColumnUpdateMetadata,
