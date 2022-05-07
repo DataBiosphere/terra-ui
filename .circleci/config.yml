@@ -96,17 +96,12 @@ commands:
       - when:
           condition:
             or:
-              - equal: [ "dev", << parameters.env >> ]
               - equal: [ "alpha", << parameters.env >> ]
               - equal: [ "staging", << parameters.env >> ]
           steps:
             - run:
-                command: echo << parameters.env >>
-            - run:
                 command: |
-                  sed -e 's/default_expiration: ".*"/default_expiration: "11110m"/' -i.orig app.yaml
-            - run:
-                command: cat app.yaml
+                  sed -e 's/default_expiration: ".*"/default_expiration: "0s"/' -i.orig app.yaml
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
