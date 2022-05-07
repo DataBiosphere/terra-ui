@@ -92,7 +92,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      isFiltered && div({ style: { flex: 0, padding: '0.25rem', borderRadius: 20, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
+      isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
       !isFiltered && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
@@ -938,6 +938,7 @@ const WorkspaceData = _.flow(
             entityMetadata,
             setEntityMetadata,
             entityKey: selectedDataType,
+            filterTerms: crossTableSearchTerm,
             loadMetadata,
             firstRender,
             deleteColumnUpdateMetadata,

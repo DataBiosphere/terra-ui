@@ -55,10 +55,13 @@ const DataTable = props => {
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
+    filterTerms,
     persist, refreshKey, firstRender,
     snapshotName,
     deleteColumnUpdateMetadata
   } = props
+
+  console.log(filterTerms)
 
   const persistenceId = `${namespace}/${name}/${entityType}`
 
@@ -116,7 +119,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter })
+          { filterTerms: filterTerms || activeTextFilter })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
