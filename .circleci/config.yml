@@ -103,7 +103,8 @@ commands:
             - run:
                 command: echo << parameters.env >>
             - run:
-                command: sed -e 's/default_expiration: ".*"/default_expiration: "0m"/' -i .orig app.yaml
+                command: |
+                  sed -e 's/default_expiration: ".*"/default_expiration: "0m"/' -i .orig app.yaml
             - run:
                 command: cat app.yaml
       - run: cp config/<< parameters.env >>.json build/config.json
