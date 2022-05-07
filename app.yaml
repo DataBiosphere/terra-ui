@@ -1,5 +1,5 @@
 runtime: nodejs16
-default_expiration: "0m"
+default_expiration: "2m"
 
 handlers:
 - url: /(.*\.(css|eot|gz|html|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2))
