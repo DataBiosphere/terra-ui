@@ -721,7 +721,7 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              h(DelayedSearchInput, {
+              isDataTabRedesignEnabled() && h(DelayedSearchInput, {
                 'aria-label': 'Search all tables',
                 style: { width: sidebarWidth - '1rem', margin: '1rem 1rem 1rem 1rem' },
                 placeholder: 'Search all tables',
