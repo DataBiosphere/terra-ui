@@ -56,14 +56,10 @@ const DataTable = props => {
     childrenBefore,
     editable,
     filterTerms,
-    crossTableSearching,
     persist, refreshKey, firstRender,
     snapshotName,
     deleteColumnUpdateMetadata
   } = props
-
-  console.log(filterTerms)
-  console.log(crossTableSearching)
 
   const persistenceId = `${namespace}/${name}/${entityType}`
 

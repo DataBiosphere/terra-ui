@@ -70,7 +70,7 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearching, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearching, searchModeActive, after, ...props }) => {
   const isEntity = entityName !== undefined
   const isFiltered = filteredCount !== undefined
 
@@ -92,9 +92,9 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
-      crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, [icon('loadingSpinner')]),
-      !isFiltered && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      searchModeActive && !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
+      searchModeActive && crossTableSearching && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(0.8), color: '#fff' } }, [icon('loadingSpinner', { size: 13 })]),
+      !searchModeActive && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
       div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
@@ -737,7 +737,8 @@ const WorkspaceData = _.flow(
                   selected: selectedDataType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
-                  filteredCount: _.find({typeName: type}, filteredTypeCounts),
+                  filteredCount: _.find({ typeName: type }, filteredTypeCounts),
+                  searchModeActive: crossTableSearchTerm !== '',
                   crossTableSearching,
                   onClick: () => {
                     setSelectedDataType(type)
