@@ -33,7 +33,8 @@ export const getOidcConfig = () => {
       token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
     },
     userStore: new WebStorageStateStore({ store: window.localStorage }),
-    automaticSilentRenew: true
+    accessTokenExpiringNotificationTimeInSeconds: 120,
+    includeIdTokenInSilentRenew: true
   }
 }
 
