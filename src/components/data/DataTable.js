@@ -75,7 +75,7 @@ const DataTable = props => {
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
   const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
-  const [activeTextFilter, setActiveTextFilter] = useState(filterTerms || stateHistory.activeTextFilter || '')
+  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {

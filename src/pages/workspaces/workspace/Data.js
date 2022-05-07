@@ -92,8 +92,8 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      searchModeActive && !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: '#fff' } }, `${count}`),
-      searchModeActive && crossTableSearching && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(0.8), color: '#fff' } }, [icon('loadingSpinner', { size: 13 })]),
+      searchModeActive && !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: 'white' } }, `${count}`),
+      searchModeActive && crossTableSearching && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(0.7), color: 'white' } }, [icon('loadingSpinner', { size: 13 })]),
       !searchModeActive && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
         icon(iconName, { size: iconSize })
       ]),
