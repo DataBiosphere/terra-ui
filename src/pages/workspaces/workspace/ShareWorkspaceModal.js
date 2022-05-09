@@ -285,7 +285,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           )
         }, [
           label({ htmlFor: id }, [
-            span({ style: { marginRight: '1ch' } }, 'Share with support'),
+            span({ style: { marginRight: '1ch' } }, 'Share with Support'),
             h(Switch, {
               id,
               checked: !!newTerraSupportAccessLevel,
