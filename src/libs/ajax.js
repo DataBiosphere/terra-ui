@@ -52,36 +52,20 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-// 1. Add Button to catalog - when clicked makes fake Ajax call
-// 2. Add Fake Ajax request
-// 3. Add retry wrapper, wrap our fake Ajax request
-
-// TODO: slucas to Implement
-// On a failure, this wrapper should attempt to retry the fetch call.
-// This should hapen every N milliseconds, with a max timeout.
-// When the max timeout is reached, throw an error
-// For random millis have the wait be between 500ms and 2000ms
-// keep retrying until timeout or success
-// on timeout return the error observed
-
-// Naming - better name for the wrapper - withRetryUntil ?
-const withRetryOnError = _.curry(({ ms = 10000 }, wrappedFetch) => async (...args) => {
-  const somePointInTheFuture = Date.now() + ms
-  console.log('somePointInTheFuture', somePointInTheFuture, Date.now() < somePointInTheFuture)
+const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
+  const timeout = 5000
+  const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
   const minDelay = 500
 
-  while(Date.now() < somePointInTheFuture) {
+  while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
-
     try {
-      console.log('try promise')
       return await Utils.withDelay(until, wrappedFetch)(...args)
-    } catch (error){
+    } catch (error) {
       // ignore error will retry
     }
   }
-  console.log('loop timed out')
   return wrappedFetch(...args)
 })
 
@@ -163,7 +147,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'), withRetryOnError)(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -207,17 +191,6 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
-
-const Test = signal => ({
-  flakeyFetch: withRetryOnError(3000, async () => {
-      if (Math.random() < 0.9) {
-        throw new Error(new Response(null, { status: 404 }))
-      } else {
-        return new Response(null, { status: 200 })
-      }
-    })
-  })
-
 
 const User = signal => ({
   getStatus: async () => {
@@ -1734,7 +1707,6 @@ const Metrics = signal => ({
 
 export const Ajax = signal => {
   return {
-    Test: Test(signal),
     User: User(signal),
     Groups: Groups(signal),
     Billing: Billing(signal),
