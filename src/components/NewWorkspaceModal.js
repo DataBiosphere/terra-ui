@@ -56,7 +56,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const [description, setDescription] = useState(cloneWorkspace ? cloneWorkspace.workspace.attributes.description : '')
   const [groups, setGroups] = useState([])
   const [nameModified, setNameModified] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState(defaultLocation)
@@ -124,7 +124,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
@@ -171,7 +171,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
 
   return Utils.cond(
-    [loading, () => spinnerOverlay],
+    [loading || billingProjects === undefined, () => spinnerOverlay],
     [hasBillingProjects, () => h(Modal, {
       title: Utils.cond(
         [title, () => title],
