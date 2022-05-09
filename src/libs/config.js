@@ -19,4 +19,5 @@ export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biod
 export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
 export const isElwazi = () => (window.location.hostname === 'elwazi.terra.bio') || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi()
+export const isRareX = () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isRareX()

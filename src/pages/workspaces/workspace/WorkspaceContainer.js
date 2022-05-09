@@ -79,7 +79,7 @@ const WorkspaceTabs = ({
     ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isGoogleWorkspace && isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
     ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
@@ -136,7 +136,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      isGoogleWorkspace && h(RuntimeManager, {
+      h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
         apps, appDataDisks, workspace, refreshApps, location, locationType
@@ -147,7 +147,7 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      (isGoogleWorkspace && isAnalysisTabVisible() ?
+      (isAnalysisTabVisible() ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
@@ -203,7 +203,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = googleProject => {
+const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -219,7 +219,10 @@ const useCloudEnvironmentPolling = googleProject => {
       const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
-      ]) : [[], []]
+      ]) : await Promise.all([
+        Promise.resolve([]),
+        !!workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
+      ])
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
@@ -289,15 +292,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       cachedWorkspace :
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
+    const [azureContext, setAzureContext] = useState(workspace?.azureContext)
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
     const prevGoogleProject = usePrevious(googleProject)
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject)
+    const prevAzureContext = usePrevious(azureContext)
+
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.workspaceId)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
+    const isAzureWorkspace = !!azureContext
+    // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
+    // Note that the refreshApps function currently is not supported for azure
     if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
       refreshRuntimes()
       refreshApps()
+    }
+    if (azureContext !== prevAzureContext && isAzureWorkspace) {
+      refreshRuntimes(true)
     }
 
     const loadBucketLocation = async (googleProject, bucketName) => {
@@ -319,12 +331,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
+        setAzureContext(workspace.azureContext)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
         const isGoogleWorkspace = !!googleProject
 
         loadBucketLocation(googleProject, bucketName)
-
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel) && isGoogleWorkspace) {

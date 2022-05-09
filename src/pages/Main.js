@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import AuthContainer from 'src/components/AuthContainer'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
+import CookieRejectModal from 'src/components/CookieRejectModal'
 import CookieWarning from 'src/components/CookieWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import Favicon from 'src/components/Favicon'
@@ -21,6 +22,7 @@ import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/li
 const Main = () => {
   return h(LocationProvider, [
     h(PathHashInserter),
+    h(CookieRejectModal),
     h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),

@@ -363,7 +363,7 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 100, grow: 0 },
+            size: { basis: 125, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]

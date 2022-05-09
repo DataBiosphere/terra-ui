@@ -180,7 +180,7 @@ const ApplicationLauncher = _.flow(
       setLocation(location)
     })
 
-    loadBucketLocation()
+    !!googleProject && loadBucketLocation()
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
@@ -193,10 +193,10 @@ const ApplicationLauncher = _.flow(
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
-    findOutdatedAnalyses()
+    !!googleProject && findOutdatedAnalyses()
 
     // periodically check for outdated R analyses
-    interval.current = setInterval(findOutdatedAnalyses, 10000)
+    interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
 
     return () => {
       clearInterval(interval.current)

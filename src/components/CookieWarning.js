@@ -4,12 +4,11 @@ import { aside, div, h } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
-import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 
 
 export const cookiesAcceptedKey = 'cookiesAccepted'
@@ -55,7 +54,9 @@ const CookieWarning = () => {
       const cookieName = eqPos > -1 ? cookie.substr(0, eqPos) : cookie
       document.cookie = `${cookieName}=;expires=Thu, 01 Jan 1970 00:00:00 GMT`
     }, cookies)
-    signOut()
+
+    cookieReadyStore.reset()
+    sessionStorage.clear()
   }
 
   return h(Transition, {

@@ -35,6 +35,7 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { AzureComputeModal } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -228,7 +229,6 @@ const Analyses = _.flow(
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
   onRequesterPaysError
 }, _ref) => {
-  // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
@@ -237,8 +237,8 @@ const Analyses = _.flow(
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [azureCreating, setAzureCreating] = useState(false)
   const [location, setLocation] = useState(defaultLocation)
-  //TODO: add galaxy artifacts to this once we have galaxy artifacts
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
@@ -252,7 +252,8 @@ const Analyses = _.flow(
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
   const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
 
-  const refreshAnalyses = _.flow(
+  //TODO: defined load function for azure
+  const refreshAnalyses = !!googleProject ? _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
@@ -273,7 +274,7 @@ const Analyses = _.flow(
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setLocation(location)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
-  })
+  }) : () => setAnalyses([])
 
   const getActiveFileTransfers = _.flow(
     withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
@@ -283,7 +284,11 @@ const Analyses = _.flow(
     setActiveFileTransfers(!_.isEmpty(fileTransfers))
   })
 
-  const uploadFiles = Utils.withBusyState(setBusy, async files => {
+  //TODO: define update function for azure
+  const uploadFiles = !!googleProject ? _.flow(
+    withErrorReporting('Error uploading files'),
+    Utils.withBusyState(setBusy)
+  )(async files => {
     try {
       await Promise.all(_.map(async file => {
         const name = stripExtension(file.name)
@@ -304,21 +309,23 @@ const Analyses = _.flow(
         reportError('Error creating analysis', error)
       }
     }
-  })
+  }) : () => {}
 
   // Lifecycle
-  useOnMount(() => {
-    const load = async () => {
-      const [currentUserHash, potentialLockers] = await Promise.all(
-        [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
-      setCurrentUserHash(currentUserHash)
-      setPotentialLockers(potentialLockers)
-      getActiveFileTransfers()
-      refreshAnalyses()
-    }
-
-    load()
+  useOnMount(_.flow(
+    withErrorReporting('Error loading analyses'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const [currentUserHash, potentialLockers] = !!googleProject ?
+      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
+      await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
+    setCurrentUserHash(currentUserHash)
+    setPotentialLockers(potentialLockers)
+    getActiveFileTransfers()
+    await refreshAnalyses()
+    await refreshRuntimes()
   })
+  )
 
   useEffect(() => {
     StateHistory.update({ analyses, sortOrder, filter })
@@ -326,14 +333,14 @@ const Analyses = _.flow(
 
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
-      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
+      img({ src: jupyterLogo, style: { height: 120, width: 80 } }),
+      img({ src: rstudioBioLogo, style: { width: 400 } }),
       div([
         img({ src: galaxyLogo, style: { height: 60, width: 208 } })
-        // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
       ])
-    ]),
+    ])
+    ),
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
       `Click the button above to create an analysis.`
     ])
@@ -387,9 +394,10 @@ const Analyses = _.flow(
   }
 
   // Render
+  //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
     accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
-    disabled: !Utils.canWrite(accessLevel),
+    disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
@@ -401,7 +409,8 @@ const Analyses = _.flow(
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonOutline, {
           style: { marginLeft: '1.5rem' },
-          onClick: () => setCreating(true),
+          //TODO: azure should eventually leverage create modal
+          onClick: () => !!googleProject ? setCreating(true) : setAzureCreating(true),
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
@@ -468,6 +477,19 @@ const Analyses = _.flow(
             await refreshRuntimes()
             await refreshApps()
             setCreating(false)
+          }
+        }),
+        h(AzureComputeModal, {
+          workspace,
+          runtimes,
+          isOpen: azureCreating,
+          onDismiss: async () => {
+            await refreshRuntimes()
+            setAzureCreating(false)
+          },
+          onSuccess: async () => {
+            await refreshRuntimes()
+            setAzureCreating(false)
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
