@@ -135,6 +135,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
+  const isAzureBillingProject = () => {
+    const billingProject = _.find({ projectName: namespace }, billingProjects)
+    return !!billingProject?.managedAppCoordinates
+  }
+
   // Lifecycle
   useOnMount(() => {
     loadData()
@@ -207,7 +212,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
-      h(IdContainer, [id => h(Fragment, [
+      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Bucket location',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
@@ -256,7 +261,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: setDescription
         })
       ])]),
-      h(IdContainer, [id => h(Fragment, [
+      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Authorization domain',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
