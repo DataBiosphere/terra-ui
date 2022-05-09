@@ -42,11 +42,11 @@ export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromStr
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
-export const defaultDataprocMasterDiskSize = 100
+export const defaultDataprocMasterDiskSize = 120
 export const defaultDataprocWorkerDiskSize = 150
 // Since Leonardo started supporting persistent disks (PDs) for GCE VMs, boot disk size for a GCE VM
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
-export const defaultGceBootDiskSize = 100
+export const defaultGceBootDiskSize = 120
 export const defaultGcePersistentDiskSize = 50
 export const defaultPersistentDiskType = pdTypes.standard
 
