@@ -17,6 +17,9 @@ const withSignedInPage = fn => async options => {
   try {
     await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
+  } catch (e) {
+    console.error(e)
+    throw e
   } finally {
     await page.close()
   }
@@ -55,9 +58,11 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
 
 const withWorkspace = test => async options => {
   const workspaceName = await makeWorkspace(options)
-
   try {
     await test({ ...options, workspaceName })
+  } catch (e) {
+    console.error(e)
+    throw e
   } finally {
     await deleteWorkspace({ ...options, workspaceName })
   }
@@ -93,9 +98,11 @@ const makeUser = async () => {
 
 const withUser = test => async args => {
   const { email, token } = await makeUser()
-
   try {
     await test({ ...args, email, token })
+  } catch (e) {
+    console.error(e)
+    throw e
   } finally {
     await fetchLyle('delete', email)
   }
@@ -126,9 +133,8 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
 })
 
 const withBilling = test => async options => {
-  await addUserToBilling(options)
-
   try {
+    await addUserToBilling(options)
     await test({ ...options })
   } finally {
     await deleteRuntimes(options)
@@ -178,9 +184,15 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
 })
 
 const withRegisteredUser = test => withUser(async options => {
-  await registerUser(options)
-  await test(options)
-})
+  try {
+    await registerUser(options)
+    await test(options)
+  } catch (err) {
+    console.error(err)
+    throw err
+  }
+}
+)
 
 const overrideConfig = async (page, configToPassIn) => {
   await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)

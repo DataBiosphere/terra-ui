@@ -18,9 +18,14 @@ const getToken = async (subject, key) => {
 }
 
 const withUserToken = testFn => async options => {
-  const { terraSaKeyJson } = await getSecrets()
-  const token = await getToken(userEmail, JSON.parse(terraSaKeyJson))
-  return testFn({ ...options, token })
+  try {
+    const { terraSaKeyJson } = await getSecrets()
+    const token = await getToken(userEmail, JSON.parse(terraSaKeyJson))
+    return testFn({ ...options, token })
+  } catch (err) {
+    console.error(err)
+    throw err
+  }
 }
 
 module.exports = {
