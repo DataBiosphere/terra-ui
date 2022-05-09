@@ -78,7 +78,6 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   const updateSavedColumnSettings = async allColumnSettings => {
     const { namespace, name } = workspaceId
     await Ajax(signal).Workspaces.workspace(namespace, name).shallowMergeNewAttributes({
-      // Store settings as a string since Rawls expects lists of objects to be entity references
       [savedColumnSettingsWorkspaceAttributeName]: allColumnSettings
     })
   }
