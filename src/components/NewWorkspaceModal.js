@@ -136,7 +136,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = (project) => {
+  const isAzureBillingProject = project => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
@@ -144,7 +144,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!project?.managedAppCoordinates
   }
 
-  const isBillingProjectApplicable = (project) => {
+  const isBillingProjectApplicable = project => {
     // Only support cloning a workspace to the same cloud environment.
     return Utils.cond(
       [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
