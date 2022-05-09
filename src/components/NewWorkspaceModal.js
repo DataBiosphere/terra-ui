@@ -118,6 +118,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   )(() => Promise.all([
     Ajax(signal).Billing.listProjects()
       .then(_.filter({ status: 'Ready' }))
+      .then(_.filter(project => isBillingProjectApplicable(project)))
       .then(projects => {
         setBillingProjects(projects)
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
@@ -135,9 +136,21 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = () => {
-    const billingProject = _.find({ projectName: namespace }, billingProjects)
-    return !!billingProject?.managedAppCoordinates
+  const isAzureBillingProject = (project) => {
+    if (project === undefined) {
+      project = _.find({ projectName: namespace }, billingProjects)
+    }
+    // Azure billing projects have `managedAppCoordinates` defined.
+    return !!project?.managedAppCoordinates
+  }
+
+  const isBillingProjectApplicable = (project) => {
+    // Only support cloning a workspace to the same cloud environment.
+    return Utils.cond(
+      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
+      [Utils.DEFAULT, () => true]
+    )
   }
 
   // Lifecycle
