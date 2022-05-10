@@ -20,7 +20,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
 
     assertCloudInformation: async expectedTextItems => {
       await click(testPage, clickable({ text: 'Cloud information' }))
-      await Promise.all(_.map(async (item) => await findText(testPage, item), expectedTextItems))
+      await Promise.all(_.map(async item => await findText(testPage, item), expectedTextItems))
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
@@ -52,7 +52,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertTabs: async (expectedTabs, enabled) => {
-      await Promise.all(_.map(async (tab) => {
+      await Promise.all(_.map(async tab => {
         await (enabled ? clickNavChildAndLoad(testPage, tab) : assertNavChildNotFound(testPage, tab))
       }, expectedTabs))
     }
