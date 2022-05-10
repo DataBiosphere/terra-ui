@@ -187,7 +187,8 @@ export const SnapshotInfo = ({
         div([sourceDescription]),
         h(SnapshotLabeledInfo, {
           title: 'Data Repo Snapshot Id:', text: [h(Link, {
-            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank'
+            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
+            'aria-label': 'Go to the snapshot in a new tab'
           }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
         }),
         div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
@@ -202,7 +203,8 @@ export const SnapshotInfo = ({
             div([datasetDescription]),
             h(SnapshotLabeledInfo, {
               title: 'Data Repo Dataset Id:', text: [h(Link, {
-                href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank'
+                href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
+                'aria-label': 'Go to the dataset in a new tab'
               }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
             })
           ])
