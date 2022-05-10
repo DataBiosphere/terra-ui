@@ -20,20 +20,19 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
 
     assertCloudInformation: async expectedTextItems => {
       await click(testPage, clickable({ text: 'Cloud information' }))
-      await Promise.all(_.map( async(item) => await findText(testPage, item), expectedTextItems ))
+      await Promise.all(_.map(async (item) => await findText(testPage, item), expectedTextItems))
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-      await Promise.all(_.map( async({ label, tooltip }) => {
+      await Promise.all(_.map(async ({ label, tooltip }) => {
         if (!!tooltip) {
           await findElement(testPage, clickable({ textContains: label, isEnabled: false }))
           await findText(testPage, tooltip)
-        }
-        else {
+        } else {
           await findElement(testPage, clickable({ textContains: label }))
         }
-      }, expectedMenuItems ))
+      }, expectedMenuItems))
     },
 
     assertLockWorkspace: async () => {
@@ -52,11 +51,11 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
       await assertTextNotFound(testPage, 'Workspace is locked')
     },
 
-    assertTabs: async(expectedTabs, enabled) => {
-      await Promise.all(_.map( async(tab) => {
+    assertTabs: async (expectedTabs, enabled) => {
+      await Promise.all(_.map(async (tab) => {
         await (enabled ? clickNavChildAndLoad(testPage, tab) : assertNavChildNotFound(testPage, tab))
       }, expectedTabs))
-    },
+    }
   }
 }
 
@@ -77,7 +76,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertUnlockWorkspace()
 
   // Verify other Workspace menu items are in correct state (all will be enabled).
-  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone'}, { label: 'Share'}, { label: 'Delete'}])
+  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }])
 
   // Click on each of the expected tabs
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
@@ -154,7 +153,7 @@ const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspacesListResult), { status: 200 }))
       },
       {
-        filter: { url: /api\/v2\/runtimes(.*)/ },  // Needed to prevent errors from the Runtime (IA) component that will be going away.
+        filter: { url: /api\/v2\/runtimes(.*)/ }, // Needed to prevent errors from the Runtime (IA) component that will be going away.
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       }
     ])
@@ -191,7 +190,6 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
 
   // Verify Analyses tab is present (config override is set)
   await dashboard.assertTabs(['analyses'], true)
-
 })
 
 const azureWorkspaceDashboard = {
