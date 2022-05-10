@@ -1,4 +1,6 @@
 const _ = require('lodash/fp')
+const { mkdirSync } = require('fs')
+const { resolve } = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
@@ -259,12 +261,17 @@ const openError = async page => {
 }
 
 const maybeSaveScreenshot = async (page, testName) => {
-  if (!screenshotDirPath) { return }
+  const dir = screenshotDirPath ?
+    screenshotDirPath :
+    process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+
   try {
-    const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
-    const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
+    mkdirSync(dir, { recursive: true })
+    const path = `${dir}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
     await page.screenshot({ path, fullPage: true })
+    console.log(`Captured screenshot: ${path}`)
 
     const errorsPresent = await openError(page)
 
@@ -288,7 +295,6 @@ const withScreenshot = _.curry((testName, fn) => async options => {
   try {
     return await fn(options)
   } catch (e) {
-    await maybeSaveScreenshot(options.page, testName)
     throw e
   }
 })
@@ -315,11 +321,11 @@ const logPageAjaxResponses = page => {
   return () => page.off('response', handle)
 }
 
-const withPageLogging = fn => options => {
+const withPageLogging = fn => async options => {
   const { page } = options
   logPageAjaxResponses(page)
   logPageConsoleMessages(page)
-  return fn(options)
+  return await fn(options)
 }
 
 const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
@@ -360,5 +366,6 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout
+  waitUntilLoadedOrTimeout,
+  maybeSaveScreenshot
 }
