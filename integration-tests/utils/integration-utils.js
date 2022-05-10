@@ -73,7 +73,7 @@ const getTableColIndex = async (page, { tableName, columnHeader }) => {
 const getTableCellByContents = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
   const colIndex = await getTableColIndex(page, { tableName, columnHeader })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
-  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[text() = "${textContains}"]`
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
   return xpath
 }
 
