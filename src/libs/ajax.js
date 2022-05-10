@@ -907,6 +907,12 @@ const Workspaces = signal => ({
           { signal, method: 'POST' }]))
       },
 
+      renameEntityType: (oldName, newName) => {
+        const payload = { newName }
+
+        return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
       deleteEntityAttribute: (type, name, attributeName) => {
         return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
           { signal, method: 'PATCH' }]))

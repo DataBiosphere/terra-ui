@@ -53,6 +53,7 @@ const eventsList = {
   workspaceDataOpenWithNotebook: 'workspace:data:notebook',
   workspaceDataImport: 'workspace:data:import',
   workspaceDataUpload: 'workspace:data:upload',
+  workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',

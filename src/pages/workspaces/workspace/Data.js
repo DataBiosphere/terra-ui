@@ -14,6 +14,7 @@ import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { DeleteObjectConfirmationModal } from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
+import RenameTableModal from 'src/components/data/RenameTableModal'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
@@ -457,9 +458,11 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, onUpdateSuccess }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
+
+  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
 
   const downloadForm = useRef()
   const signal = useCancellation()
@@ -467,6 +470,7 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
   const [loading, setLoading] = useState(false)
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
+  const [renaming, setRenaming] = useState(false)
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -504,7 +508,14 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
             setEntities(_.map(_.get('name'), queryResults.results))
             setExporting(true)
           })
-        }, 'Export to workspace')
+        }, 'Export to workspace'),
+        h(MenuButton, {
+          onClick: () => {
+            setRenaming(true)
+          },
+          disabled: !!editWorkspaceErrorMessage,
+          tooltip: editWorkspaceErrorMessage || ''
+        }, 'Rename table')
       ])
     }, [
       h(Clickable, {
@@ -522,6 +533,12 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
       selectedDataType: tableName,
       selectedEntities: entities,
       runningSubmissionsCount
+    }),
+    renaming && h(RenameTableModal, {
+      onDismiss: () => setRenaming(false),
+      onUpdateSuccess,
+      namespace, name,
+      selectedDataType: tableName
     })
   ])
 }
@@ -716,7 +733,8 @@ const WorkspaceData = _.flow(
                   after: isDataTabRedesignEnabled() && h(DataTableActions, {
                     tableName: type,
                     rowCount: typeDetails.count,
-                    workspace
+                    workspace,
+                    onUpdateSuccess: () => loadMetadata()
                   })
                 })
               }, sortedEntityPairs)
