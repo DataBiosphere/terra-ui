@@ -295,6 +295,7 @@ const withScreenshot = _.curry((testName, fn) => async options => {
   try {
     return await fn(options)
   } catch (e) {
+    await maybeSaveScreenshot(options.page, testName)
     throw e
   }
 })
