@@ -192,9 +192,25 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
-  await waitForNoSpinners(page)
+  if (!!testUrl) {
+    const timeout = 30 * 1000
+    const gotoPromise = Promise.all([
+      page.goto(testUrl, waitUntilLoadedOrTimeout(timeout)),
+      page.waitForXPath('//a[@href="#workspaces"]', { visible: true, timeout }),
+      page.waitForXPath('//a[@href="#library/showcase"]', { visible: true, timeout }),
+      page.waitForXPath('//a[@href="#library/datasets"]', { visible: true, timeout })
+    ])
+      .then(() => waitForNoSpinners(page))
+
+    try {
+      await gotoPromise
+    } catch (e) {
+      console.log(`Warning: Page loading had timed out. Reload URL: "${testUrl}"`)
+      await page.reload(waitUntilLoadedOrTimeout(timeout))
+      await gotoPromise
+    }
+  }
+
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
