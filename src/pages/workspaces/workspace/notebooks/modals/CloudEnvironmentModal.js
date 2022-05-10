@@ -28,13 +28,14 @@ import {
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 
 
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks, location, locationType, workspace: { azureContext, workspace: { namespace, name: workspaceName } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -65,6 +66,21 @@ export const CloudEnvironmentModal = ({
     }
   })
 
+  const renderAzureModal = () => h(AzureComputeModalBase, {
+    isOpen: viewMode === NEW_AZURE_MODE,
+    hideCloseButton: true,
+    workspace,
+    runtimes,
+    onDismiss: () => {
+      setViewMode(undefined)
+      onDismiss()
+    },
+    onSuccess: () => {
+      setViewMode(undefined)
+      onSuccess()
+    }
+  })
+
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
     workspace,
@@ -81,7 +97,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay)
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay(azureContext))
   )
 
   const toolPanelStyles = {
@@ -120,6 +136,7 @@ export const CloudEnvironmentModal = ({
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
   const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
+  const isLaunchSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isLaunchUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -253,12 +270,14 @@ export const CloudEnvironmentModal = ({
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
-    [tools.Cromwell.label, () => cromwellImg])
+    [tools.Cromwell.label, () => cromwellImg],
+    [tools.Azure.label, () => jupyterLogo])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
     [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
     [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -287,7 +306,7 @@ export const CloudEnvironmentModal = ({
     const isToolBusy = isToolAnApp(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
-    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label
+    const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
       disabled: isDisabled,
@@ -299,9 +318,9 @@ export const CloudEnvironmentModal = ({
       hover: isDisabled ? {} : { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Open'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
-          () => 'Select or create a notebook in the analyses tab to open Jupyter'],
+        [doesCloudEnvForToolExist && isDisabled && isLaunchSupported(toolLabel), () => `Please wait until ${toolLabel} is running`],
+        [doesCloudEnvForToolExist && isDisabled && !isLaunchSupported(toolLabel),
+          () => `Select or create an analysis in the analyses tab to open ${toolLabel}`],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
@@ -398,9 +417,11 @@ export const CloudEnvironmentModal = ({
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.Galaxy.label
   const NEW_CROMWELL_MODE = tools.Cromwell.label
+  const NEW_AZURE_MODE = tools.Azure.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
+    [NEW_AZURE_MODE, () => renderAzureModal()],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
     [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
     [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
@@ -412,6 +433,7 @@ export const CloudEnvironmentModal = ({
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
     [NEW_CROMWELL_MODE, () => 675],
+    [NEW_AZURE_MODE, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 

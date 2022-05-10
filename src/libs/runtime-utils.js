@@ -42,11 +42,11 @@ export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromStr
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
-export const defaultDataprocMasterDiskSize = 100
+export const defaultDataprocMasterDiskSize = 120
 export const defaultDataprocWorkerDiskSize = 150
 // Since Leonardo started supporting persistent disks (PDs) for GCE VMs, boot disk size for a GCE VM
 // with a PD has been non-user-customizable. Terra UI uses the value below for cost estimate calculations only.
-export const defaultGceBootDiskSize = 100
+export const defaultGceBootDiskSize = 120
 export const defaultGcePersistentDiskSize = 50
 export const defaultPersistentDiskType = pdTypes.standard
 
@@ -64,8 +64,9 @@ export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
 
 export const defaultAutopauseThreshold = 30
-export const autopauseDisabledValue = 0
 // Leonardo considers autopause disabled when the threshold is set to 0
+export const autopauseDisabledValue = 0
+
 export const isAutopauseEnabled = threshold => threshold > autopauseDisabledValue
 export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseThreshold : autopauseDisabledValue
 
@@ -127,9 +128,9 @@ const dataprocCost = (machineType, numInstances) => {
 }
 
 const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
-  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes)
+  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes) || {}
   const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
-    regionToPrices)
+    regionToPrices) || {}
   return isPreemptible ?
     (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice) :
     (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice)
@@ -420,4 +421,6 @@ export const getIsRuntimeBusy = runtime => {
   const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring, Stopping: stopping, Starting: starting } = _.countBy(getConvertedRuntimeStatus, [runtime])
   return creating || updating || reconfiguring || stopping || starting
 }
+
+export const cloudProviders = { azure: { label: 'azure' }, gcp: {} }
 

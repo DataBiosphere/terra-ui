@@ -157,7 +157,7 @@ const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ?
 const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(
-    `api/google/user/petServiceAccount/${googleProject}/token`,
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
@@ -540,6 +540,12 @@ const Billing = signal => ({
     return res
   },
 
+  deleteProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
+    return res
+  },
+
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
     const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([
@@ -899,6 +905,12 @@ const Workspaces = signal => ({
       renameEntity: (type, name, newName) => {
         return fetchRawls(`${root}/entities/${type}/${name}/rename`, _.mergeAll([authOpts(), jsonBody({ name: newName }),
           { signal, method: 'POST' }]))
+      },
+
+      renameEntityType: (oldName, newName) => {
+        const payload = { newName }
+
+        return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
       },
 
       deleteEntityAttribute: (type, name, attributeName) => {
@@ -1481,6 +1493,48 @@ const Runtimes = signal => ({
       },
 
       delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      }
+    }
+  },
+
+  listV2: async (labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  listV2WithWorkspace: async (workspaceId, labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
+    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
+
+    return {
+
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
+      },
+
+      create: options => {
+        const body = _.merge(options, {
+          labels: { saturnAutoCreated: 'true', saturnVersion: version }
+        })
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      },
+
+      delete: (deleteDisk = true) => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
