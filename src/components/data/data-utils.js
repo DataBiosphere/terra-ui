@@ -799,8 +799,10 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
 export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
-  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
-  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+  const attributeToEditError = attributeToEditTouched && Utils.cond(
+    [!attributeToEdit, () => 'An attribute name is required.'],
+    [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
+  )
 
   const [newValue, setNewValue] = useState('')
 
@@ -862,12 +864,12 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
                   id,
                   value: attributeToEdit,
-                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
+                  suggestions: attributeNames,
                   placeholder: 'Attribute name',
                   style: attributeToEditError ? {
                     paddingRight: '2.25rem',
@@ -905,11 +907,8 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           }),
           div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
             h(ButtonOutline, {
-              disabled: attributeToEditError || isNewAttribute,
-              tooltip: Utils.cond(
-                [attributeToEditError, () => attributeToEditError],
-                [isNewAttribute, () => 'The selected attribute does not exist.']
-              ),
+              disabled: !!attributeToEditError,
+              tooltip: attributeToEditError,
               onClick: () => setConsideringDelete(true)
             }, ['Delete']),
             div({ style: { flexGrow: 1 } }),
@@ -918,7 +917,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
               disabled: attributeToEditError,
               tooltip: attributeToEditError,
               onClick: doEdit
-            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+            }, ['Save edits'])
           ])
         ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
           h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
