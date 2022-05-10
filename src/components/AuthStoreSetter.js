@@ -8,20 +8,20 @@ import { authStore } from 'src/libs/state'
 
 const AuthStoreSetter = () => {
   const auth = useAuth()
+
   useOnMount(() => authStore.update(_.set(['authContext'], auth)))
 
   useEffect(() => {
-    return auth.events.addAccessTokenExpiring(reloadAuthToken)
+    const cleanupFns = [
+      auth.events.addAccessTokenExpiring(reloadAuthToken),
+      auth.events.addUserLoaded(processUser),
+      auth.events.addUserUnloaded(processUser)
+    ]
+    return _.over(cleanupFns)
   }, [auth])
 
-  useEffect(() => {
-    return auth.events.addUserLoaded(processUser)
-  }, [auth])
-
-  useEffect(() => {
-    return auth.events.addUserUnloaded(processUser)
-  }, [auth])
-
+  // Return null because this component doesn't actually render anything.
+  // It exists purely for setting up auth state and installing listeners.
   return null
 }
 
