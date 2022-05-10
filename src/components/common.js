@@ -523,12 +523,10 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      Utils.cond(
-        [isTerra(), () => div({ style: { lineHeight: '2rem' } }, [
-          h1({ style: { fontSize: 54 } }, 'Welcome to'),
-          h1({ style: { fontSize: 54 } }, getAppName(true))
-        ])],
-        () => h1({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`)),
+      h1({ style: { fontSize: 54 } }, [
+        'Welcome to ',
+        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, getAppName(isTerra()))
+      ]),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName(!isTerra())} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
@@ -539,7 +537,6 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '. ']),
         showDocLink ?
           h(Link, {
-            'aria-label': 'Learn more about Terra',
             style: { textDecoration: 'underline' },
             href: `https://support.terra.bio/hc/en-us`,
             ...Utils.newTabLinkProps

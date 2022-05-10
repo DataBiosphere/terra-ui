@@ -50,23 +50,15 @@ export const signOut = () => {
   getAuthInstance().removeUser()
 }
 
-export const signIn = (includeBillingScope = false) => {
-  if (includeBillingScope === true) {
-    return getAuthInstance().signinPopup({
-      scope: `
-      openid
-      email
-      profile
-      https://www.googleapis.com/auth/cloud-billing
-    `.trim().split(/\s+/).join(' ')
-    })
-  } else {
-    return getAuthInstance().signinPopup()
-  }
+export const signIn = () => {
+  getAuthInstance().signinPopup().catch(() => {})
 }
 
-export const reloadAuthToken = () => {
-  return getAuthInstance().signinSilent().then(processUser).catch(() => false)
+export const reloadAuthToken = (includeBillingScope = false) => {
+  const args = includeBillingScope ? {
+    scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing'
+  } : {}
+  return getAuthInstance().signinSilent(args).then(processUser).catch(() => false)
 }
 
 export const hasBillingScope = () => {
@@ -87,9 +79,7 @@ const becameRegistered = (oldState, state) => {
  */
 export const ensureBillingScope = async () => {
   if (!hasBillingScope()) {
-    await signIn(true)
-    // Wait 250ms before continuing to avoid errors due to delays in applying the new scope grant
-    await Utils.delay(250)
+    await reloadAuthToken(true)
   }
 }
 
