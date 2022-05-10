@@ -186,8 +186,8 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
 
   // Verify workspace tooltips on Workspace menu items (all will be disabled due to Azure workspace + READER permissions).
   await dashboard.assertWorkspaceMenuItems([
-    { label: 'Clone', tooltip: 'Cloning is not supported on Azure Workspaces' },
-    { label: 'Share', tooltip: 'Sharing is not supported on Azure Workspaces' },
+    { label: 'Clone', tooltip: 'Cloning is not currently supported on Azure Workspaces' },
+    { label: 'Share', tooltip: 'Sharing is not currently supported on Azure Workspaces' },
     { label: 'Lock', tooltip: 'You have not been granted permission to lock this workspace' },
     { label: 'Delete', tooltip: 'You have not been granted permission to lock this workspace' }
   ])
