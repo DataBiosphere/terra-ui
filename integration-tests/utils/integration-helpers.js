@@ -9,7 +9,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
-const defaultTimeout = 5 * 1000
+const defaultTimeout = 5 * 60 * 1000
 
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
