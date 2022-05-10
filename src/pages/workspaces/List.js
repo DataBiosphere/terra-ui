@@ -246,11 +246,11 @@ export const WorkspaceList = () => {
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(WorkspaceMenuTrigger,{
+                h(WorkspaceMenuTrigger, {
                   iconSize: 20, popupLocation: 'left', workspaceName: name,
-                  menuContent: h(WorkspaceMenuItems, { namespace, name, onShare, onClone, onDelete, onLock }),
-                })]
-              ),
+                  menuContent: h(WorkspaceMenuItems, { namespace, name, onShare, onClone, onDelete, onLock })
+                })
+              ]),
               div({ style: styles.tableCellContent }, [
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),

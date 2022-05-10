@@ -90,11 +90,12 @@ const WorkspaceTabs = ({
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
       workspace && h(WorkspacePermissionNotice, { workspace }),
-      h(WorkspaceMenuTrigger,{
+      h(WorkspaceMenuTrigger, {
         iconSize: 27, popupLocation: 'bottom',
-        menuContent: h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete }),
-      })]
-    )])
+        menuContent: h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete })
+      })
+    ])
+  ])
 }
 
 const WorkspaceContainer = ({
