@@ -15,7 +15,7 @@ const SignInButton = () => {
     id: 'signInButton',
     onClick: signIn,
     style: { marginTop: '0.875rem', width: '9.4rem', height: '3.2rem', fontSize: '1rem' }
-  }, ['login'])
+  }, ['log in'])
 }
 
 export default SignInButton
