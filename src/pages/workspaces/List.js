@@ -13,7 +13,7 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaceDetails, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -25,7 +25,7 @@ import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspace
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import { WorkspaceMenuContent, WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceMenu'
+import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
 const styles = {
@@ -45,15 +45,6 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
     [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
     [lastFailureDate, () => 'failure']
   )
-}
-
-const WorkspaceMenuItems = ({ namespace, name, onClone, onShare, onDelete, onLock }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'azureContext', 'canShare', 'workspace.isLocked'])
-  const canShare = workspace?.canShare
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.azureContext
-  return WorkspaceMenuContent({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded: !!workspace })
 }
 
 export const WorkspaceList = () => {
@@ -246,9 +237,10 @@ export const WorkspaceList = () => {
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(WorkspaceMenuTrigger, {
-                  iconSize: 20, popupLocation: 'left', workspaceName: name,
-                  menuContent: h(WorkspaceMenuItems, { namespace, name, onShare, onClone, onDelete, onLock })
+                h(WorkspaceMenu, {
+                  iconSize: 20, popupLocation: 'left',
+                  callbacks: { onClone, onShare, onLock, onDelete },
+                  workspaceInfo: { namespace, name }
                 })
               ]),
               div({ style: styles.tableCellContent }, [

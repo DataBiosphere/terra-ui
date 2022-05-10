@@ -28,7 +28,7 @@ import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
-import { WorkspaceMenuContent, WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceMenu'
+import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
 const WorkspacePermissionNotice = ({ workspace }) => {
@@ -90,9 +90,10 @@ const WorkspaceTabs = ({
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
       workspace && h(WorkspacePermissionNotice, { workspace }),
-      h(WorkspaceMenuTrigger, {
+      h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
-        menuContent: h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete })
+        callbacks: { onClone, onShare, onLock, onDelete },
+        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner }
       })
     ])
   ])
