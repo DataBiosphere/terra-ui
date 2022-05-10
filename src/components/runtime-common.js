@@ -39,10 +39,14 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
         await refreshRuntimes()
         setBusy(false)
         return
-      } else if (currentRuntime === undefined || status === 'Stopping') {
+      } else if (currentRuntime === undefined || status === 'Stopping' ) {
         await Utils.delay(500)
       } else if (currentRuntime === null) {
-        onNullRuntime()
+        await Utils.delay(1000)
+        const updatedCurrentRuntime = getRuntime();
+        if (updatedCurrentRuntime === null) {
+          onNullRuntime()
+        }
         return
       } else {
         return
