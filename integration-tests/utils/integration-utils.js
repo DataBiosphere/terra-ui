@@ -194,11 +194,18 @@ const dismissNotifications = async page => {
 const signIntoTerra = async (page, { token, testUrl }) => {
   if (!!testUrl) {
     const timeout = 30 * 1000
-    const gotoPromise = Promise.all([
-      page.goto(testUrl, waitUntilLoadedOrTimeout(timeout)),
+    const welcomePagePromise = Promise.all([
       page.waitForXPath('//a[@href="#workspaces"]', { visible: true, timeout }),
       page.waitForXPath('//a[@href="#library/showcase"]', { visible: true, timeout }),
       page.waitForXPath('//a[@href="#library/datasets"]', { visible: true, timeout })
+    ])
+    const pagePromise = Promise.race([
+      page.waitForXPath('//*[@id="signInButton"]', { visible: true, timeout }),
+      welcomePagePromise
+    ])
+    const gotoPromise = Promise.all([
+      page.goto(testUrl, waitUntilLoadedOrTimeout(timeout)),
+      pagePromise
     ])
       .then(() => waitForNoSpinners(page))
 
