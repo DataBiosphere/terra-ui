@@ -21,4 +21,5 @@ export const isElwazi = () => (window.location.hostname === 'elwazi.terra.bio') 
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
 export const isProjectSingular = () => (window.location.hostname === 'projectsingular.terra.bio') || getConfig().isProjectSingular
 export const isRareX = () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isRareX()
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() &&
+  !isProjectSingular() && !isRareX()
