@@ -607,7 +607,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
         h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
           span({ style: { marginRight: '1.2rem' } }, [
             h(RadioButton, {
@@ -657,7 +657,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           onChange(newAttributeValue)
         }
       }, [
-        span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])
+        span({ style: { marginLeft: '0.5rem' } }, ['Value is a list'])
       ])
     ]),
     isList ?
@@ -759,19 +759,19 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: 'Modify Attribute',
+    title: 'Edit value',
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeName),
+        'Are you sure you want to delete the field ', boldish(attributeName),
         ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete field'])
         ])
       ]) :
       h(Fragment, [
@@ -845,32 +845,32 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    title: `Edit fields in ${pluralize('row', entityNames.length, true)}`,
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        'Are you sure you want to delete the field ', boldish(attributeToEdit),
         ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete field'])
         ])
       ]) :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute'),
+              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
                   id,
                   value: attributeToEdit,
                   suggestions: attributeNames,
-                  placeholder: 'Attribute name',
+                  placeholder: 'Column name',
                   style: attributeToEditError ? {
                     paddingRight: '2.25rem',
                     border: `1px solid ${colors.danger()}`
@@ -900,6 +900,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
+          p({ style: { fontWeight: 'bold' } }, ['Change selected fields to:']),
           h(AttributeInput, {
             value: newValue,
             onChange: setNewValue,
@@ -1076,7 +1077,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
 
   return h(Modal, {
     onDismiss,
-    title: `Add ${entityType}`,
+    title: 'Add a new row',
     okButton: h(ButtonPrimary, {
       disabled: !!entityNameErrors,
       tooltip: Utils.summarizeErrors(entityNameErrors),
@@ -1087,6 +1088,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
     h(ValidatedInput, {
       inputProps: {
         id: 'add-row-entity-name',
+        placeholder: 'Enter a value (required)',
         value: entityName,
         onChange: value => {
           setEntityName(value)
@@ -1095,7 +1097,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       },
       error: entityNameInputTouched && Utils.summarizeErrors(entityNameErrors)
     }),
-    p({ id: 'add-row-attributes-label' }, 'Expand each attribute to edit its value.'),
+    p({ id: 'add-row-attributes-label' }, 'Expand each field to edit its value.'),
     ul({ 'aria-labelledby': 'add-row-attributes-label', style: { padding: 0, margin: 0 } }, [
       _.map(([i, attributeName]) => li({
         key: attributeName,

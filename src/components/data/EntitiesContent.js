@@ -347,9 +347,9 @@ const EntitiesContent = ({
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {
           disabled: noEdit,
-          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit a field of the selected rows',
           onClick: () => setEditingEntities(true)
-        }, ['Edit Attribute']),
+        }, ['Edit']),
         !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
@@ -388,12 +388,12 @@ const EntitiesContent = ({
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
           onClick: () => setEditingEntities(true)
-        }, ['Edit attribute']),
+        }, ['Edit selected rows']),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
-        }, 'Delete')
+        }, 'Delete selected rows')
       ])
     }, [h(ButtonSecondary, {
       disabled: !canEdit,
