@@ -27,6 +27,7 @@ import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 
 
 const styles = {
@@ -428,6 +429,7 @@ const topMed = () => h(Participant, {
 const Datasets = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
+    h(DataBrowserPreviewToggler, { checked: false }),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(), hca(),

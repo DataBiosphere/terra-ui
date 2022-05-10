@@ -18,7 +18,7 @@ import { datasetAccessTypes, importDataToWorkspace, uiMessaging, useDataCatalog 
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-const activeTab = 'browse & explore'
+const activeTab = 'datasets'
 const styles = {
   ...commonStyles,
   content: { padding: 20, marginTop: 15 },

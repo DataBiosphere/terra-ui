@@ -17,6 +17,7 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -226,7 +227,8 @@ const Browser = () => {
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('browse & explore'),
+    libraryTopMatter('datasets'),
+    h(DataBrowserPreviewToggler, { checked: true }),
     !acknowledged[id] && div({
       style: {
         border: `1px solid ${colors.accent()}`, borderRadius: 3,

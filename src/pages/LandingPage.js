@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { Clickable, HeroWrapper, Link } from 'src/components/common'
+import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
@@ -85,6 +85,23 @@ const LandingPage = () => {
         ...Utils.newTabLinkProps
       }, ['See this article']),
       ' for a summary of available resources.'
+    ]),
+    div({
+      style: {
+        backgroundColor: colors.primary(),
+        // backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
+        display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
+        color: 'white', padding: '2rem 1rem',
+        width: 'calc(675px + 2rem)', // 3 card widths + 2 card margins to line up with the content directly above
+        marginTop: 15
+      }
+    }, [
+      h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['Preview the BETA Data Catalog and provide valuable feedback.']),
+      h(ButtonOutline, {
+        style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
+        onClick: () => { Nav.goToPath('library-browser') }
+      }, ['Preview BETA Data Catalog'])
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
       'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',

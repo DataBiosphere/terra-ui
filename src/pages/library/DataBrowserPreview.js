@@ -40,7 +40,7 @@ const styles = {
   }
 }
 
-const activeTab = 'browse & explore'
+const activeTab = 'datasets'
 
 const DataBrowserPreview = ({ id }) => {
   const signal = useCancellation()

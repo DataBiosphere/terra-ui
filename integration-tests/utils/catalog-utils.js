@@ -13,7 +13,7 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
 
 const linkDataToWorkspace = async (page, testUrl, token) => {
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
+  await click(page, clickable({ textContains: 'datasets' }))
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   // TODO: add test data with granted access DC-321
   await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', textContains: 'Transcriptomic and clonal characterization of T cells in the human central nervous system.' })
