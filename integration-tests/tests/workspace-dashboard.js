@@ -23,6 +23,10 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
       await Promise.all(_.map(async item => await findText(testPage, item), expectedTextItems))
     },
 
+    assertReadOnly: async () => {
+      await findText(testPage, 'Workspace is read only')
+    },
+
     assertWorkspaceMenuItems: async expectedMenuItems => {
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await Promise.all(_.map(async ({ label, tooltip }) => {
@@ -106,7 +110,7 @@ const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription
     workspaceVersion: 'v2'
   }
   const azureWorkspacesListResult = [{
-    accessLevel: 'WRITER',
+    accessLevel: 'READER',
     public: false,
     workspace: workspaceInfo,
     workspaceSubmissionStats: { runningSubmissionsCount: 0 }
@@ -119,7 +123,7 @@ const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription
       tenantId: 'dummy-tenant-id'
     },
     workspaceSubmissionStats: { runningSubmissionsCount: 0 },
-    accessLevel: 'WRITER',
+    accessLevel: 'READER',
     owners: ['dummy@email.comm'],
     workspace: workspaceInfo,
     canShare: true,
@@ -177,7 +181,10 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Check cloud information
   await dashboard.assertCloudInformation(['Cloud NameMicrosoft Azure', 'Resource Group IDdummy-mrg-id'])
 
-  // Verify workspace tooltips on Workspace menu items (all will be disabled, WRITER permissions only).
+  // READER permissions only
+  await dashboard.assertReadOnly()
+
+  // Verify workspace tooltips on Workspace menu items (all will be disabled due to Azure workspace + READER permissions).
   await dashboard.assertWorkspaceMenuItems([
     { label: 'Clone', tooltip: 'Cloning is not supported on Azure Workspaces' },
     { label: 'Share', tooltip: 'Sharing is not supported on Azure Workspaces' },
