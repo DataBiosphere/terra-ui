@@ -687,6 +687,8 @@ const WorkspaceData = _.flow(
           h(MenuTrigger, {
             side: 'bottom',
             closeOnClick: true,
+            // Make the width of the dropdown menu match the width of the button.
+            popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
             content: h(Fragment, [
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
