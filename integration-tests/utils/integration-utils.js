@@ -206,7 +206,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
       await gotoPromise
     } catch (e) {
       console.log(`Warning: Page loading had timed out. Reload URL: "${testUrl}"`)
-      await page.reload(waitUntilLoadedOrTimeout(timeout))
+      await page.reload()
       await gotoPromise
     }
   }
