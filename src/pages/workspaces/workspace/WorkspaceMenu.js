@@ -83,7 +83,7 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
       tooltip: deleteTooltip,
       tooltipSide: 'left',
       onClick: onDelete
-    }, [makeMenuIcon('trash'), 'Delete']) // before check-in test if aria-label should be Workspace delete
+    }, [makeMenuIcon('trash'), 'Delete'])
   ])
 }
 
