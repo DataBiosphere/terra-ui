@@ -217,6 +217,9 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     try {
       await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
       !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
+      if (!currentTerraSupportAccessLevel && newTerraSupportAccessLevel) {
+        Ajax().Metrics.captureEvent(Events.workspaceShareWithSupport)
+      }
       onDismiss()
     } catch (error) {
       !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
