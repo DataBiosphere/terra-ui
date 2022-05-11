@@ -1,5 +1,5 @@
 import { div, h, strong } from 'react-hyperscript-helpers'
-import { Switch } from 'src/components/common'
+import { Link, Switch } from 'src/components/common'
 import colors from 'src/libs/colors'
 import { isDataBrowserVisible } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -39,6 +39,13 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
         }),
         strong({ style: { marginLeft: 10 } }, ['BETA Data Catalog ON'])
       ])
+    ]),
+    checked && div({ style: { marginLeft: 80 } }, [
+      'After previewing the Terra Data Catalog, please fill out this quick survey to provide the team with valuable feedback.',
+      h(Link, {
+        href: '', // TODO: Add when this is added.
+        style: { display: 'block', marginTop: 10 }
+      }, ['BETA Terra Data Catalog survey'])
     ])
   ])
 }

@@ -4,11 +4,15 @@ import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/comm
 import { icon } from 'src/components/icons'
 import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
+import terraHero from 'src/images/terra-hero.png'
 import colors from 'src/libs/colors'
-import { isFirecloud, isTerra } from 'src/libs/config'
+import { isDataBrowserVisible, isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getDatasetsPath } from 'src/pages/library/dataBrowser-utils'
 
 
 const makeDocLink = (href, title) => {
@@ -67,7 +71,7 @@ const LandingPage = () => {
         'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
       ]),
       makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-      makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      makeCard(getDatasetsPath(useStore(authStore)), 'Browse Data', 'Access data from a rich ecosystem of data portals.')
     ]),
     isTerra() && div({
       style: {
@@ -86,10 +90,10 @@ const LandingPage = () => {
       }, ['See this article']),
       ' for a summary of available resources.'
     ]),
-    div({
+    isDataBrowserVisible() && div({
       style: {
         backgroundColor: colors.primary(),
-        // backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
+        backgroundImage: `url(${terraHero})`, backgroundSize: 'cover', borderRadius: 5,
         display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
         color: 'white', padding: '2rem 1rem',
