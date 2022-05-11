@@ -765,13 +765,13 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the field ', boldish(attributeName),
+        'Are you sure you want to delete the value ', boldish(attributeName),
         ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete field'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -851,13 +851,13 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the field ', boldish(attributeToEdit),
+        'Are you sure you want to delete the value ', boldish(attributeToEdit),
         ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete field'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -900,7 +900,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
-          p({ style: { fontWeight: 'bold' } }, ['Change selected fields to:']),
+          p({ style: { fontWeight: 'bold' } }, ['Change selected values to:']),
           h(AttributeInput, {
             value: newValue,
             onChange: setNewValue,
@@ -1097,7 +1097,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       },
       error: entityNameInputTouched && Utils.summarizeErrors(entityNameErrors)
     }),
-    p({ id: 'add-row-attributes-label' }, 'Expand each field to edit its value.'),
+    p({ id: 'add-row-attributes-label' }, 'Expand each value to edit.'),
     ul({ 'aria-labelledby': 'add-row-attributes-label', style: { padding: 0, margin: 0 } }, [
       _.map(([i, attributeName]) => li({
         key: attributeName,
