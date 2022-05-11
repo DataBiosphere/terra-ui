@@ -1458,6 +1458,13 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
 
+  fetchIframeSrcUrl: async proxyUrl => {
+    const res = await fetchOk(proxyUrl, _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    const blob = res.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    return objectUrl
+  },
+
   runtime: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
@@ -1514,12 +1521,6 @@ const Runtimes = signal => ({
 
   listV2WithWorkspace: async (workspaceId, labels = {}) => {
     const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
