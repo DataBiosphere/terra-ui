@@ -13,7 +13,7 @@ handlers:
   upload: build/index.html
   secure: always
   http_headers:
-    X-Frame-Options: "DENY"
+    X-Frame-Options: "SAMEORIGIN"
     Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
     X-Content-Type-Options: "nosniff"
     X-XSS-Protection: "1; mode=block"
