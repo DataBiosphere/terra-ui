@@ -19,13 +19,24 @@ const fetchLyle = async (path, email) => {
   const url = `${lyleUrl}/api/${path}`
   const authClient = await makeAuthClient()
 
-  const res = await fetch(url, {
+  return await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
     body: JSON.stringify({ email })
   })
-
-  return res.json()
+    .then(resp => {
+      if (resp.ok) {
+        // response.status >= 200 && response.status < 300
+        return resp.json()
+      }
+      throw Error(`fetch Lyle response: ${resp.text()}`)
+    })
+    .catch(async err => {
+      console.error(err)
+      const errorBody = await err.response.text()
+      console.error(`fetch Lyle request response body: ${errorBody}`)
+      throw err
+    })
 }
 
 module.exports = {
