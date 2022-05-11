@@ -1015,7 +1015,7 @@ export const AddColumnModal = ({ entityType, entityMetadata, workspaceId: { name
     ]),
     p([
       span({ style: { fontWeight: 'bold' } }, ['Default value']),
-      ' (will be entered for all rows)'
+      ' (optional, will be entered for all rows)'
     ]),
     h(AttributeInput, {
       value,
