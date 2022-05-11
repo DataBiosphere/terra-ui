@@ -25,7 +25,7 @@ const colorPalette = Utils.cond(
   [isBioDataCatalyst(), () => ({ ...baseColors, primary: '#c02f42', secondary: '#1a568c', accent: '#1a568c', light: '#f4f4f6', dark: '#12385a' })],
   [isBaseline(), () => ({ ...baseColors, primary: '#c41061', secondary: '#31164c', light: '#f6f7f4', dark: '#012840' })],
   [isElwazi(), () => ({ ...baseColors, primary: '#c13f27', secondary: '#c13f27', dark: '#1d1d1b', accent: '#6e3d3b', success: '#9eb642' })],
-  [isProjectSingular(), () => ({ ...baseColors, primary: '#34cec3', secondary: '#011c48', accent: '#34cec3' })],
+  [isProjectSingular(), () => ({ ...baseColors, primary: '#422ac0', secondary: '#011c48', accent: '#422ac0' })],
   [isRareX(), () => ({ ...baseColors, primary: '#26355c', secondary: '#26355c', dark: '#414042', accent: '#4e6888', light: '#f4efea' })],
   () => ({ ...baseColors, primary: '#74ae43' })
 )
