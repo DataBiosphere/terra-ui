@@ -30,7 +30,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -226,7 +226,7 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
   onRequesterPaysError
 }, _ref) => {
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -238,7 +238,6 @@ const Analyses = _.flow(
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
   const [azureCreating, setAzureCreating] = useState(false)
-  const [location, setLocation] = useState(defaultLocation)
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
@@ -258,11 +257,6 @@ const Analyses = _.flow(
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const { location } = await Ajax()
-      .Workspaces
-      .workspace(namespace, workspace.name)
-      .checkBucketLocation(googleProject, bucketName)
-    setLocation(location)
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
@@ -272,7 +266,6 @@ const Analyses = _.flow(
     const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
-    setLocation(location)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   }) : () => setAnalyses([])
 
@@ -319,6 +312,7 @@ const Analyses = _.flow(
     const [currentUserHash, potentialLockers] = !!googleProject ?
       await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
       await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
+
     setCurrentUserHash(currentUserHash)
     setPotentialLockers(potentialLockers)
     getActiveFileTransfers()
@@ -465,16 +459,16 @@ const Analyses = _.flow(
           uploadFiles, openUploader,
           location,
           onDismiss: async () => {
-            await refreshAnalyses()
+            setCreating(false)
+            refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
-            setCreating(false)
           },
           onSuccess: async () => {
+            setCreating(false)
             await refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
-            setCreating(false)
           }
         }),
         h(AzureComputeModal, {
@@ -482,12 +476,12 @@ const Analyses = _.flow(
           runtimes,
           isOpen: azureCreating,
           onDismiss: async () => {
-            await refreshRuntimes()
             setAzureCreating(false)
+            await refreshRuntimes()
           },
           onSuccess: async () => {
-            await refreshRuntimes()
             setAzureCreating(false)
+            await refreshRuntimes()
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {

@@ -280,7 +280,8 @@ export const trimRuntimesOldestFirst = _.flow(
 
 export const getCurrentRuntime = runtimes => {
   // Status note: undefined means still loading, null means no runtime
-  return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
+  const runtime = !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
+  return runtime
 }
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(

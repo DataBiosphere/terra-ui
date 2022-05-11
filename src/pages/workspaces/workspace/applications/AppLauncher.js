@@ -12,26 +12,11 @@ import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
-  console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
-  const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
-  return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
-}
-
-const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
-  return Utils.switchCase(application,
-    [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
-    [tools.spark.label, () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
-    [tools.RStudio.label, () => proxyUrl],
-    [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark or ${tools.RStudio.label}.`)]
-  )
-}
 
 const ApplicationLauncher = _.flow(
   forwardRefWithName('ApplicationLauncher'),
@@ -41,15 +26,15 @@ const ApplicationLauncher = _.flow(
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
-  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks },
+  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks, location },
   application, workspace, workspace: { workspace: { googleProject, bucketName } }
 }, _ref) => {
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [location, setLocation] = useState(defaultLocation)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
+  const [iframeSrc, setIframeSrc] = useState()
 
   const cookieReady = useStore(cookieReadyStore)
   const signal = useCancellation()
@@ -155,6 +140,25 @@ const ApplicationLauncher = _.flow(
     const runtime = getCurrentRuntime(runtimes)
     const runtimeStatus = getConvertedRuntimeStatus(runtime)
 
+    const computeIframeSrc = withErrorReporting('Error loading application iframe', async () => {
+      const getSparkInterfaceSource = proxyUrl => {
+        console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
+        const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
+        return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
+      }
+
+      const proxyUrl = runtime?.proxyUrl
+      const url = await Utils.switchCase(application,
+        [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+        [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
+        [tools.RStudio.label, () => proxyUrl],
+        [tools.Azure.label, () => `${proxyUrl}/lab`],
+        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.Azure.label}.`)]
+      )
+
+      setIframeSrc(url)
+    })
+
     const setupWelder = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis file syncing')
@@ -169,19 +173,6 @@ const ApplicationLauncher = _.flow(
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
     })
 
-    const loadBucketLocation = _.flow(
-      Utils.withBusyState(setBusy),
-      withErrorReporting('Error loading bucket location')
-    )(async () => {
-      const { location } = await Ajax()
-        .Workspaces
-        .workspace(workspace.namespace, workspace.name)
-        .checkBucketLocation(googleProject, bucketName)
-      setLocation(location)
-    })
-
-    !!googleProject && loadBucketLocation()
-
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
       setShouldSetupWelder(true)
@@ -193,6 +184,7 @@ const ApplicationLauncher = _.flow(
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
+    computeIframeSrc()
     if (runtimeStatus === 'Running') {
       !!googleProject && findOutdatedAnalyses()
 
@@ -219,7 +211,7 @@ const ApplicationLauncher = _.flow(
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
-          src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
+          src: iframeSrc,
           style: {
             border: 'none', flex: 1,
             ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
