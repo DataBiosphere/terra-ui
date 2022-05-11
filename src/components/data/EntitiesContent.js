@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddColumnModal, AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -219,6 +219,7 @@ const EntitiesContent = ({
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [addingEntity, setAddingEntity] = useState(false)
+  const [addingColumn, setAddingColumn] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
@@ -346,9 +347,9 @@ const EntitiesContent = ({
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {
           disabled: noEdit,
-          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit a field of the selected rows',
           onClick: () => setEditingEntities(true)
-        }, ['Edit Attribute']),
+        }, ['Edit']),
         !snapshotName && h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
@@ -381,15 +382,18 @@ const EntitiesContent = ({
           onClick: () => setAddingEntity(true)
         }, 'Add row'),
         h(MenuButton, {
+          onClick: () => setAddingColumn(true)
+        }, ['Add column']),
+        h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
           onClick: () => setEditingEntities(true)
-        }, ['Edit attribute']),
+        }, ['Edit selected rows']),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
-        }, 'Delete')
+        }, 'Delete selected rows')
       ])
     }, [h(ButtonSecondary, {
       disabled: !canEdit,
@@ -495,6 +499,16 @@ const EntitiesContent = ({
         workspaceId: { namespace, name },
         onDismiss: () => setAddingEntity(false),
         onSuccess: () => setRefreshKey(_.add(1))
+      }),
+      addingColumn && h(AddColumnModal, {
+        entityType: entityKey,
+        entityMetadata,
+        workspaceId: { namespace, name },
+        onDismiss: () => setAddingColumn(false),
+        onSuccess: () => {
+          setAddingColumn(false)
+          setRefreshKey(_.add(1))
+        }
       }),
       editingEntities && h(MultipleEntityEditor, {
         entityType: entityKey,
