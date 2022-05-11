@@ -688,14 +688,6 @@ const Workspaces = signal => ({
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
 
-    const upsertEntities = entities => {
-      const body = _.map(({ name, entityType, attributes }) => {
-        return { name, entityType, operations: attributesUpdateOps(attributes) }
-      }, entities)
-
-      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    }
-
     return {
       checkBucketReadAccess: () => {
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
@@ -930,7 +922,9 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
 
-      upsertEntities,
+      upsertEntities: entityUpdates => {
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]))
+      },
 
       paginatedEntitiesOfType: async (type, parameters) => {
         const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
@@ -964,7 +958,11 @@ const Workspaces = signal => ({
         const res = await fetchOk(url)
         const payload = await res.json()
 
-        return upsertEntities(payload)
+        const body = _.map(({ name, entityType, attributes }) => {
+          return { name, entityType, operations: attributesUpdateOps(attributes) }
+        }, payload)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
       importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
