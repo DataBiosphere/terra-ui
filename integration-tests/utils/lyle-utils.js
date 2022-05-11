@@ -24,12 +24,14 @@ const fetchLyle = async (path, email) => {
     headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
     body: JSON.stringify({ email })
   })
-    .then(resp => {
+    .then(async resp => {
       if (resp.ok) {
         // response.status >= 200 && response.status < 300
         return resp.json()
       }
-      throw Error(`fetch Lyle response: ${resp.text()}`)
+      const respText = await resp.text()
+      console.error(`fetch Lyle response: ${respText}`)
+      return respText
     })
     .catch(async err => {
       console.error(err)
