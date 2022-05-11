@@ -37,12 +37,13 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
       'aria-modal': true,
       onClick,
       ref: elementRef,
+      ...popupProps,
       style: {
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
-        ...styles.popup
-      },
-      ...popupProps
+        ...styles.popup,
+        ...popupProps.style
+      }
     }, [children])
   ])
 })

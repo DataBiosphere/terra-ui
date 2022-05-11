@@ -2,13 +2,14 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -184,6 +185,12 @@ export const SnapshotInfo = ({
         h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
         div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
         div([sourceDescription]),
+        h(SnapshotLabeledInfo, {
+          title: 'Data Repo Snapshot Id:', text: [h(Link, {
+            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
+            'aria-label': 'Go to the snapshot in a new tab'
+          }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+        }),
         div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
         _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
           return div({
@@ -193,7 +200,13 @@ export const SnapshotInfo = ({
             h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
             h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
             div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-            div([datasetDescription])
+            div([datasetDescription]),
+            h(SnapshotLabeledInfo, {
+              title: 'Data Repo Dataset Id:', text: [h(Link, {
+                href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
+                'aria-label': 'Go to the dataset in a new tab'
+              }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+            })
           ])
         }, source)
       ]),
