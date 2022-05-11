@@ -25,6 +25,8 @@ import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
@@ -428,7 +430,7 @@ const topMed = () => h(Participant, {
 
 const Datasets = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets'),
+    libraryTopMatter('datasets', useStore(authStore)),
     h(DataBrowserPreviewToggler, { checked: false }),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order

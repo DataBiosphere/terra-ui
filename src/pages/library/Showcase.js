@@ -10,11 +10,13 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useOnMount } from 'src/libs/react-utils'
+import { useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
+
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
@@ -107,7 +109,7 @@ const Showcase = () => {
   })
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('featured workspaces'),
+    libraryTopMatter('featured workspaces', useStore(authStore)),
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
       searchType: 'Featured Workspaces'

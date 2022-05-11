@@ -227,7 +227,7 @@ const Browser = () => {
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets'),
+    libraryTopMatter('datasets', useStore(authStore)),
     h(DataBrowserPreviewToggler, { checked: true }),
     !acknowledged[id] && div({
       style: {
