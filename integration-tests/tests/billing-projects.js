@@ -1,14 +1,16 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, findText, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const billingProjectsPage = (testPage, testUrl) => {
   return {
     visit: async () => {
-      await testPage.goto(`${testUrl}/#billing`)
-      await waitForNoSpinners(testPage)
+      await noSpinnersAfter(
+        testPage,
+        { action: () => testPage.goto(`${testUrl}/#billing`) }
+      )
     },
 
     selectSpendReport: async () => {
