@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { div, h, strong } from 'react-hyperscript-helpers'
 import { Switch } from 'src/components/common'
 import colors from 'src/libs/colors'
