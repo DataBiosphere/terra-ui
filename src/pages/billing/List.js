@@ -298,6 +298,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.ensureBillingScope)
 
+  const tryAuthorizeAccounts = _.flow(
+    reportErrorAndRethrow('Error setting up authorization'),
+    Utils.withBusyState(setIsAuthorizing)
+  )(Auth.tryBillingScope)
+
   const loadAccounts = _.flow(
     reportErrorAndRethrow('Error loading billing accounts'),
     Utils.withBusyState(setIsLoadingAccounts)
@@ -323,7 +328,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   // Lifecycle
   useOnMount(() => {
     loadProjects()
-    loadAccounts()
+    tryAuthorizeAccounts().then(loadAccounts)
     loadAlphaSpendReportMember()
   })
 

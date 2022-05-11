@@ -50,15 +50,25 @@ export const signOut = () => {
   getAuthInstance().removeUser()
 }
 
-export const signIn = () => {
-  getAuthInstance().signinPopup().catch(() => {})
+const getSigninArgs = includeBillingScope => {
+  return includeBillingScope === true ? {
+    scope: `
+    openid
+    email
+    profile
+    https://www.googleapis.com/auth/cloud-billing
+  `.trim().split(/\s+/).join(' ')
+  } : {}
+}
+
+export const signIn = (includeBillingScope = false) => {
+  const args = getSigninArgs(includeBillingScope)
+  return getAuthInstance().signinPopup(args).catch(() => false)
 }
 
 export const reloadAuthToken = (includeBillingScope = false) => {
-  const args = includeBillingScope ? {
-    scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing'
-  } : {}
-  return getAuthInstance().signinSilent(args).then(processUser).catch(() => false)
+  const args = getSigninArgs(includeBillingScope)
+  return getAuthInstance().signinSilent(args).catch(() => false)
 }
 
 export const hasBillingScope = () => {
@@ -66,9 +76,18 @@ export const hasBillingScope = () => {
   return scope && scope.includes('https://www.googleapis.com/auth/cloud-billing')
 }
 
-const becameRegistered = (oldState, state) => {
-  return (oldState.registrationStatus !== userStatus.registeredWithTos && state.registrationStatus === userStatus.registeredWithTos)
+/*
+ * Tries to obtain Google Cloud Billing scope silently.
+
+ * This will succeed if the user previously granted the scope for the application, and fail otherwise.
+ * Call `ensureBillingScope` to generate a pop-up to prompt the user to grant the scope if needed.
+ */
+export const tryBillingScope = async () => {
+  if (!hasBillingScope()) {
+    await reloadAuthToken(true)
+  }
 }
+
 /*
  * Request Google Cloud Billing scope if necessary.
  *
@@ -79,8 +98,12 @@ const becameRegistered = (oldState, state) => {
  */
 export const ensureBillingScope = async () => {
   if (!hasBillingScope()) {
-    await reloadAuthToken(true)
+    await signIn(true)
   }
+}
+
+const becameRegistered = (oldState, state) => {
+  return (oldState.registrationStatus !== userStatus.registeredWithTos && state.registrationStatus === userStatus.registeredWithTos)
 }
 
 export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
