@@ -11,13 +11,15 @@ import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg'
 import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg'
 import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg'
+import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg'
+import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg'
 import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg'
 import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import colors from 'src/libs/colors'
-import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isRareX, isTerra } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -28,6 +30,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isBioDataCatalyst(), () => 'NHLBI BioData Catalyst'],
   [isBaseline(), () => longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
   [isElwazi(), () => longName ? 'The eLwazi Open Data Science Platform' : 'eLwazi'],
+  [isProjectSingular(), () => 'Project Singular'],
   [isRareX(), () => longName ? 'The Rare Disease Database Platform' : 'RARE-X'],
   () => 'Terra'
 )
@@ -41,6 +44,7 @@ const pickBrandLogo = (color = false) => Utils.cond(
   [isBioDataCatalyst(), () => color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
   [isBaseline(), () => color ? baselineLogo : baselineLogoWhite],
   [isElwazi(), () => color ? elwaziLogo : elwaziLogoWhite],
+  [isProjectSingular(), () => color ? projectSingularLogo : projectSingularLogoWhite],
   [isRareX(), () => color ? rareXLogo : rareXLogoWhite]
 )
 
