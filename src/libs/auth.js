@@ -169,8 +169,8 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
     try {
       const { enabled } = await Ajax().User.getStatus()
       if (enabled) {
-        // Once the ToS grace period has ended in production, if Sam returns `enabled` above, `acceptedTos` should also be true.
-        // At that point, we can add an assertion here.
+        // While initial state is first loading, state.acceptedTos will be undefined (it will then be `true` on the
+        // second execution of this code, which is still part of the initial rendering).
         return state.acceptedTos ? userStatus.registeredWithTos : userStatus.registeredWithoutTos
       } else {
         return userStatus.disabled
@@ -192,9 +192,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const acceptedCloudFunctionTos = await Ajax().User.getTosAccepted()
-    const acceptedSamTos = await Ajax().User.getSamTosAccepted()
-    const acceptedTos = acceptedSamTos === null ? acceptedCloudFunctionTos : acceptedSamTos
+    const acceptedTos = await Ajax().User.getTosAccepted()
     authStore.update(state => ({ ...state, acceptedTos }))
   }
 }))
