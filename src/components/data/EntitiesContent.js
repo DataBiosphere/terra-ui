@@ -313,6 +313,7 @@ const EntitiesContent = ({
   const renderCopyButton = (entities, columnSettings) => {
     return h(Fragment, [
       h(ButtonPrimary, {
+        style: { marginRight: '1rem' },
         tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
         onClick: _.flow(
           withErrorReporting('Error copying to clipboard'),
@@ -468,10 +469,14 @@ const EntitiesContent = ({
           selected: selectedEntities,
           setSelected: setSelectedEntities
         },
-        childrenBefore: ({ entities, columnSettings }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } },
+        childrenBefore: ({ entities, columnSettings, showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } },
           isDataTabRedesignEnabled() ? [
             renderExportMenu({ columnSettings }),
             renderEditMenu(),
+            !snapshotName && h(ButtonSecondary, {
+              style: { marginRight: '1.5rem' },
+              onClick: showColumnSettingsModal
+            }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
             renderOpenWithMenu(),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({
@@ -482,6 +487,9 @@ const EntitiesContent = ({
           ] : [
             !snapshotName && renderDownloadButton(columnSettings),
             !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
+            !snapshotName && h(ButtonPrimary, {
+              onClick: showColumnSettingsModal
+            }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({
               role: 'status',
