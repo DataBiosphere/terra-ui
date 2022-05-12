@@ -21,7 +21,7 @@ const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings'
 
 // Compress settings to avoid storing 'name' and 'visible' keys many times
 const encodeColumnSettings = _.flatMap(({ name, visible }) => [name, visible])
-const decodeColumnSettings = _.flow(
+export const decodeColumnSettings = _.flow(
   _.chunk(2),
   _.map(([name, visible]) => ({ name, visible }))
 )
@@ -38,7 +38,7 @@ const parseAsStringOrJson = attr => {
   }
 }
 
-const allSavedColumnSettingsInWorkspace = workspace => {
+export const allSavedColumnSettingsInWorkspace = workspace => {
   return _.flow(
     _.get('workspace.attributes'),
     _.getOr('{}', savedColumnSettingsWorkspaceAttributeName),
@@ -46,7 +46,7 @@ const allSavedColumnSettingsInWorkspace = workspace => {
   )(workspace)
 }
 
-const allSavedColumnSettingsEntityTypeKey = ({ snapshotName, entityType }) => {
+export const allSavedColumnSettingsEntityTypeKey = ({ snapshotName, entityType }) => {
   const baseKey = snapshotName ? `snapshots.${snapshotName}` : 'tables'
   const entityTypeKey = `${baseKey}.${entityType}`
   return entityTypeKey
