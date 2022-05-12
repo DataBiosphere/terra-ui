@@ -192,9 +192,7 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
-    const acceptedCloudFunctionTos = await Ajax().User.getTosAccepted()
-    const acceptedSamTos = await Ajax().User.getSamTosAccepted()
-    const acceptedTos = acceptedSamTos === null ? acceptedCloudFunctionTos : acceptedSamTos
+    const acceptedTos = await Ajax().User.getTosAccepted()
     authStore.update(state => ({ ...state, acceptedTos }))
   }
 }))
