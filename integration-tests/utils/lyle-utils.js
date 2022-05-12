@@ -25,16 +25,19 @@ const fetchLyle = async (path, email) => {
       headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
       body: JSON.stringify({ email })
     })
+    console.log(`fetchLyle: ${res.status}, ${url}`)
     if (res.ok) {
       // response.status >= 200 && response.status < 300
       return res.json()
     }
     // delegate non-2xx response to enclosing try/catch
-    throw { response: res, status: res.status }
+    const error = new Error()
+    Object.assign(error, { response: res })
+    throw error
   } catch (err) {
     console.error(err)
     const errorBody = await err.response.text()
-    console.error(`fetch Lyle response: ${errorBody}`)
+    console.error(`fetchLyle response: ${errorBody}`)
     throw err
   }
 }
