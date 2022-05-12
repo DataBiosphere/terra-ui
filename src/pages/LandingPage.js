@@ -101,7 +101,10 @@ const LandingPage = () => {
         marginTop: 15
       }
     }, [
-      h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['Preview the BETA Data Catalog and provide valuable feedback.']),
+      div([
+        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['BETA Data Catalog']),
+        'Preview the Data Catalog and provide valuable feedback'
+      ]),
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
         onClick: () => { Nav.goToPath('library-browser') }

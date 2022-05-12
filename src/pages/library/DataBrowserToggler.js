@@ -37,7 +37,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
             }
           }
         }),
-        strong({ style: { marginLeft: 10 } }, ['BETA Data Catalog ON'])
+        strong({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${checked ? 'ON' : 'OFF'}`])
       ])
     ]),
     checked && div({ style: { marginLeft: 80 } }, [
