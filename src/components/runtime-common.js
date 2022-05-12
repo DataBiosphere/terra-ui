@@ -41,8 +41,6 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes }) => {
         return
       } else if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentRuntime === null) {
-        return
       } else {
         return
       }
