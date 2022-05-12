@@ -85,8 +85,7 @@ const DataTable = props => {
       return localColumnPref
     }
 
-    const { columnDefaults: columnDefaultsString, entityType, entityMetadata } = props
-
+    const { workspace: { attributes: { 'workspace-column-defaults': columnDefaultsString } } } = workspace
     const columnDefaults = Utils.maybeParseJSON(columnDefaultsString)
 
     const convertColumnDefaults = ({ shown = [], hidden = [] }) => [

@@ -209,7 +209,7 @@ const ToolDrawer = _.flow(
 
 const EntitiesContent = ({
   workspace, workspace: {
-    workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
+    workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
   entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
@@ -462,7 +462,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, setEntityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name }, workspace,
+        entityType: entityKey, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {
