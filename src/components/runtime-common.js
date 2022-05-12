@@ -22,7 +22,7 @@ export const StatusMessage = ({ hideSpinner, children }) => {
   ])
 }
 
-export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
+export const RuntimeKicker = ({ runtime, refreshRuntimes }) => {
   const getRuntime = useGetter(runtime)
   const signal = useCancellation()
   const [busy, setBusy] = useState()
@@ -39,10 +39,9 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
         await refreshRuntimes()
         setBusy(false)
         return
-      } else if (currentRuntime === undefined || status === 'Stopping' ) {
+      } else if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500)
       } else if (currentRuntime === null) {
-        onNullRuntime()
         return
       } else {
         return
