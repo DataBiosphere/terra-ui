@@ -104,7 +104,8 @@ const extractTags = dataset => {
 }
 
 export const getDatasetsPath = ({ user: { id } }) => {
-  return isDataBrowserVisible() && catalogPreviewStore.get()[id] ?
+  const catalogState = catalogPreviewStore?.get() || {}
+  return isDataBrowserVisible() && catalogState[id] ?
     'library-browser' : 'library-datasets'
 }
 
