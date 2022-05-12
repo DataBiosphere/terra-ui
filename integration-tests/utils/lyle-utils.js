@@ -25,7 +25,7 @@ const fetchLyle = async (path, email) => {
       headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
       body: JSON.stringify({ email })
     })
-    console.log(`fetchLyle: ${res.status}, ${url}`)
+    console.log(`fetchLyle: POST ${res.status} ${url}`)
     if (res.ok) {
       // response.status >= 200 && response.status < 300
       return res.json()
