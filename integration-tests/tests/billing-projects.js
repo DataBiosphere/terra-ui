@@ -10,6 +10,7 @@ const billingProjectsPage = (testPage, testUrl) => {
       // Note: not using noSpinnersAfter because this action changes the page, and
       // noSpinners after checks that a spinner appears and disappear within the same page.
       await testPage.goto(`${testUrl}/#billing`)
+      await findText(testPage, 'Select a Billing Project')
       await waitForNoSpinners(testPage)
     },
 
