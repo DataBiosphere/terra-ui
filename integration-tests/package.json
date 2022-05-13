@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "jest": "^27.4.3",
-    "jest-environment-puppeteer": "^6.0.2",
+    "jest-environment-puppeteer": "^6.0.3",
     "jest-junit": "^13.0.0",
     "jest-puppeteer": "^6.0.2",
     "node-fetch": "^2.6.6",
