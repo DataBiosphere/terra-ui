@@ -103,7 +103,7 @@ const LandingPage = () => {
     }, [
       div([
         h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['BETA Data Catalog']),
-        'Preview the Data Catalog and provide valuable feedback'
+        'Preview the Data Catalog and provide valuable feedback.'
       ]),
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
