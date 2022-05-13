@@ -152,7 +152,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: upload
   }, [({ openUploader }) => h(Fragment, [
-    div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
+    div({ style: { flex: 'none', display: 'flex', alignItems: 'center', padding: '1rem', justifyContent: 'flex-end' } }, [
       h(Link, { onClick: download }, ['Download TSV']),
       !Utils.editWorkspaceError(workspace) && h(Fragment, [
         div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
@@ -166,7 +166,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         value: textFilter
       })
     ]),
-    div({ style: { flex: 1 } }, [
+    div({ style: { flex: 1, margin: '0 1rem 1rem' } }, [
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
         'aria-label': 'workspace data local variables table',
         width, height, rowCount: amendedAttributes.length,

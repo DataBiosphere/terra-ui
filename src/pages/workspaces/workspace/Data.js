@@ -65,7 +65,6 @@ const styles = {
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    padding: '1rem',
     width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
@@ -131,14 +130,16 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    h(DelayedSearchInput, {
-      'aria-label': 'Search',
-      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
-      placeholder: 'Search',
-      onChange: setTextFilter,
-      value: textFilter
-    }),
-    div({ style: { flex: 1 } }, [
+    div({ style: { display: 'flex', justifyContent: 'flex-end', padding: '1rem' } }, [
+      h(DelayedSearchInput, {
+        'aria-label': 'Search',
+        style: { width: 300 },
+        placeholder: 'Search',
+        onChange: setTextFilter,
+        value: textFilter
+      })
+    ]),
+    div({ style: { flex: 1, margin: '0 1rem 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
@@ -258,7 +259,8 @@ const BucketContent = _.flow(
       maxHeight: '100%',
       backgroundColor: 'white',
       border: `1px solid ${colors.dark(0.55)}`,
-      padding: '1rem'
+      padding: '1rem',
+      margin: '1rem'
     },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: uploadFiles

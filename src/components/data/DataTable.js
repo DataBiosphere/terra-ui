@@ -226,7 +226,7 @@ const DataTable = props => {
 
   return h(Fragment, [
     !!entities && h(Fragment, [
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', padding: '1rem' } }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
         !snapshotName && div({ style: { width: 300 } }, [
@@ -242,7 +242,7 @@ const DataTable = props => {
         ])
       ]),
       div({
-        style: { flex: 1 }
+        style: { flex: 1, margin: '0 1rem' }
       }, [
         h(AutoSizer, [
           ({ width, height }) => {
@@ -368,7 +368,7 @@ const DataTable = props => {
           }
         ])
       ]),
-      !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
+      !_.isEmpty(entities) && div({ style: { flex: 'none', margin: '1rem' } }, [
         paginator({
           filteredDataLength: filteredCount,
           unfilteredDataLength: totalRowCount,
