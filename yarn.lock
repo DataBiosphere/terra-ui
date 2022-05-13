@@ -13984,6 +13984,7 @@ resolve@^2.0.0-next.3:
     google-auth-library: ^7.9.2
     googleapis: ^87.0.0
     jest: ^27.4.3
+    jest-environment-puppeteer: ^6.0.3
     jest-junit: ^13.0.0
     jest-puppeteer: ^6.0.2
     lodash: ^4.17.21

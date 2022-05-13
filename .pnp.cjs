@@ -11913,10 +11913,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3", {\
-          "packageLocation": "./.yarn/__virtual__/jest-environment-puppeteer-virtual-7704e3d881/0/cache/jest-environment-puppeteer-npm-6.0.3-1e4974b622-48730cf6a4.zip/node_modules/jest-environment-puppeteer/",\
+        ["virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3", {\
+          "packageLocation": "./.yarn/__virtual__/jest-environment-puppeteer-virtual-fab6b19f34/0/cache/jest-environment-puppeteer-npm-6.0.3-1e4974b622-48730cf6a4.zip/node_modules/jest-environment-puppeteer/",\
           "packageDependencies": [\
-            ["jest-environment-puppeteer", "virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["@types/puppeteer", null],\
             ["chalk", "npm:4.1.2"],\
             ["cwd", "npm:0.10.0"],\
@@ -12091,7 +12091,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.1.0"],\
             ["@types/puppeteer", null],\
             ["expect-puppeteer", "npm:6.1.0"],\
-            ["jest-environment-puppeteer", "virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["puppeteer", "npm:13.5.1"]\
           ],\
           "packagePeers": [\
@@ -18846,6 +18846,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["google-auth-library", "npm:7.14.1"],\
             ["googleapis", "npm:87.0.0"],\
             ["jest", "virtual:83795dede6746cdfaae77857364086431232d02f236c879a3330e566bd24f3aa203362a575946907fc4a7a089db03a00a7dd2fcbea5b664c4c7dd4fe35fc53b9#npm:27.5.1"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["jest-junit", "npm:13.0.0"],\
             ["jest-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.1.0"],\
             ["lodash", "npm:4.17.21"],\
