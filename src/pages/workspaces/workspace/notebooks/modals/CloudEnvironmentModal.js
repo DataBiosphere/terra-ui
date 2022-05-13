@@ -376,7 +376,7 @@ export const CloudEnvironmentModal = ({
         div({ style: toolLabelStyles }, [
           img({
             src: getToolIcon(toolLabel),
-            style: { height: 25 },
+            style: { height: '30px' },
             alt: `${toolLabel}`
           }),
           getCostForTool(toolLabel)

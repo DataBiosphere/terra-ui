@@ -143,7 +143,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem',
         textAlign: 'center', width: '100%', height: 60
       },
-      image: { verticalAlign: 'middle', height: '100%', width: '40%' },
+      image: { verticalAlign: 'middle', height: '30px' },
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
@@ -160,14 +160,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           enterNextViewMode(tools.Jupyter.label)
         },
         hover: styles.hover
-      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: styles.image })]),
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
           enterNextViewMode(tools.RStudio.label)
         },
         hover: styles.hover
-      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: _.merge(styles.image, { width: '50%' }) })]),
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: styles.image })]),
       h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.Galaxy.label)
@@ -175,7 +175,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         },
         hover: !galaxyApp ? styles.hover : undefined,
         disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: styles.image })]),
       !tools.Cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.Cromwell.label)
