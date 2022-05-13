@@ -209,12 +209,9 @@ const signIntoTerra = async (page, { token, testUrl }) => {
       console.error(err)
       console.error(`Error: Page loading timed out during sign in. Reloading URL: "${testUrl}"`)
       await page.reload({ waitUntil: 'load' })
-      await waitForSignInPage(page)
     }
-  } else {
-    await waitForSignInPage(page)
   }
-
+  await waitForSignInPage(page)
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
