@@ -15,7 +15,7 @@ const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'Close modal' }))
 
   // Request access from the dataset details page
-  await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', textContains: 'Discoverable Catalog Snapshot 1' })
+  await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', textContains: 'Discoverable Catalog Snapshot 1', isDescendant: true })
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Request Access' }))
   await findText(page, 'Request Access')
@@ -25,7 +25,6 @@ const testRequestAccess = {
   name: 'request-access',
   fn: testRequestAccessFn,
   timeout: 2 * 60 * 1000, // 2 min timeout
-  targetEnvironments: ['local', 'dev']
 }
 
 module.exports = { testRequestAccess }

@@ -3,7 +3,7 @@ const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require(
 const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
-
+//test fails?
 const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
@@ -47,8 +47,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
 const testLinkToNewWorkspace = {
   name: 'link-to-new-workspace',
   fn: testLinkToNewWorkspaceFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  timeout: 2 * 60 * 1000
 }
 
 module.exports = { testLinkToNewWorkspace }

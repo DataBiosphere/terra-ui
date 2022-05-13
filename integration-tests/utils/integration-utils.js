@@ -73,7 +73,7 @@ const getTableColIndex = async (page, { tableName, columnHeader }) => {
 const getTableCellByContents = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
   const colIndex = await getTableColIndex(page, { tableName, columnHeader })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
-  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[contains(normalize-space(.),"${textContains}")]`
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[text() = "${textContains}"]`
   return xpath
 }
 
@@ -97,7 +97,7 @@ const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { 
 
 const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
   const tableCellPath = await getTableCellByContents(page, { tableName, columnHeader, textContains, isDescendant })
-  const xpath = `${tableCellPath}//*[@role="button" or @role="link" or @role="checkbox"]`
+  const xpath = `${tableCellPath}[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }
 
