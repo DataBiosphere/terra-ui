@@ -205,6 +205,7 @@ const loadSignInPageAndWaitForReady = (page, url, timeout = 30 * 1000) => {
 const signIntoTerra = async (page, { token, testUrl }) => {
   if (!!testUrl) {
     try {
+      console.log(`Loading page: ${testUrl}`)
       await loadSignInPageAndWaitForReady(page, testUrl)
     } catch (err) {
       console.error(err)
