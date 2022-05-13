@@ -191,7 +191,7 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const loadSignInPageAndWaitForReady = async (page, url, timeout = 30 * 1000) => {
+const loadSignInPageAndWaitForReady = (page, url, timeout = 30 * 1000) => {
   return Promise.all([
     page.goto(url, waitUntilLoadedOrTimeout(timeout)),
     Promise.race([
@@ -213,7 +213,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
       await loadSignInPageAndWaitForReady(page, testUrl)
     }
   }
-  
+
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
