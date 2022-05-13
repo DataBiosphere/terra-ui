@@ -191,29 +191,29 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const signIntoTerra = async (page, { token, testUrl }) => {
-  if (!!testUrl) {
-    const timeout = 30 * 1000
-    const pageLoadedPromise = Promise.race([
+const loadSignInPageAndWaitForReady = async (page, url, timeout = 30 * 1000) => {
+  return Promise.all([
+    page.goto(url, waitUntilLoadedOrTimeout(timeout)),
+    Promise.race([
       page.waitForXPath('//*[@id="signInButton"]', { visible: true, timeout }),
       page.waitForXPath('//a[@href="#workspaces"]', { visible: true, timeout })
     ])
-    const loadPagePromise = Promise.all([
-      page.goto(testUrl, waitUntilLoadedOrTimeout(timeout)),
-      pageLoadedPromise
-    ])
-      .then(() => waitForNoSpinners(page))
+  ])
+    .then(() => waitForNoSpinners(page))
+}
 
+const signIntoTerra = async (page, { token, testUrl }) => {
+  if (!!testUrl) {
     try {
-      await loadPagePromise
+      await loadSignInPageAndWaitForReady(page, testUrl)
     } catch (err) {
       console.error(err)
       console.error(`Error: Page loading timed out during sign in. Reloading URL: "${testUrl}"`)
       await page.reload({ waitUntil: 'load' })
-      await loadPagePromise
+      await loadSignInPageAndWaitForReady(page, testUrl)
     }
   }
-
+  
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
