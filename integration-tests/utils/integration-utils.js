@@ -201,17 +201,18 @@ const waitForSignInPage = async (page, timeout = 30 * 1000) => {
 
 const signIntoTerra = async (page, { token, testUrl }) => {
   if (!!testUrl) {
-    try {
-      console.log(`Loading sign-in page: ${testUrl}`)
-      await page.goto(testUrl, waitUntilLoadedOrTimeout())
-      await waitForSignInPage(page)
-    } catch (err) {
-      console.error(err)
-      console.error(`Error: Page loading timed out during sign in. Reloading URL: "${testUrl}"`)
-      await page.reload({ waitUntil: 'load' })
-    }
+    console.log(`Loading sign-in page: ${testUrl}`)
+    await page.goto(testUrl, waitUntilLoadedOrTimeout())
   }
-  await waitForSignInPage(page)
+  try {
+    await waitForSignInPage(page)
+  } catch (err) {
+    console.error(err)
+    console.error(`Error: Page loading timed out during sign in. Reloading URL: "${testUrl}"`)
+    await page.reload({ waitUntil: 'load' })
+    await waitForSignInPage(page)
+  }
+
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
