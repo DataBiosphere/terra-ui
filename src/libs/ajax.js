@@ -51,6 +51,23 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
+  const timeout = 5000
+  const somePointInTheFuture = Date.now() + timeout
+  const maxDelayIncrement = 1500
+  const minDelay = 500
+
+  while (Date.now() < somePointInTheFuture) {
+    const until = Math.random() * maxDelayIncrement + minDelay
+    try {
+      return await Utils.withDelay(until, wrappedFetch)(...args)
+    } catch (error) {
+      // ignore error will retry
+    }
+  }
+  return wrappedFetch(...args)
+})
+
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
@@ -129,7 +146,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'), withRetryOnError)(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
