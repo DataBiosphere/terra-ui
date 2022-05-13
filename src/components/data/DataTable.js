@@ -12,6 +12,7 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
@@ -226,7 +227,14 @@ const DataTable = props => {
 
   return h(Fragment, [
     !!entities && h(Fragment, [
-      div({ style: { display: 'flex', padding: '1rem' } }, [
+      div({
+        style: {
+          display: 'flex',
+          padding: '1rem',
+          background: isDataTabRedesignEnabled() ? colors.light() : undefined,
+          borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+        }
+      }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
         !snapshotName && div({ style: { width: 300 } }, [
@@ -242,7 +250,7 @@ const DataTable = props => {
         ])
       ]),
       div({
-        style: { flex: 1, margin: '0 1rem' }
+        style: { flex: 1, margin: isDataTabRedesignEnabled() ? 0 : '0 1rem' }
       }, [
         h(AutoSizer, [
           ({ width, height }) => {
@@ -363,7 +371,8 @@ const DataTable = props => {
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
-              }
+              },
+              border: !isDataTabRedesignEnabled()
             })
           }
         ])

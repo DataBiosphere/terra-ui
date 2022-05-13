@@ -58,7 +58,6 @@ const styles = {
   },
   sidebarSeparator: {
     width: '2px',
-    background: colors.light(),
     height: '100%',
     cursor: 'ew-resize'
   },
@@ -130,7 +129,14 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    div({ style: { display: 'flex', justifyContent: 'flex-end', padding: '1rem' } }, [
+    div({
+      style: {
+        display: 'flex', justifyContent: 'flex-end',
+        padding: '1rem',
+        background: isDataTabRedesignEnabled() ? colors.light() : undefined,
+        borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+      }
+    }, [
       h(DelayedSearchInput, {
         'aria-label': 'Search',
         style: { width: 300 },
@@ -139,7 +145,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
         value: textFilter
       })
     ]),
-    div({ style: { flex: 1, margin: '0 1rem 1rem' } }, [
+    div({ style: { flex: 1, margin: isDataTabRedesignEnabled() ? '0 0 1rem' : '0 1rem 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
@@ -158,7 +164,8 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
               headerRenderer: () => h(HeaderCell, ['Value']),
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
             }
-          ]
+          ],
+          border: !isDataTabRedesignEnabled()
         })
       ])
     ])
@@ -445,7 +452,10 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
       className: 'custom-focus-style',
-      style: styles.sidebarSeparator,
+      style: {
+        ...styles.sidebarSeparator,
+        background: isDataTabRedesignEnabled() ? colors.grey(0.4) : colors.light()
+      },
       hover: {
         background: colors.accent(1.2)
       },
@@ -685,7 +695,13 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        isDataTabRedesignEnabled() && div({ style: { display: 'flex', padding: '1rem 1.5rem', backgroundColor: colors.light(0.4) } }, [
+        isDataTabRedesignEnabled() && div({
+          style: {
+            display: 'flex', padding: '1rem 1.5rem',
+            backgroundColor: colors.light(),
+            borderBottom: `1px solid ${colors.grey(0.4)}`
+          }
+        }, [
           h(MenuTrigger, {
             side: 'bottom',
             closeOnClick: true,
