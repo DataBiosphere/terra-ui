@@ -50,7 +50,6 @@ const styles = {
   },
   sidebarContainer: {
     overflow: 'auto',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
     transition: 'width 100ms'
   },
   dataTypeSelectionPanel: {
@@ -58,15 +57,16 @@ const styles = {
     backgroundColor: 'white'
   },
   sidebarSeparator: {
-    width: '0.75rem',
+    width: '2px',
+    background: colors.light(),
     height: '100%',
     cursor: 'ew-resize'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    // Left padding is 0.25rem to make room for the sidebar separator
-    padding: '1rem 1rem 1rem 0.25rem', width: '100%',
+    padding: '1rem',
+    width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
@@ -445,7 +445,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       className: 'custom-focus-style',
       style: styles.sidebarSeparator,
       hover: {
-        background: `linear-gradient(to right, ${colors.accent(1.2)}, transparent 3px)`
+        background: colors.accent(1.2)
       },
       onKeyDown: e => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
