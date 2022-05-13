@@ -9,6 +9,8 @@ class JestCircusEnvironment extends PuppeteerEnvironment {
     this.testName = parse(context.testPath).name
   }
 
+  // Jest default test runner jest-circus.
+  // https://github.com/facebook/jest/blob/main/packages/jest-circus/README.md#overview
   async handleTestEvent(event, state) {
     const { name } = event
     if (['hook_failure', 'test_fn_failure'].includes(name)) {
@@ -21,5 +23,4 @@ class JestCircusEnvironment extends PuppeteerEnvironment {
   }
 }
 
-module
-  .exports = JestCircusEnvironment
+module.exports = JestCircusEnvironment
