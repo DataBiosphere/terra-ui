@@ -211,6 +211,8 @@ const signIntoTerra = async (page, { token, testUrl }) => {
       await page.reload({ waitUntil: 'load' })
       await waitForSignInPage(page)
     }
+  } else {
+    await waitForSignInPage(page)
   }
 
   await page.evaluate(token => window.forceSignIn(token), token)
