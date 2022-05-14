@@ -198,12 +198,6 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     await waitForNoSpinners(page)
   }
 
-  const signInWithToken = async () => {
-    await page.evaluate(token => window.forceSignIn(token), token)
-    await dismissNotifications(page)
-    await waitForNoSpinners(page)
-  }
-
   if (!!testUrl) {
     console.log(`Loading page: ${testUrl}`)
     await page.goto(testUrl, waitUntilLoadedOrTimeout())
@@ -218,7 +212,9 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     await waitUtilBannerVisible()
   }
 
-  await signInWithToken()
+  await page.evaluate(token => window.forceSignIn(token), token)
+  await dismissNotifications(page)
+  await waitForNoSpinners(page)
 }
 
 const findElement = (page, xpath, options) => {
