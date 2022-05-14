@@ -7,8 +7,6 @@ const selectWorkspace = async (page, billingAccount, workspace) => {
 }
 
 const signIntoFirecloud = async (page, token) => {
-  await waitForNoSpinners(page)
-  await findText(page, 'content you are looking for is currently only accessible')
   /*
    * The FireCloud not-signed-in page renders the sign-in button while it is still doing some
    * initialization. If you log the status of the App components state for user-status and auth2
@@ -21,7 +19,19 @@ const signIntoFirecloud = async (page, token) => {
    * user-status). Instead of reworking the sign-in logic for a case that (for the most part) only
    * a computer will operate fast enough to encounter, we'll just slow the computer down a little.
    */
+  await page.waitForResponse(response => {
+      return response.url().startsWith('https://accounts.google.com/o/oauth2/') && response.request().method() === 'GET'
+    }, { timeout: 30 * 1000 }
+  )
+
+  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
+  await findText(page, 'content you are looking for is currently only accessible')
+  await waitForNoSpinners(page)
+
   await delay(1000) // wait a second for full load not accounted for by spinners
+
+  console.log(`Sign in Firecloud: ${page.url()}`)
+  await page.waitForFunction('!!window["forceSignedIn"]')
   await page.evaluate(token => window.forceSignedIn(token), token) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
 }
 
