@@ -23,7 +23,7 @@ import * as Utils from 'src/libs/utils'
 export const getOidcConfig = () => {
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-    client_id: getConfig().oidcClientId,
+    client_id: authStore.get().oidcConfig.clientId,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     prompt: 'login',
@@ -37,6 +37,10 @@ export const getOidcConfig = () => {
     automaticSilentRenew: true,
     includeIdTokenInSilentRenew: true
   }
+}
+
+const isB2C = () => {
+  return !authStore.get().oidcConfig.authorityEndpoint === 'https://accounts.google.com'
 }
 
 const getAuthInstance = () => {
@@ -93,7 +97,7 @@ export const hasBillingScope = () => {
   //
   // TOAZ-XYZ is open to create a separate B2C policy with the sensitive scope, at which point this logic
   // should be updated.
-  return isUserSignedIntoB2C() || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
+  return isB2C() || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
 }
 
 /*
@@ -146,10 +150,6 @@ export const ensureAuthSettled = () => {
 
 export const getUser = () => {
   return authStore.get().user
-}
-
-const isUserSignedIntoB2C = () => {
-  return _.includes(getConfig().oidcClientId, getUser.scope)
 }
 
 export const bucketBrowserUrl = id => {
@@ -206,6 +206,11 @@ export const initializeAuth = _.memoize(async () => {
   // All other auth usage should use the AuthContext from authStore.
   const userManager = new UserManager(getOidcConfig())
   processUser(await userManager.getUser())
+})
+
+export const initializeClientId = _.memoize(async () => {
+  const oidcConfig = await Ajax().OAuth2.getConfiguration()
+  authStore.update(state => ({ ...state, oidcConfig }))
 })
 
 // This is intended for tests to short circuit the login flow
