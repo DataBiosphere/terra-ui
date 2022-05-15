@@ -87,7 +87,13 @@ export const handleSilentRenewError = error => {
 
 export const hasBillingScope = () => {
   const scope = getUser().scope
-  return scope && scope.includes('https://www.googleapis.com/auth/cloud-billing')
+
+  // For now B2C always requests the cloud-billing scope from the get-go, so assume the scope is present.
+  // Note this is safe to do for Azure login through B2C as well.
+  //
+  // TOAZ-XYZ is open to create a separate B2C policy with the sensitive scope, at which point this logic
+  // should be updated.
+  return isUserSignedIntoB2C() || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
 }
 
 /*
@@ -140,6 +146,10 @@ export const ensureAuthSettled = () => {
 
 export const getUser = () => {
   return authStore.get().user
+}
+
+const isUserSignedIntoB2C = () => {
+  return _.includes(getConfig().oidcClientId, getUser.scope)
 }
 
 export const bucketBrowserUrl = id => {
