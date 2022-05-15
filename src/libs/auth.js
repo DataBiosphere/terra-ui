@@ -40,7 +40,7 @@ export const getOidcConfig = () => {
 }
 
 const isB2C = () => {
-  return !authStore.get().oidcConfig.authorityEndpoint === 'https://accounts.google.com'
+  return authStore.get().oidcConfig.authorityEndpoint !== 'https://accounts.google.com'
 }
 
 const getAuthInstance = () => {
