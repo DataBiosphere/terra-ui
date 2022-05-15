@@ -60,14 +60,20 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge
   }
 }, props))
 
-export const profilePic = ({ size, style, ...props } = {}) => img({
-  alt: 'Google profile image',
-  src: getUser().imageUrl,
-  height: size, width: size,
-  style: { borderRadius: '100%', ...style },
-  referrerPolicy: 'no-referrer',
-  ...props
-})
+export const profilePic = ({ size, style, ...props } = {}) => {
+  // Note Azure logins don't currently have an imageUrl.
+  // For now, don't render anything. In the future, investigate auto-generating a
+  // picture in the UI or adding this capability to B2C.
+  const imageUrl = getUser().imageUrl
+  return imageUrl && img({
+    alt: 'Google profile image',
+    src: imageUrl,
+    height: size, width: size,
+    style: { borderRadius: '100%', ...style },
+    referrerPolicy: 'no-referrer',
+    ...props
+  })
+}
 
 export const wdlIcon = ({ style = {}, ...props } = {}) => div({
   style: {
