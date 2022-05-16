@@ -552,7 +552,7 @@ const WorkspaceData = _.flow(
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(340)
   const [crossTableSearchTerm, setCrossTableSearchTerm] = useState('')
-  const [filteredTypeCounts, setFilteredTypeCounts] = useState({})
+  const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearching, setCrossTableSearching] = useState(false)
 
   const signal = useCancellation()
@@ -647,11 +647,11 @@ const WorkspaceData = _.flow(
 
   const searchAcrossTables = async (types, filterTerms) => {
     setCrossTableSearching(true)
-    const bar = await Promise.all(_.map(async ([type]) => {
+    const results = await Promise.all(_.map(async ([type]) => {
       const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms })
       return { typeName: type, count: filteredCount }
     }, types))
-    setFilteredTypeCounts(bar)
+    setCrossTableResultCounts(results)
     setCrossTableSearching(false)
   }
 
@@ -732,14 +732,14 @@ const WorkspaceData = _.flow(
                   defaultValue: crossTableSearchTerm
                 })
               ]),
-              crossTableSearchTerm !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearching ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, filteredTypeCounts))} results`]),
+              crossTableSearchTerm !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearching ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
                   selected: selectedDataType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
-                  filteredCount: _.find({ typeName: type }, filteredTypeCounts),
+                  filteredCount: _.find({ typeName: type }, crossTableResultCounts),
                   searchModeActive: crossTableSearchTerm !== '',
                   crossTableSearching,
                   onClick: () => {
