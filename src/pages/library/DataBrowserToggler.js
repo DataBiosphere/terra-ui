@@ -43,7 +43,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
     checked && div({ style: { marginLeft: 80 } }, [
       'After previewing the Terra Data Catalog, please fill out this quick survey to provide the team with valuable feedback.',
       h(Link, {
-        href: '', // TODO: Add when this is added.
+        href: '#', // TODO: Add when this is added.
         style: { display: 'block', marginTop: 10 }
       }, ['BETA Terra Data Catalog survey'])
     ])
