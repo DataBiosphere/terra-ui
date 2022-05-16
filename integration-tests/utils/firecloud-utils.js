@@ -2,7 +2,7 @@ const { click, findText, waitForNoSpinners } = require('./integration-utils')
 
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
-  await click(page, `//*[@data-test-id="workspace-selector"]`)
+  await click(page, '//*[@data-test-id="workspace-selector"]')
   return click(page, `//ul/li[contains(normalize-space(.),"${billingAccount}/${workspace}")]`)
 }
 
