@@ -27,7 +27,6 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 6 }
 
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
@@ -51,6 +50,23 @@ const withCancellation = wrappedFetch => async (...args) => {
     }
   }
 }
+
+const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
+  const timeout = 5000
+  const somePointInTheFuture = Date.now() + timeout
+  const maxDelayIncrement = 1500
+  const minDelay = 500
+
+  while (Date.now() < somePointInTheFuture) {
+    const until = Math.random() * maxDelayIncrement + minDelay
+    try {
+      return await Utils.withDelay(until, wrappedFetch)(...args)
+    } catch (error) {
+      // ignore error will retry
+    }
+  }
+  return wrappedFetch(...args)
+})
 
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
@@ -130,7 +146,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'), withRetryOnError)(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -222,21 +238,6 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
-    try {
-      const res = await fetchOk(url, _.merge(authOpts(), { signal }))
-      const { accepted } = await res.json()
-      return accepted
-    } catch (error) {
-      if (error.status === 403 || error.status === 404) {
-        return false
-      } else {
-        throw error
-      }
-    }
-  },
-
-  getSamTosAccepted: async () => {
     try {
       const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
       return res.json()
@@ -257,13 +258,6 @@ const User = signal => ({
   },
 
   acceptTos: async () => {
-    await fetchOk(
-      `${getConfig().tosUrlRoot}/user/response`,
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
-    )
-  },
-
-  acceptSamTos: async () => {
     try {
       await fetchSam(
         'register/user/v1/termsofservice',

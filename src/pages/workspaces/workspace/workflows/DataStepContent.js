@@ -3,8 +3,9 @@ import pluralize from 'pluralize'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/data/DataTable'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
@@ -100,7 +101,7 @@ const DataStepContent = ({
       }, [
         h(DataTable, {
           key: type.description,
-          childrenBefore: () => div({ style: { display: 'flex', alignItems: 'center' } }, [
+          childrenBefore: ({ showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({ style: Style.elements.sectionHeader }, [
               Utils.switchCase(type,
                 [chooseSetType, () => `Select one or more ${entitySetType}s to combine and process`],
@@ -108,6 +109,10 @@ const DataStepContent = ({
                 [chooseBaseType, () => `Select ${baseEntityType}s to create a new ${rootEntityType} to process`]
               )
             ]),
+            h(ButtonSecondary, {
+              style: { marginLeft: '1.5rem' },
+              onClick: showColumnSettingsModal
+            }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({
               role: 'status',

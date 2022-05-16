@@ -1,6 +1,7 @@
 module.exports = {
   verbose: false,
   preset: 'jest-puppeteer',
+  testEnvironment: '<rootDir>/jest-circus-environment.js',
   testRegex: '\\.integration-test\\.js$',
   reporters: [
     'default',
