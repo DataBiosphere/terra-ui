@@ -15,6 +15,20 @@ import * as Utils from 'src/libs/utils'
 import { getDatasetsPath } from 'src/pages/library/dataBrowser-utils'
 
 
+const styles = {
+  card: {
+    height: 245,
+    width: 225,
+    marginRight: `1rem`,
+    justifyContent: undefined
+  },
+  callToActionBanner: {
+    backgroundSize: 'cover', borderRadius: 5,
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
+    color: 'white', padding: '2rem 1rem',
+  }
+}
+
 const makeDocLink = (href, title) => {
   return div({
     style: { marginBottom: '1rem', fontSize: 18, width: 600 }
@@ -44,7 +58,7 @@ const makeRightArrowWithBackgroundIcon = () => div({
 
 const makeCard = (link, title, body) => h(Clickable, {
   href: Nav.getLink(link),
-  style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
+  style: { ...Style.elements.card.container, ...styles.card },
   hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' }
 }, [
   h2({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
@@ -75,11 +89,10 @@ const LandingPage = () => {
     ]),
     isTerra() && div({
       style: {
+        ...styles.callToActionBanner,
         backgroundColor: '#191a1c', // This fallback color was extracted from the left edge of the background image
-        backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
-        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
-        color: 'white', padding: '2rem 1rem',
-        width: 'calc(675px + 2rem)' // 3 card widths + 2 card margins to line up with the content directly above
+        backgroundImage: `url(${covidHero})`,
+        width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`
       }
     }, [
       h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['Data & Tools for COVID-19/SARS CoV2 analysis']),
@@ -92,12 +105,11 @@ const LandingPage = () => {
     ]),
     isDataBrowserVisible() && div({
       style: {
+        ...styles.callToActionBanner,
         backgroundColor: colors.primary(),
-        backgroundImage: `url(${terraHero})`, backgroundSize: 'cover', borderRadius: 5,
+        backgroundImage: `url(${terraHero})`,
         display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
-        color: 'white', padding: '2rem 1rem',
-        width: 'calc(675px + 2rem)', // 3 card widths + 2 card margins to line up with the content directly above
+        width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
         marginTop: 15
       }
     }, [
