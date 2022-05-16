@@ -211,7 +211,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, activeCrossTableTextFilter, crossTableSearching, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -457,7 +457,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, activeCrossTableTextFilter, crossTableSearching, entityMetadata, setEntityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name }, workspace,
+        entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {

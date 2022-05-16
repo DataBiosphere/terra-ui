@@ -80,7 +80,7 @@ const SearchResultsPill = ({ count, searching }) => {
   searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${count}`)
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearching, searchModeActive, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, searchModeActive, after, ...props }) => {
   const isEntity = entityName !== undefined
 
   const count = filteredCount?.count
@@ -102,7 +102,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       ...props
     }, [
       searchModeActive ?
-        SearchResultsPill({ count, searching: crossTableSearching }) :
+        SearchResultsPill({ count, searching: crossTableSearchInProgress }) :
         div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
           icon(iconName, { size: iconSize })
         ]),
@@ -562,7 +562,7 @@ const WorkspaceData = _.flow(
   const [sidebarWidth, setSidebarWidth] = useState(340)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
-  const [crossTableSearching, setCrossTableSearching] = useState(false)
+  const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -655,13 +655,13 @@ const WorkspaceData = _.flow(
   }
 
   const searchAcrossTables = async (types, activeCrossTableTextFilter) => {
-    setCrossTableSearching(true)
+    setCrossTableSearchInProgress(true)
     const results = await Promise.all(_.map(async ([type]) => {
       const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
       return { typeName: type, count: filteredCount }
     }, types))
     setCrossTableResultCounts(results)
-    setCrossTableSearching(false)
+    setCrossTableSearchInProgress(false)
   }
 
   // Lifecycle
@@ -741,7 +741,7 @@ const WorkspaceData = _.flow(
                   defaultValue: activeCrossTableTextFilter
                 })
               ]),
-              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearching ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
+              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearchInProgress ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
@@ -750,7 +750,7 @@ const WorkspaceData = _.flow(
                   entityCount: typeDetails.count,
                   filteredCount: _.find({ typeName: type }, crossTableResultCounts),
                   searchModeActive: activeCrossTableTextFilter !== '',
-                  crossTableSearching,
+                  crossTableSearchInProgress,
                   onClick: () => {
                     setSelectedDataType(type)
                     forceRefresh()
@@ -956,7 +956,6 @@ const WorkspaceData = _.flow(
             setEntityMetadata,
             entityKey: selectedDataType,
             activeCrossTableTextFilter,
-            crossTableSearching,
             loadMetadata,
             firstRender,
             deleteColumnUpdateMetadata,
