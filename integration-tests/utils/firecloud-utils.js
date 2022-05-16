@@ -20,7 +20,6 @@ const signIntoFirecloud = async (page, token) => {
    * a computer will operate fast enough to encounter, we'll just slow the computer down a little.
    */
   await page.waitForResponse(response => {
-    console.log(response.url())
     return response.url().startsWith('https://accounts.google.com/o/oauth2/iframerpc') &&
         response.request().method() === 'GET' &&
         response.status() === 200
