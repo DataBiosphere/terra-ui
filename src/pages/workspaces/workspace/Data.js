@@ -70,9 +70,18 @@ const styles = {
   }
 }
 
+const SearchResultsPill = ({ count, searching }) => {
+  return div({
+    style: {
+      width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600,
+      borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: 'white'
+    }
+  },
+  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${count}`)
+}
+
 const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearching, searchModeActive, after, ...props }) => {
   const isEntity = entityName !== undefined
-  const isFiltered = filteredCount !== undefined
 
   const count = filteredCount?.count
 
@@ -92,11 +101,11 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      searchModeActive && !crossTableSearching && isFiltered && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: 'white' } }, `${count}`),
-      searchModeActive && crossTableSearching && div({ style: { width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600, borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(0.7), color: 'white' } }, [icon('loadingSpinner', { size: 13, color: 'white' })]),
-      !searchModeActive && div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-        icon(iconName, { size: iconSize })
-      ]),
+      searchModeActive ?
+        SearchResultsPill({ count, searching: crossTableSearching }) :
+        div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+          icon(iconName, { size: iconSize })
+        ]),
       div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
