@@ -551,7 +551,7 @@ const WorkspaceData = _.flow(
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(340)
-  const [crossTableSearchTerm, setCrossTableSearchTerm] = useState('')
+  const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearching, setCrossTableSearching] = useState(false)
 
@@ -645,10 +645,10 @@ const WorkspaceData = _.flow(
     setEntityMetadata(updatedMetadata)
   }
 
-  const searchAcrossTables = async (types, filterTerms) => {
+  const searchAcrossTables = async (types, activeCrossTableTextFilter) => {
     setCrossTableSearching(true)
     const results = await Promise.all(_.map(async ([type]) => {
-      const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms })
+      const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
       return { typeName: type, count: filteredCount }
     }, types))
     setCrossTableResultCounts(results)
@@ -725,14 +725,14 @@ const WorkspaceData = _.flow(
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
                   placeholder: 'Search all tables',
-                  onChange: filterTerms => {
-                    setCrossTableSearchTerm(filterTerms)
-                    searchAcrossTables(sortedEntityPairs, filterTerms)
+                  onChange: activeCrossTableTextFilter => {
+                    setActiveCrossTableTextFilter(activeCrossTableTextFilter)
+                    searchAcrossTables(sortedEntityPairs, activeCrossTableTextFilter)
                   },
-                  defaultValue: crossTableSearchTerm
+                  defaultValue: activeCrossTableTextFilter
                 })
               ]),
-              crossTableSearchTerm !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearching ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
+              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearching ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
@@ -740,7 +740,7 @@ const WorkspaceData = _.flow(
                   entityName: type,
                   entityCount: typeDetails.count,
                   filteredCount: _.find({ typeName: type }, crossTableResultCounts),
-                  searchModeActive: crossTableSearchTerm !== '',
+                  searchModeActive: activeCrossTableTextFilter !== '',
                   crossTableSearching,
                   onClick: () => {
                     setSelectedDataType(type)
@@ -946,7 +946,7 @@ const WorkspaceData = _.flow(
             entityMetadata,
             setEntityMetadata,
             entityKey: selectedDataType,
-            filterTerms: crossTableSearchTerm,
+            activeCrossTableTextFilter,
             crossTableSearching,
             loadMetadata,
             firstRender,
