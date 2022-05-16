@@ -1,4 +1,4 @@
-import { div, h, strong } from 'react-hyperscript-helpers'
+import { div, h, label, strong } from 'react-hyperscript-helpers'
 import { Link, Switch } from 'src/components/common'
 import colors from 'src/libs/colors'
 import { isDataBrowserVisible } from 'src/libs/config'
@@ -23,7 +23,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       strong(['Toggle to preview the new Data Catalog']),
-      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 } }, [
+      label({ style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 } }, [
         h(Switch, {
           checked,
           onLabel: '', offLabel: '',
@@ -37,7 +37,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
             }
           }
         }),
-        strong({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${checked ? 'ON' : 'OFF'}`])
+        div({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${checked ? 'ON' : 'OFF'}`])
       ])
     ]),
     checked && div({ style: { marginLeft: 80 } }, [
