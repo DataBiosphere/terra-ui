@@ -18,7 +18,7 @@ import RenameTableModal from 'src/components/data/RenameTableModal'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -27,7 +27,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
+import { getConfig, isDataTabRedesignEnabled, isSearchAwesomeNow } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -69,11 +69,23 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, after, ...props }) => {
+const SearchResultsPill = ({ count, searching }) => {
+  return div({
+    style: {
+      width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600,
+      borderRadius: 30, marginRight: '0.5rem', backgroundColor: colors.primary(), color: 'white'
+    }
+  },
+  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${count}`)
+}
+
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
   const isEntity = entityName !== undefined
 
+  const count = filteredCount?.count
+
   return h(Interactive, {
-    style: { ...Style.navList.itemContainer(selected) },
+    style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
     hover: Style.navList.itemHover(selected),
     as: 'div',
     role: 'listitem'
@@ -88,9 +100,11 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-        icon(iconName, { size: iconSize })
-      ]),
+      activeCrossTableTextFilter !== '' ?
+        SearchResultsPill({ count, searching: crossTableSearchInProgress }) :
+        div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+          icon(iconName, { size: iconSize })
+        ]),
       div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
@@ -574,7 +588,10 @@ const WorkspaceData = _.flow(
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
-  const [sidebarWidth, setSidebarWidth] = useState(280)
+  const [sidebarWidth, setSidebarWidth] = useState(340)
+  const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
+  const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
+  const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -666,6 +683,16 @@ const WorkspaceData = _.flow(
     setEntityMetadata(updatedMetadata)
   }
 
+  const searchAcrossTables = async (types, activeCrossTableTextFilter) => {
+    setCrossTableSearchInProgress(true)
+    const results = await Promise.all(_.map(async ([type]) => {
+      const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
+      return { typeName: type, count: filteredCount }
+    }, types))
+    setCrossTableResultCounts(results)
+    setCrossTableSearchInProgress(false)
+  }
+
   // Lifecycle
   useOnMount(() => {
     loadMetadata()
@@ -740,12 +767,27 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              isSearchAwesomeNow() && !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
+                h(ConfirmedSearchInput, {
+                  'aria-label': 'Search all tables',
+                  placeholder: 'Search all tables',
+                  onChange: activeCrossTableTextFilter => {
+                    setActiveCrossTableTextFilter(activeCrossTableTextFilter)
+                    searchAcrossTables(sortedEntityPairs, activeCrossTableTextFilter)
+                  },
+                  defaultValue: activeCrossTableTextFilter
+                })
+              ]),
+              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearchInProgress ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.count, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
                   selected: selectedDataType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
+                  filteredCount: _.find({ typeName: type }, crossTableResultCounts),
+                  activeCrossTableTextFilter,
+                  crossTableSearchInProgress,
                   onClick: () => {
                     setSelectedDataType(type)
                     forceRefresh()
@@ -951,6 +993,7 @@ const WorkspaceData = _.flow(
             entityMetadata,
             setEntityMetadata,
             entityKey: selectedDataType,
+            activeCrossTableTextFilter,
             loadMetadata,
             firstRender,
             deleteColumnUpdateMetadata,
