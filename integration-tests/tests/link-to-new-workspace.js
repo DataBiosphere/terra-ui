@@ -5,7 +5,6 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, testUrl, token }) => {
-
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
