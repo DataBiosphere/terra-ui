@@ -27,13 +27,10 @@ const fetchLyle = async (path, email) => {
     })
     console.log(`fetchLyle: POST ${res.status} ${url}`)
     if (res.ok) {
-      // response.status >= 200 && response.status < 300
       return res.json()
     }
     // delegate non-2xx response to enclosing try/catch
-    const error = new Error()
-    Object.assign(error, { response: res })
-    throw error
+    throw _.set('response', res, new Error())
   } catch (err) {
     console.error(err)
     const errorBody = await err.response.text()
