@@ -40,7 +40,7 @@ export const getOidcConfig = () => {
 }
 
 const isB2C = () => {
-  return authStore.get().oidcConfig.authorityEndpoint !== 'https://accounts.google.com'
+  return _.includes('b2clogin.com', authStore.get().oidcConfig.authorityEndpoint)
 }
 
 const getAuthInstance = () => {
@@ -92,11 +92,9 @@ export const handleSilentRenewError = error => {
 export const hasBillingScope = () => {
   const scope = getUser().scope
 
-  // For now B2C always requests the cloud-billing scope from the get-go, so assume the scope is present.
-  // Note this is safe to do for Azure login through B2C as well.
-  //
-  // TOAZ-146 is open to create a separate B2C policy with the sensitive scope, at which point this logic
-  // should be updated.
+  // For now B2C always requests the cloud-billing scope from the get-go.
+  // TOAZ-146 is open to create a separate B2C policy with the sensitive scope
+  // which can be elevated on demand.
   return isB2C() || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
 }
 
