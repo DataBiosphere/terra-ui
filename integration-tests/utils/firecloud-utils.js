@@ -1,4 +1,4 @@
-const { click, findText, waitForNoSpinners, delay } = require('./integration-utils')
+const { click, findText, waitForNoSpinners } = require('./integration-utils')
 
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
@@ -27,8 +27,6 @@ const signIntoFirecloud = async (page, token) => {
   await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
   await findText(page, 'content you are looking for is currently only accessible')
   await waitForNoSpinners(page)
-
-  await delay(1000) // wait a second for full load not accounted for by spinners
 
   console.log(`Sign in Firecloud: ${page.url()}`)
   await page.waitForFunction('!!window["forceSignedIn"]')
