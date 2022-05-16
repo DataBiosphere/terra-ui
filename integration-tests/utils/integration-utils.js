@@ -191,26 +191,25 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const waitForSignInPage = async (page, timeout = 30 * 1000) => {
-  await Promise.race([
-    page.waitForXPath('//*[@id="signInButton"]', { visible: true, timeout }),
-    page.waitForXPath('//a[@href="#workspaces"]', { visible: true, timeout })
-  ])
-    .then(() => waitForNoSpinners(page))
-}
-
 const signIntoTerra = async (page, { token, testUrl }) => {
+  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
+    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
+    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
+    await waitForNoSpinners(page)
+  }
+
   if (!!testUrl) {
-    try {
-      console.log(`Loading sign-in page: ${testUrl}`)
-      await page.goto(testUrl, waitUntilLoadedOrTimeout())
-      await waitForSignInPage(page)
-    } catch (err) {
-      console.error(err)
-      console.error(`Error: Page loading timed out during sign in. Reloading URL: "${testUrl}"`)
-      await page.reload({ waitUntil: 'load' })
-      await waitForSignInPage(page)
-    }
+    console.log(`Loading page: ${testUrl}`)
+    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+  }
+
+  try {
+    await waitUtilBannerVisible()
+  } catch (err) {
+    console.error(err)
+    console.error('Error: Page loading timed out during sign in. Reload page.')
+    await page.reload({ waitUntil: 'load' })
+    await waitUtilBannerVisible()
   }
 
   await page.evaluate(token => window.forceSignIn(token), token)
