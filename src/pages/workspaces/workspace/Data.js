@@ -80,7 +80,7 @@ const SearchResultsPill = ({ count, searching }) => {
   searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${count}`)
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, searchModeActive, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
   const isEntity = entityName !== undefined
 
   const count = filteredCount?.count
@@ -101,7 +101,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      searchModeActive ?
+      activeCrossTableTextFilter !== '' ?
         SearchResultsPill({ count, searching: crossTableSearchInProgress }) :
         div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
           icon(iconName, { size: iconSize })
@@ -749,7 +749,7 @@ const WorkspaceData = _.flow(
                   entityName: type,
                   entityCount: typeDetails.count,
                   filteredCount: _.find({ typeName: type }, crossTableResultCounts),
-                  searchModeActive: activeCrossTableTextFilter !== '',
+                  activeCrossTableTextFilter,
                   crossTableSearchInProgress,
                   onClick: () => {
                     setSelectedDataType(type)
