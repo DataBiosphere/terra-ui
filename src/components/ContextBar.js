@@ -56,11 +56,11 @@ export const ContextBar = ({
   }
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: '' })],
-    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: 'Jupyter' })],
+    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: 'Galaxy' })],
+    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: 'Cromwell' })],
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: 'RStudio Bioconductor' })],
+    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: 'Jupyter on Azure' })]
   )
 
   const getColorForStatus = status => Utils.cond(

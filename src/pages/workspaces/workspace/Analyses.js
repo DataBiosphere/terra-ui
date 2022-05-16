@@ -334,10 +334,10 @@ const Analyses = _.flow(
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80 } }),
-      img({ src: rstudioBioLogo, style: { width: 400 } }),
+      img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
+      img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
       div([
-        img({ src: galaxyLogo, style: { height: 60, width: 208 } })
+        img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
       ])
     ])
     ),
