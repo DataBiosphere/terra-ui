@@ -219,6 +219,7 @@ const DataTable = props => {
 
 
   // Render
+  // If there is an active cross table search, temporarily reset the column settings to show all columns
   const columnSettings = activeCrossTableTextFilter ? applyColumnSettings([], entityMetadata[entityType].attributeNames) : applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
