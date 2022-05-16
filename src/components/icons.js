@@ -61,9 +61,8 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge
 }, props))
 
 export const profilePic = ({ size, style, ...props } = {}) => {
-  // Note Azure logins don't currently have an imageUrl.
-  // For now, don't render anything. In the future, investigate auto-generating a
-  // picture in the UI or adding this capability to B2C.
+  // Note Azure logins don't currently have an imageUrl, so don't render anything.
+  // See TOAZ-147 to support this in the future.
   const imageUrl = getUser().imageUrl
   return imageUrl && img({
     alt: 'Google profile image',
