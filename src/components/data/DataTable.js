@@ -163,7 +163,7 @@ const DataTable = props => {
     const entityUpdates = _.map(entity => ({
       name: entity.name,
       entityType: entity.entityType,
-      attributes: { [attributeName]: '' }
+      operations: [{ op: 'AddUpdateAttribute', attributeName, addUpdateAttribute: '' }]
     }), allEntities)
     await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
 

@@ -735,8 +735,13 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
         .Workspaces
         .workspace(namespace, name)
         .upsertEntities([{
-          name: entityName, entityType,
-          attributes: { [attributeName]: prepareAttributeForUpload(newValue) }
+          entityType,
+          name: entityName,
+          operations: [{
+            op: 'AddUpdateAttribute',
+            attributeName,
+            addUpdateAttribute: prepareAttributeForUpload(newValue)
+          }]
         }])
       onSuccess()
     } catch (e) {
@@ -817,7 +822,11 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
       const entityUpdates = _.map(entityName => ({
         entityType,
         name: entityName,
-        attributes: { [attributeToEdit]: prepareAttributeForUpload(newValue) }
+        operations: [{
+          op: 'AddUpdateAttribute',
+          attributeName: attributeToEdit,
+          addUpdateAttribute: prepareAttributeForUpload(newValue)
+        }]
       }), entityNames)
 
       await Ajax(signal)
@@ -953,7 +962,11 @@ export const AddColumnModal = ({ entityType, entityMetadata, workspaceId: { name
       const entityUpdates = _.map(entityName => ({
         entityType,
         name: entityName,
-        attributes: { [columnName]: prepareAttributeForUpload(value) }
+        operations: [{
+          op: 'AddUpdateAttribute',
+          attributeName: columnName,
+          addUpdateAttribute: prepareAttributeForUpload(value)
+        }]
       }), allEntityNames)
 
       await Ajax()
