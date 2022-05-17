@@ -50,7 +50,6 @@ const styles = {
   },
   sidebarContainer: {
     overflow: 'auto',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
     transition: 'width 100ms'
   },
   dataTypeSelectionPanel: {
@@ -58,15 +57,14 @@ const styles = {
     backgroundColor: 'white'
   },
   sidebarSeparator: {
-    width: '0.75rem',
+    width: '2px',
     height: '100%',
     cursor: 'ew-resize'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    // Left padding is 0.25rem to make room for the sidebar separator
-    padding: '1rem 1rem 1rem 0.25rem', width: '100%',
+    width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
@@ -131,14 +129,23 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    h(DelayedSearchInput, {
-      'aria-label': 'Search',
-      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
-      placeholder: 'Search',
-      onChange: setTextFilter,
-      value: textFilter
-    }),
-    div({ style: { flex: 1 } }, [
+    div({
+      style: {
+        display: 'flex', justifyContent: 'flex-end',
+        padding: '1rem',
+        background: isDataTabRedesignEnabled() ? colors.light() : undefined,
+        borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+      }
+    }, [
+      h(DelayedSearchInput, {
+        'aria-label': 'Search',
+        style: { width: 300 },
+        placeholder: 'Search',
+        onChange: setTextFilter,
+        value: textFilter
+      })
+    ]),
+    div({ style: { flex: 1, margin: isDataTabRedesignEnabled() ? '0 0 1rem' : '0 1rem 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
@@ -157,7 +164,8 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
               headerRenderer: () => h(HeaderCell, ['Value']),
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
             }
-          ]
+          ],
+          border: !isDataTabRedesignEnabled()
         })
       ])
     ])
@@ -258,7 +266,8 @@ const BucketContent = _.flow(
       maxHeight: '100%',
       backgroundColor: 'white',
       border: `1px solid ${colors.dark(0.55)}`,
-      padding: '1rem'
+      padding: '1rem',
+      margin: '1rem'
     },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: uploadFiles
@@ -443,9 +452,12 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
       className: 'custom-focus-style',
-      style: styles.sidebarSeparator,
+      style: {
+        ...styles.sidebarSeparator,
+        background: isDataTabRedesignEnabled() ? colors.grey(0.4) : colors.light()
+      },
       hover: {
-        background: `linear-gradient(to right, ${colors.accent(1.2)}, transparent 3px)`
+        background: colors.accent(1.2)
       },
       onKeyDown: e => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
@@ -683,7 +695,13 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        isDataTabRedesignEnabled() && div({ style: { display: 'flex', padding: '1rem 1.5rem', backgroundColor: colors.light(0.4) } }, [
+        isDataTabRedesignEnabled() && div({
+          style: {
+            display: 'flex', padding: '1rem 1.5rem',
+            backgroundColor: colors.light(),
+            borderBottom: `1px solid ${colors.grey(0.4)}`
+          }
+        }, [
           h(MenuTrigger, {
             side: 'bottom',
             closeOnClick: true,

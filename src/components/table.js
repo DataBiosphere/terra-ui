@@ -118,21 +118,21 @@ const cellStyles = {
 }
 
 const styles = {
-  cell: (col, total) => ({
+  cell: (col, total, { border } = {}) => ({
     ...cellStyles,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: `1px solid ${colors.dark(0.2)}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined
+    borderLeft: !border && col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`,
+    borderRight: border && col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined
   }),
-  header: (col, total) => ({
+  header: (col, total, { border } = {}) => ({
     ...cellStyles,
     backgroundColor: colors.light(0.5),
-    borderTop: `1px solid ${colors.dark(0.2)}`,
+    borderTop: border ? `1px solid ${colors.dark(0.2)}` : undefined,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: `1px solid ${colors.dark(0.2)}`,
-    borderRight: col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined,
-    borderTopLeftRadius: col === 0 ? '5px' : undefined,
-    borderTopRightRadius: col === total - 1 ? '5px' : undefined
+    borderLeft: !border && col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`,
+    borderRight: border && col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined,
+    borderTopLeftRadius: border && col === 0 ? '5px' : undefined,
+    borderTopRightRadius: border && col === total - 1 ? '5px' : undefined
   }),
   flexCell: ({ basis = 0, grow = 1, shrink = 1, min = 0, max } = {}) => ({
     flexGrow: grow,
@@ -208,6 +208,7 @@ export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
+  border = true,
   ...props
 }) => {
   useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
@@ -245,7 +246,7 @@ export const FlexTable = ({
         'aria-sort': ariaSort(sort, field),
         style: {
           ...styles.flexCell(size),
-          ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
+          ...(variant === 'light' ? {} : styles.header(i * 1, columns.length, { border })),
           ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
         }
       }, [headerRenderer({ columnIndex: i })])
@@ -284,7 +285,7 @@ export const FlexTable = ({
               className: 'table-cell',
               style: {
                 ...styles.flexCell(size),
-                ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
+                ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length, { border })),
                 ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex }) : {})
               }
             }, [cellRenderer({ ...data, columnIndex: i, rowIndex: data.rowIndex })])
@@ -337,7 +338,7 @@ FlexTable.propTypes = {
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, 'aria-label': ariaLabel, sort = null, readOnly = false }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, 'aria-label': ariaLabel, sort = null, readOnly = false, border = true }) => {
   useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
   return div({
@@ -355,7 +356,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
           key: i,
           role: 'columnheader',
           'aria-sort': ariaSort(sort, field),
-          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
+          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length, { border }) }
         }, [headerRenderer({ columnIndex: i })])
       }, Utils.toIndexPairs(columns))
     ]),
@@ -373,7 +374,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
             key: i,
             role: 'cell',
             className: 'table-cell',
-            style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
+            style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length, { border }) }
           }, [cellRenderer({ columnIndex: i, rowIndex })])
         }, Utils.toIndexPairs(columns))
       ])
@@ -390,7 +391,8 @@ export const GridTable = forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
   noContentMessage, noContentRenderer = _.noop,
   rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
-  'aria-label': ariaLabel, sort = null, readOnly = false
+  'aria-label': ariaLabel, sort = null, readOnly = false,
+  border = true
 }, ref) => {
   useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
@@ -456,7 +458,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
               className: 'table-cell',
               style: {
                 ...data.style,
-                ...styles.header(data.columnIndex, columns.length),
+                ...styles.header(data.columnIndex, columns.length, { border }),
                 ...styleHeader(data)
               }
             }, [
@@ -495,7 +497,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
                 className: 'table-cell',
                 style: {
                   ...data.style,
-                  ...styles.cell(data.columnIndex, columns.length),
+                  ...styles.cell(data.columnIndex, columns.length, { border }),
                   backgroundColor: 'white',
                   ...styleCell(data)
                 }
