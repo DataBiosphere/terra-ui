@@ -62,6 +62,14 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
     try {
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
+      // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+      // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+      // are not transient and the request should not be retried.
+      const shouldRetry = !error.requesterPaysError
+
+      if (!shouldRetry) {
+        throw error
+      }
       // ignore error will retry
     }
   }
