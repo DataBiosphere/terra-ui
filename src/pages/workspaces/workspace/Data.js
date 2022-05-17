@@ -100,7 +100,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      activeCrossTableTextFilter !== '' ?
+      activeCrossTableTextFilter !== '' && isEntity ?
         SearchResultsPill({ count, searching: crossTableSearchInProgress }) :
         div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
           icon(iconName, { size: iconSize })
