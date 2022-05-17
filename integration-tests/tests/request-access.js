@@ -5,7 +5,8 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
+  await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await waitForNoSpinners(page)
   await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
 
