@@ -20,7 +20,7 @@ const styles = {
 }
 
 const SignIn = () => {
-  return h(HeroWrapper, { showMenu: false }, [
+  return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
       div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${getAppName()} requires a Google Account.`]),

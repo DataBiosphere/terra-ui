@@ -57,6 +57,7 @@ const eventsList = {
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
+  workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
 }

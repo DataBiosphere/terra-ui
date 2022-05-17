@@ -10,7 +10,7 @@
   "externalCredsUrlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "firecloudUrlRoot": "https://firecloud-fiab.dsde-dev.broadinstitute.org",
-  "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
+  "oidcClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo-fiab.dsde-dev.broadinstitute.org:30443",
   "marthaUrlRoot": "https://martha-fiab.dsde-dev.broadinstitute.org:32443",
@@ -23,7 +23,6 @@
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
-  "tosUrlRoot": "https://us-central1-broad-workbench-tos-dev.cloudfunctions.net/tos",
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users"
 }

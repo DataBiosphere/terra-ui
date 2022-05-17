@@ -2,16 +2,17 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
@@ -96,6 +97,7 @@ const DataTable = props => {
     return columnDefaults?.[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : []
   })
 
+  const [updatingColumnSettings, setUpdatingColumnSettings] = useState()
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
@@ -221,10 +223,19 @@ const DataTable = props => {
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
+  const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
+
   return h(Fragment, [
     !!entities && h(Fragment, [
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-        childrenBefore && childrenBefore({ entities, columnSettings }),
+      div({
+        style: {
+          display: 'flex',
+          padding: '1rem',
+          background: isDataTabRedesignEnabled() ? colors.light() : undefined,
+          borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+        }
+      }, [
+        childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
         !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
@@ -239,7 +250,7 @@ const DataTable = props => {
         ])
       ]),
       div({
-        style: { flex: 1 }
+        style: { flex: 1, margin: isDataTabRedesignEnabled() ? 0 : '0 1rem' }
       }, [
         h(AutoSizer, [
           ({ width, height }) => {
@@ -360,24 +371,13 @@ const DataTable = props => {
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
-              }
+              },
+              border: !isDataTabRedesignEnabled()
             })
           }
-        ]),
-        // Enable saved column settings only for data tables, not snapshots
-        h(ColumnSelector, _.merge(snapshotName ? {} : {
-          columnSettingsComponent: ColumnSettingsWithSavedColumnSettings,
-          entityMetadata,
-          entityType,
-          snapshotName,
-          workspace,
-          modalWidth: 800
-        }, {
-          columnSettings,
-          onSave: setColumnState
-        }))
+        ])
       ]),
-      !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
+      !_.isEmpty(entities) && div({ style: { flex: 'none', margin: '1rem' } }, [
         paginator({
           filteredDataLength: filteredCount,
           unfilteredDataLength: totalRowCount,
@@ -398,6 +398,26 @@ const DataTable = props => {
       showX: true,
       onDismiss: () => setViewData(undefined)
     }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [displayData(viewData)])]),
+    updatingColumnSettings && h(Modal, {
+      title: 'Select columns',
+      width: 800,
+      onDismiss: () => setUpdatingColumnSettings(undefined),
+      okButton: h(ButtonPrimary, {
+        onClick: () => {
+          setColumnState(updatingColumnSettings)
+          setUpdatingColumnSettings(undefined)
+        }
+      }, ['Done'])
+    }, [
+      h(ColumnSettingsWithSavedColumnSettings, {
+        entityMetadata,
+        entityType,
+        snapshotName,
+        workspace,
+        columnSettings: updatingColumnSettings,
+        onChange: setUpdatingColumnSettings
+      })
+    ]),
     renamingEntity !== undefined && h(EntityRenamer, {
       entityType: _.find(entity => entity.name === renamingEntity, entities).entityType,
       entityName: renamingEntity,

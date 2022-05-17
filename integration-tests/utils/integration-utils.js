@@ -1,4 +1,6 @@
 const _ = require('lodash/fp')
+const { mkdirSync } = require('fs')
+const { resolve } = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
@@ -190,9 +192,26 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
-  await waitForNoSpinners(page)
+  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
+    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
+    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
+    await waitForNoSpinners(page)
+  }
+
+  if (!!testUrl) {
+    console.log(`Loading page: ${testUrl}`)
+    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+  }
+
+  try {
+    await waitUtilBannerVisible()
+  } catch (err) {
+    console.error(err)
+    console.error('Error: Page loading timed out during sign in. Reload page.')
+    await page.reload({ waitUntil: 'load' })
+    await waitUtilBannerVisible()
+  }
+
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
@@ -259,12 +278,17 @@ const openError = async page => {
 }
 
 const maybeSaveScreenshot = async (page, testName) => {
-  if (!screenshotDirPath) { return }
+  const dir = screenshotDirPath ?
+    screenshotDirPath :
+    process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+
   try {
-    const path = `${screenshotDirPath}/failure-${Date.now()}-${testName}.png`
-    const failureNotificationDetailsPath = `${screenshotDirPath}/failureDetails-${Date.now()}-${testName}.png`
+    mkdirSync(dir, { recursive: true })
+    const path = `${dir}/failure-${Date.now()}-${testName}.png`
+    const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
     await page.screenshot({ path, fullPage: true })
+    console.log(`Captured screenshot: ${path}`)
 
     const errorsPresent = await openError(page)
 
@@ -315,11 +339,11 @@ const logPageAjaxResponses = page => {
   return () => page.off('response', handle)
 }
 
-const withPageLogging = fn => options => {
+const withPageLogging = fn => async options => {
   const { page } = options
   logPageAjaxResponses(page)
   logPageConsoleMessages(page)
-  return fn(options)
+  return await fn(options)
 }
 
 const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
@@ -360,5 +384,6 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout
+  waitUntilLoadedOrTimeout,
+  maybeSaveScreenshot
 }

@@ -72,6 +72,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["oidc-client-ts", "npm:2.0.3"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
             ["pluralize", "npm:8.0.0"],\
@@ -90,6 +91,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.21.3"],\
             ["react-modal", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.14.3"],\
             ["react-notifications-component", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
+            ["react-oidc-context", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["react-onclickoutside", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.12.0"],\
             ["react-paginating", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.4.0"],\
             ["react-scripts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.0.0"],\
@@ -7268,6 +7270,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["crypto-js", [\
+        ["npm:4.1.1", {\
+          "packageLocation": "./.yarn/cache/crypto-js-npm-4.1.1-38a3b8c19d-b3747c12ee.zip/node_modules/crypto-js/",\
+          "packageDependencies": [\
+            ["crypto-js", "npm:4.1.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["crypto-random-string", [\
         ["npm:2.0.0", {\
           "packageLocation": "./.yarn/cache/crypto-random-string-npm-2.0.0-8ab47992ef-0283879f55.zip/node_modules/crypto-random-string/",\
@@ -11902,10 +11913,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3", {\
-          "packageLocation": "./.yarn/__virtual__/jest-environment-puppeteer-virtual-7704e3d881/0/cache/jest-environment-puppeteer-npm-6.0.3-1e4974b622-48730cf6a4.zip/node_modules/jest-environment-puppeteer/",\
+        ["virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3", {\
+          "packageLocation": "./.yarn/__virtual__/jest-environment-puppeteer-virtual-fab6b19f34/0/cache/jest-environment-puppeteer-npm-6.0.3-1e4974b622-48730cf6a4.zip/node_modules/jest-environment-puppeteer/",\
           "packageDependencies": [\
-            ["jest-environment-puppeteer", "virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["@types/puppeteer", null],\
             ["chalk", "npm:4.1.2"],\
             ["cwd", "npm:0.10.0"],\
@@ -12080,7 +12091,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jest-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.1.0"],\
             ["@types/puppeteer", null],\
             ["expect-puppeteer", "npm:6.1.0"],\
-            ["jest-environment-puppeteer", "virtual:4b5760c811956179cba857863592c6b31b2489ce53efac2db5b08b6e47b390074db0c5e3228b897f68e40a818b8c7493b97f2be9d218b0f579245018d74d7cad#npm:6.0.3"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["puppeteer", "npm:13.5.1"]\
           ],\
           "packagePeers": [\
@@ -12588,6 +12599,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jws", "npm:4.0.0"],\
             ["jwa", "npm:2.0.0"],\
             ["safe-buffer", "npm:5.2.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["jwt-decode", [\
+        ["npm:3.1.2", {\
+          "packageLocation": "./.yarn/cache/jwt-decode-npm-3.1.2-bf3ab26591-20a4b072d4.zip/node_modules/jwt-decode/",\
+          "packageDependencies": [\
+            ["jwt-decode", "npm:3.1.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -13781,6 +13801,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/obuf-npm-1.1.2-8db5fae8dd-41a2ba310e.zip/node_modules/obuf/",\
           "packageDependencies": [\
             ["obuf", "npm:1.1.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["oidc-client-ts", [\
+        ["npm:2.0.3", {\
+          "packageLocation": "./.yarn/cache/oidc-client-ts-npm-2.0.3-a3be8f2340-84becba240.zip/node_modules/oidc-client-ts/",\
+          "packageDependencies": [\
+            ["oidc-client-ts", "npm:2.0.3"],\
+            ["crypto-js", "npm:4.1.1"],\
+            ["jwt-decode", "npm:3.1.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16731,6 +16762,32 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["react-oidc-context", [\
+        ["npm:2.1.0", {\
+          "packageLocation": "./.yarn/cache/react-oidc-context-npm-2.1.0-0c11608abf-34c44ced6c.zip/node_modules/react-oidc-context/",\
+          "packageDependencies": [\
+            ["react-oidc-context", "npm:2.1.0"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0", {\
+          "packageLocation": "./.yarn/__virtual__/react-oidc-context-virtual-971ccd3d7f/0/cache/react-oidc-context-npm-2.1.0-0c11608abf-34c44ced6c.zip/node_modules/react-oidc-context/",\
+          "packageDependencies": [\
+            ["react-oidc-context", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
+            ["@types/oidc-client-ts", null],\
+            ["@types/react", null],\
+            ["oidc-client-ts", "npm:2.0.3"],\
+            ["react", "npm:17.0.2"]\
+          ],\
+          "packagePeers": [\
+            "@types/oidc-client-ts",\
+            "@types/react",\
+            "oidc-client-ts",\
+            "react"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["react-onclickoutside", [\
         ["npm:6.12.0", {\
           "packageLocation": "./.yarn/cache/react-onclickoutside-npm-6.12.0-3fcd6274f4-f3d2f2fd0a.zip/node_modules/react-onclickoutside/",\
@@ -18789,6 +18846,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["google-auth-library", "npm:7.14.1"],\
             ["googleapis", "npm:87.0.0"],\
             ["jest", "virtual:83795dede6746cdfaae77857364086431232d02f236c879a3330e566bd24f3aa203362a575946907fc4a7a089db03a00a7dd2fcbea5b664c4c7dd4fe35fc53b9#npm:27.5.1"],\
+            ["jest-environment-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.0.3"],\
             ["jest-junit", "npm:13.0.0"],\
             ["jest-puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:6.1.0"],\
             ["lodash", "npm:4.17.21"],\
@@ -18842,6 +18900,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["jszip", "npm:3.7.1"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
+            ["oidc-client-ts", "npm:2.0.3"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
             ["pluralize", "npm:8.0.0"],\
@@ -18860,6 +18919,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-json-view", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.21.3"],\
             ["react-modal", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.14.3"],\
             ["react-notifications-component", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:3.1.0"],\
+            ["react-oidc-context", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["react-onclickoutside", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.12.0"],\
             ["react-paginating", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:1.4.0"],\
             ["react-scripts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.0.0"],\

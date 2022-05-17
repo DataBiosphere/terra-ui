@@ -160,6 +160,11 @@ export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
+  await delay(ms)
+  return wrappedFn(...args)
+})
+
 export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0)
 
 // Returns a promise that will never resolve or reject. Useful for cancelling async flows.
