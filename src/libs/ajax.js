@@ -656,7 +656,7 @@ const CromIAM = signal => ({
 const Workspaces = signal => ({
   list: async fields => {
     const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
-    return []; // res.json()
+    return res.json()
   },
 
   create: async body => {
