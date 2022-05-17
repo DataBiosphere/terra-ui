@@ -145,14 +145,14 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
-export const processUser = (user, isSignIn) => {
+export const processUser = (user, isSignInEvent) => {
   return authStore.update(state => {
     const isSignedIn = !_.isNil(user)
     const profile = user?.profile
     const userId = profile?.sub
 
     // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignIn === true && state.isSignedIn === false && isSignedIn === false) {
+    if (isSignInEvent === true && state.isSignedIn === false && isSignedIn === false) {
       //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
       //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
       notify('error', 'Could not sign in', {
