@@ -125,6 +125,7 @@ const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) =
 
 const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
   const isGoogleWorkspace = !!workspace?.workspace?.googleProject
+  console.assert(isGoogleWorkspace, 'BucketLocation expects a Google workspace')
 
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
@@ -150,14 +151,8 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   }, [workspace, signal])
 
   useEffect(() => {
-    if (isGoogleWorkspace) {
-      loadBucketLocation()
-    }
-  }, [isGoogleWorkspace, loadBucketLocation])
-
-  if (!isGoogleWorkspace) {
-    return null
-  }
+    loadBucketLocation()
+  }, [loadBucketLocation])
 
   if (loading) {
     return 'Loading'
