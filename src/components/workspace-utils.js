@@ -351,7 +351,7 @@ export const NoWorkspacesMessage = ({ onClick }) => {
     div({ style: { marginTop: '1rem', fontSize: 16 } }, [
       h(Link, {
         ...Utils.newTabLinkProps,
-        href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+        href: `https://support.terra.bio/hc/en-us/articles/360024743371`
       }, [`What's a workspace?`])
     ])
   ])
