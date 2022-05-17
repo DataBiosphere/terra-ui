@@ -2,13 +2,12 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { tools } from 'src/components/notebook-utils'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { locationTypes } from 'src/components/region-common'
 import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
@@ -22,21 +21,15 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import {
-  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes
-} from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
-
-const navIconProps = {
-  style: { opacity: 0.65, marginRight: '1rem' },
-  hover: { opacity: 1 }, focus: 'hover'
-}
 
 const WorkspacePermissionNotice = ({ workspace }) => {
   const isReadOnly = !Utils.canWrite(workspace.accessLevel)
@@ -72,6 +65,12 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
+  const isAzureWorkspace = !isGoogleWorkspace
+
+  const onClone = () => setCloningWorkspace(true)
+  const onDelete = () => setDeletingWorkspace(true)
+  const onLock = () => setShowLockWorkspaceModal(true)
+  const onShare = () => setSharingWorkspace(true)
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
@@ -85,19 +84,17 @@ const WorkspaceTabs = ({
   ]
   return h(Fragment, [
     h(TabBar, {
-      'aria-label': 'workspace menu',
+      'aria-label': 'Workspace Navigation Tabs',
       activeTab, refresh,
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
       workspace && h(WorkspacePermissionNotice, { workspace }),
-      h(WorkspaceMenuTrigger, {
-        canShare, isLocked, namespace, name, isOwner, setCloningWorkspace, setSharingWorkspace,
-        setShowLockWorkspaceModal, setDeletingWorkspace
-      }, [
-        h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
-      ]
-      )
+      h(WorkspaceMenu, {
+        iconSize: 27, popupLocation: 'bottom',
+        callbacks: { onClone, onShare, onLock, onDelete },
+        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner }
+      })
     ])
   ])
 }
@@ -401,32 +398,3 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   }
   return withDisplayName('wrapWorkspace', Wrapper)
 }
-
-export const WorkspaceMenuTrigger = ({ children, canShare, isLocked, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace, setShowLockWorkspaceModal }) => h(
-  MenuTrigger, {
-    closeOnClick: true,
-    'aria-label': 'Workspace menu',
-    content: h(Fragment, [
-      h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
-      h(MenuButton, {
-        disabled: !canShare,
-        tooltip: !canShare && 'You have not been granted permission to share this workspace',
-        tooltipSide: 'left',
-        onClick: () => setSharingWorkspace(true)
-      }, [makeMenuIcon('share'), 'Share']),
-      h(MenuButton, {
-        disabled: !isOwner,
-        tooltip: !isOwner && ['You have not been granted permission to ', isLocked ? 'unlock' : 'lock', ' this workspace'],
-        tooltipSide: 'left',
-        onClick: () => setShowLockWorkspaceModal(true)
-      }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
-      h(MenuButton, {
-        'aria-label': 'Workspace delete',
-        disabled: !isOwner || isLocked,
-        tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-        tooltipSide: 'left',
-        onClick: () => setDeletingWorkspace(true)
-      }, [makeMenuIcon('trash'), 'Delete Workspace'])
-    ]),
-    side: 'bottom'
-  }, [children])

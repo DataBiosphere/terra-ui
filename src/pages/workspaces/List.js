@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
@@ -9,12 +9,11 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaceDetails, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -26,6 +25,7 @@ import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspace
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
+import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
 const styles = {
@@ -45,40 +45,6 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
     [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
     [lastFailureDate, () => 'failure']
   )
-}
-
-const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'canShare', 'workspace.isLocked'])
-  const canRead = workspace && Utils.canRead(workspace.accessLevel)
-  const canShare = workspace?.canShare
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const isLocked = workspace?.workspace.isLocked
-  return h(Fragment, [
-    h(MenuButton, {
-      disabled: !canRead,
-      tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
-      tooltipSide: 'left',
-      onClick: onClone
-    }, [makeMenuIcon('copy'), 'Clone']),
-    h(MenuButton, {
-      disabled: !canShare,
-      tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
-      tooltipSide: 'left',
-      onClick: onShare
-    }, [makeMenuIcon('share'), 'Share']),
-    h(MenuButton, {
-      disabled: !isOwner,
-      tooltip: !isOwner && ['You have not been granted permission to ', isLocked ? 'unlock' : 'lock', ' this workspace'],
-      tooltipSide: 'left',
-      onClick: onLock
-    }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
-    h(MenuButton, {
-      disabled: !isOwner,
-      tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-      tooltipSide: 'left',
-      onClick: onDelete
-    }, [makeMenuIcon('trash'), 'Delete'])
-  ])
 }
 
 export const WorkspaceList = () => {
@@ -260,7 +226,8 @@ export const WorkspaceList = () => {
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
             if (!Utils.canRead(accessLevel)) {
-              return
+              // No menu shown if user does not have read acccess.
+              return null
             }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
@@ -270,16 +237,11 @@ export const WorkspaceList = () => {
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(MenuTrigger, {
-                  side: 'left',
-                  closeOnClick: true,
-                  content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete, onLock })
-                }, [
-                  h(Link, {
-                    'aria-label': `Menu for Workspace: ${name}`,
-                    'aria-haspopup': 'menu'
-                  }, [icon('cardMenuIcon', { size: 20 })])
-                ])
+                h(WorkspaceMenu, {
+                  iconSize: 20, popupLocation: 'left',
+                  callbacks: { onClone, onShare, onLock, onDelete },
+                  workspaceInfo: { namespace, name }
+                })
               ]),
               div({ style: styles.tableCellContent }, [
                 !!lastRunStatus && h(TooltipTrigger, {

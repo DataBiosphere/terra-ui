@@ -607,7 +607,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
+        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
         h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
           span({ style: { marginRight: '1.2rem' } }, [
             h(RadioButton, {
@@ -657,7 +657,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           onChange(newAttributeValue)
         }
       }, [
-        span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])
+        span({ style: { marginLeft: '0.5rem' } }, ['Value is a list'])
       ])
     ]),
     isList ?
@@ -759,19 +759,19 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: 'Modify Attribute',
+    title: 'Edit value',
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeName),
+        'Are you sure you want to delete the value ', boldish(attributeName),
         ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -799,8 +799,10 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
 export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
-  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
-  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+  const attributeToEditError = attributeToEditTouched && Utils.cond(
+    [!attributeToEdit, () => 'An attribute name is required.'],
+    [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
+  )
 
   const [newValue, setNewValue] = useState('')
 
@@ -843,32 +845,32 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    title: `Edit fields in ${pluralize('row', entityNames.length, true)}`,
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        'Are you sure you want to delete the value ', boldish(attributeToEdit),
         ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
                   id,
                   value: attributeToEdit,
-                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
-                  placeholder: 'Attribute name',
+                  suggestions: attributeNames,
+                  placeholder: 'Column name',
                   style: attributeToEditError ? {
                     paddingRight: '2.25rem',
                     border: `1px solid ${colors.danger()}`
@@ -898,6 +900,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
+          p({ style: { fontWeight: 'bold' } }, ['Change selected values to:']),
           h(AttributeInput, {
             value: newValue,
             onChange: setNewValue,
@@ -905,11 +908,8 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           }),
           div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
             h(ButtonOutline, {
-              disabled: attributeToEditError || isNewAttribute,
-              tooltip: Utils.cond(
-                [attributeToEditError, () => attributeToEditError],
-                [isNewAttribute, () => 'The selected attribute does not exist.']
-              ),
+              disabled: !!attributeToEditError,
+              tooltip: attributeToEditError,
               onClick: () => setConsideringDelete(true)
             }, ['Delete']),
             div({ style: { flexGrow: 1 } }),
@@ -918,12 +918,110 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
               disabled: attributeToEditError,
               tooltip: attributeToEditError,
               onClick: doEdit
-            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+            }, ['Save edits'])
           ])
         ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
           h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
         ])
       ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const AddColumnModal = ({ entityType, entityMetadata, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [columnName, setColumnName] = useState('')
+  const [columnNameTouched, setColumnNameTouched] = useState(false)
+  const columnNameError = columnNameTouched && Utils.cond(
+    [!columnName, () => 'A column name is required.'],
+    [_.includes(columnName, entityMetadata[entityType].attributeNames), () => 'This column already exists.']
+  )
+
+  const [value, setValue] = useState('')
+
+  const [isBusy, setIsBusy] = useState()
+
+  const addColumn = async () => {
+    try {
+      setIsBusy(true)
+
+      const queryResults = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, {
+        pageSize: entityMetadata[entityType].count,
+        fields: ''
+      })
+      const allEntityNames = _.map(_.get('name'), queryResults.results)
+
+      const entityUpdates = _.map(entityName => ({
+        entityType,
+        name: entityName,
+        attributes: { [columnName]: prepareAttributeForUpload(value) }
+      }), allEntityNames)
+
+      await Ajax()
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities(entityUpdates)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to add column.', e)
+    }
+  }
+
+  return h(Modal, {
+    title: 'Add a new column',
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      disabled: !columnName || columnNameError,
+      tooltip: columnNameError,
+      onClick: addColumn
+    }, ['Save'])
+  }, [
+    div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', marginBottom: '0.5rem' } }, 'Column name'),
+          div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+            h(TextInput, {
+              id,
+              value: columnName,
+              placeholder: 'Enter a name (required)',
+              style: columnNameError ? {
+                paddingRight: '2.25rem',
+                border: `1px solid ${colors.danger()}`
+              } : undefined,
+              onChange: value => {
+                setColumnName(value)
+                setColumnNameTouched(true)
+              }
+            }),
+            columnNameError && icon('error-standard', {
+              size: 24,
+              style: {
+                position: 'absolute', right: '0.5rem',
+                color: colors.danger()
+              }
+            })
+          ]),
+          columnNameError && div({
+            'aria-live': 'assertive',
+            'aria-relevant': 'all',
+            style: {
+              marginTop: '0.5rem',
+              color: colors.danger()
+            }
+          }, columnNameError)
+        ])
+      ])
+    ]),
+    p([
+      span({ style: { fontWeight: 'bold' } }, ['Default value']),
+      ' (optional, will be entered for all rows)'
+    ]),
+    h(AttributeInput, {
+      value,
+      onChange: setValue,
+      entityTypes: _.keys(entityMetadata)
+    }),
     isBusy && spinnerOverlay
   ])
 }
@@ -979,7 +1077,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
 
   return h(Modal, {
     onDismiss,
-    title: `Add ${entityType}`,
+    title: 'Add a new row',
     okButton: h(ButtonPrimary, {
       disabled: !!entityNameErrors,
       tooltip: Utils.summarizeErrors(entityNameErrors),
@@ -990,6 +1088,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
     h(ValidatedInput, {
       inputProps: {
         id: 'add-row-entity-name',
+        placeholder: 'Enter a value (required)',
         value: entityName,
         onChange: value => {
           setEntityName(value)
@@ -998,7 +1097,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       },
       error: entityNameInputTouched && Utils.summarizeErrors(entityNameErrors)
     }),
-    p({ id: 'add-row-attributes-label' }, 'Expand each attribute to edit its value.'),
+    p({ id: 'add-row-attributes-label' }, 'Expand each value to edit.'),
     ul({ 'aria-labelledby': 'add-row-attributes-label', style: { padding: 0, margin: 0 } }, [
       _.map(([i, attributeName]) => li({
         key: attributeName,
