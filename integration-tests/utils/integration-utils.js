@@ -72,33 +72,33 @@ const getTableColIndex = async (page, { tableName, columnHeader }) => {
   return page.evaluate(node => node.getAttribute('aria-colindex'), colHeaderNode)
 }
 
-const getTableCellByContents = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
+const getTableCellByContents = async (page, { tableName, columnHeader, text, isDescendant = false }) => {
   const colIndex = await getTableColIndex(page, { tableName, columnHeader })
   const baseXpath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-colindex = "${colIndex}"]`
-  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[text() = "${textContains}"]`
+  const xpath = `${baseXpath}${isDescendant ? '//*' : ''}[text() = "${text}"]`
   return xpath
 }
 
-const getTableRowIndex = async (page, { tableName, columnHeader, textContains, isDescendant = false }) => {
-  const colXPath = await getTableCellByContents(page, { tableName, columnHeader, textContains, isDescendant })
+const getTableRowIndex = async (page, { tableName, columnHeader, text, isDescendant = false }) => {
+  const colXPath = await getTableCellByContents(page, { tableName, columnHeader, text, isDescendant })
   const findCol = await findElement(page, colXPath)
   return page.evaluate(node => node.getAttribute('aria-rowindex'), findCol)
 }
 
-const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, textContains } }) => {
-  const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, textContains })
+const assertRowHas = async (page, { tableName, expectedColumnValues, withKey: { column, text } }) => {
+  const rowIndex = await getTableRowIndex(page, { tableName, columnHeader: column, text })
 
-  const findTextInColumn = async ([columnHeader, text]) => {
+  const findTextInColumn = async ([columnHeader, colText]) => {
     const colIndex = await getTableColIndex(page, { tableName, columnHeader })
-    const xPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"][text() = "${text}"]`
+    const xPath = `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"]//*[@role="cell" and @aria-rowindex = "${rowIndex}" and @aria-colindex = "${colIndex}"][text() = "${colText}"]`
     return await findElement(page, xPath, { timeout: 5000 })
   }
 
   await Promise.all(_.map(findTextInColumn, expectedColumnValues))
 }
 
-const clickTableCell = async (page, { tableName, columnHeader, textContains, isDescendant = false }, options) => {
-  const tableCellPath = await getTableCellByContents(page, { tableName, columnHeader, textContains, isDescendant })
+const clickTableCell = async (page, { tableName, columnHeader, text, isDescendant = false }, options) => {
+  const tableCellPath = await getTableCellByContents(page, { tableName, columnHeader, text, isDescendant })
   const xpath = `${tableCellPath}[@role="button" or @role="link" or @role="checkbox"]`
   return (await page.waitForXPath(xpath, options)).click()
 }

@@ -20,7 +20,7 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await assertRowHas(page, {
     tableName,
     expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
-    withKey: { column: 'participant_id', textContains: 'participant1' }
+    withKey: { column: 'participant_id', text: 'participant1' }
   })
 })
 
