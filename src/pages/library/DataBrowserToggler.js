@@ -23,7 +23,10 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       strong(['Toggle to preview the new Data Catalog']),
-      label({ style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 } }, [
+      label({
+        role: 'link',
+        style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
+      }, [
         h(Switch, {
           checked,
           onLabel: '', offLabel: '',
