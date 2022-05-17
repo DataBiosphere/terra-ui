@@ -9,7 +9,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
-const defaultTimeout = 5 * 60 * 1000
+const defaultTimeout = 3 * 60 * 1000
 
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
@@ -27,30 +27,48 @@ const clipToken = str => str.toString().substr(-10, 10)
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
+
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
+  billingProject = 'terra-dev-01867dda'
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+    const response = await page.evaluate(async (name, billingProject) => {
+      try {
+        return new Promise(async (resolve, reject) => {
+          return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+            .then(resp => resolve(resp))
+            .catch(async err => reject(err))
+        })
+      } catch (e) {
+        console.error(e)
+        throw e
+      }
     }, workspaceName, billingProject)
 
     console.info(`Created workspace: ${workspaceName}`)
+    console.info(response)
   } catch (e) {
-    console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`, e)
+    console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.log(e.Response)
     throw e
   }
   return workspaceName
 })
 
+
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    const response = await page.evaluate(async (name, billingProject) => {
+      return new Promise(async (resolve, reject) => {
+        return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+          .then(resp => resolve(resp.text()))
+          .catch(err => reject(err))
+      })
     }, workspaceName, billingProject)
-
     console.info(`Deleted workspace: ${workspaceName}`)
+    console.info(response)
   } catch (e) {
-    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`, e)
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
     throw e
   }
 })
