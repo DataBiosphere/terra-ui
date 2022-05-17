@@ -8,6 +8,7 @@ const datasetName = 'Readable Catalog Snapshot 1'
 const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
   await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await waitForNoSpinners(page)
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await click(page, clickable({ textContains: `${datasetName}` }))
