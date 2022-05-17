@@ -12,7 +12,8 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { withBusyState } from 'src/libs/utils'
@@ -114,7 +115,7 @@ const Code = () => {
   )(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('code & workflows'),
+    libraryTopMatter('code & workflows', useStore(authStore)),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       div({ style: { display: 'flex', flex: 1 } }, [
         div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
