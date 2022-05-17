@@ -80,7 +80,7 @@ const normalizeDataset = dataset => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.intersection(_.map(role => _.toLower(role), dataset.roles), ['reader', 'owner']).length > 0 ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
+    access: _.intersection(_.map(_.toLower, dataset.roles), ['reader', 'owner']).length > 0 ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
   }
 }
 
