@@ -74,7 +74,7 @@ export const renderDataCell = (data, googleProject) => {
 
   const renderArray = items => {
     return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ]), Utils.toIndexPairs(items))
   }
 
