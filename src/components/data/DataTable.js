@@ -58,7 +58,9 @@ const DataTable = props => {
     editable,
     persist, refreshKey, firstRender,
     snapshotName,
-    deleteColumnUpdateMetadata
+    deleteColumnUpdateMetadata,
+    headerStyle,
+    border = true
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -231,8 +233,7 @@ const DataTable = props => {
         style: {
           display: 'flex',
           padding: '1rem',
-          background: isDataTabRedesignEnabled() ? colors.light() : undefined,
-          borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+          ...headerStyle
         }
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
@@ -372,7 +373,7 @@ const DataTable = props => {
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
               },
-              border: !isDataTabRedesignEnabled()
+              border
             })
           }
         ])
