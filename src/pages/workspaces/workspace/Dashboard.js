@@ -162,6 +162,7 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
     return h(Fragment, [
       'Unknown',
       needsRequesterPaysProject && h(ButtonSecondary, {
+        'aria-label': 'Load bucket location',
         tooltip: 'This workspace\'s bucket is requester pays. Click to choose a workspace to bill requests to and get the bucket\'s location.',
         style: { height: '1rem', marginLeft: '1ch' },
         onClick: () => setShowRequesterPaysModal(true)
