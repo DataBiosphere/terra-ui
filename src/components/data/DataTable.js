@@ -59,7 +59,7 @@ const DataTable = props => {
     persist, refreshKey, firstRender,
     snapshotName,
     deleteColumnUpdateMetadata,
-    headerStyle,
+    controlPanelStyle,
     border = true
   } = props
 
@@ -233,7 +233,7 @@ const DataTable = props => {
         style: {
           display: 'flex',
           padding: '1rem',
-          ...headerStyle
+          ...controlPanelStyle
         }
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),

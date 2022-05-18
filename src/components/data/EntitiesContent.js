@@ -499,7 +499,7 @@ const EntitiesContent = ({
             renderSelectedRowsMenu(columnSettings)
           ]),
         deleteColumnUpdateMetadata,
-        headerStyle: isDataTabRedesignEnabled() ? {
+        controlPanelStyle: isDataTabRedesignEnabled() ? {
           background: colors.light(),
           borderBottom: `1px solid ${colors.grey(0.4)}`
         } : {},
