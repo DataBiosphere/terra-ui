@@ -88,9 +88,14 @@ set_dev_deletion_date() {
     fi
 }
 
+# return versions of app engine that match filter
+filter_app_engine_versions() {
+    gcloud app versions list --filter="$1" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2
+}
+
 # ensure that deletions leave a certain number of deployments
 check_remaining_items() {
-    REMAIN_LIST_ITEMS=($(gcloud app versions list --filter="version.createTime.date('%Y-%m-%d', Z)>'${DELETION_DATE}'" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2))
+    REMAIN_LIST_ITEMS=($(filter_app_engine_versions "version.createTime.date('%Y-%m-%d', Z)>'${DELETION_DATE}'"))
     REMAIN_LIST_COUNT="${#REMAIN_LIST_ITEMS[@]}"
     if [ "${REMAIN_LIST_COUNT}" -lt 1 ]; then
         abort "all deployments would be deleted"
@@ -101,7 +106,7 @@ check_remaining_items() {
 
 # ensure that deletions erase a certain number of deployments
 check_deletion_items() {
-    DELETE_LIST_ITEMS=($(gcloud app versions list --filter="version.createTime.date('%Y-%m-%d', Z)<='${DELETION_DATE}'" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2))
+    DELETE_LIST_ITEMS=($(filter_app_engine_versions "version.createTime.date('%Y-%m-%d', Z)<='${DELETION_DATE}'"))
     DELETE_LIST_COUNT="${#DELETE_LIST_ITEMS[@]}"
     if [ "${DELETE_LIST_COUNT}" -lt 1 ]; then
         abort "no deployments to delete"
