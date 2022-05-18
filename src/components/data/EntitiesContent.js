@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { AddColumnModal, AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -15,7 +15,7 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
@@ -220,6 +220,7 @@ const EntitiesContent = ({
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [addingEntity, setAddingEntity] = useState(false)
   const [addingColumn, setAddingColumn] = useState(false)
+  const [creatingSet, setCreatingSet] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
@@ -385,11 +386,17 @@ const EntitiesContent = ({
         h(MenuButton, {
           onClick: () => setAddingColumn(true)
         }, ['Add column']),
+        h(MenuDivider),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
           onClick: () => setEditingEntities(true)
         }, ['Edit selected rows']),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to create set',
+          onClick: () => setCreatingSet(true)
+        }, ['Create set with selected rows']),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
@@ -528,6 +535,16 @@ const EntitiesContent = ({
         onSuccess: () => {
           setEditingEntities(false)
           setRefreshKey(_.add(1))
+        }
+      }),
+      creatingSet && h(CreateEntitySetModal, {
+        entityType: entityKey,
+        entityNames: _.keys(selectedEntities),
+        workspaceId: { namespace, name },
+        onDismiss: () => setCreatingSet(false),
+        onSuccess: () => {
+          setCreatingSet(false)
+          loadMetadata()
         }
       }),
       deletingEntities && h(EntityDeleter, {
