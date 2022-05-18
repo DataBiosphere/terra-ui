@@ -394,14 +394,15 @@ const EntitiesContent = ({
         }, ['Edit selected rows']),
         h(MenuButton, {
           disabled: !entitiesSelected,
-          tooltip: !entitiesSelected && 'Select rows to create set',
-          onClick: () => setCreatingSet(true)
-        }, ['Create set with selected rows']),
-        h(MenuButton, {
-          disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
-        }, 'Delete selected rows')
+        }, 'Delete selected rows'),
+        h(MenuDivider),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to save as set',
+          onClick: () => setCreatingSet(true)
+        }, ['Save selection as set'])
       ])
     }, [h(ButtonSecondary, {
       disabled: !canEdit,
