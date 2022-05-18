@@ -155,10 +155,7 @@ fi
 
 case $1 in
     --help ) usage;;
-    dev ) ;;
-    alpha ) ;;
-    staging ) ;;
-    perf ) ;;
+    dev|alpha|staging|perf ) ;;
     prod ) error "This script cannot be run against prod.";;
     * ) error "ENV must be one of dev, alpha, staging, or perf";;
 esac
