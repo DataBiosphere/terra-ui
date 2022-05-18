@@ -57,6 +57,12 @@ check_gnu_date_installed() {
     fi
 }
 
+# switch gcloud project to appropriate terra ui environment
+switch_gcloud_project() {
+    gcloud config set project "${NEW_PROJECT}" 2>/dev/null
+    printf "${INFO} Switched the project to ${GRN}%s${RST}\n" "${NEW_PROJECT}"
+}
+
 # ensure that user has appropriate permissions for app engine
 check_user_permissions() {
     if ! gcloud app services list 1>/dev/null 2>&1; then
@@ -110,6 +116,12 @@ deletion_preflight_checks() {
     check_deletion_items
 }
 
+# print out a summary of the deployments that will be affected
+deletion_preflight_summary() {
+    printf "${INFO} This script will ${GRN}keep %d${RST} deployments and ${RED}delete %d${RST} deployments\n" "${REMAIN_LIST_COUNT}" "${DELETE_LIST_COUNT}"
+    printf "${INFO} Deployments to keep (check this list):\n[ %s ]\n\n" "${REMAIN_LIST_ITEMS[*]}"
+}
+
 # actually execute the deletion process
 execute_delete() {
     printf "${BLD}gcloud app versions delete %s${RST}\n" "${DELETE_LIST_ITEMS[*]}"
@@ -119,7 +131,7 @@ execute_delete() {
 enter_deletion_phrase() {
     DELETION_PHRASE="yes delete ${DELETE_LIST_COUNT} deployments in ${ENV_TO_EXEC}"
     printf "${RED}THIS OPERATION WILL IRREVERSIBLY DELETE ${DELETE_LIST_COUNT} DEPLOYMENTS FROM %s AND EARLIER IN THE ${NEW_PROJECT} PROJECT.${RST}\n" "${DELETION_DATE}"
-    printf "${INFO} To continue deleting these deployments, type: ${BLD}%s${RST}\n" "${DELETION_PHRASE}"
+    printf "${INFO} To continue with the deletion process, type: ${BLD}%s${RST}\n" "${DELETION_PHRASE}"
     read -r ACTUAL_PHRASE
     if [ "${ACTUAL_PHRASE}" = "${DELETION_PHRASE}" ]; then
         execute_delete
@@ -152,9 +164,7 @@ ENV_TO_EXEC="$1"
 
 trap reset EXIT
 
-gcloud config set project "${NEW_PROJECT}" 2>/dev/null
-printf "${INFO} Switched the project to ${GRN}%s${RST}\n" "${NEW_PROJECT}"
-
+switch_gcloud_project
 check_user_permissions
 
 DELETION_DATE=$(date --date="-7 days" +%F)
@@ -164,8 +174,6 @@ fi
 printf "${INFO} Setting the deletion date to ${RED}%s and earlier${RST}\n" "${DELETION_DATE}"
 
 deletion_preflight_checks
-
-printf "${INFO} This script will ${GRN}keep %d${RST} deployments and ${RED}delete %d${RST} deployments\n" "${REMAIN_LIST_COUNT}" "${DELETE_LIST_COUNT}"
-printf "${INFO} Deployments to keep (check this list):\n[ %s ]\n\n" "${REMAIN_LIST_ITEMS[*]}"
+deletion_preflight_summary
 
 enter_deletion_phrase
