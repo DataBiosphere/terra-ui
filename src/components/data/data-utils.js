@@ -948,9 +948,8 @@ export const CreateEntitySetModal = ({ entityType, entityNames, workspaceId: { n
   const [isBusy, setIsBusy] = useState()
 
   const createSet = async () => {
+    setIsBusy(true)
     try {
-      setIsBusy(true)
-
       await Ajax()
         .Workspaces
         .workspace(namespace, workspaceName)
