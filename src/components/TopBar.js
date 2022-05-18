@@ -212,14 +212,14 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: Nav.getLink('library-datasets'),
               onClick: hideNav
             }, ['Data']),
+            isDataBrowserVisible() && h(DropDownSubItem, {
+              href: Nav.getLink('library-browser'),
+              onClick: hideNav
+            }, ['Try the BETA Data Catalog']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-showcase'),
               onClick: hideNav
             }, ['Showcase']),
-            isDataBrowserVisible() && h(DropDownSubItem, {
-              href: Nav.getLink('library-browser'),
-              onClick: hideNav
-            }, ['Catalog']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: hideNav

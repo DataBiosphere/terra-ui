@@ -32,7 +32,7 @@ const testAnalysisContextBarFn = _.flow(
   await click(page, clickable({ textContains: 'Close' }))
 
   // Environment should eventually be running and the terminal icon should be enabled once the environment is running
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
   await findElement(page, clickable({ textContains: 'Terminal' }))
 
   // The environment should now be pausable, and the UI should display its pausing
@@ -48,7 +48,8 @@ const testAnalysisContextBarFn = _.flow(
 
 const testAnalysisContextBar = {
   name: 'analysis-context-bar',
-  fn: testAnalysisContextBarFn
+  fn: testAnalysisContextBarFn,
+  timeout: 15 * 60 * 1000
 }
 
 module.exports = { testAnalysisContextBar }

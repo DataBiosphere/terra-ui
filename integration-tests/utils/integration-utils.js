@@ -103,7 +103,7 @@ const clickTableCell = async (page, { tableName, columnHeader, textContains, isD
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const click = async (page, xpath, options) => {
+const click = async (page, xpath, options = { visible: true }) => {
   return (await page.waitForXPath(xpath, options)).click()
 }
 
