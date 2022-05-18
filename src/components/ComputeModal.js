@@ -1703,9 +1703,11 @@ export const ComputeModalBase = ({
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists || false,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd },
+            { label: pdTypes.balanced.displayName, value: pdTypes.balanced }
           ]
         })
       ])
