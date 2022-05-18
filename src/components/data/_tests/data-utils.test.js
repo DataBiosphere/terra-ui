@@ -117,9 +117,10 @@ describe('convertAttributeValue', () => {
     expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'number')).toEqual(0)
     expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'boolean')).toEqual(true)
 
-    expect(convertAttributeValue({ key: 'value' }, 'string')).toEqual('{"key":"value"}')
+    expect(convertAttributeValue({ key: 'value' }, 'string')).toEqual('')
     expect(convertAttributeValue({ key: 'value' }, 'number')).toEqual(0)
     expect(convertAttributeValue({ key: 'value' }, 'boolean')).toEqual(true)
+    expect(convertAttributeValue({ key: 'value' }, 'reference', 'thing')).toEqual({ entityType: 'thing', entityName: '' })
     expect(convertAttributeValue({ key: 'value' }, 'json')).toEqual({ key: 'value' })
 
     expect(() => convertAttributeValue('abc', 'notatype')).toThrow('Invalid attribute type "notatype"')

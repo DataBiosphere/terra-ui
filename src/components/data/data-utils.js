@@ -523,7 +523,7 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
     ['string', () => _.toString],
     ['reference', () => value => ({
       entityType: referenceEntityType,
-      entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
+      entityName: type === 'json' ? '' : _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
     })],
     ['number', () => value => {
       const numberVal = _.toNumber(value)
@@ -545,7 +545,7 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
       items: _.map(convertFn, attributeValue),
       itemsType: newType === 'reference' ? 'EntityReference' : 'AttributeValue'
     })],
-    [type === 'json' && newType === 'string', () => JSON.stringify(attributeValue)],
+    [type === 'json' && newType === 'string', () => ''],
     () => convertFn(attributeValue)
   )
 }
