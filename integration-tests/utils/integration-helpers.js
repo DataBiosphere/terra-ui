@@ -9,7 +9,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
-const defaultTimeout = 3 * 60 * 1000
+const defaultTimeout = 5 * 60 * 1000
 
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
@@ -30,7 +30,6 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
-  billingProject = 'terra-dev-01867dda'
   try {
     const response = await page.evaluate((name, billingProject) => {
       return new Promise(async (resolve, reject) => {
@@ -60,20 +59,24 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
           .catch(err => reject(err))
       })
     }, workspaceName, billingProject)
+
     console.info(`Deleted workspace: ${workspaceName}`)
     console.info(response)
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.error(e)
     throw e
   }
 })
 
 const withWorkspace = test => async options => {
+  console.log('withWorkspace ...')
   const workspaceName = await makeWorkspace(options)
 
   try {
     await test({ ...options, workspaceName })
   } finally {
+    console.log('withWorkspace cleanup ...')
     await deleteWorkspace({ ...options, workspaceName })
   }
 }
@@ -107,11 +110,13 @@ const makeUser = async () => {
 }
 
 const withUser = test => async args => {
+  console.log('withUser ...')
   const { email, token } = await makeUser()
 
   try {
     await test({ ...args, email, token })
   } finally {
+    console.log('withUser cleanup ...')
     await fetchLyle('delete', email)
   }
 }
@@ -141,11 +146,13 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
 })
 
 const withBilling = test => async options => {
+  console.log('withBilling ...')
   await addUserToBilling(options)
 
   try {
     await test({ ...options })
   } finally {
+    console.log('withBilling cleanup ...')
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
   }
