@@ -506,7 +506,12 @@ const EntitiesContent = ({
             }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
             renderSelectedRowsMenu(columnSettings)
           ]),
-        deleteColumnUpdateMetadata
+        deleteColumnUpdateMetadata,
+        controlPanelStyle: isDataTabRedesignEnabled() ? {
+          background: colors.light(),
+          borderBottom: `1px solid ${colors.grey(0.4)}`
+        } : {},
+        border: !isDataTabRedesignEnabled()
       }),
       addingEntity && h(AddEntityModal, {
         entityType: entityKey,
