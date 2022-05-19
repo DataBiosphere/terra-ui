@@ -20,7 +20,7 @@ const DataStepContent = ({
   entityMetadata, rootEntityType,
   workspace
 }) => {
-  const { workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } } } = workspace
+  const { workspace: { namespace, name, googleProject } } = workspace
   // State
   const [type, setType] = useState(entitySelectionModel.type)
   const [selectedEntities, setSelectedEntities] = useState(entitySelectionModel.selectedEntities)
@@ -124,7 +124,7 @@ const DataStepContent = ({
             [chooseRootType, () => rootEntityType],
             [chooseSetType, () => entitySetType]
           ),
-          entityMetadata, setEntityMetadata: () => {}, googleProject, workspaceId: { namespace, name }, workspace, columnDefaults,
+          entityMetadata, setEntityMetadata: () => {}, googleProject, workspaceId: { namespace, name }, workspace,
           selectionModel: {
             selected: selectedEntities, setSelected: setSelectedEntities
           }

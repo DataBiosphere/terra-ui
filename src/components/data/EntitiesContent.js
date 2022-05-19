@@ -7,7 +7,7 @@ import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { AddColumnModal, AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon, spinner } from 'src/components/icons'
@@ -15,7 +15,7 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
@@ -209,7 +209,7 @@ const ToolDrawer = _.flow(
 
 const EntitiesContent = ({
   workspace, workspace: {
-    workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
+    workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
   entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
@@ -220,6 +220,7 @@ const EntitiesContent = ({
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [addingEntity, setAddingEntity] = useState(false)
   const [addingColumn, setAddingColumn] = useState(false)
+  const [creatingSet, setCreatingSet] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
@@ -385,6 +386,7 @@ const EntitiesContent = ({
         h(MenuButton, {
           onClick: () => setAddingColumn(true)
         }, ['Add column']),
+        h(MenuDivider),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
@@ -394,7 +396,13 @@ const EntitiesContent = ({
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
-        }, 'Delete selected rows')
+        }, 'Delete selected rows'),
+        h(MenuDivider),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to save as set',
+          onClick: () => setCreatingSet(true)
+        }, ['Save selection as set'])
       ])
     }, [h(ButtonSecondary, {
       disabled: !canEdit,
@@ -462,7 +470,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, setEntityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name }, workspace,
+        entityType: entityKey, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {
@@ -498,7 +506,12 @@ const EntitiesContent = ({
             }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
             renderSelectedRowsMenu(columnSettings)
           ]),
-        deleteColumnUpdateMetadata
+        deleteColumnUpdateMetadata,
+        controlPanelStyle: isDataTabRedesignEnabled() ? {
+          background: colors.light(),
+          borderBottom: `1px solid ${colors.grey(0.4)}`
+        } : {},
+        border: !isDataTabRedesignEnabled()
       }),
       addingEntity && h(AddEntityModal, {
         entityType: entityKey,
@@ -528,6 +541,16 @@ const EntitiesContent = ({
         onSuccess: () => {
           setEditingEntities(false)
           setRefreshKey(_.add(1))
+        }
+      }),
+      creatingSet && h(CreateEntitySetModal, {
+        entityType: entityKey,
+        entityNames: _.keys(selectedEntities),
+        workspaceId: { namespace, name },
+        onDismiss: () => setCreatingSet(false),
+        onSuccess: () => {
+          setCreatingSet(false)
+          loadMetadata()
         }
       }),
       deletingEntities && h(EntityDeleter, {
