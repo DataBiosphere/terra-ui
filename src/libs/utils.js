@@ -191,7 +191,7 @@ export const entityAttributeText = (value, machineReadable) => {
 
       return machineReadable ?
         JSON.stringify(value.items) :
-        `${value.items.length} ${label} ${JSON.stringify(value.items)}`
+        `${value.items.length} ${label}: ${_.map(entityAttributeText, value.items).join(', ')}`
     }],
     [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
     () => value
