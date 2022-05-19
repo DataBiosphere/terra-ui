@@ -32,24 +32,19 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   billingProject = 'terra-dev-01867dda'
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
-      try {
-        return new Promise(async (resolve, reject) => {
-          return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-            .then(resp => resolve(resp))
-            .catch(async err => reject(err))
-        })
-      } catch (e) {
-        console.error(e)
-        throw e
-      }
+    const response = await page.evaluate((name, billingProject) => {
+      return new Promise(async (resolve, reject) => {
+        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+          .then(resp => resolve(resp))
+          .catch(async err => reject(await err.text()))
+      })
     }, workspaceName, billingProject)
 
     console.info(`Created workspace: ${workspaceName}`)
     console.info(response)
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
-    console.log(e.Response)
+    console.error(e)
     throw e
   }
   return workspaceName
@@ -58,10 +53,10 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
+    const response = await page.evaluate((name, billingProject) => {
       return new Promise(async (resolve, reject) => {
         return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
-          .then(resp => resolve(resp.text()))
+          .then(async resp => resolve(await resp.text()))
           .catch(err => reject(err))
       })
     }, workspaceName, billingProject)
