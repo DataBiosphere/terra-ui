@@ -143,7 +143,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem',
         textAlign: 'center', width: '100%', height: 60
       },
-      image: { verticalAlign: 'middle', height: 30 },
+      image: { verticalAlign: 'middle', height: 30, width: '40%' },
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
