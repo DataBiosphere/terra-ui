@@ -7,9 +7,9 @@ const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
-const { testRunNotebook } = require('../tests/run-notebook')
+//TODO IA-3436 const { testRunNotebook } = require('../tests/run-notebook')
 const { testCreateInteractiveAnalysis } = require('../tests/create-interactive-analysis')
-const { testAnalysisContextBar } = require('../tests/analysis-context-bar')
+//TODO IA-3436 const { testAnalysisContextBar } = require('../tests/analysis-context-bar')
 const { testRunWorkflow } = require('../tests/run-workflow')
 const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
@@ -77,13 +77,13 @@ const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
 }
 
 _.forEach(registerTestEndpoint, [
-  testAnalysisContextBar,
+  //TODO IA-3436  testAnalysisContextBar,
   testCreateInteractiveAnalysis,
   testFindWorkflow,
   testImportCohortData,
   testImportDockstoreWorkflow,
   testRegisterUser,
-  testRunNotebook,
+  //TODO IA-3436 testRunNotebook,
   testRunWorkflow,
   testRunWorkflowOnSnapshot
 ])
