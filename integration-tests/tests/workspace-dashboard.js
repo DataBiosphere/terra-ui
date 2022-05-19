@@ -1,7 +1,9 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { clickNavChildAndLoad, overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
-const { assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, noSpinnersAfter } = require('../utils/integration-utils')
+const {
+  assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, noSpinnersAfter
+} = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -28,6 +30,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
+      await dismissNotifications(page)
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await Promise.all(_.map(async ({ label, tooltip }) => {
         if (!!tooltip) {
@@ -40,6 +43,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertLockWorkspace: async () => {
+      await dismissNotifications(page)
       await assertTextNotFound(testPage, 'Workspace is locked')
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Lock' }))
@@ -48,6 +52,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertUnlockWorkspace: async () => {
+      await dismissNotifications(page)
       await findText(testPage, 'Workspace is locked')
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Unlock' }))
