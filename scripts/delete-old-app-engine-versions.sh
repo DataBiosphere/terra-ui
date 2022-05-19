@@ -45,11 +45,6 @@ abort() {
     exit 1
 }
 
-# always reset gcloud project regardless of error or exit
-reset() {
-    gcloud config set project "${OLD_PROJECT}" 2>/dev/null
-}
-
 # ensure that date from GNU coreutils is installed
 check_gnu_date_installed() {
     if ! date --version 1>/dev/null 2>&1; then
@@ -57,15 +52,9 @@ check_gnu_date_installed() {
     fi
 }
 
-# switch gcloud project to appropriate terra ui environment
-switch_gcloud_project() {
-    gcloud config set project "${NEW_PROJECT}" 2>/dev/null
-    printf "${INFO} Switched the project to ${GRN}%s${RST}\n" "${NEW_PROJECT}"
-}
-
 # ensure that user has appropriate permissions for app engine
 check_user_permissions() {
-    if ! gcloud app services list 1>/dev/null 2>&1; then
+    if ! gcloud app services list --project="${NEW_PROJECT}" 1>/dev/null 2>&1; then
         GCLOUD_USER=$(gcloud config get-value account)
         abort "User ${GCLOUD_USER} does not have permissions in ${NEW_PROJECT}"
     fi
@@ -73,7 +62,7 @@ check_user_permissions() {
 
 # ensure that the deletion date is always older than the oldest pr date
 set_dev_deletion_date() {
-    OLDEST_PR=$(gcloud app versions list --filter="pr-" --sort-by="LAST_DEPLOYED" | tail -n +2 | head -n 1 | sed 's/ \+/ /g')
+    OLDEST_PR=$(gcloud app versions list --filter="pr-" --sort-by="LAST_DEPLOYED" --project="${NEW_PROJECT}" | tail -n +2 | head -n 1 | sed 's/ \+/ /g')
     OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | cut -d' ' -f2)
     OLDEST_PR_DATE=$(echo "${OLDEST_PR}" | cut -d' ' -f4)
     OLDEST_PR_DATE=$(date --date="${OLDEST_PR_DATE}" +%F)
@@ -90,7 +79,7 @@ set_dev_deletion_date() {
 
 # return versions of app engine that match filter
 filter_app_engine_versions() {
-    gcloud app versions list --filter="$1" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2
+    gcloud app versions list --filter="$1" --project="${NEW_PROJECT}" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2
 }
 
 # ensure that deletions leave a certain number of deployments
@@ -129,7 +118,7 @@ deletion_preflight_summary() {
 
 # actually execute the deletion process
 execute_delete() {
-    printf "${BLD}gcloud app versions delete %s${RST}\n" "${DELETE_LIST_ITEMS[*]}"
+    printf "\n${INFO} Now run this command:${RST}\n${BLD}gcloud app versions delete %s --project=%s${RST}\n" "${DELETE_LIST_ITEMS[*]}" "${NEW_PROJECT}"
 }
 
 # ensure that a deletion phrase must be entered correctly before continuing
@@ -160,20 +149,18 @@ case $1 in
     * ) error "ENV must be one of dev, alpha, staging, or perf";;
 esac
 
-OLD_PROJECT=$(gcloud config get-value project)
 NEW_PROJECT="bvdp-saturn-$1"
 ENV_TO_EXEC="$1"
 
-trap reset EXIT
+printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
-switch_gcloud_project
 check_user_permissions
 
 DELETION_DATE=$(date --date="-7 days" +%F)
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
 fi
-printf "${INFO} Setting the deletion date to ${RED}%s and earlier${RST}\n" "${DELETION_DATE}"
+printf "${INFO} Set the deletion date to ${RED}%s and earlier${RST}\n" "${DELETION_DATE}"
 
 deletion_preflight_checks
 deletion_preflight_summary
