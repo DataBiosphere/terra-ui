@@ -118,7 +118,7 @@ deletion_preflight_summary() {
 
 # actually execute the deletion process
 execute_delete() {
-    printf "\n${INFO} Now run this command:${RST}\n${BLD}gcloud app versions delete %s --project=%s${RST}\n" "${DELETE_LIST_ITEMS[*]}" "${NEW_PROJECT}"
+    gcloud app versions delete "${DELETE_LIST_ITEMS[@]}" --project="${NEW_PROJECT}"
 }
 
 # ensure that a deletion phrase must be entered correctly before continuing
@@ -127,9 +127,7 @@ enter_deletion_phrase() {
     printf "${RED}THIS OPERATION WILL IRREVERSIBLY DELETE ${DELETE_LIST_COUNT} DEPLOYMENTS FROM %s AND EARLIER IN THE ${NEW_PROJECT} PROJECT.${RST}\n" "${DELETION_DATE}"
     printf "${INFO} To continue with the deletion process, type: ${BLD}%s${RST}\n" "${DELETION_PHRASE}"
     read -r ACTUAL_PHRASE
-    if [ "${ACTUAL_PHRASE}" = "${DELETION_PHRASE}" ]; then
-        execute_delete
-    else
+    if [ "${ACTUAL_PHRASE}" != "${DELETION_PHRASE}" ]; then
         abort "mistyped phrase"
     fi
 }
@@ -166,3 +164,5 @@ deletion_preflight_checks
 deletion_preflight_summary
 
 enter_deletion_phrase
+
+execute_delete
