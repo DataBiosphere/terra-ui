@@ -198,7 +198,11 @@ const enableDataCatalog = async (page, testUrl, token) => {
 }
 
 const clickNavChildAndLoad = async (page, tab) => {
-  await noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
+  // click triggers a page navigation event
+  await Promise.all([
+    page.waitForNavigation(waitUntilLoadedOrTimeout()),
+    noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
+  ])
 }
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {

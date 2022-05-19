@@ -96,7 +96,7 @@ const AnalysisLauncher = _.flow(
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
             ])
         ]),
-        mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
+        mode && h(RuntimeKicker, { runtime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
         h(ComputeModal, {
           isOpen: createOpen,

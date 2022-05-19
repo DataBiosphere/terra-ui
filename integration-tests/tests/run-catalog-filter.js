@@ -15,7 +15,8 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const secondFilterItem = 'adrenal cortex adenoma'
 
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
+  await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)

@@ -19,7 +19,7 @@ import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigg
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import galaxyLogo from 'src/images/galaxy-logo.png'
+import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'

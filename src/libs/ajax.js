@@ -62,6 +62,14 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
     try {
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
+      // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+      // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+      // are not transient and the request should not be retried.
+      const shouldRetry = !error.requesterPaysError
+
+      if (!shouldRetry) {
+        throw error
+      }
       // ignore error will retry
     }
   }
@@ -682,14 +690,6 @@ const Workspaces = signal => ({
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
 
-    const upsertEntities = entities => {
-      const body = _.map(({ name, entityType, attributes }) => {
-        return { name, entityType, operations: attributesUpdateOps(attributes) }
-      }, entities)
-
-      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    }
-
     return {
       checkBucketReadAccess: () => {
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
@@ -924,7 +924,9 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
 
-      upsertEntities,
+      upsertEntities: entityUpdates => {
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]))
+      },
 
       paginatedEntitiesOfType: async (type, parameters) => {
         const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
@@ -958,7 +960,11 @@ const Workspaces = signal => ({
         const res = await fetchOk(url)
         const payload = await res.json()
 
-        return upsertEntities(payload)
+        const body = _.map(({ name, entityType, attributes }) => {
+          return { name, entityType, operations: attributesUpdateOps(attributes) }
+        }, payload)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
       importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
