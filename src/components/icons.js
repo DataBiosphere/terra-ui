@@ -65,7 +65,6 @@ export const profilePic = ({ size, style, ...props } = {}) => img({
   src: getUser().imageUrl,
   height: size, width: size,
   style: { borderRadius: '100%', ...style },
-  referrerPolicy: 'no-referrer',
   ...props
 })
 

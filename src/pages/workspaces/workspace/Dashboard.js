@@ -89,7 +89,7 @@ const DashboardAuthContainer = props => {
   const { isSignedIn } = useStore(authStore)
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState()
 
-  const isAuthInitialized = isSignedIn !== undefined
+  const isGoogleAuthInitialized = isSignedIn !== undefined
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,7 +103,7 @@ const DashboardAuthContainer = props => {
   const isFeaturedWorkspace = () => _.some(ws => ws.namespace === namespace && ws.name === name, featuredWorkspaces)
 
   return Utils.cond(
-    [!isAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
+    [!isGoogleAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
     [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
     [isSignedIn === false, () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
