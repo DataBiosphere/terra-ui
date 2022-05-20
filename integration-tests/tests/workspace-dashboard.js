@@ -8,7 +8,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
-  const clickWorkspaceActionMenu = async (testPage) => {
+  const clickWorkspaceActionMenu = async testPage => {
     const clickOrDismiss = async () => {
       try {
         await click(testPage, clickable({ text: 'Workspace Action Menu' }))
