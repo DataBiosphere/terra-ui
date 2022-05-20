@@ -9,12 +9,22 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
   const clickWorkspaceActionMenu = async (testPage) => {
-    try {
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-    } catch (error) {
-      console.log('Unable to click "Workspace Action Menu", dismissing notifications.')
-      await dismissNotifications(testPage)
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+    const clickOrDismiss = async () => {
+      try {
+        await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+        return true
+      } catch (error) {
+        console.log('Unable to click "Workspace Action Menu", dismissing notifications.')
+        await dismissNotifications(testPage)
+        return false
+      }
+    }
+    let clicked = await clickOrDismiss()
+    let counter = 0
+    // Multiple notifications appear, and dismissNotifications has delays to allow animation to happen.
+    while (!clicked && counter < 5) {
+      clicked = await clickOrDismiss()
+      counter = counter + 1
     }
   }
 
