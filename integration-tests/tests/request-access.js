@@ -1,5 +1,6 @@
 const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -22,10 +23,8 @@ const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
   await findText(page, 'Request Access')
 })
 
-const testRequestAccess = {
+registerTest({
   name: 'request-access',
   fn: testRequestAccessFn,
   timeout: 2 * 60 * 1000 // 2 min timeout
-}
-
-module.exports = { testRequestAccess }
+})

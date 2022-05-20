@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -32,9 +33,7 @@ const testImportDockstoreWorkflowFn = _.flow(
   await findText(page, testWorkflowIdentifier)
 })
 
-const testImportDockstoreWorkflow = {
+registerTest({
   name: 'import-dockstore-workflow',
   fn: testImportDockstoreWorkflowFn
-}
-
-module.exports = { testImportDockstoreWorkflow }
+})

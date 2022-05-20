@@ -1,5 +1,6 @@
 const _ = require('lodash/fp')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra } = require(
   '../utils/integration-utils')
@@ -37,9 +38,7 @@ const testPreviewDrsUriFn = _.flow(
   await findText(page, 'View this file in the Google Cloud Storage Browser')
 })
 
-const testPreviewDrsUri = {
+registerTest({
   name: 'preview-drs-uri',
   fn: testPreviewDrsUriFn
-}
-
-module.exports = { testPreviewDrsUri }
+})

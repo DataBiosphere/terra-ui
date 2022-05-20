@@ -4,6 +4,7 @@ const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup 
 const {
   click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 
 
 const testAnalysisContextBarFn = _.flow(
@@ -46,10 +47,8 @@ const testAnalysisContextBarFn = _.flow(
   // We don't wait for the env to pause for the sake of time, since its redundant and more-so tests the backend
 })
 
-const testAnalysisContextBar = {
+registerTest({
   name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
   timeout: 15 * 60 * 1000
-}
-
-module.exports = { testAnalysisContextBar }
+})

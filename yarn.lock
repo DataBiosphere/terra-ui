@@ -13491,6 +13491,7 @@ resolve@^2.0.0-next.3:
   dependencies:
     "@google-cloud/secret-manager": ^3.10.1
     "@google-cloud/storage": ^5.14.2
+    "@jest/test-sequencer": ^27.5.1
     date-fns: ^2.24.0
     google-auth-library: ^7.9.2
     jest: ^27.4.3

@@ -1,8 +1,8 @@
 const _ = require('lodash/fp')
-const { defaultTimeout } = require('../utils/integration-helpers')
-const { withScreenshot, withPageLogging } = require('../utils/integration-utils')
+const { defaultTimeout } = require('./integration-helpers')
+const { withScreenshot, withPageLogging } = require('./integration-utils')
 const { Cluster } = require('puppeteer-cluster')
-const envs = require('../utils/terra-envs')
+const envs = require('./terra-envs')
 const rawConsole = require('console')
 const { mkdirSync, existsSync, createWriteStream } = require('fs')
 

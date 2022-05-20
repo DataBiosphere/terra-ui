@@ -1,6 +1,7 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { assertTextNotFound, click, clickable, findText, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -230,10 +231,10 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertTextNotFound('Spend report')
 })
 
-const testBillingSpendReport = {
+registerTest({
   name: 'billing-spend-report',
   fn: testBillingSpendReportFn
-}
+})
 
 const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
@@ -259,10 +260,10 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText('Last Modified')
 })
 
-const testBillingWorkspaces = {
+registerTest({
   name: 'billing-workspaces',
   fn: testBillingWorkspacesFn
-}
+})
 
 const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
@@ -298,10 +299,10 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.assertTextNotFound('testuser3@example.com')
 })
 
-const testBillingMembers = {
+registerTest({
   name: 'billing-members',
   fn: testBillingMembersFn
-}
+})
 
 const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
@@ -331,14 +332,7 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
   await billingPage.assertTextNotFound(erroredBillingProjectName)
 })
 
-const testDeleteBillingProject = {
+registerTest({
   name: 'billing-project-delete',
   fn: testDeleteBillingProjectFn
-}
-
-module.exports = {
-  testBillingSpendReport,
-  testBillingWorkspaces,
-  testBillingMembers,
-  testDeleteBillingProject
-}
+})

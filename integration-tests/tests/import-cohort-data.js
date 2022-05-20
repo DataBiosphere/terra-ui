@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require(
   '../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -36,9 +37,7 @@ const testImportCohortDataFn = _.flow(
   await findInGrid(page, cohortName)
 })
 
-const testImportCohortData = {
+registerTest({
   name: 'import-cohort-data',
   fn: testImportCohortDataFn
-}
-
-module.exports = { testImportCohortData }
+})
