@@ -20,8 +20,7 @@ const testCatalogFlowFn = _.flow(
 const testCatalog = {
   name: 'run-catalog',
   fn: testCatalogFlowFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  timeout: 2 * 60 * 1000
 }
 
 module.exports = {

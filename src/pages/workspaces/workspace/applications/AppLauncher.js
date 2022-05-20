@@ -212,10 +212,7 @@ const ApplicationLauncher = _.flow(
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: application })
       }
     }),
-    h(RuntimeKicker, {
-      runtime, refreshRuntimes,
-      onNullRuntime: () => setShowCreate(true)
-    }),
+    h(RuntimeKicker, { runtime, refreshRuntimes }),
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
