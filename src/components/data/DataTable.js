@@ -358,10 +358,9 @@ const DataTable = props => {
                         ]
                       }, [
                         h(HeaderCell, [
-                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
-                            columnNamespace)
-                        ]),
-                        [columnName]
+                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                          columnName
+                        ])
                       ])
                     ]),
                     cellRenderer: ({ rowIndex }) => {
