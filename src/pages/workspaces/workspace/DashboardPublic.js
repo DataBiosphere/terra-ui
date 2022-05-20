@@ -57,7 +57,7 @@ const DashboardPublic = ({ namespace, name }) => {
       ]),
       div({ style: Style.dashboard.rightBox }, [
         div({ style: signInStyle }, [
-          div(['Log in to view full workspace']),
+          div(['Sign in to view full workspace']),
           div([h(SignInButton, { theme: 'dark' })])
         ])
       ])
