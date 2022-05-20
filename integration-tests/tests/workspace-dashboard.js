@@ -30,7 +30,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
-      await dismissNotifications(page)
+      await dismissNotifications(testPage)
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await Promise.all(_.map(async ({ label, tooltip }) => {
         if (!!tooltip) {
@@ -43,20 +43,20 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertLockWorkspace: async () => {
-      await dismissNotifications(page)
+      await dismissNotifications(testPage)
       await assertTextNotFound(testPage, 'Workspace is locked')
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Lock' }))
-      await noSpinnersAfter(testPage, { action: () => click(page, clickable({ textContains: 'Lock Workspace' })) })
+      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Lock Workspace' })) })
       await findText(testPage, 'Workspace is locked')
     },
 
     assertUnlockWorkspace: async () => {
-      await dismissNotifications(page)
+      await dismissNotifications(testPage)
       await findText(testPage, 'Workspace is locked')
       await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Unlock' }))
-      await noSpinnersAfter(testPage, { action: () => click(page, clickable({ textContains: 'Unlock Workspace' })) })
+      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Unlock Workspace' })) })
       await assertTextNotFound(testPage, 'Workspace is locked')
     },
 
@@ -85,7 +85,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertUnlockWorkspace()
 
   // Verify other Workspace menu items are in correct state (all will be enabled).
-  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }])
+  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
   // Click on each of the expected tabs
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
