@@ -16,7 +16,7 @@ import { isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName } }, onDismiss, onSuccess }) => {
+const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName, googleProject } }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loading, setLoading] = useState(false)
@@ -96,7 +96,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     div(['Are you sure you want to permanently delete the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
       '?']),
-    div({ style: { marginTop: '1rem' } }, [
+    !!googleProject && div({ style: { marginTop: '1rem' } }, [
       'Deleting it will delete the associated ',
       h(Link, {
         ...Utils.newTabLinkProps,
