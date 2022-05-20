@@ -18,6 +18,7 @@ import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -35,7 +36,7 @@ const SubmissionDetails = _.flow(
     title: 'Job History', activeTab: 'job history'
   })
 )((props, _ref) => {
-  const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
+  const { namespace, name, submissionId, workspace, workspace: { workspace: { bucketName } } } = props
 
   /*
    * State setup
@@ -322,6 +323,11 @@ const SubmissionDetails = _.flow(
                       key: 'manager',
                       ...Utils.newTabLinkProps,
                       href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                      onClick: () => Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
+                        workflowId,
+                        from: 'workspace-submission-details',
+                        ...extractWorkspaceDetails(workspace.workspace)
+                      }),
                       style: { margin: '0.5rem', display: 'flex' },
                       tooltip: 'Job Manager',
                       'aria-label': `Job Manager (for workflow ID ${workflowId})`
