@@ -4,7 +4,7 @@ import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
-import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
+import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -58,7 +58,9 @@ const DataTable = props => {
     editable,
     persist, refreshKey, firstRender,
     snapshotName,
-    deleteColumnUpdateMetadata
+    deleteColumnUpdateMetadata,
+    controlPanelStyle,
+    border = true
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -79,22 +81,37 @@ const DataTable = props => {
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
-    const localColumnPref = getLocalPref(persistenceId)?.columnState
+    // Load initial column settings from:
+    // 1. local storage (last settings for this table)
+    // 2. workspace-column-defaults workspace attribute
+    // 3. saved column settings named "Default" for this table
 
+    const localColumnPref = getLocalPref(persistenceId)?.columnState
     if (!!localColumnPref) {
       return localColumnPref
     }
 
-    const { columnDefaults: columnDefaultsString, entityType, entityMetadata } = props
-
+    const { workspace: { attributes: { 'workspace-column-defaults': columnDefaultsString } } } = workspace
     const columnDefaults = Utils.maybeParseJSON(columnDefaultsString)
+    if (columnDefaults?.[entityType]) {
+      const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
+        ..._.map(name => ({ name, visible: true }), shown),
+        ..._.map(name => ({ name, visible: false }), hidden),
+        ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
+      ]
+      return convertColumnDefaults(columnDefaults[entityType])
+    }
 
-    const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
-      ..._.map(name => ({ name, visible: true }), shown),
-      ..._.map(name => ({ name, visible: false }), hidden),
-      ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
-    ]
-    return columnDefaults?.[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : []
+    const savedColumnSettings = _.flow(
+      allSavedColumnSettingsInWorkspace,
+      _.getOr({}, allSavedColumnSettingsEntityTypeKey({ snapshotName, entityType }))
+    )(workspace)
+    const defaultColumnSettingsName = 'Default'
+    if (savedColumnSettings[defaultColumnSettingsName]) {
+      return decodeColumnSettings(savedColumnSettings[defaultColumnSettingsName])
+    }
+
+    return []
   })
 
   const [updatingColumnSettings, setUpdatingColumnSettings] = useState()
@@ -231,8 +248,7 @@ const DataTable = props => {
         style: {
           display: 'flex',
           padding: '1rem',
-          background: isDataTabRedesignEnabled() ? colors.light() : undefined,
-          borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+          ...controlPanelStyle
         }
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
@@ -372,7 +388,7 @@ const DataTable = props => {
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
               },
-              border: !isDataTabRedesignEnabled()
+              border
             })
           }
         ])
