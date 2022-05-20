@@ -26,6 +26,9 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
       clicked = await clickOrDismiss()
       counter = counter + 1
     }
+    if (!clicked) {
+      throw new Error('Was not able to click the "Workspace Action Menu", even after dismissing notifications')
+    }
   }
 
   return {
