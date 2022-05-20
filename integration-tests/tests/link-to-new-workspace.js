@@ -4,19 +4,18 @@ const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-h
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) => {
+const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, testUrl, token }) => {
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
-  const newWorkspaceBillingAccount = 'general-dev-billing-account'
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
-  await select(page, 'Billing project', `${newWorkspaceBillingAccount}`)
+  await select(page, 'Billing project', `${billingProject}`)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Create Workspace' })) })
 
   const waitForWorkspacePage = async () => {
     try {
-      await checkBucketAccess(page, newWorkspaceBillingAccount, newWorkspaceName)
-      await findText(page, `${newWorkspaceBillingAccount}/${newWorkspaceName}`)
+      await checkBucketAccess(page, billingProject, newWorkspaceName)
+      await findText(page, `${billingProject}/${newWorkspaceName}`)
       await findText(page, 'Select a data type')
     } catch (error) {
       return error
@@ -27,7 +26,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
     try {
       await page.evaluate(async (name, billingProject) => {
         return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
-      }, newWorkspaceName, newWorkspaceBillingAccount)
+      }, newWorkspaceName, billingProject)
     } catch (error) {
       return error
     }
@@ -39,7 +38,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
   if (workspaceFailure || cleanupFailure) {
     eitherThrow(workspaceFailure, {
       cleanupFailure,
-      cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${newWorkspaceBillingAccount}`
+      cleanupMessage: `Failed to delete workspace: ${newWorkspaceName} with billing project ${billingProject}`
     })
   }
 })
@@ -47,8 +46,7 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ page, testUrl, token }) 
 const testLinkToNewWorkspace = {
   name: 'link-to-new-workspace',
   fn: testLinkToNewWorkspaceFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  timeout: 2 * 60 * 1000
 }
 
 module.exports = { testLinkToNewWorkspace }
