@@ -685,11 +685,15 @@ const WorkspaceData = _.flow(
 
   const searchAcrossTables = async (types, activeCrossTableTextFilter) => {
     setCrossTableSearchInProgress(true)
-    const results = await Promise.all(_.map(async ([type]) => {
-      const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
-      return { typeName: type, count: filteredCount }
-    }, types))
-    setCrossTableResultCounts(results)
+    try {
+      const results = await Promise.all(_.map(async ([type]) => {
+        const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(type, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
+        return { typeName: type, count: filteredCount }
+      }, types))
+      setCrossTableResultCounts(results)
+    } catch (error) {
+      reportError('Error searching across tables', error)
+    }
     setCrossTableSearchInProgress(false)
   }
 
