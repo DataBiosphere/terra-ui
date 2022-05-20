@@ -118,7 +118,7 @@ export const useDataCatalog = (params = {}) => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const datasets = !isDataBrowserVisible() ? {} : await Ajax(signal).Catalog.getDatasets()
+    const datasets = !isDataBrowserVisible() ? { result: [] } : await Ajax(signal).Catalog.getDatasets()
     if (params && params.externalWorkspace && datasets.result) {
       datasets.result.push(JSON.parse(params.externalWorkspace))
     }
