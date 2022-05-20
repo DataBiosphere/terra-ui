@@ -1,6 +1,5 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
-
 const {
   click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
 } = require('./integration-utils')
@@ -31,12 +30,13 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
-    const response = await page.evaluate((name, billingProject) => {
-      return new Promise(async (resolve, reject) => {
+    const response = await page.evaluate(async (name, billingProject) => {
+      try {
         return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-          .then(resp => resolve(resp))
-          .catch(async err => reject(await err.text()))
-      })
+      } catch (err) {
+        const message = await err.text()
+        throw message
+      }
     }, workspaceName, billingProject)
 
     console.info(`Created workspace: ${workspaceName}`)
@@ -52,12 +52,14 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    const response = await page.evaluate((name, billingProject) => {
-      return new Promise(async (resolve, reject) => {
-        return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
-          .then(async resp => resolve(await resp.text()))
-          .catch(err => reject(err))
-      })
+    const response = await page.evaluate(async (name, billingProject) => {
+      try {
+        const response = await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+        return response.text()
+      } catch (err) {
+        const message = await err.text()
+        throw message
+      }
     }, workspaceName, billingProject)
 
     console.info(`Deleted workspace: ${workspaceName}`)
