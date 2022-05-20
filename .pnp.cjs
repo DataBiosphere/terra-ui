@@ -18265,7 +18265,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["terra-integration-tests", "workspace:integration-tests"],\
             ["@google-cloud/secret-manager", "npm:3.11.0"],\
             ["@google-cloud/storage", "npm:5.18.2"],\
-            ["@jest/test-sequencer", "npm:27.5.1"],\
             ["date-fns", "npm:2.24.0"],\
             ["google-auth-library", "npm:7.14.1"],\
             ["jest", "virtual:83795dede6746cdfaae77857364086431232d02f236c879a3330e566bd24f3aa203362a575946907fc4a7a089db03a00a7dd2fcbea5b664c4c7dd4fe35fc53b9#npm:27.5.1"],\
