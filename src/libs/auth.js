@@ -33,8 +33,7 @@ export const getOidcConfig = () => {
       token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
     },
     userStore: new WebStorageStateStore({ store: window.localStorage }),
-    accessTokenExpiringNotificationTimeInSeconds: 300,
-    automaticSilentRenew: true,
+    accessTokenExpiringNotificationTimeInSeconds: 120,
     includeIdTokenInSilentRenew: true
   }
 }
@@ -70,18 +69,6 @@ export const signIn = (includeBillingScope = false) => {
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
   return getAuthInstance().signinSilent(args).catch(() => false)
-}
-
-export const handleSilentRenewError = error => {
-  if (error.name !== 'ErrorResponse') {
-    setTimeout(() => {
-      const auth = getAuthInstance()
-      if (auth.user && !auth.user.expired) {
-        auth.stopSilentRenew()
-        auth.startSilentRenew()
-      }
-    }, 5 * 1000)
-  }
 }
 
 export const hasBillingScope = () => {
@@ -145,14 +132,14 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
-export const processUser = (user, isSignInEvent) => {
+export const processUser = user => {
   return authStore.update(state => {
     const isSignedIn = !_.isNil(user)
     const profile = user?.profile
     const userId = profile?.sub
 
     // The following few lines of code are to handle sign-in failures due to privacy tools.
-    if (isSignInEvent === true && state.isSignedIn === false && isSignedIn === false) {
+    if (state.isSignedIn === false && isSignedIn === false) {
       //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
       //tried to sign in (invoking processUser) and was still not signed in (isSignedIn === false).
       notify('error', 'Could not sign in', {

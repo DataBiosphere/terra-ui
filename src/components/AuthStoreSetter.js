@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useEffect } from 'react'
 import { useAuth } from 'react-oidc-context'
-import { handleSilentRenewError, processUser } from 'src/libs/auth'
+import { processUser, reloadAuthToken } from 'src/libs/auth'
 import { useOnMount } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 
@@ -10,11 +10,12 @@ const AuthStoreSetter = () => {
   const auth = useAuth()
 
   useOnMount(() => authStore.update(_.set(['authContext'], auth)))
+
   useEffect(() => {
     const cleanupFns = [
-      auth.events.addUserLoaded(user => processUser(user, true)),
-      auth.events.addUserUnloaded(user => processUser(user, false)),
-      auth.events.addSilentRenewError(handleSilentRenewError)
+      auth.events.addAccessTokenExpiring(reloadAuthToken),
+      auth.events.addUserLoaded(processUser),
+      auth.events.addUserUnloaded(processUser)
     ]
     return _.over(cleanupFns)
   }, [auth])
