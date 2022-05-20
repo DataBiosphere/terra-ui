@@ -609,7 +609,7 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -633,12 +633,28 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     }
   }, [attributeValue, isList])
 
+  const typeOptions = [
+    { type: 'string' },
+    { type: 'reference', tooltip: 'A link to another entity' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+
+  if (attributeType === 'json' || showJsonTypeOption) {
+    typeOptions.push({ type: 'json', label: 'JSON' })
+  }
+
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
         legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
-        div({ style: { columns: 3 } }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { display: 'inline-block', width: '100%', marginBottom: '0.5rem' } }, [
+        div({
+          style: {
+            display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
+            marginBottom: '0.5rem'
+          }
+        }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
             h(RadioButton, {
               text: label || _.startCase(type),
               name: 'edit-type',
@@ -651,13 +667,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             })
           ])
         ]),
-        [
-          { type: 'string' },
-          { type: 'reference', tooltip: 'A link to another entity' },
-          { type: 'number' },
-          { type: 'boolean' },
-          { type: 'json', label: 'JSON' }
-        ])
+        typeOptions)
         )
       ]),
       attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
@@ -751,6 +761,7 @@ export const prepareAttributeForUpload = attributeValue => {
 }
 
 export const SingleEntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const { type: originalValueType } = getAttributeType(attributeValue)
   const [newValue, setNewValue] = useState(attributeValue)
   const isUnchanged = _.isEqual(attributeValue, newValue)
 
@@ -814,7 +825,8 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
           autoFocus: true,
           value: newValue,
           onChange: setNewValue,
-          entityTypes
+          entityTypes,
+          showJsonTypeOption: originalValueType === 'json'
         }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
