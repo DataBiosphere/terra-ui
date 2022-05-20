@@ -109,7 +109,7 @@ export const getDatasetsPath = ({ user: { id } }) => {
     'library-browser' : 'library-datasets'
 }
 
-export const useDataCatalog = () => {
+export const useDataCatalog = (params = {}) => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const dataCatalog = useStore(dataCatalogStore)
@@ -119,6 +119,9 @@ export const useDataCatalog = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const datasets = !isDataBrowserVisible() ? {} : await Ajax(signal).Catalog.getDatasets()
+    if (params && params.externalWorkspace && datasets.result) {
+      datasets.result.push(JSON.parse(params.externalWorkspace))
+    }
     const normList = _.map(dataset => {
       const normalizedDataset = normalizeDataset(dataset)
       return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)

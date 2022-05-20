@@ -216,11 +216,11 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
   return DataBrowserTable
 }
 
-const Browser = () => {
+const Browser = (props) => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
-  const { dataCatalog, loading } = useDataCatalog()
+  const { dataCatalog, loading } = useDataCatalog(props.queryParams)
   const acknowledged = useStore(acknowledgmentStore) || {}
   const { user: { id } } = useStore(authStore)
 
