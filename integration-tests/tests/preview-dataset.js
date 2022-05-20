@@ -21,15 +21,14 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await assertRowHas(page, {
     tableName,
     expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
-    withKey: { column: 'participant_id', textContains: 'participant1' }
+    withKey: { column: 'participant_id', text: 'participant1' }
   })
 })
 
 const testPreviewDataset = {
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  timeout: 2 * 60 * 1000
 }
 
 module.exports = { testPreviewDataset }

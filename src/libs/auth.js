@@ -49,6 +49,7 @@ export const signOut = () => {
   cookieReadyStore.reset()
   sessionStorage.clear()
   getAuthInstance().removeUser()
+  getAuthInstance().clearStaleState()
 }
 
 const getSigninArgs = includeBillingScope => {
