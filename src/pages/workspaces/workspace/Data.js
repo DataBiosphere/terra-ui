@@ -73,7 +73,7 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
   return div({
     style: {
       width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600,
-      borderRadius: '1rem', marginRight: '0.5rem', backgroundColor: colors.primary(), color: 'white'
+      borderRadius: '1rem', marginRight: '0.5rem', backgroundColor: colors.primary(1.2), color: 'white'
     }
   },
   searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${filteredCount}`)
