@@ -216,7 +216,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
   return DataBrowserTable
 }
 
-const Browser = (props) => {
+const Browser = props => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
