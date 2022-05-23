@@ -439,6 +439,7 @@ const EntitiesContent = ({
             const str = buildTSV(columnSettings, _.values(selectedEntities))
             await clipboard.writeText(str)
             notify('success', 'Successfully copied to clipboard.', { timeout: 3000 })
+            Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace))
           })
         }, 'Copy to clipboard')
       ])
@@ -519,7 +520,10 @@ const EntitiesContent = ({
         entityTypes: _.keys(entityMetadata),
         workspaceId: { namespace, name },
         onDismiss: () => setAddingEntity(false),
-        onSuccess: () => setRefreshKey(_.add(1))
+        onSuccess: () => {
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddRow, extractWorkspaceDetails(workspace.workspace))
+          setRefreshKey(_.add(1))
+        }
       }),
       addingColumn && h(AddColumnModal, {
         entityType: entityKey,
@@ -528,6 +532,7 @@ const EntitiesContent = ({
         onDismiss: () => setAddingColumn(false),
         onSuccess: () => {
           setAddingColumn(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddColumn, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
         }
       }),
@@ -540,6 +545,7 @@ const EntitiesContent = ({
         onDismiss: () => setEditingEntities(false),
         onSuccess: () => {
           setEditingEntities(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataEditMultiple, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
         }
       }),
@@ -550,6 +556,7 @@ const EntitiesContent = ({
         onDismiss: () => setCreatingSet(false),
         onSuccess: () => {
           setCreatingSet(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataCreateSet, extractWorkspaceDetails(workspace.workspace))
           loadMetadata()
         }
       }),
