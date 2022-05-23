@@ -4,6 +4,7 @@ const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../ut
 const {
   assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -115,10 +116,10 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertTabs(['analyses'], false)
 })
 
-const googleWorkspaceDashboard = {
+registerTest({
   name: 'google-workspace',
   fn: testGoogleWorkspace
-}
+})
 
 const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription) => {
   const workspaceInfo = {
@@ -225,9 +226,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertTabs(['analyses'], true)
 })
 
-const azureWorkspaceDashboard = {
+registerTest({
   name: 'azure-workspace',
   fn: testAzureWorkspace
-}
-
-module.exports = { googleWorkspaceDashboard, azureWorkspaceDashboard }
+})

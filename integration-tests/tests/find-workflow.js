@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const firecloud = require('../utils/firecloud-utils')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -50,9 +51,7 @@ const testFindWorkflowFn = _.flow(
   await findText(page, 'inputs')
 })
 
-const testFindWorkflow = {
+registerTest({
   name: 'find-workflow',
   fn: testFindWorkflowFn
-}
-
-module.exports = { testFindWorkflow }
+})

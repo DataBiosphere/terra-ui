@@ -3,6 +3,7 @@ const dateFns = require('date-fns/fp')
 const _ = require('lodash/fp')
 const { testWorkspaceNamePrefix } = require('../utils/integration-helpers')
 const { signIntoTerra } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -34,9 +35,7 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
   }, oldWorkspaces))
 })
 
-const janitor = {
+registerTest({
   name: 'janitor',
   fn: runJanitor
-}
-
-module.exports = { janitor }
+})
