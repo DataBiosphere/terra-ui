@@ -45,6 +45,20 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
 
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps)
 
+  const getStorageDeletionMessage = () => {
+    return div({ style: { marginTop: '1rem' } }, [
+      'Deleting it will delete the associated ',
+      isGoogleWorkspace ? h(Link, {
+        ...Utils.newTabLinkProps,
+        href: bucketBrowserUrl(bucketName)
+      }, ['Google Cloud Bucket']) :
+        'Azure Storage Container',
+      ' and all its data',
+      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
+      '.'
+    ])
+  }
+
   const getAppDeletionMessage = () => {
     return !_.isEmpty(nonDeletableApps) ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
@@ -101,16 +115,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     div(['Are you sure you want to permanently delete the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
       '?']),
-    isGoogleWorkspace && div({ style: { marginTop: '1rem' } }, [
-      'Deleting it will delete the associated ',
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: bucketBrowserUrl(bucketName)
-      }, ['Google Cloud Bucket']),
-      ' and all its data',
-      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
-      '.'
-    ]),
+    getStorageDeletionMessage(),
     hasApps() && div({ style: { marginTop: '1rem' } }, [
       p(['Deleting it will also delete any associated applications:']),
       getAppDeletionMessage()
