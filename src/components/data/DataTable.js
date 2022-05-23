@@ -370,6 +370,7 @@ const DataTable = props => {
                       return h(Fragment, [
                         (!!dataInfo && _.isArray(dataInfo.items)) ?
                           h(Link, {
+                            tooltip: `${dataInfo.items.length} items`,
                             style: Style.noWrapEllipsis,
                             onClick: () => setViewData(dataInfo)
                           }, [dataCell]) : dataCell,
