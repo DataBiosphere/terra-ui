@@ -44,7 +44,7 @@ const NotificationDisplay = ({ id }) => {
   const onFirst = notificationNumber === 0
   const onLast = notificationNumber + 1 === notifications.length
 
-  const { title, message, detail, type } = notifications[notificationNumber]
+  const { title, message, detail, type, action } = notifications[notificationNumber]
   const [baseColor, ariaLabel] = Utils.switchCase(type,
     ['success', () => [colors.success, 'success notification']],
     ['info', () => [colors.accent, 'info notification']],
@@ -87,10 +87,19 @@ const NotificationDisplay = ({ id }) => {
           div({ id: labelId, style: { fontWeight: 600 } }, [title])
         ]),
         !!message && div({ id: descId, style: { marginTop: '0.5rem' } }, [message]),
-        !!detail && h(Clickable, {
-          style: { marginTop: '0.25rem', textDecoration: 'underline' },
-          onClick: () => setModal(true)
-        }, ['Details'])
+        div({ style: { display: 'flex' } }, [
+          !!detail && h(Clickable, {
+            style: { marginTop: '0.25rem', marginRight: '0.5rem', textDecoration: 'underline' },
+            onClick: () => setModal(true)
+          }, ['Details']),
+          !!action && h(Clickable, {
+            style: { marginTop: '0.25rem', textDecoration: 'underline' },
+            onClick: () => {
+              action.callback()
+              store.removeNotification(id)
+            }
+          }, [action.label])
+        ])
       ]),
       h(Link, {
         style: { alignSelf: 'start' },

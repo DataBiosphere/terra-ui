@@ -259,25 +259,37 @@ authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
 
 authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
-    const notificationId = 'nih-link-warning'
     const now = Date.now()
     const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
-    const expireStatus = Utils.cond(
-      [!expireTime, () => null],
-      [now >= expireTime, () => 'has expired'],
-      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
-    )
-    if (expireStatus) {
+    const shouldNotify = expireTime && now > expireTime - (1000 * 60 * 60 * 24)
+    if (shouldNotify) {
+      const hasExpired = now >= expireTime
+      const notificationId = hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'
+      const expireStatus = hasExpired ? 'has expired' : 'will expire soon'
+
+      const muteNotificationPreferenceKey = `mute-nih-notification/${notificationId}`
+      const muteNotificationUntil = getLocalPref(muteNotificationPreferenceKey)
+      if (muteNotificationUntil && muteNotificationUntil >= expireTime) {
+        return
+      }
+
       notify('info', `Your access to NIH Controlled Access workspaces and data ${expireStatus}.`, {
         id: notificationId,
         message: h(Fragment, [
           'To regain access, ',
           h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
           ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
-        ])
+        ]),
+        action: {
+          label: 'Do not remind me again',
+          callback: () => {
+            setLocalPref(muteNotificationPreferenceKey, expireTime)
+          }
+        }
       })
     } else {
-      clearNotification(notificationId)
+      clearNotification('nih-link-expired')
+      clearNotification('nih-link-expires-soon')
     }
   }
 })
