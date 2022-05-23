@@ -25,17 +25,20 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
 
   const signal = useCancellation()
+  const isGoogleWorkspace = !!googleProject
 
   useOnMount(() => {
     const load = Utils.withBusyState(setLoading, async () => {
-      const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
-        Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-        Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-      ])
-      setApps(currentWorkspaceAppList)
-      setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
-      setWorkspaceBucketUsageInBytes(usageInBytes)
+      if (isGoogleWorkspace) {
+        const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
+          Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
+          Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+          Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+        ])
+        setApps(currentWorkspaceAppList)
+        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
+        setWorkspaceBucketUsageInBytes(usageInBytes)
+      }
     })
     load()
   })
@@ -64,9 +67,11 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     try {
       setDeleting(true)
       await Ajax().Workspaces.workspace(namespace, name).delete()
-      await Promise.all(
-        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
-      )
+      if (isGoogleWorkspace) {
+        await Promise.all(
+          _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
+        )
+      }
       onDismiss()
       onSuccess()
     } catch (error) {
@@ -96,7 +101,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     div(['Are you sure you want to permanently delete the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
       '?']),
-    !!googleProject && div({ style: { marginTop: '1rem' } }, [
+    isGoogleWorkspace && div({ style: { marginTop: '1rem' } }, [
       'Deleting it will delete the associated ',
       h(Link, {
         ...Utils.newTabLinkProps,
