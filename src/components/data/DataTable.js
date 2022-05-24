@@ -367,10 +367,6 @@ const DataTable = props => {
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
                       const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
-                      const itemsLink = (!!dataInfo && _.isArray(dataInfo.items)) && h(Link, {
-                        style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
-                        onClick: () => setViewData(dataInfo)
-                      }, ` (${dataInfo.items.length} items)`)
                       const divider = div({ style: { flexGrow: 1 } })
                       const editLink = editable && h(EditDataLink, {
                         'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
@@ -379,7 +375,19 @@ const DataTable = props => {
                         onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
                       })
 
-                      return h(Fragment, [dataCell, itemsLink, divider, editLink])
+                      if (!!dataInfo && _.isArray(dataInfo.items)) {
+                        const isPlural = dataInfo.items.length !== 1
+                        const label = dataInfo?.itemsType === 'EntityReference' ?
+                          isPlural ? 'entities' : 'entity' :
+                          isPlural ? 'items' : 'item'
+                        const itemsLink = h(Link, {
+                          style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                          onClick: () => setViewData(dataInfo)
+                        }, ` (${dataInfo.items.length} ${label})`)
+                        return h(Fragment, [dataCell, itemsLink, divider, editLink])
+                      } else {
+                        return h(Fragment, [dataCell, divider, editLink])
+                      }
                     }
                   }
                 }, _.filter('visible', columnSettings))
