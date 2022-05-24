@@ -383,7 +383,7 @@ const DataTable = props => {
                           style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
                           onClick: () => setViewData(dataInfo)
                         }, ` (${dataInfo.items.length} ${label})`)
-                        return h(Fragment, [dataCell, itemsLink, divider, editLink])
+                        return h(Fragment, [dataCell, divider, editLink, itemsLink])
                       } else {
                         return h(Fragment, [dataCell, divider, editLink])
                       }
