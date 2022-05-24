@@ -52,6 +52,16 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+//const captureRetryFailure = (...args) => _.once(() => {
+//      console.log('capture failure')
+//      const errorAddress = _.flow(
+//        _.values,
+//        _.find(v => _.includes(v, args[0]) && v)
+//      )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
+//      console.log("errorAddress", errorAddress)
+//      Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
+//  })
+
 const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   const timeout = 5000
   const somePointInTheFuture = Date.now() + timeout
@@ -73,8 +83,9 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
+
       const shouldRetry = !error.requesterPaysError
-      if (shouldRetry) {
+      if (!shouldRetry) {
         captureFailure()
         throw error
       }
