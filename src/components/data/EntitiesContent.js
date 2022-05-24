@@ -484,7 +484,8 @@ const EntitiesContent = ({
             renderOpenWithMenu(),
             renderExportMenu({ columnSettings }),
             !snapshotName && h(ButtonSecondary, {
-              onClick: showColumnSettingsModal
+              onClick: showColumnSettingsModal,
+              disabled: !!activeCrossTableTextFilter
             }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({
