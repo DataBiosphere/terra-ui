@@ -377,3 +377,12 @@ export const formatBytes = bytes => {
   ].find(([_p, d]) => bytes >= d)
   return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
 }
+
+//Truncates an integer to the thousands, i.e. 10363 -> 10k
+export const truncateInteger = integer => {
+  if (integer < 1000) {
+    return `${integer}`
+  }
+
+  return `${Math.floor(integer / 1000)}k`
+}

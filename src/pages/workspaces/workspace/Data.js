@@ -1,6 +1,5 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import numeral from 'numeral'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
@@ -77,7 +76,7 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
       borderRadius: '1rem', marginRight: '0.5rem', backgroundColor: colors.primary(1.2), color: 'white'
     }
   },
-  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${numeral(filteredCount).format('0a')}`)
+  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`)
 }
 
 const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
