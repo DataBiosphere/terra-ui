@@ -367,21 +367,19 @@ const DataTable = props => {
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
                       const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
-                      return h(Fragment, [
-                        (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          h(Link, {
-                            tooltip: `${dataInfo.items.length} items`,
-                            style: Style.noWrapEllipsis,
-                            onClick: () => setViewData(dataInfo)
-                          }, [dataCell]) : dataCell,
-                        div({ style: { flexGrow: 1 } }),
-                        editable && h(EditDataLink, {
-                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          'aria-haspopup': 'dialog',
-                          'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
-                        })
-                      ])
+                      const itemsLink = (!!dataInfo && _.isArray(dataInfo.items)) && h(Link, {
+                        style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                        onClick: () => setViewData(dataInfo)
+                      }, ` (${dataInfo.items.length} items)`)
+                      const divider = div({ style: { flexGrow: 1 } })
+                      const editLink = editable && h(EditDataLink, {
+                        'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                        'aria-haspopup': 'dialog',
+                        'aria-expanded': !!updatingEntity,
+                        onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
+                      })
+
+                      return h(Fragment, [dataCell, itemsLink, divider, editLink])
                     }
                   }
                 }, _.filter('visible', columnSettings))
