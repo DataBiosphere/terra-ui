@@ -83,7 +83,7 @@ const normalizeDataset = dataset => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.intersection(dataset.roles, ['reader', 'owner']).length > 0 ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
+    access: dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
   }
 }
 
