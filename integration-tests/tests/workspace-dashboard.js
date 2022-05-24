@@ -1,11 +1,37 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { clickNavChildAndLoad, overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
-const { assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, noSpinnersAfter } = require('../utils/integration-utils')
+const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
+const {
+  assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, navChild, noSpinnersAfter
+} = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
+  const clickWorkspaceActionMenu = async testPage => {
+    const clickOrDismiss = async () => {
+      try {
+        await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+        return true
+      } catch (error) {
+        console.log('Unable to click "Workspace Action Menu", dismissing notifications.')
+        await dismissNotifications(testPage)
+        return false
+      }
+    }
+    let clicked = await clickOrDismiss()
+    let counter = 0
+    // Multiple notifications appear, and dismissNotifications has delays to allow animation to happen.
+    while (!clicked && counter < 5) {
+      clicked = await clickOrDismiss()
+      counter = counter + 1
+    }
+    if (!clicked) {
+      throw new Error('Was not able to click the "Workspace Action Menu", even after dismissing notifications')
+    }
+  }
+
   return {
     visit: async (loadUrl = true) => {
       if (loadUrl) {
@@ -28,7 +54,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+      await clickWorkspaceActionMenu(testPage)
       await Promise.all(_.map(async ({ label, tooltip }) => {
         if (!!tooltip) {
           await findElement(testPage, clickable({ textContains: label, isEnabled: false }))
@@ -41,23 +67,24 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
 
     assertLockWorkspace: async () => {
       await assertTextNotFound(testPage, 'Workspace is locked')
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+      await clickWorkspaceActionMenu(testPage)
       await click(testPage, clickable({ textContains: 'Lock' }))
-      await noSpinnersAfter(testPage, { action: () => click(page, clickable({ textContains: 'Lock Workspace' })) })
+      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Lock Workspace' })) })
       await findText(testPage, 'Workspace is locked')
     },
 
     assertUnlockWorkspace: async () => {
+      await dismissNotifications(testPage)
       await findText(testPage, 'Workspace is locked')
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
+      await clickWorkspaceActionMenu(testPage)
       await click(testPage, clickable({ textContains: 'Unlock' }))
-      await noSpinnersAfter(testPage, { action: () => click(page, clickable({ textContains: 'Unlock Workspace' })) })
+      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Unlock Workspace' })) })
       await assertTextNotFound(testPage, 'Workspace is locked')
     },
 
     assertTabs: async (expectedTabs, enabled) => {
       await Promise.all(_.map(async tab => {
-        await (enabled ? clickNavChildAndLoad(testPage, tab) : assertNavChildNotFound(testPage, tab))
+        await (enabled ? testPage.waitForXPath(navChild(tab)) : assertNavChildNotFound(testPage, tab))
       }, expectedTabs))
     }
   }
@@ -80,19 +107,19 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertUnlockWorkspace()
 
   // Verify other Workspace menu items are in correct state (all will be enabled).
-  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }])
+  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
-  // Click on each of the expected tabs
+  // Verify expected tabs are present.
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
 
   // Verify Analyses tab not present (config override is not set)
   await dashboard.assertTabs(['analyses'], false)
 })
 
-const googleWorkspaceDashboard = {
+registerTest({
   name: 'google-workspace',
   fn: testGoogleWorkspace
-}
+})
 
 const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription) => {
   const workspaceInfo = {
@@ -199,9 +226,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertTabs(['analyses'], true)
 })
 
-const azureWorkspaceDashboard = {
+registerTest({
   name: 'azure-workspace',
   fn: testAzureWorkspace
-}
-
-module.exports = { googleWorkspaceDashboard, azureWorkspaceDashboard }
+})

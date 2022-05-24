@@ -14,6 +14,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -63,7 +64,7 @@ const WorkflowDashboard = _.flow(
     title: 'Job History', activeTab: 'job history'
   })
 )((props, _ref) => {
-  const { namespace, name, submissionId, workflowId, workspace: { workspace: { googleProject, bucketName } } } = props
+  const { namespace, name, submissionId, workflowId, workspace, workspace: { workspace: { googleProject, bucketName } } } = props
 
   /*
    * State setup
@@ -160,6 +161,11 @@ const WorkflowDashboard = _.flow(
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                onClick: () => Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
+                  workflowId,
+                  from: 'workspace-workflow-dashboard',
+                  ...extractWorkspaceDetails(workspace.workspace)
+                }),
                 style: { display: 'flex', alignItems: 'center' },
                 tooltip: 'Job Manager'
               }, [icon('tasks', { size: 18 }), ' Job Manager']),

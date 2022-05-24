@@ -1516,6 +1516,7 @@ export const ComputeModalBase = ({
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
+        updateComputeConfig('masterMachineType', isDataproc(newRuntimeType) ? defaultDataprocMachineType : defaultGceMachineType)
       },
       isSearchable: true,
       isClearable: false,

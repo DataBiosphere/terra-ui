@@ -1,5 +1,6 @@
 const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowHas } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -25,10 +26,8 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   })
 })
 
-const testPreviewDataset = {
+registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
   timeout: 2 * 60 * 1000
-}
-
-module.exports = { testPreviewDataset }
+})
