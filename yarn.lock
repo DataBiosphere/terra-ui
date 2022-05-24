@@ -10265,13 +10265,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"numeral@npm:^2.0.6":
-  version: 2.0.6
-  resolution: "numeral@npm:2.0.6"
-  checksum: 89f011116539692bf53fde380adeb0579623d00f782703c71c0062d4a8686770c404a041ff4eef454de53925a9f75bba1fa52726057b13d40473f707730b07c2
-  languageName: node
-  linkType: hard
-
 "nwsapi@npm:^2.2.0":
   version: 2.2.0
   resolution: "nwsapi@npm:2.2.0"
@@ -14009,7 +14002,6 @@ resolve@^2.0.0-next.3:
     jszip: ^3.7.1
     lodash: ^4.17.21
     marked: ^4.0.10
-    numeral: ^2.0.6
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
     pluralize: ^8.0.0
