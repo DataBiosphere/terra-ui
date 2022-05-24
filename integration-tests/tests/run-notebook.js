@@ -45,6 +45,5 @@ const testRunNotebookFn = _.flow(
 registerTest({
   name: 'run-notebook',
   fn: testRunNotebookFn,
-  timeout: 20 * 60 * 1000,
-  targetEnvironments: [] // temporarily disabled IA-3436
+  timeout: 20 * 60 * 1000
 })
