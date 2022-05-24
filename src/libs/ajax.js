@@ -6,6 +6,7 @@ import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -56,6 +57,13 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
   const minDelay = 500
+  const captureFailure = _.once(() => {
+    const errorAddress = _.flow(
+      _.values,
+      _.find(v => _.includes(v, args[0]) && v)
+    )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
+    Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
+  })
 
   while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
@@ -66,8 +74,12 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
       const shouldRetry = !error.requesterPaysError
-
-      if (!shouldRetry) {
+      // 1. See what parameters we can add to the metric to tell us what call failed
+      //    Dig into the params, specifically args and see if we can get at the URL with the prefix
+      //    It would be nice to capture the name and/or url of the service we are requesting
+      //    This way, when we view this in mixpanel, we can see how often a service fails
+      if (shouldRetry) {
+        captureFailure()
         throw error
       }
       // ignore error will retry
@@ -154,7 +166,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'), withRetryOnError)(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
