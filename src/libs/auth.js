@@ -264,16 +264,22 @@ authStore.subscribe((state, oldState) => {
     const shouldNotify = expireTime && now > expireTime - (1000 * 60 * 60 * 24)
     if (shouldNotify) {
       const hasExpired = now >= expireTime
-      const notificationId = hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'
-      const expireStatus = hasExpired ? 'has expired' : 'will expire soon'
 
+      // There are separate notification IDs for expired and expires soon so that mute preferences can be stored
+      // individually for each. If a user mutes the expires soon notification, we still want to show them the expired
+      // notification.
+      const notificationId = hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'
+
+      // If/when the notification is muted, the current expiration time of the NIH link is stored in local preferences.
+      // This lets us apply the mute preference only to the current NIH link. If the user re-links their NIH account
+      // after muting notifications, we want to show these notifications the next time the link will expire.
       const muteNotificationPreferenceKey = `mute-nih-notification/${notificationId}`
       const muteNotificationUntil = getLocalPref(muteNotificationPreferenceKey)
       if (muteNotificationUntil && muteNotificationUntil >= expireTime) {
         return
       }
 
-      notify('info', `Your access to NIH Controlled Access workspaces and data ${expireStatus}.`, {
+      notify('info', `Your access to NIH Controlled Access workspaces and data ${hasExpired ? 'has expired' : 'will expire soon'}.`, {
         id: notificationId,
         message: h(Fragment, [
           'To regain access, ',
