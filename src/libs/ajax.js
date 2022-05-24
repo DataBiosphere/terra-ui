@@ -74,10 +74,6 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
       const shouldRetry = !error.requesterPaysError
-      // 1. See what parameters we can add to the metric to tell us what call failed
-      //    Dig into the params, specifically args and see if we can get at the URL with the prefix
-      //    It would be nice to capture the name and/or url of the service we are requesting
-      //    This way, when we view this in mixpanel, we can see how often a service fails
       if (shouldRetry) {
         captureFailure()
         throw error
