@@ -1,5 +1,6 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
+import numeral from 'numeral'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
@@ -72,11 +73,11 @@ const styles = {
 const SearchResultsPill = ({ filteredCount, searching }) => {
   return div({
     style: {
-      width: '7ch', textAlign: 'center', padding: '0.25rem', fontWeight: 600,
+      width: '5ch', textAlign: 'center', padding: '0.25rem 0rem', fontWeight: 600,
       borderRadius: '1rem', marginRight: '0.5rem', backgroundColor: colors.primary(1.2), color: 'white'
     }
   },
-  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${filteredCount}`)
+  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${numeral(filteredCount).format('0a')}`)
 }
 
 const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
@@ -91,7 +92,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     h(Clickable, {
       style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
-        tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
+        tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'}${activeCrossTableTextFilter ? `, ${filteredCount} visible` : ''})` : undefined,
         tooltipDelay: 250,
         useTooltipAsLabel: true
       } : {}),
@@ -586,7 +587,7 @@ const WorkspaceData = _.flow(
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
-  const [sidebarWidth, setSidebarWidth] = useState(340)
+  const [sidebarWidth, setSidebarWidth] = useState(280)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
