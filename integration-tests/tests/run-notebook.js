@@ -3,6 +3,7 @@ const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/int
 const {
   click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findIframe, findText
 } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 
 
 const notebookName = 'TestNotebook'
@@ -40,10 +41,10 @@ const testRunNotebookFn = _.flow(
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
 })
-const testRunNotebook = {
+
+registerTest({
   name: 'run-notebook',
   fn: testRunNotebookFn,
-  timeout: 20 * 60 * 1000
-}
-
-module.exports = { testRunNotebook }
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: [] // temporarily disabled IA-3436
+})

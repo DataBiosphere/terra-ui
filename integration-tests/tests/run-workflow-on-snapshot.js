@@ -1,10 +1,11 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
 const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require(
   '../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { launchWorkflowAndWaitForSuccess } = require('../utils/workflow-utils')
 
 
 const snapshotName = 'testsnapshot'
@@ -71,10 +72,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await findText(page, 'result: ')
 })
 
-const testRunWorkflowOnSnapshot = {
+registerTest({
   name: 'run-workflow-on-snapshot',
   fn: testRunWorkflowOnSnapshotFn,
   timeout: 15 * 60 * 1000
-}
-
-module.exports = { testRunWorkflowOnSnapshot }
+})

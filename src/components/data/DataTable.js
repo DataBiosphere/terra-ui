@@ -14,6 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -55,6 +56,7 @@ const DataTable = props => {
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
+    activeCrossTableTextFilter,
     persist, refreshKey, firstRender,
     snapshotName,
     deleteColumnUpdateMetadata,
@@ -134,7 +136,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter })
+          { filterTerms: activeCrossTableTextFilter || activeTextFilter })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -219,7 +221,7 @@ const DataTable = props => {
     if (persist) {
       StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -236,7 +238,8 @@ const DataTable = props => {
 
 
   // Render
-  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
+  // If there is an active cross table search, temporarily reset the column settings to show all columns
+  const columnSettings = activeCrossTableTextFilter ? applyColumnSettings([], entityMetadata[entityType].attributeNames) : applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
@@ -357,10 +360,9 @@ const DataTable = props => {
                         ]
                       }, [
                         h(HeaderCell, [
-                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
-                            columnNamespace)
-                        ]),
-                        [columnName]
+                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                          columnName
+                        ])
                       ])
                     ]),
                     cellRenderer: ({ rowIndex }) => {
@@ -446,6 +448,7 @@ const DataTable = props => {
       workspaceId,
       onSuccess: () => {
         setRenamingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameEntity, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setRenamingEntity(undefined)
@@ -457,6 +460,7 @@ const DataTable = props => {
       workspaceId,
       onSuccess: () => {
         setUpdatingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
@@ -466,6 +470,7 @@ const DataTable = props => {
       objectName: deletingColumn,
       onConfirm: () => {
         setDeletingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteColumn, extractWorkspaceDetails(workspace.workspace))
         deleteColumn(deletingColumn)
       },
       onDismiss: () => setDeletingColumn(undefined)
@@ -475,6 +480,7 @@ const DataTable = props => {
       buttonText: 'Clear column',
       onConfirm: () => {
         setClearingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataClearColumn, extractWorkspaceDetails(workspace.workspace))
         clearColumn(clearingColumn)
       },
       onDismiss: () => setClearingColumn(undefined)

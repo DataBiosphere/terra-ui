@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -73,7 +74,7 @@ export const renderDataCell = (data, googleProject) => {
 
   const renderArray = items => {
     return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ]), Utils.toIndexPairs(items))
   }
 
@@ -500,6 +501,7 @@ export const getAttributeType = attributeValue => {
     // eslint-disable-next-line eqeqeq
     [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [isList, () => typeof attributeValue.items[0]],
+    [typeof attributeValue === 'object', () => 'json'],
     () => typeof attributeValue
   )
 
@@ -512,29 +514,40 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
   }
 
   const { type, isList } = getAttributeType(attributeValue)
+  if (type === newType) {
+    return attributeValue
+  }
 
   const baseConvertFn = Utils.switchCase(
     newType,
+    ['string', () => _.toString],
     ['reference', () => value => ({
       entityType: referenceEntityType,
-      entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
+      entityName: type === 'json' ? '' : _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
     })],
     ['number', () => value => {
       const numberVal = _.toNumber(value)
       return _.isNaN(numberVal) ? 0 : numberVal
     }],
-    [Utils.DEFAULT, () => Utils.convertValue(newType)]
+    ['boolean', () => Utils.convertValue('boolean')],
+    ['json', () => value => ({ value })],
+    [Utils.DEFAULT, () => { throw new Error(`Invalid attribute type "${newType}"`) }]
   )
   const convertFn = type === 'reference' ? _.flow(_.get('entityName'), baseConvertFn) : baseConvertFn
 
-  if (isList) {
-    return _.flow(
+  return Utils.cond(
+    [isList && newType === 'json', () => _.get('items', attributeValue)],
+    [isList, () => _.flow(
       _.update('items', _.map(convertFn)),
       _.set('itemsType', newType === 'reference' ? 'EntityReference' : 'AttributeValue')
-    )(attributeValue)
-  }
-
-  return convertFn(attributeValue)
+    )(attributeValue)],
+    [type === 'json' && _.isArray(attributeValue), () => ({
+      items: _.map(convertFn, attributeValue),
+      itemsType: newType === 'reference' ? 'EntityReference' : 'AttributeValue'
+    })],
+    [type === 'json' && newType === 'string', () => ''],
+    () => convertFn(attributeValue)
+  )
 }
 
 const renderInputForAttributeType = _.curry((attributeType, props) => {
@@ -566,6 +579,21 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
       const { value = false, ...otherProps } = props
       return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
         [h(Switch, { checked: value, ...otherProps })])
+    }],
+    ['json', () => {
+      const { value, onChange, ...otherProps } = props
+      return h(ReactJson, {
+        ...otherProps,
+        style: { ...otherProps.style, whiteSpace: 'pre-wrap' },
+        src: value,
+        displayObjectSize: false,
+        displayDataTypes: false,
+        enableClipboard: false,
+        name: false,
+        onAdd: _.flow(_.get('updated_src'), onChange),
+        onDelete: _.flow(_.get('updated_src'), onChange),
+        onEdit: _.flow(_.get('updated_src'), onChange)
+      })
     }]
   )
 })
@@ -576,11 +604,12 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
     ['string', () => ''],
     ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
     ['number', () => 0],
-    ['boolean', () => false]
+    ['boolean', () => false],
+    ['json', () => ({})]
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -604,14 +633,30 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     }
   }, [attributeValue, isList])
 
+  const typeOptions = [
+    { type: 'string' },
+    { type: 'reference', tooltip: 'A link to another entity' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+
+  if (attributeType === 'json' || showJsonTypeOption) {
+    typeOptions.push({ type: 'json', label: 'JSON' })
+  }
+
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
         legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
-        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { marginRight: '1.2rem' } }, [
+        div({
+          style: {
+            display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
+            marginBottom: '0.5rem'
+          }
+        }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
             h(RadioButton, {
-              text: _.startCase(type),
+              text: label || _.startCase(type),
               name: 'edit-type',
               checked: attributeType === type,
               onChange: () => {
@@ -622,12 +667,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             })
           ])
         ]),
-        [
-          { type: 'string' },
-          { type: 'reference', tooltip: 'A link to another entity' },
-          { type: 'number' },
-          { type: 'boolean' }
-        ])
+        typeOptions)
         )
       ]),
       attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
@@ -647,7 +687,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
         ])])
       ])
     ]),
-    div({ style: { marginBottom: '0.5rem' } }, [
+    attributeType !== 'json' && div({ style: { marginBottom: '0.5rem' } }, [
       h(LabeledCheckbox, {
         checked: isList,
         onChange: willBeList => {
@@ -662,7 +702,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     ]),
     isList ?
       h(Fragment, [
-        div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+        div({ style: { marginTop: '1rem' } }, _.map(([i, value]) => div({
           style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
         }, [
           renderInput({
@@ -721,6 +761,7 @@ export const prepareAttributeForUpload = attributeValue => {
 }
 
 export const SingleEntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const { type: originalValueType } = getAttributeType(attributeValue)
   const [newValue, setNewValue] = useState(attributeValue)
   const isUnchanged = _.isEqual(attributeValue, newValue)
 
@@ -784,7 +825,8 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
           autoFocus: true,
           value: newValue,
           onChange: setNewValue,
-          entityTypes
+          entityTypes,
+          showJsonTypeOption: originalValueType === 'json'
         }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),

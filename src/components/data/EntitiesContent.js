@@ -211,7 +211,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -439,6 +439,7 @@ const EntitiesContent = ({
             const str = buildTSV(columnSettings, _.values(selectedEntities))
             await clipboard.writeText(str)
             notify('success', 'Successfully copied to clipboard.', { timeout: 3000 })
+            Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace))
           })
         }, 'Copy to clipboard')
       ])
@@ -471,7 +472,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
+        entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {
@@ -484,7 +485,8 @@ const EntitiesContent = ({
             renderOpenWithMenu(),
             renderExportMenu({ columnSettings }),
             !snapshotName && h(ButtonSecondary, {
-              onClick: showColumnSettingsModal
+              onClick: showColumnSettingsModal,
+              disabled: !!activeCrossTableTextFilter
             }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
             div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
             div({
@@ -519,7 +521,10 @@ const EntitiesContent = ({
         entityTypes: _.keys(entityMetadata),
         workspaceId: { namespace, name },
         onDismiss: () => setAddingEntity(false),
-        onSuccess: () => setRefreshKey(_.add(1))
+        onSuccess: () => {
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddRow, extractWorkspaceDetails(workspace.workspace))
+          setRefreshKey(_.add(1))
+        }
       }),
       addingColumn && h(AddColumnModal, {
         entityType: entityKey,
@@ -528,6 +533,7 @@ const EntitiesContent = ({
         onDismiss: () => setAddingColumn(false),
         onSuccess: () => {
           setAddingColumn(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddColumn, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
         }
       }),
@@ -540,6 +546,7 @@ const EntitiesContent = ({
         onDismiss: () => setEditingEntities(false),
         onSuccess: () => {
           setEditingEntities(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataEditMultiple, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
         }
       }),
@@ -550,6 +557,7 @@ const EntitiesContent = ({
         onDismiss: () => setCreatingSet(false),
         onSuccess: () => {
           setCreatingSet(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataCreateSet, extractWorkspaceDetails(workspace.workspace))
           loadMetadata()
         }
       }),

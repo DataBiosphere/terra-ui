@@ -16,7 +16,7 @@ import { isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName } }, onDismiss, onSuccess }) => {
+const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName, googleProject } }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loading, setLoading] = useState(false)
@@ -25,22 +25,39 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const [workspaceBucketUsageInBytes, setWorkspaceBucketUsageInBytes] = useState()
 
   const signal = useCancellation()
+  const isGoogleWorkspace = !!googleProject
 
   useOnMount(() => {
     const load = Utils.withBusyState(setLoading, async () => {
-      const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
-        Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-        Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-      ])
-      setApps(currentWorkspaceAppList)
-      setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
-      setWorkspaceBucketUsageInBytes(usageInBytes)
+      if (isGoogleWorkspace) {
+        const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
+          Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
+          Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+          Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+        ])
+        setApps(currentWorkspaceAppList)
+        setCollaboratorEmails(_.without([getUser().email], _.keys(acl)))
+        setWorkspaceBucketUsageInBytes(usageInBytes)
+      }
     })
     load()
   })
 
   const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps)
+
+  const getStorageDeletionMessage = () => {
+    return div({ style: { marginTop: '1rem' } }, [
+      'Deleting it will delete the associated ',
+      isGoogleWorkspace ? h(Link, {
+        ...Utils.newTabLinkProps,
+        href: bucketBrowserUrl(bucketName)
+      }, ['Google Cloud Bucket']) :
+        'Azure Storage Container',
+      ' and all its data',
+      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
+      '.'
+    ])
+  }
 
   const getAppDeletionMessage = () => {
     return !_.isEmpty(nonDeletableApps) ?
@@ -64,9 +81,11 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     try {
       setDeleting(true)
       await Ajax().Workspaces.workspace(namespace, name).delete()
-      await Promise.all(
-        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
-      )
+      if (isGoogleWorkspace) {
+        await Promise.all(
+          _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
+        )
+      }
       onDismiss()
       onSuccess()
     } catch (error) {
@@ -96,16 +115,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     div(['Are you sure you want to permanently delete the workspace ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
       '?']),
-    div({ style: { marginTop: '1rem' } }, [
-      'Deleting it will delete the associated ',
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: bucketBrowserUrl(bucketName)
-      }, ['Google Cloud Bucket']),
-      ' and all its data',
-      workspaceBucketUsageInBytes !== undefined && span({ style: { fontWeight: 600 } }, ` (${Utils.formatBytes(workspaceBucketUsageInBytes)})`),
-      '.'
-    ]),
+    getStorageDeletionMessage(),
     hasApps() && div({ style: { marginTop: '1rem' } }, [
       p(['Deleting it will also delete any associated applications:']),
       getAppDeletionMessage()

@@ -1,6 +1,7 @@
 const { linkDataToWorkspace, eitherThrow } = require('../utils/catalog-utils')
 const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
 const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -43,10 +44,9 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, te
   }
 })
 
-const testLinkToNewWorkspace = {
+registerTest({
   name: 'link-to-new-workspace',
   fn: testLinkToNewWorkspaceFn,
-  timeout: 2 * 60 * 1000
-}
-
-module.exports = { testLinkToNewWorkspace }
+  timeout: 2 * 60 * 1000,
+  targetEnvironments: ['dev', 'local']
+})
