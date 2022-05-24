@@ -380,7 +380,7 @@ export const formatBytes = bytes => {
 
 //Truncates an integer to the thousands, i.e. 10363 -> 10k
 export const truncateInteger = integer => {
-  if (integer < 1000) {
+  if (integer < 10000) {
     return `${integer}`
   }
 
