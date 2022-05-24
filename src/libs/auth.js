@@ -270,9 +270,10 @@ authStore.subscribe((state, oldState) => {
       // notification.
       const notificationId = hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'
 
-      // If/when the notification is muted, the current expiration time of the NIH link is stored in local preferences.
+      // If/when the notification is muted, the expiration time of the current NIH link is stored in local preferences.
       // This lets us apply the mute preference only to the current NIH link. If the user re-links their NIH account
-      // after muting notifications, we want to show these notifications the next time the link will expire.
+      // after muting notifications, we want to show these notifications when the new link will expire. In that case,
+      // the new link will have an expiration time greater than the time stored in the mute preference.
       const muteNotificationPreferenceKey = `mute-nih-notification/${notificationId}`
       const muteNotificationUntil = getLocalPref(muteNotificationPreferenceKey)
       if (muteNotificationUntil && muteNotificationUntil >= expireTime) {
