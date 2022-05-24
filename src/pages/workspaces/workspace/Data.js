@@ -780,7 +780,7 @@ const WorkspaceData = _.flow(
                   defaultValue: activeCrossTableTextFilter
                 })
               ]),
-              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearchInProgress ? ['Loading...', [icon('loadingSpinner', { size: 13, color: colors.primary() })]] : [`${_.sum(_.map(c => c.filteredCount, crossTableResultCounts))} results`]),
+              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } }, crossTableSearchInProgress ? ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })] : [`${_.sum(_.map(c => c.filteredCount, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
