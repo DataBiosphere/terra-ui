@@ -184,14 +184,9 @@ export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
     [_.has('items', value), () => {
-      const isPlural = value.items.length !== 1
-      const label = value.itemsType === 'EntityReference' ?
-        isPlural ? 'entities' : 'entity' :
-        isPlural ? 'items' : 'item'
-
       return machineReadable ?
         JSON.stringify(value.items) :
-        `${value.items.length} ${label}`
+        _.map(entityAttributeText, value.items).join(', ')
     }],
     [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
     () => value

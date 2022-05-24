@@ -18,7 +18,6 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -369,20 +368,27 @@ const DataTable = props => {
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
                       const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
-                      return h(Fragment, [
-                        (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          h(Link, {
-                            style: Style.noWrapEllipsis,
-                            onClick: () => setViewData(dataInfo)
-                          }, [dataCell]) : dataCell,
-                        div({ style: { flexGrow: 1 } }),
-                        editable && h(EditDataLink, {
-                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          'aria-haspopup': 'dialog',
-                          'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
-                        })
-                      ])
+                      const divider = div({ style: { flexGrow: 1 } })
+                      const editLink = editable && h(EditDataLink, {
+                        'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                        'aria-haspopup': 'dialog',
+                        'aria-expanded': !!updatingEntity,
+                        onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
+                      })
+
+                      if (!!dataInfo && _.isArray(dataInfo.items)) {
+                        const isPlural = dataInfo.items.length !== 1
+                        const label = dataInfo?.itemsType === 'EntityReference' ?
+                          isPlural ? 'entities' : 'entity' :
+                          isPlural ? 'items' : 'item'
+                        const itemsLink = h(Link, {
+                          style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                          onClick: () => setViewData(dataInfo)
+                        }, ` (${dataInfo.items.length} ${label})`)
+                        return h(Fragment, [dataCell, divider, editLink, itemsLink])
+                      } else {
+                        return h(Fragment, [dataCell, divider, editLink])
+                      }
                     }
                   }
                 }, _.filter('visible', columnSettings))
