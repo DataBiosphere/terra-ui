@@ -14,6 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -439,6 +440,7 @@ const DataTable = props => {
       workspaceId,
       onSuccess: () => {
         setRenamingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameEntity, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setRenamingEntity(undefined)
@@ -450,6 +452,7 @@ const DataTable = props => {
       workspaceId,
       onSuccess: () => {
         setUpdatingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
@@ -459,6 +462,7 @@ const DataTable = props => {
       objectName: deletingColumn,
       onConfirm: () => {
         setDeletingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteColumn, extractWorkspaceDetails(workspace.workspace))
         deleteColumn(deletingColumn)
       },
       onDismiss: () => setDeletingColumn(undefined)
@@ -468,6 +472,7 @@ const DataTable = props => {
       buttonText: 'Clear column',
       onConfirm: () => {
         setClearingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataClearColumn, extractWorkspaceDetails(workspace.workspace))
         clearColumn(clearingColumn)
       },
       onDismiss: () => setClearingColumn(undefined)
