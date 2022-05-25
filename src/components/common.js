@@ -507,7 +507,7 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
   })
 })
 
-export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
+export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
   const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
   return h(FooterWrapper, { alwaysShow: true }, [
@@ -523,18 +523,25 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      h1({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
+      h1({ style: { fontSize: 54 } }, [
+        'Welcome to ',
+        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, getAppName(isTerra()))
+      ]),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
-        `${getAppName(true)} is a ${Utils.cond(
+        `${getAppName(!isTerra())} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
           [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
           [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        span({ style: { whiteSpace: 'nowrap' } }, ['and', strong([' collaborate'])]),
-        isProjectSingular() && ' to advance research around single ventricle heart disease',
-        '.'
+        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '. ']),
+        showDocLink ?
+          h(Link, {
+            style: { textDecoration: 'underline' },
+            href: `https://support.terra.bio/hc/en-us`,
+            ...Utils.newTabLinkProps
+          }, ['Learn more about Terra.']) : null
       ]),
       children
     ])
