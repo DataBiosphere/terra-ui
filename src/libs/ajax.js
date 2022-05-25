@@ -53,12 +53,10 @@ const withCancellation = wrappedFetch => async (...args) => {
 }
 
 const captureRetryFailure = (...args) => {
-  console.log("args", args)
   const errorAddress = _.flow(
     _.values,
     _.find(v => _.includes(v, args[0]) && v)
   )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
-  console.log("errorAddress", errorAddress)
   Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
 }
 
