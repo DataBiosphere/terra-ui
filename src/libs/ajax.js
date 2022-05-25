@@ -52,15 +52,15 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-//const captureRetryFailure = (...args) => _.once(() => {
-//      console.log('capture failure')
-//      const errorAddress = _.flow(
-//        _.values,
-//        _.find(v => _.includes(v, args[0]) && v)
-//      )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
-//      console.log("errorAddress", errorAddress)
-//      Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
-//  })
+//const captureRetryFailure = (...args) => _.once((...args) => {
+//  console.log('capture failure')
+//  const errorAddress = _.flow(
+//    _.values,
+//    _.find(v => _.includes(v, args[0]) && v)
+//  )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
+//  console.log("errorAddress", errorAddress)
+//  Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
+//})
 
 const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   const timeout = 5000
@@ -84,8 +84,9 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
 
-      const shouldRetry = !error.requesterPaysError
-      if (!shouldRetry) {
+      const shouldNotRetry = Boolean(error.requesterPaysError)
+
+      if (shouldNotRetry) {
         captureFailure()
         throw error
       }
