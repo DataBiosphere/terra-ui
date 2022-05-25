@@ -13,6 +13,7 @@ import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
+import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { forwardRefWithName, useLabelAssert, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -626,7 +627,7 @@ export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger
 }, [h(TextCell, props, [children])])
 
 export const HeaderCell = props => {
-  return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
+  return h(TextCell, _.merge({ style: { fontWeight: isDataTabRedesignEnabled() ? 600 : 500 } }, props))
 }
 
 export const Sortable = ({ sort, field, onSort, children }) => {

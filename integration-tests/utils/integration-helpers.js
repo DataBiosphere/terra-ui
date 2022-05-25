@@ -1,6 +1,5 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
-
 const {
   click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
 } = require('./integration-utils')
@@ -27,38 +26,59 @@ const clipToken = str => str.toString().substr(-10, 10)
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
+
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+    const response = await page.evaluate(async (name, billingProject) => {
+      try {
+        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+      } catch (err) {
+        const message = await err.text()
+        throw message
+      }
     }, workspaceName, billingProject)
 
     console.info(`Created workspace: ${workspaceName}`)
+    console.info(response)
   } catch (e) {
-    throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}`)
+    console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.error(e)
+    throw e
   }
   return workspaceName
 })
 
+
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    const response = await page.evaluate(async (name, billingProject) => {
+      try {
+        const response = await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+        return response.text()
+      } catch (err) {
+        const message = await err.text()
+        throw message
+      }
     }, workspaceName, billingProject)
 
     console.info(`Deleted workspace: ${workspaceName}`)
+    console.info(response)
   } catch (e) {
-    throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}`)
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.error(e)
+    throw e
   }
 })
 
 const withWorkspace = test => async options => {
+  console.log('withWorkspace ...')
   const workspaceName = await makeWorkspace(options)
 
   try {
     await test({ ...options, workspaceName })
   } finally {
+    console.log('withWorkspace cleanup ...')
     await deleteWorkspace({ ...options, workspaceName })
   }
 }
@@ -92,11 +112,13 @@ const makeUser = async () => {
 }
 
 const withUser = test => async args => {
+  console.log('withUser ...')
   const { email, token } = await makeUser()
 
   try {
     await test({ ...args, email, token })
   } finally {
+    console.log('withUser cleanup ...')
     await fetchLyle('delete', email)
   }
 }
@@ -126,11 +148,13 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
 })
 
 const withBilling = test => async options => {
+  console.log('withBilling ...')
   await addUserToBilling(options)
 
   try {
     await test({ ...options })
   } finally {
+    console.log('withBilling cleanup ...')
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
   }

@@ -2,9 +2,7 @@ import 'src/libs/routes'
 
 import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
-import { AuthProvider } from 'react-oidc-context'
 import AuthContainer from 'src/components/AuthContainer'
-import AuthStoreSetter from 'src/components/AuthStoreSetter'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import CookieRejectModal from 'src/components/CookieRejectModal'
 import CookieWarning from 'src/components/CookieWarning'
@@ -17,7 +15,6 @@ import NpsSurvey from 'src/components/NpsSurvey'
 import { AuthenticatedCookieSetter } from 'src/components/runtime-common'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
-import { getOidcConfig } from 'src/libs/auth'
 import { PageViewReporter } from 'src/libs/events'
 import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/libs/nav'
 
@@ -36,9 +33,6 @@ const Main = () => {
       h(TitleManager),
       h(FirecloudNotification),
       h(AuthenticatedCookieSetter),
-      h(AuthProvider, getOidcConfig(), [
-        h(AuthStoreSetter)
-      ]),
       h(AuthContainer, [h(Router)])
     ]),
     h(PageViewReporter),

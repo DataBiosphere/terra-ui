@@ -127,7 +127,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       {
         size: { basis: 360, grow: 0 },
         field: 'workflowVariable',
-        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
+        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
           return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
@@ -143,7 +143,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       },
       {
         headerRenderer: () => h(Fragment, [
-          div({ style: { fontWeight: 'bold' } }, ['Attribute']),
+          h(HeaderCell, ['Attribute']),
           !readOnly && !isSnapshot && which === 'outputs' && h(Fragment, [
             div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
             h(Link, { onClick: onSetDefaults }, ['Use defaults'])
