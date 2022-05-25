@@ -16,7 +16,6 @@ const eventsList = {
   analysisDisableBeta: 'analysis:disable',
   analysisLaunch: 'analysis:launch',
   analysisCreate: 'analysis:create',
-  analysisRetry: 'analysis:retry',
   billingProjectExpandWorkspace: 'billing:project:workspace:expand',
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',
