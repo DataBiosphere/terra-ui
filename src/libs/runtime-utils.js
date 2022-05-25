@@ -35,7 +35,7 @@ export const pdTypes = {
   balanced: {
     label: 'pd-balanced',
     displayName: 'Balanced',
-    regionToPricesName: 'balancedDiskPrice'
+    regionToPricesName: 'monthlyBalancedDiskPrice'
   },
   fromString: str => Utils.switchCase(str,
     [pdTypes.standard.label, () => pdTypes.standard],
