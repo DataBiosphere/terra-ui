@@ -260,12 +260,11 @@ const DataTable = props => {
         isSearchAwesomeNow && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
-          // Make the width of the dropdown menu match the width of the button.
           popupProps: { style: { width: 250 } },
           content: h(Fragment, [
             div({ style: { padding: '1rem' } }, [
               div({ style: { fontWeight: 600 } }, ['Search logic']),
-              div({ role: 'radiogroup', 'aria-label': 'please choose the operator for the advanced search' }, [
+              div({ role: 'radiogroup', 'aria-label': 'choose an operator to use for advanced search' }, [
                 div({ style: { paddingTop: '0.5rem' } }, [
                   h(RadioButton, {
                     text: 'AND (rows with all terms)',
