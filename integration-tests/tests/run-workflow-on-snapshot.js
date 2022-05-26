@@ -6,6 +6,7 @@ const { click, clickable, fillInReplace, findElement, findText, input, select, s
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { launchWorkflowAndWaitForSuccess } = require('../utils/workflow-utils')
+const { clickNavChildAndLoad } = require('integration-tests/utils/integration-helpers')
 
 
 const snapshotName = 'testsnapshot'
@@ -65,7 +66,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await launchWorkflowAndWaitForSuccess(page)
 
-  await click(page, navChild('data'))
+  await clickNavChildAndLoad(page, 'data')
   await click(page, clickable({ textContains: 'Workspace Data' }))
   await findText(page, 'result: ')
 })
