@@ -215,7 +215,7 @@ const Environments = () => {
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return !!name ?
       h(Fragment, [
-        h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word'} }, [name]),
+        h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
         shouldWarn && h(TooltipTrigger, {
           content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
         }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -347,7 +347,7 @@ const Environments = () => {
           {
             size: { basis: 250 },
             field: 'project',
-            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort, }, ['Billing project']),
+            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const { googleProject, labels: { saturnWorkspaceNamespace = googleProject } } = filteredCloudEnvironments[rowIndex]
               return saturnWorkspaceNamespace
@@ -356,7 +356,6 @@ const Environments = () => {
           {
             size: { basis: 250 },
             field: 'workspace',
-            style: { wordBreak: 'break-word' },
             headerRenderer: () => h(Sortable, { sort, field: 'workspace', onSort: setSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
