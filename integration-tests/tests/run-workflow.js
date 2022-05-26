@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { checkBucketAccess, withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
+const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, navChild, findInDataTableRow } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -17,8 +17,6 @@ const testRunWorkflowFn = _.flow(
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
   // Wait for bucket access to avoid sporadic failure when launching workflow.
-  await checkBucketAccess(page, billingProject, workspaceName)
-
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await waitForNoSpinners(page)
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)

@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
+const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require(
   '../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
@@ -39,8 +39,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
-  // Wait for bucket access to avoid sporadic failure when launching workflow.
-  await checkBucketAccess(page, billingProject, workspaceName)
 
   // ADD WORKFLOW
   await click(page, navChild('workflows'))
