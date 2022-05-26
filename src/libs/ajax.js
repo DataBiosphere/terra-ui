@@ -52,20 +52,12 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-const captureRetryFailure = (...args) => {
-  const errorAddress = _.flow(
-    _.values,
-    _.find(v => _.includes(v, args[0]) && v)
-  )([..._.values(getConfig()), 'https://storage.googleapis.com/'])
-  Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
-}
-
 const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   const timeout = 5000
   const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
   const minDelay = 500
-  const captureFailure = _.once(() => captureRetryFailure(...args))
+  //const captureFailure = _.once(() => captureRetryFailure(...args))
 
   while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
@@ -77,7 +69,7 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // are not transient and the request should not be retried.
 
       const shouldNotRetry = Boolean(error.requesterPaysError)
-      captureFailure(args)
+      //captureFailure(args)
       if (shouldNotRetry) {
         throw error
       }
@@ -87,12 +79,21 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   return wrappedFetch(...args)
 })
 
+const captureRetryFailure = (...args) => {
+  const errorAddress = _.find(v => {
+    return _.includes(v, args[0])
+  },
+  [..._.values(getConfig()), 'https://storage.googleapis.com/'])
+  Ajax().Metrics.captureEvent(Events.requestFailed, { test: errorAddress })
+}
+
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
     return res
   } else {
+    captureRetryFailure(...args)
     throw res
   }
 }
