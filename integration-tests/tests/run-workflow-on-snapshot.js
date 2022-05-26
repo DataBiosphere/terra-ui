@@ -27,7 +27,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withUserToken,
   withDataRepoCheck
 )(async ({
-  billingProject, dataRepoUrlRoot, page, testUrl: testUrlRoot, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName
+  dataRepoUrlRoot, page, testUrl: testUrlRoot, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName
 }) => {
   if (!snapshotId) {
     return
