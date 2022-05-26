@@ -16,7 +16,6 @@ const testRunWorkflowFn = _.flow(
   await signIntoTerra(page, { token, testUrl })
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
-  // Wait for bucket access to avoid sporadic failure when launching workflow.
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await waitForNoSpinners(page)
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
