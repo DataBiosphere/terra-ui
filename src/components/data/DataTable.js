@@ -121,7 +121,7 @@ const DataTable = props => {
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
 
-  const [useAndOperatorForSearch, setUseAndOperatorForSearch] = useState(true)
+  const [filterOperator, setFilterOperator] = useState('AND')
 
   const noEdit = Utils.editWorkspaceError(workspace)
 
@@ -138,7 +138,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeCrossTableTextFilter || activeTextFilter, filterOperator: useAndOperatorForSearch ? 'and' : 'or' })
+          { filterTerms: activeCrossTableTextFilter || activeTextFilter, filterOperator })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -221,9 +221,9 @@ const DataTable = props => {
   useEffect(() => {
     loadData()
     if (persist) {
-      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter, useAndOperatorForSearch })
+      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, useAndOperatorForSearch, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -269,8 +269,8 @@ const DataTable = props => {
                   h(RadioButton, {
                     text: 'AND (rows with all terms)',
                     name: 'advanced-search-operator',
-                    checked: useAndOperatorForSearch,
-                    onChange: () => setUseAndOperatorForSearch(true),
+                    checked: filterOperator === 'AND',
+                    onChange: () => setFilterOperator('AND'),
                     labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
                   })
                 ]),
@@ -278,8 +278,8 @@ const DataTable = props => {
                   h(RadioButton, {
                     text: 'OR (rows with any term)',
                     name: 'advanced-search-operator',
-                    checked: !useAndOperatorForSearch,
-                    onChange: () => setUseAndOperatorForSearch(false),
+                    checked: filterOperator !== 'AND',
+                    onChange: () => setFilterOperator('OR'),
                     labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
                   })
                 ])
