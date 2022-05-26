@@ -57,7 +57,6 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
   const minDelay = 500
-  //const captureFailure = _.once(() => captureRetryFailure(...args))
 
   while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
@@ -69,7 +68,6 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // are not transient and the request should not be retried.
 
       const shouldNotRetry = Boolean(error.requesterPaysError)
-      //captureFailure(args)
       if (shouldNotRetry) {
         throw error
       }
@@ -96,7 +94,7 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   if (res.ok) {
     return res
   } else {
-    captureRetryFailure(...args)
+    captureRequestFailure(...args)
     throw res
   }
 }
