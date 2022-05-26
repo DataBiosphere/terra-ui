@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
@@ -12,7 +12,7 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isDataTabRedesignEnabled } from 'src/libs/config'
+import { isDataTabRedesignEnabled, isSearchAwesomeNow } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -121,6 +121,8 @@ const DataTable = props => {
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
 
+  const [useAndOperatorForSearch, setUseAndOperatorForSearch] = useState(true)
+
   const noEdit = Utils.editWorkspaceError(workspace)
 
   const table = useRef()
@@ -136,7 +138,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeCrossTableTextFilter || activeTextFilter })
+          { filterTerms: activeCrossTableTextFilter || activeTextFilter, filterOperator: useAndOperatorForSearch ? 'and' : 'or' })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -219,9 +221,9 @@ const DataTable = props => {
   useEffect(() => {
     loadData()
     if (persist) {
-      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
+      StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter, useAndOperatorForSearch })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, useAndOperatorForSearch, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -255,6 +257,39 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
+        isSearchAwesomeNow && h(MenuTrigger, {
+          side: 'bottom',
+          closeOnClick: false,
+          // Make the width of the dropdown menu match the width of the button.
+          popupProps: { style: { width: 250 } },
+          content: h(Fragment, [
+            div({ style: { padding: '1rem' } }, [
+              div({ style: { fontWeight: 600 } }, ['Search logic']),
+              div({ role: 'radiogroup', 'aria-label': 'please choose the operator for the advanced search' }, [
+                div({ style: { paddingTop: '0.5rem' } }, [
+                  h(RadioButton, {
+                    text: 'AND (rows with all terms)',
+                    name: 'advanced-search-operator',
+                    checked: useAndOperatorForSearch,
+                    onChange: () => setUseAndOperatorForSearch(true),
+                    labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+                  })
+                ]),
+                div({ style: { paddingTop: '0.5rem' } }, [
+                  h(RadioButton, {
+                    text: 'OR (rows with any term)',
+                    name: 'advanced-search-operator',
+                    checked: !useAndOperatorForSearch,
+                    onChange: () => setUseAndOperatorForSearch(false),
+                    labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+                  })
+                ])
+              ])
+            ])
+          ])
+        }, [h(ButtonSecondary, {
+          style: { margin: '0rem 1.5rem' }
+        }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
         !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
