@@ -81,9 +81,7 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
 // Captures given course in error message, compares to root addresses in app configuration plus https://storage.googleapis.com/,
 // and returns the root that matches the error.
 const captureRequestFailure = (...args) => {
-  const errorAddress = _.find(v => {
-    return _.includes(v, args[0])
-  },
+  const errorAddress = _.find(v => _.includes(v, args[0]),
   [..._.values(getConfig()), 'https://storage.googleapis.com/'])
   Ajax().Metrics.captureEvent(Events.requestFailed, { requestRoot: errorAddress })
 }
