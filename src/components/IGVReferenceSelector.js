@@ -1,8 +1,11 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { div, fieldset, h, label, legend } from 'react-hyperscript-helpers'
-import { IdContainer, Select } from 'src/components/common'
+import { Fragment, useEffect, useState } from 'react'
+import { div, fieldset, h, label, legend, li, p, ul } from 'react-hyperscript-helpers'
+import { Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import * as Style from 'src/libs/style'
 
 // Additional references supported by Terra that are not included in IGV
 const terraReferences = {
@@ -15,7 +18,7 @@ const terraReferences = {
 // The reference genome can be specified using either a 'reference' object or,
 // for IGV-hosted references, a 'genome' ID.
 // https://github.com/igvteam/igv.js/wiki/Reference-Genome
-const igvAvailableReferences = _.map(
+export const igvAvailableReferences = _.map(
   id => {
     return _.has(id, terraReferences) ?
       { label: id, value: { reference: terraReferences[id] } } :
@@ -42,6 +45,43 @@ const igvAvailableReferences = _.map(
 
 export const defaultIgvReference = { genome: 'hg38' }
 
+export const igvCustomReferencesPreferenceKey = 'igv-custom-references'
+
+const IGVCustomReferences = ({ onSelect }) => {
+  const [customReferences, setCustomReferences] = useState(() => {
+    return getLocalPref(igvCustomReferencesPreferenceKey) || []
+  })
+  useEffect(() => {
+    setLocalPref(igvCustomReferencesPreferenceKey, customReferences)
+  }, [customReferences])
+
+  return !_.isEmpty(customReferences) && h(IdContainer, [id => h(Fragment, [
+    p({ id }, ['Previously used custom references']),
+    ul({ 'aria-labelledby': id, style: { padding: 0, margin: 0, listStyleType: 'none' } },
+      _.map(
+        reference => {
+          const label = _.get('reference.name', reference) || _.flow(_.get('reference.fastaURL'), _.split('/'), _.last)(reference)
+          return li({
+            key: _.get('reference.fastaURL', reference),
+            style: { display: 'flex', padding: '0.125rem 0' }
+          }, [
+            h(Link, {
+              style: { ...Style.noWrapEllipsis, flex: '1 1 auto', minWidth: 0 },
+              onClick: () => onSelect(reference)
+            }, [label]),
+            h(Clickable, {
+              tooltip: 'Remove from this list',
+              style: { marginLeft: '1ch' },
+              onClick: () => setCustomReferences(_.remove(reference))
+            }, [icon('times')])
+          ])
+        },
+        customReferences
+      )
+    )
+  ])])
+}
+
 const IGVReferenceSelector = ({ value, onChange }) => {
   const isCustomReference = !_.find({ value }, igvAvailableReferences)
 
@@ -64,7 +104,7 @@ const IGVReferenceSelector = ({ value, onChange }) => {
       })
     ]),
     isCustomReference && fieldset({
-      style: { padding: 0, border: 0, margin: '0 0 1rem' }
+      style: { minWidth: 0, padding: 0, border: 0, margin: '0 0 1rem' }
     }, [
       legend({ style: { padding: 0 } }, ['Custom reference']),
 
@@ -114,7 +154,9 @@ const IGVReferenceSelector = ({ value, onChange }) => {
           )
           onChange(_.update('reference', update, value))
         }
-      })
+      }),
+
+      h(IGVCustomReferences, { onSelect: onChange })
     ])
   ])])
 }
