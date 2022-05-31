@@ -12,7 +12,7 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isDataTabRedesignEnabled, isSearchAwesomeNow } from 'src/libs/config'
+import { isSearchAwesomeNow } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -301,9 +301,7 @@ const DataTable = props => {
           })
         ])
       ]),
-      div({
-        style: { flex: 1, margin: isDataTabRedesignEnabled() ? 0 : '0 1rem' }
-      }, [
+      div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => {
             return h(GridTable, {
