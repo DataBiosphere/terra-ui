@@ -51,7 +51,7 @@ const launchWorkflowAndWaitForSuccess = async page => {
     }
   )
 
-  // pRetry will complete successfully if either Failed or Succeeded status if found.
+  // pRetry will complete successfully when either Failed or Succeeded status is found.
   // We need to check status here to see if workflow has succeeded or not.
   try {
     await findInGrid(page, 'Failed', { timeout: 1000 })
