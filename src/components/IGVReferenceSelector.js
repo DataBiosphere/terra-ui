@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { useState } from 'react'
+import { div, fieldset, h, label, legend } from 'react-hyperscript-helpers'
 import { IdContainer, Select } from 'src/components/common'
+import { TextInput, ValidatedInput } from 'src/components/input'
 
 // Additional references supported by Terra that are not included in IGV
 const terraReferences = {
@@ -41,14 +43,77 @@ const igvAvailableReferences = _.map(
 export const defaultIgvReference = { genome: 'hg38' }
 
 const IGVReferenceSelector = ({ value, onChange }) => {
+  const isCustomReference = !_.find({ value }, igvAvailableReferences)
+
+  const [fastaUrlInputTouched, setFastaUrlInputTouched] = useState(false)
+  const fastaUrlError = isCustomReference && fastaUrlInputTouched && !_.get('reference.fastaURL', value) && 'A FASTA URL is required'
+
   return h(IdContainer, [id => div([
     label({ htmlFor: id, style: { fontWeight: 500 } }, ['Reference genome: ']),
     div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
       h(Select, {
         id,
-        options: igvAvailableReferences,
-        value,
-        onChange: ({ value }) => onChange(value)
+        options: [...igvAvailableReferences, { value: 'Custom' }],
+        value: isCustomReference ? 'Custom' : value,
+        onChange: ({ value }) => {
+          onChange(value === 'Custom' ?
+            { reference: { fastaURL: '', indexed: false } } :
+            value
+          )
+        }
+      })
+    ]),
+    isCustomReference && fieldset({
+      style: { padding: 0, border: 0, margin: '0 0 1rem' }
+    }, [
+      legend({ style: { padding: 0 } }, ['Custom reference']),
+
+      label({
+        htmlFor: `${id}-custom-reference-name`,
+        style: { display: 'block', margin: '0.5rem 0 0.25rem' }
+      }, ['Name (optional)']),
+      h(TextInput, {
+        id: `${id}-custom-reference-name`,
+        placeholder: 'Reference name',
+        value: _.getOr('', 'reference.name', value),
+        onChange: name => {
+          const update = name ? _.set('name', name) : _.unset('name')
+          onChange(_.update('reference', update, value))
+        }
+      }),
+
+      label({
+        htmlFor: `${id}-custom-reference-fasta-url`,
+        style: { display: 'block', margin: '0.5rem 0 0.25rem' }
+      }, ['FASTA URL (required)']),
+      h(ValidatedInput, {
+        inputProps: {
+          id: `${id}-custom-reference-fasta-url`,
+          placeholder: 'gs://my-bucket/reference.fasta',
+          value: _.getOr('', 'reference.fastaURL', value),
+          onChange: fastaURL => {
+            onChange(_.set('reference.fastaURL', fastaURL, value))
+            setFastaUrlInputTouched(true)
+          }
+        },
+        error: fastaUrlError
+      }),
+
+      label({
+        htmlFor: `${id}-custom-reference-index-url`,
+        style: { display: 'block', margin: '0.5rem 0 0.25rem' }
+      }, ['Index URL (optional)']),
+      h(TextInput, {
+        id: `${id}-custom-reference-index-url`,
+        placeholder: 'gs://my-bucket/reference.fasta.fai',
+        value: _.getOr('', 'reference.indexURL', value),
+        onChange: indexURL => {
+          const update = _.flow(
+            _.set('indexed', Boolean(indexURL)),
+            indexURL ? _.set('indexURL', indexURL) : _.unset('indexURL')
+          )
+          onChange(_.update('reference', update, value))
+        }
       })
     ])
   ])])

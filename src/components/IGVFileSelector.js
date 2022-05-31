@@ -19,6 +19,8 @@ const getStrings = v => {
 
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState(defaultIgvReference)
+  const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome))
+
   const [selections, setSelections] = useState(() => {
     const allAttributeStrings = _.flow(
       _.flatMap(row => _.flatMap(getStrings, row.attributes)),
@@ -86,8 +88,11 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
     h(ButtonBar, {
       style: Style.modalDrawer.buttonBar,
       okButton: h(ButtonPrimary, {
-        disabled: !isSelectionValid,
-        tooltip: !isSelectionValid && 'Select at least one file',
+        disabled: !isSelectionValid || !isRefGenomeValid,
+        tooltip: Utils.cond(
+          [!isSelectionValid, () => 'Select at least one file'],
+          [!isRefGenomeValid, () => 'Select a reference genome']
+        ),
         onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
       }, ['Launch IGV'])
     })
