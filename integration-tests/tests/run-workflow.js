@@ -49,5 +49,5 @@ const testRunWorkflowFn = _.flow(
 registerTest({
   name: 'run-workflow',
   fn: testRunWorkflowFn,
-  timeout: 15 * 60 * 1000
+  timeout: 20 * 60 * 1000
 })
