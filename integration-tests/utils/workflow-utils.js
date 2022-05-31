@@ -13,27 +13,49 @@ const launchWorkflowAndWaitForSuccess = async page => {
   ])
   // stopLoggingPageAjaxResponses()
 
+  // If this table doesn't exists, something is wrong. Fail test now.
+  await page.waitForXPath('//*[@role="table" and @aria-label="submission details"]', { visible: true })
+
+  // Workflow status list:
+  // Queued -> Submitted -> Launching -> Running -> Succeeded or Failed
   const start = Date.now()
-  await pRetry(async () => {
+
+  // Long enough for the submission details to be Running or Failed.
+  // Workflows might sit in "Submitted" for a long time if there is a large backlog of workflows in the environment
+  const isRunning = await Promise.race([
+    findInGrid(page, 'Failed', { timeout: 5 * 60 * 1000 }).then(() => false),
+    findInGrid(page, 'Running', { timeout: 5 * 60 * 1000 }).then(() => true)
+  ])
+
+  // If status is not Running, fails test now
+  if (!isRunning) {
+    throw new Error('Workflow has failed')
+  }
+
+  // Wait until status is Succeeded or Failed
+  const workflowHasSucceeded = await pRetry(async () => {
     try {
-      await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
+      return await Promise.race([
+        findInGrid(page, 'Succeeded', { timeout: 60 * 1000 }).then(() => true),
+        findInGrid(page, 'Failed', { timeout: 60 * 1000 }).then(() => false)
+      ])
     } catch (e) {
-      try {
-        await findInGrid(page, 'Running', { timeout: 1000 })
-        console.info(`Workflow is running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
-      } catch (e) {
-        console.info(`Workflow not yet running, elapsed time (minutes): ${(Date.now() - start) / (1000 * 60)}`)
-      }
+      console.info(`Workflow is running, elapsed time (minutes): ${((Date.now() - start) / (1000 * 60)).toFixed(2)}`)
       throw new Error(e)
     }
   },
-  // Note about retries value:
-  // If there is a large backlog of workflows in the environment (for example, if there has been a large submission), workflows
-  // might sit in "Submitted" for a very long time. In that situation, it is possible that this test will fail even with a 12-minute
-  // retries value. The test runner will kill any test that goes over 15 minutes though, so keep retries under that threshold.
-  // BW-1057 should further reduce this retries value after changes have been implemented to move workflows through Cromwell more quickly.
-  { retries: 12, factor: 1 }
+  {
+    onFailedAttempt: error => {
+      console.log(`There are ${error.retriesLeft} retries left.`)
+    }, retries: 15, factor: 1
+  }
   )
+
+  // pRetry will complete successfully when either Failed or Succeeded status is found.
+  // We need to check status here to see if workflow has succeeded or not.
+  if (!workflowHasSucceeded) {
+    throw new Error('Workflow has failed')
+  }
 }
 
 module.exports = { launchWorkflowAndWaitForSuccess }

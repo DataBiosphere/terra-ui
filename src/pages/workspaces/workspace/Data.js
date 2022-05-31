@@ -89,7 +89,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
         tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'}${activeCrossTableTextFilter ? `, ${filteredCount} visible` : ''})` : undefined,
         tooltipDelay: 250,
@@ -98,17 +98,17 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      activeCrossTableTextFilter !== '' && isEntity ?
+      activeCrossTableTextFilter && isEntity ?
         SearchResultsPill({ filteredCount, searching: crossTableSearchInProgress }) :
-        div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+        div({ style: { flex: 'none', width: '1.5rem' } }, [
           icon(iconName, { size: iconSize })
         ]),
-      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
+      div({ style: { ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
-      isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
+      isEntity && div({ style: { marginLeft: '1ch' } }, `(${entityCount})`)
     ]),
-    after
+    after && div({ style: { marginLeft: '1ch' } }, [after])
   ])
 }
 
