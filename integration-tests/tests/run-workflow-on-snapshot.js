@@ -5,7 +5,7 @@ const { click, clickable, fillInReplace, findElement, findText, input, select, s
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { launchWorkflowAndWaitForSuccess } = require('../utils/workflow-utils')
-const { clickNavChildAndLoad, withWorkspace } = require('integration-tests/utils/integration-helpers')
+const { clickNavChildAndLoad, withWorkspace } = require('../utils/integration-helpers')
 
 
 const snapshotName = 'testsnapshot'
