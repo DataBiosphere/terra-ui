@@ -89,21 +89,6 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
   }, billingProject, workspaceName, testEntity)
 }
 
-const checkBucketAccess = async (page, billingProject, workspaceName, accessLevel = 'OWNER') => {
-  const details = await page.evaluate((billingProject, workspaceName) => {
-    return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
-  }, billingProject, workspaceName)
-  const bucketName = details.workspace.bucketName
-  console.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
-  // Try polling for workspace bucket access to be available.
-  await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
-    try {
-      await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketAccess(billingProject, bucketName, accessLevel)
-      return true
-    } catch (e) { return false }
-  }, { timeout: 60000, polling: 500 }, billingProject, workspaceName, bucketName, accessLevel)
-}
-
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
@@ -247,7 +232,6 @@ const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
 }
 
 module.exports = {
-  checkBucketAccess,
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,

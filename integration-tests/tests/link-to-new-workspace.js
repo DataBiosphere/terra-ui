@@ -1,6 +1,6 @@
 const { linkDataToWorkspace, eitherThrow } = require('../utils/catalog-utils')
 const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
-const { checkBucketAccess, testWorkspaceName } = require('../utils/integration-helpers')
+const { testWorkspaceName } = require('../utils/integration-helpers')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -15,7 +15,6 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, te
 
   const waitForWorkspacePage = async () => {
     try {
-      await checkBucketAccess(page, billingProject, newWorkspaceName)
       await findText(page, `${billingProject}/${newWorkspaceName}`)
       await findText(page, 'Select a data type')
     } catch (error) {
