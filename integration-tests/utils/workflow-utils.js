@@ -33,31 +33,28 @@ const launchWorkflowAndWaitForSuccess = async page => {
   }
 
   // Wait until status is Succeeded or Failed
-  await pRetry(async () => {
-      try {
-        await Promise.race([
-          findInGrid(page, 'Succeeded', { timeout: 60 * 1000 }),
-          findInGrid(page, 'Failed', { timeout: 60 * 1000 })
-        ])
-      } catch (e) {
-        console.info(`Workflow is running, elapsed time (minutes): ${((Date.now() - start) / (1000 * 60)).toFixed(2)}`)
-        throw new Error(e)
-      }
-    },
-    {
-      onFailedAttempt: error => {
-        console.log(`There are ${error.retriesLeft} retries left.`)
-      }, retries: 15, factor: 1
+  const workflowHasSucceeded = await pRetry(async () => {
+    try {
+      return await Promise.race([
+        findInGrid(page, 'Succeeded', { timeout: 60 * 1000 }).then(() => true),
+        findInGrid(page, 'Failed', { timeout: 60 * 1000 }).then(() => false)
+      ])
+    } catch (e) {
+      console.info(`Workflow is running, elapsed time (minutes): ${((Date.now() - start) / (1000 * 60)).toFixed(2)}`)
+      throw new Error(e)
     }
+  },
+  {
+    onFailedAttempt: error => {
+      console.log(`There are ${error.retriesLeft} retries left.`)
+    }, retries: 15, factor: 1
+  }
   )
 
   // pRetry will complete successfully when either Failed or Succeeded status is found.
   // We need to check status here to see if workflow has succeeded or not.
-  try {
-    await findInGrid(page, 'Failed', { timeout: 1000 })
+  if (!workflowHasSucceeded) {
     throw new Error('Workflow has failed')
-  } catch (err) {
-    // Succeeded
   }
 }
 
