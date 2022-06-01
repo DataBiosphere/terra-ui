@@ -39,9 +39,9 @@ const signIntoFirecloud = async (page, token) => {
   await page.evaluate(token => window.forceSignedIn(token), token)
 
   // Check whether redirect happened automatically after forceSignedIn
-  const pageRedirected = async page => {
+  const redirect = async page => {
     await page.waitForTimeout(500)
-    return Promise.all([
+    await Promise.all([
       page.waitForFunction(url => {
         return window.location.href !== url
       }, {}, signInPageUrl),
@@ -50,11 +50,11 @@ const signIntoFirecloud = async (page, token) => {
   }
 
   try {
-    await pageRedirected(page)
+    await redirect(page)
   } catch (err) {
     console.warn(`Retry forceSignedIn because page redirect did not happen`)
     await page.evaluate(token => window.forceSignedIn(token), token)
-    await pageRedirected(page)
+    await redirect(page)
   }
 }
 
