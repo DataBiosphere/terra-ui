@@ -6,6 +6,7 @@ import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -65,9 +66,9 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
       // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
-      const shouldRetry = !error.requesterPaysError
 
-      if (!shouldRetry) {
+      const shouldNotRetry = Boolean(error.requesterPaysError)
+      if (shouldNotRetry) {
         throw error
       }
       // ignore error will retry
@@ -76,12 +77,27 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   return wrappedFetch(...args)
 })
 
+// Captures given course in error message, compares to root addresses in app configuration plus https://storage.googleapis.com/,
+// and returns the root that matches the error.
+const captureRequestFailure = (...args) => {
+  const errorAddress = _.flow(
+    _.filter(v => v !== getConfig().bondUrlRoot),
+    _.concat('https://storage.googleapis.com/'),
+    _.find(v => _.includes(v, args[0]))
+  )(_.values(getConfig()))
+
+  if (!!errorAddress) {
+    Ajax().Metrics.captureEvent(Events.requestFailed, { requestRoot: errorAddress })
+  }
+}
+
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
     return res
   } else {
+    captureRequestFailure(...args)
     throw res
   }
 }
@@ -154,7 +170,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'), withRetryOnError)(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
