@@ -26,13 +26,36 @@ const signIntoFirecloud = async (page, token) => {
   }, { timeout: 30 * 1000 }
   )
 
-  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
+  const signInPageTitle = '//title[text()="FireCloud | Broad Institute"]'
+  await page.waitForXPath(signInPageTitle)
   await findText(page, 'content you are looking for is currently only accessible')
   await waitForNoSpinners(page)
 
-  console.log(`Sign in Firecloud: ${page.url()}`)
+  const signInPageUrl = page.url()
+  console.log(`Sign in Firecloud: ${signInPageUrl}`)
+
+  // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
   await page.waitForFunction('!!window["forceSignedIn"]')
-  await page.evaluate(token => window.forceSignedIn(token), token) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
+  await page.evaluate(token => window.forceSignedIn(token), token)
+
+  // Check whether redirect happened automatically after forceSignedIn
+  const pageRedirected = page => {
+    return Promise.all([
+      page.waitForFunction(url => {
+        return window.location.href !== url
+      }, {}, signInPageUrl),
+      page.waitForXPath(signInPageTitle, { hidden: true })
+    ])
+  }
+
+  await page.waitForTimeout(1000)
+  try {
+    await pageRedirected(page)
+  } catch (err) {
+    console.log(`Retry Firecloud forceSignedIn because page redirect did not happen`)
+    await page.evaluate(token => window.forceSignedIn(token), token)
+    await pageRedirected(page)
+  }
 }
 
 module.exports = {
