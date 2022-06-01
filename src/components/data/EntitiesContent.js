@@ -524,6 +524,7 @@ const EntitiesContent = ({
         onSuccess: () => {
           Ajax().Metrics.captureEvent(Events.workspaceDataAddRow, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
+          setEntityMetadata(_.update(`${entityKey}.count`, _.add(1)))
         }
       }),
       addingColumn && h(AddColumnModal, {
