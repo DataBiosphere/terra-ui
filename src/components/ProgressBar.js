@@ -1,4 +1,6 @@
 import filesize from 'filesize'
+import _ from 'lodash/fp'
+import { Fragment } from 'react'
 import { dd, div, dl, dt, h, p, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
@@ -79,17 +81,19 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
         style: { margin: '0.4rem 0 1rem 0', fontWeight: 600 }
       }, [filesize(currentFile.size, { round: 1 })])
     ]),
-    h(ProgressBar, {
-      max: totalBytes,
-      now: uploadedBytes
-    }),
-    p({}, [
-      'Transferred ',
-      strong([filesize(uploadedBytes, { round: 1 })]),
-      ' of ',
-      strong([filesize(totalBytes, { round: 1 })]),
-      ' ',
-      strong(['(', (uploadedBytes / totalBytes * 100).toFixed(0), '%)'])
+    _.size(totalFiles) > 1 && h(Fragment, [
+      h(ProgressBar, {
+        max: totalBytes,
+        now: uploadedBytes
+      }),
+      p({}, [
+        'Transferred ',
+        strong([filesize(uploadedBytes, { round: 1 })]),
+        ' of ',
+        strong([filesize(totalBytes, { round: 1 })]),
+        ' ',
+        strong(['(', (uploadedBytes / totalBytes * 100).toFixed(0), '%)'])
+      ])
     ])
   ])
 }
