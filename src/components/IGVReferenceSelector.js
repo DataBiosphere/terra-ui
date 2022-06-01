@@ -21,7 +21,7 @@ const terraReferences = {
 const igvAvailableReferences = _.map(
   id => {
     return _.has(id, terraReferences) ?
-      { label: id, value: { reference: terraReferences[id] } } :
+      { label: id, value: { reference: { name: id, ...terraReferences[id] } } } :
       { label: id, value: { genome: id } }
   },
   [
