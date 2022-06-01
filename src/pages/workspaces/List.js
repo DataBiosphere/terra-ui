@@ -1,12 +1,12 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -16,9 +16,10 @@ import TopBar from 'src/components/TopBar'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -39,7 +40,38 @@ const styles = {
   filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
 }
 
-const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
+const useWorkspacesWithSubmissionStats = () => {
+  const { workspaces, loading: loadingWorkspaces, refresh } = useWorkspaces()
+
+  const signal = useCancellation()
+  const [loadingSubmissionStats, setLoadingSubmissionStats] = useState(true)
+  const [submissionStats, setSubmissionStats] = useState(null)
+
+  useEffect(() => {
+    // After the inital load, workspaces are refreshed after deleting a workspace or locking a workspace.
+    // We don't need to reload submission stats in those cases.
+    if (workspaces && !submissionStats) {
+      const loadSubmissionStats = _.flow(
+        withErrorReporting('Error loading submission stats'),
+        Utils.withBusyState(setLoadingSubmissionStats)
+      )(async () => {
+        const response = await Ajax(signal).Workspaces.list(['workspace.workspaceId', 'workspaceSubmissionStats'])
+        setSubmissionStats(
+          _.fromPairs(_.map(ws => [ws.workspace.workspaceId, ws.workspaceSubmissionStats], response))
+        )
+      })
+
+      loadSubmissionStats()
+    }
+  }, [workspaces, submissionStats, signal])
+
+  const workspacesWithSubmissionStats = _.map(ws => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces)
+
+  return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats }
+}
+
+const workspaceSubmissionStatus = workspace => {
+  const { runningSubmissionsCount, lastSuccessDate, lastFailureDate } = _.getOr({}, 'workspaceSubmissionStats', workspace)
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
     [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
@@ -48,7 +80,7 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
 }
 
 export const WorkspaceList = () => {
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
+  const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
 
   const { query } = Nav.useRoute()
@@ -146,6 +178,7 @@ export const WorkspaceList = () => {
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
           onClick: () => setCreatingNewWorkspace(true)
         })],
+        [!_.isEmpty(submissionsFilter) && loadingSubmissionStats, () => 'Loading submission statuses...'],
         () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
       ),
       variant: 'light',
@@ -244,6 +277,10 @@ export const WorkspaceList = () => {
                 })
               ]),
               div({ style: styles.tableCellContent }, [
+                loadingSubmissionStats && h(TooltipTrigger, {
+                  content: 'Loading submission status',
+                  side: 'left'
+                }, [spinner({ size: 20 })]),
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
                   side: 'left'
