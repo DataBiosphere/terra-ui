@@ -4,8 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common'
-import IGVReferenceSelector, { defaultIgvReference, igvRecentlyUsedReferencesPreferenceKey } from 'src/components/IGVReferenceSelector'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -95,14 +94,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
           [!isRefGenomeValid, () => 'Select a reference genome']
         ),
         onClick: () => {
-          setLocalPref(
-            igvRecentlyUsedReferencesPreferenceKey,
-            [
-              refGenome,
-              ..._.remove(refGenome, getLocalPref(igvRecentlyUsedReferencesPreferenceKey) || [])
-            ].slice(0, 3)
-          )
-
+          addIgvRecentlyUsedReference(refGenome)
           onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
         }
       }, ['Launch IGV'])

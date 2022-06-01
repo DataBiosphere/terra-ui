@@ -45,7 +45,18 @@ const igvAvailableReferences = _.map(
 
 export const defaultIgvReference = { genome: 'hg38' }
 
-export const igvRecentlyUsedReferencesPreferenceKey = 'igv-recently-used-references'
+const igvRecentlyUsedReferencesPreferenceKey = 'igv-recently-used-references'
+
+export const addIgvRecentlyUsedReference = reference => {
+  // Store the last 3 references used
+  setLocalPref(
+    igvRecentlyUsedReferencesPreferenceKey,
+    [
+      reference,
+      ..._.remove(reference, getLocalPref(igvRecentlyUsedReferencesPreferenceKey) || [])
+    ].slice(0, 3)
+  )
+}
 
 const IGVRecentlyUsedReferences = ({ onSelect }) => {
   const [customReferences, setCustomReferences] = useState(() => {
