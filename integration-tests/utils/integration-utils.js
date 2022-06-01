@@ -192,24 +192,33 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
-    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
+  const matchUrl = async (url) => {
+    await page.waitForFunction(url => {
+      return window.location.href.includes(url)
+    }, {}, url)
+  }
+
+  const maybeLoadPage = async (url) => {
+    if (!!url) {
+      console.log(`Loading page: ${url}`)
+      await page.goto(url, waitUntilLoadedOrTimeout())
+      await matchUrl(url)
+    }
     await waitForNoSpinners(page)
   }
 
-  if (!!testUrl) {
-    console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
-  }
-
   try {
-    await waitUtilBannerVisible()
+    await maybeLoadPage(testUrl)
   } catch (err) {
     console.error(err)
-    console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
-    await waitUtilBannerVisible()
+    console.error('Error: Page loading timed out during sign in.')
+    const screenshotName = `signIntoTerra-${Date.now()}`
+    await maybeSaveScreenshot(page, screenshotName)
+    // Need a URL if testUrl is undefined.
+    const href = await page.evaluate(() => {
+      return window.location.href
+    })
+    await maybeLoadPage(testUrl ? testUrl : href)
   }
 
   await page.evaluate(token => window.forceSignIn(token), token)
