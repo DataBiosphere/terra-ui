@@ -278,7 +278,7 @@ const DataTable = props => {
                   h(RadioButton, {
                     text: 'OR (rows with any term)',
                     name: 'advanced-search-operator',
-                    checked: filterOperator !== 'AND',
+                    checked: filterOperator === 'OR',
                     onChange: () => setFilterOperator('OR'),
                     labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
                   })
