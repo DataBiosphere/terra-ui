@@ -21,6 +21,7 @@ const styles = {
   questionInput: { marginBottom: '0.75rem', height: '4rem', marginTop: '0.25rem' }
 }
 
+// UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
 const NpsSurvey = () => {
   const [requestable, setRequestable] = useState(false)
   const [expanded, setExpanded] = useState(false)
