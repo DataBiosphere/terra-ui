@@ -81,7 +81,7 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
 // and returns the root that matches the error.
 const captureRequestFailure = (...args) => {
   const errorAddress = _.flow(
-    _.filter(v => v !== 'https://broad-bond-dev.appspot.com'),
+    _.filter(v => v !== getConfig().bondUrlRoot),
     _.concat('https://storage.googleapis.com/'),
     _.find(v => _.includes(v, args[0]))
   )(_.values(getConfig()))
