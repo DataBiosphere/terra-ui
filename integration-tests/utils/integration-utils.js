@@ -192,13 +192,13 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  const matchUrl = async (url) => {
+  const matchUrl = async url => {
     await page.waitForFunction(url => {
       return window.location.href.includes(url)
     }, {}, url)
   }
 
-  const maybeLoadPage = async (url) => {
+  const maybeLoadPage = async url => {
     if (!!url) {
       console.log(`Loading page: ${url}`)
       await page.goto(url, waitUntilLoadedOrTimeout())
