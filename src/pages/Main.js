@@ -11,7 +11,6 @@ import Favicon from 'src/components/Favicon'
 import FirecloudNotification from 'src/components/FirecloudNotification'
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor'
 import ImportStatus from 'src/components/ImportStatus'
-import NpsSurvey from 'src/components/NpsSurvey'
 import { AuthenticatedCookieSetter } from 'src/components/runtime-common'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
@@ -37,7 +36,6 @@ const Main = () => {
     ]),
     h(PageViewReporter),
     h(SupportRequest),
-    h(NpsSurvey),
     h(ConfigOverridesWarning)
   ])
 }
