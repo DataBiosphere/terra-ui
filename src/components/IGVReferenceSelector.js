@@ -18,7 +18,7 @@ const terraReferences = {
 // The reference genome can be specified using either a 'reference' object or,
 // for IGV-hosted references, a 'genome' ID.
 // https://github.com/igvteam/igv.js/wiki/Reference-Genome
-export const igvAvailableReferences = _.map(
+const igvAvailableReferences = _.map(
   id => {
     return _.has(id, terraReferences) ?
       { label: id, value: { reference: terraReferences[id] } } :
@@ -45,22 +45,25 @@ export const igvAvailableReferences = _.map(
 
 export const defaultIgvReference = { genome: 'hg38' }
 
-export const igvCustomReferencesPreferenceKey = 'igv-custom-references'
+export const igvRecentlyUsedReferencesPreferenceKey = 'igv-recently-used-references'
 
-const IGVCustomReferences = ({ onSelect }) => {
+const IGVRecentlyUsedReferences = ({ onSelect }) => {
   const [customReferences, setCustomReferences] = useState(() => {
-    return getLocalPref(igvCustomReferencesPreferenceKey) || []
+    return getLocalPref(igvRecentlyUsedReferencesPreferenceKey) || []
   })
   useEffect(() => {
-    setLocalPref(igvCustomReferencesPreferenceKey, customReferences)
+    setLocalPref(igvRecentlyUsedReferencesPreferenceKey, customReferences)
   }, [customReferences])
 
   return !_.isEmpty(customReferences) && h(IdContainer, [id => h(Fragment, [
-    p({ id }, ['Previously used custom references']),
-    ul({ 'aria-labelledby': id, style: { padding: 0, margin: 0, listStyleType: 'none' } },
+    p({ id, style: { margin: '0 0 0.5rem' } }, ['Recently used references']),
+    ul({ 'aria-labelledby': id, style: { padding: 0, margin: '0 0 1rem', listStyleType: 'none' } },
       _.map(
         reference => {
-          const label = _.get('reference.name', reference) || _.flow(_.get('reference.fastaURL'), _.split('/'), _.last)(reference)
+          const label = _.get('genome', reference) ||
+            _.get('reference.name', reference) ||
+            _.flow(_.get('reference.fastaURL'), _.split('/'), _.last)(reference)
+
           return li({
             key: _.get('reference.fastaURL', reference),
             style: { display: 'flex', padding: '0.125rem 0' }
@@ -70,7 +73,7 @@ const IGVCustomReferences = ({ onSelect }) => {
               onClick: () => onSelect(reference)
             }, [label]),
             h(Clickable, {
-              tooltip: 'Remove from this list',
+              tooltip: `Remove ${label} from this list`,
               style: { marginLeft: '1ch' },
               onClick: () => setCustomReferences(_.remove(reference))
             }, [icon('times')])
@@ -154,10 +157,10 @@ const IGVReferenceSelector = ({ value, onChange }) => {
           )
           onChange(_.update('reference', update, value))
         }
-      }),
+      })
+    ]),
 
-      h(IGVCustomReferences, { onSelect: onChange })
-    ])
+    h(IGVRecentlyUsedReferences, { onSelect: onChange })
   ])])
 }
 

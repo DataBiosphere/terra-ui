@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common'
-import IGVReferenceSelector, { defaultIgvReference, igvAvailableReferences, igvCustomReferencesPreferenceKey } from 'src/components/IGVReferenceSelector'
+import IGVReferenceSelector, { defaultIgvReference, igvRecentlyUsedReferencesPreferenceKey } from 'src/components/IGVReferenceSelector'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -95,16 +95,13 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
           [!isRefGenomeValid, () => 'Select a reference genome']
         ),
         onClick: () => {
-          const isCustomReference = !_.find({ value: refGenome }, igvAvailableReferences)
-          if (isCustomReference) {
-            setLocalPref(
-              igvCustomReferencesPreferenceKey,
-              [
-                refGenome,
-                ..._.remove(refGenome, getLocalPref(igvCustomReferencesPreferenceKey) || [])
-              ]
-            )
-          }
+          setLocalPref(
+            igvRecentlyUsedReferencesPreferenceKey,
+            [
+              refGenome,
+              ..._.remove(refGenome, getLocalPref(igvRecentlyUsedReferencesPreferenceKey) || [])
+            ].slice(0, 3)
+          )
 
           onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
         }
