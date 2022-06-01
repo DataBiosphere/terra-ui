@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -612,4 +612,14 @@ export const DeleteConfirmationModal = ({
       ])])
     ])
   ])
+}
+
+export const DelayedRender = ({ children = null, delay = 1000 }) => {
+  const [shouldRender, setShouldRender] = useState(false)
+  useEffect(() => {
+    const timeout = setTimeout(() => setShouldRender(true), delay)
+    return () => clearTimeout(timeout)
+  }, [delay])
+
+  return shouldRender && children
 }

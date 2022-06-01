@@ -4,7 +4,7 @@ import * as qs from 'qs'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { DelayedRender, HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -277,10 +277,12 @@ export const WorkspaceList = () => {
                 })
               ]),
               div({ style: styles.tableCellContent }, [
-                loadingSubmissionStats && h(TooltipTrigger, {
-                  content: 'Loading submission status',
-                  side: 'left'
-                }, [spinner({ size: 20 })]),
+                loadingSubmissionStats && h(DelayedRender, [
+                  h(TooltipTrigger, {
+                    content: 'Loading submission status',
+                    side: 'left'
+                  }, [spinner({ size: 20 })])
+                ]),
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
                   side: 'left'
