@@ -12,7 +12,6 @@ import { DelayedSearchInput, TextInput } from 'src/components/input'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -157,8 +156,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
       style: {
         flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
         padding: '1rem',
-        background: isDataTabRedesignEnabled() ? colors.light() : undefined,
-        borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+        background: colors.light(),
+        borderBottom: `1px solid ${colors.grey(0.4)}`
       }
     }, [
       h(Link, { onClick: download }, ['Download TSV']),
@@ -174,7 +173,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         value: textFilter
       })
     ]),
-    div({ style: { flex: 1, margin: isDataTabRedesignEnabled() ? '0 0 1rem' : '0 1rem 1rem' } }, [
+    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
         'aria-label': 'workspace data local variables table',
         width, height, rowCount: amendedAttributes.length,
@@ -182,7 +181,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         initialY,
         hoverHighlight: true,
         noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
-        border: !isDataTabRedesignEnabled(),
+        border: false,
         columns: [{
           size: { basis: 400, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Key']),
