@@ -20,7 +20,7 @@ import {
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -224,14 +224,16 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
+
 const PreviewHeader = ({
-  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen,
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
   workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const [lockedBy, setLockedBy] = useState(null)
@@ -257,6 +259,19 @@ const PreviewHeader = ({
     }
   })
 
+  const startAndRefresh = async (toolLabel, promise) => {
+    try {
+      setBusy(true)
+      await promise
+      await refreshRuntimes(true)
+      console.log('status: ', runtimeStatus)
+    } catch (error) {
+      reportError('Cloud Environment Error', error)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   useOnMount(() => { checkIfLocked() })
 
   return h(ApplicationHeader, {
@@ -276,10 +291,12 @@ const PreviewHeader = ({
             [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
               makeMenuIcon('lock'), 'Open (In use)'
             ])],
-            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? setCreateOpen(true) : chooseMode('edit') }, [
+            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? () => {
+                chooseMode('edit')
+                setCreateOpen(true)
+              } : chooseMode('edit') }, [
               makeMenuIcon('rocket'), 'Open'
-            ])
-          ),
+            ])),
           h(HeaderButton, {
             onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
           }, [
@@ -289,10 +306,17 @@ const PreviewHeader = ({
           h(HeaderButton, {
             onClick: () => {
               if (runtimeStatus === 'Running' && currentRuntimeTool === toolLabel) {
+                console.log('test 1')
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-              } else {
+                } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
+               // we make it here because mode is undefined. we don't have modes for rstudio (that i'm aware of)
+                console.log('THIS IS A BAD BUG')
+                startAndRefresh(currentRuntimeTool, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
+              }
+              else {
+                console.log('test 2 in else')
                 setCreateOpen(true)
               }
             }
