@@ -221,6 +221,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     await maybeLoadPage(testUrl ? testUrl : href)
   }
 
+  await page.waitForFunction('window.forceSignIn')
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
