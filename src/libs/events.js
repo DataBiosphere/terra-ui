@@ -52,6 +52,7 @@ const eventsList = {
   workspaceDataCopy: 'workspace:data:copy',
   workspaceDataCopyToClipboard: 'workspace:data:copyToClipboard',
   workspaceDataCreateSet: 'workspace:data:createSet',
+  workspaceDataCrossTableSearch: 'workspace:data:crossTableSearch',
   workspaceDataDelete: 'workspace:data:delete',
   workspaceDataDeleteColumn: 'workspace:data:deleteColumn',
   workspaceDataDownload: 'workspace:data:download',
