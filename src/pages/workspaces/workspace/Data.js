@@ -27,7 +27,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isSearchAwesomeNow } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -747,7 +747,7 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              isSearchAwesomeNow() && !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
+              !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
                   placeholder: 'Search all tables',
