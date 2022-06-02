@@ -187,16 +187,18 @@ const ApplicationLauncher = _.flow(
       setShouldSetupWelder(true)
     }
 
-    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
+    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses (test 3!)', async () => {
       const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
       setOutdatedAnalyses(outdatedRAnalyses)
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
-    !!googleProject && findOutdatedAnalyses()
+    if (runtimeStatus === 'Running') {
+      !!googleProject && findOutdatedAnalyses()
 
-    // periodically check for outdated R analyses
-    interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
+      // periodically check for outdated R analyses
+      interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
+    }
 
     return () => {
       clearInterval(interval.current)
