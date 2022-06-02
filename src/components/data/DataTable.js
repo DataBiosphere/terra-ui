@@ -505,7 +505,7 @@ const DataTable = props => {
       namespace, name,
       entityType: _.head(entities).entityType,
       oldAttributeName: renamingColumn,
-      onConfirm: () => {
+      onSuccess: () => {
         setRenamingColumn(undefined)
         Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace))
         loadMetadata()

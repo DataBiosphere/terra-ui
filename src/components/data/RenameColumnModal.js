@@ -19,7 +19,7 @@ export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   }
 })
 
-const RenameColumnModal = ({ onDismiss, onConfirm, namespace, name, entityType, oldAttributeName }) => {
+const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, oldAttributeName }) => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('')
   const [renaming, setRenaming] = useState(false)
@@ -34,7 +34,7 @@ const RenameColumnModal = ({ onDismiss, onConfirm, namespace, name, entityType, 
         Utils.withBusyState(setRenaming)
       )(async () => {
         await Ajax().Workspaces.workspace(namespace, name).renameEntityColumn(entityType, oldAttributeName, newAttributeName)
-        onConfirm()
+        onSuccess()
       })
     }, ['Rename'])
   }, [h(IdContainer, [id => h(Fragment, [
