@@ -10,6 +10,7 @@ import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
+import { pdTypes } from 'src/libs/runtime-utils'
 
 
 window.ajaxOverrideUtils = {
@@ -1661,7 +1662,11 @@ const Disks = signal => ({
       details: async () => {
         const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        return res.json()
+        const resJs = res.json().then(val => {
+          val.diskType = pdTypes.fromString(val.diskType)
+          return val
+        })
+        return resJs
       }
     }
   }

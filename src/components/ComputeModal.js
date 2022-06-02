@@ -701,6 +701,7 @@ export const ComputeModalBase = ({
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
+
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -749,7 +750,7 @@ export const ComputeModalBase = ({
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && pdTypes.fromString(currentPersistentDiskDetails.diskType)) || defaultPersistentDiskType,
+        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -1311,7 +1312,6 @@ export const ComputeModalBase = ({
 
   const renderDeleteDiskChoices = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-
     return h(Fragment, [
       h(RadioBlock, {
         name: 'keep-persistent-disk',
