@@ -25,5 +25,6 @@
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users"
+  "alphaRegionalityGroup": "Alpha_Regionality_Users",
+  "environmentKey": "dev"
 }

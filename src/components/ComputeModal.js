@@ -17,6 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
@@ -689,6 +690,7 @@ export const ComputeModalBase = ({
       const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
+      const envKey = getConfig().environmentKey
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
@@ -697,7 +699,7 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, 'terra-docker-image-documentation', 'terra-docker-versions.json', true)
+          .getObjectPreview(googleProject, 'terra-docker-image-documentation', `terra-docker-versions-${envKey}.json`, true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
