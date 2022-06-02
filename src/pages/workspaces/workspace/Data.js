@@ -563,6 +563,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDel
         setLoading(true)
         try {
           await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+            ...extractWorkspaceDetails(workspace.workspace)
+          })
           onDeleteTable(tableName)
         } catch (err) {
           reportError(err)
