@@ -376,6 +376,7 @@ const EntitiesContent = ({
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
         entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
+        loadMetadata,
         snapshotName,
         selectionModel: {
           selected: selectedEntities,

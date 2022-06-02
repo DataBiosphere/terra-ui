@@ -942,6 +942,11 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
 
+      renameEntityColumn: (type, attributeName, newAttributeName) => {
+        const payload = { newAttributeName }
+        return fetchRawls(`${root}/entityTypes/${type}/attributes/${attributeName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
       upsertEntities: entityUpdates => {
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]))
       },
