@@ -187,7 +187,7 @@ const ApplicationLauncher = _.flow(
       setShouldSetupWelder(true)
     }
 
-    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses (test 3!)', async () => {
+    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
       const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
       setOutdatedAnalyses(outdatedRAnalyses)
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
