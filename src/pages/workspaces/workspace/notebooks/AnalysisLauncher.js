@@ -90,7 +90,7 @@ const AnalysisLauncher = _.flow(
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen,
+                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
               }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
