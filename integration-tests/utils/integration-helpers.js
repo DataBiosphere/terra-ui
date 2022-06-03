@@ -33,6 +33,8 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       try {
         return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
       } catch (err) {
+        console.error(err)
+        console.error(typeof err)
         const message = await err.text()
         throw message
       }
