@@ -259,12 +259,11 @@ const PreviewHeader = ({
     }
   })
 
-  const startAndRefresh = async (toolLabel, promise) => {
+  const startAndRefresh = async (refreshRuntimes, promise) => {
     try {
       setBusy(true)
       await promise
       await refreshRuntimes(true)
-      console.log('status: ', runtimeStatus)
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -306,17 +305,15 @@ const PreviewHeader = ({
           h(HeaderButton, {
             onClick: () => {
               if (runtimeStatus === 'Running' && currentRuntimeTool === toolLabel) {
-                console.log('test 1')
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
                 } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
                // we make it here because mode is undefined. we don't have modes for rstudio (that i'm aware of)
-                console.log('THIS IS A BAD BUG')
-                startAndRefresh(currentRuntimeTool, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
+                chooseMode('edit')
+                startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
               }
               else {
-                console.log('test 2 in else')
                 setCreateOpen(true)
               }
             }
