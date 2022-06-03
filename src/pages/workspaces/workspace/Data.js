@@ -694,6 +694,10 @@ const WorkspaceData = _.flow(
         return { typeName, filteredCount }
       }, typeNames))
       setCrossTableResultCounts(results)
+      Ajax().Metrics.captureEvent(Events.workspaceDataCrossTableSearch, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        numTables: _.size(typeNames)
+      })
     } catch (error) {
       reportError('Error searching across tables', error)
     }
