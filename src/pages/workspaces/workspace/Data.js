@@ -558,20 +558,16 @@ const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDel
       objectType: 'table',
       objectName: tableName,
       onDismiss: () => setDeleting(false),
-      onConfirm: async () => {
-        setDeleting(false)
-        setLoading(true)
-        try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
-          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-            ...extractWorkspaceDetails(workspace.workspace)
-          })
-          onDeleteTable(tableName)
-        } catch (err) {
-          reportError(err)
-          setLoading(false)
-        }
-      }
+      onConfirm: _.flow(
+        Utils.withBusyState(setLoading),
+        withErrorReporting('Error deleting table')
+      )(async () => {
+        await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+          ...extractWorkspaceDetails(workspace.workspace)
+        })
+        onDeleteTable(tableName)
+      })
     })
   ])
 }
