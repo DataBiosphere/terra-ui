@@ -2,13 +2,13 @@ import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locat
 
 
 const us = {
-  label: 'US multi-regional (default)',
+  label: 'US multi-regional',
   locationType: 'multi-region',
   value: 'US'
 }
 
 const usCentral = {
-  label: 'us-central1 (Iowa)',
+  label: 'us-central1 (Iowa) (default)',
   locationType: 'region',
   value: 'US-CENTRAL1'
 }

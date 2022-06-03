@@ -136,6 +136,10 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
+  const shouldShowUSMultiregionWarning = () => {
+    return bucketLocation === 'US'
+  }
+
   const isAzureBillingProject = project => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
@@ -249,6 +253,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           options: _.sortBy('label', isAlphaRegionalityUser ? allRegions : availableBucketRegions)
         })
       ])]),
+      shouldShowUSMultiregionWarning() && div({ style: { ...warningStyle } }, [
+        icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        div({ style: { flex: 1 } }, [
+          `Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.`,
+          p(`Choosing a multi-region bucket location may result in additional storage costs for your workspace.`),
+          p(`Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location. For more information see <LINK TO BLOG POST>.`)
+        ])
+      ]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
         icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         div({ style: { flex: 1 } }, [
