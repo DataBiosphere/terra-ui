@@ -64,7 +64,7 @@ export const defaultNumDataprocPreemptibleWorkers = 0
 export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
-export const defaultLocation = 'US'
+export const defaultLocation = 'US-CENTRAL1'
 
 export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
