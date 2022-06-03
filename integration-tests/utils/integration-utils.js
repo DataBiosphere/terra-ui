@@ -170,7 +170,7 @@ const noSpinnersAfter = async (page, { action, debugMessage }) => {
   if (debugMessage) {
     console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`)
   }
-  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
   await Promise.all([foundSpinner, action()])
   return waitForNoSpinners(page)
 }
