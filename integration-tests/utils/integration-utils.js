@@ -356,8 +356,6 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-// The DOMContentLoaded event fires when the initial HTML document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading.
-// https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
 const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['domcontentloaded'], timeout })
 
 const gotoPage = (page, url) => {
