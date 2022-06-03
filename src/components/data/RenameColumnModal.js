@@ -30,7 +30,7 @@ const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, 
     okButton: h(ButtonPrimary, {
       disabled: renaming,
       onClick: _.flow(
-        withErrorReporting('Error renaming column name.'),
+        withErrorReporting('Error renaming column.'),
         Utils.withBusyState(setRenaming)
       )(async () => {
         await Ajax().Workspaces.workspace(namespace, name).renameEntityColumn(entityType, oldAttributeName, newAttributeName)
