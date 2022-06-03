@@ -8,7 +8,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -27,7 +27,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isSearchAwesomeNow } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -466,7 +466,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, onUpdateSuccess }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDeleteTable }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -479,6 +479,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, onUpdateSuccess }) =
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
   const [renaming, setRenaming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -523,7 +524,12 @@ const DataTableActions = ({ workspace, tableName, rowCount, onUpdateSuccess }) =
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
-        }, 'Rename table')
+        }, 'Rename table'),
+        h(MenuButton, {
+          onClick: () => setDeleting(true),
+          disabled: !!editWorkspaceErrorMessage,
+          tooltip: editWorkspaceErrorMessage || ''
+        }, 'Delete table')
       ])
     }, [
       h(Clickable, {
@@ -544,9 +550,24 @@ const DataTableActions = ({ workspace, tableName, rowCount, onUpdateSuccess }) =
     }),
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
-      onUpdateSuccess,
+      onUpdateSuccess: onRenameTable,
       namespace, name,
       selectedDataType: tableName
+    }),
+    deleting && h(DeleteConfirmationModal, {
+      objectType: 'table',
+      objectName: tableName,
+      onDismiss: () => setDeleting(false),
+      onConfirm: _.flow(
+        Utils.withBusyState(setLoading),
+        withErrorReporting('Error deleting table')
+      )(async () => {
+        await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+          ...extractWorkspaceDetails(workspace.workspace)
+        })
+        onDeleteTable(tableName)
+      })
     })
   ])
 }
@@ -673,6 +694,10 @@ const WorkspaceData = _.flow(
         return { typeName, filteredCount }
       }, typeNames))
       setCrossTableResultCounts(results)
+      Ajax().Metrics.captureEvent(Events.workspaceDataCrossTableSearch, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        numTables: _.size(typeNames)
+      })
     } catch (error) {
       reportError('Error searching across tables', error)
     }
@@ -747,7 +772,7 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              isSearchAwesomeNow() && !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
+              !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
                   placeholder: 'Search all tables',
@@ -779,7 +804,11 @@ const WorkspaceData = _.flow(
                     tableName: type,
                     rowCount: typeDetails.count,
                     workspace,
-                    onUpdateSuccess: () => loadMetadata()
+                    onRenameTable: () => loadMetadata(),
+                    onDeleteTable: tableName => {
+                      setSelectedDataType(undefined)
+                      setEntityMetadata(_.unset(tableName))
+                    }
                   })
                 })
               }, sortedEntityPairs)

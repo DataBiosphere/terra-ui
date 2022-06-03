@@ -388,7 +388,10 @@ const EntitiesContent = ({
           !snapshotName && h(ButtonSecondary, {
             onClick: showColumnSettingsModal,
             disabled: !!activeCrossTableTextFilter,
-            tooltip: 'Change the order and visibility of columns in the table'
+            tooltip: Utils.cond(
+              [!!activeCrossTableTextFilter, () => 'All columns are shown when searching across tables'],
+              () => 'Change the order and visibility of columns in the table'
+            )
           }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
           div({

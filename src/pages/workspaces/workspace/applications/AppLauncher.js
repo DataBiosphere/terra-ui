@@ -193,10 +193,12 @@ const ApplicationLauncher = _.flow(
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
-    !!googleProject && findOutdatedAnalyses()
+    if (runtimeStatus === 'Running') {
+      !!googleProject && findOutdatedAnalyses()
 
-    // periodically check for outdated R analyses
-    interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
+      // periodically check for outdated R analyses
+      interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
+    }
 
     return () => {
       clearInterval(interval.current)

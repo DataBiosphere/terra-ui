@@ -6,7 +6,6 @@ import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -78,27 +77,12 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   return wrappedFetch(...args)
 })
 
-// Captures given course in error message, compares to root addresses in app configuration plus https://storage.googleapis.com/,
-// and returns the root that matches the error.
-const captureRequestFailure = (...args) => {
-  const errorAddress = _.flow(
-    _.filter(v => v !== getConfig().bondUrlRoot),
-    _.concat('https://storage.googleapis.com/'),
-    _.find(v => _.includes(v, args[0]))
-  )(_.values(getConfig()))
-
-  if (!!errorAddress) {
-    Ajax().Metrics.captureEvent(Events.requestFailed, { requestRoot: errorAddress })
-  }
-}
-
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
     return res
   } else {
-    captureRequestFailure(...args)
     throw res
   }
 }
@@ -924,6 +908,10 @@ const Workspaces = signal => ({
         const payload = { newName }
 
         return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
+      deleteEntitiesOfType: entityType => {
+        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
       },
 
       deleteEntityAttribute: (type, name, attributeName) => {
