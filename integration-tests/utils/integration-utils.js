@@ -159,8 +159,17 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = page => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+// Used to prevent checking loadingSpinner while page is blank
+const waitUntilDomContentLoaded = page => {
+  return Promise.all([
+    page.waitForFunction(() => document),
+    page.waitForSelector('div:not(:empty):not([id="root"])')
+  ])
+}
+
+const waitForNoSpinners = async page => {
+  await waitUntilDomContentLoaded(page)
+  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -192,6 +201,7 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
+  console.log('signIntoTerra ...')
   const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
     // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
     await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
@@ -200,7 +210,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
   if (!!testUrl) {
     console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+    await gotoPage(page, testUrl)
   }
 
   try {
@@ -208,7 +218,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
+    await page.reload(navOptionNetworkIdle())
     await waitUtilBannerVisible()
   }
 
@@ -346,7 +356,13 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+// The DOMContentLoaded event fires when the initial HTML document has been completely loaded and parsed, without waiting for stylesheets, images, and subframes to finish loading.
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/DOMContentLoaded_event
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['domcontentloaded'], timeout })
+
+const gotoPage = (page, url) => {
+  return page.goto(url, navOptionNetworkIdle())
+}
 
 module.exports = {
   assertNavChildNotFound,
@@ -384,6 +400,7 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout,
-  maybeSaveScreenshot
+  navOptionNetworkIdle,
+  maybeSaveScreenshot,
+  gotoPage
 }

@@ -1,12 +1,11 @@
 const { withUser } = require('../utils/integration-helpers')
 const { fillIn, findText, click, clickable, input, signIntoTerra } = require('../utils/integration-utils')
-const { fillInReplace } = require('../utils/integration-utils')
-const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
+const { fillInReplace, gotoPage } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
-  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await gotoPage(page, testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, { token })
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration')
