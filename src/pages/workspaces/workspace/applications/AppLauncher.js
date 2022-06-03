@@ -68,7 +68,7 @@ const ApplicationLauncher = _.flow(
 
   const FileOutdatedModal = ({ onDismiss, bucketName }) => {
     const handleChoice = _.flow(
-      withErrorReportingInModal('Error setting up analysis file syncing (test 4)')(onDismiss),
+      withErrorReportingInModal('Error setting up analysis file syncing')(onDismiss),
       Utils.withBusyState(setBusy)
     )(async shouldCopy => {
       // this modal only opens when the state variable outdatedAnalyses is non empty (keeps track of a user's outdated RStudio files). it gives users two options when their files are in use by another user
@@ -157,7 +157,7 @@ const ApplicationLauncher = _.flow(
 
     const setupWelder = _.flow(
       Utils.withBusyState(setBusy),
-      withErrorReporting('Error setting up analysis file syncing (test 1)')
+      withErrorReporting('Error setting up analysis file syncing')
     )(async () => {
       const localBaseDirectory = ``
       const localSafeModeBaseDirectory = ``
@@ -171,7 +171,7 @@ const ApplicationLauncher = _.flow(
 
     const loadBucketLocation = _.flow(
       Utils.withBusyState(setBusy),
-      withErrorReporting('Error loading bucket location (test 2')
+      withErrorReporting('Error loading bucket location')
     )(async () => {
       const { location } = await Ajax()
         .Workspaces
