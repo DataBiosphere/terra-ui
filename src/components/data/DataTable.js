@@ -503,7 +503,7 @@ const DataTable = props => {
     }),
     !!renamingColumn && h(RenameColumnModal, {
       namespace, name,
-      entityType: _.head(entities).entityType,
+      entityType,
       oldAttributeName: renamingColumn,
       onSuccess: () => {
         setRenamingColumn(undefined)
