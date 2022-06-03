@@ -29,7 +29,7 @@ const findIframe = async page => {
   return hasFrame() || await waitForFn({ fn: hasFrame })
 }
 
-const findInGrid = (page, textContains, options) => {
+const findInGrid = (page, textContains, options = { visible: true }) => {
   return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
@@ -107,7 +107,7 @@ const click = async (page, xpath, options = { visible: true }) => {
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const findText = (page, textContains, options) => {
+const findText = (page, textContains, options = { visible: true }) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
@@ -132,7 +132,7 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  const input = await page.waitForXPath(xpath)
+  const input = await page.waitForXPath(xpath, { visible: true })
   await input.type(text, { delay: 20 })
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
@@ -170,7 +170,7 @@ const noSpinnersAfter = async (page, { action, debugMessage }) => {
   if (debugMessage) {
     console.log(`About to perform an action and wait for spinners. \n\tDebug message: ${debugMessage}`)
   }
-  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]')
+  const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
   await Promise.all([foundSpinner, action()])
   return waitForNoSpinners(page)
 }
@@ -218,7 +218,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await waitForNoSpinners(page)
 }
 
-const findElement = (page, xpath, options) => {
+const findElement = (page, xpath, options = { visible: true }) => {
   return page.waitForXPath(xpath, options)
 }
 
