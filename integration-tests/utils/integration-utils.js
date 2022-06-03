@@ -192,33 +192,30 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  const matchUrl = async url => {
-    await page.waitForFunction(url => {
-      return window.location.href.includes(url)
-    }, {}, url)
-  }
-
-  const maybeLoadPage = async url => {
+  const maybeGotoPage = async url => {
     if (!!url) {
       console.log(`Loading page: ${url}`)
       await page.goto(url, waitUntilLoadedOrTimeout())
-      await matchUrl(url)
+      await page.waitForFunction(url => {
+        return window.location.href.includes(url)
+      }, {}, url)
     }
     await waitForNoSpinners(page)
   }
 
   try {
-    await maybeLoadPage(testUrl)
+    await maybeGotoPage(testUrl)
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in.')
-    const screenshotName = `signIntoTerra-${Date.now()}`
+    // Take screenshot for manual issue debugging
+    const screenshotName = `Terra-SignIn-Error`
     await maybeSaveScreenshot(page, screenshotName)
-    // Need a URL if testUrl is undefined.
+    // Need a URL if testUrl is undefined in retry
     const href = await page.evaluate(() => {
       return window.location.href
     })
-    await maybeLoadPage(testUrl ? testUrl : href)
+    await maybeGotoPage(testUrl ? testUrl : href)
   }
 
   await page.waitForFunction('window.forceSignIn')
