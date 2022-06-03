@@ -10,7 +10,6 @@ const signIntoFirecloud = async (page, token) => {
   await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
   await findText(page, 'content you are looking for is currently only accessible')
 
-  // console.log('waiting for google auth library to load')
   await page.waitForXPath('//*[@id="sign-in-button"]')
 
   /*
