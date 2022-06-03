@@ -39,7 +39,6 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   pageView: 'page:view',
   removeBillingAccount: 'billing:project:account:remove',
-  requestFailed: 'request:failed',
   userRegister: 'user:register',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
