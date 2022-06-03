@@ -1,4 +1,4 @@
-const { click, delay, findText, waitForNoSpinners } = require('./integration-utils')
+const { click, delay, findText } = require('./integration-utils')
 
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
