@@ -290,12 +290,10 @@ const PreviewHeader = ({
             [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
               makeMenuIcon('lock'), 'Open (In use)'
             ])],
-            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? () => {
-                chooseMode('edit')
-                setCreateOpen(true)
-              } : chooseMode('edit') }, [
+            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? setCreateOpen(true) : chooseMode('edit') }, [
               makeMenuIcon('rocket'), 'Open'
-            ])),
+            ])
+          ),
           h(HeaderButton, {
             onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
           }, [
