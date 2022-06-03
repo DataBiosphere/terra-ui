@@ -25,5 +25,5 @@
   },
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
-  "environmentKey": "staging"
+  "terraDockerVersionsFile": "terra-docker-versions-staging.json"
 }

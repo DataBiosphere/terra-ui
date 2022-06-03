@@ -690,7 +690,6 @@ export const ComputeModalBase = ({
       const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
-      const envKey = getConfig().environmentKey
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
@@ -699,7 +698,7 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, 'terra-docker-image-documentation', `terra-docker-versions-${envKey}.json`, true)
+          .getObjectPreview(googleProject, 'terra-docker-image-documentation', getConfig().terraDockerVersionsFile, true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
