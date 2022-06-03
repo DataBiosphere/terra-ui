@@ -32,9 +32,15 @@ export const pdTypes = {
     displayName: 'Solid state drive (SSD)',
     regionToPricesName: 'monthlySSDDiskPrice'
   },
+  balanced: {
+    label: 'pd-balanced',
+    displayName: 'Balanced',
+    regionToPricesName: 'monthlyBalancedDiskPrice'
+  },
   fromString: str => Utils.switchCase(str,
     [pdTypes.standard.label, () => pdTypes.standard],
     [pdTypes.ssd.label, () => pdTypes.ssd],
+    [pdTypes.balanced.label, () => pdTypes.balanced],
     [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }

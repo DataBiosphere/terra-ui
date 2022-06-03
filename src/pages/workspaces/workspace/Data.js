@@ -27,7 +27,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTabRedesignEnabled, isSearchAwesomeNow } from 'src/libs/config'
+import { getConfig, isSearchAwesomeNow } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -89,7 +89,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
         tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'}${activeCrossTableTextFilter ? `, ${filteredCount} visible` : ''})` : undefined,
         tooltipDelay: 250,
@@ -98,17 +98,17 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
       'aria-current': selected,
       ...props
     }, [
-      activeCrossTableTextFilter !== '' && isEntity ?
+      activeCrossTableTextFilter && isEntity ?
         SearchResultsPill({ filteredCount, searching: crossTableSearchInProgress }) :
-        div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+        div({ style: { flex: 'none', width: '1.5rem' } }, [
           icon(iconName, { size: iconSize })
         ]),
-      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
+      div({ style: { ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
-      isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
+      isEntity && div({ style: { marginLeft: '1ch' } }, `(${entityCount})`)
     ]),
-    after
+    after && div({ style: { marginLeft: '1ch' } }, [after])
   ])
 }
 
@@ -145,8 +145,8 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
       style: {
         display: 'flex', justifyContent: 'flex-end',
         padding: '1rem',
-        background: isDataTabRedesignEnabled() ? colors.light() : undefined,
-        borderBottom: isDataTabRedesignEnabled() ? `1px solid ${colors.grey(0.4)}` : undefined
+        background: colors.light(),
+        borderBottom: `1px solid ${colors.grey(0.4)}`
       }
     }, [
       h(DelayedSearchInput, {
@@ -157,7 +157,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
         value: textFilter
       })
     ]),
-    div({ style: { flex: 1, margin: isDataTabRedesignEnabled() ? '0 0 1rem' : '0 1rem 1rem' } }, [
+    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
@@ -177,7 +177,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
             }
           ],
-          border: !isDataTabRedesignEnabled()
+          border: false
         })
       ])
     ])
@@ -381,23 +381,7 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
-  if (!isDataTabRedesignEnabled()) {
-    return div({ role: 'listitem' }, [
-      h3({ style: Style.navList.heading }, [
-        title,
-        error ? h(Link, {
-          onClick: retryFunction,
-          tooltip: 'Error loading, click to retry.'
-        }, [icon('sync', { size: 18 })]) : titleExtras
-      ]),
-      !!children?.length && div({
-        style: { display: 'flex', flexDirection: 'column', width: '100%' },
-        role: 'list'
-      }, [children])
-    ])
-  }
-
+const DataTypeSection = ({ title, error, retryFunction, children }) => {
   return h(Collapse, {
     role: 'listitem',
     title: h3({
@@ -466,7 +450,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       className: 'custom-focus-style',
       style: {
         ...styles.sidebarSeparator,
-        background: isDataTabRedesignEnabled() ? colors.grey(0.4) : colors.light()
+        background: colors.grey(0.4)
       },
       hover: {
         background: colors.accent(1.2)
@@ -724,7 +708,7 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        isDataTabRedesignEnabled() && div({
+        div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -759,12 +743,6 @@ const WorkspaceData = _.flow(
           div({ role: 'list' }, [
             h(DataTypeSection, {
               title: 'Tables',
-              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-                onClick: () => setUploadingFile(true),
-                'aria-haspopup': 'dialog'
-              }, [icon('plus-circle', { size: 21 })]),
               error: entityMetadataError,
               retryFunction: loadEntityMetadata
             }, [
@@ -797,7 +775,7 @@ const WorkspaceData = _.flow(
                     setSelectedDataType(type)
                     forceRefresh()
                   },
-                  after: isDataTabRedesignEnabled() && h(DataTableActions, {
+                  after: h(DataTableActions, {
                     tableName: type,
                     rowCount: typeDetails.count,
                     workspace,
@@ -881,13 +859,7 @@ const WorkspaceData = _.flow(
               }, sortedSnapshotPairs)
             ]),
             h(DataTypeSection, {
-              title: 'Reference Data',
-              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-                onClick: () => setImportingReference(true),
-                'aria-haspopup': 'dialog'
-              }, [icon('plus-circle', { size: 21 })])
+              title: 'Reference Data'
             }, [_.map(type => h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,

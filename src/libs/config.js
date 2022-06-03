@@ -13,7 +13,6 @@ export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 // configOverridesStore.set({ isDataBrowserVisible: true }) in browser console to enable
 export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
-export const isDataTabRedesignEnabled = () => getConfig().isDataTabRedesignEnabled || getConfig().isSearchAwesomeNow
 export const isSearchAwesomeNow = () => getConfig().isSearchAwesomeNow
 export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
 export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
