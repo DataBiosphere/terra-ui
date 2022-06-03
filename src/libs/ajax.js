@@ -925,6 +925,10 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
       },
 
+      deleteEntitiesOfType: entityType => {
+        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      },
+
       deleteEntityAttribute: (type, name, attributeName) => {
         return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
           { signal, method: 'PATCH' }]))
