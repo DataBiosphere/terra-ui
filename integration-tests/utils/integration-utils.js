@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { mkdirSync } = require('fs')
+const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
@@ -208,10 +208,9 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in.')
-    // Take screenshot for manual issue debugging
-    const screenshotName = `Terra-SignIn-Error`
-    await maybeSaveScreenshot(page, screenshotName)
-    // Need a URL if testUrl is undefined in retry
+    // Save html content for manual issue debugging
+    await saveScreenshotPageContent(page, 'signIntoTerra')
+    // Need a URL if testUrl is undefined for the retry
     const href = await page.evaluate(() => {
       return window.location.href
     })
@@ -284,13 +283,32 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
-const maybeSaveScreenshot = async (page, testName) => {
+const getScreenshotDir = () => {
   const dir = screenshotDirPath ?
     screenshotDirPath :
     process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
 
+// Save page content to a file. Useful for test failure troubleshooting
+const saveScreenshotPageContent = async (page, testName) => {
+  const dir = getScreenshotDir()
+  const htmlContent = await page.content()
+  const htmlFile = `${dir}/${testName}-${Date.now()}.html`
   try {
-    mkdirSync(dir, { recursive: true })
+    writeFileSync(htmlFile, htmlContent, { encoding: 'utf8' })
+    console.log(`Saved screenshot page content: ${htmlFile}`)
+  } catch (e) {
+    console.error('Failed to save screenshot page content')
+    console.error(e)
+    // Let test continue
+  }
+}
+
+const maybeSaveScreenshot = async (page, testName) => {
+  const dir = getScreenshotDir()
+  try {
     const path = `${dir}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
