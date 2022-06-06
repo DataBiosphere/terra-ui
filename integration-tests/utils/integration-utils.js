@@ -159,8 +159,8 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = async page => {
-  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+const waitForNoSpinners = page => {
+  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
