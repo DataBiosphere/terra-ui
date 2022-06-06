@@ -289,7 +289,6 @@ const getScreenshotDir = () => {
 const maybeSaveScreenshot = async (page, testName) => {
   const dir = getScreenshotDir()
   try {
-    mkdirSync(dir, { recursive: true })
     const path = `${dir}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
@@ -334,7 +333,6 @@ const withScreenshot = _.curry((testName, fn) => async options => {
     return await fn(options)
   } catch (e) {
     await maybeSaveScreenshot(options.page, testName)
-    await savePageContent(options.page, testName)
     throw e
   }
 })
@@ -412,5 +410,6 @@ module.exports = {
   openError,
   navOptionNetworkIdle,
   maybeSaveScreenshot,
-  gotoPage
+  gotoPage,
+  savePageContent
 }
