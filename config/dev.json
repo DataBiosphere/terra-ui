@@ -26,5 +26,6 @@
   },
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
-  "terraDockerVersionsFile": "terra-docker-versions-dev.json"
+  "terraDockerVersionsFile": "terra-docker-versions-dev.json",
+  "terraDockerImageBucket": "terra-docker-image-documentation-dev"
 }
