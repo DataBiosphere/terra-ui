@@ -159,16 +159,7 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-// Used to prevent checking loadingSpinner while page is blank
-const waitUntilDomContentLoaded = page => {
-  return Promise.all([
-    page.waitForFunction(() => document),
-    page.waitForSelector('div:not(:empty):not([id="root"])')
-  ])
-}
-
 const waitForNoSpinners = async page => {
-  await waitUntilDomContentLoaded(page)
   await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
