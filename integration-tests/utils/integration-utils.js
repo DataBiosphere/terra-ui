@@ -209,7 +209,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     console.error(err)
     console.error('Error: Page loading timed out during sign in.')
     // Save html content for manual issue debugging
-    await saveScreenshotPageContent(page, 'signIntoTerra')
+    await savePageContent(page, 'signIntoTerra')
     // Need a URL if testUrl is undefined for the retry
     const href = await page.evaluate(() => {
       return window.location.href
@@ -291,8 +291,8 @@ const getScreenshotDir = () => {
   return dir
 }
 
-// Save page content to a file. Useful for test failure troubleshooting
-const saveScreenshotPageContent = async (page, testName) => {
+// Save page content to screenshot dir. Useful for test failure troubleshooting
+const savePageContent = async (page, testName) => {
   const dir = getScreenshotDir()
   const htmlContent = await page.content()
   const htmlFile = `${dir}/${testName}-${Date.now()}.html`
