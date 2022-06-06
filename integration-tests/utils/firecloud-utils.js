@@ -1,4 +1,4 @@
-const { click, findText, waitForNoSpinners } = require('./integration-utils')
+const { click, delay, findText } = require('./integration-utils')
 
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
@@ -7,6 +7,11 @@ const selectWorkspace = async (page, billingAccount, workspace) => {
 }
 
 const signIntoFirecloud = async (page, token) => {
+  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
+  await findText(page, 'content you are looking for is currently only accessible')
+
+  await page.waitForXPath('//*[@id="sign-in-button"]')
+
   /*
    * The FireCloud not-signed-in page renders the sign-in button while it is still doing some
    * initialization. If you log the status of the App components state for user-status and auth2
@@ -14,21 +19,27 @@ const signIntoFirecloud = async (page, token) => {
    *   '#{}' ''
    *   '#{}' '[object Object]'
    *   '#{:refresh-token-saved}' '[object Object]'
+   *
    * If the page is used before this is complete (for example window.forceSignedIn adding
    * :signed-in to user-status), bad things happen (for example :signed-in being dropped from
-   * user-status). Instead of reworking the sign-in logic for a case that (for the most part) only
-   * a computer will operate fast enough to encounter, we'll just slow the computer down a little.
+   * user-status). Put another way, if forceSignedIn is called between the 2nd and 3rd render, the
+   * sign-in doesn't work. The visible effect (failure screenshot) is that the test gets stuck on
+   * the FireCloud sign-in page.
+   *
+   * There is no observable evidence that the component has settled into its final state. I (Brian)
+   * believe that watching for the sign-in button (which is also what the FireCloud UI tests did:
+   * https://github.com/broadinstitute/firecloud-ui/blob/ab678610367c8388d70de768db0ad84c6df63997/automation/src/test/scala/org/broadinstitute/dsde/firecloud/page/user/SignInPage.scala#L31) will get us past the 2nd render
+   * but not necessarily the thrid. Therefore, instead of reworking the sign-in logic for a case
+   * that (for the most part) only a computer will operate fast enough to encounter, we'll just slow
+   * the computer down a little with a fixed-length sleep.
+   *
+   * Note that the amount of sleep needed is dependent on CPU load where the browser is running,
+   * which can be affected by CPU speed, memory, and other processes running at the same time
+   * (notably tests running in parallel). The duration below may be overkill in many conditions, but
+   * we want it to always be enough, whether running 10 parallel executions on a developer laptop or
+   * running in a CI server.
    */
-  await page.waitForResponse(response => {
-    return response.url().startsWith('https://accounts.google.com/o/oauth2/iframerpc') &&
-        response.request().method() === 'GET' &&
-        response.status() === 200
-  }, { timeout: 30 * 1000 }
-  )
-
-  await page.waitForXPath('//title[text()="FireCloud | Broad Institute"]')
-  await findText(page, 'content you are looking for is currently only accessible')
-  await waitForNoSpinners(page)
+  await delay(1500)
 
   console.log(`Sign in Firecloud: ${page.url()}`)
   await page.waitForFunction('!!window["forceSignedIn"]')
