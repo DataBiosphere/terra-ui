@@ -13,19 +13,11 @@ import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src
 import * as Utils from 'src/libs/utils'
 
 
-// Additional references supported by Terra that are not included in IGV
-const customReferences = {
-  'MN908947.3': {
-    id: 'sarsCov2RefId.3', indexed: false,
-    fastaURL: 'https://storage.googleapis.com/gcp-public-data--broad-references/sars-cov-2/MN908947.3/nCoV-2019.reference.fasta'
-  }
-}
-
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = _.flow(
   withDisplayName('IGVBrowser'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ selectedFiles, refGenome, workspace, onDismiss, onRequesterPaysError }) => {
+)(({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, onRequesterPaysError }) => {
   const containerRef = useRef()
   const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
@@ -61,11 +53,9 @@ const IGVBrowser = _.flow(
           const { default: igv } = await import('igv')
           igvLibrary.current = igv
 
-          const customReference = customReferences[refGenome]
-
           const options = {
-            genome: refGenome,
-            reference: customReference,
+            genome,
+            reference,
             tracks: await Promise.all(_.map(async ({ filePath, indexFilePath }) => {
               const [bucket] = parseGsUri(filePath)
               const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? await getUserProjectForWorkspace(workspace) : undefined }
