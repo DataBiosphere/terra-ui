@@ -1668,11 +1668,7 @@ const Disks = signal => ({
       details: async () => {
         const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        const resJs = res.json().then(val => {
-          val.diskType = pdTypes.fromString(val.diskType)
-          return val
-        })
-        return resJs
+        return res.json().then(val => _.set('diskType', pdTypes.fromString(val.diskType)))
       }
     }
   }
