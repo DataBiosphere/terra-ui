@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { mkdirSync } = require('fs')
+const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
@@ -192,6 +192,7 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
+  console.log('signIntoTerra ...')
   const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
     // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
     await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
@@ -200,7 +201,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
   if (!!testUrl) {
     console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+    await gotoPage(page, testUrl)
   }
 
   try {
@@ -208,7 +209,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
+    await page.reload(navOptionNetworkIdle())
     await waitUtilBannerVisible()
   }
 
@@ -277,13 +278,17 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
-const maybeSaveScreenshot = async (page, testName) => {
+const getScreenshotDir = () => {
   const dir = screenshotDirPath ?
     screenshotDirPath :
     process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
 
+const maybeSaveScreenshot = async (page, testName) => {
+  const dir = getScreenshotDir()
   try {
-    mkdirSync(dir, { recursive: true })
     const path = `${dir}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
@@ -305,6 +310,21 @@ const maybeSaveScreenshot = async (page, testName) => {
     }
   } catch (e) {
     console.error('Failed to capture screenshot', e)
+  }
+}
+
+// Save page content to screenshot dir. Useful for test failure troubleshooting
+const savePageContent = async (page, testName) => {
+  const dir = getScreenshotDir()
+  const htmlContent = await page.content()
+  const htmlFile = `${dir}/failure-${Date.now()}-${testName}.html`
+  try {
+    writeFileSync(htmlFile, htmlContent, { encoding: 'utf8' })
+    console.log(`Saved screenshot page content: ${htmlFile}`)
+  } catch (e) {
+    console.error('Failed to save screenshot page content')
+    console.error(e)
+    // Let test continue
   }
 }
 
@@ -346,7 +366,11 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
+
+const gotoPage = (page, url) => {
+  return page.goto(url, navOptionNetworkIdle())
+}
 
 module.exports = {
   assertNavChildNotFound,
@@ -384,6 +408,8 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout,
-  maybeSaveScreenshot
+  navOptionNetworkIdle,
+  maybeSaveScreenshot,
+  gotoPage,
+  savePageContent
 }
