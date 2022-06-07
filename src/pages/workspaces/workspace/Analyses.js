@@ -465,10 +465,9 @@ const Analyses = _.flow(
           uploadFiles, openUploader,
           location,
           onDismiss: async () => {
-            await refreshAnalyses()
+            setCreating(false)
             await refreshRuntimes()
             await refreshApps()
-            setCreating(false)
           },
           onSuccess: async () => {
             await refreshAnalyses()
