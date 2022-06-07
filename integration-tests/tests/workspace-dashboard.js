@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, navChild, noSpinnersAfter
+  assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, gotoPage, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -35,7 +35,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
   return {
     visit: async (loadUrl = true) => {
       if (loadUrl) {
-        await testPage.goto(testUrl)
+        await gotoPage(testPage, testUrl)
       }
       await viewWorkspaceDashboard(testPage, token, workspaceName)
     },
@@ -196,7 +196,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   const workspaceName = 'azure-workspace'
 
   // Must load page before setting mock responses.
-  await page.goto(testUrl)
+  await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await setAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)

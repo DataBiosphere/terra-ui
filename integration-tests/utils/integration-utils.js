@@ -192,6 +192,7 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
+  console.log('signIntoTerra ...')
   const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
     // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
     await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
@@ -200,7 +201,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
   if (!!testUrl) {
     console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+    await gotoPage(page, testUrl)
   }
 
   try {
@@ -208,7 +209,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
+    await page.reload(navOptionNetworkIdle())
     await waitUtilBannerVisible()
   }
 
@@ -346,7 +347,11 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
+
+const gotoPage = (page, url) => {
+  return page.goto(url, navOptionNetworkIdle())
+}
 
 module.exports = {
   assertNavChildNotFound,
@@ -384,6 +389,7 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout,
-  maybeSaveScreenshot
+  navOptionNetworkIdle,
+  maybeSaveScreenshot,
+  gotoPage
 }
