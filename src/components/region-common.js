@@ -59,7 +59,7 @@ export const getRegionInfo = (location, locationType) => {
 export const locationTypes = {
   region: 'region',
   multiRegion: 'multi-region',
-  default: 'multi-region'
+  default: 'region'
 }
 
 export const allRegions = [
