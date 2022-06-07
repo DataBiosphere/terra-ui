@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, findTooltipText
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -16,8 +16,8 @@ const testAnalysisContextBarFn = _.flow(
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Ensure UI displays the runtime Terminal icon is present + disabled
-  let iconTooltipText = 'Terminal'
-  await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: false }))
+  const tooltipTextTerminal = 'Terminal'
+  await findElement(page, clickable({ textContains: tooltipTextTerminal, isEnabled: false }))
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
@@ -26,16 +26,15 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
-  // Ensure UI displays the runtime is creating and the Terminal icon is present + enabled
-  const terminalIcon = await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: true }))
-  await terminalIcon.hover()
-  await findTooltipText(page, iconTooltipText)
+  // For page synchronization, find the Start button
+  await findElement(page, clickable({ textContains: 'Start' }), { visible: true })
 
-  iconTooltipText = 'Jupyter Environment ( Creating )'
-  const jupyterEnvIcon = await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: true }))
-  await jupyterEnvIcon.hover()
-  await findTooltipText(page, iconTooltipText)
-  await click(page, clickable({ textContains: iconTooltipText }), { timeout: 40000 })
+  // Ensure UI displays the runtime is creating and the Terminal icon is present + enabled
+  await findElement(page, clickable({ textContains: tooltipTextTerminal, isEnabled: true }), { visible: true })
+
+  const tooltipTextEnvCreating = 'Jupyter Environment ( Creating )'
+  const jupyterEnvIcon = await findElement(page, clickable({ textContains: tooltipTextEnvCreating, isEnabled: true }), { visible: true })
+  await jupyterEnvIcon.click()
 
   // Updating/modifying the environment should be disabled when the env is creating
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
