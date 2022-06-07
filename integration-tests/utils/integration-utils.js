@@ -5,7 +5,7 @@ const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
 
-const waitForXpathWithVisibleTrue = opts => _.defaults({ visible: true }, opts)
+const defaultVisibleTrue = _.defaults({ visible: true })
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
@@ -32,7 +32,7 @@ const findIframe = async page => {
 }
 
 const findInGrid = (page, textContains, options) => {
-  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, waitForXpathWithVisibleTrue(options))
+  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultVisibleTrue(options))
 }
 
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
@@ -106,11 +106,11 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
 }
 
 const click = async (page, xpath, options) => {
-  return (await page.waitForXPath(xpath, waitForXpathWithVisibleTrue(options))).click()
+  return (await page.waitForXPath(xpath, defaultVisibleTrue(options))).click()
 }
 
 const findText = (page, textContains, options) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, waitForXpathWithVisibleTrue(options))
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultVisibleTrue(options))
 }
 
 const assertTextNotFound = async (page, text) => {
@@ -134,7 +134,7 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  const input = await page.waitForXPath(xpath, waitForXpathWithVisibleTrue())
+  const input = await page.waitForXPath(xpath, defaultVisibleTrue())
   await input.type(text, { delay: 20 })
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
@@ -197,7 +197,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...')
   const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
     // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', waitForXpathWithVisibleTrue({ timeout }))
+    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', defaultVisibleTrue({ timeout }))
     await waitForNoSpinners(page)
   }
 
@@ -221,7 +221,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 }
 
 const findElement = (page, xpath, options) => {
-  return page.waitForXPath(xpath, waitForXpathWithVisibleTrue(options))
+  return page.waitForXPath(xpath, defaultVisibleTrue(options))
 }
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
