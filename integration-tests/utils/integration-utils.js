@@ -111,6 +111,10 @@ const findText = (page, textContains, options) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
+const findTooltipText = (page, textContains, options = { visible: true }) => {
+  return page.waitForXPath(`//*[@id="modal-root"]//*[@role="tooltip" and contains(normalize-space(.),"${textContains}")]`, options)
+}
+
 const assertTextNotFound = async (page, text) => {
   let found = false
   try {
@@ -362,6 +366,7 @@ module.exports = {
   findElement,
   findHeading,
   findText,
+  findTooltipText,
   fillIn,
   fillInReplace,
   getAnimatedDrawer,

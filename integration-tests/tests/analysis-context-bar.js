@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
+  click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter, findTooltipText
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -15,6 +15,10 @@ const testAnalysisContextBarFn = _.flow(
   // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
+  // Ensure UI displays the runtime Terminal icon is present + disabled
+  let iconTooltipText = 'Terminal'
+  await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: false }))
+
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
@@ -22,9 +26,16 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
-  // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
-  await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  // Ensure UI displays the runtime is creating and the Terminal icon is present + enabled
+  const terminalIcon = await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: true }))
+  await terminalIcon.hover()
+  await findTooltipText(page, iconTooltipText)
+
+  iconTooltipText = 'Jupyter Environment ( Creating )'
+  const jupyterEnvIcon = await findElement(page, clickable({ textContains: iconTooltipText, isEnabled: true }))
+  await jupyterEnvIcon.hover()
+  await findTooltipText(page, iconTooltipText)
+  await click(page, clickable({ textContains: iconTooltipText }), { timeout: 40000 })
 
   // Updating/modifying the environment should be disabled when the env is creating
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
