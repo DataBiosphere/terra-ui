@@ -1458,13 +1458,6 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
 
-  fetchIframeSrcUrl: async proxyUrl => {
-    const res = await fetchOk(proxyUrl, _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    const blob = res.blob()
-    const objectUrl = URL.createObjectURL(blob)
-    return objectUrl
-  },
-
   runtime: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
