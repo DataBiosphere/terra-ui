@@ -347,7 +347,7 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['domcontentloaded'], timeout })
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
 
 const gotoPage = (page, url) => {
   return page.goto(url, navOptionNetworkIdle())
