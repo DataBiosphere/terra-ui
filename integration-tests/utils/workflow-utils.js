@@ -22,13 +22,18 @@ const launchWorkflowAndWaitForSuccess = async page => {
 
   // Long enough for the submission details to be Running or Failed.
   // Workflows might sit in "Submitted" for a long time if there is a large backlog of workflows in the environment
-  const isRunning = await Promise.race([
-    findInGrid(page, 'Failed', { timeout: 5 * 60 * 1000 }).then(() => false),
-    findInGrid(page, 'Running', { timeout: 5 * 60 * 1000 }).then(() => true)
+  const workflowStatus = await Promise.race([
+    findInGrid(page, 'Succeeded', { timeout: 5 * 60 * 1000 }).then(() => 'Succeeded'),
+    findInGrid(page, 'Failed', { timeout: 5 * 60 * 1000 }).then(() => 'Failed'),
+    findInGrid(page, 'Running', { timeout: 5 * 60 * 1000 }).then(() => 'Running')
   ])
 
+  if (workflowStatus === 'Succeeded') {
+    return
+  }
+
   // If status is not Running, fails test now
-  if (!isRunning) {
+  if (workflowStatus === 'Failed') {
     throw new Error('Workflow has failed')
   }
 
