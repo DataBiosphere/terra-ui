@@ -736,7 +736,7 @@ export const ComputeModalBase = ({
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const locationType = location === 'US' ? locationTypes.multiRegion : locationTypes.region
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
@@ -1436,7 +1436,6 @@ export const ComputeModalBase = ({
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
 
     const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
-
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
         id: titleId,
