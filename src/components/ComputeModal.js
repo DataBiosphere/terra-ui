@@ -1708,7 +1708,7 @@ export const ComputeModalBase = ({
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
             { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
           ]
         })
       ])
