@@ -5,6 +5,7 @@ const {
   click, clickable, getAnimatedDrawer, findElement, noSpinnersAfter
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
+const { findButtonInCloudEnvDetailsDialog } = require('../utils/analysis-utils')
 
 
 const testAnalysisContextBarFn = _.flow(
@@ -22,7 +23,7 @@ const testAnalysisContextBarFn = _.flow(
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
+  await noSpinnersAfter(page, { action: () => findButtonInCloudEnvDetailsDialog(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
@@ -40,7 +41,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Updating/modifying the environment should be disabled when the env is creating
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
+  await noSpinnersAfter(page, { action: () => findButtonInCloudEnvDetailsDialog(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, clickable({ text: 'Update', isEnabled: false }), { timeout: 40000 })
   await click(page, clickable({ textContains: 'Close' }))
 
