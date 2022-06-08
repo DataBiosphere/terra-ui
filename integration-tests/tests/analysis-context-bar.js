@@ -26,7 +26,9 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
-  // For page synchronization, find the Start button
+  // We need a way to determine UI has finished loading after click Create. The START button is located in the main page.
+  // Loading of page could take few seconds or less so we find the START button and wait for visible.
+  // Click 'Jupyter Environment ( Creating )' icon could fail if page has not finished loading.
   await findElement(page, clickable({ textContains: 'Start' }), { visible: true })
 
   // Ensure UI displays the runtime is creating and the Terminal icon is present + enabled
