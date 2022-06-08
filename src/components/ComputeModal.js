@@ -667,6 +667,9 @@ export const ComputeModalBase = ({
     if (location === defaultLocation) {
       return computeConfig.computeRegion !== defaultComputeRegion
     } else {
+      if (isUSLocation(computeConfig.computeRegion) && isUSLocation(location)) {
+        return false
+      }
       return computeConfig.computeRegion !== location
     }
   }
