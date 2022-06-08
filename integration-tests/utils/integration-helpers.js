@@ -1,11 +1,10 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
-  click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
+  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter, navOptionNetworkIdle
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -34,6 +33,8 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
       try {
         return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
       } catch (err) {
+        console.error(err)
+        console.error(typeof err)
         const message = await err.text()
         throw message
       }
@@ -196,7 +197,7 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
@@ -209,7 +210,7 @@ const enableDataCatalog = async (page, testUrl, token) => {
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
   await Promise.all([
-    page.waitForNavigation(waitUntilLoadedOrTimeout()),
+    page.waitForNavigation(navOptionNetworkIdle()),
     noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
   ])
 }
@@ -223,7 +224,7 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)

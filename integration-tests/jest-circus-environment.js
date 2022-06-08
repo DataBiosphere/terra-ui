@@ -1,5 +1,5 @@
 const PuppeteerEnvironment = require('jest-environment-puppeteer')
-const { maybeSaveScreenshot } = require('./utils/integration-utils')
+const { maybeSaveScreenshot, savePageContent } = require('./utils/integration-utils')
 const { parse } = require('path')
 
 
@@ -16,6 +16,7 @@ class JestCircusEnvironment extends PuppeteerEnvironment {
     if (['hook_failure', 'test_fn_failure'].includes(name)) {
       const [activePage] = (await this.global.browser.pages()).slice(-1)
       await maybeSaveScreenshot(activePage, this.testName)
+      await savePageContent(activePage, this.testName)
     }
     if (super.handleTestEvent) {
       await super.handleTestEvent(event, state)
