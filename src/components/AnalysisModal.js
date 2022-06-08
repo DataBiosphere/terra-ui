@@ -66,19 +66,19 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, () => {
-            resetView()
             onSuccess()
+            resetView()
           }],
           [!doesCloudEnvForToolExist && currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), () => {
-            resetView()
             onSuccess()
+            resetView()
           }]
         )],
         [environmentMode, () => {
-          resetView()
           onSuccess()
+          resetView()
         }],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
