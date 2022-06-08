@@ -112,7 +112,7 @@ const RuntimeErrorNotification = ({ runtime }) => {
         textDecoration: 'underline',
         fontWeight: 'bold'
       }
-    }, ['SEE LOG INFO']),
+    }, ['Details']),
     modalOpen && h(RuntimeErrorModal, {
       runtime,
       onDismiss: () => setModalOpen(false)
@@ -157,7 +157,7 @@ const AppErrorNotification = ({ app }) => {
         textDecoration: 'underline',
         fontWeight: 'bold'
       }
-    }, ['SEE LOG INFO']),
+    }, ['Details']),
     modalOpen && h(AppErrorModal, {
       app,
       onDismiss: () => setModalOpen(false)
