@@ -114,16 +114,16 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       persistentDisks,
       location,
       onDismiss: () => {
-        resetView()
         onDismiss()
+        resetView()
       },
       onError: () => {
+        onError()
         resetView()
-        onDismiss()
       },
       onSuccess: () => {
-        setViewMode(undefined)
         onSuccess()
+        resetView()
       }
     })
 
@@ -133,16 +133,16 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        setViewMode(undefined)
         onDismiss()
+        resetView()
       },
       onError: () => {
-        setViewMode(undefined)
         onError()
+        resetView()
       },
       onSuccess: () => {
-        setViewMode(undefined)
         onSuccess()
+        resetView()
       }
     })
 
@@ -319,10 +319,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         title: 'Select an application',
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
-        onDismiss: () => {
-          resetView()
-          onDismiss()
-        },
         onPrevious: !!viewMode ? () => resetView() : undefined
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
@@ -332,8 +328,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
       onDismiss: () => {
-        resetView()
         onDismiss()
+        resetView()
       }
     }
 
