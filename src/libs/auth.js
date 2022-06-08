@@ -21,26 +21,29 @@ import * as Utils from 'src/libs/utils'
 
 
 export const getOidcConfig = () => {
+  const metadata = {
+    authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
+    token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
+    ...(isGoogleAuthority() && { userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo' })
+  }
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     client_id: authStore.get().oidcConfig.clientId,
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
-    prompt: 'login',
+    metadata,
+    prompt: 'consent',
     scope: 'openid email profile',
-    metadata: {
-      authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
-      token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`
-    },
+    loadUserInfo: isGoogleAuthority(),
     userStore: new WebStorageStateStore({ store: window.localStorage }),
-    accessTokenExpiringNotificationTimeInSeconds: 300,
     automaticSilentRenew: true,
-    includeIdTokenInSilentRenew: true
+    includeIdTokenInSilentRenew: true,
+    extraQueryParams: { access_type: 'offline' }
   }
 }
 
-const isB2C = () => {
-  return _.includes('b2clogin.com', authStore.get().oidcConfig.authorityEndpoint)
+const isGoogleAuthority = () => {
+  return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint)
 }
 
 const getAuthInstance = () => {
@@ -77,25 +80,13 @@ export const reloadAuthToken = (includeBillingScope = false) => {
   return getAuthInstance().signinSilent(args).catch(() => false)
 }
 
-export const handleSilentRenewError = error => {
-  if (error.name !== 'ErrorResponse') {
-    setTimeout(() => {
-      const auth = getAuthInstance()
-      if (auth.user && !auth.user.expired) {
-        auth.stopSilentRenew()
-        auth.startSilentRenew()
-      }
-    }, 5 * 1000)
-  }
-}
-
 export const hasBillingScope = () => {
   const scope = getUser().scope
 
   // For now B2C always requests the cloud-billing scope from the get-go.
   // TOAZ-146 is open to create a separate B2C policy with the sensitive scope
   // which can be elevated on demand.
-  return isB2C() || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
+  return isGoogleAuthority() === false || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
 }
 
 /*

@@ -19,7 +19,6 @@ import * as Showcase from 'src/pages/library/Showcase'
 import * as NotFound from 'src/pages/NotFound'
 import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
-import * as RedirectFromOAuth from 'src/pages/RedirectFromOAuth'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
 import * as Upload from 'src/pages/Upload'
@@ -76,7 +75,6 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
-  RedirectFromOAuth.navPaths,
   NotFound.navPaths // must be last
 ])
 

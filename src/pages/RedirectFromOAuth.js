@@ -3,13 +3,15 @@ import { div, img } from 'react-hyperscript-helpers'
 import { useOnMount } from 'src/libs/react-utils'
 
 
-const RedirectFromOAuth = (silent = false) => {
+const RedirectFromOAuth = () => {
   const userManager = new UserManager({
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`
   })
-  const url = window.location.href.replace('#', '')
-  useOnMount(() => silent === true ? userManager.signinSilentCallback(url) : userManager.signinPopupCallback(url))
+
+  const url = window.location.href
+  const isSilent = window.location.pathname.startsWith('/redirect-from-oauth-silent')
+  useOnMount(() => isSilent === true ? userManager.signinSilentCallback(url) : userManager.signinPopupCallback(url))
 
   const spinnerSize = 54
   return div({ role: 'main', style: { position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' } }, [
@@ -28,22 +30,5 @@ const RedirectFromOAuth = (silent = false) => {
     })
   ])
 }
-
-export const navPaths = [
-  {
-    name: 'redirect-from-oauth',
-    path: '/redirect-from-oauth',
-    component: () => RedirectFromOAuth(false),
-    public: true,
-    title: 'Redirect From OAuth'
-  },
-  {
-    name: 'redirect-from-oauth-silent',
-    path: '/redirect-from-oauth-silent',
-    component: () => RedirectFromOAuth(true),
-    public: true,
-    title: 'Redirect From OAuth'
-  }
-]
 
 export default RedirectFromOAuth
