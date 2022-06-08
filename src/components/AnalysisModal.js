@@ -35,7 +35,7 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
+    isOpen, onDismiss, onError, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
@@ -117,6 +117,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         resetView()
         onDismiss()
       },
+      onError: () => {
+        resetView()
+        onDismiss()
+      },
       onSuccess: () => {
         setViewMode(undefined)
         onSuccess()
@@ -131,6 +135,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       onDismiss: () => {
         setViewMode(undefined)
         onDismiss()
+      },
+      onError: () => {
+        setViewMode(undefined)
+        onError()
       },
       onSuccess: () => {
         setViewMode(undefined)
@@ -291,7 +299,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 enterNextViewMode(toolLabel)
               } catch (error) {
                 await reportError('Error creating analysis', error)
-                onDismiss()
+                onError()
               }
             }
           }, 'Create Analysis')

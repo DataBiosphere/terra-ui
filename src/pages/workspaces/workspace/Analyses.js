@@ -464,16 +464,20 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles, openUploader,
           location,
-          onDismiss: async () => {
+          onDismiss: () => {
             setCreating(false)
+          },
+          onError: async () => {
+            setCreating(false)
+            await refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
           },
           onSuccess: async () => {
+            setCreating(false)
             await refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
-            setCreating(false)
           }
         }),
         h(AzureComputeModal, {
