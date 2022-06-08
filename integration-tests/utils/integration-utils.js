@@ -1,8 +1,7 @@
 const _ = require('lodash/fp')
 const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
-const { Storage } = require('@google-cloud/storage')
-const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
+const { screenshotDirPath } = require('../utils/integration-config')
 
 
 const defaultToVisibleTrue = _.defaults({ visible: true })
@@ -301,14 +300,6 @@ const maybeSaveScreenshot = async (page, testName) => {
 
     if (errorsPresent) {
       await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
-    }
-
-    if (screenshotBucket) {
-      const storage = new Storage()
-      await storage.bucket(screenshotBucket).upload(path)
-      if (errorsPresent) {
-        await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
-      }
     }
   } catch (e) {
     console.error('Failed to capture screenshot', e)
