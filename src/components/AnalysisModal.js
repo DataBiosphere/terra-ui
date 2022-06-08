@@ -55,6 +55,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       setNotebookKernel('python3')
     }
 
+    const modalDismiss = () => {
+      onDismiss()
+      resetView()
+    }
+
     /**
      * The intended flow is to call this without a viewMode, and have it intelligently figure out the next
      * step for you. Passing a viewMode is a way to force your next modal.
@@ -114,8 +119,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       persistentDisks,
       location,
       onDismiss: () => {
-        onDismiss()
-        resetView()
+        modalDismiss()
       },
       onError: () => {
         onError()
@@ -133,8 +137,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        onDismiss()
-        resetView()
+        modalDismiss()
       },
       onError: () => {
         onError()
@@ -328,8 +331,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
       onDismiss: () => {
-        onDismiss()
-        resetView()
+        modalDismiss()
       }
     }
 
