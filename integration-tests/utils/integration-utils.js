@@ -1,9 +1,11 @@
 const _ = require('lodash/fp')
-const { mkdirSync } = require('fs')
+const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
 const { Storage } = require('@google-cloud/storage')
 const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
 
+
+const defaultToVisibleTrue = _.defaults({ visible: true })
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
@@ -30,7 +32,7 @@ const findIframe = async page => {
 }
 
 const findInGrid = (page, textContains, options) => {
-  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
+  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options))
 }
 
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
@@ -103,12 +105,12 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const click = async (page, xpath, options = { visible: true }) => {
-  return (await page.waitForXPath(xpath, options)).click()
+const click = async (page, xpath, options) => {
+  return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
 }
 
 const findText = (page, textContains, options) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options))
 }
 
 const assertTextNotFound = async (page, text) => {
@@ -132,7 +134,7 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  const input = await page.waitForXPath(xpath)
+  const input = await page.waitForXPath(xpath, defaultToVisibleTrue())
   await input.type(text, { delay: 20 })
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
@@ -192,15 +194,16 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
+  console.log('signIntoTerra ...')
   const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
     // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
+    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', defaultToVisibleTrue({ timeout }))
     await waitForNoSpinners(page)
   }
 
   if (!!testUrl) {
     console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
+    await gotoPage(page, testUrl)
   }
 
   try {
@@ -208,7 +211,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   } catch (err) {
     console.error(err)
     console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
+    await page.reload(navOptionNetworkIdle())
     await waitUtilBannerVisible()
   }
 
@@ -218,7 +221,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 }
 
 const findElement = (page, xpath, options) => {
-  return page.waitForXPath(xpath, options)
+  return page.waitForXPath(xpath, defaultToVisibleTrue(options))
 }
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -277,13 +280,17 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
-const maybeSaveScreenshot = async (page, testName) => {
+const getScreenshotDir = () => {
   const dir = screenshotDirPath ?
     screenshotDirPath :
     process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
 
+const maybeSaveScreenshot = async (page, testName) => {
+  const dir = getScreenshotDir()
   try {
-    mkdirSync(dir, { recursive: true })
     const path = `${dir}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
@@ -305,6 +312,21 @@ const maybeSaveScreenshot = async (page, testName) => {
     }
   } catch (e) {
     console.error('Failed to capture screenshot', e)
+  }
+}
+
+// Save page content to screenshot dir. Useful for test failure troubleshooting
+const savePageContent = async (page, testName) => {
+  const dir = getScreenshotDir()
+  const htmlContent = await page.content()
+  const htmlFile = `${dir}/failure-${Date.now()}-${testName}.html`
+  try {
+    writeFileSync(htmlFile, htmlContent, { encoding: 'utf8' })
+    console.log(`Saved screenshot page content: ${htmlFile}`)
+  } catch (e) {
+    console.error('Failed to save screenshot page content')
+    console.error(e)
+    // Let test continue
   }
 }
 
@@ -346,7 +368,11 @@ const withPageLogging = fn => async options => {
   return await fn(options)
 }
 
-const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
+
+const gotoPage = (page, url) => {
+  return page.goto(url, navOptionNetworkIdle())
+}
 
 module.exports = {
   assertNavChildNotFound,
@@ -384,6 +410,8 @@ module.exports = {
   waitForNoSpinners,
   withPageLogging,
   openError,
-  waitUntilLoadedOrTimeout,
-  maybeSaveScreenshot
+  navOptionNetworkIdle,
+  maybeSaveScreenshot,
+  gotoPage,
+  savePageContent
 }

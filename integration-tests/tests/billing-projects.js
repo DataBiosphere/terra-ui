@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, findText, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, findText, gotoPage, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -10,7 +10,7 @@ const billingProjectsPage = (testPage, testUrl) => {
     visit: async () => {
       // Note: not using noSpinnersAfter because this action changes the page, and
       // noSpinners after checks that a spinner appears and disappear within the same page.
-      await testPage.goto(`${testUrl}/#billing`)
+      await gotoPage(testPage, `${testUrl}/#billing`)
       await findText(testPage, 'Select a Billing Project')
       await waitForNoSpinners(testPage)
     },
