@@ -6,7 +6,6 @@ const {
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { defaultLocation } = require('src/libs/runtime-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -33,7 +32,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   try {
     const response = await page.evaluate(async (name, billingProject) => {
       try {
-        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {}, bucketLocation: defaultLocation })
+        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {}, bucketLocation: 'us-central1' })
       } catch (err) {
         console.error(err)
         console.error(typeof err)
