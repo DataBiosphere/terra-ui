@@ -831,7 +831,7 @@ export const ComputeModalBase = ({
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
       ], [
         canShowWarning && isDifferentLocation(),
-        ( => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
       ], [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
