@@ -6,14 +6,14 @@ import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/c
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
 import { notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
-import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
-import { authStore, cookieReadyStore } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -27,7 +27,7 @@ const ApplicationLauncher = _.flow(
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks, location },
-  application, workspace, workspace: { workspace: { googleProject, bucketName } }
+  application, workspace, workspace: { azureContext, workspace: { googleProject, bucketName } }
 }, _ref) => {
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -36,7 +36,11 @@ const ApplicationLauncher = _.flow(
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
   const [iframeSrc, setIframeSrc] = useState()
 
-  const cookieReady = useStore(cookieReadyStore)
+  const leoCookieReady = useStore(cookieReadyStore)
+  const azureCookieReady = useStore(azureCookieReadyStore)
+  console.log('googleProject in appLauncher', !!googleProject)
+  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady
+  console.log('cookieReady in appLauncher', cookieReady)
   const signal = useCancellation()
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
@@ -207,6 +211,7 @@ const ApplicationLauncher = _.flow(
       }
     }),
     h(RuntimeKicker, { runtime, refreshRuntimes }),
+    !!azureContext && getConvertedRuntimeStatus(runtime) === 'Running'  ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl }) : null,
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [

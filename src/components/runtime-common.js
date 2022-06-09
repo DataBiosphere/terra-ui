@@ -11,7 +11,7 @@ import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
-import { authStore, cookieReadyStore, userStatus } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -101,7 +101,22 @@ export const PeriodicCookieSetter = () => {
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
+
       cookieReadyStore.set(true)
+    }),
+    { ms: 5 * 60 * 1000, leading: true }
+  )
+  return null
+}
+
+export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
+  console.log('using periodic cookie setter')
+  const signal = useCancellation()
+  usePollingEffect(
+    withErrorIgnoring(async () => {
+      await Ajax(signal).Runtimes.setAzureCookie(proxyUrl)
+      //TODO: use store properly
+      azureCookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }
   )

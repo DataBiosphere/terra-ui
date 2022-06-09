@@ -1454,6 +1454,10 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
   },
 
+  setAzureCookie: proxyUrl => {
+    return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
   setCookie: () => {
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
