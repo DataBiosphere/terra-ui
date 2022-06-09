@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -659,16 +659,16 @@ export const ComputeModalBase = ({
     updateComputeConfig('computeRegion', computeRegion)
   }
 
-  const isDifferentLocation = () => {
-    // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
-    // bucketLocation === 'US' means the bucket is US multi-regional.
-    // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
-    // Currently, US is the only multi-region supported in Terra
-    if (location === defaultLocation) {
-      return computeConfig.computeRegion !== defaultComputeRegion
-    } else {
-      return computeConfig.computeRegion !== location
-    }
+  /**
+   * Determines if the GCP will charge for network transfers between the given locations
+   * @param sourceLocation
+   * @param destLocation
+   * @returns {boolean}
+   */
+  const incursEgressCharges = (sourceLocation, destLocation) => {
+    // all moves between different locations will be charged as of 10/2022 on GCP
+    // https://cloud.google.com/storage/pricing-announce#network
+    return sourceLocation !== destLocation
   }
 
   const getLocationTooltip = (computeExists, bucketLocation) => Utils.cond(
@@ -736,7 +736,7 @@ export const ComputeModalBase = ({
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
@@ -829,7 +829,7 @@ export const ComputeModalBase = ({
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
       ], [
-        canShowWarning && isDifferentLocation(),
+        canShowWarning && incursEgressCharges(location, computeConfig.computeRegion),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
       ], [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
