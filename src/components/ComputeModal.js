@@ -830,8 +830,8 @@ export const ComputeModalBase = ({
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
       ], [
-        canShowWarning && isDifferentLocation(location, computeConfig.computeRegion),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+        canShowWarning && isDifferentLocation(),
+        ( => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
       ], [
         canShowWarning && !isUSLocation(computeConfig.computeRegion),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
