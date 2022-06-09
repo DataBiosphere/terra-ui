@@ -233,7 +233,6 @@ const PreviewHeader = ({
   const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
-  const [busy, setBusy] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
   const [locked, setLocked] = useState(false)
   const [lockedBy, setLockedBy] = useState(null)
@@ -261,13 +260,10 @@ const PreviewHeader = ({
 
   const startAndRefresh = async (refreshRuntimes, promise) => {
     try {
-      setBusy(true)
       await promise
       await refreshRuntimes(true)
     } catch (error) {
       reportError('Cloud Environment Error', error)
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -306,12 +302,12 @@ const PreviewHeader = ({
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-                } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
-               // we make it here because mode is undefined. we don't have modes for rstudio (that i'm aware of)
-                chooseMode('edit')
+              } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
+                // we make it here because mode is undefined. we don't have modes for rstudio currently but will be creating a follow up
+                // ticket to address this. Not having modes is causing some bugs in this logic
+                chooseMode('rstudio') // TODO: we don't have mode for rstudio
                 startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
-              }
-              else {
+              } else {
                 setCreateOpen(true)
               }
             }
@@ -337,7 +333,7 @@ const PreviewHeader = ({
         ])
       ])],
       [_.includes(runtimeStatus, usableStatuses), () => {
-        console.assert(false, `Expected cloud environment to NOT be one of: [${usableStatuses}]`)
+        console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null
       }],
       [runtimeStatus === 'Creating', () => h(StatusMessage, [
