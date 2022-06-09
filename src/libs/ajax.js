@@ -1684,6 +1684,11 @@ const Dockstore = signal => ({
   getVersions: async ({ path, isTool }) => {
     const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
     return res.json()
+  },
+
+  listTools: async (params = {}) => {
+    const response = await fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`)
+    return response.json()
   }
 })
 

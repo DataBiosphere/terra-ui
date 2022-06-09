@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -14,9 +14,8 @@ import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { withBusyState } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -26,7 +25,12 @@ const styles = {
   }
 }
 
-export const MethodCard = ({ method: { name, synopsis }, ...props }) => {
+export const MethodCard = ({ method, ...props }) => {
+  const isMethodsRepoMethod = method.namespace && method.name
+
+  const name = isMethodsRepoMethod ? method.name : method.toolname
+  const description = isMethodsRepoMethod ? method.synopsis : method.description
+
   return h(Clickable, {
     ...props,
     style: {
@@ -40,7 +44,7 @@ export const MethodCard = ({ method: { name, synopsis }, ...props }) => {
   }, [
     div({ style: { flex: 'none', padding: '15px 20px', height: 140 } }, [
       div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-      div({ style: { lineHeight: '20px', ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', height: 60 } }, [synopsis])
+      div({ style: { lineHeight: '20px', ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', height: 60 } }, [description])
     ]),
     wdlIcon({ style: { position: 'absolute', top: 0, right: 8 } })
   ])
@@ -85,34 +89,42 @@ export const MethodRepoTile = () => {
   ])
 }
 
+const getFeaturedMethods = async signal => {
+  const [featuredMethods, methodsRepoMethodsList, dockstoreMethodsList] = await Promise.all([
+    Ajax(signal).FirecloudBucket.getFeaturedMethods(),
+    Ajax(signal).Methods.list({ namespace: 'gatk' }),
+    Ajax(signal).Dockstore.listTools({ organization: 'gatk-workflows' })
+  ])
+
+  const methodsRepoMethodDetails = _.flow(
+    _.groupBy(method => `${method.namespace}/${method.name}`),
+    _.mapValues(_.maxBy('snapshotId'))
+  )(methodsRepoMethodsList)
+
+  const dockstoreMethodDetails = _.keyBy('id', dockstoreMethodsList)
+
+  return _.flow(
+    _.map(({ namespace, name, id }) => Utils.cond(
+      [id, () => _.get(id, dockstoreMethodDetails)],
+      [namespace && name, () => _.get(`${namespace}/${name}`, methodsRepoMethodDetails)]
+    )),
+    _.compact
+  )(featuredMethods)
+}
+
 const Code = () => {
   const signal = useCancellation()
-  const stateHistory = StateHistory.get()
-  const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
-  const [methods, setMethods] = useState(stateHistory.methods)
+  const [featuredMethods, setFeaturedMethods] = useState([])
   const [loading, setLoading] = useState(false)
   useOnMount(() => {
     const loadData = _.flow(
       withErrorReporting('Error loading workflows'),
-      withBusyState(setLoading)
+      Utils.withBusyState(setLoading)
     )(async () => {
-      const [newFeaturedList, newMethods] = await Promise.all([
-        Ajax(signal).FirecloudBucket.getFeaturedMethods(),
-        Ajax(signal).Methods.list({ namespace: 'gatk' })
-      ])
-      setFeaturedList(newFeaturedList)
-      setMethods(newMethods)
+      setFeaturedMethods(await getFeaturedMethods(signal))
     })
     loadData()
   })
-  useEffect(() => {
-    StateHistory.update({ featuredList, methods })
-  }, [featuredList, methods])
-
-  const featuredMethods = _.flow(
-    _.map(({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods))),
-    _.compact
-  )(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('code & workflows', useStore(authStore)),
@@ -122,10 +134,15 @@ const Code = () => {
           div({ style: styles.header }, 'GATK4 Best Practices workflows'),
           div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
             _.map(method => {
-              const { namespace, name } = method
+              const { namespace, name, id } = method
+              const isMethodsRepoMethod = namespace && name
+              const href = isMethodsRepoMethod ?
+                `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` :
+                `${getConfig().dockstoreUrlRoot}/workflows/${id.replace(/^#workflow\//, '')}`
+
               return h(MethodCard, {
                 key: `${namespace}/${name}`,
-                href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/`,
+                href,
                 method
               })
             }, featuredMethods)
