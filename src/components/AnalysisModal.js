@@ -55,7 +55,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       setNotebookKernel('python3')
     }
 
-    const modalDismiss = () => {
+    const onDismissModal = () => {
       onDismiss()
       resetView()
     }
@@ -119,7 +119,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       persistentDisks,
       location,
       onDismiss: () => {
-        modalDismiss()
+        onDismissModal()
       },
       onError: () => {
         onError()
@@ -137,7 +137,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       apps,
       appDataDisks,
       onDismiss: () => {
-        modalDismiss()
+        onDismissModal()
       },
       onError: () => {
         onError()
@@ -323,7 +323,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
         onDismiss: () => {
-          modalDismiss()
+          onDismissModal()
         },
         onPrevious: !!viewMode ? () => resetView() : undefined
       }),
@@ -334,7 +334,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
       onDismiss: () => {
-        modalDismiss()
+        onDismissModal()
       }
     }
 
