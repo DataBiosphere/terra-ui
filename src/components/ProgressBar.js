@@ -86,7 +86,7 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
         max: totalBytes,
         now: uploadedBytes
       }),
-      p({}, [
+      p([
         'Transferred ',
         strong([filesize(uploadedBytes, { round: 1 })]),
         ' of ',
