@@ -88,6 +88,10 @@ export const allRegions = [
   { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
 
+export const getLocationInfo = location => _.find({value: location.toUpperCase()}, allRegions)
+export const getLocationType = location => getLocationInfo(location).locationType
+export const isLocationMultiRegion = location => getLocationType(location) === locationTypes.multiRegion
+
 // For current phased release of regionality only supporting US, US-CENTRAL1, NORTHAMERICA-NORTHEAST1 buckets.
 const supportedBucketLocations = ['US', 'US-CENTRAL1', 'NORTHAMERICA-NORTHEAST1']
 export const isSupportedBucketLocation = location => _.includes(location, supportedBucketLocations)
@@ -102,4 +106,8 @@ export const getAvailableComputeRegions = location => {
 
 export const isUSLocation = location => {
   return _.includes(location, ['US', defaultComputeRegion])
+}
+
+export const incursEgressCharge = (sourceLocation, destLocation) => {
+  return sourceLocation !== destLocation;
 }

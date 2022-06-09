@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
+import { allRegions, availableBucketRegions, getRegionInfo, isSupportedBucketLocation, isLocationMultiRegion, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -249,6 +249,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           options: _.sortBy('label', isAlphaRegionalityUser ? allRegions : availableBucketRegions)
         })
       ])]),
+      isLocationMultiRegion(bucketLocation) && div({ style: { ...warningStyle } }, [
+        icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        div({ style: { flex: 1 } }, [
+          `Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.`,
+          p(`Choosing a multi-region bucket location may result in additional storage costs for your workspace.`),
+          p(`Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location. For more information see <LINK TO BLOG POST>.`)
+        ])
+      ]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
         icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         div({ style: { flex: 1 } }, [
