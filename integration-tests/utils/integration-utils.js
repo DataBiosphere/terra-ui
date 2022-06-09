@@ -160,8 +160,9 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = page => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+const waitForNoSpinners = async page => {
+  await page.waitForXPath('//*[@id="root"]', { timeout: 60 * 1000 })
+  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -194,24 +195,30 @@ const dismissNotifications = async page => {
 
 const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...')
-  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
-    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', defaultToVisibleTrue({ timeout }))
+  const gotoUrlAndWait = async url => {
+    if (url) {
+      console.log(`Loading page: ${url}`)
+      await page.goto(url, navOptionNetworkIdle())
+      await page.waitForFunction(url => {
+        return window.location.href.includes(url)
+      }, {}, url)
+    }
     await waitForNoSpinners(page)
   }
 
-  if (!!testUrl) {
-    console.log(`Loading page: ${testUrl}`)
-    await gotoPage(page, testUrl)
-  }
-
   try {
-    await waitUtilBannerVisible()
+    await gotoUrlAndWait(testUrl)
   } catch (err) {
+    // Log out what happened for troubleshooting
     console.error(err)
-    console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload(navOptionNetworkIdle())
-    await waitUtilBannerVisible()
+    await maybeSaveScreenshot(page, 'signIntoTerra-function')
+    await savePageContent(page, 'signIntoTerra-function')
+    // Need a URL for the retry if testUrl is undefined
+    const href = await page.evaluate(() => {
+      return window.location.href
+    })
+    console.log(`window.location.href: ${href}`)
+    await gotoUrlAndWait(testUrl ? testUrl : href)
   }
 
   await page.evaluate(token => window.forceSignIn(token), token)
