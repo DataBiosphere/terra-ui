@@ -11,6 +11,7 @@ handlers:
 - url: /.*
   static_files: build/index.html
   upload: build/index.html
+  expiration: "5s"
   secure: always
   http_headers:
     X-Frame-Options: "DENY"
