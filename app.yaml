@@ -2,16 +2,100 @@ runtime: nodejs16
 default_expiration: "2m"
 
 handlers:
-- url: /(.*\.(css|eot|gz|html|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2))
+
+# font format
+- url: /(.*\.(woff|woff2))
+  mime_type: application/x-font-woff
   static_files: build/\1
-  upload: build/(.*)
+  upload: build/(.*\.(woff|woff2))
   secure: always
   http_headers:
     X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.svg)
+  mime_type: image/svg+xml
+  static_files: build/\1
+  upload: build/(.*\.svg)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.css)
+  mime_type: text/css
+  static_files: build/\1
+  upload: build/(.*\.css)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.eot)
+  mime_type: application/vnd.ms-fontobject
+  static_files: build/\1
+  upload: build/(.*\.eot)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+# zip files
+- url: /(.*\.(gz|rar|tar|tgz|zip))
+  static_files: build/\1
+  upload: build/(.*\.(gz|rar|tar|tgz|zip))
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+# image files
+- url: /(.*\.(bmp|gif|ico|jpeg|jpg|png))
+  static_files: build/\1
+  upload: build/(.*\.(bmp|gif|ico|jpeg|jpg|png))
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.js)
+  mime_type: text/javascript
+  static_files: build/\1
+  upload: build/(.*\.js)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.(json|map))
+  mime_type: application/json
+  static_files: build/\1
+  upload: build/(.*\.(json|map))
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.html)
+  mime_type: text/html
+  static_files: build/\1
+  upload: build/(.*\.html)$
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.otf)
+  mime_type: font/opentype
+  static_files: build/\1
+  upload: build/(.*\.otf)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.ttf)
+  mime_type: font/truetype
+  static_files: build/\1
+  upload: build/(.*\.ttf)
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
 - url: /.*
   static_files: build/index.html
   upload: build/index.html
-  expiration: "5s"
+  expiration: "0s"
   secure: always
   http_headers:
     X-Frame-Options: "DENY"
