@@ -26,12 +26,12 @@ const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
 
-const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
+const makeWorkspace = withSignedInPage(async ({ page, billingProject, bucketLocation }) => {
   const workspaceName = getTestWorkspaceName()
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
+    const response = await page.evaluate(async (name, billingProject, bucketLocation) => {
       try {
-        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, bucketLocation, attributes: {} })
       } catch (err) {
         console.error(err)
         console.error(typeof err)

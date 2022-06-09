@@ -1,6 +1,4 @@
-// The notebook run-regional-notebook.js is intended to be the same as this,
-// but with additional regional requirements. Generally any changes to this
-// file should also be made in run-regional-notebook.js
+// This test is intended to be the same as run-notebook.js, but in a non-US region.
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const {
@@ -10,12 +8,13 @@ const { registerTest } = require('../utils/jest-utils')
 
 
 const notebookName = 'TestNotebook'
+const bucketLocation = 'northamerica-northeast1'
 
-const testRunNotebookFn = _.flow(
+const testRunRegionalNotebookFn = _.flow(
   withWorkspace,
   withBilling,
   withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
+)(async ({ workspaceName, bucketLocation, page, testUrl, token }) => {
   await signIntoTerra(page, { token, testUrl })
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
@@ -41,12 +40,17 @@ const testRunNotebookFn = _.flow(
   await click(frame, clickable({ text: 'Run' }))
   await findText(frame, '123456789099886419754209')
 
+  await findElement(frame, '//*[@title="Kernel Idle"]')
+  await fillIn(frame, '//textarea', 'curl http://metadata.google.internal/computeMetadata/v1/instance/zone -H "Metadata-Flavor: Google"')
+  await click(frame, clickable({ text: 'Run' }))
+  await findText(frame, bucketLocation)
+
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
 })
 
 registerTest({
-  name: 'run-notebook',
-  fn: testRunNotebookFn,
+  name: 'run-regional-notebook',
+  fn: testRunRegionalNotebookFn,
   timeout: 20 * 60 * 1000
 })
