@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspaceAndBucketLocation } = require('../utils/integration-helpers')
 const {
   click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findIframe, findText
 } = require('../utils/integration-utils')
@@ -10,7 +10,7 @@ const notebookName = 'TestNotebook'
 const bucketLocation = 'US-EAST1'
 
 const testRunNotebookFn = _.flow(
-  withWorkspace(bucketLocation),
+  withWorkspaceAndBucketLocation(bucketLocation),
   withBilling,
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {

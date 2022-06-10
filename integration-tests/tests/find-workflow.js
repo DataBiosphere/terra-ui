@@ -7,7 +7,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testFindWorkflowFn = _.flow(
-  withWorkspace(),
+  withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
   await signIntoTerra(page, { token, testUrl })

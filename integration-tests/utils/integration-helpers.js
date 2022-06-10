@@ -73,8 +73,8 @@ const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspac
   }
 })
 
-const withWorkspace = bucketLocation => test => async options => {
-  console.log('withWorkspace in location ', bucketLocation ?? 'default ...' )
+const withWorkspaceAndBucketLocation = bucketLocation => test => async options => {
+  console.log(`withWorkspace in ${bucketLocation ?? 'default'} location`)
   const workspaceName = await makeWorkspace(_.set('bucketLocation', bucketLocation, options))
 
   try {
@@ -84,6 +84,8 @@ const withWorkspace = bucketLocation => test => async options => {
     await deleteWorkspace({ ...options, workspaceName })
   }
 }
+
+const withWorkspace = withWorkspaceAndBucketLocation()
 
 const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity) => {
   return page.evaluate((billingProject, workspaceName, testEntity) => {
