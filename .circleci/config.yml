@@ -93,15 +93,6 @@ commands:
                   fi
       - attach_workspace:
           at: .
-      - when:
-          condition:
-            or:
-              - equal: [ "alpha", << parameters.env >> ]
-              - equal: [ "staging", << parameters.env >> ]
-          steps:
-            - run:
-                command: |
-                  sed -e 's/default_expiration: ".*"/default_expiration: "0s"/' -i.orig app.yaml
       - run: cp config/<< parameters.env >>.json build/config.json
       - run: echo "$<< parameters.sa_key_var >>" > /tmp/sa.json
       - run: gcloud auth activate-service-account --key-file=/tmp/sa.json
@@ -208,14 +199,13 @@ jobs:
           paths:
             - .yarn/unplugged
             - node_modules/.cache
-      - run: tar -czf build.tgz .gcloudignore app.yaml build config
+      - run: tar -czf build.tgz .gcloudignore build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
           root: .
           paths:
             - .gcloudignore
-            - app.yaml
             - build
             - config
   deploy-pr:
