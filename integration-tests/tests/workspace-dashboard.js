@@ -7,8 +7,7 @@ const {
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
-
-const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
+const workspaceDashboardPage = (testPage, token, workspaceName) => {
 
   return {
     visit: async () => {
@@ -65,7 +64,6 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
 }
 
 const setGcpAjaxMockValues = async (testPage, namespace, name) => {
-
   return await testPage.evaluate((namespace, name) => {
     const storageCostEstimateUrl = new RegExp(`api/workspaces/${namespace}/${name}/storageCostEstimate(.*)`, 'g')
 
@@ -79,7 +77,7 @@ const setGcpAjaxMockValues = async (testPage, namespace, name) => {
       {
         filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
         fn: () => () => Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
-      },
+      }
     ])
   }, namespace, name)
 }
@@ -90,7 +88,7 @@ const testGoogleWorkspace = _.flow(
 )(async ({ page, token, testUrl, billingProject, workspaceName }) => {
   await gotoPage(page, testUrl)
   await setGcpAjaxMockValues(page, billingProject, workspaceName)
-  const dashboard = workspaceDashboardPage(page, testUrl, token, workspaceName)
+  const dashboard = workspaceDashboardPage(page, token, workspaceName)
   await dashboard.visit()
   await dashboard.assertDescription('About the workspace')
 
@@ -197,7 +195,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await setAzureAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
 
-  const dashboard = workspaceDashboardPage(page, testUrl, token, workspaceName)
+  const dashboard = workspaceDashboardPage(page, token, workspaceName)
   await dashboard.visit()
   await dashboard.assertDescription(workspaceDescription)
 
@@ -223,6 +221,6 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
 })
 
 registerTest({
-name: 'azure-workspace',
-fn: testAzureWorkspace
+  name: 'azure-workspace',
+  fn: testAzureWorkspace
 })
