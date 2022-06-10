@@ -1686,8 +1686,7 @@ const Dockstore = signal => ({
     return res.json()
   },
 
-  listTools: (params = {}) =>
-    fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
+  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 
