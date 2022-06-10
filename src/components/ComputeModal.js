@@ -17,6 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
@@ -697,7 +698,7 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, 'terra-docker-image-documentation', 'terra-docker-versions.json', true)
+          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
@@ -1707,8 +1708,8 @@ export const ComputeModalBase = ({
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd },
-            { label: pdTypes.balanced.displayName, value: pdTypes.balanced }
+            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
           ]
         })
       ])

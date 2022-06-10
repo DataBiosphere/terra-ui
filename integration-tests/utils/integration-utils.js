@@ -268,6 +268,12 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text))
 }
 
+const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
+  return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`,
+    { visible: true }
+  )
+}
+
 const openError = async page => {
   //close out any non-error notifications first
   await dismissNotifications(page)
@@ -404,5 +410,6 @@ module.exports = {
   navOptionNetworkIdle,
   maybeSaveScreenshot,
   gotoPage,
-  savePageContent
+  savePageContent,
+  findButtonInDialogByAriaLabel
 }
