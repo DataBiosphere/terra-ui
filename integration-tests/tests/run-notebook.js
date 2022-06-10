@@ -7,9 +7,10 @@ const { registerTest } = require('../utils/jest-utils')
 
 
 const notebookName = 'TestNotebook'
+const bucketLocation = 'US-EAST1'
 
 const testRunNotebookFn = _.flow(
-  withWorkspace,
+  withWorkspace(bucketLocation),
   withBilling,
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
