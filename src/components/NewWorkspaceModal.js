@@ -259,7 +259,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
               `Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.`,
               h(Link, { href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets', ...Utils.newTabLinkProps },
                 [
-                  ` For more information see this read the documentation.`,
+                  ` For more information see blog post.`,
                   icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
                 ]
               )

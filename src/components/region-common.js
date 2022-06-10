@@ -67,8 +67,8 @@ export const allRegions = [
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
   // For more information, see https://support.terra.bio/hc/en-us/articles/360060777272-US-regional-versus-Multi-regional-US-buckets-trade-offs
-  { value: 'US', label: 'US multi-regional', locationType: locationTypes.multiRegion },
   { value: 'US-CENTRAL1', label: 'us-central1 (Iowa) (default)', locationType: locationTypes.region },
+  { value: 'US', label: 'US multi-regional', locationType: locationTypes.multiRegion },
   { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
   { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: locationTypes.region },
   { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: locationTypes.region },
