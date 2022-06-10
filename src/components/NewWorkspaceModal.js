@@ -246,7 +246,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', isAlphaRegionalityUser ? allRegions : availableBucketRegions)
+          options: isAlphaRegionalityUser ? allRegions : availableBucketRegions
         })
       ])]),
       isLocationMultiRegion(bucketLocation) && div({ style: { ...warningStyle } }, [
@@ -259,7 +259,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
               `Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.`,
               h(Link, { href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets', ...Utils.newTabLinkProps },
                 [
-                  ` For more information see blog post.`,
+                  ` For more information see this blog post.`,
                   icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
                 ]
               )
