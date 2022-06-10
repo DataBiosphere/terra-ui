@@ -19,7 +19,7 @@ const montreal = {
   value: 'NORTHAMERICA-NORTHEAST1'
 }
 
-const mockAvailableBucketRegions = [us, usCentral, montreal]
+const mockAvailableBucketRegions = [usCentral, us, montreal]
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
