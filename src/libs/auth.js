@@ -24,7 +24,10 @@ export const getOidcConfig = () => {
   const metadata = {
     authorization_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
     token_endpoint: `${getConfig().orchestrationUrlRoot}/oauth2/token`,
-    ...(isGoogleAuthority() && { userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo' })
+    ...(isGoogleAuthority() && {
+      userinfo_endpoint: 'https://openidconnect.googleapis.com/v1/userinfo',
+      revocation_endpoint: 'https://oauth2.googleapis.com/revoke'
+    })
   }
   return {
     authority: `${getConfig().orchestrationUrlRoot}/oauth2/authorize`,
@@ -38,7 +41,8 @@ export const getOidcConfig = () => {
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     automaticSilentRenew: true,
     includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: 'offline' }
+    extraQueryParams: { access_type: 'offline' },
+    revokeTokenTypes: ['access_token', 'refresh_token']
   }
 }
 
@@ -55,8 +59,10 @@ export const signOut = () => {
   // When IA-2236 is done, add that call here.
   cookieReadyStore.reset()
   sessionStorage.clear()
-  getAuthInstance().removeUser()
-  getAuthInstance().clearStaleState()
+  const auth = getAuthInstance()
+  auth.revokeTokens()
+    .then(() => auth.removeUser())
+    .then(() => auth.clearStaleState())
 }
 
 const getSigninArgs = includeBillingScope => {
