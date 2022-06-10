@@ -7,8 +7,8 @@ const {
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
-const workspaceDashboardPage = (testPage, token, workspaceName) => {
 
+const workspaceDashboardPage = (testPage, token, workspaceName) => {
   return {
     visit: async () => {
       await viewWorkspaceDashboard(testPage, token, workspaceName)
