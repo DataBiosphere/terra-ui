@@ -199,13 +199,14 @@ jobs:
           paths:
             - .yarn/unplugged
             - node_modules/.cache
-      - run: tar -czf build.tgz .gcloudignore build config
+      - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
       - persist_to_workspace:
           root: .
           paths:
             - .gcloudignore
+            - app.yaml
             - build
             - config
   deploy-pr:
