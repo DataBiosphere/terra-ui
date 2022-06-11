@@ -20,7 +20,7 @@ import {
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -90,7 +90,7 @@ const AnalysisLauncher = _.flow(
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen,
+                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
               }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
@@ -224,8 +224,9 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
+
 const PreviewHeader = ({
-  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen,
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
   workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
   const signal = useCancellation()
@@ -256,6 +257,15 @@ const PreviewHeader = ({
       setLockedBy(lastLockedBy)
     }
   })
+
+  const startAndRefresh = async (refreshRuntimes, promise) => {
+    try {
+      await promise
+      await refreshRuntimes(true)
+    } catch (error) {
+      reportError('Cloud Environment Error', error)
+    }
+  }
 
   useOnMount(() => { checkIfLocked() })
 
@@ -292,6 +302,11 @@ const PreviewHeader = ({
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+              } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
+                // we make it here because mode is undefined. we don't have modes for rstudio currently but will be creating a follow up
+                // ticket to address this. Not having modes is causing some bugs in this logic
+                chooseMode('rstudio') // TODO: we don't have mode for rstudio
+                startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
               } else {
                 setCreateOpen(true)
               }
@@ -318,7 +333,7 @@ const PreviewHeader = ({
         ])
       ])],
       [_.includes(runtimeStatus, usableStatuses), () => {
-        console.assert(false, `Expected cloud environment to NOT be one of: [${usableStatuses}]`)
+        console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null
       }],
       [runtimeStatus === 'Creating', () => h(StatusMessage, [
