@@ -19,7 +19,7 @@ import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { getConfig, isFirecloud, isProjectSingular, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -528,6 +528,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
         `${getAppName(true)} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
           [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
+          [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
