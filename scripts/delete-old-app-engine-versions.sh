@@ -120,18 +120,8 @@ deletion_preflight_summary() {
 
 # actually execute the deletion process
 execute_delete() {
-    gcloud app versions delete "${DELETE_LIST_ITEMS[@]}" --project="${NEW_PROJECT}"
-}
-
-# ensure that a deletion phrase must be entered correctly before continuing
-enter_deletion_phrase() {
-    DELETION_PHRASE="yes delete ${DELETE_LIST_COUNT} deployments in ${ENV_TO_EXEC}"
     printf "${RED}THIS OPERATION WILL IRREVERSIBLY DELETE ${DELETE_LIST_COUNT} DEPLOYMENTS FROM %s AND EARLIER IN THE ${NEW_PROJECT} PROJECT.${RST}\n" "${DELETION_DATE}"
-    printf "${INFO} To continue with the deletion process, type: ${BLD}%s${RST}\n" "${DELETION_PHRASE}"
-    read -r ACTUAL_PHRASE
-    if [ "${ACTUAL_PHRASE}" != "${DELETION_PHRASE}" ]; then
-        abort "mistyped phrase"
-    fi
+    gcloud app versions delete "${DELETE_LIST_ITEMS[@]}" --project="${NEW_PROJECT}"
 }
 
 check_color_support
@@ -165,7 +155,5 @@ printf "${INFO} Set the deletion date to ${RED}%s and earlier${RST}\n" "${DELETI
 
 deletion_preflight_checks
 deletion_preflight_summary
-
-enter_deletion_phrase
 
 execute_delete
