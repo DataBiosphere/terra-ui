@@ -108,17 +108,17 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
+      location,
       workspace,
       tool: currentTool,
       runtimes,
       persistentDisks,
-      location,
       onDismiss: () => {
         resetView()
         onDismiss()
       },
       onSuccess: () => {
-        setViewMode(undefined)
+        resetView()
         onSuccess()
       }
     })
@@ -285,7 +285,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
-                refreshAnalyses()
+                await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
@@ -312,8 +312,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
         onDismiss: () => {
-          resetView()
           onDismiss()
+          resetView()
         },
         onPrevious: !!viewMode ? () => resetView() : undefined
       }),
@@ -324,8 +324,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
       onDismiss: () => {
-        resetView()
         onDismiss()
+        resetView()
       }
     }
 

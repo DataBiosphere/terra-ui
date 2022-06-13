@@ -21,8 +21,8 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   return success
 }
 
-const findIframe = async page => {
-  const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
+const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe') => {
+  const iframeNode = await page.waitForXPath(iframeXPath)
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
   const hasFrame = () => page.frames().find(frame => frame.url().includes(src))

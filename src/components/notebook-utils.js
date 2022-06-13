@@ -73,12 +73,12 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 
 export const tools = {
   RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
-  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: false },
+  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
-  Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: true }
+  Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false }
 }
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools

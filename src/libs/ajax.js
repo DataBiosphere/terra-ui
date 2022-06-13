@@ -1518,12 +1518,6 @@ const Runtimes = signal => ({
     return res.json()
   },
 
-  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
   runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
     const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
 
