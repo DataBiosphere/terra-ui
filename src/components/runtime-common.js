@@ -110,7 +110,6 @@ export const PeriodicCookieSetter = () => {
 }
 
 export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
-  console.log('using periodic cookie setter')
   const signal = useCancellation()
   usePollingEffect(
     withErrorIgnoring(async () => {

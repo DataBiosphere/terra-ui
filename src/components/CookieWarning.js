@@ -46,6 +46,7 @@ const CookieWarning = () => {
   const rejectCookies = async () => {
     const cookies = document.cookie.split(';')
     acceptCookies(false)
+    //TODO: call azure invalidate cookie once endpoint exists, https://broadworkbench.atlassian.net/browse/IA-3498
     await Ajax(signal).Runtimes.invalidateCookie().catch(() => {})
     // Expire all cookies
     _.forEach(cookie => {

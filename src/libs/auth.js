@@ -54,8 +54,7 @@ const getAuthInstance = () => {
 }
 
 export const signOut = () => {
-  // Note: Ideally, we'd actually clear the Leo proxy cookie here, but there's not currently an endpoint to do that.
-  // When IA-2236 is done, add that call here.
+  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   cookieReadyStore.reset()
   azureCookieReadyStore.reset()
   sessionStorage.clear()
