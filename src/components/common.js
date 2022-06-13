@@ -54,39 +54,40 @@ const styles = {
   }
 }
 
-export const Clickable = forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
-  const child = h(Interactive, {
-    'aria-disabled': !!disabled,
-    as, disabled, ref,
-    onClick: (...args) => onClick && !disabled && onClick(...args),
-    href: !disabled ? href : undefined,
-    tabIndex: disabled ? '-1' : '0',
-    ...props
-  }, [children])
+export const Clickable = forwardRefWithName('Clickable',
+  ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
+    const child = h(Interactive, {
+      'aria-disabled': !!disabled,
+      as, disabled, ref,
+      onClick: (...args) => onClick && !disabled && onClick(...args),
+      href: !disabled ? href : undefined,
+      tabIndex: disabled ? '-1' : '0',
+      ...props
+    }, [children])
 
-  // To support accessibility, every link must have a label or contain text or a labeled child.
-  // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
-  // rather than as the description as we otherwise would.
-  //
-  // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
-  // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
-  //
-  // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
-  // Interactive element, we need to do the check here instead.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
+    // To support accessibility, every link must have a label or contain text or a labeled child.
+    // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
+    // rather than as the description as we otherwise would.
+    //
+    // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
+    // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
+    //
+    // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
+    // Interactive element, we need to do the check here instead.
+    const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
-  // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
-  // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
-  if (useAsLabel && !tooltip) {
-    useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
-  }
+    // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
+    // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
+    if (useAsLabel && !tooltip) {
+      useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
+    }
 
-  if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
-  } else {
-    return child
-  }
-})
+    if (tooltip) {
+      return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
+    } else {
+      return child
+    }
+  })
 
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
@@ -423,8 +424,7 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
             message: `Successfully unlinked your account from ${provider.name}`,
             timeout: 30000
           })
-        }
-        )
+        })
       }, 'OK')
     }, [
       div([`Are you sure you want to unlink from ${provider.name}?`]),
@@ -510,6 +510,11 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
+  const endText = Utils.cond(
+    [isProjectSingular(), () => div(['and ', heavyWrapper('collaborate'), ' to advance research around single ventricle heart disease.'])],
+    () => span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
+  )
+
   return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
     div({
@@ -532,7 +537,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
+        endText
       ]),
       children
     ])
