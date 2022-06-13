@@ -27,7 +27,7 @@ module.exports = class JestReporter {
 
     // Write pass/failure summaries
     writableStream.write('\n\nTests Summary\n')
-    _.forEach(({ result }) => {
+    _.forEach(result => {
       const { title, status, failureMessages, failureDetails } = result
       writableStream.write('----------------------------------------------\n')
       writableStream.write(`Test: ${title}\n`)
