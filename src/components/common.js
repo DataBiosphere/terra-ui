@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, h1, img, input, label, span, strong } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
@@ -508,10 +508,10 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 })
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
-  const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
+  const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
   const endText = Utils.cond(
-    [isProjectSingular(), () => div(['and ', heavyWrapper('collaborate'), ' to advance research around single ventricle heart disease.'])],
+    [isProjectSingular(), () => div(['and ', strong(['collaborate']), ' to advance research around single ventricle heart disease.'])],
     () => span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
   )
 
