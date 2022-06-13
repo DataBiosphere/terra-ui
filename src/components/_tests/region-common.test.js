@@ -1,14 +1,14 @@
-import { availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
 
 
 const us = {
-  label: 'US multi-regional (default)',
+  label: 'US multi-regional',
   locationType: 'multi-region',
   value: 'US'
 }
 
 const usCentral = {
-  label: 'us-central1 (Iowa)',
+  label: 'us-central1 (Iowa) (default)',
   locationType: 'region',
   value: 'US-CENTRAL1'
 }
@@ -19,7 +19,7 @@ const montreal = {
   value: 'NORTHAMERICA-NORTHEAST1'
 }
 
-const mockAvailableBucketRegions = [us, usCentral, montreal]
+const mockAvailableBucketRegions = [usCentral, us, montreal]
 
 describe('getRegionInfo', () => {
   it('gets a { flag: ..., countryName: ... } object representing a google locationType/location input.', () => {
@@ -48,5 +48,20 @@ describe('isSupportedBucketLocation', () => {
   })
   it('Australia is NOT yet supported as a bucket location', () => {
     expect(isSupportedBucketLocation('AUSTRALIA-SOUTHEAST1')).toBeFalsy()
+  })
+})
+
+describe('isLocationMultiRegion', () => {
+  it('return true for a multiregion location', () => {
+    expect(isLocationMultiRegion('US')).toBeTruthy()
+  })
+  it('return false for a single region location', () => {
+    expect(isLocationMultiRegion('US-CENTRAL1')).toBeFalsy()
+  })
+})
+
+describe('getLocationType', () => {
+  it('return location information', () => {
+    expect(getLocationType('US')).toStrictEqual(locationTypes.multiRegion)
   })
 })
