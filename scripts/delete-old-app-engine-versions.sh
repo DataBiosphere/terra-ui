@@ -68,7 +68,7 @@ unix_epoch_to_date() {
 # ensure that the deletion date is always older than the oldest pr date
 set_dev_deletion_date() {
     OLDEST_PR=$(gcloud app versions list --filter="pr-" --project="${NEW_PROJECT}" --format=json | jq '. |= sort_by(.last_deployed_time.datetime) | first')
-    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | jq -r .id)
+    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | jq -r '.id')
     OLDEST_PR_TIME=$(echo "${OLDEST_PR}" | jq -r '.last_deployed_time.datetime | sub(":00$";"00") | strptime("%Y-%m-%d %H:%M:%S%z") | mktime')
     OLDEST_PR_DATE=$(unix_epoch_to_date "${OLDEST_PR_TIME}")
 
@@ -140,7 +140,6 @@ case $1 in
 esac
 
 NEW_PROJECT="bvdp-saturn-$1"
-ENV_TO_EXEC="$1"
 
 printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
