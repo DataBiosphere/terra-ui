@@ -511,7 +511,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
   const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
   const endText = Utils.cond(
-    [isProjectSingular(), () => div(['and ', strong(['collaborate']), ' to advance research around single ventricle heart disease.'])],
+    [isProjectSingular(), () => h(Fragment, ['and ', strong(['collaborate']), ' to advance research around single ventricle heart disease.'])],
     () => span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
   )
 
