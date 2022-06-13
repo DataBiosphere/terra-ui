@@ -510,11 +510,6 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
-  const endText = Utils.cond(
-    [isProjectSingular(), () => h(Fragment, ['and ', strong(['collaborate']), ' to advance research around single ventricle heart disease.'])],
-    () => span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
-  )
-
   return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
     div({
@@ -537,7 +532,8 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        endText
+        h(Fragment, [span({ style: { whiteSpace: 'nowrap' } }, ['and', strong([' collaborate'])]),
+          isProjectSingular() && ' to advance research around single ventricle heart disease', '.'])
       ]),
       children
     ])
