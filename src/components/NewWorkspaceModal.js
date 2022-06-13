@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, availableBucketRegions, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
+import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -167,8 +167,8 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
 
-  const sourceLocationType = sourceWorkspaceLocation === defaultLocation ? locationTypes.default : locationTypes.region
-  const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
+  const sourceLocationType = getLocationType(sourceWorkspaceLocation)
+  const destLocationType = getLocationType(bucketLocation)
 
   return Utils.cond(
     [loading || billingProjects === undefined, () => spinnerOverlay],
