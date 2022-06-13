@@ -97,7 +97,7 @@ const getFeaturedMethods = async signal => {
   ])
 
   const methodsRepoMethodDetails = _.flow(
-    _.groupBy(method => `${method.namespace}/${method.name}`),
+    _.groupBy(({ namespace, name }) => `${namespace}/${name}`),
     _.mapValues(_.maxBy('snapshotId'))
   )(methodsRepoMethodsList)
 
@@ -135,7 +135,7 @@ const Code = () => {
           div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
             _.map(method => {
               const { namespace, name, id } = method
-              const isMethodsRepoMethod = namespace && name
+              const isMethodsRepoMethod = !!(namespace && name)
               const href = isMethodsRepoMethod ?
                 `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` :
                 `${getConfig().dockstoreUrlRoot}/workflows/${id.replace(/^#workflow\//, '')}`
