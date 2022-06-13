@@ -45,10 +45,10 @@ abort() {
     exit 1
 }
 
-# ensure that date from GNU coreutils is installed
-check_gnu_date_installed() {
-    if ! date --version 1>/dev/null 2>&1; then
-        abort "date from GNU coreutils is required"
+# ensure that jq is installed
+check_jq_installed() {
+    if ! jq --version 1>/dev/null 2>&1; then
+        echo "jq v1.6 or above is required"
     fi
 }
 
@@ -60,26 +60,28 @@ check_user_permissions() {
     fi
 }
 
+# convert unix epoch to year-month-day date
+unix_epoch_to_date() {
+    echo "$1" | jq -r '. | strftime("%Y-%m-%d")'
+}
+
 # ensure that the deletion date is always older than the oldest pr date
 set_dev_deletion_date() {
-    OLDEST_PR=$(gcloud app versions list --filter="pr-" --sort-by="LAST_DEPLOYED" --project="${NEW_PROJECT}" | tail -n +2 | head -n 1 | sed 's/ \+/ /g')
-    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | cut -d' ' -f2)
-    OLDEST_PR_DATE=$(echo "${OLDEST_PR}" | cut -d' ' -f4)
-    OLDEST_PR_DATE=$(date --date="${OLDEST_PR_DATE}" +%F)
+    OLDEST_PR=$(gcloud app versions list --filter="pr-" --project="${NEW_PROJECT}" --format=json | jq '. |= sort_by(.last_deployed_time.datetime) | first')
+    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | jq -r .id)
+    OLDEST_PR_TIME=$(echo "${OLDEST_PR}" | jq -r '.last_deployed_time.datetime | sub(":00$";"00") | strptime("%Y-%m-%d %H:%M:%S%z") | mktime')
+    OLDEST_PR_DATE=$(unix_epoch_to_date "${OLDEST_PR_TIME}")
 
     printf "${INFO} ${GRN}%s${RST} is the oldest PR and was deployed on ${GRN}%s${RST}\n" "${OLDEST_PR_NAME}" "${OLDEST_PR_DATE}"
 
-    UNIX_EPOCH_DELETION_DATE=$(date --date="${DELETION_DATE}" +%s)
-    UNIX_EPOCH_OLDEST_PR_DATE="$(date --date="${OLDEST_PR_DATE}" +%s)"
-
-    if [ "${UNIX_EPOCH_DELETION_DATE}" -gt "${UNIX_EPOCH_OLDEST_PR_DATE}" ]; then
-        DELETION_DATE=$(date --date="${OLDEST_PR_DATE} -1 day" +%F)
+    if [ "${DELETION_TIME}" -gt "${OLDEST_PR_TIME}" ]; then
+        DELETION_DATE=$(echo "${OLDEST_PR_TIME}" | jq -r '. - 86400 | strftime("%Y-%m-%d")') # 86400 seconds = 1 day
     fi
 }
 
 # return versions of app engine that match filter
 filter_app_engine_versions() {
-    gcloud app versions list --filter="$1" --project="${NEW_PROJECT}" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2
+    gcloud app versions list --filter="$1" --project="${NEW_PROJECT}" --format=json 2>/dev/null | jq -r '.[].version.id'
 }
 
 # ensure that deletions leave a certain number of deployments
@@ -134,7 +136,7 @@ enter_deletion_phrase() {
 
 check_color_support
 
-check_gnu_date_installed
+check_jq_installed
 
 if [ -z "${1+:}" ]; then
     usage
@@ -154,7 +156,8 @@ printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
 check_user_permissions
 
-DELETION_DATE=$(date --date="-7 days" +%F)
+DELETION_TIME=$(jq -n 'now - 604800') # 604800 seconds = 7 days
+DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
 fi
