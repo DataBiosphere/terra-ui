@@ -460,7 +460,7 @@ const Analyses = _.flow(
           location,
           onDismiss: async () => {
             setCreating(false)
-            refreshAnalyses()
+            await refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
           },

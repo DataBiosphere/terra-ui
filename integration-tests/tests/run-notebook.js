@@ -24,7 +24,7 @@ const testRunNotebookFn = _.flow(
 
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Notebook' })), debugMessage: '2' })
   await click(page, clickable({ textContains: notebookName }))
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '4' })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '3' })
 
   await findElement(page, getAnimatedDrawer('Cloud Environment'))
   await click(page, clickable({ text: 'Create' }))
