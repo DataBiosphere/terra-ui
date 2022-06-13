@@ -8,7 +8,7 @@ import colors from 'src/libs/colors'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useStore } from 'src/libs/react-utils'
-import { authStore, cookieReadyStore } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 
 
 export const cookiesAcceptedKey = 'cookiesAccepted'
@@ -56,6 +56,7 @@ const CookieWarning = () => {
     }, cookies)
 
     cookieReadyStore.reset()
+    azureCookieReadyStore.reset()
     sessionStorage.clear()
   }
 
