@@ -352,6 +352,10 @@ const User = signal => ({
     return res.json()
   },
 
+  unlinkNihAccount: async () => {
+    await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
+  },
+
   getFenceStatus: async provider => {
     try {
       const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
