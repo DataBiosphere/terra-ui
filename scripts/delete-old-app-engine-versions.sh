@@ -48,7 +48,7 @@ abort() {
 # ensure that jq is installed
 check_jq_installed() {
     if ! jq --version 1>/dev/null 2>&1; then
-        echo "jq v1.6 or above is required"
+        abort "jq v1.6 or above is required; install using brew install jq"
     fi
 }
 
