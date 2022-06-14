@@ -6,8 +6,8 @@ import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { pdTypes } from 'src/libs/runtime-utils'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
@@ -77,27 +77,12 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   return wrappedFetch(...args)
 })
 
-// Captures given course in error message, compares to root addresses in app configuration plus https://storage.googleapis.com/,
-// and returns the root that matches the error.
-const captureRequestFailure = (...args) => {
-  const errorAddress = _.flow(
-    _.filter(v => v !== getConfig().bondUrlRoot),
-    _.concat('https://storage.googleapis.com/'),
-    _.find(v => _.includes(v, args[0]))
-  )(_.values(getConfig()))
-
-  if (!!errorAddress) {
-    Ajax().Metrics.captureEvent(Events.requestFailed, { requestRoot: errorAddress })
-  }
-}
-
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
     return res
   } else {
-    captureRequestFailure(...args)
     throw res
   }
 }
@@ -925,6 +910,10 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
       },
 
+      deleteEntitiesOfType: entityType => {
+        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      },
+
       deleteEntityAttribute: (type, name, attributeName) => {
         return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
           { signal, method: 'PATCH' }]))
@@ -1534,12 +1523,6 @@ const Runtimes = signal => ({
     return res.json()
   },
 
-  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
   runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
     const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
 
@@ -1684,7 +1667,7 @@ const Disks = signal => ({
       details: async () => {
         const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        return res.json()
+        return res.json().then(val => _.set('diskType', pdTypes.fromString(val.diskType), val))
       }
     }
   }
@@ -1700,7 +1683,9 @@ const Dockstore = signal => ({
   getVersions: async ({ path, isTool }) => {
     const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
     return res.json()
-  }
+  },
+
+  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 

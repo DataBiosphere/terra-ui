@@ -2,41 +2,15 @@
 const _ = require('lodash/fp')
 const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, assertTextNotFound, click, clickable, dismissNotifications, findElement, findText, navChild, noSpinnersAfter
+  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
-  const clickWorkspaceActionMenu = async testPage => {
-    const clickOrDismiss = async () => {
-      try {
-        await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-        return true
-      } catch (error) {
-        console.log('Unable to click "Workspace Action Menu", dismissing notifications.')
-        await dismissNotifications(testPage)
-        return false
-      }
-    }
-    let clicked = await clickOrDismiss()
-    let counter = 0
-    // Multiple notifications appear, and dismissNotifications has delays to allow animation to happen.
-    while (!clicked && counter < 5) {
-      clicked = await clickOrDismiss()
-      counter = counter + 1
-    }
-    if (!clicked) {
-      throw new Error('Was not able to click the "Workspace Action Menu", even after dismissing notifications')
-    }
-  }
-
+const workspaceDashboardPage = (testPage, token, workspaceName) => {
   return {
-    visit: async (loadUrl = true) => {
-      if (loadUrl) {
-        await testPage.goto(testUrl)
-      }
+    visit: async () => {
       await viewWorkspaceDashboard(testPage, token, workspaceName)
     },
 
@@ -54,7 +28,7 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
     },
 
     assertWorkspaceMenuItems: async expectedMenuItems => {
-      await clickWorkspaceActionMenu(testPage)
+      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await Promise.all(_.map(async ({ label, tooltip }) => {
         if (!!tooltip) {
           await findElement(testPage, clickable({ textContains: label, isEnabled: false }))
@@ -67,16 +41,15 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
 
     assertLockWorkspace: async () => {
       await assertTextNotFound(testPage, 'Workspace is locked')
-      await clickWorkspaceActionMenu(testPage)
+      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Lock' }))
       await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Lock Workspace' })) })
       await findText(testPage, 'Workspace is locked')
     },
 
     assertUnlockWorkspace: async () => {
-      await dismissNotifications(testPage)
       await findText(testPage, 'Workspace is locked')
-      await clickWorkspaceActionMenu(testPage)
+      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
       await click(testPage, clickable({ textContains: 'Unlock' }))
       await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Unlock Workspace' })) })
       await assertTextNotFound(testPage, 'Workspace is locked')
@@ -90,11 +63,32 @@ const workspaceDashboardPage = (testPage, testUrl, token, workspaceName) => {
   }
 }
 
+const setGcpAjaxMockValues = async (testPage, namespace, name) => {
+  return await testPage.evaluate((namespace, name) => {
+    const storageCostEstimateUrl = new RegExp(`api/workspaces/${namespace}/${name}/storageCostEstimate(.*)`, 'g')
+
+    window.ajaxOverridesStore.set([
+      {
+        filter: { url: storageCostEstimateUrl },
+        fn: () => () => Promise.resolve(
+          new Response(JSON.stringify({ estimate: 'Fake Estimate', lastUpdated: Date.now() }), { status: 200 })
+        )
+      },
+      {
+        filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
+        fn: () => () => Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
+      }
+    ])
+  }, namespace, name)
+}
+
 const testGoogleWorkspace = _.flow(
   withWorkspace,
   withUserToken
-)(async ({ page, token, testUrl, workspaceName }) => {
-  const dashboard = workspaceDashboardPage(page, testUrl, token, workspaceName)
+)(async ({ page, token, testUrl, billingProject, workspaceName }) => {
+  await gotoPage(page, testUrl)
+  await setGcpAjaxMockValues(page, billingProject, workspaceName)
+  const dashboard = workspaceDashboardPage(page, token, workspaceName)
   await dashboard.visit()
   await dashboard.assertDescription('About the workspace')
 
@@ -121,7 +115,7 @@ registerTest({
   fn: testGoogleWorkspace
 })
 
-const setAjaxMockValues = async (testPage, namespace, name, workspaceDescription) => {
+const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescription) => {
   const workspaceInfo = {
     attributes: { description: workspaceDescription },
     authorizationDomain: [],
@@ -196,13 +190,13 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   const workspaceName = 'azure-workspace'
 
   // Must load page before setting mock responses.
-  await page.goto(testUrl)
+  await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
-  await setAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
+  await setAzureAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
 
-  const dashboard = workspaceDashboardPage(page, testUrl, token, workspaceName)
-  await dashboard.visit(false)
+  const dashboard = workspaceDashboardPage(page, token, workspaceName)
+  await dashboard.visit()
   await dashboard.assertDescription(workspaceDescription)
 
   // Check cloud information

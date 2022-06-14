@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common'
+import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -17,7 +18,9 @@ const getStrings = v => {
 }
 
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
-  const [refGenome, setRefGenome] = useState('hg38')
+  const [refGenome, setRefGenome] = useState(defaultIgvReference)
+  const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome))
+
   const [selections, setSelections] = useState(() => {
     const allAttributeStrings = _.flow(
       _.flatMap(row => _.flatMap(getStrings, row.attributes)),
@@ -48,17 +51,10 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const isSelectionValid = !!numSelected
 
   return div({ style: Style.modalDrawer.content }, [
-    h(IdContainer, [id => div({ style: { fontWeight: 500 } }, [
-      label({ htmlFor: id }, ['Reference genome: ']),
-      div({ style: { display: 'inline-block', marginLeft: '0.25rem', marginBottom: '1rem', minWidth: 125 } }, [
-        h(Select, {
-          id,
-          options: ['hg38', 'hg19', 'hg18', 'MN908947.3', 'ASM985889v3', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
-          value: refGenome,
-          onChange: ({ value }) => setRefGenome(value)
-        })
-      ])
-    ])]),
+    h(IGVReferenceSelector, {
+      value: refGenome,
+      onChange: setRefGenome
+    }),
     div({ style: { marginBottom: '1rem', display: 'flex' } }, [
       div({ style: { fontWeight: 500 } }, ['Select:']),
       h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.map(_.set('isSelected', true))) }, ['all']),
@@ -92,9 +88,15 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
     h(ButtonBar, {
       style: Style.modalDrawer.buttonBar,
       okButton: h(ButtonPrimary, {
-        disabled: !isSelectionValid,
-        tooltip: !isSelectionValid && 'Select at least one file',
-        onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
+        disabled: !isSelectionValid || !isRefGenomeValid,
+        tooltip: Utils.cond(
+          [!isSelectionValid, () => 'Select at least one file'],
+          [!isRefGenomeValid, () => 'Select a reference genome']
+        ),
+        onClick: () => {
+          addIgvRecentlyUsedReference(refGenome)
+          onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
+        }
       }, ['Launch IGV'])
     })
   ])

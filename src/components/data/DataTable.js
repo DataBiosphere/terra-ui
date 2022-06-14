@@ -13,7 +13,6 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isSearchAwesomeNow } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -160,7 +159,7 @@ const DataTable = props => {
   })
 
   const getAllEntities = async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator })
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
     return queryResults.results
   }
@@ -260,7 +259,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        isSearchAwesomeNow() && h(MenuTrigger, {
+        h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },

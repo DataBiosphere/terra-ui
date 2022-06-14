@@ -10,13 +10,14 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
@@ -697,10 +698,11 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, 'terra-docker-image-documentation', 'terra-docker-versions.json', true)
+          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
+
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -735,7 +737,7 @@ export const ComputeModalBase = ({
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
@@ -749,7 +751,7 @@ export const ComputeModalBase = ({
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && pdTypes.fromString(currentPersistentDiskDetails.diskType)) || defaultPersistentDiskType,
+        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -1311,7 +1313,6 @@ export const ComputeModalBase = ({
 
   const renderDeleteDiskChoices = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-
     return h(Fragment, [
       h(RadioBlock, {
         name: 'keep-persistent-disk',
@@ -1707,8 +1708,8 @@ export const ComputeModalBase = ({
           menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
-            { label: pdTypes.ssd.displayName, value: pdTypes.ssd },
-            { label: pdTypes.balanced.displayName, value: pdTypes.balanced }
+            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
+            { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
           ]
         })
       ])

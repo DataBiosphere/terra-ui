@@ -1,16 +1,27 @@
 runtime: nodejs16
-default_expiration: "2m"
+default_expiration: 2m
 
 handlers:
-- url: /(.*\.(css|eot|gz|html|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2))
+
+- url: /(.*\.(css|eot|gz|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2))
   static_files: build/\1
-  upload: build/(.*)
+  upload: build/.*\.(css|eot|gz|ico|jpg|jpeg|js|json|map|png|svg|otf|ttf|woff|woff2)
   secure: always
   http_headers:
     X-Content-Type-Options: "nosniff"
+
+- url: /(.*\.html)
+  mime_type: text/html
+  static_files: build/\1
+  upload: build/.*\.html
+  secure: always
+  http_headers:
+    X-Content-Type-Options: "nosniff"
+
 - url: /.*
   static_files: build/index.html
   upload: build/index.html
+  expiration: 0s
   secure: always
   http_headers:
     X-Frame-Options: "DENY"

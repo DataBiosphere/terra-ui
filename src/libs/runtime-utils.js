@@ -27,20 +27,20 @@ export const pdTypes = {
     displayName: 'Standard',
     regionToPricesName: 'monthlyStandardDiskPrice'
   },
-  ssd: {
-    label: 'pd-ssd',
-    displayName: 'Solid state drive (SSD)',
-    regionToPricesName: 'monthlySSDDiskPrice'
-  },
   balanced: {
     label: 'pd-balanced',
     displayName: 'Balanced',
     regionToPricesName: 'monthlyBalancedDiskPrice'
   },
+  ssd: {
+    label: 'pd-ssd',
+    displayName: 'Solid state drive (SSD)',
+    regionToPricesName: 'monthlySSDDiskPrice'
+  },
   fromString: str => Utils.switchCase(str,
     [pdTypes.standard.label, () => pdTypes.standard],
-    [pdTypes.ssd.label, () => pdTypes.ssd],
     [pdTypes.balanced.label, () => pdTypes.balanced],
+    [pdTypes.ssd.label, () => pdTypes.ssd],
     [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
   )
 }
@@ -64,7 +64,7 @@ export const defaultNumDataprocPreemptibleWorkers = 0
 export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
-export const defaultLocation = 'US'
+export const defaultLocation = 'US-CENTRAL1'
 
 export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
@@ -278,10 +278,8 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-export const getCurrentRuntime = runtimes => {
-  // Status note: undefined means still loading, null means no runtime
-  return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
-}
+// Status note: undefined means still loading, null means no runtime
+export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
   _.filter({ appType }),
