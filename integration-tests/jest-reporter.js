@@ -10,7 +10,7 @@ module.exports = class JestReporter {
 
   onTestStart(test) {
     const { path } = test
-    console.info(`**  Running ${parse(path).name} at ${this.timeNow()}`)
+    console.log(`**  Running ${parse(path).name} at ${this.timeNow()}`)
   }
 
   onTestResult(_testRunConfig, testResult, _runResults) {
@@ -30,7 +30,6 @@ module.exports = class JestReporter {
       writableStream.write('----------------------------------------------\n')
       writableStream.write(`Test: ${title}\n`)
       writableStream.write(`Status: ${status}\n`)
-      console.log(`failureMessages: ${failureMessages}`)
       if (!_.isEmpty(failureMessages)) {
         writableStream.write(`Failure messages: ${failureMessages}\n`)
       }
@@ -50,7 +49,7 @@ module.exports = class JestReporter {
     const logDir = this.getLogPath(runResults)
     const summaryFile = `tests-summary.json`
     writeFileSync(`${logDir}/${summaryFile}`, JSON.stringify(runResults, null, 2))
-    console.info(`**  Saved all tests summary: ${logDir}/${summaryFile}`)
+    console.log(`**  Saved all tests summary: ${logDir}/${summaryFile}`)
     return runResults
   }
 
