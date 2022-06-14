@@ -75,7 +75,7 @@ set_dev_deletion_date() {
     printf "${INFO} ${GRN}%s${RST} is the oldest PR and was deployed on ${GRN}%s${RST}\n" "${OLDEST_PR_NAME}" "${OLDEST_PR_DATE}"
 
     if [ "${DELETION_TIME}" -gt "${OLDEST_PR_TIME}" ]; then
-        DELETION_DATE=$(echo "${OLDEST_PR_TIME}" | jq -r '. - 86400 | strftime("%Y-%m-%d")') # 86400 seconds = 1 day
+        DELETION_DATE=$(echo "${OLDEST_PR_TIME}" | jq -r '. - (24 * 60 * 60) | strftime("%Y-%m-%d")') # 1 day
     fi
 }
 
@@ -145,7 +145,7 @@ printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
 check_user_permissions
 
-DELETION_TIME=$(jq -n 'now - 604800') # 604800 seconds = 7 days
+DELETION_TIME=$(jq -n 'now - (7 * 24 * 60 * 60)') # 7 days
 DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
