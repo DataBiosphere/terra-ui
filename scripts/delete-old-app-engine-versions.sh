@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Deletes old Google App Engine deployments of Terra UI in an environment. You
-# MUST have GNU date installed to be able to use this script.
+# MUST have jq installed to be able to use this script.
 #
 # USAGE: ./delete-old-app-engine-versions.sh ENV
 #   ENV must be one of dev, alpha, staging, or perf
