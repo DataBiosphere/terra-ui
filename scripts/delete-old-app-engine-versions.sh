@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Deletes old Google App Engine deployments of Terra UI in an environment. You
-# MUST have GNU date installed to be able to use this script.
+# MUST have jq installed to be able to use this script.
 #
 # USAGE: ./delete-old-app-engine-versions.sh ENV
 #   ENV must be one of dev, alpha, staging, or perf
@@ -45,10 +45,10 @@ abort() {
     exit 1
 }
 
-# ensure that date from GNU coreutils is installed
-check_gnu_date_installed() {
-    if ! date --version 1>/dev/null 2>&1; then
-        abort "date from GNU coreutils is required"
+# ensure that jq is installed
+check_jq_installed() {
+    if ! jq --version 1>/dev/null 2>&1; then
+        abort "jq v1.6 or above is required; install using brew install jq"
     fi
 }
 
@@ -60,26 +60,28 @@ check_user_permissions() {
     fi
 }
 
+# convert unix epoch to year-month-day date
+unix_epoch_to_date() {
+    echo "$1" | jq -r '. | strftime("%Y-%m-%d")'
+}
+
 # ensure that the deletion date is always older than the oldest pr date
 set_dev_deletion_date() {
-    OLDEST_PR=$(gcloud app versions list --filter="pr-" --sort-by="LAST_DEPLOYED" --project="${NEW_PROJECT}" | tail -n +2 | head -n 1 | sed 's/ \+/ /g')
-    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | cut -d' ' -f2)
-    OLDEST_PR_DATE=$(echo "${OLDEST_PR}" | cut -d' ' -f4)
-    OLDEST_PR_DATE=$(date --date="${OLDEST_PR_DATE}" +%F)
+    OLDEST_PR=$(gcloud app versions list --filter="pr-" --project="${NEW_PROJECT}" --format=json | jq '. |= sort_by(.last_deployed_time.datetime) | first')
+    OLDEST_PR_NAME=$(echo "${OLDEST_PR}" | jq -r '.id')
+    OLDEST_PR_TIME=$(echo "${OLDEST_PR}" | jq -r '.last_deployed_time.datetime | sub(":00$";"00") | strptime("%Y-%m-%d %H:%M:%S%z") | mktime')
+    OLDEST_PR_DATE=$(unix_epoch_to_date "${OLDEST_PR_TIME}")
 
     printf "${INFO} ${GRN}%s${RST} is the oldest PR and was deployed on ${GRN}%s${RST}\n" "${OLDEST_PR_NAME}" "${OLDEST_PR_DATE}"
 
-    UNIX_EPOCH_DELETION_DATE=$(date --date="${DELETION_DATE}" +%s)
-    UNIX_EPOCH_OLDEST_PR_DATE="$(date --date="${OLDEST_PR_DATE}" +%s)"
-
-    if [ "${UNIX_EPOCH_DELETION_DATE}" -gt "${UNIX_EPOCH_OLDEST_PR_DATE}" ]; then
-        DELETION_DATE=$(date --date="${OLDEST_PR_DATE} -1 day" +%F)
+    if [ "${DELETION_TIME}" -gt "${OLDEST_PR_TIME}" ]; then
+        DELETION_DATE=$(echo "${OLDEST_PR_TIME}" | jq -r '. - (24 * 60 * 60) | strftime("%Y-%m-%d")') # 1 day
     fi
 }
 
 # return versions of app engine that match filter
 filter_app_engine_versions() {
-    gcloud app versions list --filter="$1" --project="${NEW_PROJECT}" 2>/dev/null | tail -n +2 | sed 's/ \+/ /g' | cut -d' ' -f2
+    gcloud app versions list --filter="$1" --project="${NEW_PROJECT}" --format=json 2>/dev/null | jq -r '.[].version.id'
 }
 
 # ensure that deletions leave a certain number of deployments
@@ -99,8 +101,8 @@ check_deletion_items() {
     DELETE_LIST_COUNT="${#DELETE_LIST_ITEMS[@]}"
     if [ "${DELETE_LIST_COUNT}" -lt 1 ]; then
         abort "no deployments to delete"
-    elif [ "${DELETE_LIST_COUNT}" -lt 30 ]; then
-        abort "less than 30 deployments to delete"
+    elif [ "${DELETE_LIST_COUNT}" -lt 10 ]; then
+        abort "less than 10 deployments to delete"
     fi
 }
 
@@ -118,23 +120,13 @@ deletion_preflight_summary() {
 
 # actually execute the deletion process
 execute_delete() {
-    gcloud app versions delete "${DELETE_LIST_ITEMS[@]}" --project="${NEW_PROJECT}"
-}
-
-# ensure that a deletion phrase must be entered correctly before continuing
-enter_deletion_phrase() {
-    DELETION_PHRASE="yes delete ${DELETE_LIST_COUNT} deployments in ${ENV_TO_EXEC}"
     printf "${RED}THIS OPERATION WILL IRREVERSIBLY DELETE ${DELETE_LIST_COUNT} DEPLOYMENTS FROM %s AND EARLIER IN THE ${NEW_PROJECT} PROJECT.${RST}\n" "${DELETION_DATE}"
-    printf "${INFO} To continue with the deletion process, type: ${BLD}%s${RST}\n" "${DELETION_PHRASE}"
-    read -r ACTUAL_PHRASE
-    if [ "${ACTUAL_PHRASE}" != "${DELETION_PHRASE}" ]; then
-        abort "mistyped phrase"
-    fi
+    gcloud app versions delete "${DELETE_LIST_ITEMS[@]}" --project="${NEW_PROJECT}"
 }
 
 check_color_support
 
-check_gnu_date_installed
+check_jq_installed
 
 if [ -z "${1+:}" ]; then
     usage
@@ -148,13 +140,13 @@ case $1 in
 esac
 
 NEW_PROJECT="bvdp-saturn-$1"
-ENV_TO_EXEC="$1"
 
 printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
 check_user_permissions
 
-DELETION_DATE=$(date --date="-7 days" +%F)
+DELETION_TIME=$(jq -n 'now - (7 * 24 * 60 * 60)') # 7 days
+DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
 fi
@@ -162,7 +154,5 @@ printf "${INFO} Set the deletion date to ${RED}%s and earlier${RST}\n" "${DELETI
 
 deletion_preflight_checks
 deletion_preflight_summary
-
-enter_deletion_phrase
 
 execute_delete
