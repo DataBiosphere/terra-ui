@@ -137,10 +137,7 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     ]),
     div({
       style: { flex: 0 }
-    }, [
-      h(Link, {
-      }, ['Change'])
-    ])
+    }, ['Change'])
   ])
 }
 
