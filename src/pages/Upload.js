@@ -114,12 +114,10 @@ const NextLink = ({ step, setCurrentStep, stepIsEnabled }) => {
 
 const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
   return h(Link, {
-    as: 'button',
     style: {
-      display: 'flex', flexFlow: 'row nowrap', width: '100%',
-      border: '1px solid', borderColor: colors.dark(0.5), borderRadius: '0.5em',
-      textAlign: 'left', justifyContent: 'stretch', alignItems: 'space-evenly',
-      padding: '1em', margin: '0 0 1em 0', fontSize: '1rem'
+      ...Style.elements.card.container,
+      flexFlow: 'row nowrap', justifyContent: 'stretch', alignItems: 'center',
+      marginBottom: '1em', fontSize: '1rem'
     },
     onClick,
     ...props
@@ -127,7 +125,7 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     div({
       style: { flex: '0 0 auto', width: '20em' }
     }, [
-      icon(iconShape, { size: 20, style: { margin: '0 1rem' } }),
+      icon(iconShape, { size: 20, style: { marginRight: '1rem' } }),
       span({
         style: { textTransform: 'uppercase' }
       }, [title])
