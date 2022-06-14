@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { code, div, h, h2, h3, h4, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import { FileBrowserPanel } from 'src/components/data/FileBrowser'
@@ -85,8 +85,9 @@ const styles = {
     ...Style.elements.sectionHeader,
     margin: '1rem 0',
     textTransform: 'uppercase',
-    textAlign: 'center',
-    verticalAlign: 'middle'
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   instructions: {
     lineHeight: '1.4em'
@@ -113,12 +114,10 @@ const NextLink = ({ step, setCurrentStep, stepIsEnabled }) => {
 
 const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
   return h(Link, {
-    as: 'button',
     style: {
-      display: 'flex', flexFlow: 'row nowrap', width: '100%',
-      border: '1px solid', borderColor: colors.dark(0.5), borderRadius: '0.5em',
-      textAlign: 'left', justifyContent: 'stretch', alignItems: 'space-evenly',
-      padding: '1em', margin: '0 0 1em 0', fontSize: '1rem'
+      ...Style.elements.card.container,
+      flexFlow: 'row nowrap', justifyContent: 'stretch', alignItems: 'center',
+      marginBottom: '1em', fontSize: '1rem'
     },
     onClick,
     ...props
@@ -126,7 +125,7 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     div({
       style: { flex: '0 0 auto', width: '20em' }
     }, [
-      icon(iconShape, { size: 20, style: { margin: '0 1rem' } }),
+      icon(iconShape, { size: 20, style: { marginRight: '1rem' } }),
       span({
         style: { textTransform: 'uppercase' }
       }, [title])
@@ -138,10 +137,7 @@ const AccordionHeader = ({ iconShape, title, onClick, children, ...props }) => {
     ]),
     div({
       style: { flex: 0 }
-    }, [
-      h(Link, {
-      }, ['Change'])
-    ])
+    }, ['Change'])
   ])
 }
 
@@ -171,11 +167,11 @@ const WorkspaceSelectorPanel = ({
 
   return div([
     h2({ style: styles.heading }, [
-      icon('view-cards', { size: 20, style: { marginRight: '1em' } }),
+      icon('view-cards', { size: 20, style: { marginRight: '1ch' } }),
       span({ ref: header, tabIndex: -1 }, ['Select a Workspace']),
       h(Link, {
         onClick: () => setCreatingNewWorkspace(true),
-        style: { marginLeft: '0.5rem' },
+        style: { marginLeft: '1ch' },
         tooltip: 'Create a new workspace'
       },
       [icon('lighter-plus-circle', { size: 24 })])
@@ -359,11 +355,11 @@ const CollectionSelectorPanel = _.flow(
 
   return h(div, {}, [
     h2({ style: styles.heading }, [
-      icon('folder', { size: 20, style: { marginRight: '1em' } }),
+      icon('folder', { size: 20, style: { marginRight: '1ch' } }),
       span({ ref: header, tabIndex: -1 }, ['Select a collection']),
       h(Link, {
         onClick: () => setCreating(true),
-        style: { marginLeft: '0.5rem' },
+        style: { marginLeft: '1ch' },
         tooltip: 'Create a new collection'
       },
       [icon('lighter-plus-circle', { size: 24 })])
@@ -386,16 +382,12 @@ const CollectionSelectorPanel = _.flow(
             style: _.merge(styles.workspaceTile, prefix === selectedCollection ? styles.workspaceTileSelected : {}),
             onClick: () => setCollection(prefix),
             variant: prefix === selectedCollection ? 'light' : 'dark'
-          }, [
-            h4({
-              style: { margin: '0 0 1rem 0' }
-            }, [prefix])
-          ])
+          }, [prefix])
         ])
       }, collections)
     ]),
     h(Link, {
-      style: { margin: '2em 0 0 0', textAlign: 'center', width: '100%', display: 'block' },
+      style: { margin: '2em auto 0', display: 'block', width: 'fit-content' },
       onClick: () => setCreating(true)
     }, [
       icon('plus'),
@@ -426,7 +418,7 @@ const DataUploadPanel = _.flow(
 
   return div({ style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' } }, [
     h2({ style: { ...styles.heading, flex: 0 } }, [
-      icon('fileAlt', { size: 20, style: { marginRight: '1em' } }),
+      icon('fileAlt', { size: 20, style: { marginRight: '1ch' } }),
       span({ ref: header, tabIndex: -1 }, ['Upload Your Data Files'])
     ]),
     children,
@@ -610,7 +602,7 @@ const MetadataUploadPanel = _.flow(
 
   return div({ style: { height: '100%', display: 'flex', flexFlow: 'column nowrap' } }, [
     h2({ style: { ...styles.heading, flex: 0 } }, [
-      icon('listAlt', { size: 20, style: { marginRight: '1em' } }),
+      icon('listAlt', { size: 20, style: { marginRight: '1ch' } }),
       span({ ref: header, tabIndex: -1 }, ['Upload Your Metadata Files'])
     ]),
     children,
