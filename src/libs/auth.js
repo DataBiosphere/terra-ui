@@ -61,9 +61,12 @@ export const signOut = () => {
   sessionStorage.clear()
   const auth = getAuthInstance()
   auth.revokeTokens()
+    // revokeTokens can fail if the the token has already been revoked.
+    // Just swallow token revocation erorrs errors to make sure signOut
+    // completes successfully.
     .catch(() => false)
-    .then(() => auth.removeUser())
-    .then(() => auth.clearStaleState())
+    .finally(() => auth.removeUser())
+    .finally(() => auth.clearStaleState())
 }
 
 const getSigninArgs = includeBillingScope => {
