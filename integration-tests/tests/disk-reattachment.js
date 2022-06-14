@@ -17,13 +17,14 @@ const testDiskReatachmentFn = _.flow(
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: 'abc' })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'def' })
 
   // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
   await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 50000 })
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
 
   // Get the runtime, and save runtimeID and persistentDiskId
   const runtimes = await page.evaluate(async (billingProject, email) => {
@@ -31,22 +32,26 @@ const testDiskReatachmentFn = _.flow(
   })
   const persistentDiskId = runtimes[0]['runtimeConfig']['persistentDiskId']
   const runtimeID = runtimes[0]['id']
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 12 * 60 * 1000 })
+  expect(persistentDiskId).not.toBeNull()
+  expect(runtimeID).not.toBeNull()
 
   // Delete the environment, keep persistent disk.
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: 'ghi' })
   await findElement(page, clickable({ text: 'Delete Environment' }), { timeout: 45000 })
   await click(page, clickable({ text: 'Delete Environment' }))
-  await (await page.waitForXPath(radioButton({ name: 'keep-persistent-disk' }))).click()
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Delete' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Delete' })), debugMessage: 'jkl' })
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })) })
-  await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 45000 })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await delay(10000)
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Settings' })), debugMessage: 'mno' })
+  await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'pqr' })
+
+  // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
+  await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
 
   const secondRuntimes = await page.evaluate(async (billingProject, email) => {
     return await window.Ajax().Runtimes.list({ googleProject: billingProject, creator: email })
