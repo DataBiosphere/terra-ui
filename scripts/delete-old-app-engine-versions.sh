@@ -101,8 +101,8 @@ check_deletion_items() {
     DELETE_LIST_COUNT="${#DELETE_LIST_ITEMS[@]}"
     if [ "${DELETE_LIST_COUNT}" -lt 1 ]; then
         abort "no deployments to delete"
-    elif [ "${DELETE_LIST_COUNT}" -lt 30 ]; then
-        abort "less than 30 deployments to delete"
+    elif [ "${DELETE_LIST_COUNT}" -lt 10 ]; then
+        abort "less than 10 deployments to delete"
     fi
 }
 
