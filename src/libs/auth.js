@@ -62,9 +62,14 @@ export const signOut = () => {
   const auth = getAuthInstance()
   auth.revokeTokens()
     // revokeTokens can fail if the the token has already been revoked.
-    // Just swallow token revocation erorrs errors to make sure signOut
-    // completes successfully.
-    .catch(() => false)
+    // Recover from invalid_token errors to make sure signOut completes successfully.
+    .catch(e => {
+      if (e.error === 'invalid_token') {
+        return null
+      } else {
+        throw e
+      }
+    })
     .finally(() => auth.removeUser())
     .finally(() => auth.clearStaleState())
 }
