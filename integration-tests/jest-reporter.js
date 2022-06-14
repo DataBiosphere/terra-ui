@@ -4,21 +4,19 @@ const { createWriteStream, mkdirSync, writeFileSync } = require('fs')
 
 
 module.exports = class JestReporter {
-  name
-
   constructor(_globalConfig, _options) {
     this.logRootDir = process.env.LOG_DIR || '/tmp/test-results'
   }
 
   onTestStart(test) {
     const { path } = test
-    this.name = parse(path).name
-    console.info(`**  Running ${this.name} at ${this.timeNow()}`)
+    console.info(`**  Running ${parse(path).name} at ${this.timeNow()}`)
   }
 
   onTestResult(_testRunConfig, testResult, _runResults) {
-    const { testResults } = testResult
-    const logFileName = `${this.getLogPath(testResults)}/${this.name}-${Date.now()}.log`
+    const { testFilePath, testResults } = testResult
+    const { name } = parse(testFilePath)
+    const logFileName = `${this.getLogPath(testResults)}/${name}-${Date.now()}.log`
 
     const writableStream = createWriteStream(logFileName)
     writableStream.on('error', ({ message }) => console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`))
@@ -43,16 +41,16 @@ module.exports = class JestReporter {
     }, testResults)
 
     writableStream.end()
-    writableStream.on('finish', () => console.log(`**  Saved ${this.name} results: ${logFileName}`))
+    writableStream.on('finish', () => console.log(`**  Saved ${name} results: ${logFileName}`))
   }
 
   // Called after all tests have completed
   onRunComplete(_test, runResults) {
     // Save run summary to a file.
     const logDir = this.getLogPath(runResults)
-    const summaryFile = `${this.name}-summary.json`
+    const summaryFile = `tests-summary.json`
     writeFileSync(`${logDir}/${summaryFile}`, JSON.stringify(runResults, null, 2))
-    console.info(`**  Saved ${this.name} summary: ${logDir}/${summaryFile}`)
+    console.info(`**  Saved all tests summary: ${logDir}/${summaryFile}`)
     return runResults
   }
 
