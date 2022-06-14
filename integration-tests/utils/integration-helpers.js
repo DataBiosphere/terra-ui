@@ -1,7 +1,8 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
-  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter, navOptionNetworkIdle
+  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
+  navOptionNetworkIdle
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -31,7 +32,8 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   try {
     const response = await page.evaluate(async (name, billingProject) => {
       try {
-        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+        // explicitly setting us-central1 in this call until rawls defaults to us-central1 as well
+        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {}, bucketLocation: 'us-central1' })
       } catch (err) {
         console.error(err)
         console.error(typeof err)

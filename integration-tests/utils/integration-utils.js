@@ -21,8 +21,8 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   return success
 }
 
-const findIframe = async page => {
-  const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
+const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe') => {
+  const iframeNode = await page.waitForXPath(iframeXPath)
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
   const hasFrame = () => page.frames().find(frame => frame.url().includes(src))
@@ -197,27 +197,10 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  console.log('signIntoTerra ...')
-  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
-    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', defaultToVisibleTrue({ timeout }))
-    await waitForNoSpinners(page)
-  }
-
-  if (!!testUrl) {
-    console.log(`Loading page: ${testUrl}`)
-    await gotoPage(page, testUrl)
-  }
-
-  try {
-    await waitUtilBannerVisible()
-  } catch (err) {
-    console.error(err)
-    console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload(navOptionNetworkIdle())
-    await waitUtilBannerVisible()
-  }
-
+  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  await waitForNoSpinners(page)
+  await page.waitForFunction('!!window["forceSignIn"]')
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)

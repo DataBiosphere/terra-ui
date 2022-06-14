@@ -31,6 +31,7 @@ import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -558,15 +559,23 @@ const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDel
       objectType: 'table',
       objectName: tableName,
       onDismiss: () => setDeleting(false),
-      onConfirm: _.flow(
-        Utils.withBusyState(setLoading),
-        withErrorReporting('Error deleting table')
-      )(async () => {
-        await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
-        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-          ...extractWorkspaceDetails(workspace.workspace)
-        })
-        onDeleteTable(tableName)
+      onConfirm: Utils.withBusyState(setLoading)(async () => {
+        try {
+          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+            ...extractWorkspaceDetails(workspace.workspace)
+          })
+          onDeleteTable(tableName)
+        } catch (error) {
+          setDeleting(false)
+          if (error.status === 409) {
+            notify('warn', 'Unable to delete table', {
+              message: 'In order to delete this table, any entries in other tables that reference it must also be deleted.'
+            })
+          } else {
+            reportError('Error deleting table', error)
+          }
+        }
       })
     })
   ])
