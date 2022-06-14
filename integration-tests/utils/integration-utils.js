@@ -319,6 +319,20 @@ const withScreenshot = _.curry((testName, fn) => async options => {
   }
 })
 
+// Emitted when the page crashes
+const logError = page => {
+  const handle = msg => console.error('page.error', msg)
+  page.on('error', handle)
+  return () => page.off('error', handle)
+}
+
+// Emitted when an uncaught exception happens within the page
+const logPageError = page => {
+  const handle = msg => console.error('page.error', msg)
+  page.on('pageerror', handle)
+  return () => page.off('pageerror', handle)
+}
+
 const logPageConsoleMessages = page => {
   const handle = msg => console.log('page.console', msg)
   page.on('console', handle)
@@ -345,6 +359,8 @@ const withPageLogging = fn => async options => {
   const { page } = options
   logPageAjaxResponses(page)
   logPageConsoleMessages(page)
+  logPageError(page)
+  logError(page)
   return await fn(options)
 }
 
