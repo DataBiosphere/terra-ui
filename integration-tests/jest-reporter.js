@@ -45,7 +45,7 @@ module.exports = class JestReporter {
         writableStream.write(`Failure messages: ${failureMessages}\n`)
       }
       if (!_.isEmpty(failureDetails)) {
-        writableStream.write(`Failure details: ${failureDetails}\n`)
+        writableStream.write(`Failure details: ${JSON.stringify(failureDetails, null, 2)}\n`)
       }
       writableStream.write('\n')
     }, testResults)
