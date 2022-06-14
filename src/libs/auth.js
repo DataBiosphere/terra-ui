@@ -35,7 +35,7 @@ export const getOidcConfig = () => {
     popup_redirect_uri: `${window.origin}/redirect-from-oauth`,
     silent_redirect_uri: `${window.origin}/redirect-from-oauth-silent`,
     metadata,
-    prompt: 'consent',
+    prompt: 'consent login',
     scope: 'openid email profile',
     loadUserInfo: isGoogleAuthority(),
     userStore: new WebStorageStateStore({ store: window.localStorage }),
@@ -61,6 +61,7 @@ export const signOut = () => {
   sessionStorage.clear()
   const auth = getAuthInstance()
   auth.revokeTokens()
+    .catch(() => false)
     .then(() => auth.removeUser())
     .then(() => auth.clearStaleState())
 }
