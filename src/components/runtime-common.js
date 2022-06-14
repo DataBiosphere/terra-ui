@@ -101,7 +101,6 @@ export const PeriodicCookieSetter = () => {
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
-
       cookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }
@@ -114,7 +113,6 @@ export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
   usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setAzureCookie(proxyUrl)
-      //TODO: use store properly
       azureCookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }
