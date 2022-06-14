@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -737,7 +737,7 @@ export const ComputeModalBase = ({
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig

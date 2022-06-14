@@ -200,7 +200,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
+const useCloudEnvironmentPolling = (googleProject, workspaceNamespace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -213,13 +213,11 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
+      const [newDisks, newRuntimes] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
-        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
-      ]) : await Promise.all([
-        Promise.resolve([]),
-        !!workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
+        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace }) : []
       ])
+
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
@@ -295,7 +293,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.workspaceId)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.namespace)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     const isAzureWorkspace = !!azureContext
@@ -365,9 +363,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
-      } else {
-        const { workspace: { bucketName, googleProject } } = workspace
-        loadBucketLocation(googleProject, bucketName)
       }
     })
 
@@ -389,7 +384,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
           ...props
         }),
         loadingWorkspace && spinnerOverlay

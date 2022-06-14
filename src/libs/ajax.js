@@ -1518,12 +1518,6 @@ const Runtimes = signal => ({
     return res.json()
   },
 
-  listV2AzureWithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}/azure?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
   runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
     const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
 
@@ -1684,7 +1678,9 @@ const Dockstore = signal => ({
   getVersions: async ({ path, isTool }) => {
     const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
     return res.json()
-  }
+  },
+
+  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 

@@ -17,7 +17,7 @@
     "puppeteer-cluster": "^0.23.0"
   },
   "dependencies": {
-    "@google-cloud/secret-manager": "^3.10.1",
+    "@google-cloud/secret-manager": "^4.0.0",
     "date-fns": "^2.24.0",
     "google-auth-library": "^7.9.2",
     "lodash": "^4.17.21",

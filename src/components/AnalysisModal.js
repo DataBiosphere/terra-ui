@@ -60,6 +60,16 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       resetView()
     }
 
+    const onSuccessModal = () => {
+      onSuccess()
+      resetView()
+    }
+
+    const onErrorModal = () => {
+      onError()
+      resetView()
+    }
+
     /**
      * The intended flow is to call this without a viewMode, and have it intelligently figure out the next
      * step for you. Passing a viewMode is a way to force your next modal.
@@ -70,21 +80,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
-          [doesCloudEnvForToolExist, () => {
-            onSuccess()
-            resetView()
-          }],
+          [doesCloudEnvForToolExist, () => onSuccessModal],
           [!doesCloudEnvForToolExist && currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-          [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), () => {
-            onSuccess()
-            resetView()
-          }]
+          [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), onSuccessModal]
         )],
-        [environmentMode, () => {
-          onSuccess()
-          resetView()
-        }],
+        [environmentMode, onSuccessModal],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
           [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
@@ -113,22 +114,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
+      location,
       workspace,
       tool: currentTool,
       runtimes,
       persistentDisks,
-      location,
-      onDismiss: () => {
-        onDismissModal()
-      },
-      onError: () => {
-        onError()
-        resetView()
-      },
-      onSuccess: () => {
-        onSuccess()
-        resetView()
-      }
+      onDismiss: onDismissModal,
+      onError: onErrorModal,
+      onSuccess: onSuccessModal
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
@@ -136,17 +129,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       workspace,
       apps,
       appDataDisks,
-      onDismiss: () => {
-        onDismissModal()
-      },
-      onError: () => {
-        onError()
-        resetView()
-      },
-      onSuccess: () => {
-        onSuccess()
-        resetView()
-      }
+      onDismiss: onDismissModal,
+      onError: onErrorModal,
+      onSuccess: onSuccessModal
     })
 
     const styles = {
@@ -217,8 +202,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         }
       }, [() => h(Clickable, {
         onClick: () => {
-          resetView()
-          onSuccess()
+          onSuccessModal()
           openUploader()
         }, style: {
           marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150,
@@ -296,7 +280,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
-                refreshAnalyses()
+                await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
@@ -322,9 +306,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         title: 'Select an application',
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
-        onDismiss: () => {
-          onDismissModal()
-        },
+        onDismiss: onDismissModal,
         onPrevious: !!viewMode ? () => resetView() : undefined
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
@@ -333,9 +315,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
-      onDismiss: () => {
-        onDismissModal()
-      }
+      onDismiss: onDismissModal
     }
 
     return h(ModalDrawer, { ...modalProps, children: modalBody })
