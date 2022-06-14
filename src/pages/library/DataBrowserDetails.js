@@ -48,7 +48,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
-        dataObj['dct:modified'] && Utils.makeStandardDate(dataObj['dct:modified'])
+        dataObj.lastUpdated
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
