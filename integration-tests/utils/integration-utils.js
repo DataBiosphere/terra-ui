@@ -64,6 +64,10 @@ const checkbox = ({ text, textContains, isDescendant = false }) => {
   return getClickablePath(base, text, textContains, isDescendant)
 }
 
+const radioButton = ({ name }) => {
+  return `//input[@name="${name}"]`
+}
+
 const getTableCellPath = (tableName, row, column) => {
   return `//*[@role="table" and @aria-label="${tableName}"]//*[@role="row"][${row}]//*[@role="cell"][${column}]`
 }
@@ -375,6 +379,7 @@ module.exports = {
   assertTextNotFound,
   assertRowHas,
   checkbox,
+  radioButton,
   click,
   clickable,
   clickTableCell,
