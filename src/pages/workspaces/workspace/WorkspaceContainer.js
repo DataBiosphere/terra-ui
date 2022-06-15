@@ -200,23 +200,23 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspaceNamespace) => {
+const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspaceName) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
-
+  console.log(runtimes)
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshRuntimesSilently, ms)
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes] = await Promise.all([
+      const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
-        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace }) : []
-      ])
+        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace, saturnWorkspaceName: workspaceName }) : []
+      ]) : []
 
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
@@ -298,7 +298,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(
       googleProject,
-      isGoogleWorkspace ? workspace?.workspace.googleProject : workspace?.workspace.namespace
+      isGoogleWorkspace ? workspace?.workspace.googleProject : workspace?.workspace.namespace,
+      workspace?.workspace.name
     )
 
     const { apps, refreshApps } = useAppPolling(googleProject, name)
