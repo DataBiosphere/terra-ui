@@ -295,8 +295,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const isGoogleWorkspace = !!googleProject
     const isAzureWorkspace = !!azureContext
-    
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = isGoogleWorkspace ? useCloudEnvironmentPolling(googleProject, workspace?.workspace.googleProject) : useCloudEnvironmentPolling(googleProject, workspace?.workspace.namespace)
+
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(
+      googleProject,
+      isGoogleWorkspace ? workspace?.workspace.googleProject : workspace?.workspace.namespace
+    )
+
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     // Note that the refreshApps function currently is not supported for azure
