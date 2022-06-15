@@ -65,21 +65,20 @@ export const signOut = () => {
     .finally(() => auth.clearStaleState())
 }
 
-const revokeTokens = () => {
+const revokeTokens = async () => {
   const auth = getAuthInstance()
   if (auth.settings.metadata.revocation_endpoint) {
     // revokeTokens can fail if the the token has already been revoked.
     // Recover from invalid_token errors to make sure signOut completes successfully.
-    return auth.revokeTokens()
-      .catch(e => {
-        if (e.error === 'invalid_token') {
-          return null
-        } else {
-          throw e
-        }
-      })
-  } else {
-    return Promise.resolve()
+    try {
+      await auth.revokeTokens()
+    } catch (e) {
+      if (e.error === 'invalid_token') {
+        return null
+      } else {
+        throw e
+      }
+    }
   }
 }
 
