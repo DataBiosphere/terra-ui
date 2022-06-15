@@ -206,9 +206,7 @@ const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspace
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
-  console.log(runtimes)
-  console.log(workspaceNamespace)
-  console.log(workspaceName)
+
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshRuntimesSilently, ms)
