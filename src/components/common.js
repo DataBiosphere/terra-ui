@@ -535,7 +535,9 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '. ']),
+        span({ style: { whiteSpace: 'nowrap' } }, ['and', strong([' collaborate'])]),
+        isProjectSingular() && ' to advance research around single ventricle heart disease',
+        '. ',
         showDocLink ?
           h(Link, {
             style: { textDecoration: 'underline' },
