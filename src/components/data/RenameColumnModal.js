@@ -8,15 +8,6 @@ import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 
 
-export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
-  ...props,
-  inputProps: {
-    ...inputProps,
-    autoFocus: true,
-    placeholder: 'Enter a name'
-  }
-})
-
 const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, oldAttributeName }) => {
   // State
   const [newAttributeName, setNewAttributeName] = useState('')
@@ -43,9 +34,11 @@ const RenameColumnModal = ({ onDismiss, onSuccess, namespace, name, entityType, 
   }, [h(IdContainer, [id => h(Fragment, [
     div('Workflow configurations that reference the current column name will need to be updated manually.'),
     h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
-    tableNameInput({
+    h(ValidatedInput, {
       inputProps: {
         id, value: newAttributeName,
+        autoFocus: true,
+        placeholder: 'Enter a name',
         onChange: v => {
           setNewAttributeName(v)
         }
