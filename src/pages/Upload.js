@@ -747,7 +747,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
   const [tableMetadata, setTableMetadata] = useState(StateHistory.get().tableMetadata)
 
   useEffect(() => {
-    Nav.updateSearch(query, { workspace: workspaceId, collection })
+    Nav.updateSearch({ ...query, workspace: workspaceId, collection })
   }, [workspaceId, collection]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

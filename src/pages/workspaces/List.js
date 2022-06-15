@@ -1,6 +1,5 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
-import * as qs from 'qs'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -65,7 +64,9 @@ const useWorkspacesWithSubmissionStats = () => {
     }
   }, [workspaces, submissionStats, signal])
 
-  const workspacesWithSubmissionStats = _.map(ws => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces)
+  const workspacesWithSubmissionStats = useMemo(() => {
+    return _.map(ws => _.set('workspaceSubmissionStats', _.get(ws.workspace.workspaceId, submissionStats), ws), workspaces)
+  }, [workspaces, submissionStats])
 
   return { workspaces: workspacesWithSubmissionStats, refresh, loadingWorkspaces, loadingSubmissionStats }
 }
@@ -79,17 +80,21 @@ const workspaceSubmissionStatus = workspace => {
   )
 }
 
+const EMPTY_LIST = []
+
 export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
-  const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
-  const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
-  const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
-  const [tab, setTab] = useState(query.tab || 'myWorkspaces')
-  const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
+  // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
+  // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
+  const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST
+  const projectsFilter = query.projectsFilter || undefined
+  const submissionsFilter = query.submissionsFilter || EMPTY_LIST
+  const tab = query.tab || 'myWorkspaces'
+  const tagsFilter = query.tagsFilter || EMPTY_LIST
 
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
@@ -107,18 +112,6 @@ export const WorkspaceList = () => {
 
     loadFeatured()
   })
-
-  const onSearchChange = filter => {
-    // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({
-      ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
-      tab: tab === 'myWorkspaces' ? undefined : tab
-    }, { addQueryPrefix: true })
-
-    if (newSearch !== Nav.history.location.search) {
-      Nav.history.replace({ search: newSearch })
-    }
-  }
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
@@ -309,7 +302,7 @@ export const WorkspaceList = () => {
         style: { marginLeft: '2rem', width: 500 },
         placeholder: 'SEARCH WORKSPACES',
         'aria-label': 'Search workspaces',
-        onChange: onSearchChange,
+        onChange: newFilter => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
         value: filter
       })
     ]),
@@ -332,7 +325,7 @@ export const WorkspaceList = () => {
             value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
             placeholder: 'Tags',
             'aria-label': 'Filter by tags',
-            onChange: data => setTagsFilter(_.map('value', data))
+            onChange: data => Nav.updateSearch({ ...query, tagsFilter: _.map('value', data) })
           })
         ]),
         div({ style: { ...styles.filter, flexBasis: '250px' } }, [
@@ -343,7 +336,7 @@ export const WorkspaceList = () => {
             placeholder: 'Access levels',
             'aria-label': 'Filter by access levels',
             value: accessLevelsFilter,
-            onChange: data => setAccessLevelsFilter(_.map('value', data)),
+            onChange: data => Nav.updateSearch({ ...query, accessLevelsFilter: _.map('value', data) }),
             options: Utils.workspaceAccessLevels,
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
@@ -356,7 +349,7 @@ export const WorkspaceList = () => {
             'aria-label': 'Filter by billing project',
             value: projectsFilter,
             hideSelectedOptions: true,
-            onChange: data => setProjectsFilter(!!data ? data.value : undefined),
+            onChange: data => Nav.updateSearch({ ...query, projectsFilter: data?.value || undefined }),
             options: _.flow(
               _.map('workspace.namespace'),
               _.uniq,
@@ -373,7 +366,7 @@ export const WorkspaceList = () => {
             'aria-label': 'Filter by submission status',
             value: submissionsFilter,
             hideSelectedOptions: true,
-            onChange: data => setSubmissionsFilter(_.map('value', data)),
+            onChange: data => Nav.updateSearch({ ...query, submissionsFilter: _.map('value', data) }),
             options: ['running', 'success', 'failure'],
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
@@ -386,7 +379,7 @@ export const WorkspaceList = () => {
           if (newTab === tab) {
             refreshWorkspaces()
           } else {
-            setTab(newTab)
+            Nav.updateSearch({ ...query, tab: newTab === 'myWorkspaces' ? undefined : newTab })
           }
         },
         tabs
