@@ -4,6 +4,7 @@ import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
+import RenameColumnModal from 'src/components/data/RenameColumnModal'
 import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -52,6 +53,7 @@ const DataTable = props => {
   const {
     entityType, entityMetadata, setEntityMetadata, workspaceId, workspace, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
+    loadMetadata,
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
@@ -117,6 +119,7 @@ const DataTable = props => {
   const [updatingColumnSettings, setUpdatingColumnSettings] = useState()
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
+  const [renamingColumn, setRenamingColumn] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
 
@@ -386,6 +389,7 @@ const DataTable = props => {
                         extraActions: [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
+                          { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
                           { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
                           { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
@@ -495,6 +499,17 @@ const DataTable = props => {
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
+    }),
+    !!renamingColumn && h(RenameColumnModal, {
+      namespace, name,
+      entityType,
+      oldAttributeName: renamingColumn,
+      onSuccess: () => {
+        setRenamingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace))
+        loadMetadata()
+      },
+      onDismiss: () => setRenamingColumn(undefined)
     }),
     !!deletingColumn && h(DeleteConfirmationModal, {
       objectType: 'column',
