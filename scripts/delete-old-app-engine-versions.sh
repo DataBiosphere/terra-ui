@@ -54,7 +54,8 @@ check_jq_installed() {
 
 # ensure that user has appropriate permissions for app engine
 check_user_permissions() {
-    if ! gcloud app services list --project="${NEW_PROJECT}" 1>/dev/null 2>&1; then
+    FAKE_VERSION="example-invalid-version-for-permission-testing"
+    if ! gcloud app versions delete "${FAKE_VERSION}" --project="${NEW_PROJECT}" 1>/dev/null 2>&1; then
         GCLOUD_USER=$(gcloud config get-value account)
         abort "User ${GCLOUD_USER} does not have permissions in ${NEW_PROJECT}"
     fi
@@ -141,9 +142,9 @@ esac
 
 NEW_PROJECT="bvdp-saturn-$1"
 
-printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
-
 check_user_permissions
+
+printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
 DELETION_TIME=$(jq -n 'now - (7 * 24 * 60 * 60)') # 7 days
 DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
