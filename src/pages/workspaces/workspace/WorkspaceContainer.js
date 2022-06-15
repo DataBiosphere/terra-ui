@@ -200,7 +200,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspaceNamespace) => {
+const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspaceName) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -215,7 +215,7 @@ const useCloudEnvironmentPolling = (googleProject, workspaceNamespace) => {
     try {
       const [newDisks, newRuntimes] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
-        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace }) : []
+        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace, saturnWorkspaceName: workspaceName }) : []
       ])
 
       setRuntimes(newRuntimes)
@@ -293,7 +293,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.namespace)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.namespace, workspace?.workspace.name)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     const isAzureWorkspace = !!azureContext
