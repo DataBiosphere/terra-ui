@@ -380,17 +380,12 @@ const Environments = () => {
           {
             size: { basis: 125, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'type', onSort: setSort }, ['Type']),
-            cellRenderer: ({ rowIndex }) => {
-              return getCloudProvider(filteredCloudEnvironments[rowIndex])
-            }
+            cellRenderer: ({ rowIndex }) => getCloudProvider(filteredCloudEnvironments[rowIndex])
           },
           {
             size: { basis: 125, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'tool', onSort: setSort }, ['Tool']),
-            cellRenderer: ({ rowIndex }) => {
-              const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return getCloudEnvTool(cloudEnvironment)
-            }
+            cellRenderer: ({ rowIndex }) => getCloudEnvTool(filteredCloudEnvironments[rowIndex])
           },
           {
             size: { basis: 90, grow: 0 },
