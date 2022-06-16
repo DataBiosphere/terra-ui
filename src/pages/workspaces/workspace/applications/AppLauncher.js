@@ -5,7 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
-import { notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
+import { getExtension, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -74,7 +74,10 @@ const ApplicationLauncher = _.flow(
       onDismiss()
     })
 
-    const getCopyName = file => `${stripExtension(file)}_copy${Date.now()}.${tools.RStudio.ext}`
+    const getCopyName = file => {
+      const ext = getExtension(file)
+      return `${stripExtension(file)}_copy${Date.now()}.${ext}`
+    }
 
     const getFileName = _.flow(
       _.split('/'),
@@ -90,12 +93,12 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: _.size(outdatedAnalyses) > 1 ? 'R Markdown Files In Use' : `R Markdown File Is In Use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'RStudio Files In Use' : `RStudio File Is In Use`,
       showButtons: false
     }, [
       Utils.cond(
         // if user has more than one outdated rstudio analysis, display plural phrasing
-        [_.size(outdatedAnalyses) > 1, () => [p([`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
+        [_.size(outdatedAnalyses) > 1, () => [p([`These RStudio files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
           p([getAnalysesDisplayList(outdatedAnalyses)]),
           p(['You can']),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
@@ -122,7 +125,7 @@ const ApplicationLauncher = _.flow(
 
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    return _.filter(analysis => _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) && analysis?.metadata &&
+    return _.filter(analysis => _.includes(getExtension(analysis?.name), tools.RStudio.ext) && analysis?.metadata &&
       analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
@@ -167,10 +170,15 @@ const ApplicationLauncher = _.flow(
       const localSafeModeBaseDirectory = ``
       const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
+      console.log("AppLauncher")
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtime.runtimeName)
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
+      await Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtime.runtimeName)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.R`)
     })
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {

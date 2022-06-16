@@ -60,7 +60,7 @@ export const getExtension = _.flow(_.split('.'), _.last)
 export const stripExtension = _.replace(/\.[^/.]+$/, '')
 
 // removes leading dirs and a file ext suffix on paths
-export const getDisplayName = _.flow(getFileName, stripExtension)
+export const getDisplayName = _.flow(getFileName)
 
 export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   ...props,
@@ -72,13 +72,26 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 })
 
 export const tools = {
-  RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
-  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true },
+  RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
+  Jupyter: { label: 'Jupyter', ext: ['ipynb'], imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
   Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false }
+}
+
+export const displayExts = {
+  RStudio: [
+    { label: 'R Markdown (.Rmd)', value: 'Rmd' },
+    { label: 'R Script (.R)', value: 'R' }
+  ],
+  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }],
+  getNotebookExt: (kernel) => Utils.switchCase(kernel,
+    ['r', () => displayExts.RStudio],
+    ['python3', () => displayExts.Jupyter],
+    [Utils.DEFAULT, () => '']
+  )
 }
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
@@ -88,6 +101,12 @@ export const getToolsToDisplay = isAzureWorkspace => _.flow(
 )([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
+const extensionToToolMap = () => {
+  const extMap = {}
+  _.map(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
+  _.map(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
+  return extMap
+}
 
 // Returns appType for app with given label, or undefined if tool is not an app.
 export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
@@ -101,7 +120,7 @@ export const isToolAnApp = label => getAppType(label) !== undefined
 // Returns registered appTypes.
 export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
 
-export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
+export const getTool = fileName => extensionToToolMap()[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 
 export const getAnalysisFileExtension = toolLabel => toolToExtensionMap[toolLabel]
@@ -197,15 +216,23 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const [nameToExtMap, setNameToExtMap] = useState({})
   const signal = useCancellation()
 
   useOnMount(() => {
     const loadNames = async () => {
       const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-      const existingNames = _.map(({ name }) => getDisplayName(name), existingAnalyses)
+      const nameToExtMap = {}
+      const existingNames = _.map(({ name }) => {
+        nameToExtMap[stripExtension(getDisplayName(name))] = getExtension(name)
+        return stripExtension(getDisplayName(name))
+      }, existingAnalyses)
+      const extensions = _.map(({ name }) => getExtension(name), existingAnalyses)
+      console.log(nameToExtMap)
+      console.log(nameToExtMap['demo'])
+      setNameToExtMap(nameToExtMap)
       setExistingNames(existingNames)
     }
-
     loadNames()
   })
 
@@ -226,12 +253,12 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
         try {
           await (destroyOld ?
             Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
-            Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.analysis(googleProject, bucketName, getDisplayName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
             Nav.goToPath(analysisLauncherTabName, {
-              namespace, name: wsName, analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`, toolLabel
+              namespace, name: wsName, analysisName: `${newName}.${getExtension(printName)}`, toolLabel
             })
           }
           if (destroyOld) {

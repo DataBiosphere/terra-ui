@@ -502,19 +502,21 @@ const AnalysisEditorFrame = ({
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-    const pattern = Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => '.*\\.Rmd'],
-      [tools.Jupyter.label, () => '.*\\.ipynb']
+    const patterns = Utils.switchCase(toolLabel,
+      [tools.RStudio.label, () => ['.*\\.Rmd', '.*\\.R']],
+      [tools.Jupyter.label, () => ['.*\\.ipynb']]
     )
 
     const setUpAnalysis = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-      await Ajax()
-        .Runtimes
-        .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern)
+
+       _.forEach(pattern => Ajax()
+         .Runtimes
+         .fileSyncing(googleProject, runtimeName)
+         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern), patterns)
+
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'

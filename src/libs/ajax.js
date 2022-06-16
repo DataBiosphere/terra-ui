@@ -1,7 +1,7 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { getDisplayName, tools } from 'src/components/notebook-utils'
+import { getDisplayName, getExtension, tools } from 'src/components/notebook-utils'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -169,8 +169,7 @@ const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 
-const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
-const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
+const encodeName = name => encodeURIComponent(`notebooks/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -1137,7 +1136,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
+    return _.filter(({ name }) => (name.endsWith(`.${tools.Jupyter.ext}`) || _.includes(getExtension(name), tools.RStudio.ext)), items)
   },
 
   list: async (googleProject, bucket, prefix, options = {}) => {
@@ -1201,21 +1200,24 @@ const Buckets = signal => ({
 
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
+      console.log("copy")
       return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
+        `${bucketUrl}/${encodeName(name)}/copyTo/b/${newBucket}/o/${encodeName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
+      console.log("delete")
       return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
+        `${bucketUrl}/${encodeName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
+      console.log("getObject")
       const res = await fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
+        `${bucketUrl}/${encodeName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       )
       return await res.json()
@@ -1235,8 +1237,9 @@ const Buckets = signal => ({
       copy,
 
       create: async contents => {
+        console.log("create")
         return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+          `upload/${bucketUrl}?uploadType=media&name=${encodeName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
@@ -1264,13 +1267,16 @@ const Buckets = signal => ({
     const mimeType = Utils.switchCase(toolLabel,
       [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
 
-    const encodeFileName = n => Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => nbName(getDisplayName(n))], [tools.RStudio.label, () => rName(getDisplayName(n))])
+    const encodeFileName = name => encodeName(getDisplayName(name))
 
-    const doCopy = async (newName, newBucket, body) => fetchBuckets(
-      `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-    )
+    const doCopy = async (newName, newBucket, body) => {
+      console.log(name)
+      console.log(newName)
+      fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
+      )
+    }
 
     const copy = (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
@@ -1335,7 +1341,9 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        await copy(newName, bucket, false)
+        console.log("rename")
+        console.log(newName)
+        await copy(`${newName}.${getExtension(name)}`, bucket, false)
         return doDelete()
       },
 

@@ -9,7 +9,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  analysisNameInput, analysisNameValidator, displayExts, getAppType, getFileName, getTool, isToolAnApp, notebookData,
   tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
@@ -43,6 +43,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const [analysisName, setAnalysisName] = useState('')
     const prevAnalysisName = usePrevious(analysisName)
     const [currentTool, setCurrentTool] = useState(undefined)
+    const [fileExt, setFileExt] = useState('')
+    const [extensionOptions, setExtensionOptions] = useState([])
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -157,6 +159,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.Jupyter.label)
+          setFileExt(tools.Jupyter.defaultExt)
           enterNextViewMode(tools.Jupyter.label)
         },
         hover: styles.hover
@@ -164,10 +167,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
+          setFileExt('Rmd')
           enterNextViewMode(tools.RStudio.label)
         },
         hover: styles.hover
-      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: _.merge(styles.image, { width: 207 }) })]),
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) })]),
       h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.Galaxy.label)
@@ -191,7 +195,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       renderToolButtons(),
       h(Dropzone, {
-        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(", .")}`,
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
@@ -220,7 +224,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     ])
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => 'R markdown file'],
+      [tools.RStudio.label, () => 'R File'],
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
@@ -233,7 +237,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       const isJupyter = toolLabel === tools.Jupyter.label
 
       const errors = validate(
-        { analysisName: `${analysisName}.${getAnalysisFileExtension(toolLabel)}`, notebookKernel },
+        { analysisName: `${analysisName}.Rmd`, notebookKernel },
         {
           analysisName: analysisNameValidator(_.map(({ name }) => getFileName(name), analyses)),
           notebookKernel: { presence: { allowEmpty: true } }
@@ -260,8 +264,22 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             placeholder: 'Select a language',
             getOptionLabel: ({ value }) => _.startCase(value),
             value: notebookKernel,
-            onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+            onChange: ({ value: notebookKernel }) => {
+              setNotebookKernel(notebookKernel)
+              setExtensionOptions()
+            },
             options: ['python3', 'r']
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['File Type']),
+          h(Select, {
+            id, isSearchable: true,
+            value: fileExt,
+            onChange: v => {
+              setFileExt(v.value)
+            },
+            options: isJupyter? displayExts.Jupyter : displayExts.RStudio
           })
         ])]),
         (isJupyter || toolLabel === tools.RStudio.label) &&
@@ -281,10 +299,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
-                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter Rmd file'
+                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter RStudio file'
+                const fullAnalysisName = `${analysisName}.${isJupyter? tools.Jupyter.ext : fileExt}`
+                console.log(fullAnalysisName)
                 isJupyter ?
-                  await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
-                  await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
+                  await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
+                  await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)
                 await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
                 setAnalysisName('')

@@ -12,7 +12,7 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash,
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -259,7 +259,7 @@ const Analyses = _.flow(
   )(async () => {
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
-    const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
+    const rmds = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
@@ -388,7 +388,7 @@ const Analyses = _.flow(
   // Render
   //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(", .")}`,
     disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
@@ -485,7 +485,7 @@ const Analyses = _.flow(
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(renamingAnalysisName),
+          printName: renamingAnalysisName,
           toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
