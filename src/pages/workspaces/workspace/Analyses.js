@@ -173,7 +173,7 @@ const AnalysisCard = ({
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
-  }, [getDisplayName(name)])
+  }, [getFileName(name)])
 
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
@@ -249,7 +249,9 @@ const Analyses = _.flow(
 
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
-  const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
+  const existingNames = _.map(({ name }) => {
+    return getDisplayName(name)
+  }, analyses)
 
   //TODO: defined load function for azure
   const refreshAnalyses = !!googleProject ? _.flow(
@@ -495,7 +497,7 @@ const Analyses = _.flow(
           }
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(copyingAnalysisName),
+          printName: copyingAnalysisName,
           toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),

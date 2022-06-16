@@ -66,7 +66,6 @@ const AnalysisLauncher = _.flow(
     })
 
     return h(Fragment, [
-
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
