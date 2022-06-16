@@ -9,8 +9,8 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, toolExtensionDisplay, getAppType, getFileName, getTool, isToolAnApp, notebookData,
-  tools
+  analysisNameInput, analysisNameValidator, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  toolExtensionDisplay, tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
@@ -194,7 +194,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       renderToolButtons(),
       h(Dropzone, {
-        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(", .")}`,
+        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(', .')}`,
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
@@ -265,7 +265,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             value: notebookKernel,
             onChange: ({ value: notebookKernel }) => {
               setNotebookKernel(notebookKernel)
-              },
+            },
             options: ['python3', 'r']
           })
         ])]),
@@ -298,7 +298,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onClick: async () => {
               try {
                 const contents = isJupyter ? notebookData[notebookKernel] : '# Starter RStudio file'
-                const fullAnalysisName = `${analysisName}.${isJupyter? tools.Jupyter.ext : fileExt}`
+                const fullAnalysisName = `${analysisName}.${isJupyter ? tools.Jupyter.ext : fileExt}`
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)

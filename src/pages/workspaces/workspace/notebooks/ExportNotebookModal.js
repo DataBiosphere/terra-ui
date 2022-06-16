@@ -5,7 +5,7 @@ import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
-import { analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName } from 'src/components/notebook-utils'
+import { analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getFileName } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -139,7 +139,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
   const findAnalysis = async v => {
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
     const selectedAnalyses = await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName)
-    setExistingNames(_.map(({ name }) => getDisplayName(name), selectedAnalyses))
+    setExistingNames(_.map(({ name }) => getFileName(name), selectedAnalyses))
   }
 
   const copy = Utils.withBusyState(setCopying, async () => {

@@ -12,7 +12,7 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash,
   stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -169,7 +169,7 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
-    title: getDisplayName(name),
+    title: getFileName(name),
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
@@ -250,7 +250,7 @@ const Analyses = _.flow(
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
   const existingNames = _.map(({ name }) => {
-    return getDisplayName(name)
+    return getFileName(name)
   }, analyses)
 
   //TODO: defined load function for azure
@@ -355,7 +355,7 @@ const Analyses = _.flow(
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
     const renderedAnalyses = _.flow(
-      _.filter(({ name }) => Utils.textMatch(filter, getDisplayName(name))),
+      _.filter(({ name }) => Utils.textMatch(filter, getFileName(name))),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
@@ -390,7 +390,7 @@ const Analyses = _.flow(
   // Render
   //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(", .")}`,
+    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(', .')}`,
     disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
@@ -507,14 +507,14 @@ const Analyses = _.flow(
           }
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
-          printName: getDisplayName(exportingAnalysisName),
+          printName: getFileName(exportingAnalysisName),
           toolLabel: getTool(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
           objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
-          objectName: getDisplayName(deletingAnalysisName),
+          objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
             Utils.withBusyState(setBusy),
@@ -524,7 +524,7 @@ const Analyses = _.flow(
             await Ajax().Buckets.analysis(
               googleProject,
               bucketName,
-              getDisplayName(deletingAnalysisName),
+              getFileName(deletingAnalysisName),
               getTool(deletingAnalysisName)
             ).delete()
             refreshAnalyses()

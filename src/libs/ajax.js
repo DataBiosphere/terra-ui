@@ -1,7 +1,7 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { getDisplayName, getExtension, tools } from 'src/components/notebook-utils'
+import { getExtension, getFileName, tools } from 'src/components/notebook-utils'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -1263,7 +1263,7 @@ const Buckets = signal => ({
     const mimeType = Utils.switchCase(toolLabel,
       [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
 
-    const encodeFileName = name => encodeName(getDisplayName(name))
+    const encodeFileName = name => encodeName(getFileName(name))
 
     const doCopy = async (newName, newBucket, body) => {
       fetchBuckets(
@@ -1321,7 +1321,7 @@ const Buckets = signal => ({
       copyWithMetadata,
 
       create: async textContents => {
-         return fetchBuckets(
+        return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: textContents,

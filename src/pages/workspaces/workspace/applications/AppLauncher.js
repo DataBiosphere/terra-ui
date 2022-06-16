@@ -61,7 +61,6 @@ const ApplicationLauncher = _.flow(
       // in either case, their original version of the analysis is outdated and we will no longer sync that file to the workspace bucket for the current user
       await Promise.all(_.flatMap(async ({ name, metadata: currentMetadata }) => {
         const file = getFileName(name)
-        console.log("FILENAME: " + file)
         const newMetadata = currentMetadata
         if (shouldCopy) {
           // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
@@ -171,7 +170,6 @@ const ApplicationLauncher = _.flow(
       const localSafeModeBaseDirectory = ``
       const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-      console.log("AppLauncher")
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtime.runtimeName)

@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -231,7 +231,7 @@ const PreviewHeader = ({
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
-      .analysis(googleProject, bucketName, getDisplayName(analysisName), toolLabel)
+      .analysis(googleProject, bucketName, getFileName(analysisName), toolLabel)
       .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -367,7 +367,7 @@ const PreviewHeader = ({
       }
     }),
     copyingAnalysis && h(AnalysisDuplicator, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName),
       fromLauncher: true,
       wsName: name, googleProject, namespace, bucketName, destroyOld: false,
@@ -375,7 +375,7 @@ const PreviewHeader = ({
       onSuccess: () => setCopyingAnalysis(false)
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName), workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
@@ -510,11 +510,10 @@ const AnalysisEditorFrame = ({
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-
-       _.forEach(pattern => Ajax()
-         .Runtimes
-         .fileSyncing(googleProject, runtimeName)
-         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern), patterns)
+      _.forEach(pattern => Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtimeName)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern), patterns)
 
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {

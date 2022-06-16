@@ -13,7 +13,6 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { pdTypes } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -60,9 +59,6 @@ export const getExtension = _.flow(_.split('.'), _.last)
 
 export const stripExtension = _.replace(/\.[^/.]+$/, '')
 
-// removes leading dirs and a file ext suffix on paths
-export const getDisplayName = _.flow(getFileName)
-
 export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   ...props,
   inputProps: {
@@ -99,8 +95,8 @@ export const getToolsToDisplay = isAzureWorkspace => _.flow(
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 const extensionToToolMap = () => {
   const extMap = {}
-  _.map(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
-  _.map(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
+  _.forEach(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
+  _.forEach(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
   return extMap
 }
 
@@ -212,21 +208,12 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
   const [processing, setProcessing] = useState(false)
-  const [nameToExtMap, setNameToExtMap] = useState({})
   const signal = useCancellation()
 
   useOnMount(() => {
     const loadNames = async () => {
       const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-      const nameToExtMap = {}
-      const existingNames = _.map(({ name }) => {
-        nameToExtMap[stripExtension(getDisplayName(name))] = getExtension(name)
-        return stripExtension(getDisplayName(name))
-      }, existingAnalyses)
-      const extensions = _.map(({ name }) => getExtension(name), existingAnalyses)
-      console.log(nameToExtMap)
-      console.log(nameToExtMap['demo'])
-      setNameToExtMap(nameToExtMap)
+      const existingNames = _.map(({ name }) => getFileName(name), existingAnalyses)
       setExistingNames(existingNames)
     }
     loadNames()
@@ -249,7 +236,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
         try {
           await (destroyOld ?
             Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
-            Ajax().Buckets.analysis(googleProject, bucketName, getDisplayName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, !destroyOld)
+            Ajax().Buckets.analysis(googleProject, bucketName, getFileName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
