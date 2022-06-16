@@ -41,8 +41,7 @@ export const getOidcConfig = () => {
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     automaticSilentRenew: true,
     includeIdTokenInSilentRenew: true,
-    extraQueryParams: { access_type: 'offline' },
-    revokeTokenTypes: ['access_token', 'refresh_token']
+    extraQueryParams: { access_type: 'offline' }
   }
 }
 
