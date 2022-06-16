@@ -1200,14 +1200,12 @@ const Buckets = signal => ({
 
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
-      console.log("copy")
       return fetchBuckets(
         `${bucketUrl}/${encodeName(name)}/copyTo/b/${newBucket}/o/${encodeName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
-      console.log("delete")
       return fetchBuckets(
         `${bucketUrl}/${encodeName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
@@ -1215,7 +1213,6 @@ const Buckets = signal => ({
     }
 
     const getObject = async () => {
-      console.log("getObject")
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
@@ -1237,7 +1234,6 @@ const Buckets = signal => ({
       copy,
 
       create: async contents => {
-        console.log("create")
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
@@ -1270,8 +1266,6 @@ const Buckets = signal => ({
     const encodeFileName = name => encodeName(getDisplayName(name))
 
     const doCopy = async (newName, newBucket, body) => {
-      console.log(name)
-      console.log(newName)
       fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
@@ -1341,8 +1335,6 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        console.log("rename")
-        console.log(newName)
         await copy(`${newName}.${getExtension(name)}`, bucket, false)
         return doDelete()
       },
