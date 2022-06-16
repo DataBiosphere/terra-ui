@@ -64,6 +64,7 @@ const eventsList = {
   workspaceDataOpenWithNotebook: 'workspace:data:notebook',
   workspaceDataImport: 'workspace:data:import',
   workspaceDataUpload: 'workspace:data:upload',
+  workspaceDataRenameColumn: 'workspace:data:renameColumn',
   workspaceDataRenameEntity: 'workspace:data:renameEntity',
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',

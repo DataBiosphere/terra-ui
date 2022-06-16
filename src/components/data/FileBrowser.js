@@ -1,334 +1,468 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { b, div, h, span } from 'react-hyperscript-helpers'
+import pluralize from 'pluralize'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
-import { saveScroll } from 'src/components/data/data-utils'
+import { ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
-import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { UploadProgressModal } from 'src/components/ProgressBar'
+import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
-import { useCancelable, useCancellation, withDisplayName } from 'src/libs/react-utils'
-import * as StateHistory from 'src/libs/state-history'
-import { uploadFiles, useUploader } from 'src/libs/uploads'
+import { reportError } from 'src/libs/error'
+import { useCancelable } from 'src/libs/react-utils'
+import { requesterPaysProjectStore } from 'src/libs/state'
+import { useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
 
 
-export const DeleteObjectConfirmationModal = ({ object, ...props }) => {
-  const objectSize = _.toNumber(object.size)
+const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 }) => {
+  const [allObjects, setAllObjects] = useState([])
+  const [allPrefixes, setAllPrefixes] = useState([])
+  const nextPageToken = useRef(null)
+  const [moreToLoad, setMoreToLoad] = useState(false)
+
+  const requestInProgress = useRef(null)
+  const { signal, abort } = useCancelable()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  const loadNextPage = useCallback(async () => {
+    if (requestInProgress.current) {
+      return requestInProgress.current
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const requestOptions = { maxResults: pageSize }
+      if (nextPageToken.current) {
+        requestOptions.pageToken = nextPageToken.current
+      }
+
+      const {
+        items: pageObjects,
+        prefixes: pagePrefixes,
+        nextPageToken: pageNextPageToken
+      } = await Ajax(signal).Buckets.list(googleProject, bucketName, prefix, requestOptions)
+
+      setAllObjects(prevObjects => _.concat(prevObjects, _.defaultTo([], pageObjects)))
+      setAllPrefixes(prevPrefixes => _.concat(prevPrefixes, _.defaultTo([], pagePrefixes)))
+      nextPageToken.current = pageNextPageToken
+      setMoreToLoad(Boolean(nextPageToken.current))
+    } catch (err) {
+      if (!err.requesterPaysError) {
+        reportError('Error loading bucket contents', err)
+      }
+      setError(err)
+    } finally {
+      setLoading(false)
+      requestInProgress.current = null
+    }
+  }, [googleProject, bucketName, prefix, pageSize, signal])
+
+  const loadAllRemaining = useCallback(async () => {
+    while (nextPageToken.current) {
+      await loadNextPage()
+    }
+  }, [loadNextPage])
+
+  const reload = useCallback(() => {
+    if (requestInProgress.current) {
+      abort()
+      requestInProgress.current = null
+    }
+
+    setAllObjects([])
+    setAllPrefixes([])
+    nextPageToken.current = null
+    setMoreToLoad(false)
+
+    loadNextPage()
+  }, [abort, loadNextPage])
+
+  // We want to reload if the Google project, bucket, prefix, or page size changes.
+  // The effect function does not use the reload function directly because the effect function closes
+  // over the current value of reload and reload may be recreated (useCallback memoizes the function
+  // but does not guarantee that it won't change). Using a ref lets us get the current reload function
+  // without having to recreate the effect function.
+  const reloadRef = useRef()
+  reloadRef.current = reload
+  useEffect(() => {
+    reloadRef.current()
+  }, [googleProject, bucketName, prefix, pageSize])
+
+  return {
+    loading,
+    error,
+    objects: allObjects,
+    prefixes: allPrefixes,
+    moreToLoad,
+    loadNextPage,
+    loadAllRemaining,
+    reload
+  }
+}
+
+const getLabelForObject = object => {
+  return _.last(_.split('/', object.name))
+}
+
+const getLabelForPrefix = prefix => {
+  // prefixes have a trailing slash, so display the next to last item of the split array.
+  return `${_.flow(_.split('/'), _.slice(-2, -1), _.first)(prefix)}/`
+}
+
+const DeleteObjectsConfirmationModal = ({ objects, ...props }) => {
+  const numObjects = _.size(objects)
   return h(DeleteConfirmationModal, {
     ...props,
-    objectType: 'file',
-    objectName: object.name
+    title: `Delete ${pluralize('object', numObjects, true)}`,
+    buttonText: `Delete ${numObjects === 1 ? 'object' : 'objects'}`
   }, [
-    div(['Are you sure you want to delete the file ', b({ style: { wordBreak: 'break-word' } }, [object.name]), '?']),
-    !_.isNaN(objectSize) && div({ style: { marginTop: '1rem' } }, [
-      `File size: ${Utils.formatBytes(objectSize)}`
-    ]),
-    b({ style: { display: 'block', marginTop: '1rem' } }, 'This cannot be undone.')
+    // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view
+    // Row height calculation is font size * line height + padding + border
+    div({ style: { maxHeight: 'calc((1em * 1.15 + 1rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } },
+      _.map(([i, object]) => div({
+        style: {
+          borderTop: i === 0 ? undefined : `1px solid ${colors.light()}`,
+          padding: '0.5rem 1.25rem'
+        }
+      }, getLabelForObject(object)),
+      Utils.toIndexPairs(objects))
+    )
+  ])
+}
+
+const BucketBrowserTable = ({
+  bucketName,
+  objects = [], prefixes = [],
+  selectedObjects, setSelectedObjects,
+  noObjectsMessage,
+  onClickPrefix, onClickObject
+}) => {
+  const allItems = _.sortBy('label', _.concat(
+    _.map(object => ({ object, label: getLabelForObject(object) }), objects),
+    _.map(prefix => ({ prefix, label: getLabelForPrefix(prefix) }), prefixes)
+  ))
+
+  const allObjectsSelected = _.size(objects) > 0 && _.every(object => _.has(object.name, selectedObjects), objects)
+
+  return div({ style: { display: 'flex', flex: '1 1 auto' } }, [
+    h(AutoSizer, {}, [
+      ({ width, height }) => h(FlexTable, {
+        'aria-label': 'File browser',
+        width,
+        height,
+        rowCount: _.size(allItems),
+        noContentMessage: noObjectsMessage,
+        styleCell: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
+        styleHeader: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
+        hoverHighlight: true,
+        border: false,
+        columns: [
+          {
+            size: { min: 40, grow: 0 },
+            headerRenderer: () => {
+              return div({ style: { flex: 1, textAlign: 'center' } }, [
+                h(Checkbox, {
+                  checked: allObjectsSelected,
+                  disabled: _.isEmpty(allItems),
+                  onChange: allObjectsSelected ?
+                    () => setSelectedObjects({}) :
+                    () => setSelectedObjects(_.fromPairs(_.map(object => [object.name, object], objects))),
+                  'aria-label': 'Select all'
+                })
+              ])
+            },
+            cellRenderer: ({ rowIndex }) => {
+              const { object, prefix, label } = allItems[rowIndex]
+              return div({ style: { flex: 1, textAlign: 'center' } }, [Utils.cond(
+                [object, () => {
+                  const checked = _.has([object.name], selectedObjects)
+                  return h(Checkbox, {
+                    'aria-label': label,
+                    checked,
+                    onChange: () => setSelectedObjects(
+                      checked ? _.unset([object.name]) : _.set([object.name], object)
+                    )
+                  })
+                }],
+                [prefix, () => {
+                  return icon('folder-open', { size: 16, 'aria-label': 'folder' })
+                }]
+              )])
+            }
+          },
+          {
+            size: { min: 100, grow: 1 },
+            headerRenderer: () => h(HeaderCell, ['Name']),
+            cellRenderer: ({ rowIndex }) => {
+              const { object, prefix, label } = allItems[rowIndex]
+              return h(TextCell, [
+                Utils.cond(
+                  [object, () => {
+                    return h(Fragment, [
+                      h(Link, {
+                        style: { textDecoration: 'underline' },
+                        href: `gs://${bucketName}/${object.name}`,
+                        onClick: e => {
+                          e.preventDefault()
+                          onClickObject(object)
+                        }
+                      }, [label])
+                    ])
+                  }],
+                  [prefix, () => {
+                    return h(Link, {
+                      style: { textDecoration: 'underline' },
+                      href: `gs://${bucketName}/${prefix}`,
+                      onClick: e => {
+                        e.preventDefault()
+                        onClickPrefix(prefix)
+                      }
+                    }, [label])
+                  }]
+                )
+              ])
+            }
+          },
+          {
+            size: { min: 150, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Size']),
+            cellRenderer: ({ rowIndex }) => {
+              const { object } = allItems[rowIndex]
+              return object && filesize(object.size, { round: 0 })
+            }
+          },
+          {
+            size: { min: 200, grow: 0 },
+            headerRenderer: () => h(HeaderCell, ['Last modified']),
+            cellRenderer: ({ rowIndex }) => {
+              const { object } = allItems[rowIndex]
+              return object && Utils.makePrettyDate(object.updated)
+            }
+          }
+        ]
+      })
+    ])
   ])
 }
 
 
-export const FileBrowserPanel = _.flow(
-  withDisplayName('DataUploadPanel'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, style, children }) => {
-  const [prefix, setPrefix] = useState('')
-  const [prefixes, setPrefixes] = useState([])
-  const [objects, setObjects] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [deletingObject, setDeletingObject] = useState(undefined)
-  const [viewingName, setViewingName] = useState(undefined)
-  const [isCreating, setCreating] = useState(false)
+const BucketBrowser = (({
+  workspace,
+  basePrefix: inputBasePrefix = '',
+  pageSize = 1000,
+  noObjectsMessage = 'No files have been uploaded yet',
+  showNewFolderButton = true,
+  extraMenuItems,
+  style, controlPanelStyle,
+  onUploadFiles, onDeleteFiles
+}) => {
+  // Normalize base prefix to have a trailing slash.
+  const basePrefix = Utils.cond(
+    [!inputBasePrefix, () => ''],
+    [inputBasePrefix.endsWith('/'), () => inputBasePrefix],
+    () => `${inputBasePrefix}/`
+  )
 
-  const [uploadingFiles, setUploadingFiles] = useState([])
-  const [uploadStatus, setUploadStatus] = useUploader()
-  const [lastRefresh, setLastRefresh] = useState(0)
+  const { workspace: { googleProject, bucketName } } = workspace
 
-  const signal = useCancellation()
-  const { signal: uploadSignal, abort: abortUpload } = useCancelable()
+  const [prefix, setPrefix] = useState(basePrefix)
 
-  const { initialY } = StateHistory.get() || {}
-  const table = useRef()
+  const {
+    loading,
+    error,
+    objects,
+    prefixes,
+    moreToLoad,
+    loadNextPage,
+    loadAllRemaining,
+    reload
+  } = useBucketContents({ googleProject, bucketName, prefix, pageSize })
 
-  // Helpers
-  const getFullPrefix = (targetPrefix = prefix) => {
-    const fullPrefix = targetPrefix.startsWith(basePrefix) ? targetPrefix : `${basePrefix}${targetPrefix}`
-    return fullPrefix.endsWith('/') ? fullPrefix : `${fullPrefix}/`
-  }
-
-  const getBareFilename = name => {
-    return name.startsWith(basePrefix) ? name.slice(basePrefix.length + prefix.length) : name
-  }
-
-  const load = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading bucket data'),
-    Utils.withBusyState(setLoading)
-  )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, getFullPrefix(targetPrefix))
-    setPrefixes(_.flow(
-      // Slice off the root
-      _.map(p => p.slice(basePrefix.length)),
-      _.uniq,
-      _.compact
-    )(prefixes || []))
-    setObjects(items || [])
-  })
-
-  const count = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error counting bucket objects')
-  )(async () => {
-    const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: basePrefix })
-    setNumFiles(items.length)
-  })
-
-  // Lifecycle
+  const [selectedObjects, setSelectedObjects] = useState({})
   useEffect(() => {
-    // Whenever the prefix changes, reload the table right away
-    load(prefix)
-  }, [prefix, lastRefresh]) // eslint-disable-line react-hooks/exhaustive-deps
+    setSelectedObjects({})
+  }, [googleProject, bucketName, prefix])
 
+  const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
   useEffect(() => {
-    if (!uploadStatus.active) {
-      // If the uploader has completed, count all the files in the bucket and reload the files list
-      count()
-      load(prefix)
-    } else {
-      // While the uploader is working, refresh the table no more often than every 5 seconds
-      const now = Date.now()
-      if (lastRefresh < now - 5e3) {
-        setLastRefresh(now)
-      }
+    if (error && error.requesterPaysError) {
+      setShowRequesterPaysModal(true)
     }
-  }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [error])
 
-  useEffect(() => {
-    StateHistory.update({ prefix, initialY })
-  }, [prefix, initialY])
+  const [viewingObject, setViewingObject] = useState(null)
 
-  useEffect(() => {
-    if (uploadingFiles.length > 0) {
-      uploadFiles({
-        googleProject, bucketName,
-        prefix: getFullPrefix(prefix),
-        files: uploadingFiles,
-        status: uploadStatus,
-        setStatus: setUploadStatus,
-        signal: uploadSignal
-      })
-    }
-  }, [uploadingFiles]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { uploadState, uploadFiles, cancelUpload } = useUploader()
+  const [creatingNewFolder, setCreatingNewFolder] = useState(false)
+  const [deletingSelectedObjects, setDeletingSelectedObjects] = useState(false)
+  const [busy, setBusy] = useState(false)
 
+  const canEditWorkspace = !Utils.editWorkspaceError(workspace)
 
-  // Render
+  const numPrefixes = _.size(prefixes)
+  const numObjects = _.size(objects)
 
-  // Get the folder prefix
-  const prefixParts = _.compact(prefix.split('/'))
-  const makeBucketLink = ({ label, target, onClick }) => h(Link, {
-    style: { textDecoration: 'underline' },
-    href: target ? `gs://${bucketName}/${target}` : undefined,
-    onClick: e => {
-      e.preventDefault()
-      onClick()
-    }
-  }, [label])
+  const breadcrumbPath = prefix.startsWith(basePrefix) ? prefix.slice(basePrefix.length) : prefix
+  // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
+  const breadcrumbs = _.flow(_.split('/'), _.dropRight(1))(breadcrumbPath)
 
-  const numPrefixes = prefixes?.length || 0
-  const numObjects = objects?.length || 0
-
-  return div({ style }, [
-    children,
+  return div({ style: { minHeight: '10rem', ...style } }, [
     h(Dropzone, {
-      disabled: !!Utils.editWorkspaceError(workspace) || uploadStatus.active,
-      style: {
-        display: 'flex', flexFlow: 'column nowrap',
-        backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
-        position: 'relative', minHeight: '10rem', height: '100%'
-      },
+      disabled: !canEditWorkspace || uploadState.active,
+      style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       multiple: true,
-      maxFiles: 0,
-      onDropAccepted: setUploadingFiles
+      maxFiles: 0, // no limit on number of files
+      onDropAccepted: async files => {
+        await uploadFiles({ googleProject, bucketName, prefix, files })
+        reload()
+        onUploadFiles()
+      }
     }, [({ openUploader }) => h(Fragment, [
       div({
         style: {
-          flex: 0, display: 'flex', flexFlow: 'row nowrap',
-          width: '100%', borderBottom: `1px solid ${colors.dark(0.25)}`,
-          padding: '1em'
+          display: 'flex', flexFlow: 'row wrap', alignItems: 'center',
+          width: '100%', padding: '0.5rem',
+          borderBottom: `1px solid ${colors.grey(0.4)}`,
+          ...controlPanelStyle
         }
       }, [
-        div({
-          style: { display: 'table', height: '100%', flex: 1 }
-        }, [
-          _.map(({ label, target }) => {
-            return h(Fragment, { key: target }, [
-              makeBucketLink({
-                label, target: getFullPrefix(target),
-                onClick: () => setPrefix(target)
-              }),
-              ' / '
-            ])
-          }, [
-            collection && { label: collection, target: '' },
-            ..._.map(n => {
-              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-            }, _.range(0, prefixParts.length))
-          ]),
-          allowNewFolders && makeBucketLink({
-            label: span([icon('plus'), ' New folder']),
-            onClick: () => setCreating(true)
-          })
-        ]),
-        uploadStatus.active && div({
-          style: { flex: 0 }
-        }, [
-          'Uploading...'
-        ])
-      ]),
-      div({
-        style: {
-          flex: '0', textAlign: 'center', fontSize: '1.2em', padding: '1em 1em 0 1em'
-        }
-      }, [
-        'Drag and drop your files here'
-      ]),
-      div({
-        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em', height: '100%', minHeight: '30em' }
-      }, [
-        h(AutoSizer, {}, [
-          ({ width, height }) => h(FlexTable, {
-            ref: table,
-            'aria-label': 'file browser',
-            width,
-            height,
-            rowCount: numPrefixes + numObjects,
-            noContentMessage: 'No files have been uploaded yet',
-            onScroll: saveScroll,
-            initialY,
-            rowHeight: 40,
-            headerHeight: 40,
-            styleCell: () => {
-              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
-            },
-            styleHeader: () => {
-              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
-            },
-            hoverHighlight: true,
-            columns: [
-              {
-                size: { min: 30, grow: 0 },
-                headerRenderer: () => '',
-                cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= numPrefixes) {
-                    const object = objects[rowIndex - numPrefixes]
-                    return h(Link, {
-                      style: { display: 'flex' },
-                      onClick: () => setDeletingObject(object),
-                      tooltip: 'Delete file'
-                    }, [
-                      icon('trash', {
-                        size: 16,
-                        className: 'hover-only'
-                      })
-                    ])
-                  }
-                }
-              },
-              {
-                size: { min: 100, grow: 1 }, // Fill the remaining space
-                headerRenderer: () => h(HeaderCell, ['Name']),
-                cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex < numPrefixes) {
-                    const p = prefixes[rowIndex]
-                    return h(TextCell, [
-                      makeBucketLink({
-                        label: getBareFilename(p),
-                        target: getFullPrefix(p),
-                        onClick: () => setPrefix(p)
-                      })
-                    ])
-                  } else {
-                    const { name } = objects[rowIndex - numPrefixes]
-                    return h(TextCell, [
-                      makeBucketLink({
-                        label: getBareFilename(name),
-                        target: name,
-                        onClick: () => setViewingName(name)
-                      })
-                    ])
-                  }
-                }
-              },
-              {
-                size: { min: 150, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Size']),
-                cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= numPrefixes) {
-                    const { size } = objects[rowIndex - numPrefixes]
-                    return filesize(size, { round: 0 })
-                  }
-                }
-              },
-              {
-                size: { min: 200, grow: 0 },
-                headerRenderer: () => h(HeaderCell, ['Last modified']),
-                cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= numPrefixes) {
-                    const { updated } = objects[rowIndex - numPrefixes]
-                    return Utils.makePrettyDate(updated)
-                  }
-                }
+        h(Link, {
+          style: { padding: '0.5rem', textDecoration: 'underline' },
+          href: `gs://${bucketName}/${basePrefix}`,
+          onClick: e => {
+            e.preventDefault()
+            setPrefix(basePrefix)
+          }
+        }, [basePrefix ? getLabelForPrefix(basePrefix) : 'Files']),
+        _.map(([index, breadcrumb]) => {
+          const breadcrumbPrefix = `${basePrefix}${_.join('/', _.slice(0, index + 1, breadcrumbs))}/`
+          return h(Fragment, { key: breadcrumbPrefix }, [
+            span({ style: { padding: '0.5rem 0' } }, [' / ']),
+            h(Link, {
+              style: { padding: '0.5rem', textDecoration: 'underline' },
+              href: `gs://${bucketName}/${breadcrumbPrefix}`,
+              onClick: e => {
+                e.preventDefault()
+                setPrefix(breadcrumbPrefix)
               }
-            ]
-          })
-        ])
+            }, [breadcrumb])
+          ])
+        }, Utils.toIndexPairs(breadcrumbs)),
+
+        div({ style: { flex: '1 1 auto' } }),
+
+        h(ButtonPrimary, {
+          style: { padding: '0.5rem', marginRight: '0.5rem' },
+          onClick: openUploader
+        }, [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']),
+
+        showNewFolderButton && h(Link, {
+          style: { padding: '0.5rem' },
+          onClick: () => setCreatingNewFolder(true)
+        }, [icon('folder'), ' New folder']),
+
+        h(Link, {
+          disabled: _.isEmpty(selectedObjects),
+          tooltip: _.isEmpty(selectedObjects) ? 'Select files to delete' : 'Delete selected files',
+          style: { padding: '0.5rem' },
+          onClick: () => setDeletingSelectedObjects(true)
+        }, [icon('trash'), ' Delete']),
+
+        extraMenuItems
       ]),
-      uploadStatus.active && h(UploadProgressModal, {
-        status: uploadStatus,
-        abort: abortUpload
+      h(BucketBrowserTable, {
+        bucketName,
+        objects,
+        prefixes,
+        noObjectsMessage: Utils.cond(
+          [loading, () => 'Loading bucket contents...'],
+          [error, () => 'Unable to load bucket contents'],
+          () => noObjectsMessage
+        ),
+        selectedObjects, setSelectedObjects,
+        onClickPrefix: setPrefix,
+        onClickObject: setViewingObject
       }),
-      deletingObject && h(DeleteObjectConfirmationModal, {
-        object: deletingObject,
-        onConfirm: _.flow(
-          Utils.withBusyState(setLoading),
-          withErrorReporting('Error deleting file')
-        )(async () => {
-          setDeletingObject(undefined)
-          await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
-          load(prefix)
-          count()
-        }),
-        onDismiss: () => setDeletingObject(undefined)
+
+      moreToLoad && div({ style: { padding: '1rem', borderTop: `1px solid ${colors.light()}` } }, [
+        `Showing ${numPrefixes + numObjects} results.`,
+        h(Link, {
+          style: { marginLeft: '1ch' },
+          onClick: () => loadNextPage()
+        }, [`Load next ${pageSize}`]),
+        h(Link, {
+          style: { marginLeft: '1ch' },
+          tooltip: 'This may take a long time for folders containing several thousand objects.',
+          onClick: () => loadAllRemaining()
+        }, ['Load all'])
+      ]),
+
+      viewingObject && h(UriViewer, {
+        googleProject,
+        uri: `gs://${bucketName}/${viewingObject.name}`,
+        onDismiss: () => setViewingObject(null)
       }),
-      viewingName && h(UriViewer, {
-        googleProject, uri: `gs://${bucketName}/${viewingName}`,
-        onDismiss: () => setViewingName(undefined)
+
+      uploadState.active && h(UploadProgressModal, {
+        status: uploadState,
+        abort: cancelUpload
       }),
-      isCreating && h(NameModal, {
-        thing: 'Folder',
-        onDismiss: () => setCreating(false),
+
+      creatingNewFolder && h(NameModal, {
+        thing: 'New folder',
+        onDismiss: () => setCreatingNewFolder(false),
         onSuccess: ({ name }) => {
+          setCreatingNewFolder(false)
           setPrefix(`${prefix}${name}/`)
-          setCreating(false)
         }
       }),
-      !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-        label: 'UPLOAD',
-        iconShape: 'plus',
-        onClick: openUploader
+
+      deletingSelectedObjects && h(DeleteObjectsConfirmationModal, {
+        objects: _.values(selectedObjects),
+        onConfirm: async () => {
+          setDeletingSelectedObjects(false)
+          setBusy(true)
+          try {
+            await Promise.all(
+              _.map(
+                object => Ajax().Buckets.delete(googleProject, bucketName, object.name),
+                _.values(selectedObjects)
+              )
+            )
+          } catch (error) {
+            reportError('Error deleting objects', error)
+          } finally {
+            setBusy(false)
+            setSelectedObjects({})
+            reload()
+            onDeleteFiles()
+          }
+        },
+        onDismiss: () => setDeletingSelectedObjects(false)
       }),
-      loading && topSpinnerOverlay
+
+      showRequesterPaysModal && h(RequesterPaysModal, {
+        onDismiss: () => setShowRequesterPaysModal(false),
+        onSuccess: selectedGoogleProject => {
+          requesterPaysProjectStore.set(selectedGoogleProject)
+          setShowRequesterPaysModal(false)
+          reload()
+        }
+      }),
+
+      (loading || busy) && topSpinnerOverlay
     ])])
   ])
 })
+
+export default BucketBrowser

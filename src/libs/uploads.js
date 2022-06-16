@@ -1,6 +1,8 @@
 import _ from 'lodash/fp'
-import { useReducer } from 'react'
+import { useCallback, useReducer } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { useCancelable } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
 
 
 const init = () => {
@@ -20,7 +22,7 @@ const init = () => {
 }
 
 export const useUploader = () => {
-  return useReducer((state, update) => {
+  const [state, dispatch] = useReducer((state, update) => {
     switch (update.action) {
       // Calculate how many files and how many bytes we are working with
       case 'start':
@@ -43,13 +45,13 @@ export const useUploader = () => {
         return {
           ...state,
           uploadedBytes: state.uploadedBytes + update.file.size,
-          completedFiles: state.completedFiles.concat([update.file])
+          completedFiles: Utils.append(update.file, state.completedFiles)
         }
 
       case 'error':
         return {
           ...state,
-          errors: state.errors.concat([update.error])
+          errors: Utils.append(update.error, state.errors)
         }
 
       case 'abort':
@@ -69,41 +71,46 @@ export const useUploader = () => {
         return { ...state }
     }
   }, null, init)
-}
 
-export const uploadFiles = async ({ googleProject, bucketName, prefix, files, status, setStatus, signal }) => {
-  // Only one instance of this should be running at a time, so exit out if we're not the one
-  if (status.active) {
-    return
-  }
-  setStatus({ action: 'start', files })
+  const { signal, abort } = useCancelable()
 
-  let aborted = false
-  const old = signal.onabort
-  signal.onabort = (...args) => {
-    // Pass this out of the event listener so we can stop the loop
-    aborted = true
-    setStatus({ action: 'abort' })
+  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }) => {
+    const uploadCancelled = new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject())
+    })
 
-    old && old(...args)
-  }
+    dispatch({ action: 'start', files })
+    for (const [index, file] of Utils.toIndexPairs(files)) {
+      try {
+        signal.throwIfAborted()
 
-  let i = 0
-  for (const file of files) {
-    if (aborted) {
-      return
-    }
-
-    setStatus({ action: 'startFile', file, fileNum: i++ })
-    try {
-      await Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file)
-      if (aborted) {
-        return
+        dispatch({ action: 'startFile', file, fileNum: index })
+        // If the upload request is cancelled, the withCancellation wrapper in Ajax.js swallows the
+        // AbortError and returns a Promise that never resolves. Thus, this Promise.race is needed
+        // to avoid hanging indefinitely while awaiting a cancelled upload request.
+        await Promise.race([
+          Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file),
+          uploadCancelled
+        ])
+        dispatch({ action: 'finishFile', file })
+      } catch (error) {
+        if (signal.aborted) {
+          dispatch({ action: 'abort' })
+          break
+        } else {
+          dispatch({ action: 'error', error })
+        }
       }
-      setStatus({ action: 'finishFile', file })
-    } catch (error) {
-      setStatus({ action: 'error', error })
     }
+    if (!signal.aborted) {
+      dispatch({ action: 'finish' })
+    }
+  }, [signal])
+
+  return {
+    uploadState: state,
+    // Only one upload can be active at a time.
+    uploadFiles: state.active ? _.noop : uploadFiles,
+    cancelUpload: abort
   }
-  setStatus({ action: 'finish' })
 }
