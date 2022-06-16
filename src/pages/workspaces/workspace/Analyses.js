@@ -487,7 +487,7 @@ const Analyses = _.flow(
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
-          printName: renamingAnalysisName,
+          printName: getDisplayName(renamingAnalysisName),
           toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -497,7 +497,7 @@ const Analyses = _.flow(
           }
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
-          printName: copyingAnalysisName,
+          printName: getDisplayName(copyingAnalysisName),
           toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
