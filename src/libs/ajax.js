@@ -352,6 +352,10 @@ const User = signal => ({
     return res.json()
   },
 
+  unlinkNihAccount: async () => {
+    await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
+  },
+
   getFenceStatus: async provider => {
     try {
       const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
@@ -931,6 +935,11 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
 
+      renameEntityColumn: (type, attributeName, newAttributeName) => {
+        const payload = { newAttributeName }
+        return fetchRawls(`${root}/entityTypes/${type}/attributes/${attributeName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
       upsertEntities: entityUpdates => {
         return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]))
       },
@@ -1131,9 +1140,9 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
-  list: async (googleProject, bucket, prefix) => {
+  list: async (googleProject, bucket, prefix, options = {}) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     return res.json()

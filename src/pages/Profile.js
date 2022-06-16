@@ -11,6 +11,7 @@ import {
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
@@ -19,6 +20,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
@@ -98,7 +100,8 @@ const NihLink = ({ nihToken }) => {
   // State
   const { nihStatus } = useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
-
+  const [isConfirmUnlinkModalOpen, setIsConfirmUnlinkModalOpen] = useState(false)
+  const [isUnlinking, setIsUnlinking] = useState(false)
 
   // Lifecycle
   useOnMount(() => {
@@ -150,7 +153,14 @@ const NihLink = ({ nihToken }) => {
             span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
             span([Utils.makeCompleteDate(linkExpireTime * 1000)])
           ]),
-          h(ShibbolethLink, ['Renew'])
+          div([
+            h(ShibbolethLink, ['Renew']),
+            span({ style: { margin: '0 .25rem 0' } }, [' | ']),
+            h(Link, {
+              'aria-label': 'Unlink NIH account',
+              onClick: () => setIsConfirmUnlinkModalOpen(true)
+            }, ['Unlink'])
+          ])
         ])
       )
     ]),
@@ -182,6 +192,28 @@ const NihLink = ({ nihToken }) => {
       }, [
         _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), unauthorizedDatasets)
       ])
+    ]),
+    isConfirmUnlinkModalOpen && h(Modal, {
+      title: 'Confirm unlink account',
+      onDismiss: () => setIsConfirmUnlinkModalOpen(false),
+      okButton: h(ButtonPrimary, {
+        onClick: _.flow(
+          withErrorReporting('Error unlinking account'),
+          Utils.withBusyState(setIsUnlinking)
+        )(async () => {
+          await Ajax().User.unlinkNihAccount()
+          authStore.update(_.set('nihStatus', {}))
+          setIsConfirmUnlinkModalOpen(false)
+          notify('success', 'Successfully unlinked account', {
+            message: 'Successfully unlinked your account from NIH.',
+            timeout: 30000
+          })
+        })
+      }, 'OK')
+    }, [
+      div(['Are you sure you want to unlink from NIH?']),
+      div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link your account later.']),
+      isUnlinking && spinnerOverlay
     ])
   ])
 }
