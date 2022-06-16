@@ -59,6 +59,9 @@ export const getExtension = _.flow(_.split('.'), _.last)
 
 export const stripExtension = _.replace(/\.[^/.]+$/, '')
 
+// removes leading dirs and a file ext suffix on paths
+export const getDisplayName = _.flow(getFileName, stripExtension)
+
 export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   ...props,
   inputProps: {
@@ -227,7 +230,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   return h(Modal, {
     onDismiss,
-    title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
+    title: `${destroyOld ? 'Rename' : 'Copy'} "${getFileName(printName)}"`,
     okButton: h(ButtonPrimary, {
       disabled: errors || processing,
       tooltip: Utils.summarizeErrors(errors),

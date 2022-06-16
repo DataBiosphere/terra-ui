@@ -395,7 +395,7 @@ const Analyses = _.flow(
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      'The selected file is not a .ipynb notebook file or an .Rmd RStudio file. Ensure your file has the proper extension.'),
+      'The selected file is not a .ipynb notebook file or an .Rmd or .R RStudio file. Ensure your file has the proper extension.'),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     analyses && h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [
