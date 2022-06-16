@@ -236,7 +236,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       const isJupyter = toolLabel === tools.Jupyter.label
 
       const errors = validate(
-        { analysisName: `${analysisName}.Rmd`, notebookKernel },
+        { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
         {
           analysisName: analysisNameValidator(_.map(({ name }) => getFileName(name), analyses)),
           notebookKernel: { presence: { allowEmpty: true } }
@@ -299,7 +299,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
               try {
                 const contents = isJupyter ? notebookData[notebookKernel] : '# Starter RStudio file'
                 const fullAnalysisName = `${analysisName}.${isJupyter? tools.Jupyter.ext : fileExt}`
-                console.log(fullAnalysisName)
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)
