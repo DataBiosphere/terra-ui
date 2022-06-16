@@ -13,6 +13,7 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { pdTypes } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -81,17 +82,12 @@ export const tools = {
   Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false }
 }
 
-export const displayExts = {
+export const toolExtensionDisplay = {
   RStudio: [
     { label: 'R Markdown (.Rmd)', value: 'Rmd' },
     { label: 'R Script (.R)', value: 'R' }
   ],
-  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }],
-  getNotebookExt: (kernel) => Utils.switchCase(kernel,
-    ['r', () => displayExts.RStudio],
-    ['python3', () => displayExts.Jupyter],
-    [Utils.DEFAULT, () => '']
-  )
+  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }]
 }
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools

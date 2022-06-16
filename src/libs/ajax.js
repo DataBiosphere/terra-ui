@@ -1327,7 +1327,7 @@ const Buckets = signal => ({
       copyWithMetadata,
 
       create: async textContents => {
-        return fetchBuckets(
+         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: textContents,

@@ -9,7 +9,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, displayExts, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  analysisNameInput, analysisNameValidator, toolExtensionDisplay, getAppType, getFileName, getTool, isToolAnApp, notebookData,
   tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
@@ -44,7 +44,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const prevAnalysisName = usePrevious(analysisName)
     const [currentTool, setCurrentTool] = useState(undefined)
     const [fileExt, setFileExt] = useState('')
-    const [extensionOptions, setExtensionOptions] = useState([])
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -266,12 +265,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             value: notebookKernel,
             onChange: ({ value: notebookKernel }) => {
               setNotebookKernel(notebookKernel)
-              setExtensionOptions()
-            },
+              },
             options: ['python3', 'r']
           })
         ])]),
-        h(IdContainer, [id => h(Fragment, [
+        (toolLabel === tools.RStudio.label) && h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, ['File Type']),
           h(Select, {
             id, isSearchable: true,
@@ -279,7 +277,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onChange: v => {
               setFileExt(v.value)
             },
-            options: isJupyter? displayExts.Jupyter : displayExts.RStudio
+            options: toolExtensionDisplay.RStudio
           })
         ])]),
         (isJupyter || toolLabel === tools.RStudio.label) &&
