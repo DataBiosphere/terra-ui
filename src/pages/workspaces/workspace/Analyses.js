@@ -286,7 +286,7 @@ const Analyses = _.flow(
   )(async files => {
     try {
       await Promise.all(_.map(async file => {
-        const name = stripExtension(file.name)
+        const name = file.name
         const toolLabel = getTool(file.name)
         let resolvedName = name
         let c = 0
