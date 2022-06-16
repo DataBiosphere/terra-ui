@@ -49,15 +49,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
     const resetView = () => {
-      //Set timeout is used here to match the drawer closing animation speed.
-      //This prevents the drawer from suddenly changing to default on close.
-      setTimeout(() => {
-        setViewMode(undefined)
-        setAnalysisName('')
-        setCurrentTool(undefined)
-        setNotebookKernel('python3')
-      },
-      200)
+      setViewMode(undefined)
+      setAnalysisName('')
+      setCurrentTool(undefined)
+      setNotebookKernel('python3')
     }
 
     const onDismissModal = () => {
