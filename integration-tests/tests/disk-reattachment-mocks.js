@@ -27,13 +27,33 @@ const analysesTabPage = (testPage, token, testUrl, workspaceName) => {
 
 const setGcpAjaxMockValues = async (testPage, namespace, name) => {
   return await testPage.evaluate((namespace, name) => {
-    const getRuntimeListUrl = new RegExp(`api/google/v2/runtimes?saturnAutoCreated(.*)`, 'g')
-    const createRuntimeUrl = new RegExp(`https://leonardo.dsde-dev.broadinstitute.org/api/google/v1/runtimes/(.*)`, 'g')
+    const getRuntimeListUrl = new RegExp(`api/v2/runtimes(.*)`, 'g')
+    const getRuntimeListv1 = new RegExp(`api/google/v1/runtimes(.*)`, 'g')
+    const createRuntimeUrl = new RegExp(`api/google/v1/runtimes/(.*)`, 'g')
+    const listDisksUrl = new RegExp(`/api/google/v1/disks(.*)`, 'g')
     window.ajaxOverridesStore.set([
       {
         filter: { url: getRuntimeListUrl },
         fn: () => () => {
           console.log("WOPOO")
+          Promise.resolve(
+            new Response(JSON.stringify({ runtimes: [{ runtimeConfig: { persistentDiskId: 444333 } }] }), { status: 200 })
+          )
+        }
+      },
+      {
+        filter: { url: listDisksUrl },
+        fn: () => () => {
+          console.log("dddd")
+          Promise.resolve(
+            new Response(JSON.stringify({disk: "tetete"}), { status: 200 })
+          )
+        }
+      },
+      {
+        filter: { url: getRuntimeListv1 },
+        fn: () => () => {
+          console.log("nnnn")
           Promise.resolve(
             new Response(JSON.stringify({ runtimes: [{ runtimeConfig: { persistentDiskId: 444333 } }] }), { status: 200 })
           )
