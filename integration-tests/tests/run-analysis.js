@@ -28,19 +28,15 @@ const testRunAnalysisFn = _.flow(
   await noSpinnersAfter(page, {
     action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).')
   })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Close' })) })
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ textContains: notebookName }))
   await dismissNotifications(page)
 
-  await noSpinnersAfter(page, {
-    action: () => click(page, clickable({ textContains: 'Open' }))
-  })
   //Create a cloud env from analysis launcher
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await click(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ textContains: 'Open' }))
 
   // Wait for the environment to be running
@@ -50,7 +46,6 @@ const testRunAnalysisFn = _.flow(
   // This is code is duplicated, but will be deleted from the run-notebook test shortly.
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
   const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]')
-
   await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: 60000 })
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
