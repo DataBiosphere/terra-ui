@@ -10,4 +10,6 @@ const loadApp = async () => {
   import('src/appLoader')
 }
 
-loadApp()
+const loadOauthRedirect = () => import('src/oauthRedirectLoader')
+
+window.location.pathname.startsWith('/redirect-from-oauth') ? loadOauthRedirect() : loadApp()

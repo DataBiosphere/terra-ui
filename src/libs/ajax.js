@@ -1752,6 +1752,13 @@ const Metrics = signal => ({
   })
 })
 
+const OAuth2 = signal => ({
+  getConfiguration: async () => {
+    const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1771,7 +1778,8 @@ export const Ajax = signal => {
     Metrics: Metrics(signal),
     Disks: Disks(signal),
     CromIAM: CromIAM(signal),
-    FirecloudBucket: FirecloudBucket(signal)
+    FirecloudBucket: FirecloudBucket(signal),
+    OAuth2: OAuth2(signal)
   }
 }
 
