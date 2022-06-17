@@ -20,7 +20,7 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   cloudProviders,
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getGalaxyCost,
+  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost,
   getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, mapToPdTypes, runtimeCost,
   workspaceHasMultipleApps,
   workspaceHasMultipleDisks
