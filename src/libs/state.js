@@ -12,7 +12,9 @@ export const authStore = Utils.atom({
   user: {},
   profile: {},
   fenceStatus: {},
-  cookiesAccepted: undefined
+  cookiesAccepted: undefined,
+  authContext: undefined,
+  oidcConfig: {}
 })
 
 export const userStatus = {
