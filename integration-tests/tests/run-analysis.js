@@ -15,7 +15,7 @@ const testRunAnalysisFn = _.flow(
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
-
+  console.log("111")
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
@@ -23,33 +23,45 @@ const testRunAnalysisFn = _.flow(
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
-
+  console.log("222")
   // Close the create cloud env modal that pops up
   await noSpinnersAfter(page, {
     action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).')
   })
-
+  console.log("333")
+  await click(page, clickable({ textContains: 'Close' }))
+  console.log("444")
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ textContains: notebookName }))
   await dismissNotifications(page)
 
+  console.log("555")
+  await noSpinnersAfter(page, {
+    action: () => click(page, clickable({ textContains: 'Open' }))
+  })
+  console.log("666")
   //Create a cloud env from analysis launcher
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' }), { timeout: 20000 }) })
-  await click(page, clickable({ textContains: notebookName }))
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
   await click(page, clickable({ textContains: 'Open' }))
 
+  console.log("777")
   // Wait for the environment to be running
+  await findText(page, 'Creating cloud environment')
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60000 })
 
+  console.log("888")
   // This is code is duplicated, but will be deleted from the run-notebook test shortly.
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
   const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]')
+
   await findElement(frame, '//*[@title="Kernel Idle"]', { timeout: 60000 })
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
   await findText(frame, '123456789099886419754209')
 
+  console.log("999")
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
 })
