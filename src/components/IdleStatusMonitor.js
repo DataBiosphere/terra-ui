@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
-import { getUser } from 'src/libs/auth'
+import { getUser, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { useCurrentTime, useOnMount, useStore } from 'src/libs/react-utils'
@@ -50,7 +50,7 @@ const IdleStatusMonitor = ({
   const doSignOut = () => {
     setLastActive()
     Nav.history.replace({ search: qs.stringify(_.set(['sessionExpired'], true, qs.parse(query))) })
-    window.gapi.auth2.getAuthInstance().disconnect()
+    signOut()
     setSignOutRequired(true)
   }
 

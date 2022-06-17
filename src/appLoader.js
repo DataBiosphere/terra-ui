@@ -4,7 +4,7 @@ import _ from 'lodash/fp'
 import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
-import { initializeAuth } from 'src/libs/auth'
+import { initializeAuth, initializeClientId } from 'src/libs/auth'
 import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
 
@@ -17,6 +17,8 @@ window.SATURN_VERSION = process.env.REACT_APP_VERSION
 
 window._ = _
 
-ReactDOM.render(h(Main), appRoot)
-initializeAuth()
-initializeTCell()
+initializeClientId().then(() => {
+  ReactDOM.render(h(Main), appRoot)
+  initializeAuth()
+  initializeTCell()
+})

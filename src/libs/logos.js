@@ -32,7 +32,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isElwazi(), () => longName ? 'The eLwazi Open Data Science Platform' : 'eLwazi'],
   [isProjectSingular(), () => 'Project Singular'],
   [isRareX(), () => longName ? 'The Rare Disease Database Platform' : 'RARE-X'],
-  () => 'Terra'
+  () => longName ? 'Terra Community Workbench' : 'Terra'
 )
 
 export const returnParam = () => getAppName().toLowerCase()
