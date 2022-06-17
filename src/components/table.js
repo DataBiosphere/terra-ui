@@ -422,6 +422,14 @@ export const GridTable = forwardRefWithName('GridTable', ({
     }
   }))
 
+  const fixedColumns = _.slice(0, numFixedColumns, columns)
+  const totalFixedColumnsWidth = _.sum(_.map('width', fixedColumns))
+  // The value at index i in this array is a sum of the widths of columns to the left of the column at index i.
+  const fixedColumnOffsets = _.transform((offsets, column) => { offsets.push(column.width) }, [0])(columns)
+
+  const unfixedColumns = _.slice(numFixedColumns, _.size(columns), columns)
+
+  // columnIndex in this function is an index in the original columns array.
   const renderHeaderCell = ({ key, columnIndex, rowIndex, style }) => {
     const field = columns[columnIndex].field
     return div({
@@ -442,6 +450,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
     ])
   }
 
+  // columnIndex in this function is an index in the original columns array.
   const renderCell = ({ key, columnIndex, rowIndex, style }) => {
     return div({
       key,
@@ -486,19 +495,23 @@ export const GridTable = forwardRefWithName('GridTable', ({
           containerRole: 'row',
           'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          width: width - scrollbarSize,
+          // Leave space for fixed columns.
+          width: width - scrollbarSize - totalFixedColumnsWidth,
           height: headerHeight,
-          columnWidth: ({ index }) => columns[index].width,
+          columnWidth: ({ index }) => unfixedColumns[index].width,
           rowHeight: headerHeight,
           rowCount: 1,
-          columnCount: columns.length,
-          cellRenderer: cell => cell.columnIndex < numFixedColumns ? null : renderHeaderCell(cell),
+          columnCount: unfixedColumns.length,
+          cellRenderer: ({ columnIndex, ...cell }) => {
+            // columnIndex here is an index in the unfixedColumns array.
+            // Offset it to pass an index in the original columns array to renderHeaderCell.
+            return renderHeaderCell({ ...cell, columnIndex: columnIndex + numFixedColumns })
+          },
           cellRangeRenderer: data => {
             // The default renderer returns a flat array of all of the cells to render in the DOM
             const cells = defaultCellRangeRenderer(data)
 
             const {
-              columnSizeAndPositionManager,
               horizontalOffsetAdjustment,
               rowSizeAndPositionManager,
               verticalOffsetAdjustment
@@ -508,17 +521,16 @@ export const GridTable = forwardRefWithName('GridTable', ({
 
             return [
               ..._.map(columnIndex => {
-                const columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
                 return renderHeaderCell({
                   key: `fixed-${columnIndex}`,
                   columnIndex,
                   rowIndex: 0,
                   style: {
                     height: rowDatum.size,
-                    left: columnDatum.offset + horizontalOffsetAdjustment,
+                    left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
                     position: 'fixed',
                     top: rowDatum.offset + verticalOffsetAdjustment,
-                    width: columnDatum.size,
+                    width: fixedColumns[columnIndex].width,
                     // Show header cell above body cells in fixed columns when vertically scrolling the grid.
                     zIndex: 2
                   }
@@ -528,6 +540,8 @@ export const GridTable = forwardRefWithName('GridTable', ({
             ]
           },
           style: {
+            // Leave space for fixed columns.
+            marginLeft: totalFixedColumnsWidth,
             outline: 'none',
             // overflow: hidden prevents additional scrollbars from appearing in the header row
             // while scrolling the grid.
@@ -545,20 +559,23 @@ export const GridTable = forwardRefWithName('GridTable', ({
           containerRole: 'presentation',
           'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          width,
+          // Leave space for fixed columns.
+          width: width - totalFixedColumnsWidth,
           height: height - headerHeight,
-          columnWidth: ({ index }) => columns[index].width,
+          columnWidth: ({ index }) => unfixedColumns[index].width,
           rowHeight,
           rowCount,
-          columnCount: columns.length,
+          columnCount: unfixedColumns.length,
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
-          cellRenderer: data => {
+          cellRenderer: ({ columnIndex, rowIndex, ...cell }) => {
             return {
               // Cells will be grouped by row by the cellRangeRenderer
-              rowIndex: data.rowIndex,
-              cell: data.columnIndex < numFixedColumns ? null : renderCell(data)
+              rowIndex,
+              // columnIndex here is an index in the unfixedColumns array.
+              // Offset it to pass an index in the original columns array to renderHeaderCell.
+              cell: renderCell({ ...cell, columnIndex: columnIndex + numFixedColumns, rowIndex })
             }
           },
           cellRangeRenderer: data => {
@@ -566,7 +583,6 @@ export const GridTable = forwardRefWithName('GridTable', ({
             const cells = defaultCellRangeRenderer(data)
 
             const {
-              columnSizeAndPositionManager,
               horizontalOffsetAdjustment,
               rowSizeAndPositionManager,
               verticalOffsetAdjustment,
@@ -584,17 +600,16 @@ export const GridTable = forwardRefWithName('GridTable', ({
                   role: 'row'
                 }, [
                   ..._.map(columnIndex => {
-                    const columnDatum = columnSizeAndPositionManager.getSizeAndPositionOfCell(columnIndex)
                     return renderCell({
                       key: `fixed-${rowIndex}-${columnIndex}`,
                       columnIndex,
                       rowIndex,
                       style: {
                         height: rowDatum.size,
-                        left: columnDatum.offset + horizontalOffsetAdjustment,
+                        left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
                         position: 'fixed',
                         top: headerHeight + rowDatum.offset + verticalOffsetAdjustment - scrollTop,
-                        width: columnDatum.size,
+                        width: fixedColumns[columnIndex].width,
                         // Show fixed columns above unfixed columns when horizontally scrolling the grid.
                         zIndex: 1
                       }
@@ -606,6 +621,8 @@ export const GridTable = forwardRefWithName('GridTable', ({
             )(cells)
           },
           style: {
+            // Leave space for fixed columns.
+            marginLeft: totalFixedColumnsWidth,
             outline: 'none',
             // Override will-change: transform set in RVGrid. This allows positioning fixed columns
             // relative to GridTable's container instead of the RVGrid's inner scroll container.
