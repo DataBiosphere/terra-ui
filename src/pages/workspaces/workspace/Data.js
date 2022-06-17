@@ -1,4 +1,3 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -6,23 +5,19 @@ import { DraggableCore } from 'react-draggable'
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
-import { DeleteObjectConfirmationModal } from 'src/components/data/FileBrowser'
+import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
-import Dropzone from 'src/components/Dropzone'
-import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
-import UriViewer from 'src/components/UriViewer'
+import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -32,7 +27,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -199,188 +194,6 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
     () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
   )
 }
-
-const BucketContent = _.flow(
-  withDisplayName('BucketContent'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({
-  workspace, workspace: { workspace: { namespace, googleProject, bucketName, name: workspaceName } }, firstRender, refreshKey,
-  onRequesterPaysError
-}) => {
-  // State
-  const [prefix, setPrefix] = useState(() => firstRender ? (StateHistory.get().prefix || '') : '')
-  const [prefixes, setPrefixes] = useState(undefined)
-  const [objects, setObjects] = useState(() => firstRender ? StateHistory.get().objects : undefined)
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [deletingObject, setDeletingObject] = useState(undefined)
-  const [viewingName, setViewingName] = useState(undefined)
-
-  const signal = useCancellation()
-
-
-  // Helpers
-  const load = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading bucket data'),
-    Utils.withBusyState(setLoading)
-  )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: targetPrefix, delimiter: '/' })
-    setPrefix(targetPrefix)
-    setPrefixes(prefixes)
-    setObjects(items)
-  })
-
-  const uploadFiles = _.flow(
-    withErrorReporting('Error uploading file'),
-    Utils.withBusyState(setUploading)
-  )(async ([file]) => {
-    await Ajax().Buckets.upload(googleProject, bucketName, prefix, file)
-    load()
-  })
-
-
-  // Lifecycle
-  useEffect(() => {
-    load(firstRender ? undefined : '')
-  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    StateHistory.update({ objects, prefix })
-  }, [objects, prefix])
-
-
-  // Render
-  const prefixParts = _.dropRight(1, prefix.split('/'))
-  const makeBucketLink = ({ label, target, onClick, ...props }) => h(Link, {
-    as: 'a',
-    style: { textDecoration: 'underline' },
-    href: target,
-    onClick: e => {
-      e.preventDefault()
-      onClick()
-    },
-    ...props
-  }, [label])
-
-  const prefixBreadcrumbs = [
-    { label: 'Files', target: '' },
-    ..._.map(n => {
-      return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-    }, _.range(0, prefixParts.length))
-  ]
-
-  return h(Dropzone, {
-    disabled: !!Utils.editWorkspaceError(workspace),
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      flexGrow: 1,
-      maxHeight: '100%',
-      backgroundColor: 'white',
-      border: `1px solid ${colors.dark(0.55)}`,
-      padding: '1rem',
-      margin: '1rem'
-    },
-    activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-    onDropAccepted: uploadFiles
-  }, [({ openUploader }) => h(Fragment, [
-    div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-      div({ role: 'navigation' }, [
-        _.flow(
-          Utils.toIndexPairs,
-          _.map(([i, { label, target }]) => {
-            return h(Fragment, { key: target }, [
-              makeBucketLink({
-                label,
-                target: `gs://${bucketName}/${target}`,
-                onClick: () => load(target),
-                'aria-current': i === prefixBreadcrumbs.length - 1 ? 'location' : undefined
-              }),
-              ' / '
-            ])
-          })
-        )(prefixBreadcrumbs)
-      ]),
-      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspaceName}` },
-        ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
-      )
-    ]),
-    div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-    div({ style: { flex: '1 1 0', overflow: 'auto' } }, [
-      h(SimpleTable, {
-        'aria-label': 'file browser',
-        columns: [
-          { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
-          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-          { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-          { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-        ],
-        rows: [
-          ..._.map(p => {
-            return {
-              button: div({ style: { display: 'flex' } }, [
-                icon('folder', { size: 16, 'aria-label': 'folder' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: p.slice(prefix.length),
-                  target: `gs://${bucketName}/${p}`,
-                  onClick: () => load(p),
-                  'aria-label': `${p.slice(prefix.length, -1)} (folder)`
-                })
-              ])
-            }
-          }, prefixes),
-          ..._.map(object => {
-            const { name, size, updated } = object
-            return {
-              button: h(Link, {
-                style: { display: 'flex' }, onClick: () => setDeletingObject(object),
-                tooltip: 'Delete file'
-              }, [
-                icon('trash', { size: 16, className: 'hover-only' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: name.slice(prefix.length),
-                  target: `gs://${bucketName}/${name}`,
-                  onClick: () => setViewingName(name),
-                  'aria-haspopup': 'dialog',
-                  'aria-label': `${name.slice(prefix.length)} (file)`
-                })
-              ]),
-              size: filesize(size, { round: 0 }),
-              updated: Utils.makePrettyDate(updated)
-            }
-          }, objects)
-        ]
-      })
-    ]),
-    deletingObject && h(DeleteObjectConfirmationModal, {
-      object: deletingObject,
-      onConfirm: _.flow(
-        Utils.withBusyState(setLoading),
-        withErrorReporting('Error deleting file')
-      )(async () => {
-        setDeletingObject(undefined)
-        await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
-        load()
-      }),
-      onDismiss: () => setDeletingObject(undefined)
-    }),
-    viewingName && h(UriViewer, {
-      googleProject, uri: `gs://${bucketName}/${viewingName}`,
-      onDismiss: () => setViewingName(undefined)
-    }),
-    !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-      label: 'UPLOAD',
-      iconShape: 'plus',
-      onClick: openUploader
-    }),
-    (loading || uploading) && spinnerOverlay
-  ])])
-})
 
 const DataTypeSection = ({ title, error, retryFunction, children }) => {
   return h(Collapse, {
@@ -980,9 +793,17 @@ const WorkspaceData = _.flow(
             referenceKey: selectedDataType,
             firstRender
           })],
-          ['bucketObjects', () => h(BucketContent, {
-            workspace, onClose: () => setSelectedDataType(undefined),
-            firstRender, refreshKey
+          ['bucketObjects', () => h(FileBrowser, {
+            style: { flex: '1 1 auto' },
+            controlPanelStyle: {
+              padding: '1rem',
+              background: colors.light()
+            },
+            workspace,
+            extraMenuItems: h(Link, {
+              href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
+              style: { padding: '0.5rem' }
+            }, [icon('pop-out'), ' Analyze in Seqr'])
           })],
           ['snapshots', () => h(SnapshotContent, {
             key: refreshKey,

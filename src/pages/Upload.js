@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { code, div, h, h2, h3, li, p, span, strong, ul } from 'react-hyperscript-helpers'
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
-import { FileBrowserPanel } from 'src/components/data/FileBrowser'
+import FileBrowser from 'src/components/data/FileBrowser'
 import UploadPreviewTable from 'src/components/data/UploadPreviewTable'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
@@ -18,7 +17,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { forwardRefWithName, useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
+import { forwardRefWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -310,11 +309,8 @@ const WorkspaceSelectorPanel = ({
   ])
 }
 
-const CollectionSelectorPanel = _.flow(
-  withDisplayName('CollectionSelectorPanel'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({
-  workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
+const CollectionSelectorPanel = ({
+  workspace: { workspace: { googleProject, bucketName } }, selectedCollection, setCollection, children, ...props
 }) => {
   // State
   const [collections, setCollections] = useState(undefined)
@@ -331,7 +327,6 @@ const CollectionSelectorPanel = _.flow(
 
   // Helpers
   const load = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async () => {
@@ -402,18 +397,26 @@ const CollectionSelectorPanel = _.flow(
     }),
     isLoading && topSpinnerOverlay
   ])
-})
+}
 
-const DataUploadPanel = _.flow(
-  withDisplayName('DataUploadPanel'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, onRequesterPaysError, collection, setNumFiles, children }) => {
+const DataUploadPanel = ({ workspace, collection, setNumFiles, children }) => {
+  const { workspace: { googleProject, bucketName } } = workspace
   const basePrefix = `${rootPrefix}${collection}/`
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
   useOnMount(() => {
     header.current?.focus()
+  })
+
+  const signal = useCancellation()
+  const countFiles = async () => {
+    const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: basePrefix })
+    setNumFiles(items.length)
+  }
+
+  useOnMount(() => {
+    countFiles()
   })
 
   return div({ style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' } }, [
@@ -430,19 +433,19 @@ const DataUploadPanel = _.flow(
         ' You may upload as many files as you wish, but each filename must be unique.'
       ])
     ]),
-    h(FileBrowserPanel, {
-      style: { flex: '1 1 auto' },
-      workspace, onRequesterPaysError, setNumFiles, basePrefix, collection, allowNewFolders: false
+    h(FileBrowser, {
+      style: { flex: '1 1 auto', minHeight: '30rem', border: `1px solid ${colors.grey(0.4)}`, borderRadius: '0.5rem', overflow: 'hidden' },
+      workspace, basePrefix,
+      showNewFolderButton: false,
+      onUploadFiles: countFiles,
+      onDeleteFiles: countFiles
     })
   ])
-})
+}
 
-const MetadataUploadPanel = _.flow(
-  withDisplayName('MetadataUploadPanel'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({
+const MetadataUploadPanel = ({
   workspace, workspace: { workspace: { namespace, googleProject, bucketName, name } },
-  onRequesterPaysError, onSuccess, collection, children
+  onSuccess, collection, children
 }) => {
   const basePrefix = `${rootPrefix}${collection}/`
   const [filesLoading, setFilesLoading] = useState(false)
@@ -470,7 +473,6 @@ const MetadataUploadPanel = _.flow(
   // Get every filename in the bucket, so we can do substitutions
   useEffect(() => {
     const loadFiles = _.flow(
-      withRequesterPaysHandler(onRequesterPaysError),
       withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
     )(async () => {
@@ -679,7 +681,7 @@ const MetadataUploadPanel = _.flow(
     }),
     (filesLoading || uploading) && topSpinnerOverlay
   ])
-})
+}
 
 const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep }) => {
   // Move the focus to the header the first time this panel is rendered
@@ -745,7 +747,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
   const [tableMetadata, setTableMetadata] = useState(StateHistory.get().tableMetadata)
 
   useEffect(() => {
-    Nav.updateSearch(query, { workspace: workspaceId, collection })
+    Nav.updateSearch({ ...query, workspace: workspaceId, collection })
   }, [workspaceId, collection]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

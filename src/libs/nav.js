@@ -105,10 +105,8 @@ export const Router = () => {
   ])
 }
 
-export const updateSearch = (query, params) => {
-  const newSearch = qs.stringify({
-    ...query, ...params
-  }, { addQueryPrefix: true })
+export const updateSearch = params => {
+  const newSearch = qs.stringify(params, { addQueryPrefix: true, arrayFormat: 'brackets' })
 
   if (newSearch !== history.location.search) {
     history.replace({ search: newSearch })

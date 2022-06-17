@@ -1141,9 +1141,9 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
-  list: async (googleProject, bucket, prefix) => {
+  list: async (googleProject, bucket, prefix, options = {}) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     return res.json()
@@ -1753,6 +1753,13 @@ const Metrics = signal => ({
   })
 })
 
+const OAuth2 = signal => ({
+  getConfiguration: async () => {
+    const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
 const Surveys = signal => ({
   submitForm: withErrorIgnoring((formId, data) => {
     return fetchGoogleForms(`${formId}/formResponse`, _.mergeAll([jsonBody(data), { signal, method: 'POST' }]))
@@ -1779,6 +1786,7 @@ export const Ajax = signal => {
     Disks: Disks(signal),
     CromIAM: CromIAM(signal),
     FirecloudBucket: FirecloudBucket(signal),
+    OAuth2: OAuth2(signal),
     Surveys: Surveys(signal)
   }
 }
