@@ -168,6 +168,7 @@ const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
+const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -1752,6 +1753,12 @@ const Metrics = signal => ({
   })
 })
 
+const Surveys = signal => ({
+  submitForm: withErrorIgnoring((formId, data) => {
+    return fetchGoogleForms(`${formId}/formResponse`, _.mergeAll([jsonBody(data), { signal, method: 'POST' }]))
+  })
+})
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1771,7 +1778,8 @@ export const Ajax = signal => {
     Metrics: Metrics(signal),
     Disks: Disks(signal),
     CromIAM: CromIAM(signal),
-    FirecloudBucket: FirecloudBucket(signal)
+    FirecloudBucket: FirecloudBucket(signal),
+    Surveys: Surveys(signal)
   }
 }
 
