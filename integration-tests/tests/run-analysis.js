@@ -35,7 +35,7 @@ const testRunAnalysisFn = _.flow(
   await dismissNotifications(page)
 
   //Create a cloud env from analysis launcher
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' }), { timeout: 20000 }) })
   await click(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ textContains: 'Open' }))
 
