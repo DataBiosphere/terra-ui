@@ -40,7 +40,6 @@ const testRunAnalysisFn = _.flow(
   await click(page, clickable({ textContains: 'Open' }))
 
   // Wait for the environment to be running
-  await findText(page, 'Creating cloud environment')
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60000 })
 
   // This is code is duplicated, but will be deleted from the run-notebook test shortly.
