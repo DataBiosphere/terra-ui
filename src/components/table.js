@@ -471,7 +471,14 @@ export const GridTable = forwardRefWithName('GridTable', ({
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
         'aria-readonly': readOnly || undefined,
-        className: 'grid-table'
+        className: 'grid-table',
+        style: {
+          width, height,
+          // Setting contain: strict on this element allows positioning fixed columns relative to this element
+          // instead of RVGrid's inner scroll container.
+          // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+          contain: 'strict'
+        }
       }, [
         h(RVGrid, {
           ref: header,
@@ -494,8 +501,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
               columnSizeAndPositionManager,
               horizontalOffsetAdjustment,
               rowSizeAndPositionManager,
-              verticalOffsetAdjustment,
-              scrollLeft
+              verticalOffsetAdjustment
             } = data
 
             const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(0)
@@ -509,18 +515,27 @@ export const GridTable = forwardRefWithName('GridTable', ({
                   rowIndex: 0,
                   style: {
                     height: rowDatum.size,
-                    left: scrollLeft + columnDatum.offset + horizontalOffsetAdjustment,
-                    position: 'absolute',
+                    left: columnDatum.offset + horizontalOffsetAdjustment,
+                    position: 'fixed',
                     top: rowDatum.offset + verticalOffsetAdjustment,
                     width: columnDatum.size,
-                    zIndex: 1
+                    // Show header cell above body cells in fixed columns when vertically scrolling the grid.
+                    zIndex: 2
                   }
                 })
               }, _.range(0, numFixedColumns)),
               ...cells
             ]
           },
-          style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
+          style: {
+            outline: 'none',
+            // overflow: hidden prevents additional scrollbars from appearing in the header row
+            // while scrolling the grid.
+            overflow: 'hidden',
+            // Override will-change: transform set in RVGrid. This allows positioning fixed columns
+            // relative to GridTable's container instead of the RVGrid's inner scroll container.
+            willChange: 'auto'
+          },
           scrollLeft,
           onScroll
         }),
@@ -555,7 +570,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
               horizontalOffsetAdjustment,
               rowSizeAndPositionManager,
               verticalOffsetAdjustment,
-              scrollLeft
+              scrollTop
             } = data
 
             // Group the cells into rows to support a11y
@@ -576,10 +591,11 @@ export const GridTable = forwardRefWithName('GridTable', ({
                       rowIndex,
                       style: {
                         height: rowDatum.size,
-                        left: scrollLeft + columnDatum.offset + horizontalOffsetAdjustment,
-                        position: 'absolute',
-                        top: rowDatum.offset + verticalOffsetAdjustment,
+                        left: columnDatum.offset + horizontalOffsetAdjustment,
+                        position: 'fixed',
+                        top: headerHeight + rowDatum.offset + verticalOffsetAdjustment - scrollTop,
                         width: columnDatum.size,
+                        // Show fixed columns above unfixed columns when horizontally scrolling the grid.
                         zIndex: 1
                       }
                     })
@@ -589,7 +605,12 @@ export const GridTable = forwardRefWithName('GridTable', ({
               })
             )(cells)
           },
-          style: { outline: 'none' },
+          style: {
+            outline: 'none',
+            // Override will-change: transform set in RVGrid. This allows positioning fixed columns
+            // relative to GridTable's container instead of the RVGrid's inner scroll container.
+            willChange: 'auto'
+          },
           scrollLeft,
           onScroll: details => {
             onScroll(details)
