@@ -590,6 +590,8 @@ export const GridTable = forwardRefWithName('GridTable', ({
             } = data
 
             // Group the cells into rows to support a11y
+            // Elements with role "cell" are required to be nested in an element with role "row".
+            // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/cell_role
             return _.flow(
               _.groupBy('rowIndex'),
               Utils.toIndexPairs,
