@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { DelayedRender, HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -299,14 +299,21 @@ export const WorkspaceList = () => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(Link, {
           onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
           tooltip: 'Create a new workspace'
         },
         [icon('lighter-plus-circle', { size: 24 })])
+      ]),
+      p({ style: { margin: '0 0 1rem' } }, [
+        'Dedicated spaces for you and your collaborators to access and analyze data together. ',
+        h(Link, {
+          ...Utils.newTabLinkProps,
+          href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
+        }, ['Learn more about workspaces.'])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
