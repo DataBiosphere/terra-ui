@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { libraryTopMatter } from 'src/components/library-common'
+import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -76,8 +77,9 @@ const WorkspaceCard = ({ workspace }) => {
         div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
         created && div([Utils.makeStandardDate(created)])
       ]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
-      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
+      h(FirstParagraphMarkdownViewer, {
+        style: { fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
+      }, [description])
     ])
   ])
 }

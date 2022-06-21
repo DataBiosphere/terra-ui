@@ -41,6 +41,35 @@ export const MarkdownViewer = ({ children, renderers, ...props }) => {
   })
 }
 
+export const FirstParagraphMarkdownViewer = ({ children, renderers, ...props }) => {
+  let renderedFirstParagraph = false
+  return h(MarkdownViewer, {
+    ...props,
+    renderers: {
+      // See https://marked.js.org/using_pro#renderer for list of renderer methods.
+      blockquote: () => '',
+      checkbox: () => '',
+      code: () => '',
+      heading: () => '',
+      hr: () => '',
+      image: () => '',
+      list: () => '',
+      listitem: () => '',
+      paragraph: text => {
+        if (!renderedFirstParagraph) {
+          renderedFirstParagraph = true
+          return `<p>${text}</p>`
+        }
+        return ''
+      },
+      table: () => '',
+      tablerow: () => '',
+      tablecell: () => '',
+      ...renderers
+    }
+  }, [children])
+}
+
 export const newWindowLinkRenderer = (href, title, text) => {
   return `<a href="${href}" ${(title ? `title=${title}` : '')} target="_blank">${text}</a>`
 }
