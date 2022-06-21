@@ -28,7 +28,8 @@ const testRunAnalysisFn = _.flow(
   await noSpinnersAfter(page, {
     action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).')
   })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Close' })) })
+
+  await click(page, clickable({ textContains: 'Close' }))
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: notebookName }))
@@ -38,6 +39,7 @@ const testRunAnalysisFn = _.flow(
   await noSpinnersAfter(page, {
     action: () => click(page, clickable({ textContains: 'Open' }))
   })
+
   //Create a cloud env from analysis launcher
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
