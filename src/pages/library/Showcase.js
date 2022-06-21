@@ -79,7 +79,7 @@ const WorkspaceCard = ({ workspace }) => {
       ]),
       h(FirstParagraphMarkdownViewer, {
         style: { fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
-      }, [description])
+      }, [description?.toString()])
     ])
   ])
 }
