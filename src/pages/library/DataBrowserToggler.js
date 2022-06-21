@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, spinnerOverlay, Switch } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { ValidatedInput, ValidatedTextArea } from 'src/components/input'
+import { TextArea, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -46,7 +46,7 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { required: true, htmlFor: id, style: { fontSize: 14, fontWeight: 300 } },
         ['Please tell us about your experience with the new Data Catalog']),
-      h(ValidatedTextArea, {
+      h(TextArea, {
         inputProps: {
           id,
           autoFocus: true,
@@ -61,7 +61,7 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, style: { fontSize: 14 } },
         ['Can we contact you with further questions?']),
-      h(ValidatedInput, {
+      h(TextInput, {
         inputProps: {
           id,
           value: contactEmail,
