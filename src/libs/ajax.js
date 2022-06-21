@@ -1762,7 +1762,7 @@ const OAuth2 = signal => ({
 
 const Surveys = signal => ({
   submitForm: withErrorIgnoring((formId, data) => {
-    return fetchGoogleForms(`${formId}/formResponse`, _.mergeAll([jsonBody(data), { signal, method: 'POST' }]))
+    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
   })
 })
 

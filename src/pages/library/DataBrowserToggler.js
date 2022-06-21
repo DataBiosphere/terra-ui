@@ -36,7 +36,7 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
     onDismiss,
     width: 500,
     title: 'Give feedback',
-    okButton: h(TooltipTrigger, { content: !!errors && _.map(error => div([error]), errors) },
+    okButton: h(TooltipTrigger, { content: !!errors && _.map(error => div({ key: error }, [error]), errors) },
       [h(ButtonPrimary, {
         disabled: errors,
         onClick: submit
@@ -47,29 +47,27 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
       h(FormLabel, { required: true, htmlFor: id, style: { fontSize: 14, fontWeight: 300 } },
         ['Please tell us about your experience with the new Data Catalog']),
       h(TextArea, {
-        inputProps: {
-          id,
-          autoFocus: true,
-          value: feedback,
-          onChange: setFeedback,
-          placeholder: 'Enter feedback',
-          style: { height: '8rem', marginTop: '0.25rem' }
-        }
-      })
+        id,
+        autoFocus: true,
+        value: feedback,
+        onChange: setFeedback,
+        placeholder: 'Enter feedback',
+        style: { height: '8rem', marginTop: '0.25rem' }
+      }
+      )
     ])]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', fontSize: 12 } }, ['2000 Character limit']),
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, style: { fontSize: 14 } },
         ['Can we contact you with further questions?']),
       h(TextInput, {
-        inputProps: {
-          id,
-          value: contactEmail,
-          onChange: setContactEmail,
-          placeholder: 'Enter email address',
-          style: { marginTop: '0.25rem' }
-        }
-      })
+        id,
+        value: contactEmail,
+        onChange: setContactEmail,
+        placeholder: 'Enter email address',
+        style: { marginTop: '0.25rem' }
+      }
+      )
     ])]),
     submitting && spinnerOverlay
   ])
