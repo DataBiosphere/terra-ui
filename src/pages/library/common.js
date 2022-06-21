@@ -444,42 +444,49 @@ export const SearchAndFilterComponent = ({
           }
         }, ['clear'])
       ]),
-      h(DelayedAutoCompleteInput, {
-        style: { borderRadius: 25, width: 800, flex: 1 },
-        inputIcon: 'search',
-        debounceMs: 25,
-        openOnFocus: true,
-        value: searchFilter,
-        'aria-label': `Search ${searchType}`,
-        placeholder: 'Search Name or Description',
-        itemToString: v => v[titleField],
-        onChange: onSearchChange,
-        suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
-        renderSuggestion: suggestion => {
-          return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
-            _.flow(
-              _.split(filterRegex),
-              _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-              maybeMatch => {
-                return _.size(maybeMatch) < 2 ? [
-                  _.truncate({ length: 90 }, _.head(maybeMatch)),
-                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
-                ] : maybeMatch
-              }
-            )(suggestion[titleField])
-          )
-        },
-        suggestions: filteredData.data
-      }),
-      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets']),
-      !customSort && h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
+      div({
+        style: {
+          display: 'flex',
+          alignItems: 'center'
+        }
+      }, [
+        h(DelayedAutoCompleteInput, {
+          style: { borderRadius: 25, flex: '1 1 0' },
+          inputIcon: 'search',
+          debounceMs: 25,
+          openOnFocus: true,
+          value: searchFilter,
+          'aria-label': `Search ${searchType}`,
+          placeholder: 'Search Name or Description',
+          itemToString: v => v[titleField],
+          onChange: onSearchChange,
+          suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
+          renderSuggestion: suggestion => {
+            return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
+              _.flow(
+                _.split(filterRegex),
+                _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
+                maybeMatch => {
+                  return _.size(maybeMatch) < 2 ? [
+                    _.truncate({ length: 90 }, _.head(maybeMatch)),
+                    div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
+                  ] : maybeMatch
+                }
+              )(suggestion[titleField])
+            )
+          },
+          suggestions: filteredData.data
+        }),
+        !customSort && h(IdContainer, [id => h(Fragment, [
+          label({
+            htmlFor: id,
+            style: { margin: '0 1ch 0 1rem', whiteSpace: 'nowrap' }
+          }, ['Sort by']),
           h(Select, {
             id,
             isClearable: false,
             isSearchable: false,
-            styles: { container: old => ({ ...old, width: '10rem' }) },
+            styles: { container: old => ({ ...old, flex: '0 0 content' }) },
             value: sort,
             onChange: ({ value }) => setSort(value),
             options: [
@@ -487,8 +494,9 @@ export const SearchAndFilterComponent = ({
               { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
             ]
           })
-        ])
-      ])
+        ])])
+      ]),
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets'])
     ]),
     div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
       div({ style: { width: '19rem', flex: 'none' } }, [
