@@ -121,16 +121,16 @@ const styles = {
   cell: (col, total, { border } = {}) => ({
     ...cellStyles,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: !border && col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`,
-    borderRight: border && col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined
+    borderLeft: border && col === 0 ? `1px solid ${colors.dark(0.2)}` : undefined,
+    borderRight: !border && col === total - 1 ? undefined : `1px solid ${colors.dark(0.2)}`
   }),
   header: (col, total, { border } = {}) => ({
     ...cellStyles,
     backgroundColor: colors.light(0.5),
     borderTop: border ? `1px solid ${colors.dark(0.2)}` : undefined,
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    borderLeft: !border && col === 0 ? undefined : `1px solid ${colors.dark(0.2)}`,
-    borderRight: border && col === total - 1 ? `1px solid ${colors.dark(0.2)}` : undefined,
+    borderLeft: border && col === 0 ? `1px solid ${colors.dark(0.2)}` : undefined,
+    borderRight: !border && col === total - 1 ? undefined : `1px solid ${colors.dark(0.2)}`,
     borderTopLeftRadius: border && col === 0 ? '5px' : undefined,
     borderTopRightRadius: border && col === total - 1 ? '5px' : undefined
   }),
@@ -390,7 +390,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
 export const GridTable = forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
   noContentMessage, noContentRenderer = _.noop,
-  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
+  rowCount, columns, numFixedColumns = 0, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
   'aria-label': ariaLabel, sort = null, readOnly = false,
   border = true
 }, ref) => {
@@ -422,6 +422,54 @@ export const GridTable = forwardRefWithName('GridTable', ({
     }
   }))
 
+  const fixedColumns = _.slice(0, numFixedColumns, columns)
+  const totalFixedColumnsWidth = _.sum(_.map('width', fixedColumns))
+  // The value at index i in this array is a sum of the widths of columns to the left of the column at index i.
+  const fixedColumnOffsets = _.transform((offsets, column) => { offsets.push(column.width) }, [0])(columns)
+
+  const unfixedColumns = _.slice(numFixedColumns, _.size(columns), columns)
+
+  // columnIndex in this function is an index in the original columns array.
+  const renderHeaderCell = ({ key, columnIndex, rowIndex, style }) => {
+    const field = columns[columnIndex].field
+    return div({
+      key,
+      role: 'columnheader',
+      // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+      'aria-rowindex': 1, // The header row is 1
+      'aria-colindex': columnIndex + 1, // The first column is 1
+      'aria-sort': ariaSort(sort, field),
+      className: 'table-cell',
+      style: {
+        ...style,
+        ...styles.header(columnIndex, columns.length, { border }),
+        ...styleHeader({ columnIndex, rowIndex })
+      }
+    }, [
+      columns[columnIndex].headerRenderer({ columnIndex, rowIndex })
+    ])
+  }
+
+  // columnIndex in this function is an index in the original columns array.
+  const renderCell = ({ key, columnIndex, rowIndex, style }) => {
+    return div({
+      key,
+      role: 'cell',
+      // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+      'aria-rowindex': rowIndex + 2, // The header row is 1, so the first body row is 2
+      'aria-colindex': columnIndex + 1, // The first column is 1
+      className: 'table-cell',
+      style: {
+        ...style,
+        ...styles.cell(columnIndex, columns.length, { border }),
+        backgroundColor: 'white',
+        ...styleCell({ columnIndex, rowIndex })
+      }
+    }, [
+      columns[columnIndex].cellRenderer({ columnIndex, rowIndex })
+    ])
+  }
+
   return h(RVScrollSync, {
     ref: scrollSync
   }, [
@@ -432,7 +480,14 @@ export const GridTable = forwardRefWithName('GridTable', ({
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
         'aria-readonly': readOnly || undefined,
-        className: 'grid-table'
+        className: 'grid-table',
+        style: {
+          width, height,
+          // Setting contain: strict on this element allows positioning fixed columns relative to this element
+          // instead of RVGrid's inner scroll container.
+          // https://developer.mozilla.org/en-US/docs/Web/CSS/Containing_block#identifying_the_containing_block
+          contain: 'strict'
+        }
       }, [
         h(RVGrid, {
           ref: header,
@@ -440,32 +495,61 @@ export const GridTable = forwardRefWithName('GridTable', ({
           containerRole: 'row',
           'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          width: width - scrollbarSize,
+          // Leave space for fixed columns.
+          width: width - scrollbarSize - totalFixedColumnsWidth,
           height: headerHeight,
-          columnWidth: ({ index }) => columns[index].width,
+          columnWidth: ({ index }) => unfixedColumns[index].width,
           rowHeight: headerHeight,
           rowCount: 1,
-          columnCount: columns.length,
-          cellRenderer: data => {
-            const field = columns[data.columnIndex].field
-            return div({
-              key: data.key,
-              role: 'columnheader',
-              // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-              'aria-rowindex': 1, // The header row is 1
-              'aria-colindex': data.columnIndex + 1, // The first column is 1
-              'aria-sort': ariaSort(sort, field),
-              className: 'table-cell',
-              style: {
-                ...data.style,
-                ...styles.header(data.columnIndex, columns.length, { border }),
-                ...styleHeader(data)
-              }
-            }, [
-              columns[data.columnIndex].headerRenderer(data)
-            ])
+          columnCount: unfixedColumns.length,
+          cellRenderer: ({ columnIndex, ...cell }) => {
+            // columnIndex here is an index in the unfixedColumns array.
+            // Offset it to pass an index in the original columns array to renderHeaderCell.
+            return renderHeaderCell({ ...cell, columnIndex: columnIndex + numFixedColumns })
           },
-          style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
+          cellRangeRenderer: data => {
+            // The default renderer returns a flat array of all of the cells to render in the DOM
+            const cells = defaultCellRangeRenderer(data)
+
+            const {
+              horizontalOffsetAdjustment,
+              rowSizeAndPositionManager,
+              verticalOffsetAdjustment
+            } = data
+
+            const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(0)
+
+            return [
+              ..._.map(columnIndex => {
+                return renderHeaderCell({
+                  key: `fixed-${columnIndex}`,
+                  columnIndex,
+                  rowIndex: 0,
+                  style: {
+                    height: rowDatum.size,
+                    left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
+                    position: 'fixed',
+                    top: rowDatum.offset + verticalOffsetAdjustment,
+                    width: fixedColumns[columnIndex].width,
+                    // Show header cell above body cells in fixed columns when vertically scrolling the grid.
+                    zIndex: 2
+                  }
+                })
+              }, _.range(0, numFixedColumns)),
+              ...cells
+            ]
+          },
+          style: {
+            // Leave space for fixed columns.
+            marginLeft: totalFixedColumnsWidth,
+            outline: 'none',
+            // overflow: hidden prevents additional scrollbars from appearing in the header row
+            // while scrolling the grid.
+            overflow: 'hidden',
+            // Override will-change: transform set in RVGrid. This allows positioning fixed columns
+            // relative to GridTable's container instead of the RVGrid's inner scroll container.
+            willChange: 'auto'
+          },
           scrollLeft,
           onScroll
         }),
@@ -475,54 +559,77 @@ export const GridTable = forwardRefWithName('GridTable', ({
           containerRole: 'presentation',
           'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          width,
+          // Leave space for fixed columns.
+          width: width - totalFixedColumnsWidth,
           height: height - headerHeight,
-          columnWidth: ({ index }) => columns[index].width,
+          columnWidth: ({ index }) => unfixedColumns[index].width,
           rowHeight,
           rowCount,
-          columnCount: columns.length,
+          columnCount: unfixedColumns.length,
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
-          cellRenderer: data => {
+          cellRenderer: ({ columnIndex, rowIndex, ...cell }) => {
             return {
               // Cells will be grouped by row by the cellRangeRenderer
-              rowIndex: data.rowIndex,
-              cell: div({
-                key: data.key,
-                role: 'cell',
-                // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
-                'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
-                'aria-colindex': data.columnIndex + 1, // The first column is 1
-                className: 'table-cell',
-                style: {
-                  ...data.style,
-                  ...styles.cell(data.columnIndex, columns.length, { border }),
-                  backgroundColor: 'white',
-                  ...styleCell(data)
-                }
-              }, [
-                columns[data.columnIndex].cellRenderer(data)
-              ])
+              rowIndex,
+              // columnIndex here is an index in the unfixedColumns array.
+              // Offset it to pass an index in the original columns array to renderHeaderCell.
+              cell: renderCell({ ...cell, columnIndex: columnIndex + numFixedColumns, rowIndex })
             }
           },
           cellRangeRenderer: data => {
             // The default renderer returns a flat array of all of the cells to render in the DOM
             const cells = defaultCellRangeRenderer(data)
 
+            const {
+              horizontalOffsetAdjustment,
+              rowSizeAndPositionManager,
+              verticalOffsetAdjustment,
+              scrollTop
+            } = data
+
             // Group the cells into rows to support a11y
+            // Elements with role "cell" are required to be nested in an element with role "row".
+            // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/cell_role
             return _.flow(
               _.groupBy('rowIndex'),
               Utils.toIndexPairs,
-              _.map(([i, cells]) => {
+              _.map(([rowIndex, cells]) => {
+                const rowDatum = rowSizeAndPositionManager.getSizeAndPositionOfCell(rowIndex)
                 return div({
-                  key: `row-${i}`,
+                  key: `row-${rowIndex}`,
                   role: 'row'
-                }, _.map('cell', cells))
+                }, [
+                  ..._.map(columnIndex => {
+                    return renderCell({
+                      key: `fixed-${rowIndex}-${columnIndex}`,
+                      columnIndex,
+                      rowIndex,
+                      style: {
+                        height: rowDatum.size,
+                        left: fixedColumnOffsets[columnIndex] + horizontalOffsetAdjustment,
+                        position: 'fixed',
+                        top: headerHeight + rowDatum.offset + verticalOffsetAdjustment - scrollTop,
+                        width: fixedColumns[columnIndex].width,
+                        // Show fixed columns above unfixed columns when horizontally scrolling the grid.
+                        zIndex: 1
+                      }
+                    })
+                  }, _.range(0, numFixedColumns)),
+                  ..._.map('cell', cells)
+                ])
               })
             )(cells)
           },
-          style: { outline: 'none' },
+          style: {
+            // Leave space for fixed columns.
+            marginLeft: totalFixedColumnsWidth,
+            outline: 'none',
+            // Override will-change: transform set in RVGrid. This allows positioning fixed columns
+            // relative to GridTable's container instead of the RVGrid's inner scroll container.
+            willChange: 'auto'
+          },
           scrollLeft,
           onScroll: details => {
             onScroll(details)
