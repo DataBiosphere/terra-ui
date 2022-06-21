@@ -103,7 +103,9 @@ const renderDataCellTooltip = attributeValue => {
   )
 }
 
-export const renderDataCell = (attributeValue, googleProject) => {
+export const renderDataCell = (attributeValue, workspace) => {
+  const { workspace: { googleProject } } = workspace
+
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
