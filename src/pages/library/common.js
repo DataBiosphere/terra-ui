@@ -444,12 +444,7 @@ export const SearchAndFilterComponent = ({
           }
         }, ['clear'])
       ]),
-      div({
-        style: {
-          display: 'flex',
-          alignItems: 'center'
-        }
-      }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
         h(DelayedAutoCompleteInput, {
           style: { borderRadius: 25, flex: '1 1 0' },
           inputIcon: 'search',
