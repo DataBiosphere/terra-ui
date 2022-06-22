@@ -104,11 +104,16 @@ export const reloadAuthToken = (includeBillingScope = false) => {
 
 export const hasBillingScope = () => {
   const scope = getUser().scope
-
-  // For now B2C always requests the cloud-billing scope from the get-go.
-  // TOAZ-146 is open to create a separate B2C policy with the sensitive scope
-  // which can be elevated on demand.
-  return isGoogleAuthority() === false || _.includes('https://www.googleapis.com/auth/cloud-billing', scope)
+  return Utils.cond(
+    // If the scope is undefined in the auth store, assume we don't have the billing scope.
+    // This can happen in integration tests.
+    [_.isNil(scope), () => false],
+    // For now B2C always requests the cloud-billing scope from the get-go for Google logins.
+    // TOAZ-146 is open to not request this scope initially and elevate it on demand.
+    [isGoogleAuthority() === false, () => true],
+    // Otherwise test the actual scope value.
+    [Utils.DEFAULT, () => _.includes('https://www.googleapis.com/auth/cloud-billing', scope)]
+  )
 }
 
 /*
