@@ -15,7 +15,7 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -54,9 +54,9 @@ const getAuthInstance = () => {
 }
 
 export const signOut = () => {
-  // Note: Ideally, we'd actually clear the Leo proxy cookie here, but there's not currently an endpoint to do that.
-  // When IA-2236 is done, add that call here.
+  // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   cookieReadyStore.reset()
+  azureCookieReadyStore.reset()
   sessionStorage.clear()
   const auth = getAuthInstance()
   revokeTokens()
