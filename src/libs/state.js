@@ -25,6 +25,7 @@ export const userStatus = {
 }
 
 export const cookieReadyStore = Utils.atom(false)
+export const azureCookieReadyStore = Utils.atom(false)
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
