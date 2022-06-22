@@ -34,6 +34,7 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
 
   return h(Modal, {
     onDismiss,
+    shouldCloseOnEsc: false,
     width: 500,
     title: 'Give feedback',
     okButton: h(TooltipTrigger, { content: !!errors && _.map(error => div({ key: error }, [error]), errors) },
