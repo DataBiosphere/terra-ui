@@ -235,7 +235,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   return h(Modal, {
     onDismiss,
-    title: `${destroyOld ? 'Rename' : 'Copy'} "${getFileName(printName)}"`,
+    title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
     okButton: h(ButtonPrimary, {
       disabled: errors || processing,
       tooltip: Utils.summarizeErrors(errors),
