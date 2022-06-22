@@ -184,7 +184,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
@@ -252,7 +252,7 @@ export const ComputeModalBase = ({
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
+    withErrorReportingInModal('Error modifying cloud environment', onError)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()

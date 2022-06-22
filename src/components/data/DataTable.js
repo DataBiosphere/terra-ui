@@ -316,6 +316,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
+              numFixedColumns: 2,
               columns: [
                 {
                   width: 70,
