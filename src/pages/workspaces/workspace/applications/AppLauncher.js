@@ -93,7 +93,7 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: _.size(outdatedAnalyses) > 1 ? 'R files In Use' : `R file Is In Use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'R files in use' : `R file is in use`,
       showButtons: false
     }, [
       Utils.cond(
