@@ -223,6 +223,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
 
+export const getAppCost = (app, dataDisk) => app.appType === tools.Galaxy.appType ? getGalaxyCost(app, dataDisk) : 0
+
 export const getGalaxyCost = (app, dataDisk) => {
   return getGalaxyDiskCost(dataDisk) + getGalaxyComputeCost(app)
 }
@@ -426,5 +428,5 @@ export const getIsRuntimeBusy = runtime => {
   return creating || updating || reconfiguring || stopping || starting
 }
 
-export const cloudProviders = { azure: { label: 'azure' }, gcp: {} }
+export const cloudProviders = { azure: { label: 'AZURE' }, gcp: { label: 'GCP' } }
 

@@ -7,7 +7,7 @@ import { CromwellModalBase } from 'src/components/CromwellModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { getAppType, getToolsToDisplay, isToolAnApp, tools } from 'src/components/notebook-utils'
+import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -135,7 +135,6 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
-  const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
   const isLaunchSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isLaunchUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
@@ -405,8 +404,7 @@ export const CloudEnvironmentModal = ({
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
-            span('Open'),
-            span(toolLabel)
+            span('Open')
           ])
         ])
       ])

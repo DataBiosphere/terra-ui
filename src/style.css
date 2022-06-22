@@ -81,7 +81,13 @@ a {
 }
 
 .table-row:not(:hover, :focus-within) .hover-only, .table-cell:not(:hover, :focus-within) .cell-hover-only {
-  display: none !important;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
 }
 
 .focus-style:focus {
