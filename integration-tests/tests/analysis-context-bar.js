@@ -98,7 +98,7 @@ const testAnalysisContextBarFn = _.flow(
 })
 
 registerTest({
-  name: 'analysis-n8-context-bar',
+  name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
   timeout: 15 * 60 * 1000
 })
