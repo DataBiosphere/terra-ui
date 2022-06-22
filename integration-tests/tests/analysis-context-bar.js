@@ -12,7 +12,7 @@ const testAnalysisContextBarFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ page, token, testUrl, workspaceName }) => {
-  jest.setTimeout(1200000)
+  // jest.setTimeout(1200000)
   // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
@@ -66,7 +66,7 @@ const testAnalysisContextBarFn = _.flow(
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Delete' })) })
 
   // Create a runtime
-  await click(page, clickable({ textContains: 'Environment Configuration' }))
+  await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 10000 })
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 40001 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
@@ -100,5 +100,5 @@ const testAnalysisContextBarFn = _.flow(
 registerTest({
   name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
-  timeout: 15 * 60 * 1000
+  timeout: 20 * 60 * 1000
 })
