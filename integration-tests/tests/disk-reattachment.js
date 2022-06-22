@@ -23,7 +23,7 @@ const testDiskReatachmentFn = _.flow(
 
   // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
   await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
 
   // Get the runtime, and save runtimeID and persistentDiskId
