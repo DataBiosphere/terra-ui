@@ -12,8 +12,7 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash,
-  stripExtension, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
@@ -261,11 +260,11 @@ const Analyses = _.flow(
   )(async () => {
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
-    const rmds = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
+    const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
-    const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
@@ -390,7 +389,7 @@ const Analyses = _.flow(
   // Render
   //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(', .')}`,
+    accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
     disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
@@ -487,7 +486,7 @@ const Analyses = _.flow(
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
-          printName: renamingAnalysisName,
+          printName: getFileName(renamingAnalysisName),
           toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -497,7 +496,7 @@ const Analyses = _.flow(
           }
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
-          printName: copyingAnalysisName,
+          printName: getFileName(copyingAnalysisName),
           toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),

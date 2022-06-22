@@ -6,7 +6,7 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension, getFileName, tools
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension, tools
 } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'

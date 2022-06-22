@@ -5,7 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
-import { getExtension, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
+import { getExtension, notebookLockHash, patterns, stripExtension, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -93,7 +93,7 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: _.size(outdatedAnalyses) > 1 ? 'R Files In Use' : `R File Is In Use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'R files In Use' : `R file Is In Use`,
       showButtons: false
     }, [
       Utils.cond(
@@ -173,12 +173,9 @@ const ApplicationLauncher = _.flow(
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtime.runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
-      await Ajax()
-        .Runtimes
-        .fileSyncing(googleProject, runtime.runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.R`)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, patterns(tools.RStudio.label))
     })
+
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()

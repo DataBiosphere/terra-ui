@@ -89,6 +89,11 @@ export const toolExtensionDisplay = {
   Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }]
 }
 
+export const patterns = toolLabel => Utils.switchCase(toolLabel,
+  [tools.RStudio.label, () => '.*\\.R(md)'],
+  [tools.Jupyter.label, () => '.*\\.ipynb']
+)
+
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.remove(tool => tool.isAppHidden),
@@ -96,12 +101,12 @@ export const getToolsToDisplay = isAzureWorkspace => _.flow(
 )([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
-const extensionToToolMap = () => {
+const extensionToToolMap = (() => {
   const extMap = {}
   _.forEach(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
   _.forEach(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
   return extMap
-}
+})()
 
 // Returns appType for app with given label, or undefined if tool is not an app.
 export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
@@ -115,7 +120,7 @@ export const isToolAnApp = label => getAppType(label) !== undefined
 // Returns registered appTypes.
 export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
 
-export const getTool = fileName => extensionToToolMap()[getExtension(fileName)]
+export const getTool = fileName => extensionToToolMap[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 
 export const getAnalysisFileExtension = toolLabel => toolToExtensionMap[toolLabel]

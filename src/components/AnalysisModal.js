@@ -166,7 +166,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
-          setFileExt('Rmd')
+          setFileExt(tools.RStudio.defaultExt)
           enterNextViewMode(tools.RStudio.label)
         },
         hover: styles.hover
@@ -194,7 +194,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       renderToolButtons(),
       h(Dropzone, {
-        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext.join(', .')}`,
+        accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
@@ -223,7 +223,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     ])
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => 'R File'],
+      [tools.RStudio.label, () => 'R file'],
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 

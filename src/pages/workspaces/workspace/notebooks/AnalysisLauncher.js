@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, patterns, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -501,19 +501,14 @@ const AnalysisEditorFrame = ({
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-    const patterns = Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => ['.*\\.Rmd', '.*\\.R']],
-      [tools.Jupyter.label, () => ['.*\\.ipynb']]
-    )
-
     const setUpAnalysis = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-      _.forEach(pattern => Ajax()
+      await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern), patterns)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, patterns(toolLabel))
 
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {

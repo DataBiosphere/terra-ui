@@ -169,7 +169,7 @@ const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 
-const encodeName = name => encodeURIComponent(`notebooks/${name}`)
+const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -1127,7 +1127,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
   },
 
   listAnalyses: async (googleProject, name) => {
@@ -1136,7 +1136,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => (name.endsWith(`.${tools.Jupyter.ext}`) || _.includes(getExtension(name), tools.RStudio.ext)), items)
+    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
   },
 
   list: async (googleProject, bucket, prefix, options = {}) => {
@@ -1201,20 +1201,20 @@ const Buckets = signal => ({
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
-        `${bucketUrl}/${encodeName(name)}/copyTo/b/${newBucket}/o/${encodeName(newName)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}/copyTo/b/${newBucket}/o/${encodeAnalysisName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
       return fetchBuckets(
-        `${bucketUrl}/${encodeName(name)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
       const res = await fetchBuckets(
-        `${bucketUrl}/${encodeName(name)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       )
       return await res.json()
@@ -1235,7 +1235,7 @@ const Buckets = signal => ({
 
       create: async contents => {
         return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${encodeName(name)}`,
+          `upload/${bucketUrl}?uploadType=media&name=${encodeAnalysisName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
@@ -1263,7 +1263,7 @@ const Buckets = signal => ({
     const mimeType = Utils.switchCase(toolLabel,
       [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
 
-    const encodeFileName = name => encodeName(getFileName(name))
+    const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
     const doCopy = async (newName, newBucket, body) => {
       fetchBuckets(
