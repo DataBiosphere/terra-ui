@@ -545,7 +545,12 @@ export const GridTable = forwardRefWithName('GridTable', ({
             outline: 'none',
             // overflow: hidden prevents additional scrollbars from appearing in the header row
             // while scrolling the grid.
-            overflow: 'hidden',
+            // overflowX and overflowY must be set separately because RVGrid also sets them.
+            // Using the overflow: hidden shorthand results in a React warning:
+            // "Updating a style property during rerender (overflowX) when a conflicting property
+            // is set (overflow) can lead to styling bugs"
+            overflowX: 'hidden',
+            overflowY: 'hidden',
             // Override will-change: transform set in RVGrid. This allows positioning fixed columns
             // relative to GridTable's container instead of the RVGrid's inner scroll container.
             willChange: 'auto'
