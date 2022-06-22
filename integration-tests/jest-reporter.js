@@ -32,7 +32,8 @@ module.exports = class JestReporter {
     const writableStream = createWriteStream(logFileName)
     writableStream.on('error', ({ message }) => console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`))
 
-    _.forEach(({ message }) => { writableStream.write(`${message}\n`) }, testResult?.console)
+    // Do not change to lodash _.forEach here because it doesn't work here!!
+    testResult.console.forEach(({ message }) => writableStream.write(`${message}\n`))
 
     // Write pass/failure summaries
     writableStream.write('\n\nTests Summary\n')
