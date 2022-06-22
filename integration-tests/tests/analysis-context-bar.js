@@ -12,6 +12,7 @@ const testAnalysisContextBarFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ page, token, testUrl, workspaceName }) => {
+  jest.setTimeout(1200000)
   // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
@@ -45,8 +46,46 @@ const testAnalysisContextBarFn = _.flow(
   await click(page, clickable({ textContains: 'Close' }))
 
   // Environment should eventually be running and the terminal icon should be enabled once the environment is running
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1200 })
   await findElement(page, clickable({ textContains: 'Terminal' }))
+
+  // Get the runtime, and save runtimeID and persistentDiskId
+  const runtimes = await page.evaluate(async (billingProject, email) => {
+    return await window.Ajax().Runtimes.list({ googleProject: billingProject, creator: email })
+  })
+  const persistentDiskId = runtimes[0]['runtimeConfig']['persistentDiskId']
+  const runtimeID = runtimes[0]['id']
+  expect(persistentDiskId).not.toBeNull()
+  expect(runtimeID).not.toBeNull()
+
+  // Delete the environment, keep persistent disk.
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
+  await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
+  await findElement(page, clickable({ text: 'Delete Environment' }), { timeout: 45000 })
+  await click(page, clickable({ text: 'Delete Environment' }))
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Delete' })) })
+
+  // Create a runtime
+  await click(page, clickable({ textContains: 'Environment Configuration' }))
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
+  await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'pqr' })
+
+  // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
+
+  await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
+
+  const secondRuntimes = await page.evaluate(async (billingProject, email) => {
+    return await window.Ajax().Runtimes.list({ googleProject: billingProject, creator: email })
+  })
+
+  const secondPersistentDiskId = secondRuntimes[0]['runtimeConfig']['persistentDiskId']
+  const secondRuntimeID = secondRuntimes[0]['id']
+  expect(persistentDiskId).toEqual(secondPersistentDiskId)
+  expect(runtimeID).not.toEqual(secondRuntimeID)
 
   // The environment should now be pausable, and the UI should display its pausing
   await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
@@ -55,12 +94,11 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, clickable({ textContains: 'Pausing', isEnabled: false }))
   await click(page, clickable({ textContains: 'Close' }))
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Pausing )' }), { timeout: 40000 })
-
   // We don't wait for the env to pause for the sake of time, since its redundant and more-so tests the backend
 })
 
 registerTest({
-  name: 'analysis-context-bar',
+  name: 'analysis-n8-context-bar',
   fn: testAnalysisContextBarFn,
   timeout: 15 * 60 * 1000
 })
