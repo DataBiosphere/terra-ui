@@ -13,7 +13,7 @@ handlers:
 - url: /(google.*\.html)
   mime_type: text/html
   static_files: build/\1
-  upload: build/.*\.html
+  upload: build/(google.*)\.html
   secure: always
   http_headers:
     X-Content-Type-Options: "nosniff"
