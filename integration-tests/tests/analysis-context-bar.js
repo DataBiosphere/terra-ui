@@ -22,7 +22,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 10000 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
@@ -67,7 +67,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 10000 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'pqr' })
