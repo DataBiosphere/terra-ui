@@ -89,7 +89,7 @@ export const toolExtensionDisplay = {
   Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }]
 }
 
-export const patterns = toolLabel => Utils.switchCase(toolLabel,
+export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
   [tools.RStudio.label, () => '.*\\.R(md)'],
   [tools.Jupyter.label, () => '.*\\.ipynb']
 )

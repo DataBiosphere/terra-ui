@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, patterns, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, getPatternFromTool, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -508,7 +508,7 @@ const AnalysisEditorFrame = ({
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, patterns(toolLabel))
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
 
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {

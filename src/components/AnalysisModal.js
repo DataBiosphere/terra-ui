@@ -293,7 +293,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onClick: async () => {
               try {
                 const contents = isJupyter ? notebookData[notebookKernel] : '# Starter R file'
-                const fullAnalysisName = `${analysisName}.${isJupyter ? tools.Jupyter.ext : fileExt}`
+                const fullAnalysisName = `${analysisName}.${isJupyter ? tools.Jupyter.defaultExt : fileExt}`
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)

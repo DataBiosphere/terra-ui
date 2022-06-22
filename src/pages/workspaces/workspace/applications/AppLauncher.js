@@ -5,7 +5,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
-import { getExtension, notebookLockHash, patterns, stripExtension, tools } from 'src/components/notebook-utils'
+import { getExtension, notebookLockHash, getPatternFromTool, stripExtension, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -173,7 +173,7 @@ const ApplicationLauncher = _.flow(
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtime.runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, patterns(tools.RStudio.label))
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(tools.RStudio.label))
     })
 
 
