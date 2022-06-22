@@ -102,7 +102,7 @@ commands:
       - when:
           condition: << parameters.pr >>
           steps:
-            - deploy:
+            - run:
                 name: Deploy PR
                 command: |
                   CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
@@ -115,7 +115,7 @@ commands:
       - unless:
           condition: << parameters.pr >>
           steps:
-            - deploy:
+            - run:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
       - notify-github:
