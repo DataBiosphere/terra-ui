@@ -369,7 +369,7 @@ const DataTable = props => {
                       renderDataCell(entityName, googleProject),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
-                        'aria-label': 'Rename entity',
+                        'aria-label': `Rename ${entityType} ${entityName}`,
                         onClick: () => setRenamingEntity(entityName)
                       })
                     ])
