@@ -173,8 +173,14 @@ const Environments = () => {
   useOnMount(() => { loadData() })
   usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
-  const getCloudProvider = cloudEnvironment => isApp(cloudEnvironment) ? 'Kubernetes' : cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService
-  const getCloudEnvTool = cloudEnvironment => isApp(cloudEnvironment) ? _.capitalize(cloudEnvironment.appType) : _.capitalize(cloudEnvironment.labels.tool)
+  const getCloudProvider = cloudEnvironment => Utils.cond(
+    [isApp(cloudEnvironment), () => 'Kubernetes'],
+    [cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC', () => 'Dataproc'],
+    [Utils.DEFAULT, () => cloudEnvironment.runtimeConfig.cloudService])
+
+  const getCloudEnvTool = cloudEnvironment => isApp(cloudEnvironment) ?
+    _.capitalize(cloudEnvironment.appType) :
+    _.capitalize(cloudEnvironment.labels.tool)
 
   const filteredRuntimes = _.orderBy([{
     project: 'labels.saturnWorkspaceNamespace',
