@@ -79,7 +79,7 @@ const DataTable = props => {
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
   const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
-  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
+  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || activeCrossTableTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
@@ -140,7 +140,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeCrossTableTextFilter || activeTextFilter, filterOperator })
+          { filterTerms: activeTextFilter, filterOperator })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -225,7 +225,7 @@ const DataTable = props => {
     if (persist) {
       StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -242,8 +242,7 @@ const DataTable = props => {
 
 
   // Render
-  // If there is an active cross table search, temporarily reset the column settings to show all columns
-  const columnSettings = activeCrossTableTextFilter ? applyColumnSettings([], entityMetadata[entityType].attributeNames) : applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
+  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
