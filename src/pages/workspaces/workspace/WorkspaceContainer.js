@@ -224,7 +224,6 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
-      console.log('newDisks: ', newDisks)
 
       const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ?
