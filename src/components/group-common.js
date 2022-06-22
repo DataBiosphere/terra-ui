@@ -163,8 +163,7 @@ export const NewUserModal = ({
   const errors = validate({ userEmail }, { userEmail: { email: true } })
   const isAdmin = _.includes(adminLabel, roles)
 
-  const userEmailInvalid = !!validate({ userEmail }, { userEmail: { email: true } })
-  const canAdd = value => value !== userEmail || !userEmailInvalid
+  const canAdd = value => value !== userEmail || !errors
 
   return Utils.cond(
     [confirmAddUser, () => h(Modal, {
