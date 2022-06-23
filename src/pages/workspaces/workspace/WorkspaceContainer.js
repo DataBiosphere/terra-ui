@@ -214,7 +214,7 @@ const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspace
   const load = async maybeStale => {
     try {
       const [newDisks, newRuntimes] = await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName', saturnWorkspaceName: workspaceName }),
         !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace, saturnWorkspaceName: workspaceName }) : []
       ])
 

@@ -316,6 +316,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
+              numFixedColumns: 2,
               columns: [
                 {
                   width: 70,
@@ -369,7 +370,7 @@ const DataTable = props => {
                       renderDataCell(entityName, googleProject),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
-                        'aria-label': 'Rename entity',
+                        'aria-label': `Rename ${entityType} ${entityName}`,
                         onClick: () => setRenamingEntity(entityName)
                       })
                     ])
@@ -386,7 +387,7 @@ const DataTable = props => {
                     }, [
                       h(HeaderOptions, {
                         sort, field: attributeName, onSort: setSort,
-                        extraActions: [
+                        extraActions: editable && [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
                           { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },

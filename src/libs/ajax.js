@@ -168,6 +168,7 @@ const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
+const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -1463,6 +1464,10 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
   },
 
+  setAzureCookie: proxyUrl => {
+    return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
   setCookie: () => {
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
@@ -1752,6 +1757,19 @@ const Metrics = signal => ({
   })
 })
 
+const OAuth2 = signal => ({
+  getConfiguration: async () => {
+    const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+const Surveys = signal => ({
+  submitForm: withErrorIgnoring((formId, data) => {
+    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
+  })
+})
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1771,7 +1789,9 @@ export const Ajax = signal => {
     Metrics: Metrics(signal),
     Disks: Disks(signal),
     CromIAM: CromIAM(signal),
-    FirecloudBucket: FirecloudBucket(signal)
+    FirecloudBucket: FirecloudBucket(signal),
+    OAuth2: OAuth2(signal),
+    Surveys: Surveys(signal)
   }
 }
 

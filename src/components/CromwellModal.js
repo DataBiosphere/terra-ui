@@ -22,7 +22,7 @@ const titleId = 'cromwell-modal-title'
 // (or find another way to reduce code duplication).
 export const CromwellModalBase = withDisplayName('CromwellModal')(
   ({
-    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onError, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     shouldHideCloseButton = true
   }) => {
     const app = getCurrentApp(tools.Cromwell.appType)(apps)
@@ -31,7 +31,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error creating Cromwell', onDismiss)
+      withErrorReportingInModal('Error creating Cromwell', onError)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         defaultKubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,
