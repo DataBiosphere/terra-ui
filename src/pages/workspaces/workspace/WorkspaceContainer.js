@@ -200,12 +200,15 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspaceName) => {
+const useCloudEnvironmentPolling = (googleProject, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
+
+  const saturnWorkspaceNamespace = workspace?.workspace.namespace
+  const saturnWorkspaceName = workspace?.workspace.name
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -213,10 +216,10 @@ const useCloudEnvironmentPolling = (googleProject, workspaceNamespace, workspace
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes] = await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName', saturnWorkspaceName: workspaceName }),
-        !!workspaceNamespace ? Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace: workspaceNamespace, saturnWorkspaceName: workspaceName }) : []
-      ])
+      const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName', saturnWorkspaceName }),
+        Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace, saturnWorkspaceName })
+      ]) : [[], []]
 
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
@@ -293,7 +296,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.namespace, workspace?.workspace.name)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     const isAzureWorkspace = !!azureContext

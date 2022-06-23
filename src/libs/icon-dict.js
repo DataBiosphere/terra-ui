@@ -30,6 +30,7 @@ import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
 import { ReactComponent as squareLight } from 'src/icons/square-light.svg'
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
+import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg'
 import { ReactComponent as times } from 'src/icons/times-light.svg'
 
 
@@ -110,6 +111,7 @@ const iconDict = {
   tasks: fa(faTasks),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
+  'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
   unlock: fa(faUnlock),
