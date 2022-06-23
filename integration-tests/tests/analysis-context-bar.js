@@ -12,6 +12,7 @@ const testAnalysisContextBarFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ page, token, testUrl, workspaceName }) => {
+  // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Ensure UI displays the runtime Terminal icon is present + disabled
