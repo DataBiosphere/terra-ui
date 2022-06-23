@@ -65,9 +65,11 @@ const testAnalysisContextBarFn = _.flow(
   await click(page, clickable({ text: 'Delete Environment' }))
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Delete' })) })
 
+  await findElement(page, clickable({ textContains: tooltipTextTerminal, isEnabled: false }))
+
   // Create a runtime
-  await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 30000 })
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 60004 })
+  await click(page, clickable({ textContains: 'Environment Configuration' }))
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'pqr' })
