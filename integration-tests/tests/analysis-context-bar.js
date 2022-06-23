@@ -67,7 +67,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 20000 })
-  // await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 60004 })
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 60004 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })), debugMessage: 'pqr' })
@@ -75,7 +75,7 @@ const testAnalysisContextBarFn = _.flow(
   // Ensure UI displays the runtime is creating and the terminal icon is present + disabled
 
   await findElement(page, clickable({ textContains: 'Terminal', isEnabled: false }))
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Creating )' }), { timeout: 40000 })
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
 
   const secondRuntimes = await page.evaluate(async (billingProject, email) => {
