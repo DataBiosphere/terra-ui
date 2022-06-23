@@ -12,8 +12,6 @@ const testAnalysisContextBarFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ page, token, testUrl, workspaceName }) => {
-  // jest.setTimeout(1200000)
-  // Navigate to appropriate part of UI (the analysis tab)
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Ensure UI displays the runtime Terminal icon is present + disabled
@@ -22,7 +20,7 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 40002 })
+  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
@@ -59,7 +57,7 @@ const testAnalysisContextBarFn = _.flow(
   expect(runtimeID).not.toBeNull()
 
   // Delete the environment, keep persistent disk.
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1200 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, clickable({ text: 'Delete Environment' }), { timeout: 45000 })
   await click(page, clickable({ text: 'Delete Environment' }))
