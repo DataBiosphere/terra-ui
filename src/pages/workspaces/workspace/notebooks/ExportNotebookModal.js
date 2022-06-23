@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import {
   addExtensionToNotebook,
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension, tools
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension
 } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
