@@ -194,7 +194,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not a .ipynb notebook file or an .Rmd or .R RStudio file. Ensure your file has the proper extension.'),
+          'The selected file is not one of the supported types: .ipynb, .R, .Rmd. Ensure your file has the proper extension.'),
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)

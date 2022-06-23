@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getTool, getToolFromRuntime, notebookLockHash, getPatternFromTool, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
