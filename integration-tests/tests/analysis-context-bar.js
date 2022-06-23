@@ -66,7 +66,7 @@ const testAnalysisContextBarFn = _.flow(
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Delete' })) })
 
   // Create a runtime
-  await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 20000 })
+  await click(page, clickable({ textContains: 'Environment Configuration' }), { timeout: 30000 })
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'), { timeout: 60004 })
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
@@ -88,7 +88,7 @@ const testAnalysisContextBarFn = _.flow(
   expect(runtimeID).not.toEqual(secondRuntimeID)
 
   // The environment should now be pausable, and the UI should display its pausing
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
+  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Pause' })) })
   await findElement(page, clickable({ textContains: 'Pausing', isEnabled: false }))
