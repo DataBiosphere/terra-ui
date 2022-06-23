@@ -94,6 +94,8 @@ export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
   [tools.Jupyter.label, () => '.*\\.ipynb']
 )
 
+export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultExt}`
+
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.remove(tool => tool.isAppHidden),
@@ -174,7 +176,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       onClick: async () => {
         setCreating(true)
         try {
-          await Ajax().Buckets.notebook(googleProject, bucketName, notebookName).create(notebookData[notebookKernel])
+          await Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel])
           reloadList()
           onSuccess(notebookName, notebookKernel)
         } catch (error) {
@@ -331,13 +333,13 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
         setProcessing(true)
         try {
           await (destroyOld ?
-            Ajax().Buckets.notebook(googleProject, bucketName, printName).rename(newName) :
-            Ajax().Buckets.notebook(googleProject, bucketName, printName).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(printName)).rename(addExtensionToNotebook(newName)) :
+            Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(printName)).copy(addExtensionToNotebook(newName), bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
             Nav.goToPath('workspace-notebook-launch', {
-              namespace, name: wsName, notebookName: `${newName}.ipynb`
+              namespace, name: wsName, notebookName: addExtensionToNotebook(newName)
             })
           }
           if (destroyOld) {

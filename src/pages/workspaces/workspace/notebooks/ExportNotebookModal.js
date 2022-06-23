@@ -6,6 +6,7 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import {
+  addExtensionToNotebook,
   analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension, tools
 } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
@@ -49,10 +50,10 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
     try {
       await Ajax()
         .Buckets
-        .notebook(workspace.workspace.googleProject, workspace.workspace.bucketName, printName)
-        .copy(newName, selectedWorkspace.workspace.bucketName)
+        .notebook(workspace.workspace.googleProject, workspace.workspace.bucketName, addExtensionToNotebook(printName))
+        .copy(addExtensionToNotebook(newName), selectedWorkspace.workspace.bucketName)
       setCopied(true)
-      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
+      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: addExtensionToNotebook(printName), newName: addExtensionToNotebook(newName), ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
     } catch (error) {
       setError(await error.text())
     }
@@ -80,7 +81,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
         () => Nav.goToPath(fromLauncher ? 'workspace-notebook-launch' : 'workspace-notebooks', {
           namespace: selectedWorkspace.workspace.namespace,
           name: selectedWorkspace.workspace.name,
-          notebookName: `${newName}.${tools.Jupyter.defaultExt}`
+          notebookName: addExtensionToNotebook(newName)
         }) :
         copy
     }, [copied ? 'Go to copied notebook' : 'Copy'])
