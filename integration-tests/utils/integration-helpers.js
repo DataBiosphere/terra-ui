@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
   click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
-  navOptionNetworkIdle
+  navOptionNetworkIdle, withPageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -15,7 +15,7 @@ const withSignedInPage = fn => async options => {
   const page = await context.newPage()
   try {
     await signIntoTerra(page, { token, testUrl })
-    return await fn({ ...options, page })
+    return await withPageLogging(fn)({ ...options, page })
   } finally {
     await page.close()
   }
@@ -31,18 +31,10 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
     const response = await page.evaluate(async (name, billingProject) => {
-      try {
-        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-      } catch (err) {
-        console.error(err)
-        console.error(typeof err)
-        const message = await err.text()
-        throw message
-      }
+      return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
 
     console.info(`Created workspace: ${workspaceName}`)
-    console.info(response)
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
@@ -51,21 +43,12 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   return workspaceName
 })
 
-
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
-      try {
-        const response = await window.Ajax().Workspaces.workspace(billingProject, name).delete()
-        return response.text()
-      } catch (err) {
-        const message = await err.text()
-        throw message
-      }
+    await page.evaluate(async (name, billingProject) => {
+      return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, workspaceName, billingProject)
-
     console.info(`Deleted workspace: ${workspaceName}`)
-    console.info(response)
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
