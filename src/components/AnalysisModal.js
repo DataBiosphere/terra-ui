@@ -194,7 +194,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not one of the supported types: .ipynb, .R, .Rmd. Ensure your file has the proper extension.'),
+          `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
@@ -292,7 +292,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
-                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter R file'
+                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter file'
                 const fullAnalysisName = `${analysisName}.${isJupyter ? tools.Jupyter.defaultExt : fileExt}`
                 isJupyter ?
                   await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
