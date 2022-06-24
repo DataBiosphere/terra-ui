@@ -6,13 +6,10 @@ import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
 import colors from 'src/libs/colors'
-import { isDataBrowserVisible, isFirecloud, isTerra } from 'src/libs/config'
+import { isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getDatasetsPath } from 'src/pages/library/dataBrowser-utils'
 
 
 const styles = {
@@ -85,7 +82,7 @@ const LandingPage = () => {
         'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
       ]),
       makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-      makeCard(getDatasetsPath(useStore(authStore)), 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
     ]),
     isTerra() && div({
       style: {
@@ -103,7 +100,7 @@ const LandingPage = () => {
       }, ['See this article']),
       ' for a summary of available resources.'
     ]),
-    isDataBrowserVisible() && div({
+    div({
       style: {
         ...styles.callToActionBanner,
         backgroundColor: colors.primary(),

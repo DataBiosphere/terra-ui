@@ -63,7 +63,6 @@ const routes = _.flatten([
   AppLauncher.navPaths,
   TermsOfService.navPaths,
   Code.navPaths,
-  DataBrowser.navPaths,
   DataBrowserDetails.navPaths,
   DataBrowserPreview.navPaths,
   DataExplorer.navPaths,

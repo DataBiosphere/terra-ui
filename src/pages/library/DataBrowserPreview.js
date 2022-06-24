@@ -129,7 +129,7 @@ const DataBrowserPreview = ({ id }) => {
   const dataset = _.find({ id }, dataCatalog)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab, useStore(authStore)),
+    libraryTopMatter(activeTab),
     catalogLoading || !tables ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [

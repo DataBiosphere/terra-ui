@@ -185,7 +185,6 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
-  await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, { token })

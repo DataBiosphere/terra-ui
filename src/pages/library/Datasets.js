@@ -26,10 +26,12 @@ import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Browser } from 'src/pages/library/DataBrowser'
 import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 
 
@@ -447,11 +449,24 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const DatasetsAuthWrapper = () => {
+  // unused variable to re-render Datasets
+  const authState = useStore(authStore)
+  return h(Datasets)
+}
 
 const Datasets = () => {
+  const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
+  console.log('DATASETS CAT SHOWING ' + catalogShowing)
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets', useStore(authStore)),
-    h(DataBrowserPreviewToggler, { checked: false }),
+    libraryTopMatter('datasets'),
+    h(DataBrowserPreviewToggler, { onChange: (value) => {
+        setCatalogShowing(value)
+        setLocalPref('catalog-toggle', value)
+      },
+      catalogShowing
+    }),
+    catalogShowing? h(Browser) :
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
@@ -465,8 +480,8 @@ export const navPaths = [
   {
     name: 'library-datasets',
     path: '/library/datasets',
-    component: Datasets,
-    public: true,
+    component: DatasetsAuthWrapper,
+    public: false,
     title: 'Datasets'
   }
 ]

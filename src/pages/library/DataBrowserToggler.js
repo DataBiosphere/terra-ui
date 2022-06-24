@@ -8,13 +8,10 @@ import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isDataBrowserVisible } from 'src/libs/config'
 import { FormLabel } from 'src/libs/forms'
-import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { catalogPreviewStore } from 'src/pages/library/dataBrowser-utils'
 import validate from 'validate.js'
 
 
@@ -75,13 +72,12 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
 }
 
 
-export const DataBrowserPreviewToggler = ({ checked }) => {
+export const DataBrowserPreviewToggler = ({onChange, catalogShowing}) => {
   const { user: { id } } = useStore(authStore)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [thanksShowing, setThanksShowing] = useState(false)
-  catalogPreviewStore.set({ [id]: checked })
 
-  return !isDataBrowserVisible() ? div() : div({
+  return div({
     style: {
       background: colors.dark(0.1),
       padding: '10px 15px',
@@ -97,22 +93,15 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
         style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
       }, [
         h(Switch, {
-          checked,
+          checked: catalogShowing,
           onLabel: '', offLabel: '',
           width: 55, height: 25,
-          onChange: () => {
-            catalogPreviewStore.set({ [id]: !checked })
-            if (checked) {
-              Nav.goToPath('library-datasets')
-            } else {
-              Nav.goToPath('library-browser')
-            }
-          }
+          onChange: value => onChange(value)
         }),
-        div({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${checked ? 'ON' : 'OFF'}`])
+        div({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
       ])
     ]),
-    checked && div({ style: { display: 'flex' } }, [
+    catalogShowing && div({ style: { display: 'flex' } }, [
       icon('talk-bubble', { size: 45, style: { marginLeft: '1.5rem', margin: '0 0.5rem' } }),
       div({ style: { display: 'flex', flexDirection: 'column' } }, [
         strong('Provide feedback'),

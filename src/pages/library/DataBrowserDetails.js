@@ -218,7 +218,7 @@ const DataBrowserDetails = ({ id }) => {
   const dataObj = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab, useStore(authStore)),
+    libraryTopMatter(activeTab),
     !dataObj ?
       centeredSpinner() :
       h(Fragment, [

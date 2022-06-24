@@ -8,7 +8,6 @@ import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
-import { staticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -21,7 +20,6 @@ import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-export const acknowledgmentStore = staticStorageSlot(localStorage, 'catalog-beta-acknowledgment')
 
 const styles = {
   ...commonStyles,
@@ -216,37 +214,15 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
   return DataBrowserTable
 }
 
-const Browser = () => {
+export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
-  const acknowledged = useStore(acknowledgmentStore) || {}
-  const { user: { id } } = useStore(authStore)
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets', useStore(authStore)),
-    h(DataBrowserPreviewToggler, { checked: true }),
-    !acknowledged[id] && div({
-      style: {
-        border: `1px solid ${colors.accent()}`, borderRadius: 3,
-        backgroundColor: 'rgba(0,0,0,.1)',
-        padding: '5px 20px', margin: 20,
-        fontSize: '.8rem', fontWeight: 'bold',
-        display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'
-      }
-    }, [
-      div({ style: { lineHeight: '1.4rem' } }, [
-        div(['Thank you for participating in the BETA Catalog test. The HCA data is for the sole use of the BETA testing of the Terra Data Catalog.']),
-        div(['Not for research purposes.'])
-      ]),
-      h(ButtonPrimary, {
-        style: { minWidth: 88, minHeight: 40 },
-        onClick: () => acknowledgmentStore.set({ [id]: true })
-      }, ['OK'])
-    ]),
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
@@ -263,13 +239,3 @@ const Browser = () => {
     loading && spinnerOverlay
   ])
 }
-
-export const navPaths = [
-  {
-    name: 'library-browser',
-    path: '/library/browser',
-    component: Browser,
-    title: 'Datasets',
-    public: false
-  }
-]
