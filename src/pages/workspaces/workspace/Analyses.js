@@ -12,8 +12,7 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
-  stripExtension, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
@@ -169,11 +168,11 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
-    title: getDisplayName(name),
+    title: getFileName(name),
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
-  }, [getDisplayName(name)])
+  }, [getFileName(name)])
 
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
@@ -249,7 +248,9 @@ const Analyses = _.flow(
 
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
-  const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
+  const existingNames = _.map(({ name }) => {
+    return getFileName(name)
+  }, analyses)
 
   //TODO: defined load function for azure
   const refreshAnalyses = !!googleProject ? _.flow(
@@ -259,11 +260,11 @@ const Analyses = _.flow(
   )(async () => {
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
-    const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
+    const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
-    const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
@@ -284,7 +285,7 @@ const Analyses = _.flow(
   )(async files => {
     try {
       await Promise.all(_.map(async file => {
-        const name = stripExtension(file.name)
+        const name = file.name
         const toolLabel = getTool(file.name)
         let resolvedName = name
         let c = 0
@@ -353,7 +354,7 @@ const Analyses = _.flow(
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
     const renderedAnalyses = _.flow(
-      _.filter(({ name }) => Utils.textMatch(filter, getDisplayName(name))),
+      _.filter(({ name }) => Utils.textMatch(filter, getFileName(name))),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
@@ -388,12 +389,12 @@ const Analyses = _.flow(
   // Render
   //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+    accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
     disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      'The selected file is not a .ipynb notebook file or an .Rmd RStudio file. Ensure your file has the proper extension.'),
+      `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     analyses && h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [
@@ -488,7 +489,7 @@ const Analyses = _.flow(
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(renamingAnalysisName),
+          printName: getFileName(renamingAnalysisName),
           toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -498,7 +499,7 @@ const Analyses = _.flow(
           }
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(copyingAnalysisName),
+          printName: getFileName(copyingAnalysisName),
           toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
@@ -508,14 +509,14 @@ const Analyses = _.flow(
           }
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
-          printName: getDisplayName(exportingAnalysisName),
+          printName: getFileName(exportingAnalysisName),
           toolLabel: getTool(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
           objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
-          objectName: getDisplayName(deletingAnalysisName),
+          objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
             Utils.withBusyState(setBusy),
@@ -525,7 +526,7 @@ const Analyses = _.flow(
             await Ajax().Buckets.analysis(
               googleProject,
               bucketName,
-              getDisplayName(deletingAnalysisName),
+              getFileName(deletingAnalysisName),
               getTool(deletingAnalysisName)
             ).delete()
             refreshAnalyses()

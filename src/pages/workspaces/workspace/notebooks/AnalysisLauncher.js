@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -66,7 +66,6 @@ const AnalysisLauncher = _.flow(
     })
 
     return h(Fragment, [
-
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
@@ -232,7 +231,7 @@ const PreviewHeader = ({
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
-      .analysis(googleProject, bucketName, getDisplayName(analysisName), toolLabel)
+      .analysis(googleProject, bucketName, getFileName(analysisName), toolLabel)
       .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -368,7 +367,7 @@ const PreviewHeader = ({
       }
     }),
     copyingAnalysis && h(AnalysisDuplicator, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName),
       fromLauncher: true,
       wsName: name, googleProject, namespace, bucketName, destroyOld: false,
@@ -376,7 +375,7 @@ const PreviewHeader = ({
       onSuccess: () => setCopyingAnalysis(false)
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName), workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
@@ -502,11 +501,6 @@ const AnalysisEditorFrame = ({
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-    const pattern = Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => '.*\\.Rmd'],
-      [tools.Jupyter.label, () => '.*\\.ipynb']
-    )
-
     const setUpAnalysis = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
@@ -514,7 +508,8 @@ const AnalysisEditorFrame = ({
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
+
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'

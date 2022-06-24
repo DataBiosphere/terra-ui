@@ -72,14 +72,29 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 })
 
 export const tools = {
-  RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
-  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true },
+  RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
+  Jupyter: { label: 'Jupyter', ext: ['ipynb'], imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
   Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false }
 }
+
+export const toolExtensionDisplay = {
+  RStudio: [
+    { label: 'R Markdown (.Rmd)', value: 'Rmd' },
+    { label: 'R Script (.R)', value: 'R' }
+  ],
+  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }]
+}
+
+export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
+  [tools.RStudio.label, () => '.*\\.R(md)'],
+  [tools.Jupyter.label, () => '.*\\.ipynb']
+)
+
+export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultExt}`
 
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
@@ -88,6 +103,12 @@ export const getToolsToDisplay = isAzureWorkspace => _.flow(
 )([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
+const extensionToToolMap = (() => {
+  const extMap = {}
+  _.forEach(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
+  _.forEach(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
+  return extMap
+})()
 
 // Returns appType for app with given label, or undefined if tool is not an app.
 export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
@@ -101,7 +122,7 @@ export const isToolAnApp = label => getAppType(label) !== undefined
 // Returns registered appTypes.
 export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
 
-export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
+export const getTool = fileName => extensionToToolMap[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 export const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
@@ -155,7 +176,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       onClick: async () => {
         setCreating(true)
         try {
-          await Ajax().Buckets.notebook(googleProject, bucketName, notebookName).create(notebookData[notebookKernel])
+          await Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(notebookName)).create(notebookData[notebookKernel])
           reloadList()
           onSuccess(notebookName, notebookKernel)
         } catch (error) {
@@ -203,10 +224,9 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   useOnMount(() => {
     const loadNames = async () => {
       const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-      const existingNames = _.map(({ name }) => getDisplayName(name), existingAnalyses)
+      const existingNames = _.map(({ name }) => getFileName(name), existingAnalyses)
       setExistingNames(existingNames)
     }
-
     loadNames()
   })
 
@@ -227,12 +247,12 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
         try {
           await (destroyOld ?
             Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
-            Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.analysis(googleProject, bucketName, getFileName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
             Nav.goToPath(analysisLauncherTabName, {
-              namespace, name: wsName, analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`, toolLabel
+              namespace, name: wsName, analysisName: `${newName}.${getExtension(printName)}`, toolLabel
             })
           }
           if (destroyOld) {
@@ -313,13 +333,13 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
         setProcessing(true)
         try {
           await (destroyOld ?
-            Ajax().Buckets.notebook(googleProject, bucketName, printName).rename(newName) :
-            Ajax().Buckets.notebook(googleProject, bucketName, printName).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(printName)).rename(addExtensionToNotebook(newName)) :
+            Ajax().Buckets.notebook(googleProject, bucketName, addExtensionToNotebook(printName)).copy(addExtensionToNotebook(newName), bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
             Nav.goToPath('workspace-notebook-launch', {
-              namespace, name: wsName, notebookName: `${newName}.ipynb`
+              namespace, name: wsName, notebookName: addExtensionToNotebook(newName)
             })
           }
           if (destroyOld) {
