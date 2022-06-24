@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
   click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
-  navOptionNetworkIdle, withPageLogging
+  navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -13,9 +13,10 @@ const defaultTimeout = 5 * 60 * 1000
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
   const page = await context.newPage()
+  enablePageLogging(page)
   try {
     await signIntoTerra(page, { token, testUrl })
-    return await withPageLogging(fn)({ ...options, page })
+    return await fn({ ...options, page })
   } finally {
     await page.close()
   }
@@ -31,7 +32,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
     await page.evaluate(async (name, billingProject) => {
-      return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+      await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
     console.info(`Created workspace: ${workspaceName}`)
   } catch (e) {
@@ -45,7 +46,7 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
     await page.evaluate(async (name, billingProject) => {
-      return await window.Ajax().Workspaces.workspace(billingProject, name).delete()
+      await window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, workspaceName, billingProject)
     console.info(`Deleted workspace: ${workspaceName}`)
   } catch (e) {

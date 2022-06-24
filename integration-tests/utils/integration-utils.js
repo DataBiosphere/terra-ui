@@ -334,7 +334,7 @@ const logPageError = page => {
 }
 
 const logPageConsoleMessages = page => {
-  const handle = msg => console.log('page.console', msg)
+  const handle = msg => console.log('page.console', msg.text())
   page.on('console', handle)
   return () => page.off('console', handle)
 }
@@ -348,19 +348,23 @@ const logPageAjaxResponses = page => {
   const handle = res => {
     const request = res.request()
     if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
-      console.log('page.http', `${request.method()}\t${res.status()}  ${res.url()}`)
+      console.log('page.http', `${request.method()} ${res.status()} ${res.url()}`)
     }
   }
   page.on('response', handle)
   return () => page.off('response', handle)
 }
 
-const withPageLogging = fn => async options => {
-  const { page } = options
+const enablePageLogging = page => {
   logPageAjaxResponses(page)
   logPageConsoleMessages(page)
   logPageError(page)
   logError(page)
+}
+
+const withPageLogging = fn => async options => {
+  const { page } = options
+  enablePageLogging(page)
   return await fn(options)
 }
 
@@ -405,6 +409,7 @@ module.exports = {
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
+  enablePageLogging,
   openError,
   navOptionNetworkIdle,
   maybeSaveScreenshot,
