@@ -52,7 +52,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
-        '1.0'
+        dataObj['dct:version']
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Cloud provider']),
