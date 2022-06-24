@@ -440,7 +440,7 @@ const rareX = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
 }, [
   h(ButtonPrimary, {
-    'aria-label': 'Browse TopMed data',
+    'aria-label': 'Browse RareX data',
     href: 'https://rare-x.org/xplore',
     onClick: () => captureBrowseDataEvent('RARE-X'),
     ...Utils.newTabLinkProps
