@@ -48,8 +48,7 @@ const testRunRStudioFn = _.flow(
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'Open' }))
 
-  // This is code is duplicated, but will be deleted from the run-notebook test shortly.
-  // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
+  // Find the iframe, wait until the RStudio iframe is loaded, and execute some code
   const frame = await findIframe(page, '//iframe[@title="Interactive RStudio iframe"]')
 
   await findElement(frame, '//*[@id="rstudio_container"]', { timeout: 60000 })
