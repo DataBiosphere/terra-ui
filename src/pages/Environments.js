@@ -269,6 +269,7 @@ const Environments = () => {
   const renderDetailsApp = (app, disks) => {
     const { appName, diskName, googleProject, auditInfo: { creator } } = app
     const disk = _.find({ name: diskName }, disks)
+    // There's no current plans for workspaceId to be defined for apps
     return getDetailsPopup(appName, googleProject, disk, creator, undefined)
   }
 
