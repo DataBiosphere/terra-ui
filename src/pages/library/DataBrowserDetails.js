@@ -116,10 +116,10 @@ const MainContent = ({ dataObj }) => {
     workspaceName && div({ style: { marginBottom: '1rem' } }, [
       `This data is from the Terra workspace:`,
       h(Link, {
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', display: 'block' },
+        style: { fontSize: 16, textDecoration: 'underline', textTransform: 'none', height: 'unset', display: 'block' },
         href: accessURL
       }, [
-        icon('folder', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
+        icon('folderSolid', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
         workspaceName
       ])
     ]),
