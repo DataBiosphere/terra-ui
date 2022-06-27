@@ -477,6 +477,10 @@ const WorkspaceData = _.flow(
     try {
       setSnapshotDetails(_.set([snapshotName, 'error'], false))
       const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName)
+      //Prevent duplicate id columns
+      Object.keys(entities).forEach( key => {
+        entities[key].attributeNames = entities[key].attributeNames.filter(attr => attr != entities[key].idName)
+      })
       setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
