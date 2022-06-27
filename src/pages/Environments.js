@@ -136,13 +136,28 @@ const Environments = () => {
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ? { creator } : {}),
+      Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ? { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
-    setRuntimes(newRuntimes)
-    setDisks(newDisks)
-    setApps(newApps)
+
+    const decorateLabeledCloudObjWithWorkspaceId = async cloudObject => {
+      const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
+      const details = await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace'])
+      const workspaceId = details.workspace.workspaceId
+      return { ...cloudObject, workspaceId }
+    }
+
+    const [decoratedRuntimes, decoratedDisks, decoratedApps] = [
+      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
+      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newDisks)),
+      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newApps))
+    ]
+
+    setRuntimes(decoratedRuntimes)
+    setDisks(decoratedDisks)
+    setApps(decoratedApps)
+
     if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
       setErrorRuntimeId(undefined)
     }
@@ -259,7 +274,7 @@ const Environments = () => {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
-        !!workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
+        div([strong(['Workspace ID: ']), workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -267,10 +282,9 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject, auditInfo: { creator } } = app
+    const { appName, diskName, googleProject, auditInfo: { creator }, workspaceId } = app
     const disk = _.find({ name: diskName }, disks)
-    // There's no current plans for workspaceId to be defined for apps
-    return getDetailsPopup(appName, googleProject, disk, creator, undefined)
+    return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
@@ -504,13 +518,14 @@ const Environments = () => {
             size: { basis: 90, grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
-              const { name, id, cloudContext } = filteredDisks[rowIndex]
+              const { name, id, cloudContext, workspaceId } = filteredDisks[rowIndex]
               const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               const app = _.find({ diskName: name }, apps)
               return h(PopupTrigger, {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([strong(['Name: ']), name]),
-                  div([strong(['Billing Id: ']), cloudContext.cloudResource]),
+                  div([strong(['Billing ID: ']), cloudContext.cloudResource]),
+                  div([strong(['Workspace ID: ']), workspaceId]),
                   runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
                   app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])
