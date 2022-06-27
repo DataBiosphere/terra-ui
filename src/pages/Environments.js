@@ -143,8 +143,8 @@ const Environments = () => {
 
     const decorateLabeledCloudObjWithWorkspaceId = async cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
-      const details = await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace'])
-      const workspaceId = details.workspace.workspaceId
+      const details = !!saturnWorkspaceNamespace && !!saturnWorkspaceName ? await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace']) : undefined
+      const workspaceId = details?.workspace?.workspaceId
       return { ...cloudObject, workspaceId }
     }
 
@@ -274,7 +274,7 @@ const Environments = () => {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
-        div([strong(['Workspace ID: ']), workspaceId]),
+        workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -525,7 +525,7 @@ const Environments = () => {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([strong(['Name: ']), name]),
                   div([strong(['Billing ID: ']), cloudContext.cloudResource]),
-                  div([strong(['Workspace ID: ']), workspaceId]),
+                  workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
                   runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
                   app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])
