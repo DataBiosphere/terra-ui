@@ -8,6 +8,7 @@ import terraHero from 'src/images/terra-hero.png'
 import colors from 'src/libs/colors'
 import { isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
+import { setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -116,7 +117,10 @@ const LandingPage = () => {
       ]),
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
-        onClick: () => { Nav.goToPath('library-browser') }
+        onClick: () => {
+          setLocalPref('catalog-toggle', true)
+          Nav.goToPath('library-datasets')
+        }
       }, ['Preview BETA Data Catalog'])
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
