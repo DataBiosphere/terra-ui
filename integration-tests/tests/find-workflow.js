@@ -43,7 +43,8 @@ const testFindWorkflowFn = _.flow(
 
   await Promise.all([
     page.waitForNavigation(),
-    backToTerra()
+    backToTerra(),
+    page.waitForXPath('//*[@id="signInButton"]', { visible: true })
   ])
 
   await signIntoTerra(page, { token })

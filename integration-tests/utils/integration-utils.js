@@ -160,8 +160,9 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = page => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+const waitForNoSpinners = async page => {
+  await page.waitForXPath('//*[@id="root"]')
+  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -193,10 +194,17 @@ const dismissNotifications = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  if (!!testUrl) {
+    await page.goto(testUrl, navOptionNetworkIdle())
+    // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
+    await page.waitForXPath('//*[@id="root"]')
+    await page.waitForXPath('//*[contains(normalize-space(text()),"Loading Terra")][./*[contains(@src, "/loading-spinner.svg")]]', { hidden: true })
+    // Wait for the background image to be visible. Page elements moves when it's rendering.
+    await page.waitForXPath('//*[@role="main" and contains(@style, "/static/media/landing-page-hero")]', { visible: true })
+  }
+
   await waitForNoSpinners(page)
-  await page.waitForFunction('!!window["forceSignIn"]')
+  await page.waitForFunction('window["forceSignIn"]', { polling: 100 })
   await page.evaluate(token => window.forceSignIn(token), token)
   await dismissNotifications(page)
   await waitForNoSpinners(page)
@@ -343,7 +351,8 @@ const logPageAjaxResponses = page => {
   const terraRequests = [
     'broad',
     'terra',
-    'googleapis'
+    'googleapis',
+    'bvdp'
   ]
   const handle = res => {
     const request = res.request()
@@ -370,8 +379,11 @@ const withPageLogging = fn => async options => {
 
 const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
 
-const gotoPage = (page, url) => {
-  return page.goto(url, navOptionNetworkIdle())
+const gotoPage = async (page, url) => {
+  await page.goto(url, navOptionNetworkIdle())
+  await page.waitForFunction(url => {
+    return window.location.href.includes(url)
+  }, {}, url)
 }
 
 module.exports = {
