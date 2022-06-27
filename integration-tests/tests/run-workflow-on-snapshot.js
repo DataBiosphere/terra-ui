@@ -66,7 +66,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await launchWorkflowAndWaitForSuccess(page)
 
   await clickNavChildAndLoad(page, 'data')
-  await findElement(page, clickable({ textContains: 'testsnapshot' }));
+  await findElement(page, clickable({ textContains: 'testsnapshot' }))
   await click(page, clickable({ textContains: 'Workspace Data' }))
   await findText(page, 'result: ')
 })
