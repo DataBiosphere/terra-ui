@@ -306,6 +306,8 @@ const DataTable = props => {
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => {
+            const visibleColumns = _.filter('visible', columnSettings)
+
             return h(GridTable, {
               ref: table,
               'aria-label': `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
@@ -316,7 +318,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
-              numFixedColumns: 2,
+              numFixedColumns: visibleColumns.length > 2 ? 2 : 0,
               columns: [
                 {
                   width: 70,
@@ -427,7 +429,7 @@ const DataTable = props => {
                       }
                     }
                   }
-                }, _.filter('visible', columnSettings))
+                }, visibleColumns)
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
