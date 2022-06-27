@@ -175,8 +175,8 @@ const Environments = () => {
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
     [isApp(cloudEnvironment), () => 'Kubernetes'],
-    [cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC', () => 'Dataproc'],
-    [Utils.DEFAULT, () => cloudEnvironment.runtimeConfig.cloudService])
+    [cloudEnvironment?.runtimeConfig?.cloudService === 'DATAPROC', () => 'Dataproc'],
+    [Utils.DEFAULT, () => cloudEnvironment?.runtimeConfig?.cloudService])
 
   const getCloudEnvTool = cloudEnvironment => isApp(cloudEnvironment) ?
     _.capitalize(cloudEnvironment.appType) :
@@ -254,11 +254,12 @@ const Environments = () => {
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
   }
 
-  const getDetailsPopup = (cloudEnvName, billingId, disk, creator) => {
+  const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspaceId) => {
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
-        div([strong(['Billing Id: ']), billingId]),
+        div([strong(['Billing ID: ']), billingId]),
+        !!workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -266,15 +267,15 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject } = app
+    const { appName, diskName, googleProject, auditInfo: { creator } } = app
     const disk = _.find({ name: diskName }, disks)
-    return getDetailsPopup(appName, googleProject, disk)
+    return getDetailsPopup(appName, googleProject, disk, creator, undefined)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
-    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId }, auditInfo: { creator } } = runtime
+    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId }, auditInfo: { creator }, workspaceId } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
-    return getDetailsPopup(runtimeName, cloudContext.cloudResource, disk, creator)
+    return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspaceId)
   }
 
   const renderDeleteButton = (resourceType, resource) => {
