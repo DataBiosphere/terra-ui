@@ -478,7 +478,7 @@ const WorkspaceData = _.flow(
       setSnapshotDetails(_.set([snapshotName, 'error'], false))
       const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName)
       //Prevent duplicate id columns
-      const entitiesWithoutIds = _.mapValues(value => _.update(['attributeNames'], _.without([value.idName]), value), entities)
+      const entitiesWithoutIds = _.mapValues(entity => _.update(['attributeNames'], _.without([entity.idName]), value), entities)
       setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entitiesWithoutIds))
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
