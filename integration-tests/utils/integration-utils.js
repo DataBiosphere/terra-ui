@@ -202,8 +202,8 @@ const dismissNPSSurvey = async page => {
   try {
     console.log('dismissing NPS survey')
     const iframe = await element.contentFrame()
-    const [closeButton] = await iframe.$x('.//*[@id="ask-me-later"]') // Find "Ask Me Later" button to dismiss survey popup
-    await closeButton.evaluateHandle(button => button.click(), closeButton)
+    const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]')
+    await closeButton.evaluate(button => button.click())
     await delay(500) // delayed for survey to animate off
   } catch (e) {
     console.error(e)
