@@ -365,7 +365,8 @@ const logPageAjaxResponses = page => {
   const terraRequests = [
     'broad',
     'terra',
-    'googleapis'
+    'googleapis',
+    'bvdp'
   ]
   const handle = res => {
     const request = res.request()
