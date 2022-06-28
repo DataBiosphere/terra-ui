@@ -73,7 +73,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
-            ["oidc-client-ts", "npm:2.0.4"],\
+            ["oidc-client-ts", "npm:2.0.5"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
             ["pluralize", "npm:8.0.0"],\
@@ -13474,10 +13474,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["oidc-client-ts", [\
-        ["npm:2.0.4", {\
-          "packageLocation": "./.yarn/cache/oidc-client-ts-npm-2.0.4-e87676be53-266b411794.zip/node_modules/oidc-client-ts/",\
+        ["npm:2.0.5", {\
+          "packageLocation": "./.yarn/cache/oidc-client-ts-npm-2.0.5-bed7530c2c-8db72d4f53.zip/node_modules/oidc-client-ts/",\
           "packageDependencies": [\
-            ["oidc-client-ts", "npm:2.0.4"],\
+            ["oidc-client-ts", "npm:2.0.5"],\
             ["crypto-js", "npm:4.1.1"],\
             ["jwt-decode", "npm:3.1.2"]\
           ],\
@@ -16400,7 +16400,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-oidc-context", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["@types/oidc-client-ts", null],\
             ["@types/react", null],\
-            ["oidc-client-ts", "npm:2.0.4"],\
+            ["oidc-client-ts", "npm:2.0.5"],\
             ["react", "npm:17.0.2"]\
           ],\
           "packagePeers": [\
@@ -18508,7 +18508,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
-            ["oidc-client-ts", "npm:2.0.4"],\
+            ["oidc-client-ts", "npm:2.0.5"],\
             ["outdated-browser-rework", "npm:3.0.1"],\
             ["path-to-regexp", "npm:5.0.0"],\
             ["pluralize", "npm:8.0.0"],\

@@ -112,7 +112,7 @@ const LandingPage = () => {
       }
     }, [
       div([
-        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['BETA Data Catalog']),
+        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['New Data Catalog']),
         'Preview the Data Catalog and provide valuable feedback.'
       ]),
       h(ButtonOutline, {
@@ -121,7 +121,7 @@ const LandingPage = () => {
           setLocalPref('catalog-toggle', true)
           Nav.goToPath('library-datasets')
         }
-      }, ['Preview BETA Data Catalog'])
+      }, ['Preview the new Data Catalog'])
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
       'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
