@@ -195,7 +195,7 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000)
 }
 
-const dismissSurvey = async page => {
+const dismissNPSSurvey = async page => {
   let element
   try {
     element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
@@ -228,7 +228,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await page.evaluate(token => window.forceSignIn(token), token)
 
   await dismissNotifications(page)
-  await dismissSurvey(page)
+  await dismissNPSSurvey(page)
   await waitForNoSpinners(page)
 }
 
