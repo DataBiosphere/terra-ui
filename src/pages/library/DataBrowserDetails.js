@@ -113,8 +113,8 @@ const MainContent = ({ dataObj }) => {
   const workspaceName = accessURL?.includes('/#workspaces/') && accessURL.substring(accessURL.lastIndexOf('/') + 1)
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { lineHeight: '1.5em' } }, [dataObj['dct:title']]),
-    workspaceName && div({ style: { marginBottom: '1rem' } }, [
-      `This data is from the Terra workspace:`,
+    !!workspaceName && div({ style: { marginBottom: '1rem' } }, [
+      'This data is from the Terra workspace:',
       h(Link, {
         style: { fontSize: 16, textDecoration: 'underline', textTransform: 'none', height: 'unset', display: 'block' },
         href: accessURL
