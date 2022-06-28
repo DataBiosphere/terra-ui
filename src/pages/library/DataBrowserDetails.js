@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -86,28 +85,6 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
   ])
 }
 
-const LegacyAttributesComponent = ({ dataObj }) => {
-  return h(Collapse, {
-    title: h2({ style: { fontWeight: 'normal', fontSize: '1.2rem' } }, ['Legacy Dataset Attributes']),
-    initialOpenState: true,
-    style: { borderTop: '2px solid #D6D7D7', marginTop: '1.5rem' }
-  }, [
-    div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } },
-      _.flow(
-        _.toPairs,
-        _.flatMap(([key, value]) => {
-          return div({ style: { width: '30%', margin: '0 10px' } }, [
-            h3({ style: { textTransform: 'capitalize' } }, [
-              key.split(/(?=[A-Z])/).join(' ')
-            ]),
-            div([value])
-          ])
-        })
-      )(dataObj.legacyDatasetAttributes)
-    )
-  ])
-}
-
 const MainContent = ({ dataObj }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { lineHeight: '1.5em' } }, [dataObj['dct:title']]),
@@ -124,8 +101,7 @@ const MainContent = ({ dataObj }) => {
       ])
     ]),
     dataObj['dct:description'],
-    h(MetadataDetailsComponent, { dataObj }),
-    dataObj.legacyDatasetAttributes && h(LegacyAttributesComponent, { dataObj })
+    h(MetadataDetailsComponent, { dataObj })
   ])
 }
 
