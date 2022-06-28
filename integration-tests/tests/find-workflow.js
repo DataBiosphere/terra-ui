@@ -46,6 +46,7 @@ const testFindWorkflowFn = _.flow(
     backToTerra()
   ])
 
+  await page.waitForXPath('//*[@id="signInButton"]', { visible: true })
   await signIntoTerra(page, { token })
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
