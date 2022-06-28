@@ -182,15 +182,37 @@ const delay = ms => {
 }
 
 const dismissNotifications = async page => {
-  await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(
-    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+  const notificationCloseButtonXpath = '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
+  await Promise.race([
+    delay(3000), // delayed for any alerts to show
+    page.waitForXPath(notificationCloseButtonXpath, { visible: true })
+  ])
 
+  const notificationCloseButtons = await page.$x(notificationCloseButtonXpath)
   await Promise.all(
-    notificationCloseButtons.map(handle => handle.click())
+    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
   )
+  return !!notificationCloseButtons.length && delay(1000)
+}
 
-  return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
+const dismissSurvey = async page => {
+  let element
+  try {
+    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
+  } catch (e) {
+    // NPS survey was not found
+    return
+  }
+  try {
+    console.log('dismissing NPS survey')
+    const iframe = await element.contentFrame()
+    const [closeButton] = await iframe.$x('.//*[@id="ask-me-later"]')
+    await closeButton.evaluateHandle(button => button.click(), closeButton)
+    await delay(500) // delayed for survey to animate off
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
@@ -199,14 +221,14 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
     await page.waitForXPath('//*[@id="root"]')
     await page.waitForXPath('//*[contains(normalize-space(text()),"Loading Terra")][./*[contains(@src, "/loading-spinner.svg")]]', { hidden: true })
-    // Wait for the background image to be visible. Page elements moves when it's rendering.
-    await page.waitForXPath('//*[@role="main" and contains(@style, "/static/media/landing-page-hero")]', { visible: true })
   }
 
   await waitForNoSpinners(page)
   await page.waitForFunction('window["forceSignIn"]', { polling: 100 })
   await page.evaluate(token => window.forceSignIn(token), token)
+
   await dismissNotifications(page)
+  await dismissSurvey(page)
   await waitForNoSpinners(page)
 }
 
