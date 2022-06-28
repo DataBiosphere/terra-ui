@@ -212,13 +212,8 @@ const dismissNPSSurvey = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  if (!!testUrl) {
-    await page.goto(testUrl, navOptionNetworkIdle())
-  }
-
-  // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
-  await page.waitForXPath('//*[@id="root"]')
-  await page.waitForXPath('//*[contains(normalize-space(text()),"Loading Terra")][./*[contains(@src, "/loading-spinner.svg")]]', { hidden: true })
+  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')
