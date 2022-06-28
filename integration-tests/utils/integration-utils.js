@@ -160,10 +160,8 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = async page => {
-  // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
-  await page.waitForXPath('//*[@id="root"]')
-  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+const waitForNoSpinners = page => {
+  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -183,16 +181,14 @@ const delay = ms => {
 }
 
 const dismissNotifications = async page => {
-  const notificationCloseButtonXpath = '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
-  // Don't sleep for 3 seconds if a notification was found already
-  await Promise.race([
-    delay(3000), // delayed for any alerts to show
-    page.waitForXPath(notificationCloseButtonXpath, { visible: true })
-  ])
-  const notificationCloseButtons = await page.$x(notificationCloseButtonXpath)
+  await delay(3000) // delayed for any alerts to show
+  const notificationCloseButtons = await page.$x(
+    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+
   await Promise.all(
-    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
+    notificationCloseButtons.map(handle => handle.click())
   )
+
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
@@ -225,7 +221,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   await page.waitForXPath('//*[contains(normalize-space(text()),"Loading Terra")][./*[contains(@src, "/loading-spinner.svg")]]', { hidden: true })
   await waitForNoSpinners(page)
 
-  await page.waitForFunction('window["forceSignIn"]', { polling: 100 })
+  await page.waitForFunction('!!window["forceSignIn"]')
   await page.evaluate(token => window.forceSignIn(token), token)
 
   await dismissNotifications(page)
