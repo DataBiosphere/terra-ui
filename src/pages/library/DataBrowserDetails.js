@@ -86,18 +86,18 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
 }
 
 const MainContent = ({ dataObj }) => {
+  const accessURL = dataObj['dcat:accessURL']
+  const workspaceName = accessURL?.includes('/#workspaces/') && accessURL.substring(accessURL.lastIndexOf('/') + 1)
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { lineHeight: '1.5em' } }, [dataObj['dct:title']]),
-    dataObj.dataSource && div({ style: { marginBottom: '1rem' } }, [
-      `This data is from ${dataObj.dataSource.storageSystemName}:`,
-      h(ButtonSecondary, {
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', display: 'block' },
-        onClick: () => {
-          // TODO: fill out this link
-        }
+    !!workspaceName && div({ style: { marginBottom: '1rem' } }, [
+      'This data is from the Terra workspace:',
+      h(Link, {
+        style: { fontSize: 16, textDecoration: 'underline', textTransform: 'none', height: 'unset', display: 'block' },
+        href: accessURL
       }, [
-        icon('folder', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
-        dataObj.dataSource.storageSourceName
+        icon('folderSolid', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
+        workspaceName
       ])
     ]),
     dataObj['dct:description'],

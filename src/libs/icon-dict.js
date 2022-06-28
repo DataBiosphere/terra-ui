@@ -3,9 +3,10 @@ import {
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
-  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
-  faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle,
-  faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt, faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
+  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar,
+  faFolder as faFolderSolid, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause,
+  faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt,
+  faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -79,6 +80,7 @@ const iconDict = {
   fileAlt: fa(faFileAlt),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
+  folderSolid: fa(faFolderSolid),
   'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
