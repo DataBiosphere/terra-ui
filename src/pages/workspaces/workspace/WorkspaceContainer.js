@@ -210,17 +210,19 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   const saturnWorkspaceNamespace = workspace?.workspace.namespace
   const saturnWorkspaceName = workspace?.workspace.name
 
+  console.log(workspace)
+
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshRuntimesSilently, ms)
   }
   const load = async maybeStale => {
     try {
+      const runtimeFilters = !!googleProject ? { googleProject } : {saturnWorkspaceNamespace, saturnWorkspaceName}
       const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName', saturnWorkspaceName }),
-        !!googleProject ? Ajax(signal).Runtimes.listV2({ googleProject, creator: getUser().email, saturnWorkspaceNamespace, saturnWorkspaceName }) : Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace, saturnWorkspaceName })
+        Ajax(signal).Runtimes.listV2({ ...runtimeFilters, creator: getUser().email })
       ]) : [[], []]
-
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
