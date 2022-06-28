@@ -67,7 +67,9 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await clickNavChildAndLoad(page, 'data')
   // Before click "Workspace Data" link, we need to make sure page has rendered all UI elements.
-  // "testsnapshot" link can take few seconds more to render on page.
+  // "testsnapshot" link can take few seconds more to render on page. When `testsnapshot" link is finally visible on page,
+  // all links which are below it will shift (move) downward.
+  // If we don't wait for the "testsnapshot" link to be visible in UI, the "Workspace Data" link could move when trying to click on it.
   await findElement(page, clickable({ textContains: 'testsnapshot' }))
   await click(page, clickable({ textContains: 'Workspace Data' }))
   await findText(page, 'result: ')
