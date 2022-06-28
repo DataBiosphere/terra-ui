@@ -192,13 +192,35 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
+const dismissNPSSurvey = async page => {
+  let element
+  try {
+    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
+  } catch (e) {
+    return // NPS survey was not found
+  }
+  try {
+    console.log('dismissing NPS survey')
+    const iframe = await element.contentFrame()
+    const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]')
+    await closeButton.evaluate(button => button.click())
+    await delay(500) // delayed for survey to animate off
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
+
 const signIntoTerra = async (page, { token, testUrl }) => {
   !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
+
   await page.waitForFunction('!!window["forceSignIn"]')
   await page.evaluate(token => window.forceSignIn(token), token)
+
   await dismissNotifications(page)
+  await dismissNPSSurvey(page)
   await waitForNoSpinners(page)
 }
 
