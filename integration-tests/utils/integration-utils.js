@@ -160,8 +160,10 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = page => {
-  return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
+const waitForNoSpinners = async page => {
+  // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
+  await page.waitForXPath('//*[@id="root"]')
+  await page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
 // Puppeteer works by internally using MutationObserver. We are setting up the listener before
@@ -181,24 +183,52 @@ const delay = ms => {
 }
 
 const dismissNotifications = async page => {
-  await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(
-    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
-
+  const notificationCloseButtonXpath = '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
+  // Don't sleep for 3 seconds if a notification was found already
+  await Promise.race([
+    delay(3000), // delayed for any alerts to show
+    page.waitForXPath(notificationCloseButtonXpath, { visible: true })
+  ])
+  const notificationCloseButtons = await page.$x(notificationCloseButtonXpath)
   await Promise.all(
-    notificationCloseButtons.map(handle => handle.click())
+    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
   )
-
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
+const dismissNPSSurvey = async page => {
+  let element
+  try {
+    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
+  } catch (e) {
+    return // NPS survey was not found
+  }
+  try {
+    console.log('dismissing NPS survey')
+    const iframe = await element.contentFrame()
+    const [closeButton] = await iframe.$x('.//*[@id="ask-me-later"]') // Find "Ask Me Later" button to dismiss survey popup
+    await closeButton.evaluateHandle(button => button.click(), closeButton)
+    await delay(500) // delayed for survey to animate off
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
+
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  if (!!testUrl) {
+    await page.goto(testUrl, navOptionNetworkIdle())
+    // Wait for id="root" element first to prevent checking Loading Terra... spinner too soon
+    await page.waitForXPath('//*[@id="root"]')
+    await page.waitForXPath('//*[contains(normalize-space(text()),"Loading Terra")][./*[contains(@src, "/loading-spinner.svg")]]', { hidden: true })
+  }
+
   await waitForNoSpinners(page)
-  await page.waitForFunction('!!window["forceSignIn"]')
+  await page.waitForFunction('window["forceSignIn"]', { polling: 100 })
   await page.evaluate(token => window.forceSignIn(token), token)
+
   await dismissNotifications(page)
+  await dismissNPSSurvey(page)
   await waitForNoSpinners(page)
 }
 
