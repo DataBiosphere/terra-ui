@@ -16,7 +16,6 @@ import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMe
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-
 const styles = {
   ...commonStyles,
   table: {

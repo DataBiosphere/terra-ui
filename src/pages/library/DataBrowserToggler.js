@@ -72,8 +72,7 @@ const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
 }
 
 
-export const DataBrowserPreviewToggler = ({onChange, catalogShowing}) => {
-  const { user: { id } } = useStore(authStore)
+export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [thanksShowing, setThanksShowing] = useState(false)
 

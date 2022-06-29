@@ -457,17 +457,18 @@ const DatasetsAuthWrapper = () => {
 
 const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
-  console.log('DATASETS CAT SHOWING ' + catalogShowing)
+  console.log(`DATASETS CAT SHOWING ${catalogShowing}`)
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
-    h(DataBrowserPreviewToggler, { onChange: (value) => {
+    h(DataBrowserPreviewToggler, {
+      onChange: value => {
         setCatalogShowing(value)
         setLocalPref('catalog-toggle', value)
       },
       catalogShowing
     }),
-    catalogShowing? h(Browser) :
-    div({ role: 'main', style: styles.content }, [
+    catalogShowing ? h(Browser) :
+      div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
       hca(), nemo(), target(), tcga(), topMed(), rareX()

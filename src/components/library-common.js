@@ -12,7 +12,7 @@ const TAB_LINKS = {
   'code & workflows': 'library-code'
 }
 
-export const libraryTopMatter = (activeTab) => {
+export const libraryTopMatter = activeTab => {
   return h(Fragment, [
     h(TopBar, { title: 'Library', href: Nav.getLink('root') }),
     h(TabBar, {
