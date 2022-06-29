@@ -21,4 +21,4 @@ COPY config/emay.json build/config.json
 
 EXPOSE 8080
 
-CMD [ "/usr/local/bin/npx", "serve -s build" ]
+CMD npx serve build -l 8080
