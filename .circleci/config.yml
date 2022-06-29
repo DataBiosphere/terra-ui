@@ -1,7 +1,24 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@3.4.2
+  slack: circleci/slack@4.10.1
+
+anchors:
+  # Run jobs for PR branches only. No tags and Dev branch.
+  filter-pr-branch: &filter-pr-branch
+    filters:
+      tags:
+        ignore: /.*/
+      branches:
+        ignore: dev
+
+  # Run jobs for Dev branch only. No PR branch and tags branch.
+  filter-dev-branch: &filter-dev-branch
+    filters:
+      tags:
+        ignore: /.*/
+      branches:
+        only: dev
 
 executors:
   node:
@@ -168,18 +185,17 @@ commands:
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
-  notify-qa:
+  notify_slack_error:
     parameters:
       channel:
         type: string
         default: ""
     steps:
-      - slack/status:
+      - slack/notify:
+          branch_pattern: dev
           channel: << parameters.channel >>
-          include_job_number_field: false
-          include_project_field: false
-          failure_message: ":sadpanda: $CIRCLE_JOB failed."
-          success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
+          event: fail
+          template: basic_fail_1
 
 jobs:
   build:
@@ -224,7 +240,7 @@ jobs:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
-      - notify-qa:
+      - notify_slack_error:
           channel: "C7H40L71D" # dsde-qa-notify
   deploy-perf:
     executor: gcloud
@@ -238,92 +254,70 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
-      - notify-qa:
+      - notify_slack_error:
           channel: "C7H40L71D" # dsde-qa-notify
-  integration-tests-branch-against-dev:
+  integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
     executor: puppeteer
     parallelism: 4
     steps:
       - integration-tests:
           local: true
-          env: local
-  integration-tests-alpha:
+          env: staging
+  integration-tests-alpha-experiment: # TODO remove string -experiment
     executor: puppeteer
-    parallelism: 1 # No way to prevent multiple Slack messages otherwise
+    parallelism: 4
     steps:
       - integration-tests:
           env: alpha
-      - notify-qa
-  integration-tests-staging:
+      - notify_slack_error
+  integration-tests-staging-experiment: # TODO remove string -experiment
     executor: puppeteer
-    parallelism: 1 # No way to prevent multiple Slack messages otherwise
+    parallelism: 4
     steps:
       - integration-tests:
           env: staging
-      - notify-qa
+      - notify_slack_error
 
 workflows:
   version: 2
-  build-deploy:
+  build-deploy-experiment:  # TODO change back to build-deploy
     jobs:
       - build
-      - integration-tests-branch-against-dev:
+      - integration-tests-staging-experiment: # TODO remove string -experiment
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-pr:
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-dev:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-alpha:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-perf:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-staging:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
-      - integration-tests-alpha:
-          requires:
-            - deploy-alpha
-          filters:
-            branches:
-              only: dev
-      - integration-tests-staging:
+      - integration-tests-staging-experiment: # TODO remove string -experiment
+          <<: *filter-dev-branch
           requires:
             - deploy-staging
-          filters:
-            branches:
-              only: dev
+
   nightly-integration-tests:
     triggers:
-      - schedule:
+      - schedule: # workflows use UTC as the timezone. EST is 5 hours behind UTC. Day-light saving is 4 hours behind.
           cron: "0 13 * * *"
           filters:
             branches:
               only: dev
     jobs:
-      - integration-tests-alpha
-      - integration-tests-staging
+      - integration-tests-alpha-experiment
