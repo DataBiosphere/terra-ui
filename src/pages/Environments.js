@@ -141,12 +141,12 @@ const Environments = () => {
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
 
-    const decorateLabeledCloudObjWithWorkspaceId = async cloudObject => {
+    const decorateLabeledCloudObjWithWorkspaceId = withErrorIgnoring(async cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
-      const details = !!saturnWorkspaceNamespace && !!saturnWorkspaceName ? await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace']) : undefined
+      const details = !!saturnWorkspaceNamespace && !!saturnWorkspaceName ? await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace']).catch(_ => undefined) : undefined
       const workspaceId = details?.workspace?.workspaceId
       return { ...cloudObject, workspaceId }
-    }
+    })
 
     const [decoratedRuntimes, decoratedDisks, decoratedApps] = [
       await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
