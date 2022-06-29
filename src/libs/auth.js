@@ -82,19 +82,24 @@ const revokeTokens = async () => {
 }
 
 const getSigninArgs = includeBillingScope => {
-  return includeBillingScope === true ? {
-    scope: `
-    openid
-    email
-    profile
-    https://www.googleapis.com/auth/cloud-billing
-  `.trim().split(/\s+/).join(' ')
-  } : {}
+  return Utils.cond(
+    [includeBillingScope === false, () => {}],
+    // If the login authority is Google, we can just append the scope to the signin args.
+    [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
+    // If the login authority is B2C, switch to a dedicated policy endpoint configured for
+    // the GCP cloud-billing scope.
+    () => ({
+      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
+      extraTokenParams: { p: getConfig().b2cBillingPolicy }
+    })
+  )
 }
 
 export const signIn = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
-  return getAuthInstance().signinPopup(args).catch(() => false)
+  return getAuthInstance().signinPopup(args)
+    .then(user => processUser(user, true, includeBillingScope))
+    .catch(() => false)
 }
 
 export const reloadAuthToken = (includeBillingScope = false) => {
@@ -103,17 +108,7 @@ export const reloadAuthToken = (includeBillingScope = false) => {
 }
 
 export const hasBillingScope = () => {
-  const scope = getUser().scope
-  return Utils.cond(
-    // If the scope is undefined in the auth store, assume we don't have the billing scope.
-    // This can happen in integration tests.
-    [_.isNil(scope), () => false],
-    // For now B2C always requests the cloud-billing scope from the get-go for Google logins.
-    // TOAZ-146 is open to not request this scope initially and elevate it on demand.
-    [isGoogleAuthority() === false, () => true],
-    // Otherwise test the actual scope value.
-    [Utils.DEFAULT, () => _.includes('https://www.googleapis.com/auth/cloud-billing', scope)]
-  )
+  return authStore.get().hasGcpBillingScope === true
 }
 
 /*
@@ -172,7 +167,7 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
-export const processUser = (user, isSignInEvent) => {
+export const processUser = (user, isSignInEvent, hasGcpBillingScope = false) => {
   return authStore.update(state => {
     const isSignedIn = !_.isNil(user)
     const profile = user?.profile
@@ -201,6 +196,7 @@ export const processUser = (user, isSignInEvent) => {
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
+      hasGcpBillingScope,
       user: {
         token: user?.access_token,
         scope: user?.scope,
