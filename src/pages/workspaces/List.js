@@ -319,7 +319,7 @@ export const WorkspaceList = () => {
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
             placeholder: 'Search by keyword',
-            'aria-label': 'Search workspaces',
+            'aria-label': 'Search workspaces by keyword',
             onChange: newFilter => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
             value: filter
           })
