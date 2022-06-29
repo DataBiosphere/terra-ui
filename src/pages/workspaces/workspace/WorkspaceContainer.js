@@ -210,8 +210,6 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   const saturnWorkspaceNamespace = workspace?.workspace.namespace
   const saturnWorkspaceName = workspace?.workspace.name
 
-  console.log(workspace)
-
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshRuntimesSilently, ms)
