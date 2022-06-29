@@ -191,10 +191,12 @@ commands:
         type: string
         default: ""
     steps:
+      - run:
+          command: echo << parameters.channel >>
       - slack/notify:
           branch_pattern: dev
           channel: << parameters.channel >>
-          event: fail
+          event: always # TODO change to fail
           template: basic_fail_1
 
 jobs:
@@ -263,6 +265,7 @@ jobs:
       - integration-tests:
           local: true
           env: staging
+      - notify_slack_error
   integration-tests-alpha-experiment: # TODO remove string -experiment
     executor: puppeteer
     parallelism: 4
@@ -283,7 +286,7 @@ workflows:
   build-deploy-experiment:  # TODO change back to build-deploy
     jobs:
       - build
-      - integration-tests-staging-experiment: # TODO remove string -experiment
+      - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
           <<: *filter-pr-branch
           requires:
             - build
