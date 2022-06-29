@@ -373,8 +373,10 @@ const Environments = () => {
     h(TopBar, { title: 'Cloud Environments' }),
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
-      h(LabeledCheckbox, { checked: shouldFilterRuntimesByCreator, onChange: setShouldFilterRuntimesByCreator }, [
-        span({ style: { fontWeight: 600 } }, [' Hide cloud environments you have access to but didn\'t create'])
+      div({ style: { marginBottom: '.5rem' } }, [
+        h(LabeledCheckbox, { checked: shouldFilterRuntimesByCreator, onChange: setShouldFilterRuntimesByCreator }, [
+          span({ style: { fontWeight: 600 } }, [' Hide cloud environments you have access to but didn\'t create'])
+        ])
       ]),
       runtimes && h(SimpleFlexTable, {
         'aria-label': 'cloud environments',
