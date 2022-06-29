@@ -95,15 +95,6 @@ jobs:
       - name: Push image
         run: "docker push ${{ steps.image-name.outputs.tagged }}"
       
-      - name: Comment pushed image
-        uses: actions/github-script@0.3.0
-        if: github.event_name == 'pull_request'
-        with:
-          github-token: ${{ secrets.BROADBOT_TOKEN }}
-          script: |
-            const { issue: { number: issue_number }, repo: { owner, repo }  } = context;
-            github.issues.createComment({ issue_number, owner, repo, body: 'Pushed image for DevOps testing (versioned automatically, separate from the datamodel files themselves): ${{ steps.image-name.outputs.tagged }}' });
-      
       # Add latest tag to image (optional)
       - name: Add latest tag to Docker image
         if: github.event_name != 'pull_request'
