@@ -194,7 +194,7 @@ commands:
       - run:
           command: echo << parameters.channel >>
       - slack/notify:
-          branch_pattern: dev
+          # branch_pattern: dev
           channel: << parameters.channel >>
           event: always # TODO change to fail
           template: basic_fail_1
