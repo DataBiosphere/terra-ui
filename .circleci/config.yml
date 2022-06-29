@@ -185,7 +185,7 @@ commands:
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
-  notify-slack-error:
+  notify-slack:
     parameters:
       channel:
         type: string
@@ -196,8 +196,13 @@ commands:
       - slack/notify:
           # branch_pattern: dev
           channel: << parameters.channel >>
-          event: always # TODO change to fail
+          event: fail
           template: basic_fail_1
+      - slack/notify:
+          # branch_pattern: dev
+          channel: << parameters.channel >>
+          event: pass
+          template: basic_success_1
 
 jobs:
   build:
@@ -242,7 +247,7 @@ jobs:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
-      - notify-slack-error:
+      - notify-slack:
           channel: "C7H40L71D" # dsde-qa-notify
   deploy-perf:
     executor: gcloud
@@ -256,7 +261,7 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
-      - notify-slack-error:
+      - notify-slack:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
     executor: puppeteer
@@ -265,7 +270,7 @@ jobs:
       - integration-tests:
           local: true
           env: staging
-      - notify-slack-error:
+      - notify-slack:
           channel: "C03ESC8SRPB" # alexw-slack-app-testing
   integration-tests-alpha-experiment: # TODO remove string -experiment
     executor: puppeteer
@@ -273,14 +278,16 @@ jobs:
     steps:
       - integration-tests:
           env: alpha
-      - notify-slack-error
+      - notify-slack:
+          channel: "C03ESC8SRPB" # alexw-slack-app-testing
   integration-tests-staging-experiment: # TODO remove string -experiment
     executor: puppeteer
     parallelism: 4
     steps:
       - integration-tests:
           env: staging
-      - notify-slack-error
+      - notify-slack:
+          channel: "C03ESC8SRPB" # alexw-slack-app-testing
 
 workflows:
   version: 2
@@ -288,6 +295,7 @@ workflows:
     jobs:
       - build
       - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
+          context: slack-secrets
           <<: *filter-pr-branch
           requires:
             - build
@@ -312,13 +320,14 @@ workflows:
           requires:
             - build
       - integration-tests-staging-experiment: # TODO remove string -experiment
+          context: slack-secrets
           <<: *filter-dev-branch
           requires:
             - deploy-staging
 
   nightly-integration-tests:
     triggers:
-      - schedule: # workflows use UTC as the timezone. EST is 5 hours behind UTC. Day-light saving is 4 hours behind.
+      - schedule: # workflows use UTC as the timezone. EST is 5 hours behind UTC. With day-light saving, it's 4 hours behind.
           cron: "0 13 * * *"
           filters:
             branches:
