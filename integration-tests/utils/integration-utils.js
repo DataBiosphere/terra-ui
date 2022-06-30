@@ -361,7 +361,7 @@ const logPageConsoleMessages = page => {
   return () => page.off('console', handle)
 }
 
-const logPageAjaxResponses = page => {
+const logPageResponses = page => {
   const terraRequests = [
     'broad',
     'terra',
@@ -379,7 +379,7 @@ const logPageAjaxResponses = page => {
 }
 
 const enablePageLogging = page => {
-  logPageAjaxResponses(page)
+  logPageResponses(page)
   logPageConsoleMessages(page)
   logPageError(page)
   logError(page)
@@ -428,7 +428,6 @@ module.exports = {
   findInDataTableRow,
   withScreenshot,
   logPageConsoleMessages,
-  logPageAjaxResponses,
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
