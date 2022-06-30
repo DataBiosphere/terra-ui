@@ -449,12 +449,6 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const DatasetsAuthWrapper = () => {
-  // unused variable to re-render Datasets
-  const authState = useStore(authStore)
-  return h(Datasets)
-}
-
 const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
   return h(FooterWrapper, { alwaysShow: true }, [
@@ -480,7 +474,7 @@ export const navPaths = [
   {
     name: 'library-datasets',
     path: '/library/datasets',
-    component: DatasetsAuthWrapper,
+    component: Datasets,
     public: false,
     title: 'Datasets'
   }
