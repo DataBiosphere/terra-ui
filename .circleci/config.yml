@@ -31,7 +31,7 @@ anchors:
     post-steps:
       - slack/notify:
           channel: "C03ESC8SRPB" # alexw-slack-app-testing
-          basic_success_1
+          template: basic_success_1
           event: pass
 
 executors:
@@ -291,16 +291,12 @@ jobs:
     steps:
       - integration-tests:
           env: alpha
-      - notify-slack:
-          channel: "C03ESC8SRPB" # alexw-slack-app-testing
   integration-tests-staging-experiment: # TODO remove string -experiment
     executor: puppeteer
     parallelism: 4
     steps:
       - integration-tests:
           env: staging
-      - notify-slack:
-          channel: "C03ESC8SRPB" # alexw-slack-app-testing
 
 workflows:
   version: 2
