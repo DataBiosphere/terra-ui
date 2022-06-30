@@ -24,64 +24,15 @@ anchors:
     post-steps:
       - slack/notify:
           channel: "C03ESC8SRPB" # alexw-slack-app-testing
-          custom: |
-            {
-              "text": "",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "❌ *Failure* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
-                  }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "View Job"
-                      },
-                      "url": "${CIRCLE_BUILD_URL}"
-                    }
-                  ]
-                }
-              ]
-            }
+          template: basic_fail_1
           event: fail
 
   notify-slack-pass-post-step: &notify-slack-pass-post-step
     post-steps:
       - slack/notify:
-          custom: |
-            {
-              "text": "",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
-                  }
-                },
-                {
-                  "type": "actions",
-                  "elements": [
-                    {
-                      "type": "button",
-                      "text": {
-                        "type": "plain_text",
-                        "text": "View Job"
-                      },
-                      "url": "${CIRCLE_BUILD_URL}"
-                    }
-                  ]
-                }
-              ]
-            }
-          event: always
+          channel: "C03ESC8SRPB" # alexw-slack-app-testing
+          basic_success_1
+          event: pass
 
 executors:
   node:
@@ -252,30 +203,20 @@ commands:
     parameters:
       channel:
         type: string
-        default: ""
-      success:
-        type: boolean
-        default: true
+        default: "C7H40L71D" # dsde-qa-notify
     steps:
       - run:
           command: echo << parameters.channel >>
-      - when:
-          condition: << parameters.success >>
-          steps:
-            - slack/notify:
-                # branch_pattern: dev
-                channel: << parameters.channel >>
-                event: pass
-                template: basic_success_1
-      - unless:
-          condition: << parameters.success >>
-          steps:
-            - slack/notify:
-                # branch_pattern: dev
-                channel: << parameters.channel >>
-                event: fail
-                template: basic_fail_1
-
+      - slack/notify:
+          # branch_pattern: dev
+          channel: << parameters.channel >>
+          event: pass
+          template: basic_success_1
+      - slack/notify:
+          # branch_pattern: dev
+          channel: << parameters.channel >>
+          event: fail
+          template: basic_fail_1
 
 
 jobs:
@@ -370,10 +311,12 @@ workflows:
             - slack-secrets
           <<: *notify-slack-fail-post-step
       - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
+          <<: *filter-pr-branch
           context:
             - slack-secrets
-          <<: *filter-pr-branch
-          <<: *notify-slack-fail-post-step
+          post-steps:
+            - notify-slack:
+                channel: "C03ESC8SRPB" # alexw-slack-app-testing
           requires:
             - build
       - deploy-pr:
@@ -397,7 +340,8 @@ workflows:
           requires:
             - build
       - integration-tests-staging-experiment: # TODO remove string -experiment
-          context: slack-secrets
+          context:
+            - slack-secrets
           <<: *filter-dev-branch
           requires:
             - deploy-staging
