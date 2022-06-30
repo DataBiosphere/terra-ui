@@ -259,22 +259,22 @@ commands:
     steps:
       - run:
           command: echo << parameters.channel >>
-      -when:
-        condition: << parameters.success >>
-        steps:
-          - slack/notify:
-              # branch_pattern: dev
-              channel: << parameters.channel >>
-              event: pass
-              template: basic_success_1
-      -unless:
-        condition: << parameters.success >>
-        steps:
-          - slack/notify:
-              # branch_pattern: dev
-              channel: << parameters.channel >>
-              event: fail
-              template: basic_fail_1
+      - when:
+          condition: << parameters.success >>
+          steps:
+            - slack/notify:
+                # branch_pattern: dev
+                channel: << parameters.channel >>
+                event: pass
+                template: basic_success_1
+      - unless:
+          condition: << parameters.success >>
+          steps:
+            - slack/notify:
+                # branch_pattern: dev
+                channel: << parameters.channel >>
+                event: fail
+                template: basic_fail_1
 
 
 
