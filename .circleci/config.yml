@@ -367,7 +367,7 @@ workflows:
     jobs:
       - build:
           context:
-            - slack
+            - slack-secrets
           <<: *notify-slack-fail-post-step
       - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
           context:
