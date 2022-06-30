@@ -32,7 +32,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
       strong(['Pending']), `.`
     ]),
     div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
-      `Let's continue testing the New Data Catalog!`,
+      `Let's continue testing the new Data Catalog!`,
       h(ButtonPrimary, {
         onClick: onDismiss,
         style: { padding: '20px 30px' }
