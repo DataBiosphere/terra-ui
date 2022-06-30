@@ -15,11 +15,13 @@ on:
   pull_request:
     paths-ignore:
       - 'README.md'
+      - 'integration-tests'
   push:
     branches:
       - dev
     paths-ignore:
       - 'README.md'
+      - 'integration-tests'
 env:
   GOOGLE_PROJECT: dsp-artifact-registry
   # Name of the app-specific Docker repository configured in GOOGLE_PROJECT

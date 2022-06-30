@@ -10,9 +10,6 @@ COPY . .
 RUN yarn install --immutable-cache
 RUN npm install --location=global serve # to serve the app
 
-# Run the linter
-RUN yarn eslint --max-warnings=0 .
-
 # Build the app
 RUN DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
 
