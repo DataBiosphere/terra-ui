@@ -115,7 +115,9 @@ export const reloadAuthToken = (includeBillingScope = false) => {
 
 export const hasBillingScope = () => {
   return Utils.cond(
+    // For Google check the scope directly on the user object.
     [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
+    // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
     () => authStore.get().hasGcpBillingScopeThroughB2C === true
   )
 }
