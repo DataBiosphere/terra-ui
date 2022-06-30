@@ -20,6 +20,69 @@ anchors:
       branches:
         only: dev
 
+  notify-slack-fail-post-step: &notify-slack-fail-post-step
+    post-steps:
+      - slack/notify:
+          channel: "C03ESC8SRPB" # alexw-slack-app-testing
+          custom: |
+            {
+              "text": "",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *Failure* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Job"
+                      },
+                      "url": "${CIRCLE_BUILD_URL}"
+                    }
+                  ]
+                }
+              ]
+            }
+          event: fail
+
+  notify-slack-pass-post-step: &notify-slack-pass-post-step
+    post-steps:
+      - slack/notify:
+          custom: |
+            {
+              "text": "",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *Success* #${CIRCLE_BUILD_NUM} `${CIRCLE_PROJECT_REPONAME}` on `${CIRCLE_BRANCH}`"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "View Job"
+                      },
+                      "url": "${CIRCLE_BUILD_URL}"
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
+
 executors:
   node:
     working_directory: /mnt/ramdisk
@@ -190,19 +253,30 @@ commands:
       channel:
         type: string
         default: ""
+      success:
+        type: boolean
+        default: true
     steps:
       - run:
           command: echo << parameters.channel >>
-      - slack/notify:
-          # branch_pattern: dev
-          channel: << parameters.channel >>
-          event: fail
-          template: basic_fail_1
-      - slack/notify:
-          # branch_pattern: dev
-          channel: << parameters.channel >>
-          event: pass
-          template: basic_success_1
+      -when:
+        condition: << parameters.success >>
+        steps:
+          - slack/notify:
+              # branch_pattern: dev
+              channel: << parameters.channel >>
+              event: pass
+              template: basic_success_1
+      -unless:
+        condition: << parameters.success >>
+        steps:
+          - slack/notify:
+              # branch_pattern: dev
+              channel: << parameters.channel >>
+              event: fail
+              template: basic_fail_1
+
+
 
 jobs:
   build:
@@ -270,8 +344,6 @@ jobs:
       - integration-tests:
           local: true
           env: staging
-      - notify-slack:
-          channel: "C03ESC8SRPB" # alexw-slack-app-testing
   integration-tests-alpha-experiment: # TODO remove string -experiment
     executor: puppeteer
     parallelism: 4
@@ -293,10 +365,15 @@ workflows:
   version: 2
   build-deploy-experiment:  # TODO change back to build-deploy
     jobs:
-      - build
+      - build:
+          context:
+            - slack
+          <<: *notify-slack-fail-post-step
       - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
-          context: slack-secrets
+          context:
+            - slack-secrets
           <<: *filter-pr-branch
+          <<: *notify-slack-fail-post-step
           requires:
             - build
       - deploy-pr:
@@ -334,3 +411,10 @@ workflows:
               only: dev
     jobs:
       - integration-tests-alpha-experiment
+
+experimental:
+  # Undocumented but it's still working as of today.
+  notify:
+    branches:
+      only:
+        - dev
