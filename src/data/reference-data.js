@@ -111,5 +111,5 @@ export default {
   'ARS-UI-Ramb-v2-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/O.aries/ARS-UI_Ramb_v2.0/GCF_016772045.1_ARS-UI_Ramb_v2.0_genomic.fna'
   }
-  
+
 }
