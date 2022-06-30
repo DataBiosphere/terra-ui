@@ -9,8 +9,6 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { FormLabel } from 'src/libs/forms'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 

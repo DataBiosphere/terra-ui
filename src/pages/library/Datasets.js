@@ -457,7 +457,6 @@ const DatasetsAuthWrapper = () => {
 
 const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
-  console.log(`DATASETS CAT SHOWING ${catalogShowing}`)
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
     h(DataBrowserPreviewToggler, {
