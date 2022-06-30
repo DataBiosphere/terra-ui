@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, select, getAnimatedDrawer, image, input
+  click, clickable, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, select, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -17,7 +17,7 @@ const testRunAnalysisFn = _.flow(
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create analysis file
-//  await click(page, clickable({ textContains: 'Start' }))
+  //  await click(page, clickable({ textContains: 'Start' }))
   //await findElement(page, getAnimatedDrawer('Select an application'))
   //await click(page, image({ text: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
