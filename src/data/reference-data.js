@@ -69,25 +69,25 @@ export default {
     mills_resource_vcf_index: 'gs://gcp-public-data--broad-references/hg38/v0/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz.tbi',
     ref_pac: 'gs://gcp-public-data--broad-references/hg38/v0/Homo_sapiens_assembly38.fasta.64.pac'
   },
-  Mmul_10: {
+  'Mmul-10': {
     ref_fasta: 'gs://gcp-public-data--broad-references/M.mulatta/Mmul_10/GCF_003339765.1_Mmul_10_genomic.fna'
   },
-  Clint_PTRv2: {
+  'Clint-PTRv2': {
     ref_fasta: 'gs://gcp-public-data--broad-references/P.troglodytes/Clint_PTRv2/GCF_002880755.1_Clint_PTRv2_genomic.fna'
   },
   GRCm39: {
     ref_fasta: 'gs://gcp-public-data--broad-references/GRCm39/GCF_000001635.27_GRCm39_genomic.fna'
   },
-  mRatBN7_2: {
+  'mRatBN7-2': {
     ref_fasta: 'gs://gcp-public-data--broad-references/R.norvegicus/mRatBN7.2/GCF_015227675.2_mRatBN7.2_genomic.fna'
   },
-  Rnor_6_0: {
+  'Rnor-6-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/R.norvegicus/Rnor_6.0/GCA_000001895.4_Rnor_6.0_genomic.fna'
   },
-  Release_6_plus_ISO1_MT: {
+  'Release-6-plus-ISO1-MT': {
     ref_fasta: 'gs://gcp-public-data--broad-references/D.melanogaster/Release_6_plus_ISO1_MT/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna'
   },
-  UCB_Xtro_10_0: {
+  'UCB-Xtro-10-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/X.tropicalis/UCB_Xtro_10.0/GCF_000004195.4_UCB_Xtro_10.0_genomic.fna'
   },
   GRCz11: {
@@ -99,16 +99,16 @@ export default {
   R64: {
     ref_fasta: 'gs://gcp-public-data--broad-references/S.cerevisiae/R64/GCF_000146045.2_R64_genomic.fna'
   },
-  ROS_Cfam_1_0: {
+  'ROS-Cfam-1-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/C.lupus_familiaris/ROS_Cfam_1.0/GCF_014441545.1_ROS_Cfam_1.0_genomic.fna'
   },
-  UU_Cfam_GSD_1_0: {
+  'UU-Cfam-GSD-1-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/C.lupus_familiaris/UU_Cfam_GSD_1.0/GCA_011100685.1_UU_Cfam_GSD_1.0_genomic.fna'
   },
-  Sscrofa11_1: {
+  'Sscrofa11-1': {
     ref_fasta: 'gs://gcp-public-data--broad-references/S.scrofa/Sscrofa11.1/GCF_000003025.6_Sscrofa11.1_genomic.fna'
   },
-  ARS_UI_Ramb_v2_0: {
+  'ARS-UI-Ramb-v2-0': {
     ref_fasta: 'gs://gcp-public-data--broad-references/O.aries/ARS-UI_Ramb_v2.0/GCF_016772045.1_ARS-UI_Ramb_v2.0_genomic.fna'
   }
 }
