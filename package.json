@@ -115,7 +115,7 @@
     "integration-tests"
   ],
   "lint-staged": {
-    "**/*.{js,jsx}": [
+    "**/*.js": [
       "yarn eslint"
     ]
   }
