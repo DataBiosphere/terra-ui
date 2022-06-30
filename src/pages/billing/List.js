@@ -309,6 +309,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   )(() => {
     if (Auth.hasBillingScope()) {
       return Ajax(signal).Billing.listAccounts()
+        .then(_.filter('firecloudHasAccess'))
         .then(_.keyBy('accountName'))
         .then(setBillingAccounts)
     }
