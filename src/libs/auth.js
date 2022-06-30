@@ -84,10 +84,9 @@ const revokeTokens = async () => {
 const getSigninArgs = includeBillingScope => {
   return Utils.cond(
     [includeBillingScope === false, () => {}],
-    // If the login authority is Google, just append the scope to the signin args.
+    // For Google just append the scope to the signin args.
     [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
-    // If the login authority is B2C, switch to a dedicated policy endpoint configured
-    // for the GCP cloud-billing scope.
+    // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
     () => ({
       extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
       extraTokenParams: { p: getConfig().b2cBillingPolicy }
@@ -99,8 +98,9 @@ export const signIn = async (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
   const user = await getAuthInstance().signinPopup(args)
 
-  // For B2C record whether we requested the GCP cloud-billing scope in the auth store.
-  // We don't need to do this for Google since we can inspect the scope directly in the user object.
+  // For B2C record in the auth store whether we requested the GCP cloud-billing scope since there
+  // is no way to determine it after the fact.
+  // For Google we don't need to do this since we can inspect the scope directly in the user object.
   if (!isGoogleAuthority()) {
     authStore.update(state => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }))
   }
