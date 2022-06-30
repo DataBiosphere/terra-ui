@@ -180,16 +180,6 @@ const overrideConfig = async (page, configToPassIn) => {
   await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
 }
 
-const enableDataCatalog = async (page, testUrl, token) => {
-  await gotoPage(page, testUrl)
-  await waitForNoSpinners(page)
-
-  await findText(page, 'Browse Data')
-
-  await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, { token })
-}
-
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
   await Promise.all([
