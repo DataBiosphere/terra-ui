@@ -205,13 +205,11 @@ commands:
         type: string
         default: "C7H40L71D" # dsde-qa-notify
     steps:
-      - run:
-          command: echo << parameters.channel >>
-      - slack/notify:
+      #- slack/notify:
           # branch_pattern: dev
-          channel: << parameters.channel >>
-          event: pass
-          template: basic_success_1
+      #    channel: << parameters.channel >>
+      #    event: pass
+      #    template: basic_success_1
       - slack/notify:
           # branch_pattern: dev
           channel: << parameters.channel >>
@@ -302,10 +300,7 @@ workflows:
   version: 2
   build-deploy-experiment:  # TODO change back to build-deploy
     jobs:
-      - build:
-          context:
-            - slack-secrets
-          <<: *notify-slack-fail-post-step
+      - build
       - integration-tests-branch-against-staging-experiment: # TODO remove string -experiment
           <<: *filter-pr-branch
           context:
