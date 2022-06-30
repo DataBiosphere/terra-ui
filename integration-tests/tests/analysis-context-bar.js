@@ -20,10 +20,10 @@ const testAnalysisContextBarFn = _.flow(
   await findElement(page, clickable({ textContains: tooltipTextTerminal, isEnabled: false }))
 
   // Create a runtime
-  await click(page, clickable({ textContains: 'Environment Configuration' }))
-  await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
-  await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
-  await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
+  // await click(page, clickable({ textContains: 'Environment Configuration' }))
+  // await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  // await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
+  // await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
 
   // We need a way to determine UI has finished loading after click Create. The START button is located in the main page.
