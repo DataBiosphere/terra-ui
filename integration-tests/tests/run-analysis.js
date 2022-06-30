@@ -17,9 +17,9 @@ const testRunAnalysisFn = _.flow(
   await performAnalysisTabSetup(page, token, testUrl, workspaceName)
 
   // Create analysis file
-  await click(page, clickable({ textContains: 'Start' }))
-  await findElement(page, getAnimatedDrawer('Select an application'))
-  await click(page, image({ text: 'Create new notebook' }))
+//  await click(page, clickable({ textContains: 'Start' }))
+  //await findElement(page, getAnimatedDrawer('Select an application'))
+  //await click(page, image({ text: 'Create new notebook' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })

@@ -38,7 +38,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
-  await click(page, clickable({ text: 'Import' }))
+  // await click(page, clickable({ text: 'Import' }))
 
   // ADD WORKFLOW
   await click(page, navChild('workflows'))
