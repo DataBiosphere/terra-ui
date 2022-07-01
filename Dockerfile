@@ -9,6 +9,9 @@ COPY . /app/
 # Install production dependencies.
 RUN yarn install --immutable-cache
 
+# Build the app.
+RUN yarn build
+
 # App port forwarding.
 EXPOSE 8080
 
