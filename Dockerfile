@@ -1,18 +1,16 @@
-FROM node:lts-slim
+FROM gcr.io/google-appengine/nodejs
 
-# Create app directory
-WORKDIR /usr/src/app
+# Node 16 is required.
+RUN install_node v16
 
-# Bundle app source
-COPY . .
+# Copy application code.
+COPY . /app/
 
-# Install deps
+# Install production dependencies.
 RUN yarn install --immutable-cache
-RUN npm install --location=global serve # to serve the app
 
-# Build the app
-RUN DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
-
+# App port forwarding.
 EXPOSE 8080
 
-CMD npx serve build -l 8080
+# Use yarn to host the app.
+CMD yarn start
