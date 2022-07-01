@@ -46,6 +46,14 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ textContains: 'Delete' }))
     },
 
+    openCreateBillingProjectModal: async () => {
+      await click(testPage, clickable({ text: 'Create' }))
+    },
+
+    expandSelectBillingAccountDropdown: async () => {
+      await click(testPage, clickable({ text: 'Select billing account' }))
+    },
+
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
 
     assertText: async expectedText => await findText(testPage, expectedText),
@@ -138,6 +146,16 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     email: 'testuser2@example.com', role: 'Owner'
   }]
 
+  const billingAccountsListResult = [{
+    accountName: "billingAccounts/123456-123456-123456", displayName: "Good Billing Account #1", firecloudHasAccess: true
+  },
+  {
+    accountName: "billingAccounts/789012-345678-901234", displayName: "Good Billing Account #2", firecloudHasAccess: true
+  },
+  {
+    accountName: "billingAccounts/ABCD12-ABCD12-ABCD12", displayName: "Bad Billing Account #1", firecloudHasAccess: false
+  }]
+
   return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
     ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName) => {
     const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g')
@@ -172,9 +190,13 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
       {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
+      },
+      {
+        filter: { url: /api\/user\/billingAccounts/ },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(billingAccountsListResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult, billingAccountsListResult,
   ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
 }
 
@@ -192,6 +214,23 @@ const setUpBillingTest = async (page, testUrl, token) => {
 
   return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage }
 }
+
+const testInvalidBillingAccountCreateTerraBillingProjectFn = withUserToken(async ({ page, testUrl, token}) => {
+  const { billingPage } = await setUpBillingTest(page, testUrl, token)
+
+  await billingPage.visit()
+  await billingPage.openCreateBillingProjectModal()
+  await billingPage.expandSelectBillingAccountDropdown()
+
+  await billingPage.assertText('Good Billing Account #1')
+  await billingPage.assertText('Good Billing Account #2')
+  await billingPage.assertTextNotFound('Bad Billing Account #1')
+})
+
+registerTest({
+  name: 'billing-accounts',
+  fn: testInvalidBillingAccountCreateTerraBillingProjectFn
+})
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
