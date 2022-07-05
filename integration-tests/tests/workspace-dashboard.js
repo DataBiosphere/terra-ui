@@ -158,7 +158,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
           resourceId: 'dummy-sa-resource-id',
           resourceType: 'AZURE_STORAGE_ACCOUNT'
         },
-        resourceAttributes: { azureStorage: { region: 'eastus'}}
+        resourceAttributes: { azureStorage: { region: 'eastus' } }
       },
       {
         metadata: {
