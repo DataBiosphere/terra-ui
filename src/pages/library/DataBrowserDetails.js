@@ -113,7 +113,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState()
   const [feedbackShowing, setFeedbackShowing] = useState()
   const [thanksShowing, setThanksShowing] = useState()
-  const sidebarWidth = 230
+  const sidebarButtonWidth = 230
 
   return h(Fragment, [
     div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
@@ -183,7 +183,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
       h(ButtonOutline, {
         disabled: dataObj.access !== datasetAccessTypes.GRANTED,
         tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarWidth, marginTop: 20 },
+        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
             id: dataObj.id,
@@ -200,7 +200,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
       h(ButtonPrimary, {
         disabled: dataObj.access !== datasetAccessTypes.GRANTED,
         tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarWidth, marginTop: 20 },
+        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
             id,
@@ -209,7 +209,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           importDataToWorkspace([dataObj])
         }
       }, ['Link to a workspace']),
-      div({ style: { display: 'flex', width: sidebarWidth, marginTop: 20 } }, [
+      div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
         icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
           h(Link, {
