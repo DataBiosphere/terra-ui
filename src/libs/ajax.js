@@ -1661,10 +1661,7 @@ const Disks = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    const ret = res.json()
-    // eslint-disable-next-line no-console
-    console.log(ret)
-    return ret
+    return res.json()
   },
 
   disk: (project, name) => {
