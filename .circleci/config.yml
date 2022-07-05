@@ -158,7 +158,7 @@ commands:
       - when:
           condition: << parameters.local >>
           steps:
-            - run: cp config/dev.json build/config.json
+            - run: cp config/staging.json build/config.json
             - run:
                 command: npx serve build -l 3000
                 background: true
