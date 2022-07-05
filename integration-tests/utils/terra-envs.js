@@ -1,10 +1,10 @@
 module.exports = {
   local: {
-    billingProject: 'saturn-integration-test-dev',
-    snapshotColumnName: 'name',
-    snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
-    snapshotTableName: 'tableA',
-    testUrl: 'http://localhost:3000',
+    billingProject: 'saturn-integration-test-stage',
+    snapshotColumnName: 'VCF_File_Name',
+    snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
+    snapshotTableName: 'vcf_file',
+    testUrl: 'https://bvdp-saturn-staging.appspot.com',
     workflowName: 'echo_to_file'
   },
   dev: {
