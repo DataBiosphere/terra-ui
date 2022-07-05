@@ -212,8 +212,30 @@ const dismissNPSSurvey = async page => {
 }
 
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  console.log('signIntoTerra ...')
+
+  const loadUrl = async url => {
+    console.log(`Loading URL: ${url}`)
+    await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'] })
+    await page.waitForFunction(url => {
+      return window.location.href.includes(url)
+    }, {}, url)
+  }
+
+  try {
+    !!testUrl && await loadUrl(testUrl)
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  } catch (e) {
+    console.error(e)
+    await page._client.send('Page.stopLoading') // will stop page loading, as if you hit "X" in the browser
+    // Retry one time
+    if (!!testUrl) {
+      await loadUrl(testUrl)
+    } else {
+      await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+    }
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  }
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')
