@@ -26,5 +26,6 @@
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-perf.json",
-  "terraDockerImageBucket": "terra-docker-image-documentation-perf"
+  "terraDockerImageBucket": "terra-docker-image-documentation-perf",
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_perf"
 }
