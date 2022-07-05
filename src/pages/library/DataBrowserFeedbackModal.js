@@ -56,7 +56,7 @@ export const DataBrowserFeedbackModal = ({ onSuccess, onDismiss, primaryQuestion
       }, ['Submit'])
     }, [
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { required: true, htmlFor: id, style: { fontSize: 14, fontWeight: 300 } },
+        h(FormLabel, { required: true, htmlFor: id, style: { fontSize: 14 } },
           [primaryQuestion]),
         h(TextArea, {
           id,

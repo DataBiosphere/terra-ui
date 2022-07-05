@@ -212,9 +212,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
           h(Link, {
             onClick: () => setFeedbackShowing(true)
-          },
-          ['Provide feedback']),
-          ' on this dataset view'
+          }, ['Provide feedback on this dataset view'])
         ])
       ])
     ]),
