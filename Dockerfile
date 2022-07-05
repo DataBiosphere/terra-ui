@@ -1,19 +1,14 @@
-FROM gcr.io/google-appengine/nodejs
+FROM node:16
 
-# Node 16 is required.
-RUN install_node v16
+RUN set -x \
+  && git clone https://github.com/DataBiosphere/terra-ui.git \
+  && cd terra-ui \
+  && git checkout dev \
+  && yarn install --immutable-cache \
+  && PUBLIC_URL="." yarn build # to get relative URLs so that it can be load up in proxied environment
 
-# Copy application code.
-COPY . /app/
-
-# Install production dependencies.
-RUN yarn install --immutable-cache
-
-# Build the app.
-RUN yarn build
+FROM us.gcr.io/broad-dsp-gcr-public/base/nginx:stable-alpine
+COPY --from=0 /terra-ui/build /usr/share/nginx/html
 
 # App port forwarding.
-EXPOSE 8080
-
-# Use yarn to host the app.
-CMD yarn start
+EXPOSE 80
