@@ -5,7 +5,6 @@ import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/compone
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -110,9 +109,8 @@ const MainContent = ({ dataObj }) => {
 
 export const SidebarComponent = ({ dataObj, id }) => {
   const { access } = dataObj
-  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
-  const [feedbackShowing, setFeedbackShowing] = useState()
-  const [thanksShowing, setThanksShowing] = useState()
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
+  const [feedbackShowing, setFeedbackShowing] = useState(false)
   const sidebarButtonWidth = 230
 
   return h(Fragment, [
@@ -223,24 +221,10 @@ export const SidebarComponent = ({ dataObj, id }) => {
     feedbackShowing && h(DataBrowserFeedbackModal, {
       title: '',
       onDismiss: () => setFeedbackShowing(false),
-      onSuccess: () => {
-        setFeedbackShowing(false)
-        setThanksShowing(true)
-      },
+      onSuccess: () => setFeedbackShowing(false),
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
       sourcePage: 'Catalog Details'
     }),
-    thanksShowing && h(Modal, {
-      onDismiss: () => setThanksShowing(false),
-      showCancel: false,
-      okButton: h(ButtonPrimary, {
-        onClick: () => setThanksShowing(false)
-      },
-      ['OK'])
-    },
-    [div({ style: { fontWeight: 600, fontSize: 18 } },
-      'Thank you for helping us improve the Data Catalog experience!')]
-    ),
     showRequestAccessModal && h(RequestDatasetAccessModal, {
       datasets: [dataObj],
       onDismiss: () => setShowRequestAccessModal(false)

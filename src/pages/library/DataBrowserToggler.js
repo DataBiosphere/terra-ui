@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, Switch } from 'src/components/common'
+import { Link, Switch } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 import { isDataBrowserVisible } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -15,7 +14,6 @@ import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackM
 export const DataBrowserPreviewToggler = ({ checked }) => {
   const { user: { id } } = useStore(authStore)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
-  const [thanksShowing, setThanksShowing] = useState(false)
   catalogPreviewStore.set({ [id]: checked })
 
   return !isDataBrowserVisible() ? div() : div({
@@ -65,22 +63,10 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
         setFeedbackShowing(false)
-        setThanksShowing(true)
       },
       primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
       sourcePage: 'Catalog List'
-    }),
-    thanksShowing && h(Modal, {
-      onDismiss: () => setThanksShowing(false),
-      showCancel: false,
-      okButton: h(ButtonPrimary, {
-        onClick: () => setThanksShowing(false)
-      },
-      ['OK'])
-    },
-    [div({ style: { fontWeight: 600, fontSize: 18 } },
-      'Thank you for helping us improve the Data Catalog experience!')]
-    )
+    })
   ])
 }
 
