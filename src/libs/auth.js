@@ -83,7 +83,7 @@ const revokeTokens = async () => {
 
 const getSigninArgs = includeBillingScope => {
   return Utils.cond(
-    [includeBillingScope === false, () => {}],
+    [includeBillingScope === false, () => ({})],
     // For Google just append the scope to the signin args.
     [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
     // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
