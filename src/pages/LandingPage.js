@@ -101,7 +101,7 @@ const LandingPage = () => {
       }, ['See this article']),
       ' for a summary of available resources.'
     ]),
-    div({
+    isDataBrowserFrontPage() && div({
       style: {
         ...styles.callToActionBanner,
         backgroundColor: colors.primary(),

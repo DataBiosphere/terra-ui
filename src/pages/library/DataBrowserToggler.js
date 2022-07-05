@@ -93,7 +93,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
           checked: catalogShowing,
           onLabel: '', offLabel: '',
           width: 55, height: 25,
-          onChange: value => onChange(value)
+          onChange: onChange
         }),
         div({ style: { marginLeft: 10 } }, [`New Data Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
       ])
