@@ -68,7 +68,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
         setThanksShowing(true)
       },
       primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
-      sourcePage: 'catalog-list'
+      sourcePage: 'Catalog List'
     }),
     thanksShowing && h(Modal, {
       onDismiss: () => setThanksShowing(false),

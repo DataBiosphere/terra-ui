@@ -228,7 +228,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         setThanksShowing(true)
       },
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
-      sourcePage: 'catalog-details'
+      sourcePage: 'Catalog Details'
     }),
     thanksShowing && h(Modal, {
       onDismiss: () => setThanksShowing(false),
