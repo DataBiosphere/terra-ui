@@ -1121,13 +1121,13 @@ const AzureStorage = signal => ({
       const container = _.find(
         {
           metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
-          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata?.resourceId } }
+          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
         },
         data.resources
       )
       return {
-        location: storageAccount.resourceAttributes?.azureStorage?.region,
-        storageContainerName: container?.resourceAttributes?.azureStorageContainer?.storageContainerName
+        location: storageAccount.resourceAttributes.azureStorage.region,
+        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName
       }
     }
   }
