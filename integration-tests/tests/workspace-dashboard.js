@@ -155,16 +155,16 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     resources: [
       {
         metadata: {
-          resourceId: "9c2309f4-c788-45f3-a90a-a7f8394af571",
-          resourceType: "AZURE_STORAGE_ACCOUNT"
+          resourceId: 'dummy-sa-resource-id',
+          resourceType: 'AZURE_STORAGE_ACCOUNT'
         },
-        resourceAttributes: { azureStorage: { storageAccountName: "sae72b287b7825fa4f19fc", region: "eastus"}}
+        resourceAttributes: { azureStorage: { region: 'eastus'}}
       },
       {
         metadata: {
-          resourceType: "AZURE_STORAGE_CONTAINER"
+          resourceType: 'AZURE_STORAGE_CONTAINER'
         },
-        resourceAttributes: { azureStorageContainer : { storageAccountId :"9c2309f4-c788-45f3-a90a-a7f8394af571", storageContainerName: "sc-name" }}
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
       }
     ]
   }
