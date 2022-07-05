@@ -27,8 +27,6 @@ import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { Browser } from 'src/pages/library/DataBrowser'
@@ -463,9 +461,9 @@ const Datasets = () => {
     catalogShowing ? h(Browser) :
       div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
-      hca(), nemo(), target(), tcga(), topMed(), rareX()
-    ])
+        thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
+        hca(), nemo(), target(), tcga(), topMed(), rareX()
+      ])
   ])
 }
 
