@@ -187,7 +187,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               role: 'listitem'
             }, [
               h(Clickable, {
-                ...(isDatastage() || isBioDataCatalyst()) ? { href: Nav.getLink('workspaces') } : { onClick: signIn },
+                ...(isDatastage() || isBioDataCatalyst()) ? { href: Nav.getLink('workspaces') } : { onClick: () => signIn(false) },
                 style: {
                   backgroundColor: 'white', fontSize: 18, fontWeight: 500, color: colors.accent(),
                   borderRadius: 5, boxShadow: '0 2px 4px 0 rgba(0,0,0,.25)',
