@@ -1773,7 +1773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grpc/proto-loader@npm:^0.6.12":
+"@grpc/proto-loader@npm:^0.6.12, @grpc/proto-loader@npm:^0.6.4":
   version: 0.6.13
   resolution: "@grpc/proto-loader@npm:0.6.13"
   dependencies:
@@ -1785,21 +1785,6 @@ __metadata:
   bin:
     proto-loader-gen-types: build/bin/proto-loader-gen-types.js
   checksum: 863417e961cfa3acb579124f5c2bbfbeaee4d507c33470dc0af3b6792892c68706c6c61e26629f5ff3d28cb631dc4f0a00233323135e322406e3cb19a0b92823
-  languageName: node
-  linkType: hard
-
-"@grpc/proto-loader@npm:^0.6.4":
-  version: 0.6.9
-  resolution: "@grpc/proto-loader@npm:0.6.9"
-  dependencies:
-    "@types/long": ^4.0.1
-    lodash.camelcase: ^4.3.0
-    long: ^4.0.0
-    protobufjs: ^6.10.0
-    yargs: ^16.2.0
-  bin:
-    proto-loader-gen-types: build/bin/proto-loader-gen-types.js
-  checksum: 30081a5a6e866506d8e799ebed00367024a2710b9b990104d804fe23c60d81d5ccaa74ad14bd0bedfab6fb313eccbc18e0bbcf3bda7f3288d8eb31cab040255f
   languageName: node
   linkType: hard
 
@@ -9689,7 +9674,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:2.6.7, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.6, node-fetch@npm:^2.6.7":
+"node-fetch@npm:2.6.7, node-fetch@npm:^2.6.1, node-fetch@npm:^2.6.7":
   version: 2.6.7
   resolution: "node-fetch@npm:2.6.7"
   dependencies:
@@ -11310,7 +11295,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"protobufjs@npm:6.11.3, protobufjs@npm:^6.10.0, protobufjs@npm:^6.11.3":
+"protobufjs@npm:6.11.3, protobufjs@npm:^6.11.3":
   version: 6.11.3
   resolution: "protobufjs@npm:6.11.3"
   dependencies:
@@ -13381,7 +13366,7 @@ resolve@^2.0.0-next.3:
     jest-junit: ^13.0.0
     jest-puppeteer: ^6.0.2
     lodash: ^4.17.21
-    node-fetch: ^2.6.6
+    node-fetch: ^2.6.7
     p-retry: ^4.6.1
     prompts: ^2.4.1
     puppeteer: ^13.1.3
