@@ -8,7 +8,9 @@ import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { pdTypes } from 'src/libs/runtime-utils'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
+import {
+  ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
+} from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -1109,16 +1111,26 @@ const AzureStorage = signal => ({
       _.merge(authOpts(), { signal })
     )
     const data = await res.json()
-
-    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT'}}, data.resources)
-    console.log(storageAccount)
-    const container = _.find({ metadata: { resourceType: 'AZURE_STORAGE_CONTAINER'}, resourceAttributes: {azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId }}}, data.resources)
-    console.log(container)
-    return {
-      location: storageAccount.resourceAttributes.azureStorage.region,
-      storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName
+    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+    if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
+      return {
+        location: 'Unknown',
+        storageContainerName: 'None'
+      }
+    } else {
+      const container = _.find(
+        {
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata?.resourceId } }
+        },
+        data.resources
+      )
+      return {
+        location: storageAccount.resourceAttributes?.azureStorage?.region,
+        storageContainerName: container?.resourceAttributes?.azureStorageContainer?.storageContainerName
+      }
     }
-  },
+  }
 })
 
 const Buckets = signal => ({
