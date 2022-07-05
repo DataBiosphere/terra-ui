@@ -11,7 +11,7 @@ export const getConfig = () => {
 export const isAnvil = () => (window.location.hostname === 'anvil.terra.bio') || getConfig().isAnvil
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
-export const isDataBrowserFrontPage = () => getConfig().isDataBrowserFrontPage
+export const isDataBrowserFrontPage = () => false
 export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
 export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
 export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
