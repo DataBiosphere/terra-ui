@@ -24,7 +24,7 @@ const testPreviewDrsUriFn = _.flow(
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await waitForNoSpinners(page)
-  await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
+  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName)
   await click(page, clickable({ textContains: workspaceName }))
 
   await click(page, navChild('data'))

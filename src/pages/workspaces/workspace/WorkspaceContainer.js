@@ -216,11 +216,15 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   }
   const load = async maybeStale => {
     try {
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l),
+        { googleProject, saturnWorkspaceName, saturnWorkspaceNamespace, creator: getUser().email }
+      )
+      // Disks.list API takes includeLabels to specify which labels to return in the response
+      // Runtimes.listV2 API always returns all labels for a runtime
       const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName', saturnWorkspaceName }),
-        Ajax(signal).Runtimes.listV2({ creator: getUser().email, saturnWorkspaceNamespace, saturnWorkspaceName })
+        Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
+        Ajax(signal).Runtimes.listV2(cloudEnvFilters)
       ]) : [[], []]
-
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))

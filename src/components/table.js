@@ -425,7 +425,7 @@ export const GridTable = forwardRefWithName('GridTable', ({
   const fixedColumns = _.slice(0, numFixedColumns, columns)
   const totalFixedColumnsWidth = _.sum(_.map('width', fixedColumns))
   // The value at index i in this array is a sum of the widths of columns to the left of the column at index i.
-  const fixedColumnOffsets = _.transform((offsets, column) => { offsets.push(column.width) }, [0])(columns)
+  const fixedColumnOffsets = _.transform((offsets, column) => { offsets.push(column.width + _.last(offsets)) }, [0])(fixedColumns)
 
   const unfixedColumns = _.slice(numFixedColumns, _.size(columns), columns)
 
