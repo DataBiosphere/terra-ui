@@ -18,6 +18,7 @@
   "rexUrlRoot": "https://terra-rex-dev.appspot.com",
   "samUrlRoot": "https://sam-fiab.dsde-dev.broadinstitute.org:29443",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
+  "workspaceManagerUrlRoot": "https://workspace.dsde-dev.broadinstitute.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"

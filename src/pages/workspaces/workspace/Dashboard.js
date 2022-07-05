@@ -18,6 +18,7 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import { getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
@@ -196,7 +197,7 @@ const WorkspaceDashboard = _.flow(
     azureContext,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject, workspaceId,
       attributes, attributes: { description = '' }
     }
   }
@@ -205,6 +206,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
+  const [{ storageContainerName, storageLocation }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -222,6 +224,9 @@ const WorkspaceDashboard = _.flow(
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
+    }
+    else {
+      loadAzureStorage()
     }
   }
 
@@ -255,6 +260,12 @@ const WorkspaceDashboard = _.flow(
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
+  })
+
+  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
+    // TODO: check accessLevel?
+    const { storageContainerName, location } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({storageContainerName, storageLocation: location})
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -343,7 +354,17 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
-        ])
+        ]),
+        h(InfoRow, { title: 'Storage Container Name' }, [
+          h(TooltipCell, [!!storageContainerName ? storageContainerName : 'Loading']),
+          h(ClipboardButton, { 'aria-label': 'Copy storage container name to clipboard',
+            text: storageContainerName, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Storage Location' }, [
+          h(TooltipCell, [!!storageLocation ? getRegionLabel(storageLocation) : 'Loading'])
+         // h(ClipboardButton, { 'aria-label': 'Copy storage container name to clipboard',
+         //   text: storageContainerName, style: { marginLeft: '0.25rem' } })
+        ]),
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
         style: { margin: '1rem 0.5rem' },
