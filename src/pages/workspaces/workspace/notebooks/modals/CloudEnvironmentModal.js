@@ -404,8 +404,7 @@ export const CloudEnvironmentModal = ({
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
-            span('Open'),
-            span(toolLabel)
+            span('Open')
           ])
         ])
       ])
