@@ -11,7 +11,7 @@ import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
-import { authStore, cookieReadyStore, userStatus } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -22,7 +22,7 @@ export const StatusMessage = ({ hideSpinner, children }) => {
   ])
 }
 
-export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
+export const RuntimeKicker = ({ runtime, refreshRuntimes }) => {
   const getRuntime = useGetter(runtime)
   const signal = useCancellation()
   const [busy, setBusy] = useState()
@@ -41,9 +41,6 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
         return
       } else if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentRuntime === null) {
-        onNullRuntime()
-        return
       } else {
         return
       }
@@ -105,6 +102,18 @@ export const PeriodicCookieSetter = () => {
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
       cookieReadyStore.set(true)
+    }),
+    { ms: 5 * 60 * 1000, leading: true }
+  )
+  return null
+}
+
+export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
+  const signal = useCancellation()
+  usePollingEffect(
+    withErrorIgnoring(async () => {
+      await Ajax(signal).Runtimes.setAzureCookie(proxyUrl)
+      azureCookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }
   )

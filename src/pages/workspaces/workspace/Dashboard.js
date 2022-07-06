@@ -1,14 +1,15 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getRegionInfo } from 'src/components/region-common'
+import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -23,7 +24,7 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { authStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
@@ -88,7 +89,7 @@ const DashboardAuthContainer = props => {
   const { isSignedIn } = useStore(authStore)
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState()
 
-  const isGoogleAuthInitialized = isSignedIn !== undefined
+  const isAuthInitialized = isSignedIn !== undefined
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,7 +103,7 @@ const DashboardAuthContainer = props => {
   const isFeaturedWorkspace = () => _.some(ws => ws.namespace === namespace && ws.name === name, featuredWorkspaces)
 
   return Utils.cond(
-    [!isGoogleAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
+    [!isAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
     [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
     [isSignedIn === false, () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
@@ -122,9 +123,67 @@ const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) =
   ])
 }
 
+const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
+  const isGoogleWorkspace = !!workspace?.workspace?.googleProject
+  console.assert(isGoogleWorkspace, 'BucketLocation expects a Google workspace')
+
+  const [loading, setLoading] = useState(true)
+  const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
+  const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState(false)
+  const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
+
+  const signal = useCancellation()
+  const loadBucketLocation = useCallback(async () => {
+    setLoading(true)
+    try {
+      const { namespace, name, workspace: { googleProject, bucketName } } = workspace
+      const response = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+      setBucketLocation(response)
+    } catch (error) {
+      if (error.requesterPaysError) {
+        setNeedsRequesterPaysProject(true)
+      } else {
+        reportError('Unable to get bucket location.', error)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [workspace, signal])
+
+  useEffect(() => {
+    loadBucketLocation()
+  }, [loadBucketLocation])
+
+  if (loading) {
+    return 'Loading'
+  }
+
+  if (!location) {
+    return h(Fragment, [
+      'Unknown',
+      needsRequesterPaysProject && h(ButtonSecondary, {
+        'aria-label': 'Load bucket location',
+        tooltip: 'This workspace\'s bucket is requester pays. Click to choose a workspace to bill requests to and get the bucket\'s location.',
+        style: { height: '1rem', marginLeft: '1ch' },
+        onClick: () => setShowRequesterPaysModal(true)
+      }, [icon('sync')]),
+      showRequesterPaysModal && h(RequesterPaysModal, {
+        onDismiss: () => setShowRequesterPaysModal(false),
+        onSuccess: selectedGoogleProject => {
+          requesterPaysProjectStore.set(selectedGoogleProject)
+          setShowRequesterPaysModal(false)
+          loadBucketLocation()
+        }
+      })
+    ])
+  }
+
+  const { flag, regionDescription } = getRegionInfo(location, locationType)
+  return h(TooltipCell, [flag, ' ', regionDescription])
+})
+
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
-  requesterPaysWrapper({ onDismiss: () => Nav.history.goBack() }),
   wrapWorkspace({
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
@@ -140,8 +199,7 @@ const WorkspaceDashboard = _.flow(
       authorizationDomain, createdDate, lastModified, bucketName, googleProject,
       attributes, attributes: { description = '' }
     }
-  },
-  onRequesterPaysError
+  }
 }, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
@@ -152,8 +210,6 @@ const WorkspaceDashboard = _.flow(
   const [busy, setBusy] = useState(false)
   const [consentStatus, setConsentStatus] = useState(undefined)
   const [tagsList, setTagsList] = useState(undefined)
-  const [bucketLocation, setBucketLocation] = useState(undefined)
-  const [bucketLocationType, setBucketLocationType] = useState(undefined)
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
@@ -165,7 +221,6 @@ const WorkspaceDashboard = _.flow(
     loadWsTags()
     if (!azureContext) {
       loadStorageCost()
-      loadBucketLocation()
       loadBucketSize()
     }
   }
@@ -200,15 +255,6 @@ const WorkspaceDashboard = _.flow(
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
-  })
-
-  const loadBucketLocation = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading bucket location data')
-  )(async () => {
-    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-    setBucketLocation(location)
-    setBucketLocationType(locationType)
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -273,9 +319,7 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
-        h(InfoRow, { title: 'Location' }, [bucketLocation ? h(Fragment, [
-          h(TooltipCell, [flag, ' ', regionDescription])
-        ]) : 'Loading...']),
+        h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
         h(InfoRow, { title: 'Google Project ID' }, [
           h(TooltipCell, [googleProject]),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
@@ -312,7 +356,6 @@ const WorkspaceDashboard = _.flow(
 
   // Render
   const isEditing = _.isString(editDescription)
-  const { flag, regionDescription } = getRegionInfo(bucketLocation, bucketLocationType)
 
   return div({ style: { flex: 1, display: 'flex' } }, [
     div({ style: Style.dashboard.leftBox }, [

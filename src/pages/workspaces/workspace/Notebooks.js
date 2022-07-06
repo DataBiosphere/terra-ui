@@ -12,7 +12,7 @@ import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  findPotentialNotebookLockers, NotebookCreator, NotebookDuplicator, notebookLockHash, tools
+  findPotentialNotebookLockers, getFileName, NotebookCreator, NotebookDuplicator, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisTabName } from 'src/components/runtime-common'
@@ -281,7 +281,7 @@ const Notebooks = _.flow(
   const uploadFiles = Utils.withBusyState(setBusy, async files => {
     try {
       await Promise.all(_.map(async file => {
-        const name = file.name.slice(0, -6)
+        const name = file.name
         let resolvedName = name
         let c = 0
         while (_.includes(resolvedName, existingNames)) {
@@ -523,7 +523,7 @@ const Notebooks = _.flow(
             withErrorReporting('Error deleting notebook.')
           )(async () => {
             setDeletingNotebookName(undefined)
-            await Ajax().Buckets.notebook(googleProject, bucketName, printName(deletingNotebookName)).delete()
+            await Ajax().Buckets.notebook(googleProject, bucketName, getFileName(deletingNotebookName)).delete()
             refreshNotebooks()
           }),
           onDismiss: () => setDeletingNotebookName(undefined)

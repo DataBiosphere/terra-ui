@@ -12,11 +12,13 @@ export const isAnvil = () => (window.location.hostname === 'anvil.terra.bio') ||
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
-export const isDataTabRedesignEnabled = () => getConfig().isDataTabRedesignEnabled
 export const isGPDataSelectorVisible = () => getConfig().isGPDataSelectorVisible
 export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
 export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
 export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
 export const isElwazi = () => (window.location.hostname === 'elwazi.terra.bio') || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi()
+export const isProjectSingular = () => (window.location.hostname === 'projectsingular.terra.bio') || getConfig().isProjectSingular
+export const isRareX = () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() &&
+  !isProjectSingular() && !isRareX()

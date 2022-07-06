@@ -16,6 +16,7 @@ import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import gp2Logo from 'src/images/library/datasets/GP2_logo.png'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
+import rareXLogo from 'src/images/library/datasets/rare-x-logo.svg'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
@@ -25,8 +26,11 @@ import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 
 
 const styles = {
@@ -386,7 +390,6 @@ const target = () => h(Participant, {
   ...Utils.newTabLinkProps
 }, ['Browse Data'])])
 
-
 const tcga = () => h(Participant, {
   logo: { src: tcgaLogo, alt: 'TCGA logo', height: '80%' },
   title: 'The Cancer Genome Atlas Presented by the National Cancer Institute',
@@ -424,14 +427,35 @@ const topMed = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
+const rareX = () => h(Participant, {
+  logo: { src: rareXLogo, alt: 'RareX logo' },
+  title: 'RARE-X Data Analysis Platform',
+  description: h(Fragment, [
+    h(Link, { href: 'https://rare-x.org', ...Utils.newTabLinkProps }, 'The RARE-X Data Analysis Platform'),
+    ` is a federated data repository of rare disease patient health data.
+    Data on the RARE-X Data Analysis Platform is patient-owned and patient-consented
+    for sharing with researchers worldwide. RARE-X operates in close partnership with
+    rare disease communities around the globe.`
+  ]),
+  sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
+}, [
+  h(ButtonPrimary, {
+    'aria-label': 'Browse RareX data',
+    href: 'https://rare-x.org/xplore',
+    onClick: () => captureBrowseDataEvent('RARE-X'),
+    ...Utils.newTabLinkProps
+  }, ['Browse Data'])
+])
+
 
 const Datasets = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets'),
+    libraryTopMatter('datasets', useStore(authStore)),
+    h(DataBrowserPreviewToggler, { checked: false }),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(), hca(),
-      nemo(), target(), tcga(), topMed()
+      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
+      hca(), nemo(), target(), tcga(), topMed(), rareX()
     ])
   ])
 }

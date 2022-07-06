@@ -1,9 +1,8 @@
-const rawConsole = require('console')
 const _ = require('lodash/fp')
 const uuid = require('uuid')
-
 const {
-  click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
+  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
+  navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -14,9 +13,9 @@ const defaultTimeout = 5 * 60 * 1000
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
   const page = await context.newPage()
+  enablePageLogging(page)
   try {
-    await page.goto(testUrl)
-    await signIntoTerra(page, token)
+    await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
   } finally {
     await page.close()
@@ -28,38 +27,43 @@ const clipToken = str => str.toString().substr(-10, 10)
 const testWorkspaceNamePrefix = 'terra-ui-test-workspace-'
 const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 
+
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
+    await page.evaluate(async (name, billingProject) => {
+      await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
-
-    rawConsole.info(`Created workspace: ${workspaceName}`)
+    console.info(`Created workspace: ${workspaceName}`)
   } catch (e) {
-    throw Error(`Failed to create workspace: ${workspaceName} with billing project ${billingProject}`)
+    console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.error(e)
+    throw e
   }
   return workspaceName
 })
 
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    await page.evaluate((name, billingProject) => {
-      return window.Ajax().Workspaces.workspace(billingProject, name).delete()
+    await page.evaluate(async (name, billingProject) => {
+      await window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, workspaceName, billingProject)
-
-    rawConsole.info(`Deleted workspace: ${workspaceName}`)
+    console.info(`Deleted workspace: ${workspaceName}`)
   } catch (e) {
-    throw Error(`Failed to delete workspace: ${workspaceName} with billing project ${billingProject}`)
+    console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
+    console.error(e)
+    throw e
   }
 })
 
 const withWorkspace = test => async options => {
+  console.log('withWorkspace ...')
   const workspaceName = await makeWorkspace(options)
 
   try {
     await test({ ...options, workspaceName })
   } finally {
+    console.log('withWorkspace cleanup ...')
     await deleteWorkspace({ ...options, workspaceName })
   }
 }
@@ -70,34 +74,21 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
   }, billingProject, workspaceName, testEntity)
 }
 
-const checkBucketAccess = async (page, billingProject, workspaceName, accessLevel = 'OWNER') => {
-  const details = await page.evaluate((billingProject, workspaceName) => {
-    return window.Ajax().Workspaces.workspace(billingProject, workspaceName).details()
-  }, billingProject, workspaceName)
-  const bucketName = details.workspace.bucketName
-  rawConsole.info(`Checking workspace access for ${billingProject}, ${workspaceName}, ${bucketName}.`)
-  // Try polling for workspace bucket access to be available.
-  await page.waitForFunction(async (billingProject, workspaceName, bucketName, accessLevel) => {
-    try {
-      await window.Ajax().Workspaces.workspace(billingProject, workspaceName).checkBucketAccess(billingProject, bucketName, accessLevel)
-      return true
-    } catch (e) { return false }
-  }, { timeout: 60000, polling: 500 }, billingProject, workspaceName, bucketName, accessLevel)
-}
-
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
-  rawConsole.info(`created a user with token: ...${clipToken(token)}`)
+  console.info(`created a user "${email}" with token: ...${clipToken(token)}`)
   return { email, token }
 }
 
 const withUser = test => async args => {
+  console.log('withUser ...')
   const { email, token } = await makeUser()
 
   try {
     await test({ ...args, email, token })
   } finally {
+    console.log('withUser cleanup ...')
     await fetchLyle('delete', email)
   }
 }
@@ -107,7 +98,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  rawConsole.info(`added user to: ${billingProject}`)
+  console.info(`added user to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.listProjectUsers(billingProject)
@@ -115,7 +106,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  rawConsole.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -123,15 +114,17 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
-  rawConsole.info(`removed user from: ${billingProject}`)
+  console.info(`removed user from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {
+  console.log('withBilling ...')
   await addUserToBilling(options)
 
   try {
     await test({ ...options })
   } finally {
+    console.log('withBilling cleanup ...')
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
   }
@@ -145,12 +138,12 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
       return runtime.runtimeName
     }, _.remove({ status: 'Deleting' }, runtimes)))
   }, billingProject, email)
-  rawConsole.info(`deleted runtimes: ${deletedRuntimes}`)
+  console.info(`deleted runtimes: ${deletedRuntimes}`)
 })
 
 const registerUser = withSignedInPage(async ({ page, token }) => {
   // TODO: make this available to all puppeteer browser windows
-  rawConsole.info(`token of user in registerUser(): ...${clipToken(token)}`)
+  console.info(`token of user in registerUser(): ...${clipToken(token)}`)
   await page.evaluate(() => {
     window.catchErrorResponse = async fn => {
       try {
@@ -173,7 +166,6 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
       await window.Ajax().User.acceptTos()
-      await window.Ajax().User.acceptSamTos()
     })
   })
 })
@@ -189,31 +181,35 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl)
+  await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
   await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
+  await signIntoTerra(page, { token })
 }
 
 const clickNavChildAndLoad = async (page, tab) => {
-  await noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
+  // click triggers a page navigation event
+  await Promise.all([
+    page.waitForNavigation(navOptionNetworkIdle()),
+    noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
+  ])
 }
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
+  // Sign in to handle unexpected NPS survey popup and Loading Terra... spinner
+  await signIntoTerra(page, { token })
   await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
   await dismissNotifications(page)
-  await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
+  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl)
+  await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
@@ -222,7 +218,6 @@ const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
 }
 
 module.exports = {
-  checkBucketAccess,
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,

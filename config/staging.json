@@ -9,7 +9,6 @@
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
   "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
-  "googleClientId": "480750596605-ljlp6lpopl4su6qa2vhtfon2047ckml3.apps.googleusercontent.com",
   "isProd": true,
   "jobManagerUrlRoot": "https://job-manager.dsde-staging.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-staging.broadinstitute.org",
@@ -23,7 +22,9 @@
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
-  "tosUrlRoot": "https://us-central1-broad-workbench-tos-staging.cloudfunctions.net/tos",
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users"
+  "alphaRegionalityGroup": "Alpha_Regionality_Users",
+  "terraDockerVersionsFile": "terra-docker-versions-staging.json",
+  "terraDockerImageBucket": "terra-docker-image-documentation-staging",
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_staging"
 }

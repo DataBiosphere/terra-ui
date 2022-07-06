@@ -12,11 +12,12 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = _.flow(
   withDisplayName('IGVBrowser'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ selectedFiles, refGenome, workspace, onDismiss, onRequesterPaysError }) => {
+)(({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, onRequesterPaysError }) => {
   const containerRef = useRef()
   const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
@@ -53,7 +54,8 @@ const IGVBrowser = _.flow(
           igvLibrary.current = igv
 
           const options = {
-            genome: refGenome,
+            genome,
+            reference,
             tracks: await Promise.all(_.map(async ({ filePath, indexFilePath }) => {
               const [bucket] = parseGsUri(filePath)
               const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? await getUserProjectForWorkspace(workspace) : undefined }

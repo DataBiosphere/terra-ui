@@ -1,12 +1,19 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, dismissNotifications, findText, noSpinnersAfter, select, signIntoTerra } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, findText, gotoPage, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const billingProjectsPage = (testPage, testUrl) => {
   return {
-    visit: async () => await testPage.goto(`${testUrl}/#billing`),
+    visit: async () => {
+      // Note: not using noSpinnersAfter because this action changes the page, and
+      // noSpinners after checks that a spinner appears and disappear within the same page.
+      await gotoPage(testPage, `${testUrl}/#billing`)
+      await findText(testPage, 'Select a Billing Project')
+      await waitForNoSpinners(testPage)
+    },
 
     selectSpendReport: async () => {
       await click(testPage, clickable({ text: 'Spend report' }))
@@ -27,6 +34,18 @@ const billingProjectsPage = (testPage, testUrl) => {
       )
     },
 
+    selectProjectMenu: async () => {
+      await click(testPage, clickable({ text: 'Billing project menu' }))
+    },
+
+    selectDeleteProjectMenuOption: async () => {
+      await click(testPage, clickable({ text: 'Delete Billing Project' }))
+    },
+
+    confirmDeleteBillingProject: async () => {
+      await click(testPage, clickable({ textContains: 'Delete' }))
+    },
+
     setSpendReportDays: async days => await select(testPage, 'Date range', `Last ${days} days`),
 
     assertText: async expectedText => await findText(testPage, expectedText),
@@ -40,7 +59,7 @@ const billingProjectsPage = (testPage, testUrl) => {
   }
 }
 
-const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, spendCost, numExtraWorkspaces = 0) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, erroredProjectVisible, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
@@ -89,14 +108,18 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     })
   }, _.range(0, numExtraWorkspaces))
 
-  const projectListResult = [{
+  const projectListResult = _.compact([{
     projectName: ownedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+  },
+  erroredProjectVisible && {
+    projectName: erroredBillingProjectName,
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error'
   },
   {
     projectName: notOwnedBillingProjectName,
     billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
-  }]
+  }])
 
   const ownedProjectMembersListResult = [{
     email: 'testuser1@example.com', role: 'Owner'
@@ -115,7 +138,12 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     email: 'testuser2@example.com', role: 'Owner'
   }]
 
-  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult) => {
+  return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
+    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName) => {
+    const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g')
+    const notOwnedMembersUrl = new RegExp(`api/billing/v2/${notOwnedBillingProjectName}/members`, 'g')
+    const erroredBillingProjectUrl = new RegExp(`api/billing/v2/${erroredBillingProjectName}$`, 'g')
+
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
@@ -130,39 +158,43 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
       },
       {
-        filter: { url: /api\/billing\/v2\/OwnedBillingProject\/members$/ },
+        filter: { url: ownedMembersUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(ownedProjectMembersListResult), { status: 200 }))
       },
       {
-        filter: { url: /api\/billing\/v2\/NotOwnedBillingProject\/members$/ },
+        filter: { url: notOwnedMembersUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
+      },
+      {
+        filter: { url: erroredBillingProjectUrl, method: 'DELETE' },
+        fn: () => () => Promise.resolve(new Response({ status: 204 }))
       },
       {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
       }
     ])
-  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult)
+  }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
+  ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
   // Sign in. This portion of the test is not mocked.
-  await page.goto(testUrl)
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
+  await signIntoTerra(page, { token, testUrl })
 
   // Interact with the Billing Page via mocked AJAX responses.
   const ownedBillingProjectName = 'OwnedBillingProject'
   const notOwnedBillingProjectName = 'NotOwnedBillingProject'
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110')
+  const erroredBillingProjectName = 'ErroredBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110')
 
   const billingPage = billingProjectsPage(page, testUrl)
 
-  return { ownedBillingProjectName, notOwnedBillingProjectName, billingPage }
+  return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage }
 }
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
 
   // Select spend report and verify cost for default date ranges
   await billingPage.visit()
@@ -184,7 +216,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
@@ -199,10 +231,10 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertTextNotFound('Spend report')
 })
 
-const testBillingSpendReport = {
+registerTest({
   name: 'billing-spend-report',
   fn: testBillingSpendReportFn
-}
+})
 
 const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
@@ -228,10 +260,10 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText('Last Modified')
 })
 
-const testBillingWorkspaces = {
+registerTest({
   name: 'billing-workspaces',
   fn: testBillingWorkspacesFn
-}
+})
 
 const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
@@ -267,13 +299,40 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.assertTextNotFound('testuser3@example.com')
 })
 
-const testBillingMembers = {
+registerTest({
   name: 'billing-members',
   fn: testBillingMembersFn
-}
+})
 
-module.exports = {
-  testBillingSpendReport,
-  testBillingWorkspaces,
-  testBillingMembers
-}
+const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }) => {
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+
+  await billingPage.visit()
+
+  // Assert that the errored billing project is visible
+  await billingPage.assertText(erroredBillingProjectName)
+
+  // Click on the menu for that errored billing project
+  await billingPage.selectProjectMenu()
+
+  // Click the Delete Billing Project button
+  await billingPage.selectDeleteProjectMenuOption()
+
+  // Assert that the confirmation modal is visible
+  await billingPage.assertText('Are you sure you want to delete the billing project')
+
+  // Reset the ajax values to NOT include the errored billing project before confirming the deletion
+  // This is so we can test that the project list refreshes properly
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, false, '1110.17', 20)
+
+  // Confirm delete
+  await billingPage.confirmDeleteBillingProject()
+
+  // Assert that the errored billing project is no longer visible
+  await billingPage.assertTextNotFound(erroredBillingProjectName)
+})
+
+registerTest({
+  name: 'billing-project-delete',
+  fn: testDeleteBillingProjectFn
+})

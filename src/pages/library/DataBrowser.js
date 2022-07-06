@@ -17,6 +17,7 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -145,8 +146,8 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
           size: { grow: 1 }, key: 'subjects'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
-          size: { grow: 1 }, key: 'dataType'
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataModality', onSort: setSort }, ['Data Modality'])]),
+          size: { grow: 1 }, key: 'dataModality'
         }, {
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
           size: { grow: 1 }, key: 'lastUpdated'
@@ -157,7 +158,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { project, dataType, access } = datum
+        const { project, dataModality, access } = datum
 
         return {
           checkbox: h(TooltipTrigger, {
@@ -182,7 +183,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           ),
           project,
           subjects: datum?.counts?.donors,
-          dataType: dataType.join(', '),
+          dataModality: dataModality.join(', '),
           lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -226,7 +227,8 @@ const Browser = () => {
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('browse & explore'),
+    libraryTopMatter('datasets', useStore(authStore)),
+    h(DataBrowserPreviewToggler, { checked: true }),
     !acknowledged[id] && div({
       style: {
         border: `1px solid ${colors.accent()}`, borderRadius: 3,

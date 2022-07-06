@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, hr } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { Clickable, FocusTrapper } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -37,12 +37,13 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
       'aria-modal': true,
       onClick,
       ref: elementRef,
+      ...popupProps,
       style: {
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
-        ...styles.popup
-      },
-      ...popupProps
+        ...styles.popup,
+        ...popupProps.style
+      }
     }, [children])
   ])
 })
@@ -129,6 +130,13 @@ export const MenuButton = forwardRefWithName('MenuButton', ({ disabled, children
       hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
     }, props), [children])
   ])
+})
+
+export const MenuDivider = () => hr({
+  style: {
+    borderWidth: '0 0 1px', borderStyle: 'solid', borderColor: colors.dark(0.55),
+    margin: '0.25rem 0'
+  }
 })
 
 export const MenuTrigger = ({ children, content, popupProps = {}, ...props }) => {

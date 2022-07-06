@@ -525,14 +525,22 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     { ms: 5000 }
   )
 
-  const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
+  // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
+  const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount))
+  const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined
+
+  const billingAccountDisplayText = Utils.cond(
+    [!billingProjectHasBillingAccount, () => 'No linked billing account'],
+    [!billingAccount, () => 'No access to linked billing account'],
+    () => billingAccount.displayName || billingAccount.accountName
+  )
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        !!displayName && span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, displayName),
+      Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
+        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
         isOwner && h(MenuTrigger, {
           closeOnClick: true,
           side: 'bottom',
@@ -557,8 +565,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                   setShowBillingRemovalModal(Auth.hasBillingScope())
                 }
               },
-              // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-              disabled: billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount)
+              disabled: !billingProjectHasBillingAccount
             }, ['Remove Billing Account'])
           ])
         }, [
@@ -604,7 +611,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
-      isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+      Auth.hasBillingScope() && isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
@@ -650,6 +657,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             ])
           ])])
         ])
+      ]),
+      !Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+        h(Link, {
+          onClick: authorizeAndLoadAccounts
+        }, ['View billing account'])
       ]),
       h(SimpleTabBar, {
         'aria-label': 'project details',

@@ -1,12 +1,13 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { getDisplayName, tools } from 'src/components/notebook-utils'
+import { getExtension, getFileName, tools } from 'src/components/notebook-utils'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { pdTypes } from 'src/libs/runtime-utils'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
@@ -27,7 +28,6 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 6 }
 
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
@@ -51,6 +51,31 @@ const withCancellation = wrappedFetch => async (...args) => {
     }
   }
 }
+
+const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
+  const timeout = 5000
+  const somePointInTheFuture = Date.now() + timeout
+  const maxDelayIncrement = 1500
+  const minDelay = 500
+
+  while (Date.now() < somePointInTheFuture) {
+    const until = Math.random() * maxDelayIncrement + minDelay
+    try {
+      return await Utils.withDelay(until, wrappedFetch)(...args)
+    } catch (error) {
+      // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+      // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+      // are not transient and the request should not be retried.
+
+      const shouldNotRetry = Boolean(error.requesterPaysError)
+      if (shouldNotRetry) {
+        throw error
+      }
+      // ignore error will retry
+    }
+  }
+  return wrappedFetch(...args)
+})
 
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
@@ -130,7 +155,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -143,9 +168,9 @@ const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
+const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
-const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
-const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
+const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -157,7 +182,7 @@ const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ?
 const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(
-    `api/google/user/petServiceAccount/${googleProject}/token`,
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
@@ -222,21 +247,6 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
-    try {
-      const res = await fetchOk(url, _.merge(authOpts(), { signal }))
-      const { accepted } = await res.json()
-      return accepted
-    } catch (error) {
-      if (error.status === 403 || error.status === 404) {
-        return false
-      } else {
-        throw error
-      }
-    }
-  },
-
-  getSamTosAccepted: async () => {
     try {
       const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
       return res.json()
@@ -257,13 +267,6 @@ const User = signal => ({
   },
 
   acceptTos: async () => {
-    await fetchOk(
-      `${getConfig().tosUrlRoot}/user/response`,
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
-    )
-  },
-
-  acceptSamTos: async () => {
     try {
       await fetchSam(
         'register/user/v1/termsofservice',
@@ -320,11 +323,13 @@ const User = signal => ({
     return getFirstTimeStamp(getUser().token)
   },
 
+  // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
   lastNpsResponse: async () => {
     const res = await fetchRex('npsResponses/lastTimestamp', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
+  // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
   postNpsResponse: body => {
     return fetchRex('npsResponses/create', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   },
@@ -345,6 +350,10 @@ const User = signal => ({
   linkNihAccount: async token => {
     const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
     return res.json()
+  },
+
+  unlinkNihAccount: async () => {
+    await fetchOrchestration('api/nih/account', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
   },
 
   getFenceStatus: async provider => {
@@ -540,6 +549,12 @@ const Billing = signal => ({
     return res
   },
 
+  deleteProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
+    return res
+  },
+
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
     const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([
@@ -681,14 +696,6 @@ const Workspaces = signal => ({
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
-
-    const upsertEntities = entities => {
-      const body = _.map(({ name, entityType, attributes }) => {
-        return { name, entityType, operations: attributesUpdateOps(attributes) }
-      }, entities)
-
-      return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    }
 
     return {
       checkBucketReadAccess: () => {
@@ -901,6 +908,16 @@ const Workspaces = signal => ({
           { signal, method: 'POST' }]))
       },
 
+      renameEntityType: (oldName, newName) => {
+        const payload = { newName }
+
+        return fetchRawls(`${root}/entityTypes/${oldName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
+      deleteEntitiesOfType: entityType => {
+        return fetchRawls(`${root}/entityTypes/${entityType}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      },
+
       deleteEntityAttribute: (type, name, attributeName) => {
         return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
           { signal, method: 'PATCH' }]))
@@ -918,7 +935,14 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
       },
 
-      upsertEntities,
+      renameEntityColumn: (type, attributeName, newAttributeName) => {
+        const payload = { newAttributeName }
+        return fetchRawls(`${root}/entityTypes/${type}/attributes/${attributeName}`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+      },
+
+      upsertEntities: entityUpdates => {
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(entityUpdates), { signal, method: 'POST' }]))
+      },
 
       paginatedEntitiesOfType: async (type, parameters) => {
         const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
@@ -952,7 +976,11 @@ const Workspaces = signal => ({
         const res = await fetchOk(url)
         const payload = await res.json()
 
-        return upsertEntities(payload)
+        const body = _.map(({ name, entityType, attributes }) => {
+          return { name, entityType, operations: attributesUpdateOps(attributes) }
+        }, payload)
+
+        return fetchRawls(`${root}/entities/batchUpsert`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
       importEntitiesFile: (file, { deleteEmptyValues = false } = {}) => {
@@ -1100,7 +1128,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
   },
 
   listAnalyses: async (googleProject, name) => {
@@ -1109,12 +1137,12 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
+    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
   },
 
-  list: async (googleProject, bucket, prefix) => {
+  list: async (googleProject, bucket, prefix, options = {}) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     return res.json()
@@ -1174,20 +1202,20 @@ const Buckets = signal => ({
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}/copyTo/b/${newBucket}/o/${encodeAnalysisName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
       return fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
       const res = await fetchBuckets(
-        `${bucketUrl}/${nbName(name)}`,
+        `${bucketUrl}/${encodeAnalysisName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       )
       return await res.json()
@@ -1208,7 +1236,7 @@ const Buckets = signal => ({
 
       create: async contents => {
         return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
+          `upload/${bucketUrl}?uploadType=media&name=${encodeAnalysisName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
@@ -1236,13 +1264,14 @@ const Buckets = signal => ({
     const mimeType = Utils.switchCase(toolLabel,
       [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
 
-    const encodeFileName = n => Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => nbName(getDisplayName(n))], [tools.RStudio.label, () => rName(getDisplayName(n))])
+    const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
-    const doCopy = async (newName, newBucket, body) => fetchBuckets(
-      `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-    )
+    const doCopy = async (newName, newBucket, body) => {
+      fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
+      )
+    }
 
     const copy = (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
@@ -1307,7 +1336,7 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        await copy(newName, bucket, false)
+        await copy(`${newName}.${getExtension(name)}`, bucket, false)
         return doDelete()
       },
 
@@ -1435,6 +1464,10 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
   },
 
+  setAzureCookie: proxyUrl => {
+    return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
   setCookie: () => {
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
@@ -1481,6 +1514,42 @@ const Runtimes = signal => ({
       },
 
       delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      }
+    }
+  },
+
+  listV2: async (labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  listV2WithWorkspace: async (workspaceId, labels = {}) => {
+    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
+    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
+
+    return {
+
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
+      },
+
+      create: options => {
+        const body = _.merge(options, {
+          labels: { saturnAutoCreated: 'true', saturnVersion: version }
+        })
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      },
+
+      delete: (deleteDisk = true) => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
@@ -1607,7 +1676,7 @@ const Disks = signal => ({
       details: async () => {
         const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        return res.json()
+        return res.json().then(val => _.set('diskType', pdTypes.fromString(val.diskType), val))
       }
     }
   }
@@ -1623,7 +1692,9 @@ const Dockstore = signal => ({
   getVersions: async ({ path, isTool }) => {
     const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
     return res.json()
-  }
+  },
+
+  listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
 
@@ -1686,6 +1757,19 @@ const Metrics = signal => ({
   })
 })
 
+const OAuth2 = signal => ({
+  getConfiguration: async () => {
+    const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+const Surveys = signal => ({
+  submitForm: withErrorIgnoring((formId, data) => {
+    return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
+  })
+})
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1705,7 +1789,9 @@ export const Ajax = signal => {
     Metrics: Metrics(signal),
     Disks: Disks(signal),
     CromIAM: CromIAM(signal),
-    FirecloudBucket: FirecloudBucket(signal)
+    FirecloudBucket: FirecloudBucket(signal),
+    OAuth2: OAuth2(signal),
+    Surveys: Surveys(signal)
   }
 }
 

@@ -12,14 +12,13 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
-  stripExtension, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import galaxyLogo from 'src/images/galaxy-logo.png'
+import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
@@ -30,11 +29,12 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { AzureComputeModal } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -168,11 +168,11 @@ const AnalysisCard = ({
 
   //the flex values for columns here correspond to the flex values in the header
   const artifactName = div({
-    title: getDisplayName(name),
+    title: getFileName(name),
     style: {
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
-  }, [getDisplayName(name)])
+  }, [getFileName(name)])
 
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
@@ -225,10 +225,9 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
-  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+  analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
   onRequesterPaysError
 }, _ref) => {
-  // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
@@ -237,8 +236,7 @@ const Analyses = _.flow(
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [location, setLocation] = useState(defaultLocation)
-  //TODO: add galaxy artifacts to this once we have galaxy artifacts
+  const [azureCreating, setAzureCreating] = useState(false)
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
@@ -250,30 +248,27 @@ const Analyses = _.flow(
 
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
-  const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
+  const existingNames = _.map(({ name }) => {
+    return getFileName(name)
+  }, analyses)
 
-  const refreshAnalyses = _.flow(
+  //TODO: defined load function for azure
+  const refreshAnalyses = !!googleProject ? _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const { location } = await Ajax()
-      .Workspaces
-      .workspace(namespace, workspace.name)
-      .checkBucketLocation(googleProject, bucketName)
-    setLocation(location)
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
-    const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
+    const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
-    const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
-    setLocation(location)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
-  })
+  }) : () => setAnalyses([])
 
   const getActiveFileTransfers = _.flow(
     withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
@@ -283,10 +278,14 @@ const Analyses = _.flow(
     setActiveFileTransfers(!_.isEmpty(fileTransfers))
   })
 
-  const uploadFiles = Utils.withBusyState(setBusy, async files => {
+  //TODO: define update function for azure
+  const uploadFiles = !!googleProject ? _.flow(
+    withErrorReporting('Error uploading files'),
+    Utils.withBusyState(setBusy)
+  )(async files => {
     try {
       await Promise.all(_.map(async file => {
-        const name = stripExtension(file.name)
+        const name = file.name
         const toolLabel = getTool(file.name)
         let resolvedName = name
         let c = 0
@@ -304,21 +303,24 @@ const Analyses = _.flow(
         reportError('Error creating analysis', error)
       }
     }
-  })
+  }) : () => {}
 
   // Lifecycle
-  useOnMount(() => {
-    const load = async () => {
-      const [currentUserHash, potentialLockers] = await Promise.all(
-        [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
-      setCurrentUserHash(currentUserHash)
-      setPotentialLockers(potentialLockers)
-      getActiveFileTransfers()
-      refreshAnalyses()
-    }
+  useOnMount(_.flow(
+    withErrorReporting('Error loading analyses'),
+    Utils.withBusyState(setBusy)
+  )(async () => {
+    const [currentUserHash, potentialLockers] = !!googleProject ?
+      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
+      await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
 
-    load()
+    setCurrentUserHash(currentUserHash)
+    setPotentialLockers(potentialLockers)
+    getActiveFileTransfers()
+    await refreshAnalyses()
+    await refreshRuntimes()
   })
+  )
 
   useEffect(() => {
     StateHistory.update({ analyses, sortOrder, filter })
@@ -326,14 +328,12 @@ const Analyses = _.flow(
 
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' } }, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80, marginRight: '5rem' } }),
-      img({ src: rstudioBioLogo, style: { width: 400, marginRight: '5rem' } }),
-      div([
-        img({ src: galaxyLogo, style: { height: 60, width: 208 } })
-        // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
-      ])
-    ]),
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
+      img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
+      img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
+      img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
+    ])
+    ),
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
       `Click the button above to create an analysis.`
     ])
@@ -354,7 +354,7 @@ const Analyses = _.flow(
     const { field, direction } = sortOrder
     const canWrite = Utils.canWrite(accessLevel)
     const renderedAnalyses = _.flow(
-      _.filter(({ name }) => Utils.textMatch(filter, getDisplayName(name))),
+      _.filter(({ name }) => Utils.textMatch(filter, getFileName(name))),
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
@@ -387,13 +387,14 @@ const Analyses = _.flow(
   }
 
   // Render
+  //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
-    disabled: !Utils.canWrite(accessLevel),
+    accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
+    disabled: !Utils.canWrite(accessLevel) || !googleProject,
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      'The selected file is not a .ipynb notebook file or an .Rmd RStudio file. Ensure your file has the proper extension.'),
+      `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     analyses && h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [
@@ -401,7 +402,8 @@ const Analyses = _.flow(
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonOutline, {
           style: { marginLeft: '1.5rem' },
-          onClick: () => setCreating(true),
+          //TODO: azure should eventually leverage create modal
+          onClick: () => !!googleProject ? setCreating(true) : setAzureCreating(true),
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
@@ -457,21 +459,37 @@ const Analyses = _.flow(
           refreshApps,
           uploadFiles, openUploader,
           location,
-          onDismiss: async () => {
-            await refreshAnalyses()
-            await refreshRuntimes()
-            await refreshApps()
+          onDismiss: () => {
             setCreating(false)
           },
-          onSuccess: async () => {
+          onError: async () => {
+            setCreating(false)
             await refreshAnalyses()
             await refreshRuntimes()
             await refreshApps()
+          },
+          onSuccess: async () => {
             setCreating(false)
+            await refreshAnalyses()
+            await refreshRuntimes()
+            await refreshApps()
+          }
+        }),
+        h(AzureComputeModal, {
+          workspace,
+          runtimes,
+          isOpen: azureCreating,
+          onDismiss: async () => {
+            setAzureCreating(false)
+            await refreshRuntimes()
+          },
+          onSuccess: async () => {
+            setAzureCreating(false)
+            await refreshRuntimes()
           }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(renamingAnalysisName),
+          printName: getFileName(renamingAnalysisName),
           toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -481,7 +499,7 @@ const Analyses = _.flow(
           }
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
-          printName: getDisplayName(copyingAnalysisName),
+          printName: getFileName(copyingAnalysisName),
           toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
@@ -491,14 +509,14 @@ const Analyses = _.flow(
           }
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
-          printName: getDisplayName(exportingAnalysisName),
+          printName: getFileName(exportingAnalysisName),
           toolLabel: getTool(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
           objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
-          objectName: getDisplayName(deletingAnalysisName),
+          objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
             Utils.withBusyState(setBusy),
@@ -508,7 +526,7 @@ const Analyses = _.flow(
             await Ajax().Buckets.analysis(
               googleProject,
               bucketName,
-              getDisplayName(deletingAnalysisName),
+              getFileName(deletingAnalysisName),
               getTool(deletingAnalysisName)
             ).delete()
             refreshAnalyses()

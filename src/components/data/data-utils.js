@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, fieldset, h, img, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import Collapse from 'src/components/Collapse'
 import {
   absoluteSpinnerOverlay, ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, DeleteConfirmationModal, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay, Switch
@@ -73,7 +74,7 @@ export const renderDataCell = (data, googleProject) => {
 
   const renderArray = items => {
     return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ]), Utils.toIndexPairs(items))
   }
 
@@ -500,6 +501,7 @@ export const getAttributeType = attributeValue => {
     // eslint-disable-next-line eqeqeq
     [(isList ? attributeValue.items[0] : attributeValue) == undefined, () => 'string'],
     [isList, () => typeof attributeValue.items[0]],
+    [typeof attributeValue === 'object', () => 'json'],
     () => typeof attributeValue
   )
 
@@ -512,29 +514,40 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
   }
 
   const { type, isList } = getAttributeType(attributeValue)
+  if (type === newType) {
+    return attributeValue
+  }
 
   const baseConvertFn = Utils.switchCase(
     newType,
+    ['string', () => _.toString],
     ['reference', () => value => ({
       entityType: referenceEntityType,
-      entityName: _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
+      entityName: type === 'json' ? '' : _.toString(value) // eslint-disable-line lodash-fp/preferred-alias
     })],
     ['number', () => value => {
       const numberVal = _.toNumber(value)
       return _.isNaN(numberVal) ? 0 : numberVal
     }],
-    [Utils.DEFAULT, () => Utils.convertValue(newType)]
+    ['boolean', () => Utils.convertValue('boolean')],
+    ['json', () => value => ({ value })],
+    [Utils.DEFAULT, () => { throw new Error(`Invalid attribute type "${newType}"`) }]
   )
   const convertFn = type === 'reference' ? _.flow(_.get('entityName'), baseConvertFn) : baseConvertFn
 
-  if (isList) {
-    return _.flow(
+  return Utils.cond(
+    [isList && newType === 'json', () => _.get('items', attributeValue)],
+    [isList, () => _.flow(
       _.update('items', _.map(convertFn)),
       _.set('itemsType', newType === 'reference' ? 'EntityReference' : 'AttributeValue')
-    )(attributeValue)
-  }
-
-  return convertFn(attributeValue)
+    )(attributeValue)],
+    [type === 'json' && _.isArray(attributeValue), () => ({
+      items: _.map(convertFn, attributeValue),
+      itemsType: newType === 'reference' ? 'EntityReference' : 'AttributeValue'
+    })],
+    [type === 'json' && newType === 'string', () => ''],
+    () => convertFn(attributeValue)
+  )
 }
 
 const renderInputForAttributeType = _.curry((attributeType, props) => {
@@ -566,6 +579,21 @@ const renderInputForAttributeType = _.curry((attributeType, props) => {
       const { value = false, ...otherProps } = props
       return div({ style: { flexGrow: 1, display: 'flex', alignItems: 'center', height: '2.25rem' } },
         [h(Switch, { checked: value, ...otherProps })])
+    }],
+    ['json', () => {
+      const { value, onChange, ...otherProps } = props
+      return h(ReactJson, {
+        ...otherProps,
+        style: { ...otherProps.style, whiteSpace: 'pre-wrap' },
+        src: value,
+        displayObjectSize: false,
+        displayDataTypes: false,
+        enableClipboard: false,
+        name: false,
+        onAdd: _.flow(_.get('updated_src'), onChange),
+        onDelete: _.flow(_.get('updated_src'), onChange),
+        onEdit: _.flow(_.get('updated_src'), onChange)
+      })
     }]
   )
 })
@@ -576,11 +604,13 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
     ['string', () => ''],
     ['reference', () => ({ entityName: '', entityType: referenceEntityType })],
     ['number', () => 0],
-    ['boolean', () => false]
+    ['boolean', () => false],
+    ['json', () => ({})]
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [] }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
+  const [edited, setEdited] = useState(false)
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -604,30 +634,45 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
     }
   }, [attributeValue, isList])
 
+  const typeOptions = [
+    { type: 'string' },
+    { type: 'reference', tooltip: 'A link to another entity' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+
+  if (attributeType === 'json' || showJsonTypeOption) {
+    typeOptions.push({ type: 'json', label: 'JSON' })
+  }
+
   return h(Fragment, [
     div({ style: { marginBottom: '1rem' } }, [
       fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Attribute type:']),
-        h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { marginRight: '1.2rem' } }, [
+        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
+        div({
+          style: {
+            display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
+            marginBottom: '0.5rem'
+          }
+        }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+          span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
             h(RadioButton, {
-              text: _.startCase(type),
+              text: label || _.startCase(type),
               name: 'edit-type',
               checked: attributeType === type,
               onChange: () => {
-                const newAttributeValue = convertAttributeValue(attributeValue, type, defaultReferenceEntityType)
+                const newAttributeValue = convertAttributeValue(
+                  initialValue && !edited ? initialValue : attributeValue,
+                  type,
+                  defaultReferenceEntityType
+                )
                 onChange(newAttributeValue)
               },
               labelStyle: { paddingLeft: '0.5rem' }
             })
           ])
         ]),
-        [
-          { type: 'string' },
-          { type: 'reference', tooltip: 'A link to another entity' },
-          { type: 'number' },
-          { type: 'boolean' }
-        ])
+        typeOptions)
         )
       ]),
       attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
@@ -647,7 +692,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
         ])])
       ])
     ]),
-    div({ style: { marginBottom: '0.5rem' } }, [
+    attributeType !== 'json' && div({ style: { marginBottom: '0.5rem' } }, [
       h(LabeledCheckbox, {
         checked: isList,
         onChange: willBeList => {
@@ -657,12 +702,12 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           onChange(newAttributeValue)
         }
       }, [
-        span({ style: { marginLeft: '0.5rem' } }, ['Attribute is a list'])
+        span({ style: { marginLeft: '0.5rem' } }, ['Value is a list'])
       ])
     ]),
     isList ?
       h(Fragment, [
-        div({ style: { marginTop: '1.5rem' } }, _.map(([i, value]) => div({
+        div({ style: { marginTop: '1rem' } }, _.map(([i, value]) => div({
           style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
         }, [
           renderInput({
@@ -672,6 +717,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             value,
             onChange: v => {
               const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
+              setEdited(true)
               onChange(newAttributeValue)
             }
           }),
@@ -680,6 +726,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             disabled: _.size(attributeValue.items) === 1,
             onClick: () => {
               const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
+              setEdited(true)
               onChange(newAttributeValue)
             },
             style: { marginLeft: '0.5rem' }
@@ -692,6 +739,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           onClick: () => {
             focusLastListItemInput.current = true
             const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
+            setEdited(true)
             onChange(newAttributeValue)
           }
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item'])
@@ -700,7 +748,10 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           'aria-label': 'New value',
           autoFocus,
           value: attributeValue,
-          onChange
+          onChange: v => {
+            setEdited(true)
+            onChange(v)
+          }
         })
       ])
   ])
@@ -721,6 +772,7 @@ export const prepareAttributeForUpload = attributeValue => {
 }
 
 export const SingleEntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const { type: originalValueType } = getAttributeType(attributeValue)
   const [newValue, setNewValue] = useState(attributeValue)
   const isUnchanged = _.isEqual(attributeValue, newValue)
 
@@ -735,8 +787,13 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
         .Workspaces
         .workspace(namespace, name)
         .upsertEntities([{
-          name: entityName, entityType,
-          attributes: { [attributeName]: prepareAttributeForUpload(newValue) }
+          entityType,
+          name: entityName,
+          operations: [{
+            op: 'AddUpdateAttribute',
+            attributeName,
+            addUpdateAttribute: prepareAttributeForUpload(newValue)
+          }]
         }])
       onSuccess()
     } catch (e) {
@@ -759,19 +816,19 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: 'Modify Attribute',
+    title: 'Edit value',
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeName),
+        'Are you sure you want to delete the value ', boldish(attributeName),
         ' from the ', boldish(entityType), ' called ', boldish(entityName), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -779,7 +836,9 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
           autoFocus: true,
           value: newValue,
           onChange: setNewValue,
-          entityTypes
+          initialValue: attributeValue,
+          entityTypes,
+          showJsonTypeOption: originalValueType === 'json'
         }),
         div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
           h(ButtonOutline, { onClick: () => setConsideringDelete(true) }, ['Delete']),
@@ -799,8 +858,10 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
 export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
-  const attributeToEditError = attributeToEditTouched && !attributeToEdit ? 'An attribute name is required.' : null
-  const isNewAttribute = !_.includes(attributeToEdit, attributeNames)
+  const attributeToEditError = attributeToEditTouched && Utils.cond(
+    [!attributeToEdit, () => 'An attribute name is required.'],
+    [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
+  )
 
   const [newValue, setNewValue] = useState('')
 
@@ -815,7 +876,11 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
       const entityUpdates = _.map(entityName => ({
         entityType,
         name: entityName,
-        attributes: { [attributeToEdit]: prepareAttributeForUpload(newValue) }
+        operations: [{
+          op: 'AddUpdateAttribute',
+          attributeName: attributeToEdit,
+          addUpdateAttribute: prepareAttributeForUpload(newValue)
+        }]
       }), entityNames)
 
       await Ajax(signal)
@@ -843,32 +908,32 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: `Modify attribute on ${pluralize(entityType, entityNames.length, true)}`,
+    title: `Edit fields in ${pluralize('row', entityNames.length, true)}`,
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
-        'Are you sure you want to delete the attribute ', boldish(attributeToEdit),
+        'Are you sure you want to delete the value ', boldish(attributeToEdit),
         ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete Attribute'])
+          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Select an attribute or enter a new attribute'),
+              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
                   id,
                   value: attributeToEdit,
-                  suggestions: _.uniq(_.concat(attributeNames, attributeToEdit)),
-                  placeholder: 'Attribute name',
+                  suggestions: attributeNames,
+                  placeholder: 'Column name',
                   style: attributeToEditError ? {
                     paddingRight: '2.25rem',
                     border: `1px solid ${colors.danger()}`
@@ -898,6 +963,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
+          p({ style: { fontWeight: 'bold' } }, ['Change selected values to:']),
           h(AttributeInput, {
             value: newValue,
             onChange: setNewValue,
@@ -905,11 +971,8 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           }),
           div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
             h(ButtonOutline, {
-              disabled: attributeToEditError || isNewAttribute,
-              tooltip: Utils.cond(
-                [attributeToEditError, () => attributeToEditError],
-                [isNewAttribute, () => 'The selected attribute does not exist.']
-              ),
+              disabled: !!attributeToEditError,
+              tooltip: attributeToEditError,
               onClick: () => setConsideringDelete(true)
             }, ['Delete']),
             div({ style: { flexGrow: 1 } }),
@@ -918,12 +981,197 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
               disabled: attributeToEditError,
               tooltip: attributeToEditError,
               onClick: doEdit
-            }, [isNewAttribute ? 'Add attribute' : 'Save changes'])
+            }, ['Save edits'])
           ])
         ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
           h(ButtonSecondary, { onClick: onDismiss }, ['Cancel'])
         ])
       ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const CreateEntitySetModal = ({ entityType, entityNames, workspaceId: { namespace, name: workspaceName }, onDismiss, onSuccess }) => {
+  const [name, setName] = useState('')
+  const [nameInputTouched, setNameInputTouched] = useState(false)
+  const nameError = nameInputTouched && Utils.cond(
+    [!name, () => 'A name for the set is required.'],
+    [!/^[A-Za-z0-9_-]+$/.test(name), () => 'Set name may only contain alphanumeric characters, underscores, dashes, and periods.']
+  )
+
+  const [isBusy, setIsBusy] = useState()
+
+  const createSet = async () => {
+    setIsBusy(true)
+    try {
+      await Ajax()
+        .Workspaces
+        .workspace(namespace, workspaceName)
+        .createEntity({
+          name,
+          entityType: `${entityType}_set`,
+          attributes: {
+            [`${entityType}s`]: {
+              itemsType: 'EntityReference',
+              items: _.map(entityName => ({ entityType, entityName }), entityNames)
+            }
+          }
+        })
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to create set.', e)
+    }
+  }
+
+  return h(Modal, {
+    title: `Create a ${entityType} set`,
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      disabled: !name || nameError,
+      tooltip: nameError,
+      onClick: createSet
+    }, ['Save'])
+  }, [
+    div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', marginBottom: '0.5rem' } }, 'Set name (required)'),
+          div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+            h(TextInput, {
+              id,
+              value: name,
+              placeholder: 'Enter a name for the set',
+              style: nameError ? {
+                paddingRight: '2.25rem',
+                border: `1px solid ${colors.danger()}`
+              } : undefined,
+              onChange: value => {
+                setName(value)
+                setNameInputTouched(true)
+              }
+            }),
+            nameError && icon('error-standard', {
+              size: 24,
+              style: {
+                position: 'absolute', right: '0.5rem',
+                color: colors.danger()
+              }
+            })
+          ]),
+          nameError && div({
+            'aria-live': 'assertive',
+            'aria-relevant': 'all',
+            style: {
+              marginTop: '0.5rem',
+              color: colors.danger()
+            }
+          }, nameError)
+        ])
+      ])
+    ]),
+    isBusy && spinnerOverlay
+  ])
+}
+
+export const AddColumnModal = ({ entityType, entityMetadata, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+  const [columnName, setColumnName] = useState('')
+  const [columnNameTouched, setColumnNameTouched] = useState(false)
+  const columnNameError = columnNameTouched && Utils.cond(
+    [!columnName, () => 'A column name is required.'],
+    [_.includes(columnName, entityMetadata[entityType].attributeNames), () => 'This column already exists.']
+  )
+
+  const [value, setValue] = useState('')
+
+  const [isBusy, setIsBusy] = useState()
+
+  const addColumn = async () => {
+    try {
+      setIsBusy(true)
+
+      const queryResults = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, {
+        pageSize: entityMetadata[entityType].count,
+        fields: ''
+      })
+      const allEntityNames = _.map(_.get('name'), queryResults.results)
+
+      const entityUpdates = _.map(entityName => ({
+        entityType,
+        name: entityName,
+        operations: [{
+          op: 'AddUpdateAttribute',
+          attributeName: columnName,
+          addUpdateAttribute: prepareAttributeForUpload(value)
+        }]
+      }), allEntityNames)
+
+      await Ajax()
+        .Workspaces
+        .workspace(namespace, name)
+        .upsertEntities(entityUpdates)
+      onSuccess()
+    } catch (e) {
+      onDismiss()
+      reportError('Unable to add column.', e)
+    }
+  }
+
+  return h(Modal, {
+    title: 'Add a new column',
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      disabled: !columnName || columnNameError,
+      tooltip: columnNameError,
+      onClick: addColumn
+    }, ['Save'])
+  }, [
+    div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', marginBottom: '0.5rem' } }, 'Column name'),
+          div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
+            h(TextInput, {
+              id,
+              value: columnName,
+              placeholder: 'Enter a name (required)',
+              style: columnNameError ? {
+                paddingRight: '2.25rem',
+                border: `1px solid ${colors.danger()}`
+              } : undefined,
+              onChange: value => {
+                setColumnName(value)
+                setColumnNameTouched(true)
+              }
+            }),
+            columnNameError && icon('error-standard', {
+              size: 24,
+              style: {
+                position: 'absolute', right: '0.5rem',
+                color: colors.danger()
+              }
+            })
+          ]),
+          columnNameError && div({
+            'aria-live': 'assertive',
+            'aria-relevant': 'all',
+            style: {
+              marginTop: '0.5rem',
+              color: colors.danger()
+            }
+          }, columnNameError)
+        ])
+      ])
+    ]),
+    p([
+      span({ style: { fontWeight: 'bold' } }, ['Default value']),
+      ' (optional, will be entered for all rows)'
+    ]),
+    h(AttributeInput, {
+      value,
+      onChange: setValue,
+      entityTypes: _.keys(entityMetadata)
+    }),
     isBusy && spinnerOverlay
   ])
 }
@@ -979,7 +1227,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
 
   return h(Modal, {
     onDismiss,
-    title: `Add ${entityType}`,
+    title: 'Add a new row',
     okButton: h(ButtonPrimary, {
       disabled: !!entityNameErrors,
       tooltip: Utils.summarizeErrors(entityNameErrors),
@@ -990,6 +1238,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
     h(ValidatedInput, {
       inputProps: {
         id: 'add-row-entity-name',
+        placeholder: 'Enter a value (required)',
         value: entityName,
         onChange: value => {
           setEntityName(value)
@@ -998,7 +1247,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       },
       error: entityNameInputTouched && Utils.summarizeErrors(entityNameErrors)
     }),
-    p({ id: 'add-row-attributes-label' }, 'Expand each attribute to edit its value.'),
+    p({ id: 'add-row-attributes-label' }, 'Expand each value to edit.'),
     ul({ 'aria-labelledby': 'add-row-attributes-label', style: { padding: 0, margin: 0 } }, [
       _.map(([i, attributeName]) => li({
         key: attributeName,

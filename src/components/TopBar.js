@@ -7,13 +7,12 @@ import { Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheck
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import SignInButton from 'src/components/SignInButton'
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink'
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
-import { signOut } from 'src/libs/auth'
+import { signIn, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import {
   getConfig, isBaseline, isBioDataCatalyst, isDataBrowserVisible, isDatastage, isFirecloud, isGPDataSelectorVisible, isTerra
@@ -189,16 +188,14 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 },
               role: 'listitem'
             }, [
-              isDatastage() || isBioDataCatalyst() ?
-                h(Clickable, {
-                  href: Nav.getLink('workspaces'),
-                  style: {
-                    backgroundColor: 'white', fontSize: 18, fontWeight: 500, color: colors.accent(),
-                    borderRadius: 5, boxShadow: '0 2px 4px 0 rgba(0,0,0,.25)',
-                    width: 250, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }
-                }, ['SIGN IN']) :
-                h(SignInButton)
+              h(Clickable, {
+                ...(isDatastage() || isBioDataCatalyst()) ? { href: Nav.getLink('workspaces') } : { onClick: () => signIn(false) },
+                style: {
+                  backgroundColor: 'white', fontSize: 18, fontWeight: 500, color: colors.accent(),
+                  borderRadius: 5, boxShadow: '0 2px 4px 0 rgba(0,0,0,.25)',
+                  width: 250, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }
+              }, ['LOG IN'])
             ]),
           h(NavSection, {
             href: Nav.getLink('workspaces'),
@@ -217,18 +214,18 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: Nav.getLink('library-datasets'),
               onClick: hideNav
             }, ['Data']),
-            h(DropDownSubItem, {
-              href: Nav.getLink('library-showcase'),
-              onClick: hideNav
-            }, ['Showcase']),
             isDataBrowserVisible() && h(DropDownSubItem, {
               href: Nav.getLink('library-browser'),
               onClick: hideNav
-            }, ['Catalog']),
+            }, ['Try the BETA Data Catalog']),
             isGPDataSelectorVisible() && h(DropDownSubItem, {
               href: Nav.getLink('library-gp-selector'),
               onClick: hideNav
             }, ['GP Data Selector']),
+            h(DropDownSubItem, {
+              href: Nav.getLink('library-showcase'),
+              onClick: hideNav
+            }, ['Showcase']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: hideNav

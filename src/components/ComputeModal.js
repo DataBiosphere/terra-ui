@@ -10,13 +10,14 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
@@ -183,7 +184,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
@@ -251,7 +252,7 @@ export const ComputeModalBase = ({
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
+    withErrorReportingInModal('Error modifying cloud environment', onError)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
@@ -309,18 +310,16 @@ export const ComputeModalBase = ({
       }
       if (shouldCreateRuntime) {
         const diskConfig = Utils.cond(
-          [desiredRuntime.cloudService === cloudServices.DATAPROC, () => { return {} }],
-          [existingPersistentDisk && !shouldDeletePersistentDisk, () => { return { persistentDisk: { name: currentPersistentDiskDetails.name } } }],
-          [Utils.DEFAULT, () => {
-            return {
-              persistentDisk: {
-                name: Utils.generatePersistentDiskName(),
-                size: desiredPersistentDisk.size,
-                diskType: desiredPersistentDisk.diskType.label,
-                labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
-              }
+          [desiredRuntime.cloudService === cloudServices.DATAPROC, () => ({})],
+          [existingPersistentDisk && !shouldDeletePersistentDisk, () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
+          [Utils.DEFAULT, () => ({
+            persistentDisk: {
+              name: Utils.generatePersistentDiskName(),
+              size: desiredPersistentDisk.size,
+              diskType: desiredPersistentDisk.diskType.label,
+              labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
             }
-          }]
+          })]
         )
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
@@ -699,10 +698,11 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, 'terra-docker-image-documentation', 'terra-docker-versions.json', true)
+          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
+
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -737,7 +737,7 @@ export const ComputeModalBase = ({
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
@@ -751,7 +751,7 @@ export const ComputeModalBase = ({
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
-        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && pdTypes.fromString(currentPersistentDiskDetails.diskType)) || defaultPersistentDiskType,
+        selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
         masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
           defaultDataprocMasterDiskSize :
@@ -1313,7 +1313,6 @@ export const ComputeModalBase = ({
 
   const renderDeleteDiskChoices = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-
     return h(Fragment, [
       h(RadioBlock, {
         name: 'keep-persistent-disk',
@@ -1518,6 +1517,7 @@ export const ComputeModalBase = ({
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
+        updateComputeConfig('masterMachineType', isDataproc(newRuntimeType) ? defaultDataprocMachineType : defaultGceMachineType)
       },
       isSearchable: true,
       isClearable: false,
@@ -1705,8 +1705,10 @@ export const ComputeModalBase = ({
           value: computeConfig.selectedPersistentDiskType,
           isDisabled: diskExists || false,
           onChange: ({ value }) => updateComputeConfig('selectedPersistentDiskType', value),
+          menuPlacement: 'auto',
           options: [
             { label: pdTypes.standard.displayName, value: pdTypes.standard },
+            { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
             { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
           ]
         })

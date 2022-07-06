@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, availableBucketRegions, getRegionInfo, isSupportedBucketLocation, locationTypes } from 'src/components/region-common'
+import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -118,12 +118,13 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   )(() => Promise.all([
     Ajax(signal).Billing.listProjects()
       .then(_.filter({ status: 'Ready' }))
+      .then(_.filter(project => isBillingProjectApplicable(project)))
       .then(projects => {
         setBillingProjects(projects)
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
@@ -133,6 +134,23 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
 
   const shouldShowDifferentRegionWarning = () => {
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
+  }
+
+  const isAzureBillingProject = project => {
+    if (project === undefined) {
+      project = _.find({ projectName: namespace }, billingProjects)
+    }
+    // Azure billing projects have `managedAppCoordinates` defined.
+    return !!project?.managedAppCoordinates
+  }
+
+  const isBillingProjectApplicable = project => {
+    // Only support cloning a workspace to the same cloud environment.
+    return Utils.cond(
+      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
+      [Utils.DEFAULT, () => true]
+    )
   }
 
   // Lifecycle
@@ -149,11 +167,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
 
-  const sourceLocationType = sourceWorkspaceLocation === defaultLocation ? locationTypes.default : locationTypes.region
-  const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
+  const sourceLocationType = getLocationType(sourceWorkspaceLocation)
+  const destLocationType = getLocationType(bucketLocation)
 
   return Utils.cond(
-    [loading, () => spinnerOverlay],
+    [loading || billingProjects === undefined, () => spinnerOverlay],
     [hasBillingProjects, () => h(Modal, {
       title: Utils.cond(
         [title, () => title],
@@ -207,7 +225,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
-      h(IdContainer, [id => h(Fragment, [
+      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Bucket location',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
@@ -228,9 +246,27 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', isAlphaRegionalityUser ? allRegions : availableBucketRegions)
+          options: isAlphaRegionalityUser ? allRegions : availableBucketRegions
         })
       ])]),
+      isLocationMultiRegion(bucketLocation) && div({ style: { ...warningStyle } }, [
+        icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        div({ style: { flex: 1 } }, [
+          `Effective October 1, 2022, Google Cloud will charge egress fees on data stored in multi-region storage buckets.`,
+          p(`Choosing a multi-region bucket location may result in additional storage costs for your workspace.`),
+          p(
+            [
+              `Unless you require geo-redundancy for maximum availabity for your data, you should choose a single region bucket location.`,
+              h(Link, { href: 'https://terra.bio/moving-away-from-multi-regional-storage-buckets', ...Utils.newTabLinkProps },
+                [
+                  ` For more information see this blog post.`,
+                  icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+                ]
+              )
+            ]
+          )
+        ])
+      ]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
         icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         div({ style: { flex: 1 } }, [
@@ -256,7 +292,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: setDescription
         })
       ])]),
-      h(IdContainer, [id => h(Fragment, [
+      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Authorization domain',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [

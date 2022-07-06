@@ -21,10 +21,36 @@ const savedColumnSettingsWorkspaceAttributeName = 'system:columnSettings'
 
 // Compress settings to avoid storing 'name' and 'visible' keys many times
 const encodeColumnSettings = _.flatMap(({ name, visible }) => [name, visible])
-const decodeColumnSettings = _.flow(
+export const decodeColumnSettings = _.flow(
   _.chunk(2),
   _.map(([name, visible]) => ({ name, visible }))
 )
+
+// Column settings are now stored as JSON in the rawls database (max size 4gb)
+// In an earlier version of this feature, they were stored as Strings in rawls (max size 64kb)
+// For backwards-compatibility purposes, we need to support both cases. So we will try to parse
+// the column settings as a String and if that fails then we will parse it as regular JSON
+const parseAsStringOrJson = attr => {
+  try {
+    return JSON.parse(attr)
+  } catch (e) {
+    return attr
+  }
+}
+
+export const allSavedColumnSettingsInWorkspace = workspace => {
+  return _.flow(
+    _.get('workspace.attributes'),
+    _.getOr('{}', savedColumnSettingsWorkspaceAttributeName),
+    parseAsStringOrJson
+  )(workspace)
+}
+
+export const allSavedColumnSettingsEntityTypeKey = ({ snapshotName, entityType }) => {
+  const baseKey = snapshotName ? `snapshots.${snapshotName}` : 'tables'
+  const entityTypeKey = `${baseKey}.${entityType}`
+  return entityTypeKey
+}
 
 const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, entityType }) => {
   // Saved column settings for all tables are stored in the same attribute in the format:
@@ -48,26 +74,24 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
   //    }
   // }
   const baseKey = snapshotName ? `snapshots.${snapshotName}` : 'tables'
-  const entityTypeKey = `${baseKey}.${entityType}`
+  const entityTypeKey = allSavedColumnSettingsEntityTypeKey({ snapshotName, entityType })
 
   const signal = useCancellation()
 
   const getAllSavedColumnSettings = async () => {
     const { namespace, name } = workspaceId
-    const { workspace: { attributes } } = await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.attributes'])
+    const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details(['workspace.attributes'])
     return _.flow(
-      _.getOr('{}', savedColumnSettingsWorkspaceAttributeName),
-      JSON.parse,
+      allSavedColumnSettingsInWorkspace,
       // Drop any column settings for entity types that no longer exist
       _.update(baseKey, _.pick(_.keys(entityMetadata)))
-    )(attributes)
+    )(workspace)
   }
 
   const updateSavedColumnSettings = async allColumnSettings => {
     const { namespace, name } = workspaceId
     await Ajax(signal).Workspaces.workspace(namespace, name).shallowMergeNewAttributes({
-      // Store settings as a string since Rawls expects lists of objects to be entity references
-      [savedColumnSettingsWorkspaceAttributeName]: JSON.stringify(allColumnSettings)
+      [savedColumnSettingsWorkspaceAttributeName]: allColumnSettings
     })
   }
 

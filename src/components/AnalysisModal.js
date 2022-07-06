@@ -9,12 +9,12 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getAppType, getFileName, getTool, isToolAnApp, notebookData,
-  tools
+  analysisNameInput, analysisNameValidator, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  toolExtensionDisplay, tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
-import galaxyLogo from 'src/images/galaxy-logo.png'
+import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -35,7 +35,7 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
+    isOpen, onDismiss, onError, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
@@ -43,6 +43,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const [analysisName, setAnalysisName] = useState('')
     const prevAnalysisName = usePrevious(analysisName)
     const [currentTool, setCurrentTool] = useState(undefined)
+    const [fileExt, setFileExt] = useState('')
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -55,6 +56,21 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       setNotebookKernel('python3')
     }
 
+    const onDismissModal = () => {
+      onDismiss()
+      resetView()
+    }
+
+    const onSuccessModal = () => {
+      onSuccess()
+      resetView()
+    }
+
+    const onErrorModal = () => {
+      onError()
+      resetView()
+    }
+
     /**
      * The intended flow is to call this without a viewMode, and have it intelligently figure out the next
      * step for you. Passing a viewMode is a way to force your next modal.
@@ -65,21 +81,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
-          [doesCloudEnvForToolExist, () => {
-            resetView()
-            onSuccess()
-          }],
+          [doesCloudEnvForToolExist, () => onSuccessModal],
           [!doesCloudEnvForToolExist && currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-          [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), () => {
-            resetView()
-            onSuccess()
-          }]
+          [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), onSuccessModal]
         )],
-        [environmentMode, () => {
-          resetView()
-          onSuccess()
-        }],
+        [environmentMode, onSuccessModal],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
           [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
@@ -108,19 +115,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
+      location,
       workspace,
       tool: currentTool,
       runtimes,
       persistentDisks,
-      location,
-      onDismiss: () => {
-        resetView()
-        onDismiss()
-      },
-      onSuccess: () => {
-        setViewMode(undefined)
-        onSuccess()
-      }
+      onDismiss: onDismissModal,
+      onError: onErrorModal,
+      onSuccess: onSuccessModal
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
@@ -128,14 +130,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       workspace,
       apps,
       appDataDisks,
-      onDismiss: () => {
-        setViewMode(undefined)
-        onDismiss()
-      },
-      onSuccess: () => {
-        setViewMode(undefined)
-        onSuccess()
-      }
+      onDismiss: onDismissModal,
+      onError: onErrorModal,
+      onSuccess: onSuccessModal
     })
 
     const styles = {
@@ -143,7 +140,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem',
         textAlign: 'center', width: '100%', height: 60
       },
-      image: { verticalAlign: 'middle', height: '100%', width: '40%' },
+      image: { verticalAlign: 'middle', height: 30, width: '40%' },
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
@@ -157,17 +154,19 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.Jupyter.label)
+          setFileExt(tools.Jupyter.defaultExt)
           enterNextViewMode(tools.Jupyter.label)
         },
         hover: styles.hover
-      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentTool(tools.RStudio.label)
+          setFileExt(tools.RStudio.defaultExt)
           enterNextViewMode(tools.RStudio.label)
         },
         hover: styles.hover
-      }, [img({ src: rstudioBioLogo, alt: 'Create new R markdown file', style: _.merge(styles.image, { width: '50%' }) })]),
+      }, [img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) })]),
       h(Clickable, {
         style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.Galaxy.label)
@@ -175,7 +174,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         },
         hover: !galaxyApp ? styles.hover : undefined,
         disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: '30%' }) })]),
+      }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) })]),
       !tools.Cromwell.isAppHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.Cromwell.label)
@@ -191,11 +190,11 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       renderToolButtons(),
       h(Dropzone, {
-        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+        accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
         style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
         activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
         onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not a .ipynb notebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+          `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
@@ -206,8 +205,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         }
       }, [() => h(Clickable, {
         onClick: () => {
-          resetView()
-          onSuccess()
+          onSuccessModal()
           openUploader()
         }, style: {
           marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150,
@@ -220,7 +218,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     ])
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => 'R markdown file'],
+      [tools.RStudio.label, () => 'R file'],
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
@@ -233,7 +231,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       const isJupyter = toolLabel === tools.Jupyter.label
 
       const errors = validate(
-        { analysisName: `${analysisName}.${getAnalysisFileExtension(toolLabel)}`, notebookKernel },
+        { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
         {
           analysisName: analysisNameValidator(_.map(({ name }) => getFileName(name), analyses)),
           notebookKernel: { presence: { allowEmpty: true } }
@@ -260,8 +258,21 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             placeholder: 'Select a language',
             getOptionLabel: ({ value }) => _.startCase(value),
             value: notebookKernel,
-            onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+            onChange: ({ value: notebookKernel }) => {
+              setNotebookKernel(notebookKernel)
+            },
             options: ['python3', 'r']
+          })
+        ])]),
+        (toolLabel === tools.RStudio.label) && h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['File Type']),
+          h(Select, {
+            id, isSearchable: true,
+            value: fileExt,
+            onChange: v => {
+              setFileExt(v.value)
+            },
+            options: toolExtensionDisplay.RStudio
           })
         ])]),
         (isJupyter || toolLabel === tools.RStudio.label) &&
@@ -281,17 +292,18 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
-                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter Rmd file'
+                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter file'
+                const fullAnalysisName = `${analysisName}.${isJupyter ? tools.Jupyter.defaultExt : fileExt}`
                 isJupyter ?
-                  await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
-                  await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
-                refreshAnalyses()
+                  await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
+                  await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)
+                await refreshAnalyses()
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
                 await reportError('Error creating analysis', error)
-                onDismiss()
+                onError()
               }
             }
           }, 'Create Analysis')
@@ -311,10 +323,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         title: 'Select an application',
         titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
-        onDismiss: () => {
-          resetView()
-          onDismiss()
-        },
+        onDismiss: onDismissModal,
         onPrevious: !!viewMode ? () => resetView() : undefined
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
@@ -323,10 +332,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const modalProps = {
       isOpen, width, 'aria-labelledby': titleId,
-      onDismiss: () => {
-        resetView()
-        onDismiss()
-      }
+      onDismiss: onDismissModal
     }
 
     return h(ModalDrawer, { ...modalProps, children: modalBody })

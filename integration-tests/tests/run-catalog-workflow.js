@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const { linkDataToWorkspace } = require('../utils/catalog-utils')
 const { click, clickable, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
 const { withWorkspace } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -17,13 +18,9 @@ const testCatalogFlowFn = _.flow(
   await findText(page, 'Select a data type')
 })
 
-const testCatalog = {
+registerTest({
   name: 'run-catalog',
   fn: testCatalogFlowFn,
   timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
-}
-
-module.exports = {
-  testCatalog
-}
+  targetEnvironments: ['dev', 'local']
+})

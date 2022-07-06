@@ -1,4 +1,3 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -6,31 +5,29 @@ import { DraggableCore } from 'react-draggable'
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, Clickable, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
-import { DeleteObjectConfirmationModal } from 'src/components/data/FileBrowser'
+import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
-import Dropzone from 'src/components/Dropzone'
-import FloatingActionButton from 'src/components/FloatingActionButton'
+import RenameTableModal from 'src/components/data/RenameTableModal'
 import { icon, spinner } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
-import UriViewer from 'src/components/UriViewer'
+import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { forwardRefWithName, useCancellation, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
+import { notify } from 'src/libs/notifications'
+import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -49,7 +46,6 @@ const styles = {
   },
   sidebarContainer: {
     overflow: 'auto',
-    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)',
     transition: 'width 100ms'
   },
   dataTypeSelectionPanel: {
@@ -57,47 +53,58 @@ const styles = {
     backgroundColor: 'white'
   },
   sidebarSeparator: {
-    width: '0.75rem',
+    width: '2px',
     height: '100%',
     cursor: 'ew-resize'
   },
   tableViewPanel: {
     position: 'relative',
     overflow: 'hidden',
-    // Left padding is 0.25rem to make room for the sidebar separator
-    padding: '1rem 1rem 1rem 0.25rem', width: '100%',
+    width: '100%',
     flex: 1, display: 'flex', flexDirection: 'column'
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, after, ...props }) => {
+const SearchResultsPill = ({ filteredCount, searching }) => {
+  return div({
+    style: {
+      width: '5ch', textAlign: 'center', padding: '0.25rem 0rem', fontWeight: 600,
+      borderRadius: '1rem', marginRight: '0.5rem', backgroundColor: colors.primary(1.2), color: 'white'
+    }
+  },
+  searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`)
+}
+
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
   const isEntity = entityName !== undefined
 
   return h(Interactive, {
-    style: { ...Style.navList.itemContainer(selected) },
+    style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
     hover: Style.navList.itemHover(selected),
     as: 'div',
     role: 'listitem'
   }, [
     h(Clickable, {
-      style: { flex: '1 1 auto', maxWidth: '100%', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
       ...(isEntity ? {
-        tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
+        tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'}${activeCrossTableTextFilter ? `, ${filteredCount} visible` : ''})` : undefined,
         tooltipDelay: 250,
         useTooltipAsLabel: true
       } : {}),
       'aria-current': selected,
       ...props
     }, [
-      div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-        icon(iconName, { size: iconSize })
-      ]),
-      div({ style: { flex: isDataTabRedesignEnabled() ? '0 1 content' : 1, ...Style.noWrapEllipsis } }, [
+      activeCrossTableTextFilter && isEntity ?
+        SearchResultsPill({ filteredCount, searching: crossTableSearchInProgress }) :
+        div({ style: { flex: 'none', width: '1.5rem' } }, [
+          icon(iconName, { size: iconSize })
+        ]),
+      div({ style: { ...Style.noWrapEllipsis } }, [
         entityName || children
       ]),
-      isEntity && div({ style: { flex: 0, paddingLeft: '0.5em' } }, `(${entityCount})`)
+      isEntity && div({ style: { marginLeft: '1ch' } }, `(${entityCount})`)
     ]),
-    after
+    after && div({ style: { marginLeft: '1ch' } }, [after])
   ])
 }
 
@@ -130,14 +137,23 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
   const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
-    h(DelayedSearchInput, {
-      'aria-label': 'Search',
-      style: { width: 300, marginBottom: '1rem', alignSelf: 'flex-end' },
-      placeholder: 'Search',
-      onChange: setTextFilter,
-      value: textFilter
-    }),
-    div({ style: { flex: 1 } }, [
+    div({
+      style: {
+        display: 'flex', justifyContent: 'flex-end',
+        padding: '1rem',
+        background: colors.light(),
+        borderBottom: `1px solid ${colors.grey(0.4)}`
+      }
+    }, [
+      h(DelayedSearchInput, {
+        'aria-label': 'Search',
+        style: { width: 300 },
+        placeholder: 'Search',
+        onChange: setTextFilter,
+        value: textFilter
+      })
+    ]),
+    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
@@ -156,7 +172,8 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
               headerRenderer: () => h(HeaderCell, ['Value']),
               cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
             }
-          ]
+          ],
+          border: false
         })
       ])
     ])
@@ -178,204 +195,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
   )
 }
 
-const BucketContent = _.flow(
-  withDisplayName('BucketContent'),
-  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({
-  workspace, workspace: { workspace: { namespace, googleProject, bucketName, name: workspaceName } }, firstRender, refreshKey,
-  onRequesterPaysError
-}) => {
-  // State
-  const [prefix, setPrefix] = useState(() => firstRender ? (StateHistory.get().prefix || '') : '')
-  const [prefixes, setPrefixes] = useState(undefined)
-  const [objects, setObjects] = useState(() => firstRender ? StateHistory.get().objects : undefined)
-  const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [deletingObject, setDeletingObject] = useState(undefined)
-  const [viewingName, setViewingName] = useState(undefined)
-
-  const signal = useCancellation()
-
-
-  // Helpers
-  const load = _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading bucket data'),
-    Utils.withBusyState(setLoading)
-  )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix: targetPrefix, delimiter: '/' })
-    setPrefix(targetPrefix)
-    setPrefixes(prefixes)
-    setObjects(items)
-  })
-
-  const uploadFiles = _.flow(
-    withErrorReporting('Error uploading file'),
-    Utils.withBusyState(setUploading)
-  )(async ([file]) => {
-    await Ajax().Buckets.upload(googleProject, bucketName, prefix, file)
-    load()
-  })
-
-
-  // Lifecycle
-  useEffect(() => {
-    load(firstRender ? undefined : '')
-  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    StateHistory.update({ objects, prefix })
-  }, [objects, prefix])
-
-
-  // Render
-  const prefixParts = _.dropRight(1, prefix.split('/'))
-  const makeBucketLink = ({ label, target, onClick, ...props }) => h(Link, {
-    as: 'a',
-    style: { textDecoration: 'underline' },
-    href: target,
-    onClick: e => {
-      e.preventDefault()
-      onClick()
-    },
-    ...props
-  }, [label])
-
-  const prefixBreadcrumbs = [
-    { label: 'Files', target: '' },
-    ..._.map(n => {
-      return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-    }, _.range(0, prefixParts.length))
-  ]
-
-  return h(Dropzone, {
-    disabled: !!Utils.editWorkspaceError(workspace),
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      flexGrow: 1,
-      maxHeight: '100%',
-      backgroundColor: 'white',
-      border: `1px solid ${colors.dark(0.55)}`,
-      padding: '1rem'
-    },
-    activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-    onDropAccepted: uploadFiles
-  }, [({ openUploader }) => h(Fragment, [
-    div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-      div({ role: 'navigation' }, [
-        _.flow(
-          Utils.toIndexPairs,
-          _.map(([i, { label, target }]) => {
-            return h(Fragment, { key: target }, [
-              makeBucketLink({
-                label,
-                target: `gs://${bucketName}/${target}`,
-                onClick: () => load(target),
-                'aria-current': i === prefixBreadcrumbs.length - 1 ? 'location' : undefined
-              }),
-              ' / '
-            ])
-          })
-        )(prefixBreadcrumbs)
-      ]),
-      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspaceName}` },
-        ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
-      )
-    ]),
-    div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-    div({ style: { flex: '1 1 0', overflow: 'auto' } }, [
-      h(SimpleTable, {
-        'aria-label': 'file browser',
-        columns: [
-          { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
-          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-          { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-          { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-        ],
-        rows: [
-          ..._.map(p => {
-            return {
-              button: div({ style: { display: 'flex' } }, [
-                icon('folder', { size: 16, 'aria-label': 'folder' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: p.slice(prefix.length),
-                  target: `gs://${bucketName}/${p}`,
-                  onClick: () => load(p),
-                  'aria-label': `${p.slice(prefix.length, -1)} (folder)`
-                })
-              ])
-            }
-          }, prefixes),
-          ..._.map(object => {
-            const { name, size, updated } = object
-            return {
-              button: h(Link, {
-                style: { display: 'flex' }, onClick: () => setDeletingObject(object),
-                tooltip: 'Delete file'
-              }, [
-                icon('trash', { size: 16, className: 'hover-only' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: name.slice(prefix.length),
-                  target: `gs://${bucketName}/${name}`,
-                  onClick: () => setViewingName(name),
-                  'aria-haspopup': 'dialog',
-                  'aria-label': `${name.slice(prefix.length)} (file)`
-                })
-              ]),
-              size: filesize(size, { round: 0 }),
-              updated: Utils.makePrettyDate(updated)
-            }
-          }, objects)
-        ]
-      })
-    ]),
-    deletingObject && h(DeleteObjectConfirmationModal, {
-      object: deletingObject,
-      onConfirm: _.flow(
-        Utils.withBusyState(setLoading),
-        withErrorReporting('Error deleting file')
-      )(async () => {
-        setDeletingObject(undefined)
-        await Ajax().Buckets.delete(googleProject, bucketName, deletingObject.name)
-        load()
-      }),
-      onDismiss: () => setDeletingObject(undefined)
-    }),
-    viewingName && h(UriViewer, {
-      googleProject, uri: `gs://${bucketName}/${viewingName}`,
-      onDismiss: () => setViewingName(undefined)
-    }),
-    !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-      label: 'UPLOAD',
-      iconShape: 'plus',
-      onClick: openUploader
-    }),
-    (loading || uploading) && spinnerOverlay
-  ])])
-})
-
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => {
-  if (!isDataTabRedesignEnabled()) {
-    return div({ role: 'listitem' }, [
-      h3({ style: Style.navList.heading }, [
-        title,
-        error ? h(Link, {
-          onClick: retryFunction,
-          tooltip: 'Error loading, click to retry.'
-        }, [icon('sync', { size: 18 })]) : titleExtras
-      ]),
-      !!children?.length && div({
-        style: { display: 'flex', flexDirection: 'column', width: '100%' },
-        role: 'list'
-      }, [children])
-    ])
-  }
-
+const DataTypeSection = ({ title, error, retryFunction, children }) => {
   return h(Collapse, {
     role: 'listitem',
     title: h3({
@@ -442,9 +262,12 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
       'aria-valuemax': getMaxWidth(),
       tabIndex: 0,
       className: 'custom-focus-style',
-      style: styles.sidebarSeparator,
+      style: {
+        ...styles.sidebarSeparator,
+        background: colors.grey(0.4)
+      },
       hover: {
-        background: `linear-gradient(to right, ${colors.accent(1.2)}, transparent 3px)`
+        background: colors.accent(1.2)
       },
       onKeyDown: e => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
@@ -457,9 +280,11 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDeleteTable }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
+
+  const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
 
   const downloadForm = useRef()
   const signal = useCancellation()
@@ -467,6 +292,8 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
   const [loading, setLoading] = useState(false)
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -504,7 +331,19 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
             setEntities(_.map(_.get('name'), queryResults.results))
             setExporting(true)
           })
-        }, 'Export to workspace')
+        }, 'Export to workspace'),
+        h(MenuButton, {
+          onClick: () => {
+            setRenaming(true)
+          },
+          disabled: !!editWorkspaceErrorMessage,
+          tooltip: editWorkspaceErrorMessage || ''
+        }, 'Rename table'),
+        h(MenuButton, {
+          onClick: () => setDeleting(true),
+          disabled: !!editWorkspaceErrorMessage,
+          tooltip: editWorkspaceErrorMessage || ''
+        }, 'Delete table')
       ])
     }, [
       h(Clickable, {
@@ -522,6 +361,35 @@ const DataTableActions = ({ workspace, tableName, rowCount }) => {
       selectedDataType: tableName,
       selectedEntities: entities,
       runningSubmissionsCount
+    }),
+    renaming && h(RenameTableModal, {
+      onDismiss: () => setRenaming(false),
+      onUpdateSuccess: onRenameTable,
+      namespace, name,
+      selectedDataType: tableName
+    }),
+    deleting && h(DeleteConfirmationModal, {
+      objectType: 'table',
+      objectName: tableName,
+      onDismiss: () => setDeleting(false),
+      onConfirm: Utils.withBusyState(setLoading)(async () => {
+        try {
+          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+            ...extractWorkspaceDetails(workspace.workspace)
+          })
+          onDeleteTable(tableName)
+        } catch (error) {
+          setDeleting(false)
+          if (error.status === 409) {
+            notify('warn', 'Unable to delete table', {
+              message: 'In order to delete this table, any entries in other tables that reference it must also be deleted.'
+            })
+          } else {
+            reportError('Error deleting table', error)
+          }
+        }
+      })
     })
   ])
 }
@@ -546,6 +414,9 @@ const WorkspaceData = _.flow(
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
+  const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
+  const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
+  const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -606,7 +477,9 @@ const WorkspaceData = _.flow(
     try {
       setSnapshotDetails(_.set([snapshotName, 'error'], false))
       const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName)
-      setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
+      //Prevent duplicate id columns
+      const entitiesWithoutIds = _.mapValues(entity => _.update(['attributeNames'], _.without([entity.idName]), entity), entities)
+      setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entitiesWithoutIds))
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
       setSnapshotDetails(_.set([snapshotName, 'error'], true))
@@ -635,6 +508,24 @@ const WorkspaceData = _.flow(
     const attributeNamesArrayUpdated = _.without([attributeName], newArray)
     const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata)
     setEntityMetadata(updatedMetadata)
+  }
+
+  const searchAcrossTables = async (typeNames, activeCrossTableTextFilter) => {
+    setCrossTableSearchInProgress(true)
+    try {
+      const results = await Promise.all(_.map(async typeName => {
+        const { resultMetadata: { filteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(typeName, { pageSize: 1, filterTerms: activeCrossTableTextFilter })
+        return { typeName, filteredCount }
+      }, typeNames))
+      setCrossTableResultCounts(results)
+      Ajax().Metrics.captureEvent(Events.workspaceDataCrossTableSearch, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        numTables: _.size(typeNames)
+      })
+    } catch (error) {
+      reportError('Error searching across tables', error)
+    }
+    setCrossTableSearchInProgress(false)
   }
 
   // Lifecycle
@@ -666,10 +557,18 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        isDataTabRedesignEnabled() && div({ style: { display: 'flex', padding: '1rem 1.5rem', backgroundColor: colors.light(0.4) } }, [
+        div({
+          style: {
+            display: 'flex', padding: '1rem 1.5rem',
+            backgroundColor: colors.light(),
+            borderBottom: `1px solid ${colors.grey(0.4)}`
+          }
+        }, [
           h(MenuTrigger, {
             side: 'bottom',
             closeOnClick: true,
+            // Make the width of the dropdown menu match the width of the button.
+            popupProps: { style: { width: `calc(${sidebarWidth}px - 3rem` } },
             content: h(Fragment, [
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
@@ -693,30 +592,47 @@ const WorkspaceData = _.flow(
           div({ role: 'list' }, [
             h(DataTypeSection, {
               title: 'Tables',
-              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-                onClick: () => setUploadingFile(true),
-                'aria-haspopup': 'dialog'
-              }, [icon('plus-circle', { size: 21 })]),
               error: entityMetadataError,
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
+                h(ConfirmedSearchInput, {
+                  'aria-label': 'Search all tables',
+                  placeholder: 'Search all tables',
+                  onChange: activeCrossTableTextFilter => {
+                    setActiveCrossTableTextFilter(activeCrossTableTextFilter)
+                    searchAcrossTables(_.keys(entityMetadata), activeCrossTableTextFilter)
+                  },
+                  defaultValue: activeCrossTableTextFilter
+                })
+              ]),
+              activeCrossTableTextFilter !== '' && div({ style: { margin: '0rem 1rem 1rem 1rem' } },
+                crossTableSearchInProgress ?
+                  ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })] :
+                  [`${_.sum(_.map(c => c.filteredCount, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
                   selected: selectedDataType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
+                  filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
+                  activeCrossTableTextFilter,
+                  crossTableSearchInProgress,
                   onClick: () => {
                     setSelectedDataType(type)
                     forceRefresh()
                   },
-                  after: isDataTabRedesignEnabled() && h(DataTableActions, {
+                  after: h(DataTableActions, {
                     tableName: type,
                     rowCount: typeDetails.count,
-                    workspace
+                    workspace,
+                    onRenameTable: () => loadMetadata(),
+                    onDeleteTable: tableName => {
+                      setSelectedDataType(undefined)
+                      setEntityMetadata(_.unset(tableName))
+                    }
                   })
                 })
               }, sortedEntityPairs)
@@ -796,13 +712,7 @@ const WorkspaceData = _.flow(
               }, sortedSnapshotPairs)
             ]),
             h(DataTypeSection, {
-              title: 'Reference Data',
-              titleExtras: isDataTabRedesignEnabled() ? null : h(Link, {
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-                onClick: () => setImportingReference(true),
-                'aria-haspopup': 'dialog'
-              }, [icon('plus-circle', { size: 21 })])
+              title: 'Reference Data'
             }, [_.map(type => h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
@@ -885,9 +795,17 @@ const WorkspaceData = _.flow(
             referenceKey: selectedDataType,
             firstRender
           })],
-          ['bucketObjects', () => h(BucketContent, {
-            workspace, onClose: () => setSelectedDataType(undefined),
-            firstRender, refreshKey
+          ['bucketObjects', () => h(FileBrowser, {
+            style: { flex: '1 1 auto' },
+            controlPanelStyle: {
+              padding: '1rem',
+              background: colors.light()
+            },
+            workspace,
+            extraMenuItems: h(Link, {
+              href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
+              style: { padding: '0.5rem' }
+            }, [icon('pop-out'), ' Analyze in Seqr'])
           })],
           ['snapshots', () => h(SnapshotContent, {
             key: refreshKey,
@@ -913,6 +831,7 @@ const WorkspaceData = _.flow(
             entityMetadata,
             setEntityMetadata,
             entityKey: selectedDataType,
+            activeCrossTableTextFilter,
             loadMetadata,
             firstRender,
             deleteColumnUpdateMetadata,

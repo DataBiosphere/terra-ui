@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { staticStorageSlot } from 'src/libs/browser-storage'
 import { getConfig, isDataBrowserVisible } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -9,6 +10,8 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+export const catalogPreviewStore = staticStorageSlot(localStorage, 'catalog-beta-preview')
 
 export const datasetAccessTypes = {
   CONTROLLED: 'Controlled',
@@ -80,7 +83,7 @@ const normalizeDataset = dataset => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.intersection(dataset.roles, ['reader', 'owner']).length > 0 ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
+    access: dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
   }
 }
 
@@ -98,6 +101,12 @@ const extractTags = dataset => {
       dataset.dataReleasePolicy.policy
     ])
   }
+}
+
+export const getDatasetsPath = ({ user: { id } }) => {
+  const catalogState = catalogPreviewStore?.get() || {}
+  return isDataBrowserVisible() && catalogState[id] ?
+    'library-browser' : 'library-datasets'
 }
 
 export const useDataCatalog = () => {

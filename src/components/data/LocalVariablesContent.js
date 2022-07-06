@@ -152,7 +152,14 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: upload
   }, [({ openUploader }) => h(Fragment, [
-    div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '1rem', justifyContent: 'flex-end' } }, [
+    div({
+      style: {
+        flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+        padding: '1rem',
+        background: colors.light(),
+        borderBottom: `1px solid ${colors.grey(0.4)}`
+      }
+    }, [
       h(Link, { onClick: download }, ['Download TSV']),
       !Utils.editWorkspaceError(workspace) && h(Fragment, [
         div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
@@ -166,7 +173,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         value: textFilter
       })
     ]),
-    div({ style: { flex: 1 } }, [
+    div({ style: { flex: 1, margin: '0 0 1rem' } }, [
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
         'aria-label': 'workspace data local variables table',
         width, height, rowCount: amendedAttributes.length,
@@ -174,6 +181,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
         initialY,
         hoverHighlight: true,
         noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
+        border: false,
         columns: [{
           size: { basis: 400, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Key']),

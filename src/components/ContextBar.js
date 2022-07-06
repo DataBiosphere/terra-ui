@@ -7,7 +7,7 @@ import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
-import galaxyLogo from 'src/images/galaxy-logo.png'
+import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
@@ -57,9 +57,10 @@ export const ContextBar = ({
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 14, width: 45 }, alt: '' })],
+    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -125,7 +126,7 @@ export const ContextBar = ({
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
+            onClick: () => setCloudEnvOpen(true),
             tooltip: 'Environment Configuration',
             tooltipDelay: 100,
             useTooltipAsLabel: true
@@ -148,7 +149,7 @@ export const ContextBar = ({
               startCurrentRuntime()
             }
           },
-          tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
+          tooltip: !isTerminalEnabled ? 'Terminal can only be launched from here for Google Jupyter environments.' : 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps

@@ -97,30 +97,6 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
 
 
   // Helpers
-  const save = Utils.withBusyState(setWorking, async () => {
-    const aclEmails = _.map('email', acl)
-    const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
-    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
-    const eventData = { numAdditions, workspaceName: name, workspaceNamespace: namespace }
-
-    const aclUpdates = [
-      ..._.flow(
-        _.remove({ accessLevel: 'PROJECT_OWNER' }),
-        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
-      )(acl),
-      ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
-    ]
-
-    try {
-      await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
-      onDismiss()
-    } catch (error) {
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
-      setUpdateError(await error.text())
-    }
-  })
-
   const renderCollaborator = ([index, aclItem]) => {
     const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
@@ -224,6 +200,33 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   const addTerraSupportToAcl = () => addCollaborator(terraSupportEmail)
   const removeTerraSupportFromAcl = () => setAcl(_.remove(aclEntryIsTerraSupport))
 
+  const save = Utils.withBusyState(setWorking, async () => {
+    const aclEmails = _.map('email', acl)
+    const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
+    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
+    const eventData = { numAdditions, workspaceName: name, workspaceNamespace: namespace }
+
+    const aclUpdates = [
+      ..._.flow(
+        _.remove({ accessLevel: 'PROJECT_OWNER' }),
+        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
+      )(acl),
+      ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
+    ]
+
+    try {
+      await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
+      if (!currentTerraSupportAccessLevel && newTerraSupportAccessLevel) {
+        Ajax().Metrics.captureEvent(Events.workspaceShareWithSupport)
+      }
+      onDismiss()
+    } catch (error) {
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
+      setUpdateError(await error.text())
+    }
+  })
+
   return h(Modal, {
     title: 'Share Workspace',
     width: 550,
@@ -285,7 +288,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           )
         }, [
           label({ htmlFor: id }, [
-            span({ style: { marginRight: '1ch' } }, 'Share with support'),
+            span({ style: { marginRight: '1ch' } }, 'Share with Support'),
             h(Switch, {
               id,
               checked: !!newTerraSupportAccessLevel,

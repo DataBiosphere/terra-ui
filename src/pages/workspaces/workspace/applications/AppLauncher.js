@@ -5,33 +5,18 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
-import { notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
-import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { getExtension, getPatternFromTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
+import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
-import { authStore, cookieReadyStore } from 'src/libs/state'
+import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
-  console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
-  const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
-  return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
-}
-
-const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
-  return Utils.switchCase(application,
-    [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
-    [tools.spark.label, () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
-    [tools.RStudio.label, () => proxyUrl],
-    [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark or ${tools.RStudio.label}.`)]
-  )
-}
 
 const ApplicationLauncher = _.flow(
   forwardRefWithName('ApplicationLauncher'),
@@ -41,17 +26,19 @@ const ApplicationLauncher = _.flow(
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
-  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks },
-  application, workspace, workspace: { workspace: { googleProject, bucketName } }
+  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks, location },
+  application, workspace, workspace: { azureContext, workspace: { googleProject, bucketName } }
 }, _ref) => {
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [location, setLocation] = useState(defaultLocation)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
   const [hashedOwnerEmail, setHashedOwnerEmail] = useState()
+  const [iframeSrc, setIframeSrc] = useState()
 
-  const cookieReady = useStore(cookieReadyStore)
+  const leoCookieReady = useStore(cookieReadyStore)
+  const azureCookieReady = useStore(azureCookieReadyStore)
+  const cookieReady = !!googleProject ? leoCookieReady : azureCookieReady
   const signal = useCancellation()
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
@@ -80,16 +67,19 @@ const ApplicationLauncher = _.flow(
         if (shouldCopy) {
           // clear 'outdated' metadata (which gets populated by welder) so that new copy file does not get marked as outdated
           newMetadata[hashedOwnerEmail] = ''
-          await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
+          await Ajax().Buckets.analysis(googleProject, bucketName, file, tools.RStudio.label).copyWithMetadata(getCopyName(file), bucketName, newMetadata)
         }
         // update bucket metadata for the outdated file to be marked as doNotSync so that welder ignores the outdated file for the current user
         newMetadata[hashedOwnerEmail] = 'doNotSync'
-        await Ajax().Buckets.analysis(googleProject, bucketName, stripExtension(file), tools.RStudio.label).updateMetadata(file, newMetadata)
+        await Ajax().Buckets.analysis(googleProject, bucketName, file, tools.RStudio.label).updateMetadata(file, newMetadata)
       }, outdatedAnalyses))
       onDismiss()
     })
 
-    const getCopyName = file => `${stripExtension(file)}_copy${Date.now()}.${tools.RStudio.ext}`
+    const getCopyName = file => {
+      const ext = getExtension(file)
+      return `${stripExtension(file)}_copy${Date.now()}.${ext}`
+    }
 
     const getFileName = _.flow(
       _.split('/'),
@@ -105,12 +95,12 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: _.size(outdatedAnalyses) > 1 ? 'R Markdown Files In Use' : `R Markdown File Is In Use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'R files in use' : `R file is in use`,
       showButtons: false
     }, [
       Utils.cond(
         // if user has more than one outdated rstudio analysis, display plural phrasing
-        [_.size(outdatedAnalyses) > 1, () => [p([`These R markdown files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
+        [_.size(outdatedAnalyses) > 1, () => [p([`These R files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
           p([getAnalysesDisplayList(outdatedAnalyses)]),
           p(['You can']),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
@@ -137,7 +127,7 @@ const ApplicationLauncher = _.flow(
 
   const checkForOutdatedAnalyses = async ({ googleProject, bucketName }) => {
     const analyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
-    return _.filter(analysis => _.endsWith(`.${tools.RStudio.ext}`, analysis?.name) && analysis?.metadata &&
+    return _.filter(analysis => _.includes(getExtension(analysis?.name), tools.RStudio.ext) && analysis?.metadata &&
       analysis?.metadata[hashedOwnerEmail] === 'outdated', analyses)
   }
 
@@ -155,6 +145,25 @@ const ApplicationLauncher = _.flow(
     const runtime = getCurrentRuntime(runtimes)
     const runtimeStatus = getConvertedRuntimeStatus(runtime)
 
+    const computeIframeSrc = withErrorReporting('Error loading application iframe', async () => {
+      const getSparkInterfaceSource = proxyUrl => {
+        console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
+        const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
+        return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
+      }
+
+      const proxyUrl = runtime?.proxyUrl
+      const url = await Utils.switchCase(application,
+        [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+        [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
+        [tools.RStudio.label, () => proxyUrl],
+        [tools.Azure.label, () => `${proxyUrl}/lab`],
+        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.Azure.label}.`)]
+      )
+
+      setIframeSrc(url)
+    })
+
     const setupWelder = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis file syncing')
@@ -166,21 +175,9 @@ const ApplicationLauncher = _.flow(
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtime.runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(tools.RStudio.label))
     })
 
-    const loadBucketLocation = _.flow(
-      Utils.withBusyState(setBusy),
-      withErrorReporting('Error loading bucket location')
-    )(async () => {
-      const { location } = await Ajax()
-        .Workspaces
-        .workspace(workspace.namespace, workspace.name)
-        .checkBucketLocation(googleProject, bucketName)
-      setLocation(location)
-    })
-
-    loadBucketLocation()
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
@@ -193,10 +190,13 @@ const ApplicationLauncher = _.flow(
       !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
     })
 
-    findOutdatedAnalyses()
+    computeIframeSrc()
+    if (runtimeStatus === 'Running') {
+      !!googleProject && findOutdatedAnalyses()
 
-    // periodically check for outdated R analyses
-    interval.current = setInterval(findOutdatedAnalyses, 10000)
+      // periodically check for outdated R analyses
+      interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
+    }
 
     return () => {
       clearInterval(interval.current)
@@ -212,15 +212,14 @@ const ApplicationLauncher = _.flow(
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: application })
       }
     }),
-    h(RuntimeKicker, {
-      runtime, refreshRuntimes,
-      onNullRuntime: () => setShowCreate(true)
-    }),
+    h(RuntimeKicker, { runtime, refreshRuntimes }),
+    // We cannot attach the periodic cookie setter until we have a running runtime for azure, because the relay is not guaranteed to be ready until then
+    !!azureContext && getConvertedRuntimeStatus(runtime) === 'Running' ? h(PeriodicAzureCookieSetter, { proxyUrl: runtime.proxyUrl }) : null,
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
-          src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
+          src: iframeSrc,
           style: {
             border: 'none', flex: 1,
             ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar

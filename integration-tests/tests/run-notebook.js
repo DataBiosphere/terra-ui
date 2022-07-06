@@ -1,6 +1,9 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, waitForNoSpinners, noSpinnersAfter, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
+const {
+  click, clickable, getAnimatedDrawer, signIntoTerra, findElement, navChild, noSpinnersAfter, select, fillIn, input, findIframe, findText
+} = require('../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 
 
 const notebookName = 'TestNotebook'
@@ -10,12 +13,9 @@ const testRunNotebookFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
-  await page.goto(testUrl)
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await waitForNoSpinners(page)
+  await signIntoTerra(page, { token, testUrl })
 
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })), debugMessage: '1' })
   await click(page, navChild('notebooks'))
   await click(page, clickable({ textContains: 'Create a' }))
@@ -23,8 +23,8 @@ const testRunNotebookFn = _.flow(
   await select(page, 'Language', 'Python 3')
 
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Notebook' })), debugMessage: '2' })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: notebookName })), debugMessage: '3' })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '4' })
+  await click(page, clickable({ textContains: notebookName }))
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Open' })), debugMessage: '3' })
 
   await findElement(page, getAnimatedDrawer('Cloud Environment'))
   await click(page, clickable({ text: 'Create' }))
@@ -41,10 +41,9 @@ const testRunNotebookFn = _.flow(
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
 })
-const testRunNotebook = {
+
+registerTest({
   name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 20 * 60 * 1000
-}
-
-module.exports = { testRunNotebook }
+})

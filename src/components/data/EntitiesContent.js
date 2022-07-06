@@ -3,19 +3,19 @@ import FileSaver from 'file-saver'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useRef, useState } from 'react'
-import { div, form, h, input } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
-import { AddEntityModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { ButtonSecondary } from 'src/components/common'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
@@ -24,9 +24,7 @@ import igvLogo from 'src/images/igv-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTabRedesignEnabled } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -209,9 +207,9 @@ const ToolDrawer = _.flow(
 
 const EntitiesContent = ({
   workspace, workspace: {
-    workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
+    workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -219,47 +217,13 @@ const EntitiesContent = ({
   const [deletingEntities, setDeletingEntities] = useState(false)
   const [copyingEntities, setCopyingEntities] = useState(false)
   const [addingEntity, setAddingEntity] = useState(false)
+  const [addingColumn, setAddingColumn] = useState(false)
+  const [creatingSet, setCreatingSet] = useState(false)
   const [nowCopying, setNowCopying] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [showToolSelector, setShowToolSelector] = useState(false)
   const [igvFiles, setIgvFiles] = useState(undefined)
   const [igvRefGenome, setIgvRefGenome] = useState('')
-
-  const downloadForm = useRef()
-
-  // Render helpers
-  const renderDownloadButton = columnSettings => {
-    const disabled = entityKey.endsWith('_set_set')
-    return h(Fragment, [
-      form({
-        ref: downloadForm,
-        action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${entityKey}/tsv`,
-        method: 'POST'
-      }, [
-        input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
-        input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
-        input({ type: 'hidden', name: 'model', value: 'flexible' })
-      ]),
-      h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        disabled,
-        tooltip: disabled ?
-          'Downloading sets of sets as TSV is not supported at this time' :
-          `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => {
-          downloadForm.current.submit()
-          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
-            ...extractWorkspaceDetails(workspace.workspace),
-            downloadFrom: 'all rows',
-            fileType: '.tsv'
-          })
-        }
-      }, [
-        icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download all Rows'
-      ])
-    ])
-  }
 
   const buildTSV = (columnSettings, entities) => {
     const sortedEntities = _.sortBy('name', entities)
@@ -309,65 +273,6 @@ const EntitiesContent = ({
     })
   }
 
-  const renderCopyButton = (entities, columnSettings) => {
-    return h(Fragment, [
-      h(ButtonPrimary, {
-        tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
-        onClick: _.flow(
-          withErrorReporting('Error copying to clipboard'),
-          Utils.withBusyState(setNowCopying)
-        )(async () => {
-          const str = buildTSV(columnSettings, entities)
-          await clipboard.writeText(str)
-          notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
-        })
-      }, [
-        icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
-        'Copy Page to Clipboard'
-      ]),
-      nowCopying && spinner()
-    ])
-  }
-
-  const renderSelectedRowsMenu = columnSettings => {
-    const noEdit = Utils.editWorkspaceError(workspace)
-    const disabled = entityKey.endsWith('_set_set')
-
-    return !_.isEmpty(selectedEntities) && h(MenuTrigger, {
-      side: 'bottom',
-      closeOnClick: true,
-      content: h(Fragment, [
-        h(MenuButton, {
-          disabled,
-          tooltip: disabled ?
-            'Downloading sets of sets as TSV is not supported at this time' :
-            `Download the selected data as a file`,
-          onClick: () => downloadSelectedRows(columnSettings)
-        }, ['Download as TSV']),
-        !snapshotName && h(MenuButton, {
-          disabled: noEdit,
-          tooltip: noEdit ? 'You don\'t have permission to modify this workspace.' : 'Edit an attribute of the selected rows',
-          onClick: () => setEditingEntities(true)
-        }, ['Edit Attribute']),
-        !snapshotName && h(MenuButton, {
-          tooltip: 'Open the selected data to work with it',
-          onClick: () => setShowToolSelector(true)
-        }, ['Open with...']),
-        !snapshotName && h(MenuButton, {
-          tooltip: 'Send the selected data to another workspace',
-          onClick: () => setCopyingEntities(true)
-        }, ['Export to Workspace']),
-        !snapshotName && h(MenuButton, {
-          tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
-          disabled: noEdit,
-          onClick: () => setDeletingEntities(true)
-        }, ['Delete Data'])
-      ])
-    }, [h(Link, { style: { marginRight: '1rem' } }, [
-      icon('ellipsis-v-circle', { size: 24, 'aria-label': 'selection menu' })
-    ])])
-  }
-
   const entitiesSelected = !_.isEmpty(selectedEntities)
   const editErrorMessage = Utils.editWorkspaceError(workspace)
   const canEdit = !editErrorMessage
@@ -381,15 +286,25 @@ const EntitiesContent = ({
           onClick: () => setAddingEntity(true)
         }, 'Add row'),
         h(MenuButton, {
+          onClick: () => setAddingColumn(true)
+        }, ['Add column']),
+        h(MenuDivider),
+        h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to edit in the table',
           onClick: () => setEditingEntities(true)
-        }, ['Edit attribute']),
+        }, ['Edit selected rows']),
         h(MenuButton, {
           disabled: !entitiesSelected,
           tooltip: !entitiesSelected && 'Select rows to delete in the table',
           onClick: () => setDeletingEntities(true)
-        }, 'Delete')
+        }, 'Delete selected rows'),
+        h(MenuDivider),
+        h(MenuButton, {
+          disabled: !entitiesSelected,
+          tooltip: !entitiesSelected && 'Select rows to save as set',
+          onClick: () => setCreatingSet(true)
+        }, ['Save selection as set'])
       ])
     }, [h(ButtonSecondary, {
       disabled: !canEdit,
@@ -426,6 +341,7 @@ const EntitiesContent = ({
             const str = buildTSV(columnSettings, _.values(selectedEntities))
             await clipboard.writeText(str)
             notify('success', 'Successfully copied to clipboard.', { timeout: 3000 })
+            Ajax().Metrics.captureEvent(Events.workspaceDataCopyToClipboard, extractWorkspaceDetails(workspace.workspace))
           })
         }, 'Copy to clipboard')
       ])
@@ -443,6 +359,7 @@ const EntitiesContent = ({
     return !snapshotName && h(ButtonSecondary, {
       disabled: !entitiesSelected,
       tooltip: entitiesSelected ? 'Open selected data' : 'Select rows to open in the table',
+      style: { marginRight: '1.5rem' },
       onClick: () => setShowToolSelector(true)
     }, [icon('expand-arrows-alt', { style: { marginRight: '0.5rem' } }), 'Open with...'])
   }
@@ -457,36 +374,35 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, setEntityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name }, workspace,
+        entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
         onScroll: saveScroll, initialX, initialY,
+        loadMetadata,
         snapshotName,
         selectionModel: {
           selected: selectedEntities,
           setSelected: setSelectedEntities
         },
-        childrenBefore: ({ entities, columnSettings }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } },
-          isDataTabRedesignEnabled() ? [
-            renderExportMenu({ columnSettings }),
-            renderEditMenu(),
-            renderOpenWithMenu(),
-            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-            div({
-              role: 'status',
-              'aria-atomic': true,
-              style: { marginRight: '0.5rem' }
-            }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`])
-          ] : [
-            !snapshotName && renderDownloadButton(columnSettings),
-            !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
-            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-            div({
-              role: 'status',
-              'aria-atomic': true,
-              style: { marginRight: '0.5rem' }
-            }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
-            renderSelectedRowsMenu(columnSettings)
-          ]),
-        deleteColumnUpdateMetadata
+        childrenBefore: ({ columnSettings, showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [
+          renderEditMenu(),
+          renderOpenWithMenu(),
+          renderExportMenu({ columnSettings }),
+          !snapshotName && h(ButtonSecondary, {
+            onClick: showColumnSettingsModal,
+            tooltip: 'Change the order and visibility of columns in the table'
+          }, [icon('cog', { style: { marginRight: '0.5rem' } }), 'Settings']),
+          div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+          div({
+            role: 'status',
+            'aria-atomic': true,
+            style: { marginRight: '0.5rem' }
+          }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`])
+        ]),
+        deleteColumnUpdateMetadata,
+        controlPanelStyle: {
+          background: colors.light(),
+          borderBottom: `1px solid ${colors.grey(0.4)}`
+        },
+        border: false
       }),
       addingEntity && h(AddEntityModal, {
         entityType: entityKey,
@@ -494,7 +410,22 @@ const EntitiesContent = ({
         entityTypes: _.keys(entityMetadata),
         workspaceId: { namespace, name },
         onDismiss: () => setAddingEntity(false),
-        onSuccess: () => setRefreshKey(_.add(1))
+        onSuccess: () => {
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddRow, extractWorkspaceDetails(workspace.workspace))
+          setRefreshKey(_.add(1))
+          setEntityMetadata(_.update(`${entityKey}.count`, _.add(1)))
+        }
+      }),
+      addingColumn && h(AddColumnModal, {
+        entityType: entityKey,
+        entityMetadata,
+        workspaceId: { namespace, name },
+        onDismiss: () => setAddingColumn(false),
+        onSuccess: () => {
+          setAddingColumn(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataAddColumn, extractWorkspaceDetails(workspace.workspace))
+          setRefreshKey(_.add(1))
+        }
       }),
       editingEntities && h(MultipleEntityEditor, {
         entityType: entityKey,
@@ -505,7 +436,19 @@ const EntitiesContent = ({
         onDismiss: () => setEditingEntities(false),
         onSuccess: () => {
           setEditingEntities(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataEditMultiple, extractWorkspaceDetails(workspace.workspace))
           setRefreshKey(_.add(1))
+        }
+      }),
+      creatingSet && h(CreateEntitySetModal, {
+        entityType: entityKey,
+        entityNames: _.keys(selectedEntities),
+        workspaceId: { namespace, name },
+        onDismiss: () => setCreatingSet(false),
+        onSuccess: () => {
+          setCreatingSet(false)
+          Ajax().Metrics.captureEvent(Events.workspaceDataCreateSet, extractWorkspaceDetails(workspace.workspace))
+          loadMetadata()
         }
       }),
       deletingEntities && h(EntityDeleter, {

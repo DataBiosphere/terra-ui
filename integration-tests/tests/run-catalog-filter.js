@@ -1,6 +1,7 @@
 const _ = require('lodash/fp')
 const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -15,7 +16,8 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const secondFilterItem = 'adrenal cortex adenoma'
 
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
+  await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)
@@ -52,11 +54,9 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   }
 })
 
-const testCatalogFilter = {
+registerTest({
   name: 'run-catalog-filter',
   fn: testCatalogFilterFn,
   timeout: 2 * 60 * 1000,
   targetEnvironments: ['local', 'dev']
-}
-
-module.exports = { testCatalogFilter }
+})

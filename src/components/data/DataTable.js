@@ -2,21 +2,22 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
-import { ColumnSettingsWithSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
+import RenameColumnModal from 'src/components/data/RenameColumnModal'
+import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
+import { GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -52,12 +53,16 @@ const DataTable = props => {
   const {
     entityType, entityMetadata, setEntityMetadata, workspaceId, workspace, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
+    loadMetadata,
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
+    activeCrossTableTextFilter,
     persist, refreshKey, firstRender,
     snapshotName,
-    deleteColumnUpdateMetadata
+    deleteColumnUpdateMetadata,
+    controlPanelStyle,
+    border = true
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -74,32 +79,51 @@ const DataTable = props => {
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
   const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
-  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
+  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || activeCrossTableTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
-    const localColumnPref = getLocalPref(persistenceId)?.columnState
+    // Load initial column settings from:
+    // 1. local storage (last settings for this table)
+    // 2. workspace-column-defaults workspace attribute
+    // 3. saved column settings named "Default" for this table
 
+    const localColumnPref = getLocalPref(persistenceId)?.columnState
     if (!!localColumnPref) {
       return localColumnPref
     }
 
-    const { columnDefaults: columnDefaultsString, entityType, entityMetadata } = props
-
+    const { workspace: { attributes: { 'workspace-column-defaults': columnDefaultsString } } } = workspace
     const columnDefaults = Utils.maybeParseJSON(columnDefaultsString)
+    if (columnDefaults?.[entityType]) {
+      const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
+        ..._.map(name => ({ name, visible: true }), shown),
+        ..._.map(name => ({ name, visible: false }), hidden),
+        ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
+      ]
+      return convertColumnDefaults(columnDefaults[entityType])
+    }
 
-    const convertColumnDefaults = ({ shown = [], hidden = [] }) => [
-      ..._.map(name => ({ name, visible: true }), shown),
-      ..._.map(name => ({ name, visible: false }), hidden),
-      ..._.map(name => ({ name, visible: true }), _.without([...shown, ...hidden], entityMetadata[entityType].attributeNames))
-    ]
-    return columnDefaults?.[entityType] ? convertColumnDefaults(columnDefaults[entityType]) : []
+    const savedColumnSettings = _.flow(
+      allSavedColumnSettingsInWorkspace,
+      _.getOr({}, allSavedColumnSettingsEntityTypeKey({ snapshotName, entityType }))
+    )(workspace)
+    const defaultColumnSettingsName = 'Default'
+    if (savedColumnSettings[defaultColumnSettingsName]) {
+      return decodeColumnSettings(savedColumnSettings[defaultColumnSettingsName])
+    }
+
+    return []
   })
 
+  const [updatingColumnSettings, setUpdatingColumnSettings] = useState()
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
+  const [renamingColumn, setRenamingColumn] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
+
+  const [filterOperator, setFilterOperator] = useState('AND')
 
   const noEdit = Utils.editWorkspaceError(workspace)
 
@@ -116,7 +140,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter })
+          { filterTerms: activeTextFilter, filterOperator })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -135,7 +159,7 @@ const DataTable = props => {
   })
 
   const getAllEntities = async () => {
-    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator })
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
     return queryResults.results
   }
@@ -161,7 +185,7 @@ const DataTable = props => {
     const entityUpdates = _.map(entity => ({
       name: entity.name,
       entityType: entity.entityType,
-      attributes: { [attributeName]: '' }
+      operations: [{ op: 'AddUpdateAttribute', attributeName, addUpdateAttribute: '' }]
     }), allEntities)
     await Ajax(signal).Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
 
@@ -201,7 +225,7 @@ const DataTable = props => {
     if (persist) {
       StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -221,11 +245,51 @@ const DataTable = props => {
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
+  const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
+
   return h(Fragment, [
     !!entities && h(Fragment, [
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-        childrenBefore && childrenBefore({ entities, columnSettings }),
+      div({
+        style: {
+          display: 'flex',
+          padding: '1rem',
+          ...controlPanelStyle
+        }
+      }, [
+        childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
+        h(MenuTrigger, {
+          side: 'bottom',
+          closeOnClick: false,
+          popupProps: { style: { width: 250 } },
+          content: h(Fragment, [
+            div({ style: { padding: '1rem' } }, [
+              div({ style: { fontWeight: 600 } }, ['Search logic']),
+              div({ role: 'radiogroup', 'aria-label': 'choose an operator to use for advanced search' }, [
+                div({ style: { paddingTop: '0.5rem' } }, [
+                  h(RadioButton, {
+                    text: 'AND (rows with all terms)',
+                    name: 'advanced-search-operator',
+                    checked: filterOperator === 'AND',
+                    onChange: () => setFilterOperator('AND'),
+                    labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+                  })
+                ]),
+                div({ style: { paddingTop: '0.5rem' } }, [
+                  h(RadioButton, {
+                    text: 'OR (rows with any term)',
+                    name: 'advanced-search-operator',
+                    checked: filterOperator === 'OR',
+                    onChange: () => setFilterOperator('OR'),
+                    labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+                  })
+                ])
+              ])
+            ])
+          ])
+        }, [h(ButtonSecondary, {
+          style: { margin: '0rem 1.5rem' }
+        }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
         !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
@@ -238,11 +302,11 @@ const DataTable = props => {
           })
         ])
       ]),
-      div({
-        style: { flex: 1 }
-      }, [
+      div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => {
+            const visibleColumns = _.filter('visible', columnSettings)
+
             return h(GridTable, {
               ref: table,
               'aria-label': `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
@@ -253,6 +317,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
+              numFixedColumns: visibleColumns.length > 0 ? 2 : 0,
               columns: [
                 {
                   width: 70,
@@ -306,7 +371,7 @@ const DataTable = props => {
                       renderDataCell(entityName, googleProject),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
-                        'aria-label': 'Rename entity',
+                        'aria-label': `Rename ${entityType} ${entityName}`,
                         onClick: () => setRenamingEntity(entityName)
                       })
                     ])
@@ -323,61 +388,57 @@ const DataTable = props => {
                     }, [
                       h(HeaderOptions, {
                         sort, field: attributeName, onSort: setSort,
-                        extraActions: [
+                        extraActions: editable && [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
+                          { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
                           { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
                           { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
                       }, [
                         h(HeaderCell, [
-                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
-                            columnNamespace)
-                        ]),
-                        [columnName]
+                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                          columnName
+                        ])
                       ])
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
                       const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
-                      return h(Fragment, [
-                        (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          h(Link, {
-                            style: Style.noWrapEllipsis,
-                            onClick: () => setViewData(dataInfo)
-                          }, [dataCell]) : dataCell,
-                        div({ style: { flexGrow: 1 } }),
-                        editable && h(EditDataLink, {
-                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                          'aria-haspopup': 'dialog',
-                          'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
-                        })
-                      ])
+                      const divider = div({ style: { flexGrow: 1 } })
+                      const editLink = editable && h(EditDataLink, {
+                        'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                        'aria-haspopup': 'dialog',
+                        'aria-expanded': !!updatingEntity,
+                        onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
+                      })
+
+                      if (!!dataInfo && _.isArray(dataInfo.items)) {
+                        const isPlural = dataInfo.items.length !== 1
+                        const label = dataInfo?.itemsType === 'EntityReference' ?
+                          isPlural ? 'entities' : 'entity' :
+                          isPlural ? 'items' : 'item'
+                        const itemsLink = h(Link, {
+                          style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                          onClick: () => setViewData(dataInfo)
+                        }, ` (${dataInfo.items.length} ${label})`)
+                        return h(Fragment, [dataCell, divider, editLink, itemsLink])
+                      } else {
+                        return h(Fragment, [dataCell, divider, editLink])
+                      }
                     }
                   }
-                }, _.filter('visible', columnSettings))
+                }, visibleColumns)
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
-              }
+              },
+              border
             })
           }
-        ]),
-        // Enable saved column settings only for data tables, not snapshots
-        h(ColumnSelector, _.merge(snapshotName ? {} : {
-          columnSettingsComponent: ColumnSettingsWithSavedColumnSettings,
-          entityMetadata,
-          entityType,
-          snapshotName,
-          workspace,
-          modalWidth: 800
-        }, {
-          columnSettings,
-          onSave: setColumnState
-        }))
+        ])
       ]),
-      !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
+      !_.isEmpty(entities) && div({ style: { flex: 'none', margin: '1rem' } }, [
         paginator({
           filteredDataLength: filteredCount,
           unfilteredDataLength: totalRowCount,
@@ -398,12 +459,33 @@ const DataTable = props => {
       showX: true,
       onDismiss: () => setViewData(undefined)
     }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [displayData(viewData)])]),
+    updatingColumnSettings && h(Modal, {
+      title: 'Select columns',
+      width: 800,
+      onDismiss: () => setUpdatingColumnSettings(undefined),
+      okButton: h(ButtonPrimary, {
+        onClick: () => {
+          setColumnState(updatingColumnSettings)
+          setUpdatingColumnSettings(undefined)
+        }
+      }, ['Done'])
+    }, [
+      h(ColumnSettingsWithSavedColumnSettings, {
+        entityMetadata,
+        entityType,
+        snapshotName,
+        workspace,
+        columnSettings: updatingColumnSettings,
+        onChange: setUpdatingColumnSettings
+      })
+    ]),
     renamingEntity !== undefined && h(EntityRenamer, {
       entityType: _.find(entity => entity.name === renamingEntity, entities).entityType,
       entityName: renamingEntity,
       workspaceId,
       onSuccess: () => {
         setRenamingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameEntity, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setRenamingEntity(undefined)
@@ -415,15 +497,28 @@ const DataTable = props => {
       workspaceId,
       onSuccess: () => {
         setUpdatingEntity(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataEditOne, extractWorkspaceDetails(workspace.workspace))
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
+    }),
+    !!renamingColumn && h(RenameColumnModal, {
+      namespace, name,
+      entityType,
+      oldAttributeName: renamingColumn,
+      onSuccess: () => {
+        setRenamingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace))
+        loadMetadata()
+      },
+      onDismiss: () => setRenamingColumn(undefined)
     }),
     !!deletingColumn && h(DeleteConfirmationModal, {
       objectType: 'column',
       objectName: deletingColumn,
       onConfirm: () => {
         setDeletingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataDeleteColumn, extractWorkspaceDetails(workspace.workspace))
         deleteColumn(deletingColumn)
       },
       onDismiss: () => setDeletingColumn(undefined)
@@ -433,6 +528,7 @@ const DataTable = props => {
       buttonText: 'Clear column',
       onConfirm: () => {
         setClearingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataClearColumn, extractWorkspaceDetails(workspace.workspace))
         clearColumn(clearingColumn)
       },
       onDismiss: () => setClearingColumn(undefined)

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { libraryTopMatter } from 'src/components/library-common'
+import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -10,11 +11,13 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useOnMount } from 'src/libs/react-utils'
+import { useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
+
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
@@ -74,8 +77,9 @@ const WorkspaceCard = ({ workspace }) => {
         div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
         created && div([Utils.makeStandardDate(created)])
       ]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
-      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
+      h(FirstParagraphMarkdownViewer, {
+        style: { fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
+      }, [description?.toString()])
     ])
   ])
 }
@@ -107,7 +111,7 @@ const Showcase = () => {
   })
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('featured workspaces'),
+    libraryTopMatter('featured workspaces', useStore(authStore)),
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
       searchType: 'Featured Workspaces'

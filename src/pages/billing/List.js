@@ -8,13 +8,13 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow } from 'src/libs/error'
+import { reportError, reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -22,6 +22,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
@@ -42,9 +43,47 @@ const styles = {
   }
 }
 
-const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
+const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
+  const [showDeleteProjectModal, setShowDeleteProjectModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  return h(Fragment, [
+    h(MenuTrigger, {
+      closeOnClick: true,
+      side: 'right',
+      style: { marginRight: '0.5rem' },
+      content: h(Fragment, [
+        h(MenuButton, {
+          onClick: () => setShowDeleteProjectModal(true)
+        }, ['Delete Billing Project'])
+      ])
+    }, [
+      h(Link, { 'aria-label': 'Billing project menu', style: { display: 'flex', alignItems: 'center' } }, [
+        icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
+      ])
+    ]),
+    showDeleteProjectModal && h(DeleteBillingProjectModal, {
+      projectName, deleting,
+      onDismiss: () => setShowDeleteProjectModal(false),
+      onConfirm: async () => {
+        setDeleting(true)
+        try {
+          await Ajax().Billing.deleteProject(projectName)
+          setShowDeleteProjectModal(false)
+          loadProjects()
+        } catch (err) {
+          reportError('Error deleting billing project.', err)
+          setShowDeleteProjectModal(false)
+        }
+        setDeleting(false)
+      }
+    })
+  ])
+}
+
+const ProjectListItem = ({ project, project: { roles, status }, loadProjects, isActive }) => {
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
+    style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
       billingProjectName: projectName
@@ -56,10 +95,15 @@ const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   const unselectableProject = ({ projectName, status, message }, isActive) => {
     const iconAndTooltip =
       status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-        status === 'Error' ? h(InfoBox, { style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right' }, [
-          div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
-            message || 'Error during project creation.'
-          ])
+        status === 'Error' ? h(Fragment, [
+          h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
+            div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+              message || 'Error during project creation.'
+            ])
+          ]),
+          //Currently, only billing projects that failed to create can have actions performed on them.
+          //If that changes in the future, this should be moved elsewhere
+          h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
@@ -254,23 +298,30 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.ensureBillingScope)
 
+  const tryAuthorizeAccounts = _.flow(
+    reportErrorAndRethrow('Error setting up authorization'),
+    Utils.withBusyState(setIsAuthorizing)
+  )(Auth.tryBillingScope)
+
   const loadAccounts = _.flow(
     reportErrorAndRethrow('Error loading billing accounts'),
     Utils.withBusyState(setIsLoadingAccounts)
   )(() => {
     if (Auth.hasBillingScope()) {
       return Ajax(signal).Billing.listAccounts()
+        .then(_.filter('firecloudHasAccess'))
         .then(_.keyBy('accountName'))
         .then(setBillingAccounts)
     }
   })
 
+  const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
+
   const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
       setCreatingBillingProject(true)
     } else {
-      await authorizeAccounts()
-      await loadAccounts()
+      await authorizeAndLoadAccounts()
       Auth.hasBillingScope() && setCreatingBillingProject(true)
     }
   }
@@ -278,7 +329,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   // Lifecycle
   useOnMount(() => {
     loadProjects()
-    loadAccounts()
+    tryAuthorizeAccounts().then(loadAccounts)
     loadAlphaSpendReportMember()
   })
 
@@ -341,7 +392,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
-              project, key: project.projectName,
+              project, key: project.projectName, loadProjects,
               isActive: !!selectedName && project.projectName === selectedName
             }), projectsOwned)
           ])
@@ -349,7 +400,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
-              project, key: project.projectName,
+              project, key: project.projectName, loadProjects,
               isActive: !!selectedName && project.projectName === selectedName
             }), projectsShared)
           ])
@@ -386,7 +437,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             key: selectedName,
             billingProject,
             billingAccounts,
-            authorizeAndLoadAccounts: authorizeAccounts,
+            authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
             isAlphaSpendReportUser,
             isOwner: _.find({ projectName: selectedName }, projectsOwned)

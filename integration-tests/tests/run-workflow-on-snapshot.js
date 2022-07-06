@@ -1,9 +1,11 @@
 const _ = require('lodash/fp')
 const fetch = require('node-fetch')
-const { launchWorkflowAndWaitForSuccess } = require('./run-workflow')
-const { checkBucketAccess, withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require('../utils/integration-utils')
+const { click, clickable, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, navChild } = require(
+  '../utils/integration-utils')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { launchWorkflowAndWaitForSuccess } = require('../utils/workflow-utils')
+const { clickNavChildAndLoad, withWorkspace } = require('../utils/integration-helpers')
 
 
 const snapshotName = 'testsnapshot'
@@ -24,20 +26,19 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ billingProject, dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+)(async ({
+  dataRepoUrlRoot, page, testUrl: testUrlRoot, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName
+}) => {
   if (!snapshotId) {
     return
   }
   // IMPORT SNAPSHOT
-  await page.goto(`${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await waitForNoSpinners(page)
+  const testUrl = `${testUrlRoot}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
+  await signIntoTerra(page, { token, testUrl })
+
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
-  // Wait for bucket access to avoid sporadic failure when launching workflow.
-  await checkBucketAccess(page, billingProject, workspaceName)
 
   // ADD WORKFLOW
   await click(page, navChild('workflows'))
@@ -64,15 +65,18 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await launchWorkflowAndWaitForSuccess(page)
 
-  await click(page, navChild('data'))
+  await clickNavChildAndLoad(page, 'data')
+  // Before click "Workspace Data" link, we need to make sure page has rendered all UI elements.
+  // "testsnapshot" link can take few seconds more to render on page. When `testsnapshot" link is finally visible on page,
+  // all links which are below it will shift (move) downward.
+  // If we don't wait for the "testsnapshot" link to be visible in UI, the "Workspace Data" link could move when trying to click on it.
+  await findElement(page, clickable({ textContains: 'testsnapshot' }))
   await click(page, clickable({ textContains: 'Workspace Data' }))
   await findText(page, 'result: ')
 })
 
-const testRunWorkflowOnSnapshot = {
+registerTest({
   name: 'run-workflow-on-snapshot',
   fn: testRunWorkflowOnSnapshotFn,
-  timeout: 15 * 60 * 1000
-}
-
-module.exports = { testRunWorkflowOnSnapshot }
+  timeout: 20 * 60 * 1000
+})

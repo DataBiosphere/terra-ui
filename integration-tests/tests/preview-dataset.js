@@ -1,5 +1,6 @@
-const { checkbox, click, clickable, findText, findTableCellText, getTableCellPath, getTableHeaderPath, waitForNoSpinners } = require('../utils/integration-utils')
+const { checkbox, click, clickable, findText, waitForNoSpinners, assertRowHas } = require('../utils/integration-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
+const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -7,7 +8,8 @@ const datasetName = 'Readable Catalog Snapshot 1'
 
 const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'browse & explore' }))
+  await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await waitForNoSpinners(page)
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await click(page, clickable({ textContains: `${datasetName}` }))
@@ -16,20 +18,17 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, clickable({ textContains: 'Preview data' }))
   await waitForNoSpinners(page)
 
-  const previewTableName = 'Participant Preview Data'
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 1), 'participant_id')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 2), 'biological_sex')
-  await findTableCellText(page, getTableHeaderPath(previewTableName, 3), 'age')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 1), 'participant1')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 2), 'male')
-  await findTableCellText(page, getTableCellPath(previewTableName, 2, 3), '36')
+  const tableName = 'Participant Preview Data'
+  await assertRowHas(page, {
+    tableName,
+    expectedColumnValues: [['age', 36], ['biological_sex', 'male']],
+    withKey: { column: 'participant_id', text: 'participant1' }
+  })
 })
 
-const testPreviewDataset = {
+registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
   timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
-}
-
-module.exports = { testPreviewDataset }
+  targetEnvironments: ['dev', 'local']
+})

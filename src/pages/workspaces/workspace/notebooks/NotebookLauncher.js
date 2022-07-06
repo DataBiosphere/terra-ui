@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -21,7 +21,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -44,42 +44,26 @@ const NotebookLauncher = _.flow(
   })
 )(
   ({
-    queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute },
-    analysesData: { runtimes, refreshRuntimes, persistentDisks }
+    queryParams, notebookName, workspace, workspace: { accessLevel, canCompute },
+    analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const [busy, setBusy] = useState()
-    const [location, setLocation] = useState(defaultLocation)
 
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
     const { mode } = queryParams
 
-    useEffect(() => {
-      const loadBucketLocation = _.flow(
-        Utils.withBusyState(setBusy),
-        withErrorReporting('Error loading bucket location')
-      )(async () => {
-        const { location } = await Ajax()
-          .Workspaces
-          .workspace(namespace, name)
-          .checkBucketLocation(googleProject, bucketName)
-        setLocation(location)
-      })
-      loadBucketLocation()
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [googleProject, bucketName])
-
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
           { key: runtimeName, workspace, runtime, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
+          h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true), setCreateOpen }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
+      mode && h(RuntimeKicker, { runtime, refreshRuntimes }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
       h(ComputeModal, {
         isOpen: createOpen,
@@ -196,7 +180,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, googleProject, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, googleProject, bucketName } }, setCreateOpen }) => {
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -212,7 +196,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName.slice(0, -6)).getObject()
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName).getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -244,7 +228,12 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
             onClick: () => setFileInUseOpen(true)
           }, [makeMenuIcon('lock'), 'Open (In use)'])],
           () => h(HeaderButton, {
-            onClick: () => chooseMode('edit')
+            onClick: () => {
+              if (!runtime) {
+                setCreateOpen(true)
+              }
+              chooseMode('edit')
+            }
           }, [makeMenuIcon('rocket'), 'Open'])
         ),
         h(HeaderButton, {

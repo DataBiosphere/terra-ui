@@ -160,6 +160,11 @@ export const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+export const withDelay = _.curry((ms, wrappedFn) => async (...args) => {
+  await delay(ms)
+  return wrappedFn(...args)
+})
+
 export const onNextTick = (fn, ...args) => setTimeout(() => fn(...args), 0)
 
 // Returns a promise that will never resolve or reject. Useful for cancelling async flows.
@@ -179,14 +184,9 @@ export const entityAttributeText = (value, machineReadable) => {
   return cond(
     [_.has('entityName', value), () => value.entityName],
     [_.has('items', value), () => {
-      const isPlural = value.items.length !== 1
-      const label = value.itemsType === 'EntityReference' ?
-        isPlural ? 'entities' : 'entity' :
-        isPlural ? 'items' : 'item'
-
       return machineReadable ?
         JSON.stringify(value.items) :
-        `${value.items.length} ${label}`
+        _.map(entityAttributeText, value.items).join(', ')
     }],
     [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
     () => value
@@ -371,4 +371,13 @@ export const formatBytes = bytes => {
     ['K', 2 ** 10]
   ].find(([_p, d]) => bytes >= d)
   return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+}
+
+//Truncates an integer to the thousands, i.e. 10363 -> 10k
+export const truncateInteger = integer => {
+  if (integer < 10000) {
+    return `${integer}`
+  }
+
+  return `${Math.floor(integer / 1000)}k`
 }

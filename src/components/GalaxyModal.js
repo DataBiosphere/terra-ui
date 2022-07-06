@@ -33,7 +33,7 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton = true
+    onDismiss, onError, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton = true
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(tools.Galaxy.appType)(apps)
@@ -51,7 +51,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error creating app', onDismiss)
+      withErrorReportingInModal('Error creating app', onError)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDisk.size,
@@ -63,7 +63,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const deleteGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error deleting galaxy instance', onDismiss)
+      withErrorReportingInModal('Error deleting galaxy instance', onError)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
       Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -72,7 +72,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const pauseGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error stopping galaxy instance', onDismiss)
+      withErrorReportingInModal('Error stopping galaxy instance', onError)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).pause()
       Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -81,7 +81,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
     const resumeGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error starting galaxy instance', onDismiss)
+      withErrorReportingInModal('Error starting galaxy instance', onError)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).resume()
       Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -327,8 +327,10 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
               value: disabled ? currentDataDisk.diskType : dataDisk.diskType,
               isDisabled: disabled,
               onChange: ({ value }) => updateDataDisk('diskType', value),
+              menuPlacement: 'auto',
               options: [
                 { label: pdTypes.standard.displayName, value: pdTypes.standard },
+                { label: pdTypes.balanced.displayName, value: pdTypes.balanced },
                 { label: pdTypes.ssd.displayName, value: pdTypes.ssd }
               ]
             })

@@ -1,5 +1,4 @@
 *
-!/src/**
 !/tests/**
 !/utils/**
 !package.json
