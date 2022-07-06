@@ -300,6 +300,7 @@ export const ComputeModalBase = ({
         })
       }
 
+      // Updating persistent may happen on update runtime
       if (shouldUpdateRuntime) {
         const updateRuntimeConfig = _.merge(shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {}, runtimeConfig)
 
@@ -308,9 +309,14 @@ export const ComputeModalBase = ({
           autopauseThreshold: computeConfig.autopauseThreshold
         })
       }
+
       if (shouldCreateRuntime) {
         const diskConfig = Utils.cond(
           [desiredRuntime.cloudService === cloudServices.DATAPROC, () => ({})],
+          [shouldUpdatePersistentDisk, () => {
+            Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
+            return { persistentDisk: { name: currentPersistentDiskDetails.name } }
+          }],
           [existingPersistentDisk && !shouldDeletePersistentDisk, () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
           [Utils.DEFAULT, () => ({
             persistentDisk: {
