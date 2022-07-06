@@ -210,6 +210,8 @@ const WorkspaceDashboard = _.flow(
   const [busy, setBusy] = useState(false)
   const [consentStatus, setConsentStatus] = useState(undefined)
   const [tagsList, setTagsList] = useState(undefined)
+  const [sasToken, setSasToken] = useState(undefined)
+  const [isFetchingSasToken, setIsFetchingSasToken] = useState(true)
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
@@ -222,6 +224,8 @@ const WorkspaceDashboard = _.flow(
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
+    } else {
+      loadSasToken(workspace.workspace.workspaceId)
     }
   }
 
@@ -296,6 +300,16 @@ const WorkspaceDashboard = _.flow(
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag))
   })
 
+  const loadSasToken = _.flow(
+    withErrorReporting('Error loading SAS token'),
+    Utils.withBusyState(setIsFetchingSasToken)
+  )(async workspaceId => {
+    const response = await Ajax().Workspaces.resources(workspaceId)
+    const container = _.find(resource => resource.metadata.resourceType === 'AZURE_STORAGE_CONTAINER', response.resources)
+    const sasToken = await Ajax().Workspaces.sasToken(workspaceId, container.metadata.resourceId)
+    setSasToken(sasToken.url)
+  })
+
   const save = Utils.withBusyState(setSaving, async () => {
     try {
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription })
@@ -343,6 +357,9 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Azure Storage' }, [
+          h(ClipboardButton, { disabled: isFetchingSasToken, 'aria-label': 'Storage SAS URL', text: sasToken }, ['Storage SAS URL'])
         ])
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {

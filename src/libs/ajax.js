@@ -154,6 +154,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
+const fetchWsm = withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`, fetchOk)
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
@@ -669,6 +670,18 @@ const CromIAM = signal => ({
 
 
 const Workspaces = signal => ({
+
+  resources: async workspaceId => {
+    const res = await fetchWsm(`workspaces/v1/${workspaceId}/resources`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  sasToken: async (workspaceId, containerId) => {
+    const res = await fetchWsm(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+      _.merge(authOpts(), { signal, method: 'POST' }))
+    return res.json()
+  },
+
   list: async fields => {
     const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
