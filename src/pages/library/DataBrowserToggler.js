@@ -59,7 +59,6 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
       ])
     ]),
     feedbackShowing && h(DataBrowserFeedbackModal, {
-      title: '',
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
         setFeedbackShowing(false)

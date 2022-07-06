@@ -217,7 +217,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
       ])
     ]),
     feedbackShowing && h(DataBrowserFeedbackModal, {
-      title: '',
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => setFeedbackShowing(false),
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
