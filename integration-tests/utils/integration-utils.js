@@ -273,8 +273,9 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text))
 }
 
-const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
-  return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`,
+const findButtonInDialogByAriaLabel = (page, ariaLabelText, isDisabled = false) => {
+  return page.waitForXPath(
+    `//*[@role="dialog" and @aria-hidden="false"]//*[self::div[@role="button"] | self::a][@aria-disabled="${isDisabled}" and contains(@aria-label,"${ariaLabelText}")]`,
     { visible: true }
   )
 }

@@ -21,7 +21,13 @@ const testAnalysisContextBarFn = _.flow(
 
   // Create a runtime
   await click(page, clickable({ textContains: 'Environment Configuration' }))
+
   await findElement(page, getAnimatedDrawer('Cloud Environment Details'))
+  // Verify Jupyter Environment Settings button is visible and enabled. Pause Environments and Open buttons are visible and disabled because no runtime.
+  await findButtonInDialogByAriaLabel(page, 'Jupyter Environment')
+  await findButtonInDialogByAriaLabel(page, 'Jupyter Status', true)
+  await findButtonInDialogByAriaLabel(page, 'Launch Jupyter', true)
+
   await noSpinnersAfter(page, { action: () => findButtonInDialogByAriaLabel(page, 'Jupyter Environment').then(element => element.click()) })
   await findElement(page, getAnimatedDrawer('Jupyter Cloud Environment'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
