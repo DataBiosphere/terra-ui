@@ -216,7 +216,15 @@ const signIntoTerra = async (page, { token, testUrl }) => {
 
   const loadUrl = async url => {
     console.log(`Loading URL: ${url}`)
-    await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'] })
+    let httpResponse
+    try {
+      httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'] })
+    } catch (e) {
+      console.error(e) // Known issue with goto() throws Navigation Timeout error. Log error then continue
+    }
+    if (httpResponse.status() >= 400) {
+      throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.status()}`)
+    }
     await page.waitForFunction(url => {
       return window.location.href.includes(url)
     }, {}, url)
@@ -227,8 +235,8 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   } catch (e) {
     console.error(e)
-    await page._client.send('Page.stopLoading') // will stop page loading, as if you hit "X" in the browser
-    // Retry one time
+    await page._client.send('Page.stopLoading') // Will stop page loading, as if you hit "X" in the browser.
+    // Retry one more time
     if (!!testUrl) {
       await loadUrl(testUrl)
     } else {
