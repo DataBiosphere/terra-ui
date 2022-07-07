@@ -228,6 +228,9 @@ const WorkspaceDashboard = _.flow(
     } else {
       loadAzureStorage()
       loadSasToken(workspace.workspace.workspaceId)
+
+      // sas tokens expire after 1 hour
+      setInterval(loadSasToken, Utils.durationToMillis({ minutes: 59 }), workspace.workspace.workspaceId)
     }
   }
 

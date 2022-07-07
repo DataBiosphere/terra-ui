@@ -156,7 +156,6 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
-const fetchWsm = withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`, fetchOk)
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
@@ -1134,17 +1133,17 @@ const AzureStorage = signal => ({
   },
 
   resources: async workspaceId => {
-    const res = await fetchWsm(`workspaces/v1/${workspaceId}/resources`, _.merge(authOpts(), { signal }))
+    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   sasToken: async workspaceId => {
-    const resourcesResponse = await fetchWsm(`workspaces/v1/${workspaceId}/resources`, _.merge(authOpts(), { signal }))
-    const resourcesData = await resourcesResponse.json()
-    const container = _.find(resource => resource.metadata.resourceType === 'AZURE_STORAGE_CONTAINER', resourcesData.resources)
+    const resourcesResponse = await AzureStorage(signal).resources(workspaceId)
+    const container = _.find(resource => resource.metadata.resourceType === 'AZURE_STORAGE_CONTAINER', resourcesResponse.resources)
 
-    const tokenResponse = await fetchWsm(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${container.metadata.resourceId}/getSasToken`,
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${container.metadata.resourceId}/getSasToken`,
       _.merge(authOpts(), { signal, method: 'POST' }))
+
     return tokenResponse.json()
   }
 })
