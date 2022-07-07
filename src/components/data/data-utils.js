@@ -64,16 +64,18 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
 
 const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
-export const entityAttributeText = (value, machineReadable) => {
+export const entityAttributeText = (attributeValue, machineReadable) => {
+  const { type, isList } = getAttributeType(attributeValue)
+
   return Utils.cond(
-    [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => {
-      return machineReadable ?
-        JSON.stringify(value.items) :
-        _.map(entityAttributeText, value.items).join(', ')
-    }],
-    [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
-    () => value
+    [_.isNil(attributeValue), () => ''],
+    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => _.join(', ', attributeValue)],
+    [type === 'json', () => JSON.stringify(attributeValue)],
+    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
   )
 }
 

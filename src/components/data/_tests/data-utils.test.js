@@ -107,13 +107,13 @@ describe('entityAttributeText', () => {
     })
 
     it('returns stringified value for numbers', () => {
-      expect(entityAttributeText(42)).toEqual(42)
+      expect(entityAttributeText(42)).toEqual('42')
       expect(entityAttributeText({ items: [1, 2, 3], itemsType: 'AttributeValue' })).toEqual('1, 2, 3')
     })
 
     it('returns stringified value for booleans', () => {
-      expect(entityAttributeText(true)).toEqual(true)
-      expect(entityAttributeText(false)).toEqual(false)
+      expect(entityAttributeText(true)).toEqual('true')
+      expect(entityAttributeText(false)).toEqual('false')
       expect(entityAttributeText({ items: [true, false], itemsType: 'AttributeValue' })).toEqual('true, false')
     })
 
@@ -127,6 +127,10 @@ describe('entityAttributeText', () => {
         itemsType: 'EntityReference'
       })).toEqual('thing_one, thing_two')
     })
+  })
+
+  it('formats missing values', () => {
+    expect(entityAttributeText(undefined)).toEqual('')
   })
 
   it('formats empty lists', () => {
@@ -146,12 +150,24 @@ describe('entityAttributeText', () => {
   })
 
   describe('JSON values', () => {
+    it('formats arrays containing basic data types', () => {
+      expect(entityAttributeText(['one', 'two', 'three'])).toEqual('one, two, three')
+    })
+
+    it('formats empty arrays', () => {
+      expect(entityAttributeText([])).toEqual('')
+    })
+
     it('stringifies arrays of objects', () => {
       expect(entityAttributeText([
         { key1: 'value1' },
         { key2: 'value2' },
         { key3: 'value3' }
       ])).toEqual('[{"key1":"value1"},{"key2":"value2"},{"key3":"value3"}]')
+    })
+
+    it('stringifies objects', () => {
+      expect(entityAttributeText({ key: 'value' })).toEqual('{"key":"value"}')
     })
   })
 })
