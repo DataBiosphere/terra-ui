@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
 const { screenshotDirPath } = require('../utils/integration-config')
+const pRetry = require('p-retry')
 
 
 const defaultToVisibleTrue = _.defaults({ visible: true })
@@ -214,36 +215,38 @@ const dismissNPSSurvey = async page => {
 const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...')
 
-  const loadUrl = async url => {
-    console.log(`Loading URL: ${url}`)
-    let httpResponse
-    try {
-      httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'] })
-    } catch (e) {
-      console.error(e) // Known issue with goto() throws Navigation Timeout error. Log error then continue
-    }
-    if (httpResponse.status() >= 400) {
-      throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.status()}`)
-    }
-    await page.waitForFunction(url => {
-      return window.location.href.includes(url)
-    }, {}, url)
+  const retryOptions = {
+    factor: 1,
+    minTimeout: 1000, // This is min wait time between retries
+    onFailedAttempt: error => {
+      console.error(
+        `Sign in to Terra attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
+      )
+    },
+    retries: 2
   }
 
-  try {
-    !!testUrl && await loadUrl(testUrl)
-    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
-  } catch (e) {
-    console.error(e)
-    await page._client.send('Page.stopLoading') // Will stop page loading, as if you hit "X" in the browser.
-    // Retry one more time
-    if (!!testUrl) {
-      await loadUrl(testUrl)
-    } else {
-      await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+  const run = async url => {
+    try {
+      const httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout: 60 * 1000 })
+      if (httpResponse.status() >= 400) {
+        throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
+      }
+      await page.waitForFunction(url => {
+        return window.location.href.includes(url)
+      }, {}, url)
+      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+    } catch (e) {
+      console.error(e)
+      throw new Error(e)
     }
-    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   }
+
+  if (!!testUrl) {
+    console.log(`Loading URL: ${testUrl}`)
+    await pRetry(() => run(testUrl), retryOptions)
+  }
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')
