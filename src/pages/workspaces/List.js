@@ -103,7 +103,7 @@ export const WorkspaceList = () => {
   const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
 
-  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
 
   useOnMount(() => {
     const loadFeatured = async () => {
