@@ -19,7 +19,7 @@ import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { getConfig, isFirecloud, isProjectSingular, isTerra } from 'src/libs/config'
+import { getConfig, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -510,6 +510,11 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
   const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
+  const welcomeText = Utils.cond(
+    [isRareX(), () => ['Welcome to the RARE-X Data Analysis Platform']],
+    () => ['Welcome to ', span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, [getAppName(isTerra())])]
+  )
+
   return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
     div({
@@ -523,10 +528,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      h1({ style: { fontSize: 54 } }, [
-        'Welcome to ',
-        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, getAppName(isTerra()))
-      ]),
+      h1({ style: { fontSize: 54 } }, welcomeText),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName(!isTerra())} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
