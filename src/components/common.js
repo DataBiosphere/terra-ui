@@ -492,11 +492,6 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
   const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
-  const welcomeText = Utils.cond(
-    [isRareX(), () => ['Welcome to the RARE-X Data Analysis Platform']],
-    () => ['Welcome to ', span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, [getAppName(isTerra())])]
-  )
-
   return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
     div({
@@ -510,12 +505,16 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      h1({ style: { fontSize: 54 } }, welcomeText),
+      h1({ style: { fontSize: 54 } }, [
+        'Welcome to ',
+        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, [getAppName({ longName: isTerra() })])
+      ]),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
-        `${getAppName(!isTerra())} is a ${Utils.cond(
+        `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
           [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
           [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
+          [isRareX(), () => 'project funded by Additional Ventures and powered by Terra'],
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',

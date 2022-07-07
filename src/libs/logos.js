@@ -23,7 +23,7 @@ import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecl
 import * as Utils from 'src/libs/utils'
 
 
-export const getAppName = (longName = false) => Utils.cond(
+export const getAppName = ({ longName = false, capitalInitial = false } = { longName: false, capitalInitial: false }) => Utils.cond(
   [isFirecloud(), () => 'FireCloud'],
   [isDatastage(), () => 'DataStage'],
   [isAnvil(), () => longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
@@ -31,7 +31,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isBaseline(), () => longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
   [isElwazi(), () => longName ? 'The eLwazi Open Data Science Platform' : 'eLwazi'],
   [isProjectSingular(), () => 'Project Singular'],
-  [isRareX(), () => longName ? 'The Rare Disease Database Platform' : 'RARE-X'],
+  [isRareX(), () => `${capitalInitial ? 'The' : 'the'} RARE-X Data Analysis Platform`],
   () => longName ? 'Terra Community Workbench' : 'Terra'
 )
 
