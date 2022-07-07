@@ -34,8 +34,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           isClearable: true,
           isMulti: true,
           isSearchable: false,
-          placeholder: 'Completion status',
-          'aria-label': 'Completion status',
+          placeholder: 'Status',
+          'aria-label': 'Status',
           value: statusFilter,
           onChange: data => setStatusFilter(_.map('value', data)),
           options: ['Succeeded', 'Failed', 'Running', 'Submitted, Awaiting Cloud Quota', 'Unknown']
