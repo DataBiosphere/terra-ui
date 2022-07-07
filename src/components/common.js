@@ -253,25 +253,11 @@ const commonSelectProps = {
         props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
       ])
     ]),
-    SelectContainer: ({ children, selectProps, ...props }) => h(RSelectComponents.SelectContainer, _.merge(props, {
-      selectProps,
-      innerProps: {
-        role: 'combobox',
-        'aria-haspopup': 'listbox',
-        'aria-expanded': selectProps.menuIsOpen
-      }
-    }), [children]),
-    Input: ({ children, selectProps, ...props }) => h(RSelectComponents.Input, _.merge(props, {
-      selectProps,
-      role: 'textbox',
-      'aria-multiline': false,
-      'aria-controls': selectProps.menuIsOpen ? selectProps.menuId : undefined
-    }), [children]),
     Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
       selectProps,
       innerProps: {
-        id: selectProps.menuId,
         role: 'listbox',
+        'aria-label': 'Options',
         'aria-multiselectable': selectProps.isMulti
       }
     }), [children])
@@ -291,13 +277,11 @@ const formatGroupLabel = group => (
 
 const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
-  const menuId = useUniqueId()
   const myId = useUniqueId()
   const inputId = id || myId
 
   return h(RSelect, _.merge({
     inputId,
-    menuId,
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
@@ -337,9 +321,7 @@ export const GroupedSelect = ({ value, options, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  const menuId = useUniqueId()
   return h(RAsyncCreatableSelect, {
-    menuId,
     ...commonSelectProps,
     ...props
   })
