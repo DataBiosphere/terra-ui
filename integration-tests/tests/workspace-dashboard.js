@@ -151,10 +151,29 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     canCompute: true
   }
 
-  return await testPage.evaluate((azureWorkspacesListResult, azureWorkspaceDetailsResult, namespace, name) => {
+  const azureWorkspaceResourcesResult = {
+    resources: [
+      {
+        metadata: {
+          resourceId: 'dummy-sa-resource-id',
+          resourceType: 'AZURE_STORAGE_ACCOUNT'
+        },
+        resourceAttributes: { azureStorage: { region: 'eastus' } }
+      },
+      {
+        metadata: {
+          resourceType: 'AZURE_STORAGE_CONTAINER'
+        },
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
+      }
+    ]
+  }
+
+  return await testPage.evaluate((azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceId) => {
     const detailsUrl = new RegExp(`api/workspaces/${namespace}/${name}[^/](.*)`, 'g')
     const submissionsUrl = new RegExp(`api/workspaces/${namespace}/${name}/submissions(.*)`, 'g')
     const tagsUrl = new RegExp(`api/workspaces/${namespace}/${name}/tags(.*)`, 'g')
+    const workspaceResourcesUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources(.*)`, 'g')
 
     window.ajaxOverridesStore.set([
       {
@@ -174,6 +193,10 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspaceDetailsResult), { status: 200 }))
       },
       {
+        filter: { url: workspaceResourcesUrl },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspaceResourcesResult), { status: 200 }))
+      },
+      {
         filter: { url: /api\/workspaces[^/](.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspacesListResult), { status: 200 }))
       },
@@ -182,7 +205,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       }
     ])
-  }, azureWorkspacesListResult, azureWorkspaceDetailsResult, namespace, name)
+  }, azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceInfo.workspaceId)
 }
 
 const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
@@ -200,7 +223,12 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertDescription(workspaceDescription)
 
   // Check cloud information
-  await dashboard.assertCloudInformation(['Cloud NameMicrosoft Azure', 'Resource Group IDdummy-mrg-id'])
+  await dashboard.assertCloudInformation([
+    'Cloud NameMicrosoft Azure',
+    'Resource Group IDdummy-mrg-id',
+    'Storage Container Namesc-name',
+    'Location🇺🇸 East US'
+  ])
 
   // READER permissions only
   await dashboard.assertReadOnly()
