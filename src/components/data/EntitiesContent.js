@@ -7,7 +7,7 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonSecondary } from 'src/components/common'
-import { AddColumnModal, AddEntityModal, CreateEntitySetModal, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, entityAttributeText, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon } from 'src/components/icons'
@@ -238,7 +238,7 @@ const EntitiesContent = ({
     const entityTsv = Utils.makeTSV([
       [`entity:${entityKey}_id`, ...attributeNames],
       ..._.map(({ name, attributes }) => {
-        return [name, ..._.map(attribute => Utils.entityAttributeText(attributes[attribute], true), attributeNames)]
+        return [name, ..._.map(attribute => entityAttributeText(attributes[attribute], true), attributeNames)]
       }, sortedEntities)
     ])
 

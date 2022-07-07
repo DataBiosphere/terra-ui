@@ -64,6 +64,19 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
 
 const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
+export const entityAttributeText = (value, machineReadable) => {
+  return Utils.cond(
+    [_.has('entityName', value), () => value.entityName],
+    [_.has('items', value), () => {
+      return machineReadable ?
+        JSON.stringify(value.items) :
+        _.map(entityAttributeText, value.items).join(', ')
+    }],
+    [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
+    () => value
+  )
+}
+
 export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
@@ -1272,7 +1285,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       }, [
         h(Collapse, {
           title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
+            `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`
           ]),
           buttonStyle: {
             maxWidth: '100%',
