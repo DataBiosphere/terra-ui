@@ -174,6 +174,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     const submissionsUrl = new RegExp(`api/workspaces/${namespace}/${name}/submissions(.*)`, 'g')
     const tagsUrl = new RegExp(`api/workspaces/${namespace}/${name}/tags(.*)`, 'g')
     const workspaceResourcesUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources(.*)`, 'g')
+    const workspaceSasTokenUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/(.*)/getSasToken`)
 
     window.ajaxOverridesStore.set([
       {
@@ -195,6 +196,10 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       {
         filter: { url: workspaceResourcesUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspaceResourcesResult), { status: 200 }))
+      },
+      {
+        filter: { url: workspaceSasTokenUrl },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://example.com' }), { status: 200 }))
       },
       {
         filter: { url: /api\/workspaces[^/](.*)/ },
@@ -227,7 +232,8 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
     'Storage Container Namesc-name',
-    'Location🇺🇸 East US'
+    'Location🇺🇸 East US',
+    'SAS URLhttp://example.com'
   ])
 
   // READER permissions only

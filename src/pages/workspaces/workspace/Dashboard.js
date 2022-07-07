@@ -308,8 +308,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadSasToken = withErrorReporting('Error loading SAS token', async workspaceId => {
-    await Ajax().AzureStorage.sasToken(workspaceId)
-    setSasToken('FAKE TBD')
+    const sas = await Ajax().AzureStorage.sasToken(workspaceId)
+    setSasToken(sas.url)
   })
 
   const save = Utils.withBusyState(setSaving, async () => {
