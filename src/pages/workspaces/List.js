@@ -12,7 +12,7 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceStarControl, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -178,6 +178,19 @@ export const WorkspaceList = () => {
       rowHeight: 70,
       sort,
       columns: [
+        {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
+          cellRenderer: ({ rowIndex }) => {
+            const workspace = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
+              h(WorkspaceStarControl, {
+                workspace,
+                onUpdate: () => refreshWorkspaces()
+              })
+            ])
+          },
+          size: { basis: 40, grow: 0, shrink: 0 }
+        },
         {
           field: 'name',
           headerRenderer: makeHeaderRenderer('name'),

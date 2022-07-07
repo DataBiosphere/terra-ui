@@ -3,12 +3,14 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
+import Interactive from 'src/components/Interactive'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -338,6 +340,38 @@ export const WorkspaceTagSelect = props => {
     loadOptions: getTagSuggestions,
     ...props
   })
+}
+
+export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
+  const { workspace: { namespace, name } } = workspace
+  const starredTag = 'Starred'
+  const isStarred = _.includes(starredTag, _.getOr([], 'workspace.attributes.tag:tags.items', workspace))
+
+  const [updating, setUpdating] = useState(false)
+
+  const toggleStar = _.flow(
+    Utils.withBusyState(setUpdating),
+    withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
+  )(async star => {
+    if (star) {
+      await Ajax().Workspaces.workspace(namespace, name).addTag(starredTag)
+    } else {
+      await Ajax().Workspaces.workspace(namespace, name).deleteTag(starredTag)
+    }
+    onUpdate(star)
+  })
+
+  return h(Interactive, {
+    as: 'span',
+    role: 'checkbox',
+    'aria-checked': isStarred,
+    tooltip: isStarred ? 'Unstar this workspace' : 'Star this workspace',
+    className: 'fa-layers fa-fw',
+    style: { verticalAlign: 'middle', ...style },
+    onClick: () => toggleStar(!isStarred)
+  }, [
+    updating ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
+  ])
 }
 
 export const NoWorkspacesMessage = ({ onClick }) => {
