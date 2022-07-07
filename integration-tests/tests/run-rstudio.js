@@ -19,7 +19,7 @@ const testRunRStudioFn = _.flow(
   // Create analysis file
   await click(page, clickable({ textContains: 'Start' }))
   await findElement(page, getAnimatedDrawer('Select an application'))
-  await click(page, image({ text: 'Create new R markdown file' }))
+  await click(page, image({ text: 'Create new R file' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), rFileName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create Analysis' })) })
 
