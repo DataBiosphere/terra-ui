@@ -404,7 +404,7 @@ const DataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
+                      const dataCell = renderDataCell(dataInfo, googleProject)
                       const divider = div({ style: { flexGrow: 1 } })
                       const editLink = editable && h(EditDataLink, {
                         'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
