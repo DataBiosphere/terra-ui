@@ -1,12 +1,12 @@
 import { Fragment } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2, span } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
 import colors from 'src/libs/colors'
-import { isDataBrowserVisible, isFirecloud, isTerra } from 'src/libs/config'
+import { isDataBrowserVisible, isFirecloud, isRareX, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
@@ -31,15 +31,14 @@ const styles = {
 
 const makeDocLink = (href, title) => {
   return div({
-    style: { marginBottom: '1rem', fontSize: 18, width: 600 }
+    style: { marginBottom: '1rem', fontSize: 18, width: 700 }
   }, [
     h(Link, {
       href,
       ...Utils.newTabLinkProps,
       style: { fontSize: 18 }
     }, [
-      title,
-      icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
+      span({ style: { whiteSpace: 'nowrap' } }, [title, icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })])
     ])
   ])
 }
@@ -67,17 +66,28 @@ const makeCard = (link, title, body) => h(Clickable, {
   makeRightArrowWithBackgroundIcon()
 ])
 
-const LandingPage = () => {
-  return h(HeroWrapper, { bigSubhead: true }, [
+const getSiteSpecificHyperlinks = () => Utils.cond(
+  [isRareX(), () => [
+    makeDocLink('https://rare-x.org/DataAnalysisPlatform-Documentation',
+      'Find RARE-X Data Analysis Platform documentation, tutorials and Jupyter notebook examples'),
+    makeDocLink('https://rare-x.org/researchers/', 'Learn more about the RARE-X Data Analysis Platform'),
+    makeDocLink('https://support.terra.bio/hc/en-us', 'Find Terra how-to\'s, documentation, video tutorials, and discussion forums')
+  ]],
+  () => [
     makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
-    isTerra() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416672',
-      'Learn more about the Terra platform and our co-branded sites'),
+    isTerra() &&
+    makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416672', 'Learn more about the Terra platform and our co-branded sites'),
     isFirecloud() && h(Fragment, [
-      makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
-        'Already a FireCloud user? Learn what\'s new.'),
+      makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271', 'Already a FireCloud user? Learn what\'s new.'),
       makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416912',
         'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources')
-    ]),
+    ])
+  ]
+)
+
+const LandingPage = () => {
+  return h(HeroWrapper, { bigSubhead: true }, [
+    ...getSiteSpecificHyperlinks(),
     div({
       style: { display: 'flex', margin: '2rem 0 1rem 0' }
     }, [

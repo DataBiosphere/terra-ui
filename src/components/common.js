@@ -509,12 +509,12 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         'Welcome to ',
         span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, [getAppName({ longName: isTerra() })])
       ]),
-      div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
+      div({ style: { margin: '1rem 0', width: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
           [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
           [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
-          [isRareX(), () => 'project funded by Additional Ventures and powered by Terra'],
+          [isRareX(), () => 'federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra'],
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
