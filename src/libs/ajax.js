@@ -1122,7 +1122,8 @@ const AzureStorage = signal => ({
     if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
       return {
         location: 'Unknown',
-        storageContainerName: 'None'
+        storageContainerName: 'None',
+        sasUrl: 'None'
       }
     } else {
       const container = _.find(

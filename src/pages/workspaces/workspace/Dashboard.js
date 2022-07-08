@@ -244,12 +244,14 @@ const WorkspaceDashboard = _.flow(
 
   useEffect(() => {
     setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+  }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
     return () => {
       clearInterval(sasTokenRefreshInterval.current)
       sasTokenRefreshInterval.current = undefined
     }
-  }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [sasTokenRefreshInterval])
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
