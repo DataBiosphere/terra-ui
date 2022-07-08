@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -217,6 +217,7 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
+  const sasTokenRefreshInterval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -229,8 +230,9 @@ const WorkspaceDashboard = _.flow(
       loadAzureStorage()
       loadSasToken(workspace.workspace.workspaceId)
 
-      // sas tokens expire after 1 hour
-      setInterval(loadSasToken, Utils.durationToMillis({ minutes: 59 }), workspace.workspace.workspaceId)
+      // sas tokens expires after 1 hour
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = setInterval(loadSasToken, Utils.durationToMillis({ minutes: 50 }), workspace.workspace.workspaceId)
     }
   }
 
@@ -244,6 +246,11 @@ const WorkspaceDashboard = _.flow(
 
   useEffect(() => {
     setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+
+    return () => {
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = undefined
+    }
   }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
@@ -311,7 +318,7 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadSasToken = withErrorReporting('Error loading SAS token', async workspaceId => {
-    const sas = await Ajax().AzureStorage.sasToken(workspaceId)
+    const sas = await Ajax(signal).AzureStorage.sasToken(workspaceId)
     setSasToken(sas.url)
   })
 
@@ -373,7 +380,7 @@ const WorkspaceDashboard = _.flow(
             text: storageContainerName, style: { marginLeft: '0.25rem' }
           })
         ]),
-        h(InfoRow, { title: 'SAS URL' }, [
+        h(InfoRow, { title: 'Storage SAS URL' }, [
           h(TooltipCell, [!!sasToken ? sasToken : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
