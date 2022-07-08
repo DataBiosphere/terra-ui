@@ -31,7 +31,6 @@ env:
 
 jobs:
   tag-push-job:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
@@ -107,6 +106,7 @@ jobs:
 
       - name: Deploy to Terra Dev environment
         uses: broadinstitute/repository-dispatch@master
+        if: github.event_name != 'pull_request'
         with:
           token: ${{ secrets.BROADBOT_TOKEN }}
           repository: broadinstitute/terra-helmfile
