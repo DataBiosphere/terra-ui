@@ -174,7 +174,7 @@ const noSpinnersAfter = async (page, { action, debugMessage }) => {
   const foundSpinner = page.waitForXPath('//*[@data-icon="loadingSpinner"]', { timeout: 5000 })
   await Promise.all([
     // loadingSpinner is not always visible. Log but ignore error if loadingSpinner is not found
-    foundSpinner.catch(e => { console.error(e) }),
+    foundSpinner.catch(e => console.error(e)),
     action()
   ])
   return waitForNoSpinners(page)
