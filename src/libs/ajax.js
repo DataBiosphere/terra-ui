@@ -1106,6 +1106,13 @@ const DataRepo = signal => ({
 })
 
 const AzureStorage = signal => ({
+  sasToken: async (workspaceId, containerId) => {
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+      _.merge(authOpts(), { signal, method: 'POST' }))
+
+    return tokenResponse.json()
+  },
+
   details: async (workspaceId = {}) => {
     const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED`,
       _.merge(authOpts(), { signal })
@@ -1125,26 +1132,13 @@ const AzureStorage = signal => ({
         },
         data.resources
       )
+      const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
       return {
         location: storageAccount.resourceAttributes.azureStorage.region,
-        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName
+        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+        sasUrl: sas.url
       }
     }
-  },
-
-  resources: async workspaceId => {
-    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  sasToken: async workspaceId => {
-    const resourcesResponse = await AzureStorage(signal).resources(workspaceId)
-    const container = _.find(resource => resource.metadata.resourceType === 'AZURE_STORAGE_CONTAINER', resourcesResponse.resources)
-
-    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${container.metadata.resourceId}/getSasToken`,
-      _.merge(authOpts(), { signal, method: 'POST' }))
-
-    return tokenResponse.json()
   }
 })
 
