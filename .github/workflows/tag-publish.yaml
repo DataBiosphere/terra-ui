@@ -1,4 +1,4 @@
-name: Bump, Tag, and Publish
+name: Generate BEE Build
 # The purpose of the workflow is to:
 #  1. Bump the version number and tag the release if not a PR
 #  2. Build docker image and publish to GAR
