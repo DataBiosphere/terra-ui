@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { DelayedRender, HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -36,7 +36,7 @@ const styles = {
   tableCellContent: {
     height: '50%', display: 'flex', alignItems: 'center'
   },
-  filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
+  filter: { marginRight: '1rem', flex: '1 1 0', minWidth: 'max-content' }
 }
 
 const useWorkspacesWithSubmissionStats = () => {
@@ -103,7 +103,7 @@ export const WorkspaceList = () => {
   const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
 
-  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
 
   useOnMount(() => {
     const loadFeatured = async () => {
@@ -297,18 +297,10 @@ export const WorkspaceList = () => {
 
 
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Workspaces' }, [
-      h(DelayedSearchInput, {
-        style: { marginLeft: '2rem', width: 500 },
-        placeholder: 'SEARCH WORKSPACES',
-        'aria-label': 'Search workspaces',
-        onChange: newFilter => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
-        value: filter
-      })
-    ]),
+    h(TopBar, { title: 'Workspaces' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(Link, {
           onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
@@ -316,7 +308,22 @@ export const WorkspaceList = () => {
         },
         [icon('lighter-plus-circle', { size: 24 })])
       ]),
+      p({ style: { margin: '0 0 1rem' } }, [
+        'Dedicated spaces for you and your collaborators to access and analyze data together. ',
+        h(Link, {
+          ...Utils.newTabLinkProps,
+          href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
+        }, ['Learn more about workspaces.'])
+      ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+        div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
+          h(DelayedSearchInput, {
+            placeholder: 'Search by keyword',
+            'aria-label': 'Search workspaces by keyword',
+            onChange: newFilter => Nav.updateSearch({ ...query, filter: newFilter || undefined }),
+            value: filter
+          })
+        ]),
         div({ style: styles.filter }, [
           h(WorkspaceTagSelect, {
             isClearable: true,
@@ -328,7 +335,7 @@ export const WorkspaceList = () => {
             onChange: data => Nav.updateSearch({ ...query, tagsFilter: _.map('value', data) })
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px' } }, [
+        div({ style: styles.filter }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -357,7 +364,7 @@ export const WorkspaceList = () => {
             )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '220px', marginRight: '' } }, [
+        div({ style: { ...styles.filter, marginRight: 0 } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,

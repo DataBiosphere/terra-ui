@@ -157,7 +157,7 @@ const fillInReplace = async (page, xpath, text) => {
 
 const select = async (page, labelContains, text) => {
   await click(page, input({ labelContains }))
-  return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
+  return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
 const waitForNoSpinners = page => {
@@ -192,13 +192,35 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
+const dismissNPSSurvey = async page => {
+  let element
+  try {
+    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
+  } catch (e) {
+    return // NPS survey was not found
+  }
+  try {
+    console.log('dismissing NPS survey')
+    const iframe = await element.contentFrame()
+    const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]')
+    await closeButton.evaluate(button => button.click())
+    await delay(500) // delayed for survey to animate off
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
+
 const signIntoTerra = async (page, { token, testUrl }) => {
   !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
   await waitForNoSpinners(page)
+
   await page.waitForFunction('!!window["forceSignIn"]')
   await page.evaluate(token => window.forceSignIn(token), token)
+
   await dismissNotifications(page)
+  await dismissNPSSurvey(page)
   await waitForNoSpinners(page)
 }
 
@@ -339,11 +361,12 @@ const logPageConsoleMessages = page => {
   return () => page.off('console', handle)
 }
 
-const logPageAjaxResponses = page => {
+const logPageResponses = page => {
   const terraRequests = [
     'broad',
     'terra',
-    'googleapis'
+    'googleapis',
+    'bvdp'
   ]
   const handle = res => {
     const request = res.request()
@@ -356,7 +379,7 @@ const logPageAjaxResponses = page => {
 }
 
 const enablePageLogging = page => {
-  logPageAjaxResponses(page)
+  logPageResponses(page)
   logPageConsoleMessages(page)
   logPageError(page)
   logError(page)
@@ -405,7 +428,6 @@ module.exports = {
   findInDataTableRow,
   withScreenshot,
   logPageConsoleMessages,
-  logPageAjaxResponses,
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,

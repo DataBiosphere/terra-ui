@@ -8,7 +8,9 @@ import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { pdTypes } from 'src/libs/runtime-utils'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
+import {
+  ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
+} from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -157,6 +159,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
@@ -1102,6 +1105,33 @@ const DataRepo = signal => ({
   }
 })
 
+const AzureStorage = signal => ({
+  details: async (workspaceId = {}) => {
+    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED`,
+      _.merge(authOpts(), { signal })
+    )
+    const data = await res.json()
+    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+    if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
+      return {
+        location: 'Unknown',
+        storageContainerName: 'None'
+      }
+    } else {
+      const container = _.find(
+        {
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
+        },
+        data.resources
+      )
+      return {
+        location: storageAccount.resourceAttributes.azureStorage.region,
+        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName
+      }
+    }
+  }
+})
 
 const Buckets = signal => ({
   getObject: async (googleProject, bucket, object, params = {}) => {
@@ -1778,6 +1808,7 @@ export const Ajax = signal => {
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
     DataRepo: DataRepo(signal),
+    AzureStorage: AzureStorage(signal),
     Buckets: Buckets(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),

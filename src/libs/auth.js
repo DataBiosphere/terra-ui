@@ -82,19 +82,30 @@ const revokeTokens = async () => {
 }
 
 const getSigninArgs = includeBillingScope => {
-  return includeBillingScope === true ? {
-    scope: `
-    openid
-    email
-    profile
-    https://www.googleapis.com/auth/cloud-billing
-  `.trim().split(/\s+/).join(' ')
-  } : {}
+  return Utils.cond(
+    [includeBillingScope === false, () => ({})],
+    // For Google just append the scope to the signin args.
+    [isGoogleAuthority(), () => ({ scope: 'openid email profile https://www.googleapis.com/auth/cloud-billing' })],
+    // For B2C switch to a dedicated policy endpoint configured for the GCP cloud-billing scope.
+    () => ({
+      extraQueryParams: { access_type: 'offline', p: getConfig().b2cBillingPolicy },
+      extraTokenParams: { p: getConfig().b2cBillingPolicy }
+    })
+  )
 }
 
-export const signIn = (includeBillingScope = false) => {
+export const signIn = async (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
-  return getAuthInstance().signinPopup(args).catch(() => false)
+  const user = await getAuthInstance().signinPopup(args)
+
+  // For B2C record in the auth store whether we requested the GCP cloud-billing scope since there
+  // is no way to determine it after the fact.
+  // For Google we don't need to do this since we can inspect the scope directly in the user object.
+  if (!isGoogleAuthority()) {
+    authStore.update(state => ({ ...state, hasGcpBillingScopeThroughB2C: includeBillingScope }))
+  }
+
+  return user
 }
 
 export const reloadAuthToken = (includeBillingScope = false) => {
@@ -103,16 +114,11 @@ export const reloadAuthToken = (includeBillingScope = false) => {
 }
 
 export const hasBillingScope = () => {
-  const scope = getUser().scope
   return Utils.cond(
-    // If the scope is undefined in the auth store, assume we don't have the billing scope.
-    // This can happen in integration tests.
-    [_.isNil(scope), () => false],
-    // For now B2C always requests the cloud-billing scope from the get-go for Google logins.
-    // TOAZ-146 is open to not request this scope initially and elevate it on demand.
-    [isGoogleAuthority() === false, () => true],
-    // Otherwise test the actual scope value.
-    [Utils.DEFAULT, () => _.includes('https://www.googleapis.com/auth/cloud-billing', scope)]
+    // For Google check the scope directly on the user object.
+    [isGoogleAuthority(), () => _.includes('https://www.googleapis.com/auth/cloud-billing', getUser().scope)],
+    // For B2C check the hasGcpBillingScopeThroughB2C field in the auth store.
+    () => authStore.get().hasGcpBillingScopeThroughB2C === true
   )
 }
 
@@ -201,6 +207,7 @@ export const processUser = (user, isSignInEvent) => {
       // or whether they input cookie acceptance previously in this session
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
+      hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,

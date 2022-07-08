@@ -39,6 +39,7 @@ const testFindWorkflowFn = _.flow(
     } else {
       await click(page, clickable({ textContains: 'Yes' }))
     }
+    await page.waitForXPath('//*[@id="signInButton"]', { visible: true })
   }
 
   await Promise.all([

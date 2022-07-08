@@ -71,6 +71,7 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
   }
 })
 
+// The label here matches the leonardo `tool` label for runtimes
 export const tools = {
   RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
   Jupyter: { label: 'Jupyter', ext: ['ipynb'], imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
