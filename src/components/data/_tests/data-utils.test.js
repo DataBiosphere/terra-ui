@@ -1,4 +1,8 @@
-import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload } from 'src/components/data/data-utils.js'
+import '@testing-library/jest-dom'
+
+import { render } from '@testing-library/react'
+import _ from 'lodash/fp'
+import { concatenateAttributeNames, convertAttributeValue, getAttributeType, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils.js'
 
 
 describe('concatenateAttributeNames', () => {
@@ -92,6 +96,93 @@ describe('getAttributeType', () => {
     expect(getAttributeType(null)).toEqual({ type: 'string', isList: false })
     expect(getAttributeType({ items: [], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
     expect(getAttributeType({ items: [null], itemsType: 'AttributeValue' })).toEqual({ type: 'string', isList: true })
+  })
+})
+
+describe('renderDataCell', () => {
+  describe('basic data types', () => {
+    it('renders strings', () => {
+      expect(render(renderDataCell('abc')).container).toHaveTextContent('abc')
+      expect(render(renderDataCell({ items: ['a', 'b', 'c'], itemsType: 'AttributeValue' })).container).toHaveTextContent('a,b,c')
+    })
+
+    it('renders numbers', () => {
+      expect(render(renderDataCell(42)).container).toHaveTextContent('42')
+      expect(render(renderDataCell({ items: [1, 2, 3], itemsType: 'AttributeValue' })).container).toHaveTextContent('1,2,3')
+    })
+
+    it('renders booleans', () => {
+      expect(render(renderDataCell(true)).container).toHaveTextContent('true')
+      expect(render(renderDataCell(false)).container).toHaveTextContent('false')
+      expect(render(renderDataCell({ items: [true, false], itemsType: 'AttributeValue' })).container).toHaveTextContent('true,false')
+    })
+
+    it('renders entity name for references', () => {
+      expect(render(renderDataCell({ entityType: 'thing', entityName: 'thing_one' })).container).toHaveTextContent('thing_one')
+      expect(render(renderDataCell({
+        items: [
+          { entityType: 'thing', entityName: 'thing_one' },
+          { entityType: 'thing', entityName: 'thing_two' }
+        ],
+        itemsType: 'EntityReference'
+      })).container).toHaveTextContent('thing_one,thing_two')
+    })
+  })
+
+  it('renders empty lists', () => {
+    expect(render(renderDataCell({ items: [], itemsType: 'AttributeValue' })).container).toHaveTextContent('')
+  })
+
+  it('renders missing values', () => {
+    expect(render(renderDataCell(undefined)).container).toHaveTextContent('')
+  })
+
+  describe('JSON values', () => {
+    it('renders each item of arrays containing basic data types', () => {
+      expect(render(renderDataCell(['one', 'two', 'three'])).container).toHaveTextContent('one,two,three')
+    })
+
+    it('renders JSON for arrays of objects', () => {
+      expect(render(renderDataCell([
+        { key1: 'value1' },
+        { key2: 'value2' },
+        { key3: 'value3' }
+      ])).container).toHaveTextContent('[ { "key1": "value1" }, { "key2": "value2" }, { "key3": "value3" } ]')
+    })
+
+    it('renders empty arrays', () => {
+      expect(render(renderDataCell([])).container).toHaveTextContent('')
+    })
+
+    it('renders JSON for other values', () => {
+      expect(render(renderDataCell({ key: 'value' })).container).toHaveTextContent('{ "key": "value" }')
+    })
+  })
+
+  describe('URLs', () => {
+    it('renders links to GCS URLs', () => {
+      const { container, getByRole } = render(renderDataCell('gs://bucket/file.txt'))
+      expect(container).toHaveTextContent('file.txt')
+      const link = getByRole('link')
+      expect(link).toHaveAttribute('href', 'gs://bucket/file.txt')
+    })
+
+    it('renders lists of GCS URLs', () => {
+      const { getAllByRole } = render(renderDataCell({
+        itemsType: 'AttributeValue',
+        items: ['gs://bucket/file1.txt', 'gs://bucket/file2.txt', 'gs://bucket/file3.txt']
+      }))
+      const links = getAllByRole('link')
+      expect(_.map('textContent', links)).toEqual(['file1.txt', 'file2.txt', 'file3.txt'])
+      expect(_.map('href', links)).toEqual(['gs://bucket/file1.txt', 'gs://bucket/file2.txt', 'gs://bucket/file3.txt'])
+    })
+
+    it('renders links to DRS URLs', () => {
+      const { container, getByRole } = render(renderDataCell('drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce'))
+      expect(container).toHaveTextContent('drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce')
+      const link = getByRole('link')
+      expect(link).toHaveAttribute('href', 'drs://example.data.service.org/6cbffaae-fc48-4829-9419-1a2ef0ca98ce')
+    })
   })
 })
 
