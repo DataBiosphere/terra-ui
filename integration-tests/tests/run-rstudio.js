@@ -59,6 +59,7 @@ const testRunRStudioFn = _.flow(
   await dismissNotifications(page)
 })
 
+// Verify still failing.
 registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
