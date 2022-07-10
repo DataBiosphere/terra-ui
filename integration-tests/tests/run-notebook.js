@@ -45,5 +45,6 @@ const testRunNotebookFn = _.flow(
 registerTest({
   name: 'run-notebook',
   fn: testRunNotebookFn,
-  timeout: 20 * 60 * 1000
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: ['local', 'alpha', 'perf', 'staging']
 })

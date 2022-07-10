@@ -63,5 +63,6 @@ const testRunRStudioFn = _.flow(
 registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
-  timeout: 20 * 60 * 1000
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: ['local', 'alpha', 'perf', 'staging']
 })

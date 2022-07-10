@@ -62,5 +62,6 @@ const testAnalysisContextBarFn = _.flow(
 registerTest({
   name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
-  timeout: 15 * 60 * 1000
+  timeout: 15 * 60 * 1000,
+  targetEnvironments: ['local', 'alpha', 'perf', 'staging']
 })
