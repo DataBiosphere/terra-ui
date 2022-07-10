@@ -46,5 +46,5 @@ registerTest({
   name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 20 * 60 * 1000,
-  targetEnvironments: ['local', 'alpha', 'perf', 'staging']
+  targetEnvironments: ['alpha', 'perf', 'staging']
 })
