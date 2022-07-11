@@ -182,14 +182,16 @@ const delay = ms => {
 }
 
 const dismissNotifications = async page => {
-  await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(
-    '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
+  const notificationCloseButtonXpath = '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
+  await Promise.race([
+    delay(3000), // delayed for any alerts to show
+    page.waitForXPath(notificationCloseButtonXpath, { visible: true })
+  ])
 
+  const notificationCloseButtons = await page.$x(notificationCloseButtonXpath)
   await Promise.all(
-    notificationCloseButtons.map(handle => handle.click())
+    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
   )
-
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
