@@ -230,7 +230,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   const timeout = 60 * 1000
   const run = async url => {
     try {
-      const httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout })
+      const httpResponse = await gotoPage(page, url)
       if (!(httpResponse.ok() || httpResponse.status() === 304)) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
       }
