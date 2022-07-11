@@ -150,12 +150,12 @@ describe('entityAttributeText', () => {
   })
 
   describe('JSON values', () => {
-    it('formats arrays containing basic data types', () => {
-      expect(entityAttributeText(['one', 'two', 'three'])).toEqual('one, two, three')
+    it('stringifies arrays containing basic data types', () => {
+      expect(entityAttributeText(['one', 'two', 'three'])).toEqual('["one","two","three"]')
     })
 
-    it('formats empty arrays', () => {
-      expect(entityAttributeText([])).toEqual('')
+    it('stringifies empty arrays', () => {
+      expect(entityAttributeText([])).toEqual('[]')
     })
 
     it('stringifies arrays of objects', () => {

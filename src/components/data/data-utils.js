@@ -69,7 +69,6 @@ export const entityAttributeText = (attributeValue, machineReadable) => {
 
   return Utils.cond(
     [_.isNil(attributeValue), () => ''],
-    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => _.join(', ', attributeValue)],
     [type === 'json', () => JSON.stringify(attributeValue)],
     [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
     [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
