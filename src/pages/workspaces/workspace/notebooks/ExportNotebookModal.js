@@ -5,7 +5,10 @@ import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
-import { analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName } from 'src/components/notebook-utils'
+import {
+  addExtensionToNotebook,
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension
+} from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -47,10 +50,10 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
     try {
       await Ajax()
         .Buckets
-        .notebook(workspace.workspace.googleProject, workspace.workspace.bucketName, printName)
-        .copy(newName, selectedWorkspace.workspace.bucketName)
+        .notebook(workspace.workspace.googleProject, workspace.workspace.bucketName, addExtensionToNotebook(printName))
+        .copy(addExtensionToNotebook(newName), selectedWorkspace.workspace.bucketName)
       setCopied(true)
-      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
+      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: addExtensionToNotebook(printName), newName: addExtensionToNotebook(newName), ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
     } catch (error) {
       setError(await error.text())
     }
@@ -78,7 +81,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
         () => Nav.goToPath(fromLauncher ? 'workspace-notebook-launch' : 'workspace-notebooks', {
           namespace: selectedWorkspace.workspace.namespace,
           name: selectedWorkspace.workspace.name,
-          notebookName: `${newName}.ipynb`
+          notebookName: addExtensionToNotebook(newName)
         }) :
         copy
     }, [copied ? 'Go to copied notebook' : 'Copy'])
@@ -110,8 +113,8 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
             error: Utils.summarizeErrors(errors?.newName),
             inputProps: {
               id,
-              value: newName,
-              onChange: setNewName
+              value: getDisplayName(newName),
+              onChange: v => setNewName(`${v}.${getExtension(newName)}`)
             }
           })
         ])])

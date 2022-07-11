@@ -26,8 +26,186 @@ import * as Utils from 'src/libs/utils'
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+// Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
+// 'cromwell.conf.ctmpl' file:
+const deletionDelayYears = 1
+const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
+const isDeleted = statusLastChangedDate => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
+
+const deletedInfoIcon = ({ name, iconOverride }) => {
+  return h(InfoBox, {
+    style: { color: colors.secondary(), margin: '0.5rem' },
+    tooltip: `${name} unavailable. Click to learn more.`,
+    iconOverride
+  }, [
+    div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
+    div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
+    div([
+      'Please refer to the ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+        ...Utils.newTabLinkProps
+      }, ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]),
+      ' for more details.'
+    ])
+  ])
+}
 
 const workflowsTableRowHeight = flexTableDefaultRowHeight
+
+const SubmissionWorkflowsTable = ({ workspace, submission }) => {
+  const { workspace: { namespace, name, bucketName } } = workspace
+  const { submissionId, workflows = [], cost } = submission
+
+  const [statusFilter, setStatusFilter] = useState([])
+  const [textFilter, setTextFilter] = useState('')
+  const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
+
+  const filteredWorkflows = _.flow(
+    _.filter(({ status, asText }) => {
+      if (_.isEmpty(statusFilter) || statusFilter.includes(status)) {
+        return _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/))
+      } else {
+        return false
+      }
+    }),
+    _.sortBy(sort.field),
+    sort.direction === 'asc' ? _.identity : _.reverse
+  )(workflows)
+
+  return h(Fragment, [
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
+      h(DelayedSearchInput, {
+        style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
+        placeholder: 'Search',
+        'aria-label': 'Search',
+        onChange: setTextFilter,
+        value: textFilter
+      }),
+      div({ style: { flexBasis: 350 } }, [
+        h(Select, {
+          isClearable: true,
+          isMulti: true,
+          isSearchable: false,
+          placeholder: 'Completion status',
+          'aria-label': 'Completion status',
+          value: statusFilter,
+          onChange: data => setStatusFilter(_.map('value', data)),
+          options: Utils.workflowStatuses
+        })
+      ])
+    ]),
+    // 48px is based on the default row height of FlexTable
+    div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * workflowsTableRowHeight}px` } }, [
+      h(AutoSizer, [({ width, height }) => h(FlexTable, {
+        'aria-label': 'submission details',
+        width, height, sort,
+        headerHeight: workflowsTableRowHeight,
+        rowHeight: workflowsTableRowHeight,
+        rowCount: filteredWorkflows.length,
+        noContentMessage: 'No matching workflows',
+        columns: [
+          {
+            size: { basis: 225 },
+            field: 'workflowEntity',
+            headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
+            cellRenderer: ({ rowIndex }) => {
+              const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
+              return !!entityName ?
+                h(TooltipCell, [`${entityName} (${entityType})`]) :
+                div({ style: { color: colors.dark(0.7) } }, ['--'])
+            }
+          }, {
+            size: { basis: 225, grow: 0 },
+            field: 'statusLastChangedDate',
+            headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
+            cellRenderer: ({ rowIndex }) => {
+              return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
+            }
+          }, {
+            size: { basis: 150, grow: 0 },
+            field: 'status',
+            headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
+            cellRenderer: ({ rowIndex }) => {
+              const { status } = filteredWorkflows[rowIndex]
+              return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status])
+            }
+          }, {
+            size: { basis: 125, grow: 0 },
+            field: 'cost',
+            headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
+            cellRenderer: ({ rowIndex }) => {
+              // handle undefined workflow cost as $0
+              return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
+            }
+          }, {
+            size: _.some(({ messages }) => !_.isEmpty(messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
+            field: 'messages',
+            headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
+            cellRenderer: ({ rowIndex }) => {
+              const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
+              return h(TooltipCell, {
+                tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
+              }, [messages])
+            }
+          }, {
+            size: { basis: 150 },
+            field: 'workflowId',
+            headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+            cellRenderer: ({ rowIndex }) => {
+              const { workflowId } = filteredWorkflows[rowIndex]
+              return workflowId && h(Fragment, [
+                h(TooltipCell, { tooltip: workflowId }, [workflowId]),
+                h(ClipboardButton, { text: workflowId, style: { marginLeft: '0.5rem' } })
+              ])
+            }
+          }, {
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => 'Links',
+            cellRenderer: ({ rowIndex }) => {
+              const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
+              return workflowId && h(Fragment, [
+                isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
+                  deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
+                  deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
+                ] : [
+                  h(Link, {
+                    key: 'manager',
+                    ...Utils.newTabLinkProps,
+                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                    onClick: () => Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
+                      workflowId,
+                      from: 'workspace-submission-details',
+                      ...extractWorkspaceDetails(workspace.workspace)
+                    }),
+                    style: { margin: '0.5rem', display: 'flex' },
+                    tooltip: 'Job Manager',
+                    'aria-label': `Job Manager (for workflow ID ${workflowId})`
+                  }, [icon('tasks', { size: 18 })]),
+                  h(Link, {
+                    key: 'dashboard',
+                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                    style: { margin: '0.5rem', display: 'flex' },
+                    tooltip: 'Workflow Dashboard [alpha]',
+                    'aria-label': `Workflow Dashboard (for workflow ID ${workflowId}}`
+                  }, [icon('tachometer', { size: 18 })])
+                ],
+                inputName && h(Link, {
+                  key: 'directory',
+                  ...Utils.newTabLinkProps,
+                  href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
+                  style: { margin: '0.5rem', display: 'flex' },
+                  tooltip: 'Execution directory',
+                  'aria-label': `Execution directory (for workflow ID ${workflowId})`
+                }, [icon('folder-open', { size: 18 })])
+              ])
+            }
+          }
+        ]
+      })])
+    ])
+  ])
+}
 
 const SubmissionDetails = _.flow(
   forwardRefWithName('SubmissionDetails'),
@@ -43,11 +221,8 @@ const SubmissionDetails = _.flow(
    */
   const [submission, setSubmission] = useState({})
   const [methodAccessible, setMethodAccessible] = useState()
-  const [statusFilter, setStatusFilter] = useState([])
-  const [textFilter, setTextFilter] = useState('')
   const [updatingComment, setUpdatingComment] = useState(false)
   const [userComment, setUserComment] = useState()
-  const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
   const signal = useCancellation()
 
@@ -107,44 +282,7 @@ const SubmissionDetails = _.flow(
     useReferenceDisks, memoryRetryMultiplier, workflows = []
   } = submission
 
-  const filteredWorkflows = _.flow(
-    _.filter(({ status, asText }) => {
-      if (_.isEmpty(statusFilter) || statusFilter.includes(status)) {
-        return _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/))
-      } else {
-        return false
-      }
-    }),
-    _.sortBy(sort.field),
-    sort.direction === 'asc' ? _.identity : _.reverse
-  )(workflows)
-
   const statusGroups = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
-
-  // Note: This 'deletionDelayYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
-  // 'cromwell.conf.ctmpl' file:
-  const deletionDelayYears = 1
-  const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
-  const isDeleted = statusLastChangedDate => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
-
-  const deletedInfoIcon = ({ name, iconOverride }) => {
-    return h(InfoBox, {
-      style: { color: colors.secondary(), margin: '0.5rem' },
-      tooltip: `${name} unavailable. Click to learn more.`,
-      iconOverride
-    }, [
-      div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
-      div([
-        'Please refer to the ',
-        h(Link, {
-          href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
-          ...Utils.newTabLinkProps
-        }, ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]),
-        ' for more details.'
-      ])
-    ])
-  }
 
   /**
    * If the text has multiple lines, return just the first line of text with ellipses to indicate truncation.
@@ -224,136 +362,7 @@ const SubmissionDetails = _.flow(
           makeSection('Retry with More Memory', [memoryRetryMultiplier !== 1 ? `Enabled with factor ${memoryRetryMultiplier}` : 'Disabled'])
         ])
       ]),
-      div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-        h(DelayedSearchInput, {
-          style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
-          placeholder: 'Search',
-          'aria-label': 'Search',
-          onChange: setTextFilter,
-          value: textFilter
-        }),
-        div({ style: { flexBasis: 350 } }, [
-          h(Select, {
-            isClearable: true,
-            isMulti: true,
-            isSearchable: false,
-            placeholder: 'Completion status',
-            'aria-label': 'Completion status',
-            value: statusFilter,
-            onChange: data => setStatusFilter(_.map('value', data)),
-            options: Utils.workflowStatuses
-          })
-        ])
-      ]),
-      // 48px is based on the default row height of FlexTable
-      div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * workflowsTableRowHeight}px` } }, [
-        h(AutoSizer, [({ width, height }) => h(FlexTable, {
-          'aria-label': 'submission details',
-          width, height, sort,
-          headerHeight: workflowsTableRowHeight,
-          rowHeight: workflowsTableRowHeight,
-          rowCount: filteredWorkflows.length,
-          noContentMessage: 'No matching workflows',
-          columns: [
-            {
-              size: { basis: 225 },
-              field: 'workflowEntity',
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return !!entityName ?
-                  h(TooltipCell, [`${entityName} (${entityType})`]) :
-                  div({ style: { color: colors.dark(0.7) } }, ['--'])
-              }
-            }, {
-              size: { basis: 225, grow: 0 },
-              field: 'statusLastChangedDate',
-              headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
-              }
-            }, {
-              size: { basis: 150, grow: 0 },
-              field: 'status',
-              headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const { status } = filteredWorkflows[rowIndex]
-                return div({ style: { display: 'flex' } }, [collapseStatus(status).icon({ marginRight: '0.5rem' }), status])
-              }
-            }, {
-              size: { basis: 125, grow: 0 },
-              field: 'cost',
-              headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
-              cellRenderer: ({ rowIndex }) => {
-                // handle undefined workflow cost as $0
-                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
-              }
-            }, {
-              size: _.some(({ messages }) => !_.isEmpty(messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
-              field: 'messages',
-              headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
-              cellRenderer: ({ rowIndex }) => {
-                const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
-                return h(TooltipCell, {
-                  tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
-                }, [messages])
-              }
-            }, {
-              size: { basis: 150 },
-              field: 'workflowId',
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Fragment, [
-                  h(TooltipCell, { tooltip: workflowId }, [workflowId]),
-                  h(ClipboardButton, { text: workflowId, style: { marginLeft: '0.5rem' } })
-                ])
-              }
-            }, {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => 'Links',
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return workflowId && h(Fragment, [
-                  isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
-                    deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
-                    deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
-                  ] : [
-                    h(Link, {
-                      key: 'manager',
-                      ...Utils.newTabLinkProps,
-                      href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                      onClick: () => Ajax().Metrics.captureEvent(Events.jobManagerOpenExternal, {
-                        workflowId,
-                        from: 'workspace-submission-details',
-                        ...extractWorkspaceDetails(workspace.workspace)
-                      }),
-                      style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Job Manager',
-                      'aria-label': `Job Manager (for workflow ID ${workflowId})`
-                    }, [icon('tasks', { size: 18 })]),
-                    h(Link, {
-                      key: 'dashboard',
-                      href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                      style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Workflow Dashboard [alpha]',
-                      'aria-label': `Workflow Dashboard (for workflow ID ${workflowId}}`
-                    }, [icon('tachometer', { size: 18 })])
-                  ],
-                  inputName && h(Link, {
-                    key: 'directory',
-                    ...Utils.newTabLinkProps,
-                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                    style: { margin: '0.5rem', display: 'flex' },
-                    tooltip: 'Execution directory',
-                    'aria-label': `Execution directory (for workflow ID ${workflowId})`
-                  }, [icon('folder-open', { size: 18 })])
-                ])
-              }
-            }
-          ]
-        })])
-      ])
+      h(SubmissionWorkflowsTable, { workspace, submission })
     ])
   ])
 })

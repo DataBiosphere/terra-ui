@@ -200,12 +200,15 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
+const useCloudEnvironmentPolling = (googleProject, workspace) => {
   const signal = useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [appDataDisks, setAppDataDisks] = useState()
+
+  const saturnWorkspaceNamespace = workspace?.workspace.namespace
+  const saturnWorkspaceName = workspace?.workspace.name
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -213,13 +216,15 @@ const useCloudEnvironmentPolling = (googleProject, workspaceId) => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes] = !!googleProject ? await Promise.all([
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, includeLabels: 'saturnApplication,saturnWorkspaceName' }),
-        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email })
-      ]) : await Promise.all([
-        Promise.resolve([]),
-        !!workspaceId ? Ajax(signal).Runtimes.listV2AzureWithWorkspace(workspaceId, { creator: getUser().email }) : Promise.resolve([])
-      ])
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l),
+        { googleProject, saturnWorkspaceName, saturnWorkspaceNamespace, creator: getUser().email }
+      )
+      // Disks.list API takes includeLabels to specify which labels to return in the response
+      // Runtimes.listV2 API always returns all labels for a runtime
+      const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
+        Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
+        Ajax(signal).Runtimes.listV2(cloudEnvFilters)
+      ]) : [[], []]
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
@@ -295,7 +300,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 
-    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace?.workspace.workspaceId)
+    const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
     const isGoogleWorkspace = !!googleProject
     const isAzureWorkspace = !!azureContext
@@ -310,7 +315,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     }
 
     const loadBucketLocation = async (googleProject, bucketName) => {
-      if (isGoogleWorkspace) {
+      if (!!googleProject) {
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
       }
@@ -365,9 +370,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
-      } else {
-        const { workspace: { bucketName, googleProject } } = workspace
-        loadBucketLocation(googleProject, bucketName)
       }
     })
 
@@ -389,7 +391,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks },
+          workspace, refreshWorkspace, analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, location, persistentDisks },
           ...props
         }),
         loadingWorkspace && spinnerOverlay

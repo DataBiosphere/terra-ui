@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { parse } = require('path')
-const { createWriteStream, mkdirSync } = require('fs')
+const { createWriteStream, mkdirSync, writeFileSync } = require('fs')
 
 
 module.exports = class JestReporter {
@@ -10,7 +10,7 @@ module.exports = class JestReporter {
 
   onTestStart(test) {
     const { path } = test
-    console.info(`**  Running ${parse(path).name} at ${this.timeNow()}`)
+    console.log(`**  Running ${parse(path).name} at ${this.timeNow()}`)
   }
 
   onTestResult(_testRunConfig, testResult, _runResults) {
@@ -32,21 +32,34 @@ module.exports = class JestReporter {
     const writableStream = createWriteStream(logFileName)
     writableStream.on('error', ({ message }) => console.error(`Error occurred while writing Console logs to ${logFileName}.\n${message}`))
 
-    _.forEach(({ message }) => writableStream.write(`${message}\n`), testResult?.console)
+    _.forEach(({ message }) => { writableStream.write(`${message}\n`) }, testResult?.console)
 
     // Write pass/failure summaries
     writableStream.write('\n\nTests Summary\n')
     _.forEach(result => {
+      const { title, status, failureMessages, failureDetails } = result
       writableStream.write('----------------------------------------------\n')
-      writableStream.write(`Test: ${result.title}\n`)
-      writableStream.write(`Status: ${result.status}\n`)
-      const { failureMessages = [] } = result
-      !_.isEmpty(failureMessages) && writableStream.write(`Failure message: ${failureMessages}\n`)
+      writableStream.write(`Test: ${title}\n`)
+      writableStream.write(`Status: ${status}\n`)
+      if (!_.isEmpty(failureMessages)) {
+        writableStream.write(`Failure messages: ${failureMessages}\n`)
+      }
+      if (!_.isEmpty(failureDetails)) {
+        writableStream.write(`Failure details: ${JSON.stringify(failureDetails, null, 2)}\n`)
+      }
       writableStream.write('\n')
     }, testResults)
 
     writableStream.end()
-    writableStream.on('finish', () => console.log(`Finished writing logs to ${logFileName}`))
+    writableStream.on('finish', () => console.log(`**  Saved ${testName} results: ${logFileName}`))
+  }
+
+  // Called after all tests have completed
+  onRunComplete(_test, runResults) {
+    // Save run summary to a file.
+    const summaryFile = `tests-summary.json`
+    writeFileSync(`${this.logRootDir}/${summaryFile}`, JSON.stringify(runResults, null, 2))
+    console.log(`**  Saved all tests summary: ${this.logRootDir}/${summaryFile}`)
   }
 
   timeNow() {

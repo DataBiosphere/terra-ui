@@ -298,23 +298,30 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.ensureBillingScope)
 
+  const tryAuthorizeAccounts = _.flow(
+    reportErrorAndRethrow('Error setting up authorization'),
+    Utils.withBusyState(setIsAuthorizing)
+  )(Auth.tryBillingScope)
+
   const loadAccounts = _.flow(
     reportErrorAndRethrow('Error loading billing accounts'),
     Utils.withBusyState(setIsLoadingAccounts)
   )(() => {
     if (Auth.hasBillingScope()) {
       return Ajax(signal).Billing.listAccounts()
+        .then(_.filter('firecloudHasAccess'))
         .then(_.keyBy('accountName'))
         .then(setBillingAccounts)
     }
   })
 
+  const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
+
   const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
       setCreatingBillingProject(true)
     } else {
-      await authorizeAccounts()
-      await loadAccounts()
+      await authorizeAndLoadAccounts()
       Auth.hasBillingScope() && setCreatingBillingProject(true)
     }
   }
@@ -322,7 +329,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   // Lifecycle
   useOnMount(() => {
     loadProjects()
-    loadAccounts()
+    tryAuthorizeAccounts().then(loadAccounts)
     loadAlphaSpendReportMember()
   })
 
@@ -430,7 +437,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             key: selectedName,
             billingProject,
             billingAccounts,
-            authorizeAndLoadAccounts: authorizeAccounts,
+            authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
             isAlphaSpendReportUser,
             isOwner: _.find({ projectName: selectedName }, projectsOwned)

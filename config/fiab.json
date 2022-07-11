@@ -1,7 +1,7 @@
 {
   "agoraUrlRoot": "https://agora-fiab.dsde-dev.broadinstitute.org:20443",
   "bardRoot": "https://terra-bard-dev.appspot.com",
-  "bondUrlRoot": "https://broad-bond-dev.appspot.com",
+  "bondUrlRoot": "https://bond-fiab.dsde-dev.broadinstitute.org:31443",
   "calhounUrlRoot": "https://calhoun.dsde-dev.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-dev.broadinstitute.org",
   "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
@@ -10,7 +10,6 @@
   "externalCredsUrlRoot": "https://externalcreds.dsde-dev.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-dev",
   "firecloudUrlRoot": "https://firecloud-fiab.dsde-dev.broadinstitute.org",
-  "googleClientId": "500025638838-s2v23ar3spugtd5t2v1vgfa2sp7ppg0d.apps.googleusercontent.com",
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo-fiab.dsde-dev.broadinstitute.org:30443",
   "marthaUrlRoot": "https://martha-fiab.dsde-dev.broadinstitute.org:32443",
@@ -19,10 +18,14 @@
   "rexUrlRoot": "https://terra-rex-dev.appspot.com",
   "samUrlRoot": "https://sam-fiab.dsde-dev.broadinstitute.org:29443",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
+  "workspaceManagerUrlRoot": "https://workspace.dsde-dev.broadinstitute.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
-  "alphaRegionalityGroup": "Alpha_Regionality_Users"
+  "alphaRegionalityGroup": "Alpha_Regionality_Users",
+  "terraDockerVersionsFile": "terra-docker-versions-dev.json",
+  "terraDockerImageBucket": "terra-docker-image-documentation-dev",
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_dev"
 }

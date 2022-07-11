@@ -11,3 +11,5 @@ if git diff --cached -U0 | grep -E --color ${FORBIDDEN}; then
   echo
   exit 1
 fi
+
+yarn lint-staged

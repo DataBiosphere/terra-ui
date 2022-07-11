@@ -1,9 +1,10 @@
 const _ = require('lodash/fp')
-const { mkdirSync } = require('fs')
+const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
-const { Storage } = require('@google-cloud/storage')
-const { screenshotBucket, screenshotDirPath } = require('../utils/integration-config')
+const { screenshotDirPath } = require('../utils/integration-config')
 
+
+const defaultToVisibleTrue = _.defaults({ visible: true })
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
@@ -20,8 +21,8 @@ const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   return success
 }
 
-const findIframe = async page => {
-  const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
+const findIframe = async (page, iframeXPath = '//*[@role="main"]/iframe') => {
+  const iframeNode = await page.waitForXPath(iframeXPath)
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
   const hasFrame = () => page.frames().find(frame => frame.url().includes(src))
@@ -30,7 +31,7 @@ const findIframe = async page => {
 }
 
 const findInGrid = (page, textContains, options) => {
-  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
+  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options))
 }
 
 const getClickablePath = (path, text, textContains, isDescendant = false) => {
@@ -103,12 +104,12 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const click = async (page, xpath, options = { visible: true }) => {
-  return (await page.waitForXPath(xpath, options)).click()
+const click = async (page, xpath, options) => {
+  return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
 }
 
 const findText = (page, textContains, options) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options))
 }
 
 const assertTextNotFound = async (page, text) => {
@@ -132,7 +133,7 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  const input = await page.waitForXPath(xpath)
+  const input = await page.waitForXPath(xpath, defaultToVisibleTrue())
   await input.type(text, { delay: 20 })
   // There are several places (e.g. workspace list search) where the page responds dynamically to
   // typed input. That behavior could involve extra renders as component state settles. We strive to
@@ -156,7 +157,7 @@ const fillInReplace = async (page, xpath, text) => {
 
 const select = async (page, labelContains, text) => {
   await click(page, input({ labelContains }))
-  return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
+  return click(page, `//div[starts-with(@id, "react-select-") and @role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
 const waitForNoSpinners = page => {
@@ -191,34 +192,40 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const signIntoTerra = async (page, { token, testUrl }) => {
-  const waitUtilBannerVisible = async (timeout = 30 * 1000) => {
-    // Finding visible banner web element first to avoid checking spinner before it renders. It still can happen but chances are smaller.
-    await page.waitForXPath('//*[@id="root"]//*[@role="banner"]', { visible: true, timeout })
-    await waitForNoSpinners(page)
-  }
-
-  if (!!testUrl) {
-    console.log(`Loading page: ${testUrl}`)
-    await page.goto(testUrl, waitUntilLoadedOrTimeout())
-  }
-
+const dismissNPSSurvey = async page => {
+  let element
   try {
-    await waitUtilBannerVisible()
-  } catch (err) {
-    console.error(err)
-    console.error('Error: Page loading timed out during sign in. Reload page.')
-    await page.reload({ waitUntil: 'load' })
-    await waitUtilBannerVisible()
+    element = await page.waitForXPath('//iframe[@aria-label="NPS Survey"]', { timeout: 1000 })
+  } catch (e) {
+    return // NPS survey was not found
   }
+  try {
+    console.log('dismissing NPS survey')
+    const iframe = await element.contentFrame()
+    const [closeButton] = await iframe.$x('.//*[normalize-space(.)="Ask Me Later"]')
+    await closeButton.evaluate(button => button.click())
+    await delay(500) // delayed for survey to animate off
+  } catch (e) {
+    console.error(e)
+    throw e
+  }
+}
 
+const signIntoTerra = async (page, { token, testUrl }) => {
+  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  await waitForNoSpinners(page)
+
+  await page.waitForFunction('!!window["forceSignIn"]')
   await page.evaluate(token => window.forceSignIn(token), token)
+
   await dismissNotifications(page)
+  await dismissNPSSurvey(page)
   await waitForNoSpinners(page)
 }
 
 const findElement = (page, xpath, options) => {
-  return page.waitForXPath(xpath, options)
+  return page.waitForXPath(xpath, defaultToVisibleTrue(options))
 }
 
 const heading = ({ level, text, textContains, isDescendant = false }) => {
@@ -266,6 +273,12 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, elementInDataTableRow(entityName, text))
 }
 
+const findButtonInDialogByAriaLabel = (page, ariaLabelText) => {
+  return page.waitForXPath(`//*[@role="dialog" and @aria-hidden="false"]//*[@role="button" and contains(@aria-label,"${ariaLabelText}")]`,
+    { visible: true }
+  )
+}
+
 const openError = async page => {
   //close out any non-error notifications first
   await dismissNotifications(page)
@@ -277,13 +290,17 @@ const openError = async page => {
   return !!errorDetails.length
 }
 
-const maybeSaveScreenshot = async (page, testName) => {
+const getScreenshotDir = () => {
   const dir = screenshotDirPath ?
     screenshotDirPath :
     process.env.SCREENSHOT_DIR || process.env.LOG_DIR || resolve(__dirname, '../test-results/screenshots')
+  mkdirSync(dir, { recursive: true })
+  return dir
+}
 
+const maybeSaveScreenshot = async (page, testName) => {
+  const dir = getScreenshotDir()
   try {
-    mkdirSync(dir, { recursive: true })
     const path = `${dir}/failure-${Date.now()}-${testName}.png`
     const failureNotificationDetailsPath = `${dir}/failureDetails-${Date.now()}-${testName}.png`
 
@@ -295,16 +312,23 @@ const maybeSaveScreenshot = async (page, testName) => {
     if (errorsPresent) {
       await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
     }
-
-    if (screenshotBucket) {
-      const storage = new Storage()
-      await storage.bucket(screenshotBucket).upload(path)
-      if (errorsPresent) {
-        await storage.bucket(screenshotBucket).upload(failureNotificationDetailsPath)
-      }
-    }
   } catch (e) {
     console.error('Failed to capture screenshot', e)
+  }
+}
+
+// Save page content to screenshot dir. Useful for test failure troubleshooting
+const savePageContent = async (page, testName) => {
+  const dir = getScreenshotDir()
+  const htmlContent = await page.content()
+  const htmlFile = `${dir}/failure-${Date.now()}-${testName}.html`
+  try {
+    writeFileSync(htmlFile, htmlContent, { encoding: 'utf8' })
+    console.log(`Saved screenshot page content: ${htmlFile}`)
+  } catch (e) {
+    console.error('Failed to save screenshot page content')
+    console.error(e)
+    // Let test continue
   }
 }
 
@@ -317,36 +341,61 @@ const withScreenshot = _.curry((testName, fn) => async options => {
   }
 })
 
+// Emitted when the page crashes
+const logError = page => {
+  const handle = msg => console.error('page.error', msg)
+  page.on('error', handle)
+  return () => page.off('error', handle)
+}
+
+// Emitted when an uncaught exception happens within the page
+const logPageError = page => {
+  const handle = msg => console.error('page.pageerror', msg)
+  page.on('pageerror', handle)
+  return () => page.off('pageerror', handle)
+}
+
 const logPageConsoleMessages = page => {
-  const handle = msg => console.log('page.console', msg)
+  const handle = msg => console.log('page.console', msg.text())
   page.on('console', handle)
   return () => page.off('console', handle)
 }
 
-const logPageAjaxResponses = page => {
+const logPageResponses = page => {
   const terraRequests = [
     'broad',
     'terra',
-    'googleapis'
+    'googleapis',
+    'bvdp'
   ]
   const handle = res => {
     const request = res.request()
     if (terraRequests.some(urlPart => request.url().includes(urlPart))) {
-      console.log('page.http', `${request.method()}\t${res.status()}  ${res.url()}`)
+      console.log('page.http', `${request.method()} ${res.status()} ${res.url()}`)
     }
   }
   page.on('response', handle)
   return () => page.off('response', handle)
 }
 
+const enablePageLogging = page => {
+  logPageResponses(page)
+  logPageConsoleMessages(page)
+  logPageError(page)
+  logError(page)
+}
+
 const withPageLogging = fn => async options => {
   const { page } = options
-  logPageAjaxResponses(page)
-  logPageConsoleMessages(page)
+  enablePageLogging(page)
   return await fn(options)
 }
 
-const waitUntilLoadedOrTimeout = timeout => ({ waitUntil: ['load', 'domcontentloaded', 'networkidle0'], timeout })
+const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
+
+const gotoPage = (page, url) => {
+  return page.goto(url, navOptionNetworkIdle())
+}
 
 module.exports = {
   assertNavChildNotFound,
@@ -379,11 +428,14 @@ module.exports = {
   findInDataTableRow,
   withScreenshot,
   logPageConsoleMessages,
-  logPageAjaxResponses,
   noSpinnersAfter,
   waitForNoSpinners,
   withPageLogging,
+  enablePageLogging,
   openError,
-  waitUntilLoadedOrTimeout,
-  maybeSaveScreenshot
+  navOptionNetworkIdle,
+  maybeSaveScreenshot,
+  gotoPage,
+  savePageContent,
+  findButtonInDialogByAriaLabel
 }

@@ -27,6 +27,8 @@ const runJanitor = withUserToken(async ({ billingProject, page, testUrl, token }
 
   return Promise.all(_.map(async ({ workspace: { namespace, name } }) => {
     try {
+      // Unlock the workspace in case it was left in a locked state during a test (locked workspaces can't be deleted).
+      await page.evaluate((namespace, name) => window.Ajax().Workspaces.workspace(namespace, name).unlock(), namespace, name)
       await page.evaluate((namespace, name) => window.Ajax().Workspaces.workspace(namespace, name).delete(), namespace, name)
       console.info(`Deleted old workspace: ${name}`)
     } catch (e) {

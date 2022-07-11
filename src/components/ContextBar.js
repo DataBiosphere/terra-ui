@@ -149,7 +149,7 @@ export const ContextBar = ({
               startCurrentRuntime()
             }
           },
-          tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
+          tooltip: !isTerminalEnabled ? 'Terminal can only be launched from here for Google Jupyter environments.' : 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps

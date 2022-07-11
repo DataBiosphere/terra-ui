@@ -11,15 +11,6 @@ import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
-export const tableNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
-  ...props,
-  inputProps: {
-    ...inputProps,
-    autoFocus: true,
-    placeholder: 'Enter a name'
-  }
-})
-
 const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selectedDataType }) => {
   // State
   const [newName, setNewName] = useState('')
@@ -42,9 +33,11 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
   }, [h(IdContainer, [id => h(Fragment, [
     div('Workflow configurations that reference the current table name will need to be updated manually.'),
     h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
-    tableNameInput({
+    h(ValidatedInput, {
       inputProps: {
         id, value: newName,
+        autoFocus: true,
+        placeholder: 'Enter a name',
         onChange: v => {
           setNewName(v)
         }

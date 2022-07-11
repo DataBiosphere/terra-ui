@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -17,6 +16,7 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import { datasetAccessTypes, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -48,11 +48,11 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
-        Utils.makeStandardDate(dataObj['dct:modified'])
+        dataObj['dct:modified'] && Utils.makeStandardDate(dataObj['dct:modified'])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
-        '1.0'
+        dataObj['dct:version']
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Cloud provider']),
@@ -86,53 +86,32 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
   ])
 }
 
-const LegacyAttributesComponent = ({ dataObj }) => {
-  return h(Collapse, {
-    title: h2({ style: { fontWeight: 'normal', fontSize: '1.2rem' } }, ['Legacy Dataset Attributes']),
-    initialOpenState: true,
-    style: { borderTop: '2px solid #D6D7D7', marginTop: '1.5rem' }
-  }, [
-    div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } },
-      _.flow(
-        _.toPairs,
-        _.flatMap(([key, value]) => {
-          return div({ style: { width: '30%', margin: '0 10px' } }, [
-            h3({ style: { textTransform: 'capitalize' } }, [
-              key.split(/(?=[A-Z])/).join(' ')
-            ]),
-            div([value])
-          ])
-        })
-      )(dataObj.legacyDatasetAttributes)
-    )
-  ])
-}
-
 const MainContent = ({ dataObj }) => {
+  const accessURL = dataObj['dcat:accessURL']
+  const workspaceName = accessURL?.includes('/#workspaces/') && accessURL.substring(accessURL.lastIndexOf('/') + 1)
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { lineHeight: '1.5em' } }, [dataObj['dct:title']]),
-    dataObj.dataSource && div({ style: { marginBottom: '1rem' } }, [
-      `This data is from ${dataObj.dataSource.storageSystemName}:`,
-      h(ButtonSecondary, {
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', display: 'block' },
-        onClick: () => {
-          // TODO: fill out this link
-        }
+    !!workspaceName && div({ style: { marginBottom: '1rem' } }, [
+      'This data is from the Terra workspace:',
+      h(Link, {
+        style: { fontSize: 16, textDecoration: 'underline', textTransform: 'none', height: 'unset', display: 'block' },
+        href: accessURL
       }, [
-        icon('folder', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
-        dataObj.dataSource.storageSourceName
+        icon('folderSolid', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
+        workspaceName
       ])
     ]),
     dataObj['dct:description'],
-    h(MetadataDetailsComponent, { dataObj }),
-    dataObj.legacyDatasetAttributes && h(LegacyAttributesComponent, { dataObj })
+    h(MetadataDetailsComponent, { dataObj })
   ])
 }
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
   const { access } = dataObj
-  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
+  const [feedbackShowing, setFeedbackShowing] = useState(false)
+  const sidebarButtonWidth = 230
 
   return h(Fragment, [
     div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
@@ -202,7 +181,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
       h(ButtonOutline, {
         disabled: dataObj.access !== datasetAccessTypes.GRANTED,
         tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
+        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
             id: dataObj.id,
@@ -219,7 +198,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
       h(ButtonPrimary, {
         disabled: dataObj.access !== datasetAccessTypes.GRANTED,
         tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
+        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
             id,
@@ -227,8 +206,22 @@ export const SidebarComponent = ({ dataObj, id }) => {
           })
           importDataToWorkspace([dataObj])
         }
-      }, ['Link to a workspace'])
+      }, ['Link to a workspace']),
+      div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
+        icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
+        div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
+          h(Link, {
+            onClick: () => setFeedbackShowing(true)
+          }, ['Provide feedback on this dataset view'])
+        ])
+      ])
     ]),
+    feedbackShowing && h(DataBrowserFeedbackModal, {
+      onDismiss: () => setFeedbackShowing(false),
+      onSuccess: () => setFeedbackShowing(false),
+      primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
+      sourcePage: 'Catalog Details'
+    }),
     showRequestAccessModal && h(RequestDatasetAccessModal, {
       datasets: [dataObj],
       onDismiss: () => setShowRequestAccessModal(false)

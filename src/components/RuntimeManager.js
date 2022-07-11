@@ -73,7 +73,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
     withErrorReporting('Could Not Retrieve Cloud Environment Error Info'),
     Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: runtimeErrors } = _.lowerCase(runtime.cloudContext.cloudProvider) === cloudProviders.azure.label ?
+    const { errors: runtimeErrors } = runtime.cloudContext.cloudProvider === cloudProviders.azure.label ?
       await Ajax().Runtimes.runtimeV2(runtime.workspaceId, runtime.runtimeName).details() :
       await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
@@ -112,7 +112,7 @@ const RuntimeErrorNotification = ({ runtime }) => {
         textDecoration: 'underline',
         fontWeight: 'bold'
       }
-    }, ['SEE LOG INFO']),
+    }, ['Details']),
     modalOpen && h(RuntimeErrorModal, {
       runtime,
       onDismiss: () => setModalOpen(false)
@@ -157,7 +157,7 @@ const AppErrorNotification = ({ app }) => {
         textDecoration: 'underline',
         fontWeight: 'bold'
       }
-    }, ['SEE LOG INFO']),
+    }, ['Details']),
     modalOpen && h(AppErrorModal, {
       app,
       onDismiss: () => setModalOpen(false)

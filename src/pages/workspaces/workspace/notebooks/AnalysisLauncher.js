@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getTool, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -20,13 +20,13 @@ import {
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -49,15 +49,14 @@ const AnalysisLauncher = _.flow(
   })
 )(
   ({
-    queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute },
-    analysesData: { runtimes, refreshRuntimes, persistentDisks }
+    queryParams, analysisName, workspace, workspace: { accessLevel, canCompute },
+    analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
-    const [location, setLocation] = useState(defaultLocation)
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
     const iframeStyles = { height: '100%', width: '100%' }
@@ -66,23 +65,7 @@ const AnalysisLauncher = _.flow(
       refreshRuntimes()
     })
 
-    useEffect(() => {
-      const loadBucketLocation = _.flow(
-        Utils.withBusyState(setBusy),
-        withErrorReporting('Error loading bucket location')
-      )(async () => {
-        const { location } = await Ajax()
-          .Workspaces
-          .workspace(namespace, name)
-          .checkBucketLocation(googleProject, bucketName)
-        setLocation(location)
-      })
-      loadBucketLocation()
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [googleProject, bucketName])
-
     return h(Fragment, [
-
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
@@ -90,7 +73,7 @@ const AnalysisLauncher = _.flow(
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen,
+                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
               }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
@@ -101,6 +84,7 @@ const AnalysisLauncher = _.flow(
         h(ComputeModal, {
           isOpen: createOpen,
           tool: toolLabel,
+          shouldHideCloseButton: false,
           isAnalysisMode: true,
           workspace,
           runtimes,
@@ -224,8 +208,9 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
+
 const PreviewHeader = ({
-  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen,
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
   workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
   const signal = useCancellation()
@@ -246,7 +231,7 @@ const PreviewHeader = ({
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
-      .analysis(googleProject, bucketName, getDisplayName(analysisName), toolLabel)
+      .analysis(googleProject, bucketName, getFileName(analysisName), toolLabel)
       .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -256,6 +241,15 @@ const PreviewHeader = ({
       setLockedBy(lastLockedBy)
     }
   })
+
+  const startAndRefresh = async (refreshRuntimes, promise) => {
+    try {
+      await promise
+      await refreshRuntimes(true)
+    } catch (error) {
+      reportError('Cloud Environment Error', error)
+    }
+  }
 
   useOnMount(() => { checkIfLocked() })
 
@@ -292,6 +286,11 @@ const PreviewHeader = ({
                 Ajax().Metrics.captureEvent(Events.analysisLaunch,
                   { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
                 Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+              } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
+                // we make it here because mode is undefined. we don't have modes for rstudio currently but will be creating a follow up
+                // ticket to address this. Not having modes is causing some bugs in this logic
+                chooseMode('rstudio') // TODO: we don't have mode for rstudio
+                startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
               } else {
                 setCreateOpen(true)
               }
@@ -318,7 +317,7 @@ const PreviewHeader = ({
         ])
       ])],
       [_.includes(runtimeStatus, usableStatuses), () => {
-        console.assert(false, `Expected cloud environment to NOT be one of: [${usableStatuses}]`)
+        console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null
       }],
       [runtimeStatus === 'Creating', () => h(StatusMessage, [
@@ -368,7 +367,7 @@ const PreviewHeader = ({
       }
     }),
     copyingAnalysis && h(AnalysisDuplicator, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName),
       fromLauncher: true,
       wsName: name, googleProject, namespace, bucketName, destroyOld: false,
@@ -376,7 +375,7 @@ const PreviewHeader = ({
       onSuccess: () => setCopyingAnalysis(false)
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
-      printName: getDisplayName(analysisName),
+      printName: getFileName(analysisName),
       toolLabel: getTool(analysisName), workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
@@ -502,11 +501,6 @@ const AnalysisEditorFrame = ({
   useOnMount(() => {
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-    const pattern = Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => '.*\\.Rmd'],
-      [tools.Jupyter.label, () => '.*\\.ipynb']
-    )
-
     const setUpAnalysis = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
@@ -514,7 +508,8 @@ const AnalysisEditorFrame = ({
       await Ajax()
         .Runtimes
         .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
+
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
@@ -535,6 +530,7 @@ const AnalysisEditorFrame = ({
   return h(Fragment, [
     analysisSetupComplete && cookieReady && h(Fragment, [
       iframe({
+        id: 'analysis-iframe',
         src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
         style: { border: 'none', flex: 1, ...styles },
         ref: frameRef

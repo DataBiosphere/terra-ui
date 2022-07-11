@@ -3,9 +3,10 @@ import {
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
-  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
-  faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle,
-  faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt, faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
+  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faExpandArrowsAlt, faFileInvoiceDollar,
+  faFolder as faFolderSolid, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause,
+  faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt,
+  faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -30,6 +31,7 @@ import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
 import { ReactComponent as squareLight } from 'src/icons/square-light.svg'
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
+import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg'
 import { ReactComponent as times } from 'src/icons/times-light.svg'
 
 
@@ -78,6 +80,7 @@ const iconDict = {
   fileAlt: fa(faFileAlt),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
+  folderSolid: fa(faFolderSolid),
   'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
@@ -110,6 +113,7 @@ const iconDict = {
   tasks: fa(faTasks),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
+  'talk-bubble': custom(talkBubble),
   'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
   unlock: fa(faUnlock),

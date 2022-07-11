@@ -12,13 +12,12 @@
     "jest-environment-puppeteer": "^6.0.3",
     "jest-junit": "^13.0.0",
     "jest-puppeteer": "^6.0.2",
-    "node-fetch": "^2.6.6",
+    "node-fetch": "^2.6.7",
     "prompts": "^2.4.1",
     "puppeteer-cluster": "^0.23.0"
   },
   "dependencies": {
-    "@google-cloud/secret-manager": "^3.10.1",
-    "@google-cloud/storage": "^5.14.2",
+    "@google-cloud/secret-manager": "^4.0.0",
     "date-fns": "^2.24.0",
     "google-auth-library": "^7.9.2",
     "lodash": "^4.17.21",

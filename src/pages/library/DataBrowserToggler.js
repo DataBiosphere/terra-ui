@@ -1,15 +1,19 @@
+import { useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
 import { Link, Switch } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { isDataBrowserVisible } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import { catalogPreviewStore } from 'src/pages/library/dataBrowser-utils'
+import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 
 
 export const DataBrowserPreviewToggler = ({ checked }) => {
   const { user: { id } } = useStore(authStore)
+  const [feedbackShowing, setFeedbackShowing] = useState(false)
   catalogPreviewStore.set({ [id]: checked })
 
   return !isDataBrowserVisible() ? div() : div({
@@ -22,7 +26,7 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
     }
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
-      strong(['Toggle to preview the new Data Catalog']),
+      strong(['Preview the new Data Catalog']),
       label({
         role: 'link',
         style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
@@ -43,13 +47,25 @@ export const DataBrowserPreviewToggler = ({ checked }) => {
         div({ style: { marginLeft: 10 } }, [`BETA Data Catalog ${checked ? 'ON' : 'OFF'}`])
       ])
     ]),
-    checked && div({ style: { marginLeft: 80 } }, [
-      'After previewing the Terra Data Catalog, please fill out this quick survey to provide the team with valuable feedback.',
-      h(Link, {
-        href: '#', // TODO: Add when this is added.
-        style: { display: 'block', marginTop: 10 }
-      }, ['BETA Terra Data Catalog survey'])
-    ])
+    checked && div({ style: { display: 'flex' } }, [
+      icon('talk-bubble', { size: 45, style: { marginLeft: '1.5rem', margin: '0 0.5rem' } }),
+      div({ style: { display: 'flex', flexDirection: 'column' } }, [
+        strong('Provide feedback'),
+        h(Link, {
+          onClick: () => setFeedbackShowing(true),
+          style: { display: 'block', marginTop: 10 }
+        },
+        ['What do you think about the new Data Catalog?'])
+      ])
+    ]),
+    feedbackShowing && h(DataBrowserFeedbackModal, {
+      onDismiss: () => setFeedbackShowing(false),
+      onSuccess: () => {
+        setFeedbackShowing(false)
+      },
+      primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
+      sourcePage: 'Catalog List'
+    })
   ])
 }
 

@@ -4,6 +4,7 @@ import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
 import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
+import RenameColumnModal from 'src/components/data/RenameColumnModal'
 import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -52,6 +53,7 @@ const DataTable = props => {
   const {
     entityType, entityMetadata, setEntityMetadata, workspaceId, workspace, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
+    loadMetadata,
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
@@ -77,7 +79,7 @@ const DataTable = props => {
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
   const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
-  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
+  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || activeCrossTableTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {
@@ -117,6 +119,7 @@ const DataTable = props => {
   const [updatingColumnSettings, setUpdatingColumnSettings] = useState()
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
+  const [renamingColumn, setRenamingColumn] = useState()
   const [deletingColumn, setDeletingColumn] = useState()
   const [clearingColumn, setClearingColumn] = useState()
 
@@ -137,7 +140,7 @@ const DataTable = props => {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeCrossTableTextFilter || activeTextFilter, filterOperator })
+          { filterTerms: activeTextFilter, filterOperator })
       }))
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -222,7 +225,7 @@ const DataTable = props => {
     if (persist) {
       StateHistory.update({ itemsPerPage, pageNumber, sort, activeTextFilter })
     }
-  }, [itemsPerPage, pageNumber, sort, activeTextFilter, activeCrossTableTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [itemsPerPage, pageNumber, sort, activeTextFilter, filterOperator, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (persist) {
@@ -239,8 +242,7 @@ const DataTable = props => {
 
 
   // Render
-  // If there is an active cross table search, temporarily reset the column settings to show all columns
-  const columnSettings = activeCrossTableTextFilter ? applyColumnSettings([], entityMetadata[entityType].attributeNames) : applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
+  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
@@ -303,6 +305,8 @@ const DataTable = props => {
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [
           ({ width, height }) => {
+            const visibleColumns = _.filter('visible', columnSettings)
+
             return h(GridTable, {
               ref: table,
               'aria-label': `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
@@ -313,6 +317,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
+              numFixedColumns: visibleColumns.length > 0 ? 2 : 0,
               columns: [
                 {
                   width: 70,
@@ -366,7 +371,7 @@ const DataTable = props => {
                       renderDataCell(entityName, googleProject),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
-                        'aria-label': 'Rename entity',
+                        'aria-label': `Rename ${entityType} ${entityName}`,
                         onClick: () => setRenamingEntity(entityName)
                       })
                     ])
@@ -383,9 +388,10 @@ const DataTable = props => {
                     }, [
                       h(HeaderOptions, {
                         sort, field: attributeName, onSort: setSort,
-                        extraActions: [
+                        extraActions: editable && [
                           // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
                           // Without this, autofocus doesn't work in the modals.
+                          { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
                           { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
                           { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
                         ]
@@ -398,7 +404,7 @@ const DataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
+                      const dataCell = renderDataCell(dataInfo, googleProject)
                       const divider = div({ style: { flexGrow: 1 } })
                       const editLink = editable && h(EditDataLink, {
                         'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
@@ -422,7 +428,7 @@ const DataTable = props => {
                       }
                     }
                   }
-                }, _.filter('visible', columnSettings))
+                }, visibleColumns)
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
@@ -495,6 +501,17 @@ const DataTable = props => {
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
+    }),
+    !!renamingColumn && h(RenameColumnModal, {
+      namespace, name,
+      entityType,
+      oldAttributeName: renamingColumn,
+      onSuccess: () => {
+        setRenamingColumn(undefined)
+        Ajax().Metrics.captureEvent(Events.workspaceDataRenameColumn, extractWorkspaceDetails(workspace.workspace))
+        loadMetadata()
+      },
+      onDismiss: () => setRenamingColumn(undefined)
     }),
     !!deletingColumn && h(DeleteConfirmationModal, {
       objectType: 'column',

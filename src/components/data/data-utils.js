@@ -62,28 +62,56 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-export const renderDataCell = (data, googleProject) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
+export const entityAttributeText = (attributeValue, machineReadable) => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  return Utils.cond(
+    [_.isNil(attributeValue), () => ''],
+    [type === 'json', () => JSON.stringify(attributeValue)],
+    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
+  )
+}
+
+export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
-    return h(TextCell, { title: stringDatum },
-      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum])
+    return isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum
   }
 
   const renderArray = items => {
     return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      renderCell(v), i < (items.length - 1) && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ]), Utils.toIndexPairs(items))
   }
 
-  return Utils.cond(
-    [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
-    [_.isObject(data), () => JSON.stringify(data, undefined, 1)],
-    () => renderCell(data?.toString())
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const tooltip = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => _.join(', ', attributeValue)],
+    [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
   )
+
+  return h(TextCell, { title: tooltip }, [
+    Utils.cond(
+      [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
+      [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+      [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
+      [type === 'reference', () => attributeValue.entityName],
+      [isList, () => renderArray(attributeValue.items)],
+      () => renderCell(attributeValue)
+    )
+  ])
 }
 
 export const EditDataLink = props => h(Link, {
@@ -609,7 +637,8 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
+const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
+  const [edited, setEdited] = useState(false)
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
@@ -660,7 +689,11 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
               name: 'edit-type',
               checked: attributeType === type,
               onChange: () => {
-                const newAttributeValue = convertAttributeValue(attributeValue, type, defaultReferenceEntityType)
+                const newAttributeValue = convertAttributeValue(
+                  initialValue && !edited ? initialValue : attributeValue,
+                  type,
+                  defaultReferenceEntityType
+                )
                 onChange(newAttributeValue)
               },
               labelStyle: { paddingLeft: '0.5rem' }
@@ -712,6 +745,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             value,
             onChange: v => {
               const newAttributeValue = _.update('items', _.set(i, v), attributeValue)
+              setEdited(true)
               onChange(newAttributeValue)
             }
           }),
@@ -720,6 +754,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
             disabled: _.size(attributeValue.items) === 1,
             onClick: () => {
               const newAttributeValue = _.update('items', _.pullAt(i), attributeValue)
+              setEdited(true)
               onChange(newAttributeValue)
             },
             style: { marginLeft: '0.5rem' }
@@ -732,6 +767,7 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           onClick: () => {
             focusLastListItemInput.current = true
             const newAttributeValue = _.update('items', Utils.append(defaultValue), attributeValue)
+            setEdited(true)
             onChange(newAttributeValue)
           }
         }, [icon('plus', { style: { marginRight: '0.5rem' } }), 'Add item'])
@@ -740,7 +776,10 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, onChange, en
           'aria-label': 'New value',
           autoFocus,
           value: attributeValue,
-          onChange
+          onChange: v => {
+            setEdited(true)
+            onChange(v)
+          }
         })
       ])
   ])
@@ -825,6 +864,7 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
           autoFocus: true,
           value: newValue,
           onChange: setNewValue,
+          initialValue: attributeValue,
           entityTypes,
           showJsonTypeOption: originalValueType === 'json'
         }),
@@ -1246,7 +1286,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       }, [
         h(Collapse, {
           title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
+            `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`
           ]),
           buttonStyle: {
             maxWidth: '100%',

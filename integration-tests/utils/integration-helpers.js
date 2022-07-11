@@ -1,11 +1,11 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
-  click, clickable, dismissNotifications, fillIn, findText, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter
+  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
+  navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { waitUntilLoadedOrTimeout } = require('../utils/integration-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -13,6 +13,7 @@ const defaultTimeout = 5 * 60 * 1000
 const withSignedInPage = fn => async options => {
   const { context, testUrl, token } = options
   const page = await context.newPage()
+  enablePageLogging(page)
   try {
     await signIntoTerra(page, { token, testUrl })
     return await fn({ ...options, page })
@@ -30,17 +31,10 @@ const getTestWorkspaceName = () => `${testWorkspaceNamePrefix}${uuid.v4()}`
 const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   const workspaceName = getTestWorkspaceName()
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
-      try {
-        return await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
-      } catch (err) {
-        const message = await err.text()
-        throw message
-      }
+    await page.evaluate(async (name, billingProject) => {
+      await window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
     }, workspaceName, billingProject)
-
     console.info(`Created workspace: ${workspaceName}`)
-    console.info(response)
   } catch (e) {
     console.error(`Failed to create workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
@@ -49,21 +43,12 @@ const makeWorkspace = withSignedInPage(async ({ page, billingProject }) => {
   return workspaceName
 })
 
-
 const deleteWorkspace = withSignedInPage(async ({ page, billingProject, workspaceName }) => {
   try {
-    const response = await page.evaluate(async (name, billingProject) => {
-      try {
-        const response = await window.Ajax().Workspaces.workspace(billingProject, name).delete()
-        return response.text()
-      } catch (err) {
-        const message = await err.text()
-        throw message
-      }
+    await page.evaluate(async (name, billingProject) => {
+      await window.Ajax().Workspaces.workspace(billingProject, name).delete()
     }, workspaceName, billingProject)
-
     console.info(`Deleted workspace: ${workspaceName}`)
-    console.info(response)
   } catch (e) {
     console.error(`Failed to delete workspace: ${workspaceName} with billing project: ${billingProject}`)
     console.error(e)
@@ -196,7 +181,7 @@ const overrideConfig = async (page, configToPassIn) => {
 }
 
 const enableDataCatalog = async (page, testUrl, token) => {
-  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
@@ -209,21 +194,22 @@ const enableDataCatalog = async (page, testUrl, token) => {
 const clickNavChildAndLoad = async (page, tab) => {
   // click triggers a page navigation event
   await Promise.all([
-    page.waitForNavigation(waitUntilLoadedOrTimeout()),
+    page.waitForNavigation(navOptionNetworkIdle()),
     noSpinnersAfter(page, { action: () => click(page, navChild(tab)) })
   ])
 }
 
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
-  await click(page, clickable({ textContains: 'View Workspaces' }))
+  // Sign in to handle unexpected NPS survey popup and Loading Terra... spinner
   await signIntoTerra(page, { token })
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await dismissNotifications(page)
-  await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
+  await fillIn(page, input({ placeholder: 'Search by keyword' }), workspaceName)
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: workspaceName })) })
 }
 
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
-  await page.goto(testUrl, waitUntilLoadedOrTimeout(60 * 1000))
+  await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
   await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)

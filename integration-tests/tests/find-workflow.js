@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const firecloud = require('../utils/firecloud-utils')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
+const { click, clickable, findElement, findText, gotoPage, signIntoTerra } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -35,10 +35,11 @@ const testFindWorkflowFn = _.flow(
       const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
         'https://bvdp-saturn-dev.appspot.com',
         testUrl)
-      await page.goto(redirectURL)
+      await gotoPage(page, redirectURL)
     } else {
       await click(page, clickable({ textContains: 'Yes' }))
     }
+    await page.waitForXPath('//*[@id="signInButton"]', { visible: true })
   }
 
   await Promise.all([

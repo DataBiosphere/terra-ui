@@ -18,6 +18,7 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
@@ -89,7 +90,7 @@ const DashboardAuthContainer = props => {
   const { isSignedIn } = useStore(authStore)
   const [featuredWorkspaces, setFeaturedWorkspaces] = useState()
 
-  const isGoogleAuthInitialized = isSignedIn !== undefined
+  const isAuthInitialized = isSignedIn !== undefined
 
   useEffect(() => {
     const fetchData = async () => {
@@ -103,7 +104,7 @@ const DashboardAuthContainer = props => {
   const isFeaturedWorkspace = () => _.some(ws => ws.namespace === namespace && ws.name === name, featuredWorkspaces)
 
   return Utils.cond(
-    [!isGoogleAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
+    [!isAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
     [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
     [isSignedIn === false, () => h(SignIn)],
     () => h(WorkspaceDashboard, props)
@@ -196,7 +197,7 @@ const WorkspaceDashboard = _.flow(
     azureContext,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject, workspaceId,
       attributes, attributes: { description = '' }
     }
   }
@@ -205,6 +206,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
+  const [{ storageContainerName, storageLocation }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -222,6 +224,8 @@ const WorkspaceDashboard = _.flow(
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
+    } else {
+      loadAzureStorage()
     }
   }
 
@@ -255,6 +259,11 @@ const WorkspaceDashboard = _.flow(
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
+  })
+
+  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
+    const { storageContainerName, location } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerName, storageLocation: location })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -340,9 +349,19 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
+        h(InfoRow, { title: 'Location' }, [
+          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+        ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Storage Container Name' }, [
+          h(TooltipCell, [!!storageContainerName ? storageContainerName : 'Loading']),
+          h(ClipboardButton, {
+            'aria-label': 'Copy storage container name to clipboard',
+            text: storageContainerName, style: { marginLeft: '0.25rem' }
+          })
         ])
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {

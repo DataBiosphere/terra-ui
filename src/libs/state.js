@@ -12,7 +12,9 @@ export const authStore = Utils.atom({
   user: {},
   profile: {},
   fenceStatus: {},
-  cookiesAccepted: undefined
+  cookiesAccepted: undefined,
+  authContext: undefined,
+  oidcConfig: {}
 })
 
 export const userStatus = {
@@ -23,6 +25,7 @@ export const userStatus = {
 }
 
 export const cookieReadyStore = Utils.atom(false)
+export const azureCookieReadyStore = Utils.atom(false)
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
