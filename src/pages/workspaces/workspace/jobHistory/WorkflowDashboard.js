@@ -224,7 +224,8 @@ const WorkflowDashboard = _.flow(
                     h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
                   ])
                 }, callNames)
-              ])]
+              ],
+              { style: { overflow: 'visible' } })]
             )
           ]
         ),
