@@ -220,7 +220,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     minTimeout: 1000, // This is min wait time between retries
     onFailedAttempt: error => {
       console.error(
-        `Sign in to Terra attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
+        `Sign in to Terra attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`
       )
     },
     retries: 2
@@ -238,6 +238,8 @@ const signIntoTerra = async (page, { token, testUrl }) => {
       await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
     } catch (e) {
       console.error(e)
+      // Stop page loading, as if you hit "X" in the browser. ignore exception.
+      await page._client.send('Page.stopLoading').catch(err => void err)
       throw new Error(e)
     }
   }
