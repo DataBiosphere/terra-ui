@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import covidHero from 'src/images/covid-hero.jpg'
@@ -30,16 +30,12 @@ const styles = {
 }
 
 const makeDocLink = (href, title) => {
-  return div({
-    style: { marginBottom: '1rem', fontSize: 18, width: 700 }
-  }, [
+  return div({ style: { marginBottom: '1rem', fontSize: 18 } }, [
     h(Link, {
       href,
       ...Utils.newTabLinkProps,
       style: { fontSize: 18 }
-    }, [
-      span({ style: { whiteSpace: 'nowrap' } }, [title, icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })])
-    ])
+    }, [title, icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })])
   ])
 }
 
@@ -87,7 +83,7 @@ const getSiteSpecificHyperlinks = () => Utils.cond(
 
 const LandingPage = () => {
   return h(HeroWrapper, { bigSubhead: true }, [
-    ...getSiteSpecificHyperlinks(),
+    div({ style: { maxWidth: '85%' } }, getSiteSpecificHyperlinks()),
     div({
       style: { display: 'flex', margin: '2rem 0 1rem 0' }
     }, [

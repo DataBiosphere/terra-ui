@@ -505,30 +505,30 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      h1({ style: { fontSize: 54 } }, [
-        'Welcome to ',
-        span({ style: { display: isTerra() || isRareX() ? 'block' : 'inline-block' } }, [getAppName({ longName: isTerra() })])
-      ]),
-      div({ style: { margin: '1rem 0', width: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
-        `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
-          [isTerra(), () => 'cloud-native platform'],
-          [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
-          [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
-          [isRareX(), () => 'federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra'],
-          () => 'project powered by Terra'
-        )} for biomedical researchers to `,
-        heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate')]),
-        isProjectSingular() && ' to advance research around single ventricle heart disease',
-        '. ',
-        showDocLink ?
-          h(Link, {
-            style: { textDecoration: 'underline' },
-            href: `https://support.terra.bio/hc/en-us`,
-            ...Utils.newTabLinkProps
-          }, ['Learn more about Terra.']) : null
-      ]),
-      children
+      div({ style: { maxWidth: '50%' } }, [ //CAN I USE 'flex' TO WRAP ONLY WHEN NEEDED?
+        h1({ style: { fontSize: 54 } }, [`Welcome to ${getAppName({ longName: isTerra() })}`]),
+        div({ style: { margin: '1rem 0', width: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
+          `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
+            [isTerra(), () => 'cloud-native platform'],
+            [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
+            [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
+            [isRareX(),
+              () => 'federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra'],
+            () => 'project powered by Terra'
+          )} for biomedical researchers to `,
+          heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
+          span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate')]),
+          isProjectSingular() && ' to advance research around single ventricle heart disease',
+          '. ',
+          showDocLink ?
+            h(Link, {
+              style: { textDecoration: 'underline' },
+              href: `https://support.terra.bio/hc/en-us`,
+              ...Utils.newTabLinkProps
+            }, ['Learn more about Terra.']) : null
+        ]),
+        children
+      ])
     ])
   ])
 }
