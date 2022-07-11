@@ -35,7 +35,10 @@ const makeDocLink = (href, title) => {
       href,
       ...Utils.newTabLinkProps,
       style: { fontSize: 18 }
-    }, [title, icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })])
+    }, [
+      title,
+      icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
+    ])
   ])
 }
 
