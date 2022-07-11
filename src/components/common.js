@@ -505,7 +505,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      div({ style: { maxWidth: '50%' } }, [ //CAN I USE 'flex' TO WRAP ONLY WHEN NEEDED?
+      div({ style: { maxWidth: '50%' } }, [
         h1({ style: { fontSize: 54 } }, [`Welcome to ${getAppName({ longName: isTerra() })}`]),
         div({ style: { margin: '1rem 0', width: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
           `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
