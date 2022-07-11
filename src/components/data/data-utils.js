@@ -1325,8 +1325,8 @@ export const saveScroll = _.throttle(100, (initialX, initialY) => {
 })
 
 // Accepts two arrays of attribute names. Concatenates, uniquifies, and sorts those attribute names, returning
-// the resultant array. Uniqification is case-insensitive but case-preserving, to mirror backend behavior of the
-// entity type metadata API. Uniqification prefers the leftmost attribute.
+// the resultant array. This is broken out into this helper method so as to easily control the criteria for uniqueness
+// and sorting; for instance, we could use localeCompare for case-insensitive uniqueness.
 export const concatenateAttributeNames = (attrList1, attrList2) => {
-  return _.uniqWith((left, right) => !left.localeCompare(right, undefined, { sensitivity: 'accent' }), _.concat(attrList1, attrList2)).sort()
+  return _.uniq(_.concat(attrList1, attrList2)).sort()
 }
