@@ -220,22 +220,23 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     minTimeout: 1000, // This is min wait time between retries
     onFailedAttempt: error => {
       console.error(
-        `Sign in to Terra attempt ${error.attemptNumber} failed. ${error.retriesLeft} retries left.`
+        `Sign in to Terra attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
       )
     },
     retries: 2
   }
 
+  const timeout = 60 * 1000
   const run = async url => {
     try {
-      const httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout: 60 * 1000 })
+      const httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout })
       if (httpResponse.status() >= 400) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
       }
       await page.waitForFunction(url => {
         return window.location.href.includes(url)
       }, {}, url)
-      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
     } catch (e) {
       console.error(e)
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
@@ -248,7 +249,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
     console.log(`Loading URL: ${testUrl}`)
     await pRetry(() => run(testUrl), retryOptions)
   }
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')
