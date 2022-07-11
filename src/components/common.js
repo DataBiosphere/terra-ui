@@ -507,7 +507,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
     }, [
       h1({ style: { fontSize: 54 } }, [
         'Welcome to ',
-        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, [getAppName({ longName: isTerra() })])
+        span({ style: { display: isTerra() || isRareX() ? 'block' : 'inline-block' } }, [getAppName({ longName: isTerra() })])
       ]),
       div({ style: { margin: '1rem 0', width: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName({ longName: !isTerra(), capitalInitial: true })} is a ${Utils.cond(
