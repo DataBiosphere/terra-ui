@@ -313,11 +313,7 @@ export const ComputeModalBase = ({
       if (shouldCreateRuntime) {
         const diskConfig = Utils.cond(
           [desiredRuntime.cloudService === cloudServices.DATAPROC, () => ({})],
-          [shouldUpdatePersistentDisk, () => {
-            Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
-            return { persistentDisk: { name: currentPersistentDiskDetails.name } }
-          }],
-          [existingPersistentDisk && !shouldDeletePersistentDisk, () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
+          [existingPersistentDisk && (!shouldDeletePersistentDisk || shouldUpdatePersistentDisk), () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
           [Utils.DEFAULT, () => ({
             persistentDisk: {
               name: Utils.generatePersistentDiskName(),
@@ -329,6 +325,10 @@ export const ComputeModalBase = ({
         )
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
+
+        if (shouldUpdatePersistentDisk) {
+          await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
+        }
 
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
           runtimeConfig: createRuntimeConfig,
@@ -810,16 +810,16 @@ export const ComputeModalBase = ({
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
     const commonButtonProps = Utils.cond([
-        hasGpu && viewMode !== 'deleteEnvironment',
-        () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
-      ], [
-        computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
-        () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
-      ], [
-        !!currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !==
-        'deleteEnvironment',
-        () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
-      ],
+      hasGpu && viewMode !== 'deleteEnvironment',
+      () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
+    ], [
+      computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
+      () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
+    ], [
+      !!currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !==
+      'deleteEnvironment',
+      () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
+    ],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
 
@@ -830,18 +830,18 @@ export const ComputeModalBase = ({
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
     return Utils.cond([
-        canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
-      ], [
-        canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
-      ], [
-        canShowWarning && isDifferentLocation(),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
-      ], [
-        canShowWarning && !isUSLocation(computeConfig.computeRegion),
-        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
-      ],
+      canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
+      () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
+    ], [
+      canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
+      () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
+    ], [
+      canShowWarning && isDifferentLocation(),
+      () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+    ], [
+      canShowWarning && !isUSLocation(computeConfig.computeRegion),
+      () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
+    ],
       () => h(ButtonPrimary, {
         ...commonButtonProps,
         onClick: () => {
