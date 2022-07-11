@@ -324,11 +324,11 @@ export const ComputeModalBase = ({
           })]
         )
 
-        const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
-
         if (shouldUpdatePersistentDisk) {
           await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
         }
+
+        const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
 
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
           runtimeConfig: createRuntimeConfig,
