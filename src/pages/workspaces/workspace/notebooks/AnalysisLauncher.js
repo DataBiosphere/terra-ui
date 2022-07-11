@@ -253,16 +253,35 @@ const PreviewHeader = ({
 
   useOnMount(() => { checkIfLocked() })
 
+  console.log('in analysisLauncher', toolLabel)
+
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
   }, [
+    //App-specific controls
     Utils.cond(
       [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [
         makeMenuIcon('export'), 'Copy to another workspace'
       ])],
-      [!mode || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
-        ...(toolLabel === tools.Jupyter.label ? [
+      [!runtime, () => h(HeaderButton, {
+          onClick: () => setCreateOpen(true)
+        }, [ makeMenuIcon('rocket'), 'Open' ])
+      ],
+      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]), () =>
+        h(HeaderButton, {
+          onClick: () => {
+            if (runtimeStatus === 'Running') {
+              Ajax().Metrics.captureEvent(Events.analysisLaunch,
+                { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
+              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+            } else if (runtimeStatus === 'Stopped') {
+              startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
+            }
+          }
+        }, [ makeMenuIcon('rocket'), 'Open' ])
+      ],
+      [toolLabel !== tools.RStudio.label && !mode || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
           Utils.cond(
             [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
               makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -270,7 +289,7 @@ const PreviewHeader = ({
             [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
               makeMenuIcon('lock'), 'Open (In use)'
             ])],
-            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? setCreateOpen(true) : chooseMode('edit') }, [
+            () => h(HeaderButton, { onClick: () => chooseMode('edit') }, [
               makeMenuIcon('rocket'), 'Open'
             ])
           ),
@@ -278,44 +297,28 @@ const PreviewHeader = ({
             onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
           }, [
             makeMenuIcon('chalkboard'), 'Playground mode'
-          ])
-        ] : [
-          h(HeaderButton, {
-            onClick: () => {
-              if (runtimeStatus === 'Running' && currentRuntimeTool === toolLabel) {
-                Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                  { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
-                Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-              } else if (runtimeStatus === 'Stopped' && currentRuntimeTool === toolLabel) {
-                // we make it here because mode is undefined. we don't have modes for rstudio currently but will be creating a follow up
-                // ticket to address this. Not having modes is causing some bugs in this logic
-                chooseMode('rstudio') // TODO: we don't have mode for rstudio
-                startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
-              } else {
-                setCreateOpen(true)
-              }
-            }
-          }, [
-            makeMenuIcon('rocket'), 'Open'
-          ])
-        ]),
-        h(MenuTrigger, {
-          closeOnClick: true,
-          content: h(Fragment, [
-            h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
-            h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
-            h(MenuButton, {
-              onClick: withErrorReporting('Error copying to clipboard', async () => {
-                await clipboard.writeText(`${window.location.host}/${analysisLink}`)
-                notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-              })
-            }, ['Copy URL to clipboard'])
           ]),
-          side: 'bottom'
-        }, [
-          h(HeaderButton, {}, [icon('ellipsis-v')])
-        ])
-      ])],
+      ])]
+    ),
+    // Workspace-level options
+    h(MenuTrigger, {
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
+        h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
+        h(MenuButton, {
+          onClick: withErrorReporting('Error copying to clipboard', async () => {
+            await clipboard.writeText(`${window.location.host}/${analysisLink}`)
+            notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+          })
+        }, ['Copy URL to clipboard'])
+      ]),
+      side: 'bottom'
+    }, [
+      h(HeaderButton, {}, [icon('ellipsis-v')])
+    ]),
+    //Status specific messaging which is not specific to an app
+    Utils.cond(
       [_.includes(runtimeStatus, usableStatuses), () => {
         console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null

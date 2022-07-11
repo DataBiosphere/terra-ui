@@ -199,14 +199,17 @@ export default class RuntimeManager extends PureComponent {
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
     const prevGalaxyApp = getCurrentApp(tools.Galaxy.appType)(prevProps.apps)
 
+    console.log('in runtime manager', runtime.status === 'Running', prevRuntime.status, prevRuntime.status !== 'Running',
+      runtime?.labels?.tool === tools?.RStudio?.label, window.location.hash !== rStudioLaunchLink)
+
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime })
       })
       errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
-      runtime.status === 'Running' && prevRuntime.status && prevRuntime.status !== 'Running' &&
-      runtime.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+      runtime?.status === 'Running' && prevRuntime?.status && prevRuntime.status !== 'Running' &&
+      runtime?.labels?.tool === tools.RStudio.label && window.location.hash !== rStudioLaunchLink
     ) {
       const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {
