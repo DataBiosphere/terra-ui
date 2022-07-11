@@ -212,7 +212,7 @@ const dismissNPSSurvey = async page => {
   }
 }
 
-// Test workaround with one retry: Loading of Terra UI does not work sometimes after new deploy to Staging/Alpha.
+// Test workaround: Retry loading of Terra UI if fails first time. This issue often happens after new deploy to Staging/Alpha.
 const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...')
 
