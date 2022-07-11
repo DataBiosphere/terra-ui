@@ -14,7 +14,7 @@ import { icon } from 'src/components/icons'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
+import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/components/notebook-utils'
 import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
@@ -117,7 +117,7 @@ const ToolDrawer = _.flow(
         onSuccess: async (notebookName, notebookKernel) => {
           const cohortName = _.values(selectedEntities)[0].name
           const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
-          await Buckets.notebook(googleProject, bucketName, notebookName).create(JSON.parse(contents))
+          await Buckets.notebook(googleProject, bucketName, `${notebookName}.${tools.Jupyter.defaultExt}`).create(JSON.parse(contents))
           Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, extractWorkspaceDetails(workspace.workspace))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
