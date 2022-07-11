@@ -226,7 +226,6 @@ const PreviewHeader = ({
   const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
-  const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
@@ -253,7 +252,7 @@ const PreviewHeader = ({
 
   useOnMount(() => { checkIfLocked() })
 
-  console.log('in analysisLauncher', toolLabel)
+  // console.log('in analysisLauncher', toolLabel)
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -265,39 +264,36 @@ const PreviewHeader = ({
         makeMenuIcon('export'), 'Copy to another workspace'
       ])],
       [!runtime, () => h(HeaderButton, {
-          onClick: () => setCreateOpen(true)
-        }, [ makeMenuIcon('rocket'), 'Open' ])
-      ],
-      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]), () =>
-        h(HeaderButton, {
-          onClick: () => {
-            if (runtimeStatus === 'Running') {
-              Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
-              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-            } else if (runtimeStatus === 'Stopped') {
-              startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
-            }
+        onClick: () => setCreateOpen(true)
+      }, [makeMenuIcon('rocket'), 'Open'])],
+      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]), () => h(HeaderButton, {
+        onClick: () => {
+          if (runtimeStatus === 'Running') {
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+          } else if (runtimeStatus === 'Stopped') {
+            startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
           }
-        }, [ makeMenuIcon('rocket'), 'Open' ])
-      ],
-      [toolLabel !== tools.RStudio.label && !mode || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
-          Utils.cond(
-            [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
-              makeMenuIcon('warning-standard'), 'Open (Disabled)'
-            ])],
-            [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
-              makeMenuIcon('lock'), 'Open (In use)'
-            ])],
-            () => h(HeaderButton, { onClick: () => chooseMode('edit') }, [
-              makeMenuIcon('rocket'), 'Open'
-            ])
-          ),
-          h(HeaderButton, {
-            onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-          }, [
-            makeMenuIcon('chalkboard'), 'Playground mode'
-          ]),
+        }
+      }, [makeMenuIcon('rocket'), 'Open'])],
+      [(toolLabel !== tools.RStudio.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+        Utils.cond(
+          [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
+            makeMenuIcon('warning-standard'), 'Open (Disabled)'
+          ])],
+          [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
+            makeMenuIcon('lock'), 'Open (In use)'
+          ])],
+          () => h(HeaderButton, { onClick: () => chooseMode('edit') }, [
+            makeMenuIcon('rocket'), 'Open'
+          ])
+        ),
+        h(HeaderButton, {
+          onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+        }, [
+          makeMenuIcon('chalkboard'), 'Playground mode'
+        ])
       ])]
     ),
     // Workspace-level options
