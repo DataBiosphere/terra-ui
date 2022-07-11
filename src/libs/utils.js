@@ -180,19 +180,6 @@ export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
 
-export const entityAttributeText = (value, machineReadable) => {
-  return cond(
-    [_.has('entityName', value), () => value.entityName],
-    [_.has('items', value), () => {
-      return machineReadable ?
-        JSON.stringify(value.items) :
-        _.map(entityAttributeText, value.items).join(', ')
-    }],
-    [_.isArray(value) && _.some(_.isObject, value), () => JSON.stringify(value)], // arrays of objects need to be stringified
-    () => value
-  )
-}
-
 // Returns a message explaining that the desired snapshot reference could not be found by name
 export const snapshotReferenceMissingError = snapshotReferenceName => {
   return `The requested snapshot reference '${snapshotReferenceName}' could not be found in this workspace.`

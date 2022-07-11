@@ -1,0 +1,114 @@
+name: Generate BEE Build
+# The purpose of the workflow is to:
+#  1. Bump the version number and tag the release if not a PR
+#  2. Build docker image and publish to GAR
+#
+# When run on merge to main, it tags and bumps the patch version by default. You can
+# bump other parts of the version by putting #major, #minor, or #patch in your commit
+# message.
+#
+# When run on a PR, it simulates bumping the tag and appends a hash to the pushed image.
+#
+# The workflow relies on github secrets:
+# - BROADBOT_TOKEN - the broadbot token, so we can avoid two reviewer rule on GHA operations
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'integration-tests'
+  push:
+    branches:
+      - dev
+    paths-ignore:
+      - 'README.md'
+      - 'integration-tests'
+env:
+  GOOGLE_PROJECT: dsp-artifact-registry
+  # Name of the app-specific Docker repository configured in GOOGLE_PROJECT
+  REPOSITORY_NAME: ${{ github.event.repository.name }}
+  # Region-specific Google Docker repository where GOOGLE_PROJECT/REPOSITORY_NAME can be found
+  GOOGLE_DOCKER_REPOSITORY: us-central1-docker.pkg.dev
+
+jobs:
+  tag-push-job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout current code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.BROADBOT_TOKEN }}
+
+      - name: Bump the tag to a new version
+        uses: databiosphere/github-actions/actions/bumper@bumper-0.0.6
+        id: tag
+        env:
+          DEFAULT_BUMP: patch
+          GITHUB_TOKEN: ${{ secrets.BROADBOT_TOKEN }}
+          RELEASE_BRANCHES: dev
+          WITH_V: true
+
+      - name: Construct docker image name and tag
+        id: image-name
+        shell: bash
+        run: |
+          NAME="${GOOGLE_DOCKER_REPOSITORY}/${GOOGLE_PROJECT}/${REPOSITORY_NAME}/${REPOSITORY_NAME}"
+          DOCKER_TAG="${{ steps.tag.outputs.tag }}"
+          TAGGED="${NAME}:${DOCKER_TAG}"
+          echo "NAME: ${NAME}"
+          echo "TAGGED: ${TAGGED}"
+          echo ::set-output "name=name::${NAME}"
+          echo ::set-output "name=tagged::${TAGGED}"
+
+      - name: Auth to GCP
+        id: 'auth'
+        uses: google-github-actions/auth@v0
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
+
+      # Install gcloud, `setup-gcloud` automatically picks up authentication from `auth`.
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+      
+      # authenticate to GAR docker repo
+      - name: Docker Login
+        uses: 'docker/login-action@v1'
+        with:
+          registry: 'us-central1-docker.pkg.dev'
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+
+      - name: Build image
+        run: "docker build -t ${{ steps.image-name.outputs.tagged }} ."
+
+      - name: Run Trivy vulnerability scanner
+        # From https://github.com/broadinstitute/dsp-appsec-trivy-action
+        uses: broadinstitute/dsp-appsec-trivy-action@v1
+        with:
+          image: ${{ steps.image-name.outputs.tagged }}
+
+      - name: Push image
+        run: "docker push ${{ steps.image-name.outputs.tagged }}"
+      
+      # Add latest tag to image (optional)
+      - name: Add latest tag to Docker image
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          gcloud artifacts docker tags add \
+            "${{ steps.image-name.outputs.tagged }}" \
+            "${{ steps.image-name.outputs.name }}:latest"
+
+      - name: Deploy to Terra Dev environment
+        uses: broadinstitute/repository-dispatch@master
+        if: github.event_name != 'pull_request'
+        with:
+          token: ${{ secrets.BROADBOT_TOKEN }}
+          repository: broadinstitute/terra-helmfile
+          event-type: update-service
+          client-payload: '{"service": "terraui", "version": "${{ steps.tag.outputs.tag }}", "dev_only": false}'

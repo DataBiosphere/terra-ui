@@ -24,7 +24,8 @@ window.ajaxOverrideUtils = {
     return Math.random() < frequency ?
       Promise.resolve(new Response('Instrumented error', { status })) :
       wrappedFetch(...args)
-  })
+  }),
+  makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
