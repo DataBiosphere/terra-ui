@@ -70,13 +70,11 @@ const setGcpAjaxMockValues = async (testPage, namespace, name) => {
     window.ajaxOverridesStore.set([
       {
         filter: { url: storageCostEstimateUrl },
-        fn: () => () => Promise.resolve(
-          new Response(JSON.stringify({ estimate: 'Fake Estimate', lastUpdated: Date.now() }), { status: 200 })
-        )
+        fn: window.ajaxOverrideUtils.makeSuccess({ estimate: 'Fake Estimate', lastUpdated: Date.now() })
       },
       {
         filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
-        fn: () => () => Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess({})
       }
     ])
   }, namespace, name)
