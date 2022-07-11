@@ -252,25 +252,16 @@ const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
             size: { basis: 350, grow: 0 },
             field: 'task',
             headerRenderer: () => h(Sortable, { sort, field: 'task', onSort: setSort }, ['Task name']),
-            cellRenderer: ({ rowIndex }) => {
-              const { task } = filteredInputOutputs[rowIndex]
-              return h(TextCell, [task])
-            }
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].task])
           }, {
             size: { basis: 360, grow: 0 },
             field: 'variable',
             headerRenderer: () => h(Sortable, { sort, field: 'variable', onSort: setSort }, ['Variable']),
-            cellRenderer: ({ rowIndex }) => {
-              const { variable } = filteredInputOutputs[rowIndex]
-              return h(TextCell, [variable])
-            }
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].variable])
           }, {
             field: 'value',
             headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Attribute']),
-            cellRenderer: ({ rowIndex }) => {
-              const { value } = filteredInputOutputs[rowIndex]
-              return h(TextCell, [value])
-            }
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].value])
           }
         ]
       })])
