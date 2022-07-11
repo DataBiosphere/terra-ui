@@ -37,14 +37,18 @@ export const pdTypes = {
     displayName: 'Solid state drive (SSD)',
     regionToPricesName: 'monthlySSDDiskPrice'
   },
-  fromString: str => Utils.switchCase(str,
-    [pdTypes.standard.label, () => pdTypes.standard],
-    [pdTypes.balanced.label, () => pdTypes.balanced],
-    [pdTypes.ssd.label, () => pdTypes.ssd],
-    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
-  )
+  fromString: str => {
+    return Utils.switchCase(str,
+      [pdTypes.standard.label, () => pdTypes.standard],
+      [pdTypes.balanced.label, () => pdTypes.balanced],
+      [pdTypes.ssd.label, () => pdTypes.ssd],
+      [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
+    )
+  }
 }
-export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromString, disk)
+export const updatePdType = disk => {
+  return disk && _.update('diskType', pdTypes.fromString, disk)
+}
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
@@ -321,7 +325,7 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceName) => {
+export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDiskName = currentApp?.diskName
@@ -337,6 +341,16 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks))
+}
+
+export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
+  const currentRuntime = getCurrentRuntime(runtimes)
+  const id = currentRuntime?.runtimeConfig.persistentDiskId
+  const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
+
+  return id ?
+    _.find({ id }, persistentDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {

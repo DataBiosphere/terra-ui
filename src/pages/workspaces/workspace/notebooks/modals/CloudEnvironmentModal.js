@@ -23,7 +23,9 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import {
-  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getGalaxyCostTextChildren, getIsAppBusy, getIsRuntimeBusy,
+  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp,
+  getCurrentPersistentDisk,
+  getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy,
   getPersistentDiskCostHourly, isCurrentGalaxyDiskDetaching, runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
@@ -273,17 +275,29 @@ export const CloudEnvironmentModal = ({
     [tools.Azure.label, () => jupyterLogo])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-  const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
-    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
-    [getRuntimeForTool(toolLabel), () => {
-      const runtime = getRuntimeForTool(toolLabel)
-      const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
-      return span([`${getComputeStatusForDisplay(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
-    }],
-    [Utils.DEFAULT, () => span(['None'])]
-  )
+  const getCostForTool = toolLabel => {
+    return Utils.cond(
+      [toolLabel === tools.Galaxy.label, () => 'None'], //getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
+      [toolLabel === tools.Cromwell.label, () => 'None'], // We will determine what to put here later
+      [toolLabel === tools.Azure.labels, () => 'None'], //TODO: Azure cost calculation
+      [getRuntimeForTool(toolLabel), () => {
+        const runtime = getRuntimeForTool(toolLabel)
+        const totalCost = runtimeCost(runtime)
+        return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
+      }],
+      [Utils.DEFAULT, () => {
+        return 'None'
+      }]
+    )
+  }
+
+  const getCostForDisk = (app, currentRuntime) => {
+    if (app === currentRuntime && persistentDisks && persistentDisks.length > 0) {
+      const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+      return `Disk ${Utils.formatUSD(getPersistentDiskCostHourly(curPd, computeRegion))}/hr `
+    }
+    return ''
+  }
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
     [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
@@ -378,7 +392,12 @@ export const CloudEnvironmentModal = ({
             style: { height: 30 },
             alt: `${toolLabel}`
           }),
-          getCostForTool(toolLabel)
+          div(
+            [
+              div(getCostForTool(toolLabel)),
+              div(getCostForDisk(currentRuntimeTool, toolLabel))
+            ]
+          )
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
