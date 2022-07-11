@@ -23,7 +23,7 @@ import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecl
 import * as Utils from 'src/libs/utils'
 
 
-export const getAppName = ({ longName = false, capitalInitial = false } = { longName: false, capitalInitial: false }) => Utils.cond(
+export const getAppName = ({ longName = false, capitalInitial = false } = {}) => Utils.cond(
   [isFirecloud(), () => 'FireCloud'],
   [isDatastage(), () => 'DataStage'],
   [isAnvil(), () => longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
