@@ -231,15 +231,11 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   const run = async url => {
     try {
       const httpResponse = await page.goto(url, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout })
-      if (httpResponse.status() >= 400) {
+      if (!(httpResponse.ok() || httpResponse.status() === 304)) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
       }
-      await page.waitForFunction(url => {
-        return window.location.href.includes(url)
-      }, {}, url)
       await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
     } catch (e) {
-      console.error(e)
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
       await page._client.send('Page.stopLoading').catch(err => void err)
       throw new Error(e)
@@ -249,8 +245,10 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   if (!!testUrl) {
     console.log(`Loading URL: ${testUrl}`)
     await pRetry(() => run(testUrl), retryOptions)
+  } else {
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
   }
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
+
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')
