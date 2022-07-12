@@ -185,14 +185,15 @@ const dismissNotifications = async page => {
   const closeButtonXpath = '(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]'
   try {
     await page.waitForXPath(closeButtonXpath, { timeout: 3000 }) // 3 seconds wait for any alerts to show
-    const notificationCloseButtons = await page.$x(closeButtonXpath)
-    await Promise.all(
-      notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
-    )
-    await delay(1000) // delayed for alerts to animate off
   } catch (e) {
     // Notification is not found
+    return
   }
+  const notificationCloseButtons = await page.$x(closeButtonXpath)
+  await Promise.all(
+    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
+  )
+  await delay(1000) // delayed for alerts to animate off
 }
 
 const dismissNPSSurvey = async page => {
