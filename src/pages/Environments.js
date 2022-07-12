@@ -21,8 +21,8 @@ import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/li
 import {
   cloudProviders,
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, mapToPdTypes, runtimeCost,
-  workspaceHasMultipleApps,
+  getPersistentDiskCostMonthly, getRegionFromZone, getRuntimeCost,
+  isApp, isComputePausable, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
   workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -205,7 +205,7 @@ const Environments = () => {
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
-    cost: runtimeCost
+    cost: getRuntimeCost
   }[sort.field]], [sort.direction], runtimes)
 
   const filteredDisks = mapToPdTypes(_.orderBy([{
@@ -229,7 +229,7 @@ const Environments = () => {
 
   const filteredCloudEnvironments = _.concat(filteredRuntimes, filteredApps)
 
-  const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
+  const totalRuntimeCost = _.sum(_.map(getRuntimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
   const totalDiskCost = _.sum(_.map(disk => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), mapToPdTypes(disks)))
@@ -464,7 +464,7 @@ const Environments = () => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ?
                 Utils.formatUSD(getGalaxyComputeCost(cloudEnvironment)) :
-                Utils.formatUSD(runtimeCost(cloudEnvironment))
+                Utils.formatUSD(getRuntimeCost(cloudEnvironment))
             }
           },
           {

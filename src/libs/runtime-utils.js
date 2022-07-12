@@ -213,7 +213,7 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const runtimeCost = ({ runtimeConfig, status }) => {
+export const getRuntimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
       return runtimeConfigBaseCost(runtimeConfig)
@@ -372,7 +372,7 @@ export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, current
     [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
       const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
-      const totalCost = runtimeCost(runtime)
+      const totalCost = getRuntimeCost(runtime)
       return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
     }],
     [Utils.DEFAULT, () => {
@@ -381,18 +381,39 @@ export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, current
   )
 }
 
+export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => {
+  return Utils.cond(
+    [toolLabel === tools.Galaxy.label, () => getGalaxyCost(app, appDataDisks)],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
+      const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
+      return getRuntimeCost(runtime)
+    }],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
 export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
-  let diskCostDisplay = ''
+  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+  return diskCost ? `Disk ${Utils.formatUSD(getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))}/hr` : ''
+}
+
+export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  let diskCost = ''
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
-    diskCostDisplay = `Disk ${Utils.formatUSD(getPersistentDiskCostHourly(curPd, computeRegion))}/hr `
+    diskCost = getPersistentDiskCostHourly(curPd, computeRegion)
   } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
     //Occasionally currentDataDisk will be undefined on initial render.
-    diskCostDisplay = currentDataDisk ? `Disk ${Utils.formatUSD(getGalaxyDiskCost(currentDataDisk))}/hr` : ''
+    diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : ''
   }
-  return diskCostDisplay
+  return diskCost
 }
+
 
 //---- REFACTOR END -----
 
