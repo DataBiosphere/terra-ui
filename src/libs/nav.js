@@ -87,7 +87,7 @@ export const TitleManager = () => {
   const newTitle = Utils.cond(
     [_.isFunction(title), () => title({ ...params, queryParams: query })],
     [title, () => title],
-    getAppName
+    () => getAppName({ capitalizeThe: true })
   )
   useEffect(() => {
     document.title = newTitle
