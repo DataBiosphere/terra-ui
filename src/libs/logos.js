@@ -21,6 +21,7 @@ import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import colors from 'src/libs/colors'
 import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
+import { nonBreakingHyphen } from 'src/pages/library/common'
 
 
 export const getAppName = ({ longName = false, capitalInitial = false } = {}) => Utils.cond(
@@ -31,7 +32,7 @@ export const getAppName = ({ longName = false, capitalInitial = false } = {}) =>
   [isBaseline(), () => longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
   [isElwazi(), () => longName ? 'The eLwazi Open Data Science Platform' : 'eLwazi'],
   [isProjectSingular(), () => 'Project Singular'],
-  [isRareX(), () => `${capitalInitial ? 'The' : 'the'} RARE-X Data Analysis Platform`],
+  [isRareX(), () => `${capitalInitial ? 'The' : 'the'} RARE${nonBreakingHyphen}X Data Analysis Platform`],
   () => longName ? 'Terra Community Workbench' : 'Terra'
 )
 
