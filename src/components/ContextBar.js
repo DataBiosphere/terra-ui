@@ -15,7 +15,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -110,6 +110,19 @@ export const ContextBar = ({
     ])
   }
 
+  //This excludes cromwellapp in the calculation.
+  const getTotalToolAndDiskCostDisplay = () => {
+    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
+    const galaxyDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const galaxyCost = galaxyApp && galaxyDisk ? getGalaxyCost(galaxyApp, galaxyDisk) : 0
+    const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
+
+    //Runtime Persistent Disk
+    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+    const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
+    return `${Utils.formatUSD(galaxyCost + runtimeCost + diskCost)}/hr`
+  }
+
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
@@ -131,6 +144,22 @@ export const ContextBar = ({
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
         h(Fragment, [
+          h(Clickable, {
+            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '.25rem', borderBottom: '0px', pointer: 'none' },
+            hover: contextBarStyles.hover,
+            tooltipSide: 'left',
+            tooltip: 'This rate reflects the aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon. Workflow and workspace storage costs are not included.',
+            tooltipDelay: 100
+          }, [
+            div({ style: { textAlign: 'center', color: '#333F52' } }, 'Rate'),
+            div({
+              style: {
+                textAlign: 'center', color: '#333F52',
+                fontWeight: 'bold', fontSize: '0.7rem'
+              }
+            },
+            getTotalToolAndDiskCostDisplay())
+          ]),
           h(Clickable, {
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
