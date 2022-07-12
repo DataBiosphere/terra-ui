@@ -361,8 +361,44 @@ export const isCurrentGalaxyDiskDetaching = apps => {
 export const getGalaxyCostTextChildren = (app, appDataDisks) => {
   const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
   return app ?
-    [getComputeStatusForDisplay(app.status), dataDisk ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk))} / hr)` : ``] : ['None']
+    [getComputeStatusForDisplay(app.status), dataDisk ? ` ${Utils.formatUSD(getGalaxyCost(app, dataDisk))}/hr` : ``] : ['']
 }
+//---- REFACTOR -----
+// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => {
+  return Utils.cond(
+    [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(app, appDataDisks)],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
+      const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
+      const totalCost = runtimeCost(runtime)
+      return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
+    }],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
+export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  let diskCostDisplay = ''
+  if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
+    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+    diskCostDisplay = `Disk ${Utils.formatUSD(getPersistentDiskCostHourly(curPd, computeRegion))}/hr `
+  } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
+    const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
+    //Occasionally currentDataDisk will be undefined on initial render.
+    diskCostDisplay = currentDataDisk ? `Disk ${Utils.formatUSD(getGalaxyDiskCost(currentDataDisk))}/hr` : ''
+  }
+  return diskCostDisplay
+}
+
+//---- REFACTOR END -----
+
+// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
+export const getRuntimeForTool = (toolLabel, currentRuntime, currentRuntimeTool) => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
+  [Utils.DEFAULT, () => undefined])
 
 export const getAnalysesDisplayList = _.flow(
   _.map(
