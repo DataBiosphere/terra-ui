@@ -280,7 +280,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDeleteTable }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -366,7 +366,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDel
       onDismiss: () => setRenaming(false),
       onUpdateSuccess: onRenameTable,
       namespace, name,
-      selectedDataType: tableName
+      selectedDataType: tableName,
+      entityMetadata
     }),
     deleting && h(DeleteConfirmationModal, {
       objectType: 'table',
@@ -627,6 +628,7 @@ const WorkspaceData = _.flow(
                   after: h(DataTableActions, {
                     tableName: type,
                     rowCount: typeDetails.count,
+                    entityMetadata,
                     workspace,
                     onRenameTable: () => loadMetadata(),
                     onDeleteTable: tableName => {
