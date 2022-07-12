@@ -16,7 +16,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
-import { workspacesStore } from 'src/libs/state'
+import { authStore, workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -343,9 +343,14 @@ export const WorkspaceTagSelect = props => {
 }
 
 export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
-  const { workspace: { namespace, name } } = workspace
-  const starredTag = 'Starred'
-  const isStarred = _.includes(starredTag, _.getOr([], 'workspace.attributes.tag:tags.items', workspace))
+  const { workspace: { namespace, name, workspaceId } } = workspace
+  const { profile } = useStore(authStore)
+
+  const starredWorkspaceKey = `starredWorkspace/${workspaceId}`
+  const [starredWorkspaces] = _.over(_.pickBy)((_v, k) => _.startsWith('starredWorkspace/', k), profile)
+  const starredWorkspaceKeys = _.keys(starredWorkspaces)
+
+  const isStarred = _.includes(starredWorkspaceKey, starredWorkspaceKeys)
 
   const [updating, setUpdating] = useState(false)
 
@@ -354,9 +359,10 @@ export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      await Ajax().Workspaces.workspace(namespace, name).addTag(starredTag)
+      console.log(starredWorkspaceKey)
+      await Ajax().User.profile.setPreferences({ [starredWorkspaceKey]: 'true' })
     } else {
-      await Ajax().Workspaces.workspace(namespace, name).deleteTag(starredTag)
+      console.log(`removing key ${starredWorkspaceKey}`)
     }
     onUpdate(star)
   })
