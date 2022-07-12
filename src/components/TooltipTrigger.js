@@ -19,9 +19,9 @@ const styles = {
     background: '#FFFFFF',
     color: '#333F52',
     borderColor: '#6D6E70',
-    padding: '0.5rem',
-    ...baseToolTip,
-    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)'
+    padding: '1rem',
+    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
+    ...baseToolTip
   },
   notch: {
     fill: '#FFFFFF',
