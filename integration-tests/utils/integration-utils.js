@@ -191,7 +191,7 @@ const dismissNotifications = async page => {
   }
   const notificationCloseButtons = await page.$x(closeButtonXpath)
   await Promise.all(
-    notificationCloseButtons.map(button => button.evaluateHandle(btn => btn.click(), button))
+    notificationCloseButtons.map(button => button.evaluate(btn => btn.click()))
   )
   await delay(1000) // delayed for alerts to animate off
 }
