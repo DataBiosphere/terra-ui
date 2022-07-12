@@ -11,19 +11,22 @@ import * as Utils from 'src/libs/utils'
 
 const baseToolTip = {
   position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
-  maxWidth: 400, borderRadius: 4
+  maxWidth: 400, borderRadius: 4, zIndex: 100
 }
 
 const styles = {
   tooltip: {
-    background: 'black', color: 'white',
+    background: '#FFFFFF',
+    color: '#333F52',
+    borderColor: '#6D6E70',
     padding: '0.5rem',
-    ...baseToolTip
+    ...baseToolTip,
+    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)'
   },
   notch: {
-    fill: 'black',
+    fill: '#FFFFFF',
     position: 'absolute',
-    width: 16, height: 8,
+    width: 17, height: 8,
     marginLeft: -8, marginRight: -8, marginTop: -8,
     transformOrigin: 'bottom'
   },

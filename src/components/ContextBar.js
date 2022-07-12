@@ -84,7 +84,7 @@ export const ContextBar = ({
       },
       tooltipSide: 'left',
       tooltip: div([
-        div(`${toolLabel} Environment`),
+        div({ style: { fontWeight: 'bold' } }, `${toolLabel} Environment`),
         div(getCostDisplayForTool(app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel)),
         div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
       ]),
