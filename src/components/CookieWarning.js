@@ -85,7 +85,7 @@ const CookieWarning = () => {
     }, [
       div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
         div({ style: { overflowY: 'auto', height: '100%' } }, [
-          `${getAppName({ capitalInitial: true })} uses cookies to enable the proper functioning and security of our website,
+          `${getAppName({ capitalizeThe: true })} uses cookies to enable the proper functioning and security of our website,
             and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
             cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
             to use our site. To find out more, read our `,
