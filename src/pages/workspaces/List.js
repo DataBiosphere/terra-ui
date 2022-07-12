@@ -85,7 +85,6 @@ const EMPTY_LIST = []
 export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
-  const starredWorkspaceList = useState()
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''

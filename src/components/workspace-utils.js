@@ -343,14 +343,12 @@ export const WorkspaceTagSelect = props => {
 }
 
 export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
-  const { workspace: { namespace, name, workspaceId } } = workspace
-  const { profile } = useStore(authStore)
+  const { workspace: { workspaceId } } = workspace
+  const { profile: { starredWorkspaces } } = useStore(authStore)
 
-  const starredWorkspaceKey = `starredWorkspace/${workspaceId}`
-  const [starredWorkspaces] = _.over(_.pickBy)((_v, k) => _.startsWith('starredWorkspace/', k), profile)
-  const starredWorkspaceKeys = _.keys(starredWorkspaces)
+  const starredWorkspaceIds = _.split(',', starredWorkspaces)
 
-  const isStarred = _.includes(starredWorkspaceKey, starredWorkspaceKeys)
+  const isStarred = _.includes(workspaceId, starredWorkspaceIds)
 
   const [updating, setUpdating] = useState(false)
 
@@ -359,10 +357,13 @@ export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      console.log(starredWorkspaceKey)
-      await Ajax().User.profile.setPreferences({ [starredWorkspaceKey]: 'true' })
+      const newArray = _.concat(starredWorkspaceIds, [workspaceId])
+      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', newArray) })
+      authStore.update(_.set('profile.starredWorkspaces', newArray))
     } else {
-      console.log(`removing key ${starredWorkspaceKey}`)
+      const newArray = _.without([workspaceId], starredWorkspaceIds)
+      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', newArray) })
+      authStore.update(_.set('profile.starredWorkspaces', newArray))
     }
     onUpdate(star)
   })
