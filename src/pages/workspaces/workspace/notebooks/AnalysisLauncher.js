@@ -227,6 +227,8 @@ const PreviewHeader = ({
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
 
+  const currentRuntimeTool = getToolFromRuntime(runtime)
+
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
@@ -252,32 +254,41 @@ const PreviewHeader = ({
 
   useOnMount(() => { checkIfLocked() })
 
-  // console.log('in analysisLauncher', toolLabel)
+  const openMenuIcon = [makeMenuIcon('rocket'), 'Open']
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
   }, [
-    //App-specific controls
+    // App-specific controls
     Utils.cond(
       [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [
         makeMenuIcon('export'), 'Copy to another workspace'
       ])],
-      [!runtime, () => h(HeaderButton, {
-        onClick: () => setCreateOpen(true)
-      }, [makeMenuIcon('rocket'), 'Open'])],
-      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]), () => h(HeaderButton, {
-        onClick: () => {
-          if (runtimeStatus === 'Running') {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
-              { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
-            Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-          } else if (runtimeStatus === 'Stopped') {
-            startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
+      // Top level decision on whether user should be prompted to create a runtime
+      [!runtime || currentRuntimeTool !== toolLabel,
+        () => h(HeaderButton, {
+          onClick: () => setCreateOpen(true)
+        },
+        openMenuIcon)],
+      // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
+      // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
+      // Then open can be clicked again
+      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]),
+        () => h(HeaderButton, {
+          onClick: () => {
+            if (runtimeStatus === 'Running') {
+              Ajax().Metrics.captureEvent(Events.analysisLaunch,
+                { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
+              Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+            } else if (runtimeStatus === 'Stopped') {
+              startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
+            }
           }
-        }
-      }, [makeMenuIcon('rocket'), 'Open'])],
-      [(toolLabel !== tools.RStudio.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+        },
+        openMenuIcon)],
+      // Jupyter is slightly different since it interact with editMode and playground mode flags as well
+      [(toolLabel === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -285,9 +296,7 @@ const PreviewHeader = ({
           [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
             makeMenuIcon('lock'), 'Open (In use)'
           ])],
-          () => h(HeaderButton, { onClick: () => chooseMode('edit') }, [
-            makeMenuIcon('rocket'), 'Open'
-          ])
+          () => h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
         ),
         h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
@@ -313,7 +322,7 @@ const PreviewHeader = ({
     }, [
       h(HeaderButton, {}, [icon('ellipsis-v')])
     ]),
-    //Status specific messaging which is not specific to an app
+    // Status specific messaging which is not specific to an app
     Utils.cond(
       [_.includes(runtimeStatus, usableStatuses), () => {
         console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
