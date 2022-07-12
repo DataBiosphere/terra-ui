@@ -363,7 +363,7 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
   return app ?
     [getComputeStatusForDisplay(app.status), dataDisk ? ` ${Utils.formatUSD(getGalaxyCost(app, dataDisk))}/hr` : ``] : ['']
 }
-//---- REFACTOR -----
+
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
 export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
@@ -414,8 +414,6 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   return diskCost
 }
 
-
-//---- REFACTOR END -----
 
 // TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
 export const getRuntimeForTool = (toolLabel, currentRuntime, currentRuntimeTool) => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
