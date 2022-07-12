@@ -848,6 +848,11 @@ const Workspaces = signal => ({
             return res.json()
           },
 
+          getConfiguration: async () => {
+            const res = await fetchRawls(`${submissionPath}/configuration`, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
           abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
@@ -1107,6 +1112,13 @@ const DataRepo = signal => ({
 })
 
 const AzureStorage = signal => ({
+  sasToken: async (workspaceId, containerId) => {
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+      _.merge(authOpts(), { signal, method: 'POST' }))
+
+    return tokenResponse.json()
+  },
+
   details: async (workspaceId = {}) => {
     const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED`,
       _.merge(authOpts(), { signal })
@@ -1116,7 +1128,8 @@ const AzureStorage = signal => ({
     if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
       return {
         location: 'Unknown',
-        storageContainerName: 'None'
+        storageContainerName: 'None',
+        sasUrl: 'None'
       }
     } else {
       const container = _.find(
@@ -1126,9 +1139,11 @@ const AzureStorage = signal => ({
         },
         data.resources
       )
+      const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
       return {
         location: storageAccount.resourceAttributes.azureStorage.region,
-        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName
+        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+        sasUrl: sas.url
       }
     }
   }

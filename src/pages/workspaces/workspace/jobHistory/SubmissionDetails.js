@@ -11,6 +11,7 @@ import {
   addCountSuffix, collapseStatus, makeSection, makeStatusLine, statusType, submissionDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable, flexTableDefaultRowHeight, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -23,6 +24,7 @@ import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { downloadIO, ioTask, ioVariable } from 'src/libs/workflow-utils'
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -51,7 +53,7 @@ const deletedInfoIcon = ({ name, iconOverride }) => {
   ])
 }
 
-const workflowsTableRowHeight = flexTableDefaultRowHeight
+const tableRowHeight = flexTableDefaultRowHeight
 
 const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   const { workspace: { namespace, name, bucketName } } = workspace
@@ -77,8 +79,8 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
     div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
       h(DelayedSearchInput, {
         style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
-        placeholder: 'Search',
-        'aria-label': 'Search',
+        placeholder: 'Search workflows',
+        'aria-label': 'Search workflows',
         onChange: setTextFilter,
         value: textFilter
       }),
@@ -96,12 +98,12 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
       ])
     ]),
     // 48px is based on the default row height of FlexTable
-    div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * workflowsTableRowHeight}px` } }, [
+    div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * tableRowHeight}px` } }, [
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
         'aria-label': 'submission details',
         width, height, sort,
-        headerHeight: workflowsTableRowHeight,
-        rowHeight: workflowsTableRowHeight,
+        headerHeight: tableRowHeight,
+        rowHeight: tableRowHeight,
         rowCount: filteredWorkflows.length,
         noContentMessage: 'No matching workflows',
         columns: [
@@ -207,6 +209,66 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
   ])
 }
 
+const SubmissionWorkflowIOTable = ({ type, inputOutputs }) => {
+  const [textFilter, setTextFilter] = useState('')
+  const [sort, setSort] = useState({ field: 'task', direction: 'asc' })
+
+  const filteredInputOutputs = _.flow(
+    _.toPairs,
+    _.map(([name, value]) => ({
+      task: ioTask(name),
+      variable: ioVariable(name),
+      value
+    })),
+    _.filter(({ task, variable }) => {
+      return _.some(_.includes(textFilter), [task, variable])
+    }),
+    sort.field === 'task' ?
+      _.orderBy(['task', 'variable'], [sort.direction, sort.direction]) :
+      _.orderBy(sort.field, sort.direction)
+  )(inputOutputs)
+
+  return h(Fragment, [
+    div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
+      h(DelayedSearchInput, {
+        style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
+        placeholder: `Search ${type}`,
+        'aria-label': `Search ${type}`,
+        onChange: setTextFilter,
+        value: textFilter
+      }),
+      h(Link, { onClick: () => downloadIO(inputOutputs, type) }, ['Download JSON'])
+    ]),
+    div({ style: { flex: `1 0 ${(1 + _.min([inputOutputs.length, 5.5])) * tableRowHeight}px` } }, [
+      h(AutoSizer, [({ width, height }) => h(FlexTable, {
+        'aria-label': `Submission ${type}`,
+        width, height, sort,
+        headerHeight: tableRowHeight,
+        rowHeight: tableRowHeight,
+        rowCount: filteredInputOutputs.length,
+        noContentMessage: `No matching ${type}`,
+        columns: [
+          {
+            size: { basis: 350, grow: 0 },
+            field: 'task',
+            headerRenderer: () => h(Sortable, { sort, field: 'task', onSort: setSort }, ['Task name']),
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].task])
+          }, {
+            size: { basis: 360, grow: 0 },
+            field: 'variable',
+            headerRenderer: () => h(Sortable, { sort, field: 'variable', onSort: setSort }, ['Variable']),
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].variable])
+          }, {
+            field: 'value',
+            headerRenderer: () => h(Sortable, { sort, field: 'value', onSort: setSort }, ['Attribute']),
+            cellRenderer: ({ rowIndex }) => h(TextCell, [filteredInputOutputs[rowIndex].value])
+          }
+        ]
+      })])
+    ])
+  ])
+}
+
 const SubmissionDetails = _.flow(
   forwardRefWithName('SubmissionDetails'),
   wrapWorkspace({
@@ -220,9 +282,11 @@ const SubmissionDetails = _.flow(
    * State setup
    */
   const [submission, setSubmission] = useState({})
+  const [configuration, setConfiguration] = useState(undefined)
   const [methodAccessible, setMethodAccessible] = useState()
   const [updatingComment, setUpdatingComment] = useState(false)
   const [userComment, setUserComment] = useState()
+  const [tab, setTab] = useState('workflows')
 
   const signal = useCancellation()
 
@@ -256,6 +320,8 @@ const SubmissionDetails = _.flow(
 
           setSubmission(sub)
           setUserComment(sub.userComment)
+
+          setConfiguration(await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getConfiguration())
 
           if (_.isEmpty(submission)) {
             try {
@@ -362,7 +428,25 @@ const SubmissionDetails = _.flow(
           makeSection('Retry with More Memory', [memoryRetryMultiplier !== 1 ? `Enabled with factor ${memoryRetryMultiplier}` : 'Disabled'])
         ])
       ]),
-      h(SubmissionWorkflowsTable, { workspace, submission })
+
+      h(SimpleTabBar, {
+        'aria-label': 'Submission details tabs',
+        value: tab,
+        onChange: setTab,
+        tabs: [
+          { key: 'workflows', title: 'Workflows' },
+          { key: 'inputs', title: 'Inputs' },
+          { key: 'outputs', title: 'Outputs' }
+        ],
+        style: { marginTop: '2rem' }
+      }, [
+        Utils.switchCase(tab,
+          ['workflows', () => h(SubmissionWorkflowsTable, { workspace, submission })],
+          ['inputs', () => h(SubmissionWorkflowIOTable, { type: 'inputs', inputOutputs: configuration.inputs })],
+          ['outputs', () => h(SubmissionWorkflowIOTable, { type: 'outputs', inputOutputs: configuration.outputs })],
+          [Utils.DEFAULT, () => null]
+        )
+      ])
     ])
   ])
 })
