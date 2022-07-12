@@ -80,7 +80,8 @@ const getSiteSpecificHyperlinks = () => Utils.cond(
       'Find RARE-X Data Analysis Platform documentation, tutorials and Jupyter notebook examples'),
     makeDocLink('https://rare-x.org/researchers/', 'Learn more about the RARE-X Data Analysis Platform'),
     makeDocLink('https://support.terra.bio/hc/en-us', 'Find Terra how-to\'s, documentation, video tutorials, and discussion forums')
-  ]]
+  ]],
+  () => [makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums')]
 )
 
 const LandingPage = () => {
