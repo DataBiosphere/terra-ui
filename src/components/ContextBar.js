@@ -116,8 +116,6 @@ export const ContextBar = ({
     const galaxyDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
     const galaxyCost = galaxyApp && galaxyDisk ? getGalaxyCost(galaxyApp, galaxyDisk) : 0
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
-
-    //Runtime Persistent Disk
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
     return `${Utils.formatUSD(galaxyCost + runtimeCost + diskCost)}/hr`
