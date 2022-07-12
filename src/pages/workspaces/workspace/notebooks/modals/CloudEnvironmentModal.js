@@ -8,7 +8,6 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } from 'src/components/notebook-utils'
-import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
@@ -23,10 +22,9 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import {
-  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp,
-  getCurrentPersistentDisk,
-  getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy,
-  getPersistentDiskCostHourly, isCurrentGalaxyDiskDetaching, runtimeCost
+  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
+  getCurrentApp, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
+  isCurrentGalaxyDiskDetaching
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -37,7 +35,7 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { azureContext, workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks, location, computeRegion, workspace: { azureContext, workspace: { namespace, name: workspaceName } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -45,8 +43,6 @@ export const CloudEnvironmentModal = ({
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
   const cookieReady = useStore(cookieReadyStore)
-
-  const [computeRegion] = useState(getRegionInfo(location, locationType).computeRegion)
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
@@ -263,10 +259,6 @@ export const CloudEnvironmentModal = ({
     }
   }
 
-  // TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
-  const getRuntimeForTool = toolLabel => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
-    [Utils.DEFAULT, () => undefined])
-
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.Galaxy.label, () => galaxyLogo],
@@ -274,35 +266,10 @@ export const CloudEnvironmentModal = ({
     [tools.Cromwell.label, () => cromwellImg],
     [tools.Azure.label, () => jupyterLogo])
 
-  // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-  const getCostForTool = toolLabel => {
-    return Utils.cond(
-      [toolLabel === tools.Galaxy.label, () => 'None'], //getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
-      [toolLabel === tools.Cromwell.label, () => 'None'], // We will determine what to put here later
-      [toolLabel === tools.Azure.labels, () => 'None'], //TODO: Azure cost calculation
-      [getRuntimeForTool(toolLabel), () => {
-        const runtime = getRuntimeForTool(toolLabel)
-        const totalCost = runtimeCost(runtime)
-        return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
-      }],
-      [Utils.DEFAULT, () => {
-        return 'None'
-      }]
-    )
-  }
-
-  const getCostForDisk = (app, currentRuntime) => {
-    if (app === currentRuntime && persistentDisks && persistentDisks.length > 0) {
-      const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
-      return `Disk ${Utils.formatUSD(getPersistentDiskCostHourly(curPd, computeRegion))}/hr `
-    }
-    return ''
-  }
-
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
     [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
-      const runtime = getRuntimeForTool(toolLabel)
+      const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
       // This asks 'does this tool have a runtime'
       //  if yes, then we allow cloud env modal to open (and ComputeModal determines if it should be read-only mode)
       //  if no, then we want to disallow the cloud env modal opening if the other tool's runtime is busy
@@ -394,8 +361,8 @@ export const CloudEnvironmentModal = ({
           }),
           div(
             [
-              div(getCostForTool(toolLabel)),
-              div(getCostForDisk(currentRuntimeTool, toolLabel))
+              div({ style: { textAlign: 'right' } }, getCostDisplayForTool(app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel)),
+              div({ style: { textAlign: 'right' } }, getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
             ]
           )
         ]),

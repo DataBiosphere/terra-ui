@@ -3,7 +3,8 @@ import { Fragment, useState } from 'react'
 import { div, h, img } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { tools } from 'src/components/notebook-utils'
+import { getAppType, tools } from 'src/components/notebook-utils'
+import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
@@ -14,7 +15,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -43,6 +44,7 @@ export const ContextBar = ({
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
+  const [computeRegion] = useState(getRegionInfo(location, locationType).computeRegion)
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
@@ -69,7 +71,10 @@ export const ContextBar = ({
     [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
 
+  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+
   const getIconForTool = (toolLabel, status) => {
+    const app = currentApp(toolLabel)
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
       hover: contextBarStyles.hover,
@@ -78,7 +83,11 @@ export const ContextBar = ({
         setCloudEnvOpen(true)
       },
       tooltipSide: 'left',
-      tooltip: `${toolLabel} Environment ( ${getComputeStatusForDisplay(status)} )`,
+      tooltip: div([
+        div(`${toolLabel} Environment`),
+        div(getCostDisplayForTool(app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel)),
+        div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
+      ]),
       tooltipDelay: 100,
       useTooltipAsLabel: true
     }, [
@@ -117,7 +126,7 @@ export const ContextBar = ({
         await refreshRuntimes(true)
         await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, locationType
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, computeRegion
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
