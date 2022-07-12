@@ -848,6 +848,11 @@ const Workspaces = signal => ({
             return res.json()
           },
 
+          getConfiguration: async () => {
+            const res = await fetchRawls(`${submissionPath}/configuration`, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
           abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
