@@ -1,4 +1,3 @@
-import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
@@ -27,7 +26,7 @@ import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getWorkflowInputSuggestionsForAttributesOfSetMembers } from 'src/libs/workflow-utils'
+import { downloadIO, getWorkflowInputSuggestionsForAttributesOfSetMembers, ioTask, ioVariable } from 'src/libs/workflow-utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowConfirmationModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -81,8 +80,6 @@ const styles = {
   }
 }
 
-const ioTask = ({ name }) => _.nth(-2, name.split('.'))
-const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
 // Trim a config down based on what the `/inputsOutputs` endpoint says
@@ -99,8 +96,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   // will only match if the current root entity type comes from a snapshot
   const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots)
 
-  const taskSort = o => ioTask(o).toLowerCase()
-  const varSort = o => ioVariable(o).toLowerCase()
+  const taskSort = o => ioTask(o.name).toLowerCase()
+  const varSort = o => ioVariable(o.name).toLowerCase()
   const sortedData = _.orderBy(
     sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
     ['asc', sort.direction, sort.direction],
@@ -120,7 +117,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
           return h(TextCell, { style: { fontWeight: 500 } }, [
-            ioTask(io)
+            ioTask(io.name)
           ])
         }
       },
@@ -130,7 +127,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
         headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, [h(HeaderCell, ['Variable'])]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
-          return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
+          return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io.name)])
         }
       },
       {
@@ -159,7 +156,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
               !readOnly ? h(IdContainer, [labelId => h(Fragment, [
-                h(HiddenLabel, { id: labelId }, [`${ioTask(io)} ${ioVariable(io)} attribute`]),
+                h(HiddenLabel, { id: labelId }, [`${ioTask(io.name)} ${ioVariable(io.name)} attribute`]),
                 h(DelayedAutocompleteTextArea, {
                   autosize: true,
                   spellCheck: false,
@@ -977,10 +974,7 @@ const WorkflowView = _.flow(
 
   downloadJson(key) {
     const { modifiedConfig } = this.state
-    const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
-
-    const blob = new Blob([JSON.stringify(prepIO(modifiedConfig[key]))], { type: 'application/json' })
-    FileSaver.saveAs(blob, `${key}.json`)
+    downloadIO(modifiedConfig[key], key)
   }
 
   async uploadJson(key, file) {

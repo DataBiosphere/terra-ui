@@ -64,6 +64,20 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
 
 const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
+export const entityAttributeText = (attributeValue, machineReadable) => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  return Utils.cond(
+    [_.isNil(attributeValue), () => ''],
+    [type === 'json', () => JSON.stringify(attributeValue)],
+    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
+  )
+}
+
 export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
@@ -1272,7 +1286,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       }, [
         h(Collapse, {
           title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
+            `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`
           ]),
           buttonStyle: {
             maxWidth: '100%',

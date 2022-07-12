@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -206,7 +206,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [{ storageContainerName, storageLocation }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
+  const [{ storageContainerName, storageLocation, sasUrl }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -216,6 +216,7 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
+  const sasTokenRefreshInterval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -226,6 +227,10 @@ const WorkspaceDashboard = _.flow(
       loadBucketSize()
     } else {
       loadAzureStorage()
+
+      // sas tokens expires after 1 hour
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ minutes: 50 }))
     }
   }
 
@@ -240,6 +245,13 @@ const WorkspaceDashboard = _.flow(
   useEffect(() => {
     setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
   }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = undefined
+    }
+  }, [sasTokenRefreshInterval])
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -262,8 +274,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { storageContainerName, location } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerName, storageLocation: location })
+    const { storageContainerName, location, sasUrl } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerName, storageLocation: location, sasUrl })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -361,6 +373,13 @@ const WorkspaceDashboard = _.flow(
           h(ClipboardButton, {
             'aria-label': 'Copy storage container name to clipboard',
             text: storageContainerName, style: { marginLeft: '0.25rem' }
+          })
+        ]),
+        h(InfoRow, { title: 'Storage SAS URL' }, [
+          h(TooltipCell, [!!sasUrl ? sasUrl : 'Loading']),
+          h(ClipboardButton, {
+            'aria-label': 'Copy SAS URL to clipboard',
+            text: sasUrl, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),
