@@ -1764,7 +1764,7 @@ const Martha = signal => ({
 // TODO: test this and make sure it works
 const DrsHub = signal => ({
   getDataObjectMetadata: async (url, fields) => {
-    const res = await fetchDrsHub(
+    const res = await fetchDrsHub('/api/v4/drs/resolve',
       _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
     )
     return res.json()
