@@ -148,8 +148,6 @@ export const WorkspaceList = () => {
 
   const starredWorkspaceIds = _.split(',', starredWorkspaces)
 
-  console.log(starredWorkspaceIds)
-
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
     [ws => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),

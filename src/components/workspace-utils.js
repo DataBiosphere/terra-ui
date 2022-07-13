@@ -343,23 +343,26 @@ export const WorkspaceTagSelect = props => {
 }
 
 export const WorkspaceStarControl = ({ workspace, onUpdate, style }) => {
+  const [updating, setUpdating] = useState(false)
+
   const { workspace: { workspaceId } } = workspace
   const { profile: { starredWorkspaces } } = useStore(authStore)
 
   const starredWorkspaceIds = _.split(',', starredWorkspaces)
-
   const isStarred = _.includes(workspaceId, starredWorkspaceIds)
-
-  const [updating, setUpdating] = useState(false)
 
   const toggleStar = _.flow(
     Utils.withBusyState(setUpdating),
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      const newArray = _.concat(starredWorkspaceIds, [workspaceId])
-      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', newArray) })
-      authStore.update(_.set('profile.starredWorkspaces', newArray))
+      if (_.size(starredWorkspaceIds) <= 50) {
+        const newArray = _.concat(starredWorkspaceIds, [workspaceId])
+        await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', newArray) })
+        authStore.update(_.set('profile.starredWorkspaces', newArray))
+      } else {
+        reportError('A maximum of 50 workspaces can be starred. Please un-star another workspace before starring this workspace.')
+      }
     } else {
       const newArray = _.without([workspaceId], starredWorkspaceIds)
       await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', newArray) })
