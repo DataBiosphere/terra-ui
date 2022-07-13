@@ -1,3 +1,4 @@
+import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 
 
@@ -42,4 +43,14 @@ export const getWorkflowInputSuggestionsForAttributesOfSetMembers = (selectedEnt
     _.sortBy(_.identity),
     _.sortedUniq
   )(selectedEntities)
+}
+
+export const ioTask = ioName => _.nth(-2, ioName.split('.'))
+export const ioVariable = ioName => _.nth(-1, ioName.split('.'))
+
+export const downloadIO = (io, filename) => {
+  const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
+
+  const blob = new Blob([JSON.stringify(prepIO(io))], { type: 'application/json' })
+  FileSaver.saveAs(blob, `${filename}.json`)
 }

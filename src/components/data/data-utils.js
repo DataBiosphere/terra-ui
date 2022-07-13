@@ -62,28 +62,56 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-export const renderDataCell = (data, googleProject) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
+export const entityAttributeText = (attributeValue, machineReadable) => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  return Utils.cond(
+    [_.isNil(attributeValue), () => ''],
+    [type === 'json', () => JSON.stringify(attributeValue)],
+    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
+  )
+}
+
+export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
-    return h(TextCell, { title: stringDatum },
-      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum])
+    return isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum
   }
 
   const renderArray = items => {
     return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
+      renderCell(v), i < (items.length - 1) && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
     ]), Utils.toIndexPairs(items))
   }
 
-  return Utils.cond(
-    [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
-    [_.isObject(data), () => JSON.stringify(data, undefined, 1)],
-    () => renderCell(data?.toString())
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const tooltip = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => _.join(', ', attributeValue)],
+    [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
   )
+
+  return h(TextCell, { title: tooltip }, [
+    Utils.cond(
+      [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
+      [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+      [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
+      [type === 'reference', () => attributeValue.entityName],
+      [isList, () => renderArray(attributeValue.items)],
+      () => renderCell(attributeValue)
+    )
+  ])
 }
 
 export const EditDataLink = props => h(Link, {
@@ -1258,7 +1286,7 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
       }, [
         h(Collapse, {
           title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
+            `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`
           ]),
           buttonStyle: {
             maxWidth: '100%',

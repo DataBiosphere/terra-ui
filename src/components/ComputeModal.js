@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { getToolForImage, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { getAvailableComputeRegions, getLocationType, getRegionInfo, isUSLocation } from 'src/components/region-common'
+import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -652,13 +652,12 @@ export const ComputeModalBase = ({
   }
 
   const isDifferentLocation = () => {
-    // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
-    // bucketLocation === 'US' means the bucket is US multi-regional.
-    // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
-    // Currently, US is the only multi-region supported in Terra
-    if (location === defaultLocation) {
+    if (isLocationMultiRegion(location)) {
+      // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
+      // Currently, US is the only multi-region supported in Terra
       return computeConfig.computeRegion !== defaultComputeRegion
     } else {
+      // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
       return computeConfig.computeRegion !== location
     }
   }

@@ -2,6 +2,7 @@ const _ = require('lodash/fp')
 const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
 const { screenshotDirPath } = require('../utils/integration-config')
+const pRetry = require('p-retry')
 
 
 const defaultToVisibleTrue = _.defaults({ visible: true })
@@ -211,9 +212,43 @@ const dismissNPSSurvey = async page => {
   }
 }
 
+// Test workaround: Retry loading of Terra UI if fails first time. This issue often happens after new deploy to Staging/Alpha.
 const signIntoTerra = async (page, { token, testUrl }) => {
-  !!testUrl && await page.goto(testUrl, navOptionNetworkIdle())
-  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+  console.log('signIntoTerra ...')
+
+  const retryOptions = {
+    factor: 1,
+    minTimeout: 1000, // This is min wait time between retries
+    onFailedAttempt: error => {
+      console.error(
+        `Sign in to Terra attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
+      )
+    },
+    retries: 2
+  }
+
+  const timeout = 60 * 1000
+  const run = async url => {
+    try {
+      const httpResponse = await gotoPage(page, url)
+      if (!(httpResponse.ok() || httpResponse.status() === 304)) {
+        throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
+      }
+      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
+    } catch (e) {
+      // Stop page loading, as if you hit "X" in the browser. ignore exception.
+      await page._client.send('Page.stopLoading').catch(err => void err)
+      throw new Error(e)
+    }
+  }
+
+  if (!!testUrl) {
+    console.log(`Loading URL: ${testUrl}`)
+    await pRetry(() => run(testUrl), retryOptions)
+  } else {
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
+  }
+
   await waitForNoSpinners(page)
 
   await page.waitForFunction('!!window["forceSignIn"]')

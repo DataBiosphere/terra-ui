@@ -37,14 +37,18 @@ export const pdTypes = {
     displayName: 'Solid state drive (SSD)',
     regionToPricesName: 'monthlySSDDiskPrice'
   },
-  fromString: str => Utils.switchCase(str,
-    [pdTypes.standard.label, () => pdTypes.standard],
-    [pdTypes.balanced.label, () => pdTypes.balanced],
-    [pdTypes.ssd.label, () => pdTypes.ssd],
-    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
-  )
+  fromString: str => {
+    return Utils.switchCase(str,
+      [pdTypes.standard.label, () => pdTypes.standard],
+      [pdTypes.balanced.label, () => pdTypes.balanced],
+      [pdTypes.ssd.label, () => pdTypes.ssd],
+      [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
+    )
+  }
 }
-export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromString, disk)
+export const updatePdType = disk => {
+  return disk && _.update('diskType', pdTypes.fromString, disk)
+}
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
