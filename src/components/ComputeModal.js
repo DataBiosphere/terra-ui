@@ -227,7 +227,7 @@ export const ComputeModalBase = ({
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType))
+  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType), tool)
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
 
   const isRuntimeRunning = currentRuntimeDetails?.status === 'Running'

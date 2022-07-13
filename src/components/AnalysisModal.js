@@ -298,7 +298,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                   await Ajax().Buckets.notebook(googleProject, bucketName, fullAnalysisName).create(contents) :
                   await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents)
                 await refreshAnalyses()
-                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel })
+                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
