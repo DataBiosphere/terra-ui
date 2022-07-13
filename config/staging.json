@@ -7,6 +7,7 @@
   "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-staging.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "drsHubUrlRoot": "https://us-central1-broad-dsde-staging.cloudfunctions.net",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
   "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
   "isProd": true,

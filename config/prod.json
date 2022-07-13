@@ -6,6 +6,7 @@
   "catalogUrlRoot": "https://catalog.dsde-prod.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.terra.bio",
   "dockstoreUrlRoot": "https://dockstore.org",
+  "drsHubUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
   "isProd": true,

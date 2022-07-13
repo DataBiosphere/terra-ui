@@ -7,6 +7,7 @@
   "dataRepoUrlRoot": "https://data.alpha.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-alpha.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "drsHubUrlRoot": "https://us-central1-broad-dsde-alpha.cloudfunctions.net",
   "externalCredsUrlRoot": "https://externalcreds.dsde-alpha.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-alpha",
   "firecloudUrlRoot": "https://firecloud.dsde-alpha.broadinstitute.org",
