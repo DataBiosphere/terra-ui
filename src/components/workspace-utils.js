@@ -353,7 +353,7 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      if (_.size(starredWorkspaceIds) <= 50) {
+      if (_.size(starredWorkspaceIds) < 50) {
         const updatedWorkspaceIds = _.concat(starredWorkspaceIds, [workspaceId])
         await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
         authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))

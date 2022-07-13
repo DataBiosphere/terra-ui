@@ -145,8 +145,7 @@ export const WorkspaceList = () => {
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
   const { profile: { starredWorkspaces } } = useStore(authStore)
-
-  const starredWorkspaceIds = _.split(',', starredWorkspaces)
+  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
 
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
