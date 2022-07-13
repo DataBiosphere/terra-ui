@@ -18,7 +18,8 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -143,9 +144,17 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
+  const { profile: { starredWorkspaces } } = useStore(authStore)
+
+  const starredWorkspaceIds = _.split(',', starredWorkspaces)
+
+  console.log(starredWorkspaceIds)
+
+  //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
-    [sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
-    [sort.direction],
+    [ws => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
+      sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
+    ['desc', sort.direction],
     filteredWorkspaces[tab]
   )
 
@@ -179,6 +188,7 @@ export const WorkspaceList = () => {
       sort,
       columns: [
         {
+          field: 'starred',
           headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
           cellRenderer: ({ rowIndex }) => {
             const workspace = sortedWorkspaces[rowIndex]
