@@ -52,7 +52,7 @@ export const allSavedColumnSettingsEntityTypeKey = ({ snapshotName, entityType }
   return entityTypeKey
 }
 
-const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, entityType }) => {
+export const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, entityType }) => {
   // Saved column settings for all tables are stored in the same attribute in the format:
   // {
   //   snapshots: {
@@ -88,9 +88,9 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
     )(workspace)
   }
 
-  const updateSavedColumnSettings = async allColumnSettings => {
+  const updateAllSavedColumnSettings = async allColumnSettings => {
     const { namespace, name } = workspaceId
-    await Ajax(signal).Workspaces.workspace(namespace, name).shallowMergeNewAttributes({
+    await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({
       [savedColumnSettingsWorkspaceAttributeName]: allColumnSettings
     })
   }
@@ -127,17 +127,19 @@ const useSavedColumnSettings = ({ workspaceId, snapshotName, entityMetadata, ent
       encodeColumnSettings(columnSettings),
       allColumnSettings
     )
-    await updateSavedColumnSettings(newColumnSettings)
+    await updateAllSavedColumnSettings(newColumnSettings)
   }
 
   const deleteSavedColumnSettings = async columnSettingsName => {
     // Re-fetch column settings to reduce the chances of overwriting changes made by other users since we first loaded settings.
     const allColumnSettings = await getAllSavedColumnSettings()
     const newColumnSettings = _.omit(`${entityTypeKey}.${columnSettingsName}`, allColumnSettings)
-    await updateSavedColumnSettings(newColumnSettings)
+    await updateAllSavedColumnSettings(newColumnSettings)
   }
 
   return {
+    getAllSavedColumnSettings,
+    updateAllSavedColumnSettings,
     getSavedColumnSettings,
     saveColumnSettings,
     deleteSavedColumnSettings

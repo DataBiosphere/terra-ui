@@ -72,6 +72,8 @@
     "postinstall": "husky install"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^12.1.5",
     "babel-plugin-prismjs": "^2.1.0",
     "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",

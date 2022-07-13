@@ -112,10 +112,11 @@ export const makeCromwellStatusLine = (executionStatus, backendStatus) => {
   )
 }
 
-export const makeSection = (label, children) => div({
+export const makeSection = (label, children, { style = {} } = {}) => div({
   style: {
     flex: '0 0 33%', padding: '0 0.5rem 0.5rem', marginTop: '1rem',
-    whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
+    whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden',
+    ...style
   }
 }, [
   h4({ style: Style.elements.sectionHeader }, label),
