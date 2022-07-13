@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 const baseToolTip = {
   position: 'fixed', top: 0, left: 0, pointerEvents: 'none',
-  maxWidth: 400, borderRadius: 4, zIndex: 100
+  maxWidth: 400, borderRadius: 4
 }
 
 const styles = {

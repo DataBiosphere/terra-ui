@@ -37,18 +37,14 @@ export const pdTypes = {
     displayName: 'Solid state drive (SSD)',
     regionToPricesName: 'monthlySSDDiskPrice'
   },
-  fromString: str => {
-    return Utils.switchCase(str,
-      [pdTypes.standard.label, () => pdTypes.standard],
-      [pdTypes.balanced.label, () => pdTypes.balanced],
-      [pdTypes.ssd.label, () => pdTypes.ssd],
-      [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
-    )
-  }
+  fromString: str => Utils.switchCase(str,
+    [pdTypes.standard.label, () => pdTypes.standard],
+    [pdTypes.balanced.label, () => pdTypes.balanced],
+    [pdTypes.ssd.label, () => pdTypes.ssd],
+    [Utils.DEFAULT, () => console.error(`Invalid disk type: Should not be calling pdTypes.fromString for ${str}`)]
+  )
 }
-export const updatePdType = disk => {
-  return disk && _.update('diskType', pdTypes.fromString, disk)
-}
+export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromString, disk)
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
@@ -381,20 +377,18 @@ export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, current
   )
 }
 
-export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => {
-  return Utils.cond(
-    [toolLabel === tools.Galaxy.label, () => getGalaxyCost(app, appDataDisks)],
-    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
-    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
-      const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
-      return getRuntimeCost(runtime)
-    }],
-    [Utils.DEFAULT, () => {
-      return ''
-    }]
-  )
-}
+export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
+  [toolLabel === tools.Galaxy.label, () => getGalaxyCost(app, appDataDisks)],
+  [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+  [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+  [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
+    const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
+    return getRuntimeCost(runtime)
+  }],
+  [Utils.DEFAULT, () => {
+    return ''
+  }]
+)
 
 export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
