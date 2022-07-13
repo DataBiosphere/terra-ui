@@ -505,6 +505,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
+      // width is set to prevent text from overlapping the background image and decreasing legibility
       h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [`Welcome to ${getAppName({ longName: isTerra() })}`]),
       div({ style: { margin: '1rem 0', width: 'calc(100% - 460px)', maxWidth: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName({ longName: !isTerra(), capitalizeThe: true })} is a ${Utils.cond(
