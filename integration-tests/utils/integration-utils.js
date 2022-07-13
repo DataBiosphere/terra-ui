@@ -385,7 +385,7 @@ const logError = page => {
 
 // Emitted when an uncaught exception happens within the page
 const logPageError = page => {
-  const handle = msg => console.error('page.pageerror', msg)
+  const handle = async msg => console.error('page.pageerror', msg instanceof Response ? await msg.text() : msg)
   page.on('pageerror', handle)
   return () => page.off('pageerror', handle)
 }
