@@ -1,7 +1,5 @@
 # Terra UI Integration Tests
 
-See also: [Bueller](Bueller.md) - service for invoking tests
-
 ### Setup
 
 1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
