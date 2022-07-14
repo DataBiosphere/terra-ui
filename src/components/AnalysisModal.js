@@ -9,7 +9,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import {
-  analysisNameInput, analysisNameValidator, getAppType, getFileName, getTool, isToolAnApp, notebookData,
+  analysisNameInput, analysisNameValidator, getAppType, getFileName, getToolFromFileExtension, isToolAnApp, notebookData,
   toolExtensionDisplay, tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
@@ -196,7 +196,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         onDropRejected: () => reportError('Not a valid analysis file',
           `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
-          const tool = getTool(files.pop().path)
+          const tool = getToolFromFileExtension(files.pop().path)
           setCurrentTool(tool)
           currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeTool !== tool ?
             onSuccess() :

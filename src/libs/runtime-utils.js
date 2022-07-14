@@ -81,8 +81,8 @@ export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = (isDataproc, tool) => Utils.cond(
   [isDataproc, () => defaultDataprocMachineType],
-[tool === tools.RStudio.label, () => defaultRStudioMachineType],
-[Utils.DEFAULT, () => defaultGceMachineType])
+  [tool === tools.RStudio.label, () => defaultRStudioMachineType],
+  [Utils.DEFAULT, () => defaultGceMachineType])
 
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
 export const getRegionFromZone = zone => zone.slice(0, -2)
