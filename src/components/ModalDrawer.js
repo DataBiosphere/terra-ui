@@ -6,6 +6,8 @@ import colors from 'src/libs/colors'
 import { useLabelAssert } from 'src/libs/react-utils'
 
 
+const TRANSITION_DURATION = 200
+
 const drawer = {
   overlay: transitionState => transitionState === 'entering' || transitionState === 'entered' ? {
     backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '2rem 1rem',
@@ -29,7 +31,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
 
   return h(Transition, {
     in: isOpen,
-    timeout: { exit: 200 },
+    timeout: { exit: TRANSITION_DURATION },
     appear: true,
     mountOnEnter: true,
     unmountOnExit: true
@@ -38,7 +40,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
     ariaHideApp: false,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
-    onRequestClose: onDismiss,
+    onRequestClose: () => onDismiss(TRANSITION_DURATION),
     style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
     ...props
   }, [children])])

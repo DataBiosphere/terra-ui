@@ -462,9 +462,11 @@ export const CloudEnvironmentModal = ({
 
   const modalProps = {
     'aria-labelledby': titleId, isOpen, width,
-    onDismiss: () => {
-      setViewMode(undefined)
+    onDismiss: (timeout = 0) => {
       onDismiss()
+      setTimeout(() => {
+        setViewMode(undefined)
+      }, timeout)
     }
   }
   return h(ModalDrawer, { ...modalProps, children: modalBody })
