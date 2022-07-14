@@ -86,7 +86,8 @@ const getSiteSpecificHyperlinks = () => Utils.cond(
 
 const LandingPage = () => {
   return h(HeroWrapper, { bigSubhead: true }, [
-    div({ style: { maxWidth: '85%' } }, getSiteSpecificHyperlinks()),
+    // width is set to prevent text from overlapping the background image and decreasing legibility
+    div({ style: { maxWidth: 'calc(100% - 460px)' } }, getSiteSpecificHyperlinks()),
     div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [
       makeCard('workspaces', 'View Workspaces', [
         'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
