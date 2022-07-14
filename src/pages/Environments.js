@@ -16,6 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
@@ -135,12 +136,16 @@ const Environments = () => {
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
+
+    const startTimeForLeoCallsEpochMs = new Date().getTime()
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ? { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
+    const endTimeForLeoCallsEpochMs = new Date().getTime()
 
+    const startTimeForRawlsCallsEpochMs = new Date().getTime()
     const decorateLabeledCloudObjWithWorkspaceId = withErrorIgnoring(async cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
       const details = !!saturnWorkspaceNamespace && !!saturnWorkspaceName ? await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace']).catch(_ => undefined) : undefined
@@ -148,11 +153,16 @@ const Environments = () => {
       return { ...cloudObject, workspaceId }
     })
 
-    const [decoratedRuntimes, decoratedDisks, decoratedApps] = [
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newDisks)),
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newApps))
-    ]
+    const [decoratedRuntimes, decoratedDisks, decoratedApps] = await Promise.all([
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newDisks)),
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newApps))
+    ])
+    const endTimeForRawlsCallsEpochMs = new Date().getTime()
+
+    const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs
+    const rawlsCallTimeTotalMs = endTimeForRawlsCallsEpochMs - startTimeForRawlsCallsEpochMs
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, rawlsCallTimeMs: rawlsCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs + rawlsCallTimeTotalMs })
 
     setRuntimes(decoratedRuntimes)
     setDisks(decoratedDisks)
