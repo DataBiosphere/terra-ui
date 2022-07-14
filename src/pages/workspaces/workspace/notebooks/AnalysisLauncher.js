@@ -287,7 +287,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interact with editMode and playground mode flags as well
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well
       [(toolLabel === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
