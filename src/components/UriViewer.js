@@ -113,6 +113,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
     } else {
       try {
+        // This is still using Martha instead of DrsHub becuase DrsHub has not yet implemented signed URLs
         const { url } = await Ajax(signal).Martha.getSignedUrl({
           bucket,
           object: name,
