@@ -46,6 +46,5 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, te
 registerTest({
   name: 'link-to-new-workspace',
   fn: testLinkToNewWorkspaceFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['dev', 'local']
+  timeout: 2 * 60 * 1000
 })
