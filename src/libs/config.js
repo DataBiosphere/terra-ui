@@ -8,7 +8,11 @@ export const getConfig = () => {
   return _.merge(loadedConfigStore.current, configOverridesStore.get())
 }
 
-// Co-brands (a.k.a. white label sites) of Terra
+/**
+ * Co-brands (a.k.a. white label sites) of Terra
+ * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
+ * TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
+ */
 export const brands = {
   anvil: {
     welcomeText: '',
@@ -25,7 +29,6 @@ export const brands = {
     enable: () => configOverridesStore.set({ isBioDataCatalyst: true }),
     isEnabled: () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
   },
-  // TODO: Do we need to carry over Datastage?
   datastage: {
     welcomeText: '',
     enable: () => configOverridesStore.set({ isDatastage: true }),
@@ -69,7 +72,7 @@ export const isRareX = () => brands.rareX.isEnabled()
 export const isTerra = () => brands.terra.isEnabled() || (!isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() &&
   !isProjectSingular() && !isRareX())
 
-// Hidden features
+// Features that are hidden behind feature flags
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
