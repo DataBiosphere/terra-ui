@@ -22,7 +22,6 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)
-  console.log(totalDatasetSize)
 
   // Testing filter by search text
   await fillIn(page, input({ labelContains: 'Search Datasets' }), searchText)
@@ -115,8 +114,6 @@ const setDatasetsMockValues = async page => {
       {
         filter: { url: new RegExp(`/api/v1/datasets(.*)`, 'g') },
         fn: () => () => {
-          console.log('called mock function')
-          console.log(JSON.stringify([datasetsResult]))
           return Promise.resolve(new Response(JSON.stringify(datasetsResult), { status: 200 }))
         }
       }
