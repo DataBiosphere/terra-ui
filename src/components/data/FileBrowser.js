@@ -263,7 +263,7 @@ const BucketBrowser = (({
   showNewFolderButton = true,
   extraMenuItems,
   style, controlPanelStyle,
-  onUploadFiles, onDeleteFiles
+  onUploadFiles = _.noop, onDeleteFiles = _.noop
 }) => {
   // Normalize base prefix to have a trailing slash.
   const basePrefix = Utils.cond(

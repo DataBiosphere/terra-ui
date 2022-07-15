@@ -147,23 +147,23 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     window.ajaxOverridesStore.set([
       {
         filter: { url: /api\/billing\/v2$/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify(projectListResult), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess(projectListResult)
       },
       {
         filter: { url: /Alpha_Spend_Report_Users\/action\/use/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify(true), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess(true)
       },
       {
         filter: { url: /api\/billing\/v2(.*)\/members$/ },
-        fn: () => () => Promise.resolve(new Response('[]', { status: 200 }))
+        fn: () => () => window.ajaxOverrideUtils.makeSuccess([])
       },
       {
         filter: { url: ownedMembersUrl },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify(ownedProjectMembersListResult), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess(ownedProjectMembersListResult)
       },
       {
         filter: { url: notOwnedMembersUrl },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify(notOwnedProjectMembersListResult), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess(notOwnedProjectMembersListResult)
       },
       {
         filter: { url: erroredBillingProjectUrl, method: 'DELETE' },
@@ -171,7 +171,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
       },
       {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify(spendReturnResult), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess(spendReturnResult)
       }
     ])
   }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,

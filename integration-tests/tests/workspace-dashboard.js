@@ -70,13 +70,11 @@ const setGcpAjaxMockValues = async (testPage, namespace, name) => {
     window.ajaxOverridesStore.set([
       {
         filter: { url: storageCostEstimateUrl },
-        fn: () => () => Promise.resolve(
-          new Response(JSON.stringify({ estimate: 'Fake Estimate', lastUpdated: Date.now() }), { status: 200 })
-        )
+        fn: window.ajaxOverrideUtils.makeSuccess({ estimate: 'Fake Estimate', lastUpdated: Date.now() })
       },
       {
         filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
-        fn: () => () => Promise.resolve(new Response(JSON.stringify({}), { status: 200 }))
+        fn: window.ajaxOverrideUtils.makeSuccess({})
       }
     ])
   }, namespace, name)
@@ -151,10 +149,30 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     canCompute: true
   }
 
-  return await testPage.evaluate((azureWorkspacesListResult, azureWorkspaceDetailsResult, namespace, name) => {
+  const azureWorkspaceResourcesResult = {
+    resources: [
+      {
+        metadata: {
+          resourceId: 'dummy-sa-resource-id',
+          resourceType: 'AZURE_STORAGE_ACCOUNT'
+        },
+        resourceAttributes: { azureStorage: { region: 'eastus' } }
+      },
+      {
+        metadata: {
+          resourceType: 'AZURE_STORAGE_CONTAINER'
+        },
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
+      }
+    ]
+  }
+
+  return await testPage.evaluate((azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceId) => {
     const detailsUrl = new RegExp(`api/workspaces/${namespace}/${name}[^/](.*)`, 'g')
     const submissionsUrl = new RegExp(`api/workspaces/${namespace}/${name}/submissions(.*)`, 'g')
     const tagsUrl = new RegExp(`api/workspaces/${namespace}/${name}/tags(.*)`, 'g')
+    const workspaceResourcesUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources(.*)`, 'g')
+    const workspaceSasTokenUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/(.*)/getSasToken`)
 
     window.ajaxOverridesStore.set([
       {
@@ -174,6 +192,14 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspaceDetailsResult), { status: 200 }))
       },
       {
+        filter: { url: workspaceResourcesUrl },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspaceResourcesResult), { status: 200 }))
+      },
+      {
+        filter: { url: workspaceSasTokenUrl },
+        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://example.com' }), { status: 200 }))
+      },
+      {
         filter: { url: /api\/workspaces[^/](.*)/ },
         fn: () => () => Promise.resolve(new Response(JSON.stringify(azureWorkspacesListResult), { status: 200 }))
       },
@@ -182,7 +208,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       }
     ])
-  }, azureWorkspacesListResult, azureWorkspaceDetailsResult, namespace, name)
+  }, azureWorkspacesListResult, azureWorkspaceDetailsResult, azureWorkspaceResourcesResult, namespace, name, workspaceInfo.workspaceId)
 }
 
 const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
@@ -200,7 +226,13 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertDescription(workspaceDescription)
 
   // Check cloud information
-  await dashboard.assertCloudInformation(['Cloud NameMicrosoft Azure', 'Resource Group IDdummy-mrg-id'])
+  await dashboard.assertCloudInformation([
+    'Cloud NameMicrosoft Azure',
+    'Resource Group IDdummy-mrg-id',
+    'Storage Container Namesc-name',
+    'Location🇺🇸 East US',
+    'SAS URLhttp://example.com'
+  ])
 
   // READER permissions only
   await dashboard.assertReadOnly()
