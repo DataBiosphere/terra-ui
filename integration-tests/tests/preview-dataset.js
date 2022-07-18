@@ -29,6 +29,5 @@ const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
 registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: ['dev', 'local']
+  timeout: 2 * 60 * 1000
 })

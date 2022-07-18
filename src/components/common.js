@@ -19,7 +19,7 @@ import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { getConfig, isFirecloud, isProjectSingular, isTerra } from 'src/libs/config'
+import { getConfig, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -505,15 +505,15 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      h1({ style: { fontSize: 54 } }, [
-        'Welcome to ',
-        span({ style: { display: isTerra() ? 'block' : 'inline-block' } }, getAppName(isTerra()))
-      ]),
-      div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
-        `${getAppName(!isTerra())} is a ${Utils.cond(
+      // width is set to prevent text from overlapping the background image and decreasing legibility
+      h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [`Welcome to ${getAppName({ longName: isTerra() })}`]),
+      div({ style: { margin: '1rem 0', width: 'calc(100% - 460px)', maxWidth: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
+        `${getAppName({ longName: !isTerra(), capitalizeThe: true })} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
           [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
           [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
+          [isRareX(),
+            () => 'federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra'],
           () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',

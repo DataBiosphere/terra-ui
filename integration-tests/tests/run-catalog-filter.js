@@ -16,6 +16,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const secondFilterItem = 'adrenal cortex adenoma'
 
   await enableDataCatalog(page, testUrl, token)
+  await setDatasetsMockValues(page)
   await click(page, clickable({ textContains: 'datasets' }))
   await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await findText(page, filterItem)
@@ -53,6 +54,72 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
     throw new Error(`Clear Filter was not applied to the table, ${datasetSizeAfterClear}, ${datasetSizeAfterSearch}`)
   }
 })
+
+const setDatasetsMockValues = async page => {
+  const datasetsResult = {
+    result: [
+      {
+        samples: {
+          disease: [
+            'acoustic neuroma',
+            'adrenal cortex adenoma'
+          ]
+        },
+        'dct:title': 'The Single Cell Transcriptomic Landscape of Early Human Diabetic Nephropathy',
+        'dct:identifier': '32cfbe46-2cd9-4b13-95c0-e2670373dd9a',
+        'dct:description': 'kidney',
+        accessLevel: 'reader',
+        id: 'df5eadfc-207b-4b96-9121-88759bd26cd5'
+      },
+      {
+        samples: {
+          disease: [
+            'acoustic neuroma'
+          ]
+        },
+        'dct:title': 'Single cell transcriptional and chromatin accessibility profiling redefine cellular heterogeneity in the adult human kidney',
+        'dct:identifier': '1b3866aa-d2a3-42cf-888d-7fb57a77c5aa',
+        'dct:description': 'kidney',
+        accessLevel: 'reader',
+        id: 'b3b8fd1d-3911-4c92-bbdb-dbd6c3e3a379'
+      },
+      {
+        samples: {
+          disease: [
+            'anxiety disorder'
+          ]
+        },
+        'dct:title': 'Filler Item',
+        'dct:identifier': '32cfbe46-2cd9-4b13-95c0-e2670373dd9b',
+        'dct:description': 'no description',
+        accessLevel: 'reader',
+        id: 'df5eadfc-207b-4b96-9121-88759bd26cd4'
+      },
+      {
+        samples: {
+          disease: [
+            'anxiety disorder'
+          ]
+        },
+        'dct:title': 'Filler Item 2',
+        'dct:identifier': '32cfbe46-2cd9-4b13-95c0-e2670373dd9c',
+        'dct:description': 'no kidney',
+        accessLevel: 'reader',
+        id: 'df5eadfc-207b-4b96-9121-88759bd26cd3'
+      }
+    ]
+  }
+  return await page.evaluate(datasetsResult => {
+    window.ajaxOverridesStore.set([
+      {
+        filter: { url: new RegExp(`/api/v1/datasets(.*)`, 'g') },
+        fn: () => () => {
+          return Promise.resolve(new Response(JSON.stringify(datasetsResult), { status: 200 }))
+        }
+      }
+    ])
+  }, datasetsResult)
+}
 
 registerTest({
   name: 'run-catalog-filter',

@@ -497,9 +497,9 @@ const WorkspaceDashboard = _.flow(
       }, [
         div({ style: { margin: '0.5rem' } }, [
           div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-            `${getAppName()} is not intended to host personally identifiable information.`,
+            `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information.`,
             h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+              `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information. Do not use any patient identifier including name,
               social security number, or medical record number.`
             ])
           ]),

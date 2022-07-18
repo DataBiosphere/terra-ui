@@ -63,7 +63,7 @@ const IGVBrowser = _.flow(
               return {
                 name: `${_.last(filePath.split('/'))} (${filePath})`,
                 url: Utils.mergeQueryParams(userProjectParam, filePath),
-                indexURL: Utils.mergeQueryParams(userProjectParam, indexFilePath)
+                indexURL: !!indexFilePath ? Utils.mergeQueryParams(userProjectParam, indexFilePath) : undefined
               }
             }, selectedFiles))
           }
