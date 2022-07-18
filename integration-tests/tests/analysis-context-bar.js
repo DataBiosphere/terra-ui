@@ -63,5 +63,5 @@ registerTest({
   name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
   timeout: 15 * 60 * 1000,
-  targetEnvironments: ['alpha']
+  targetEnvironments: ['local', 'alpha']
 })
