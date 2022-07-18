@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, img, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { getAppType, tools } from 'src/components/notebook-utils'
@@ -118,7 +118,7 @@ export const ContextBar = ({
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
-    return `${Utils.formatUSD(galaxyCost + runtimeCost + diskCost)}/hr`
+    return `${Utils.formatUSD(galaxyCost + runtimeCost + diskCost)}`
   }
 
   return h(Fragment, [
@@ -143,20 +143,23 @@ export const ContextBar = ({
       div({ style: contextBarStyles.contextBarContainer }, [
         h(Fragment, [
           h(Clickable, {
-            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '.25rem', borderBottom: '0px', pointer: 'none' },
+            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', pointer: 'none' },
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            tooltip: 'This rate reflects the aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon. Workflow and workspace storage costs are not included.',
+            tooltip: 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon. Workflow and workspace storage costs are not included.',
             tooltipDelay: 100
           }, [
-            div({ style: { textAlign: 'center', color: '#333F52' } }, 'Rate'),
+            div({ style: { textAlign: 'center', color: '#333F52', fontSize: '0.8em' } }, 'Rate'),
             div({
               style: {
                 textAlign: 'center', color: '#333F52',
-                fontWeight: 'bold', fontSize: '0.7rem'
+                fontWeight: 'bold', fontSize: '1em'
               }
             },
-            getTotalToolAndDiskCostDisplay())
+            [
+              getTotalToolAndDiskCostDisplay(),
+              span({ style: { fontWeight: 'normal', fontSize: '0.7em' } }, '/hr')
+            ])
           ]),
           h(Clickable, {
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
