@@ -348,12 +348,18 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
   const { workspace: { workspaceId } } = workspace
   const isStarred = _.includes(workspaceId, starredWorkspaceIds)
 
+  //Thurloe has a limit of 2048 bytes for its VALUE column. That means we can store a max of 55
+  //workspaceIds in list format. We'll use 50 because it's a nice round number and should be plenty
+  //for the intended use case. If we find that 50 is not enough, consider introducing more powerful
+  //workspace organization functionality like folders
+  const MAX_STARRED_WORKSPACES = 50
+
   const toggleStar = _.flow(
     Utils.withBusyState(setUpdating),
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      if (_.size(starredWorkspaceIds) < 50) {
+      if (_.size(starredWorkspaceIds) < MAX_STARRED_WORKSPACES) {
         const updatedWorkspaceIds = _.concat(starredWorkspaceIds, [workspaceId])
         await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
         authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
