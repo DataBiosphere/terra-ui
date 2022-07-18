@@ -147,7 +147,7 @@ export const ContextBar = ({
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
             tooltip: [
-              div('This rate reflects the aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+              div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
               br(),
               div('Workflow and workspace storage costs are not included.')
             ],
