@@ -3,13 +3,20 @@ import { useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import colors from 'src/libs/colors'
 import { useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 
 
-const Collapse = ({ title, buttonStyle, buttonProps = {}, summaryStyle, detailsStyle, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, noTitleWrap, ...props }) => {
+const Collapse = ({ title, hover, tooltip, tooltipDelay, summaryStyle, detailsStyle, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, noTitleWrap, ...props }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState)
-  const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
+  const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', {
+    style: {
+      flexShrink: 0,
+      marginLeft: titleFirst ? 'auto' : undefined,
+      marginRight: titleFirst ? undefined : '0.25rem'
+    }
+  })
 
   const firstOpenRef = useRef(_.once(onFirstOpen))
   const id = useUniqueId()
@@ -21,19 +28,34 @@ const Collapse = ({ title, buttonStyle, buttonProps = {}, summaryStyle, detailsS
   }, [firstOpenRef, isOpened])
 
   return div(props, [
-    div({ style: { display: 'flex', alignItems: 'center', ...summaryStyle } }, [
+    div({
+      style: {
+        position: 'relative',
+        display: 'flex', alignItems: 'center',
+        ...summaryStyle
+      }
+    }, [
+      !titleFirst && angleIcon,
       h(Link, {
         'aria-expanded': isOpened,
         'aria-controls': isOpened ? id : undefined,
-        style: { display: 'flex', flex: 1, alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
+        style: {
+          color: colors.dark(),
+          ...(noTitleWrap ? Style.noWrapEllipsis : {})
+        },
         onClick: () => setIsOpened(!isOpened),
-        ...buttonProps
+        hover,
+        tooltip,
+        tooltipDelay
       }, [
-        titleFirst && div({ style: { flexGrow: 1, ...(noTitleWrap ? Style.noWrapEllipsis : {}) } }, [title]),
-        angleIcon,
-        !titleFirst && title
+        div({
+          'aria-hidden': true,
+          style: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, zIndex: 1 }
+        }),
+        title
       ]),
-      afterToggle
+      afterToggle && div({ style: { display: 'flex', flex: 1, margin: '0 1ch', zIndex: 2 } }, [afterToggle]),
+      titleFirst && angleIcon
     ]),
     isOpened && div({ id, style: detailsStyle }, [children])
   ])

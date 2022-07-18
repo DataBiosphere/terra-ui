@@ -1285,14 +1285,9 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
         }
       }, [
         h(Collapse, {
-          title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`
-          ]),
-          buttonStyle: {
-            maxWidth: '100%',
-            padding: '0.5rem 0',
-            marginBottom: 0
-          }
+          title: `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`,
+          noTitleWrap: true,
+          summaryStyle: { margin: '0.5rem 0' }
         }, [
           div({ style: { margin: '0.5rem 0' } }, [
             h(AttributeInput, {
