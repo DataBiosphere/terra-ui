@@ -162,7 +162,7 @@ export const ContextBar = ({
             },
             [
               getTotalToolAndDiskCostDisplay(),
-              span({ style: { fontWeight: 'normal', fontSize: '0.7em' } }, '/hr')
+              span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
             ])
           ]),
           h(Clickable, {
