@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, img, span } from 'react-hyperscript-helpers'
+import { br, div, h, img, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { getAppType, tools } from 'src/components/notebook-utils'
@@ -146,7 +146,11 @@ export const ContextBar = ({
             style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', pointer: 'none' },
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
-            tooltip: 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon. Workflow and workspace storage costs are not included.',
+            tooltip: [
+              div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+              br(),
+              div('Workflow and workspace storage costs are not included.')
+            ],
             tooltipDelay: 100
           }, [
             div({ style: { textAlign: 'center', color: '#333F52', fontSize: '0.8em' } }, 'Rate'),
