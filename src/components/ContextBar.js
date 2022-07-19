@@ -44,8 +44,8 @@ export const ContextBar = ({
 }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
-  const [computeRegion] = useState(getRegionInfo(location, locationType).computeRegion)
 
+  const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
