@@ -204,12 +204,11 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Total spend$1,110.00')
   await billingPage.assertText('Total compute$999.00')
   await billingPage.assertText('Total storage$22.00')
-  await billingPage.assertText('Total other$89.00')
+  await billingPage.assertText('Total spend includes $89.00 in other infrastructure or query costs related to the general operations of Terra.')
   // Check that chart loaded, and workspaces are sorted by cost.
   await billingPage.assertText('Spend By Workspace')
   // Verify all series values of the most expensive workspace.
   await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Compute', '$900.00')
-  await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Other', '$80.00')
   await billingPage.assertChartValue(1, 'Most Expensive Workspace', 'Storage', '$20.00')
   // Spot-check other 2 workspaces.
   await billingPage.assertChartValue(2, 'Second Most Expensive Workspace', 'Compute', '$90.00')

@@ -195,6 +195,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
+const otherMessaging = cost => `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.`
 
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
@@ -240,8 +241,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     plotOptions: { series: { stacking: 'normal' } },
     series: [
       { name: 'Compute', data: costPerWorkspace.computeCosts },
-      { name: 'Storage', data: costPerWorkspace.storageCosts },
-      { name: 'Other', data: costPerWorkspace.otherCosts }
+      { name: 'Storage', data: costPerWorkspace.storageCosts }
     ],
     title: {
       align: 'left', style: { fontSize: '16px' }, y: 25,
@@ -278,7 +278,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
-  const CostCard = ({ title, amount, ...props }) => {
+  const CostCard = ({ title, amount, showAsterisk, ...props }) => {
     return div({
       ...props,
       style: {
@@ -291,7 +291,12 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     }, [
       div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': projectCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
         h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
-        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
+        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
+          amount,
+          showAsterisk ? span({ style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' } },
+            ['*']
+          ) : null
+        ])
       ])
     ])
   }
@@ -348,8 +353,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
-      div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
-        _.concat(
+      div({ style: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
+        [
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
@@ -366,12 +371,22 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                 }
               })
             ])])
-          ])
-        )(_.map(name => CostCard({ title: `Total ${name}`, amount: (projectCost === null ? '...' : projectCost[name]) }),
-          ['spend', 'compute', 'storage', 'other'])
-        )
+          ]),
+          ...(_.map(name => CostCard({
+            title: `Total ${name}`,
+            amount: (projectCost === null ? '...' : projectCost[name]),
+            showAsterisk: name === 'spend'
+          }),
+          ['spend', 'compute', 'storage'])
+          )
+        ]
       ),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
+      div({ style: { gridRowStart: 2 }, 'aria-live': projectCost !== null ? 'polite' : 'off' }, [
+        span(['*']),
+        ' ',
+        otherMessaging(projectCost === null ? '...' : projectCost['other'])
+      ]),
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 3, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
         h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
       ])
     ])
