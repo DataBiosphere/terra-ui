@@ -162,7 +162,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
-            yarn test $TESTS_TO_RUN --maxWorkers=2
+            CI=true yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:

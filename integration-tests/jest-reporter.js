@@ -55,11 +55,28 @@ module.exports = class JestReporter {
   }
 
   // Called after all tests have completed
-  onRunComplete(_test, runResults) {
+  onRunComplete(test, runResults) {
     // Save run summary to a file.
     const summaryFile = `tests-summary.json`
     writeFileSync(`${this.logRootDir}/${summaryFile}`, JSON.stringify(runResults, null, 2))
     console.log(`**  Saved all tests summary: ${this.logRootDir}/${summaryFile}`)
+
+    const { numFailedTests } = runResults
+
+    if (numFailedTests >= 0) {
+      const { testResults } = runResults
+      // console.log('testResults:', testResults)
+
+      const obj = _.filter( ({testResults: result}) => {
+        console.log('result:', result)
+        return _.find((r) => r.status === 'passed', result)
+      }, testResults)
+      console.log('obj:', obj)
+
+      // console.log(_.get(['testFilePath'], obj))
+
+      //console.log(`testFilePath:\n${JSON.stringify(testFilePath(testResults), null, 2)}`)
+    }
   }
 
   timeNow() {
