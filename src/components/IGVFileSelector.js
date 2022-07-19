@@ -12,9 +12,36 @@ import * as Utils from 'src/libs/utils'
 const getStrings = v => {
   return Utils.cond(
     [_.isString(v), () => [v]],
-    [!!v?.items, () => _.map(getStrings, v.items)],
+    [!!v?.items, () => _.flatMap(getStrings, v.items)],
     () => []
   )
+}
+
+export const getValidIgvFiles = values => {
+  return _.flatMap(value => {
+    const possibleFile = /(.+)\.([^.]+)$/.exec(value)
+
+    if (!possibleFile) {
+      return []
+    }
+
+    const [, base, extension] = possibleFile
+
+    const matchingIndexFilePath = Utils.switchCase(extension,
+      ['cram', () => _.find(v => _.includes(v, [`${base}.crai`, `${base}.cram.crai`]), values)],
+      ['bam', () => _.find(v => _.includes(v, [`${base}.bai`, `${base}.bam.bai`]), values)],
+      ['vcf', () => _.find(v => _.includes(v, [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`]), values)],
+      ['bed', () => false],
+      [Utils.DEFAULT, () => undefined]
+    )
+
+    return matchingIndexFilePath !== undefined ? [{ filePath: value, indexFilePath: matchingIndexFilePath }] : []
+  }, values)
+}
+
+export const getValidIgvFilesFromAttributeValues = attributeValues => {
+  const allAttributeStrings = _.flatMap(getStrings, attributeValues)
+  return getValidIgvFiles(allAttributeStrings)
 }
 
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
@@ -22,28 +49,8 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const isRefGenomeValid = Boolean(_.get('genome', refGenome) || _.get('reference.fastaURL', refGenome))
 
   const [selections, setSelections] = useState(() => {
-    const allAttributeStrings = _.flow(
-      _.flatMap(row => _.flatMap(getStrings, row.attributes)),
-      _.uniq
-    )(selectedEntities)
-
-    return _.flatMap(filePath => {
-      const possibleFile = /(.+)\.([^.]+)$/.exec(filePath)
-
-      if (!possibleFile) return []
-
-      const [, base, extension] = possibleFile
-
-      const matchingIndexFilePath = Utils.switchCase(extension,
-        ['cram', () => _.find(v => _.includes(v, [`${base}.crai`, `${base}.cram.crai`]), allAttributeStrings)],
-        ['bam', () => _.find(v => _.includes(v, [`${base}.bai`, `${base}.bam.bai`]), allAttributeStrings)],
-        ['vcf', () => _.find(v => _.includes(v, [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`]), allAttributeStrings)],
-        ['bed', () => false],
-        [Utils.DEFAULT, () => undefined]
-      )
-
-      return matchingIndexFilePath !== undefined ? [{ filePath, indexFilePath: matchingIndexFilePath }] : []
-    }, allAttributeStrings)
+    const allAttributeValues = _.flatMap(_.flow(_.get('attributes'), _.values), selectedEntities)
+    return getValidIgvFilesFromAttributeValues(allAttributeValues)
   })
 
   const toggleSelected = index => setSelections(_.update([index, 'isSelected'], v => !v))
