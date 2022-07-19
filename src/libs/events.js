@@ -25,6 +25,7 @@ const eventsList = {
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
+  cloudEnvironmentDetailsLoad: 'analysis:details:load',
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogView: 'catalog:view',
