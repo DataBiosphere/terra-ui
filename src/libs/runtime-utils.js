@@ -46,9 +46,7 @@ export const pdTypes = {
     )
   }
 }
-export const updatePdType = disk => {
-  return disk && _.update('diskType', pdTypes.fromString, disk)
-}
+export const updatePdType = disk => disk && _.update('diskType', pdTypes.fromString, disk)
 export const mapToPdTypes = _.map(updatePdType)
 
 // Dataproc clusters don't have persistent disks.
@@ -213,17 +211,15 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const getRuntimeCost = ({ runtimeConfig, status }) => {
-  switch (status) {
-    case 'Stopped':
-      return runtimeConfigBaseCost(runtimeConfig)
-    case 'Deleting':
-    case 'Error':
-      return 0.0
-    default:
-      return runtimeConfigCost(runtimeConfig)
-  }
-}
+export const getRuntimeCost = ({ runtimeConfig, status }) => Utils.switchCase(status,
+  [
+    'Stopped',
+    () => runtimeConfigBaseCost(runtimeConfig)
+  ],
+  ['Error', () => 0.0],
+  [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
+)
+
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
 
@@ -365,21 +361,19 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 }
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => {
-  return Utils.cond(
-    [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(app, appDataDisks)],
-    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
-    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
-      const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
-      const totalCost = getRuntimeCost(runtime)
-      return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
-    }],
-    [Utils.DEFAULT, () => {
-      return ''
-    }]
-  )
-}
+export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
+  [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(app, appDataDisks)],
+  [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+  [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+  [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
+    const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
+    const totalCost = getRuntimeCost(runtime)
+    return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
+  }],
+  [Utils.DEFAULT, () => {
+    return ''
+  }]
+)
 
 export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
   [toolLabel === tools.Galaxy.label, () => getGalaxyCost(app, appDataDisks)],

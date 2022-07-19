@@ -17,8 +17,8 @@ const baseToolTip = {
 const styles = {
   tooltip: {
     background: '#FFFFFF',
-    color: '#333F52',
-    borderColor: '#6D6E70',
+    color: colors.dark(),
+    borderColor: colors.secondary(),
     padding: '1rem',
     boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
     ...baseToolTip
