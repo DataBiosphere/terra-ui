@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, LabeledCheckbox, Link } from 'src/components/common'
+import { parseGsUri } from 'src/components/data/data-utils'
 import IGVReferenceSelector, { addIgvRecentlyUsedReference, defaultIgvReference } from 'src/components/IGVReferenceSelector'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -21,7 +22,7 @@ export const getValidIgvFiles = values => {
   return _.flatMap(value => {
     const possibleFile = /(.+)\.([^.]+)$/.exec(value)
 
-    if (!possibleFile) {
+    if (_.isEmpty(parseGsUri(value)) || !possibleFile) {
       return []
     }
 

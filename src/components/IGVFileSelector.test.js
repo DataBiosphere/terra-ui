@@ -81,6 +81,18 @@ describe('getValidIgvFiles', () => {
       }
     ])
   })
+
+  it('requires GCS URLs', () => {
+    expect(getValidIgvFiles([
+      'gs://bucket/test.bed',
+      'test.bed'
+    ])).toEqual([
+      {
+        filePath: 'gs://bucket/test.bed',
+        indexFilePath: false
+      }
+    ])
+  })
 })
 
 describe('getValidIgvFilesFromAttributeValues', () => {
