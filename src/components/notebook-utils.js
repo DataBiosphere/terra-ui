@@ -91,7 +91,7 @@ export const toolExtensionDisplay = {
 }
 
 export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
-  [tools.RStudio.label, () => '.+(.R|.Rmd)$'],
+  [tools.RStudio.label, () => '.+(\\.R|\\.Rmd)$'],
   [tools.Jupyter.label, () => '.*\\.ipynb']
 )
 
