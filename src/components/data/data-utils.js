@@ -78,6 +78,8 @@ export const entityAttributeText = (attributeValue, machineReadable) => {
   )
 }
 
+const maxListItemsRendered = 100
+
 export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
@@ -86,9 +88,17 @@ export const renderDataCell = (attributeValue, googleProject) => {
   }
 
   const renderArray = items => {
-    return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v), i < (items.length - 1) && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ]), Utils.toIndexPairs(items))
+    return _.flow(
+      _.slice(0, maxListItemsRendered),
+      items.length > maxListItemsRendered ?
+        Utils.append(`and ${items.length - maxListItemsRendered} more`) :
+        _.identity,
+      Utils.toIndexPairs,
+      _.flatMap(([i, v]) => h(Fragment, { key: i }, [
+        i > 0 && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ','),
+        renderCell(v)
+      ]))
+    )(items)
   }
 
   const { type, isList } = getAttributeType(attributeValue)
