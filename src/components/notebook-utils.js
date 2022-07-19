@@ -123,7 +123,7 @@ export const isToolAnApp = label => getAppType(label) !== undefined
 // Returns registered appTypes.
 export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
 
-export const getTool = fileName => extensionToToolMap[getExtension(fileName)]
+export const getToolFromFileExtension = fileName => extensionToToolMap[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 export const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
