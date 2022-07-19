@@ -56,21 +56,21 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       setNotebookKernel('python3')
     }
 
-    const onDismissModal = (timeout = 0) => {
+    const onDismissModal = () => {
       onDismiss()
       setTimeout(() => {
         resetView()
-      }, timeout)
+      }, Style.DEFAULT_TRANSITION_DURATION)
     }
 
     const onSuccessModal = () => {
       onSuccess()
-      resetView()
+      onDismissModal()
     }
 
     const onErrorModal = () => {
       onError()
-      resetView()
+      onDismissModal()
     }
 
     /**

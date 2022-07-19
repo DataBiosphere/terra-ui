@@ -4,9 +4,8 @@ import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
 import colors from 'src/libs/colors'
 import { useLabelAssert } from 'src/libs/react-utils'
+import { DEFAULT_TRANSITION_DURATION } from 'src/libs/style'
 
-
-const TRANSITION_DURATION = 200
 
 const drawer = {
   overlay: transitionState => transitionState === 'entering' || transitionState === 'entered' ? {
@@ -31,7 +30,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
 
   return h(Transition, {
     in: isOpen,
-    timeout: { exit: TRANSITION_DURATION },
+    timeout: { exit: DEFAULT_TRANSITION_DURATION },
     appear: true,
     mountOnEnter: true,
     unmountOnExit: true
@@ -40,7 +39,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
     ariaHideApp: false,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
-    onRequestClose: () => onDismiss(TRANSITION_DURATION),
+    onRequestClose: onDismiss,
     style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
     ...props
   }, [children])])

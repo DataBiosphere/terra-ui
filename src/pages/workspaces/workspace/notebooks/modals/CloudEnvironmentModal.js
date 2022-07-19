@@ -27,6 +27,7 @@ import {
   getPersistentDiskCostHourly, isCurrentGalaxyDiskDetaching, runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
+import { DEFAULT_TRANSITION_DURATION } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 
@@ -48,6 +49,10 @@ export const CloudEnvironmentModal = ({
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
+  const resetModalView = () => setTimeout(() => {
+    setViewMode(undefined)
+  }, DEFAULT_TRANSITION_DURATION)
+
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
@@ -57,16 +62,16 @@ export const CloudEnvironmentModal = ({
     persistentDisks,
     location,
     onDismiss: () => {
-      setViewMode(undefined)
       onDismiss()
+      resetModalView()
     },
     onSuccess: () => {
-      setViewMode(undefined)
       onSuccess()
+      resetModalView()
     },
     onError: () => {
-      setViewMode(undefined)
       onDismiss()
+      resetModalView()
     }
   })
 
@@ -76,12 +81,12 @@ export const CloudEnvironmentModal = ({
     workspace,
     runtimes,
     onDismiss: () => {
-      setViewMode(undefined)
       onDismiss()
+      resetModalView()
     },
     onSuccess: () => {
-      setViewMode(undefined)
       onSuccess()
+      resetModalView()
     }
   })
 
@@ -91,12 +96,12 @@ export const CloudEnvironmentModal = ({
     apps,
     appDataDisks,
     onDismiss: () => {
-      setViewMode(undefined)
       onDismiss()
+      resetModalView()
     },
     onSuccess: () => {
-      setViewMode(undefined)
       onSuccess()
+      resetModalView()
     }
   })
 
@@ -446,8 +451,8 @@ export const CloudEnvironmentModal = ({
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss: () => {
-        setViewMode(undefined)
         onDismiss()
+        resetModalView()
       },
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
@@ -466,11 +471,9 @@ export const CloudEnvironmentModal = ({
 
   const modalProps = {
     'aria-labelledby': titleId, isOpen, width,
-    onDismiss: (timeout = 0) => {
+    onDismiss: () => {
       onDismiss()
-      setTimeout(() => {
-        setViewMode(undefined)
-      }, timeout)
+      resetModalView()
     }
   }
   return h(ModalDrawer, { ...modalProps, children: modalBody })

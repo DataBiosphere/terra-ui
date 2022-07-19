@@ -170,3 +170,5 @@ export const errorStyle = {
   border: `1px solid ${colors.danger(0.8)}`,
   backgroundColor: colors.danger(0.15)
 }
+
+export const DEFAULT_TRANSITION_DURATION = 200
