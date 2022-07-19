@@ -195,6 +195,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
+const otherCostsDomId = 'billing-other-costs'
 const otherMessaging = cost => `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.`
 
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
@@ -375,13 +376,14 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           ...(_.map(name => CostCard({
             title: `Total ${name}`,
             amount: (projectCost === null ? '...' : projectCost[name]),
-            showAsterisk: name === 'spend'
+            showAsterisk: name === 'spend',
+            'aria-describedby': name === 'spend' ? otherCostsDomId : undefined
           }),
           ['spend', 'compute', 'storage'])
           )
         ]
       ),
-      div({ style: { gridRowStart: 2 }, 'aria-live': projectCost !== null ? 'polite' : 'off' }, [
+      div({ style: { gridRowStart: 2 }, id: otherCostsDomId }, [
         span(['*']),
         ' ',
         otherMessaging(projectCost === null ? '...' : projectCost['other'])
