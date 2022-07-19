@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import { strong } from 'react-hyperscript-helpers'
 import { loadedConfigStore } from 'src/configStore'
 import { configOverridesStore } from 'src/libs/state'
 
@@ -21,78 +20,76 @@ export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
  * https://broadworkbench.atlassian.net/wiki/spaces/WOR/pages/2369388553/Cobranding+and+White+Label+Sites
  * TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
  */
-const bold = child => strong([child])
-
 export const brands = {
   anvil: {
-    shortName: 'AnVIL',
-    longName: 'AnVIL',
+    name: 'AnVIL',
+    alternativeName: 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)',
     welcomeHeader: 'Welcome to AnVIL',
-    description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
     enable: () => configOverridesStore.set({ isAnvil: true }),
     isEnabled: () => (window.location.hostname === 'anvil.terra.bio') || getConfig().isAnvil
   },
   baseline: {
-    shortName: '',
-    longName: '',
+    name: 'Project Baseline',
+    alternativeName: 'The Baseline Health Study Data Portal',
     welcomeHeader: 'Welcome to Project Baseline',
-    description: `The Baseline Health Study Data Portal is a project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'The Baseline Health Study Data Portal is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isBaseline: true }),
     isEnabled: () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
   },
   bioDataCatalyst: {
-    shortName: '',
-    longName: '',
+    name: 'NHLBI BioData Catalyst',
+    alternativeName: 'NHLBI BioData Catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
-    description: `NHLBI BioData Catalyst is a project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'NHLBI BioData Catalyst is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isBioDataCatalyst: true }),
     isEnabled: () => (window.location.hostname === 'terra.biodatacatalyst.nhlbi.nih.gov') || getConfig().isBioDataCatalyst
   },
   datastage: {
-    shortName: '',
-    longName: '',
+    name: 'DataStage',
+    alternativeName: 'DataStage',
     welcomeText: 'Welcome to DataStage',
-    description: ` is a project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'DataStage is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isDatastage: true }),
     isEnabled: () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
   },
   elwazi: {
-    shortName: '',
-    longName: '',
+    name: 'eLwazi',
+    alternativeName: 'The eLwazi Open Data Science Platform',
     welcomeText: 'Welcome to eLwazi',
-    description: ` is a project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'The eLwazi Open Data Science Platform is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isElwazi: true }),
     isEnabled: () => (window.location.hostname === 'elwazi.terra.bio') || getConfig().isElwazi
   },
   firecloud: {
-    shortName: '',
-    longName: '',
+    name: 'FireCloud',
+    alternativeName: 'FireCloud',
     welcomeText: 'Welcome to FireCloud',
-    description: `FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isFirecloud: true }),
     isEnabled: () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
   },
   projectSingular: {
-    shortName: '',
-    longName: '',
+    name: 'Project Singular',
+    alternativeName: 'Project Singular',
     welcomeText: 'Welcome to Project Singular',
-    description: `Project Singular is a project funded by Additional Ventures and powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')} to advance research around single ventricle heart disease.`,
+    description: 'Project Singular is a project funded by Additional Ventures and powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isProjectSingular: true }),
     isEnabled: () => (window.location.hostname === 'projectsingular.terra.bio') || getConfig().isProjectSingular
   },
   rareX: {
-    shortName: '',
-    longName: '',
+    name: 'The RARE‑X Data Analysis Platform',
+    alternativeName: 'The RARE‑X Data Analysis Platform',
     welcomeText: 'Welcome to the RARE‑X Data Analysis Platform',
-    description: `The RARE‑X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'The RARE‑X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isRareX: true }),
     isEnabled: () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
   },
   terra: {
-    shortName: '',
-    longName: '',
+    name: 'Terra Community Workbench',
+    alternativeName: 'Terra',
     welcomeText: 'Welcome to Terra Community Workbench',
-    description: `Terra is a cloud-native platform for biomedical researchers to ${bold('access data')}, ${bold('run analysis tools')}, and ${bold('collaborate')}.`,
+    description: 'Terra is a cloud-native platform for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isTerra: true }),
     isEnabled: () => (window.location.hostname === 'app.terra.bio') || getConfig().isTerra
   }
