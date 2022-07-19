@@ -153,10 +153,10 @@ export const ContextBar = ({
             ],
             tooltipDelay: 100
           }, [
-            div({ style: { textAlign: 'center', color: '#333F52', fontSize: '0.8em' } }, 'Rate'),
+            div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
             div({
               style: {
-                textAlign: 'center', color: '#333F52',
+                textAlign: 'center', color: colors.dark(),
                 fontWeight: 'bold', fontSize: '1em'
               }
             },
