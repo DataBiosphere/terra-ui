@@ -143,8 +143,8 @@ export const ContextBar = ({
       div({ style: contextBarStyles.contextBarContainer }, [
         h(Fragment, [
           h(Clickable, {
-            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', pointer: 'none' },
-            hover: contextBarStyles.hover,
+            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', cursor: 'default' },
+            hover: { ...contextBarStyles.hover },
             tooltipSide: 'left',
             tooltip: [
               div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
