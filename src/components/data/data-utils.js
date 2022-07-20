@@ -104,7 +104,7 @@ const renderDataCellTooltip = attributeValue => {
 }
 
 export const renderDataCell = (attributeValue, workspace) => {
-  const { workspace: { googleProject } } = workspace
+  const { workspace: { bucketName: workspaceBucket, googleProject } } = workspace
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
@@ -130,15 +130,32 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   const tooltip = renderDataCellTooltip(attributeValue)
 
-  return h(TextCell, { title: tooltip }, [
-    Utils.cond(
-      [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
-      [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
-      [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
-      [type === 'reference', () => attributeValue.entityName],
-      [isList, () => renderArray(attributeValue.items)],
-      () => renderCell(attributeValue)
-    )
+  const isOtherBucketGsUri = datum => {
+    const [bucket] = parseGsUri(datum)
+    return !!bucket && bucket !== workspaceBucket
+  }
+
+  const hasOtherBucketUrls = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
+    [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
+    [type === 'string', () => isOtherBucketGsUri(attributeValue)],
+    () => false
+  )
+
+  return h(Fragment, [
+    hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+      icon('error-standard', { style: { flexShrink: 0, marginRight: '1ch', color: colors.accent(), cursor: 'help' } })
+    ]),
+    h(TextCell, { title: tooltip }, [
+      Utils.cond(
+        [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
+        [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+        [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
+        [type === 'reference', () => attributeValue.entityName],
+        [isList, () => renderArray(attributeValue.items)],
+        () => renderCell(attributeValue)
+      )
+    ])
   ])
 }
 
