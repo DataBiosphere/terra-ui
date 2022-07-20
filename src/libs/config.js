@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { loadedConfigStore } from 'src/configStore'
 import { configOverridesStore } from 'src/libs/state'
+import * as Utils from 'src/libs/utils'
 
 
 export const getConfig = () => {
@@ -107,15 +108,15 @@ export const isTerra = () => brands.terra.isEnabled() ||
   (!isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() &&
     !isProjectSingular() && !isRareX())
 
-// const getEnabledBrand = () => Utils.cond(
-//   [isAnvil(), () => brands.anvil],
-//   [isBaseline(), () => brands.baseline],
-//   [isBioDataCatalyst(), () => brands.bioDataCatalyst],
-//   [isDatastage(), () => brands.datastage],
-//   [isElwazi(), () => brands.elwazi],
-//   [isFirecloud(), () => brands.firecloud],
-//   [isProjectSingular(), () => brands.projectSingular],
-//   [isRareX(), () => brands.rareX],
-//   [isTerra(), () => brands.terra],
-//   () => brands.terra
-// )
+export const getEnabledBrand = () => Utils.cond(
+  [isAnvil(), () => brands.anvil],
+  [isBaseline(), () => brands.baseline],
+  [isBioDataCatalyst(), () => brands.bioDataCatalyst],
+  [isDatastage(), () => brands.datastage],
+  [isElwazi(), () => brands.elwazi],
+  [isFirecloud(), () => brands.firecloud],
+  [isProjectSingular(), () => brands.projectSingular],
+  [isRareX(), () => brands.rareX],
+  [isTerra(), () => brands.terra],
+  () => brands.terra
+)
