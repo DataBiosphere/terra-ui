@@ -359,8 +359,8 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 }
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
-  [toolLabel === tools.Galaxy.label, () => getGalaxyCostTextChildren(app, appDataDisks)],
+export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
+  [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}` : ''],
   [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
   [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
   [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
