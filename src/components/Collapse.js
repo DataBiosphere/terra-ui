@@ -56,7 +56,10 @@ const Collapse = ({ title, hover, tooltip, tooltipDelay, summaryStyle, detailsSt
         title
       ]),
       // zIndex: 2 lifts afterToggle controls above the absolutely positioned div in Link so that they can be clicked.
-      afterToggle && div({ style: { display: 'flex', flex: 1, margin: '0 1ch', zIndex: 2 } }, [afterToggle]),
+      // display: flex and flex: 1 causes this div to fill available space. This makes it easy to position afterToggle
+      // controls just after the summary text or at the right edge of the summary section. height: 0 prevents the unused
+      // space in this div from blocking clicks on the summary section.
+      afterToggle && div({ style: { display: 'flex', flex: 1, alignItems: 'center', height: 0, margin: '0 1ch', zIndex: 2 } }, [afterToggle]),
       titleFirst && angleIcon
     ]),
     isOpened && div({ id, style: detailsStyle }, [children])
