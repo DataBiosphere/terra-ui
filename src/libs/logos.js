@@ -40,8 +40,6 @@ export const getAppName = ({ longName = false, capitalizeThe = false } = {}) => 
   )
 }
 
-export const returnParam = () => getAppName().toLowerCase()
-
 const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), () => color ? fcLogo : fcLogoWhite],
   [isDatastage(), () => color ? datastageLogo : datastageLogoWhite],

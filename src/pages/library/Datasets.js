@@ -22,9 +22,8 @@ import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, getEnabledBrand } from 'src/libs/config'
 import Events from 'src/libs/events'
-import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
@@ -229,7 +228,7 @@ const ccdg = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse CCDG data',
     tooltip: browseTooltip,
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     onClick: () => captureBrowseDataEvent('CCDG'),
     ...Utils.newTabLinkProps
   }, ['Browse data'])
@@ -245,7 +244,7 @@ const cmg = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse CMG data',
     tooltip: browseTooltip,
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}&project=AnVIL CMG#library`,
     onClick: () => captureBrowseDataEvent('CMG'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
@@ -281,7 +280,7 @@ const fcDataLib = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Broad Institute datasets',
     tooltip: 'Search for dataset workspaces',
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}#library`,
     onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
     ...Utils.newTabLinkProps
   }, ['Browse Datasets'])
@@ -385,7 +384,7 @@ const target = () => h(Participant, {
   sizeText: 'Participants: 1,324'
 }, [h(ButtonPrimary, {
   'aria-label': 'Browse TARGET data',
-  href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
+  href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}&project=TARGET#library`,
   onClick: () => captureBrowseDataEvent('TARGET'),
   ...Utils.newTabLinkProps
 }, ['Browse Data'])])
@@ -404,7 +403,7 @@ const tcga = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     'aria-label': 'Browse Cancer Genome Atlas data',
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}&project=TCGA#library`,
     onClick: () => captureBrowseDataEvent('Cancer Genome Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])

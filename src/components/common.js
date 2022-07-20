@@ -21,7 +21,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, getEnabledBrand } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
@@ -351,7 +350,7 @@ export const backgroundLogo = img({
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
