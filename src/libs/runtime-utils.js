@@ -359,15 +359,24 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 }
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
-export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
-  [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}` : ''],
+export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
+  const toolCost = getCostForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+  return Utils.cond(
+    [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(toolCost)}` : ''],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(toolCost)}/hr`],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
+export const getCostForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
+  [toolLabel === tools.Galaxy.label, () => app ? getGalaxyComputeCost(app) : ''],
   [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
   [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
-  [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
-    const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
-    const totalCost = getRuntimeCost(runtime)
-    return `${getComputeStatusForDisplay(runtime.status)} ${Utils.formatUSD(totalCost)}/hr`
-  }],
+  [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => getRuntimeCost(currentRuntime)],
   [Utils.DEFAULT, () => {
     return ''
   }]
@@ -392,7 +401,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
 }
 
 
-// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostDisplayForTool for example usage
+// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
 export const getRuntimeForTool = (toolLabel, currentRuntime, currentRuntimeTool) => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
   [Utils.DEFAULT, () => undefined])
 
