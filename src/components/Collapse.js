@@ -50,10 +50,12 @@ const Collapse = ({ title, hover, tooltip, tooltipDelay, summaryStyle, detailsSt
       }, [
         div({
           'aria-hidden': true,
+          // zIndex: 1 lifts this element above angleIcon, so that clicking on the icon will toggle the Collapse.
           style: { position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, zIndex: 1 }
         }),
         title
       ]),
+      // zIndex: 2 lifts afterToggle controls above the absolutely positioned div in Link so that they can be clicked.
       afterToggle && div({ style: { display: 'flex', flex: 1, margin: '0 1ch', zIndex: 2 } }, [afterToggle]),
       titleFirst && angleIcon
     ]),
