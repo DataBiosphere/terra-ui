@@ -58,6 +58,7 @@ export const defaultPersistentDiskType = pdTypes.standard
 
 export const defaultGceMachineType = 'n1-standard-1'
 export const defaultDataprocMachineType = 'n1-standard-4'
+export const defaultRStudioMachineType = 'n1-standard-4'
 export const defaultNumDataprocWorkers = 2
 export const defaultNumDataprocPreemptibleWorkers = 0
 
@@ -78,7 +79,10 @@ export const getAutopauseThreshold = isEnabled => isEnabled ? defaultAutopauseTh
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
+export const getDefaultMachineType = (isDataproc, tool) => Utils.cond(
+  [isDataproc, () => defaultDataprocMachineType],
+  [tool === tools.RStudio.label, () => defaultRStudioMachineType],
+  [Utils.DEFAULT, () => defaultGceMachineType])
 
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
 export const getRegionFromZone = zone => zone.slice(0, -2)
