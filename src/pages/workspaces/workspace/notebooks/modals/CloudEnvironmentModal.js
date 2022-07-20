@@ -359,12 +359,10 @@ export const CloudEnvironmentModal = ({
             style: { height: 30 },
             alt: `${toolLabel}`
           }),
-          div(
-            [
-              div({ style: { textAlign: 'right' } }, getCostDisplayForTool(app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel)),
-              div({ style: { textAlign: 'right' } }, getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
-            ]
-          )
+          div([
+            div({ style: { textAlign: 'right' } }, getCostDisplayForTool(app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel)),
+            div({ style: { textAlign: 'right' } }, getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
+          ])
         ]),
         // Cloud environment button
         div({ style: toolButtonDivStyles }, [
