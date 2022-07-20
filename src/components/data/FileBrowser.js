@@ -409,7 +409,8 @@ const BucketBrowser = (({
 
                 // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
                 // Dropping the last two items returns the parent "folder".
-                setPrefix(_.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix))
+                const parentPrefix = _.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix)
+                setPrefix(parentPrefix === '' ? '' : `${parentPrefix}/`)
               })
             }, ['Delete this folder'])
           ])],
