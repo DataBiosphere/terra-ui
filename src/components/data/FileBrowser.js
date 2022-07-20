@@ -4,7 +4,7 @@ import pluralize from 'pluralize'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
@@ -262,7 +262,7 @@ const BucketBrowser = (({
   basePrefix: inputBasePrefix = '',
   pageSize = 1000,
   noObjectsMessage = 'No files have been uploaded yet',
-  showNewFolderButton = true,
+  allowEditingFolders = true,
   extraMenuItems,
   style, controlPanelStyle,
   onUploadFiles = _.noop, onDeleteFiles = _.noop
@@ -368,7 +368,7 @@ const BucketBrowser = (({
           onClick: openUploader
         }, [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']),
 
-        showNewFolderButton && h(Link, {
+        allowEditingFolders && h(Link, {
           style: { padding: '0.5rem' },
           onClick: () => setCreatingNewFolder(true)
         }, [icon('folder'), ' New folder']),
@@ -389,6 +389,34 @@ const BucketBrowser = (({
         noObjectsMessage: Utils.cond(
           [loading, () => 'Loading bucket contents...'],
           [error, () => 'Unable to load bucket contents'],
+          [!!prefix && prefix !== basePrefix && allowEditingFolders, () => div({
+            style: { display: 'flex', flexDirection: 'column', alignItems: 'center' }
+          }, [
+            noObjectsMessage,
+            h(ButtonOutline, {
+              style: { marginTop: '1rem', textTransform: 'none' },
+              onClick: async () => {
+                setBusy(true)
+
+                // Attempt to delete folder placeholder object.
+                // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+                // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+                try {
+                  await Ajax().Buckets.delete(googleProject, bucketName, prefix)
+                } catch (error) {
+                  if (error.status !== 404) {
+                    reportError('Error deleting folder', error)
+                  }
+                }
+
+                setBusy(false)
+
+                // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
+                // Dropping the last two items returns the parent "folder".
+                setPrefix(_.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix))
+              }
+            }, ['Delete this folder'])
+          ])],
           () => noObjectsMessage
         ),
         selectedObjects, setSelectedObjects,
