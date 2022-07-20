@@ -451,14 +451,22 @@ const BucketBrowser = (({
       creatingNewFolder && h(NameModal, {
         thing: 'New folder',
         onDismiss: () => setCreatingNewFolder(false),
-        onSuccess: ({ name }) => {
+        onSuccess: async ({ name }) => {
           setCreatingNewFolder(false)
-          setPrefix(`${prefix}${name}/`)
 
-          // Create a placeholder object for the new folder.
-          // See https://cloud.google.com/storage/docs/folders for more information.
-          const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
-          Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
+          setBusy(true)
+          try {
+            // Create a placeholder object for the new folder.
+            // See https://cloud.google.com/storage/docs/folders for more information.
+            const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
+            await Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
+
+            setBusy(false)
+            setPrefix(`${prefix}${name}/`)
+          } catch (error) {
+            setBusy(false)
+            reportError('Error creating folder', error)
+          }
         }
       }),
 
