@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { br, div, h, img, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import Interactive from 'src/components/Interactive'
 import { getAppType, tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
@@ -147,24 +148,20 @@ export const ContextBar = ({
           h(TooltipTrigger,
             {
               side: 'left',
+              delay: 100,
               content: [
-                div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
-                br(),
-                div('Workflow and workspace storage costs are not included.')
+                div({ key: 'p1' }, 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                br({ key: 'br' }),
+                div({ key: 'p2' }, 'Workflow and workspace storage costs are not included.')
               ]
             },
             [
-              div({
+              h(Interactive, {
+                as: 'div',
                 style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', cursor: 'default' },
-                hover: { ...contextBarStyles.hover },
-                tooltipSide: 'left',
-                tooltip: [
-                  div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
-                  br(),
-                  div('Workflow and workspace storage costs are not included.')
-                ],
-                tooltipDelay: 100
-              }, [
+                hover: { ...contextBarStyles.hover }
+              },
+              [
                 div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
                 div({
                   style: {
