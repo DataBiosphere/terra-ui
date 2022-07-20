@@ -25,6 +25,7 @@ export const brands = {
   anvil: {
     name: 'AnVIL',
     alternativeName: 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)',
+    signInName: 'AnVIL',
     welcomeHeader: 'Welcome to AnVIL',
     description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
     enable: () => configOverridesStore.set({ isAnvil: true }),
@@ -33,6 +34,7 @@ export const brands = {
   baseline: {
     name: 'Project Baseline',
     alternativeName: 'The Baseline Health Study Data Portal',
+    signInName: 'Project Baseline',
     welcomeHeader: 'Welcome to Project Baseline',
     description: 'The Baseline Health Study Data Portal is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isBaseline: true }),
@@ -41,6 +43,7 @@ export const brands = {
   bioDataCatalyst: {
     name: 'NHLBI BioData Catalyst',
     alternativeName: 'NHLBI BioData Catalyst',
+    signInName: 'NHLBI BioData Catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
     description: 'NHLBI BioData Catalyst is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isBioDataCatalyst: true }),
@@ -49,6 +52,7 @@ export const brands = {
   datastage: {
     name: 'DataStage',
     alternativeName: 'DataStage',
+    signInName: 'DataStage',
     welcomeText: 'Welcome to DataStage',
     description: 'DataStage is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isDatastage: true }),
@@ -57,6 +61,7 @@ export const brands = {
   elwazi: {
     name: 'eLwazi',
     alternativeName: 'The eLwazi Open Data Science Platform',
+    signInName: 'eLwazi',
     welcomeText: 'Welcome to eLwazi',
     description: 'The eLwazi Open Data Science Platform is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isElwazi: true }),
@@ -65,6 +70,7 @@ export const brands = {
   firecloud: {
     name: 'FireCloud',
     alternativeName: 'FireCloud',
+    signInName: 'FireCloud',
     welcomeText: 'Welcome to FireCloud',
     description: 'FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isFirecloud: true }),
@@ -73,6 +79,7 @@ export const brands = {
   projectSingular: {
     name: 'Project Singular',
     alternativeName: 'Project Singular',
+    signInName: 'Project Singular',
     welcomeText: 'Welcome to Project Singular',
     description: 'Project Singular is a project funded by Additional Ventures and powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isProjectSingular: true }),
@@ -81,6 +88,7 @@ export const brands = {
   rareX: {
     name: 'The RARE‑X Data Analysis Platform',
     alternativeName: 'The RARE‑X Data Analysis Platform',
+    signInName: 'the RARE‑X Data Analysis Platform',
     welcomeText: 'Welcome to the RARE‑X Data Analysis Platform',
     description: 'The RARE‑X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isRareX: true }),
@@ -89,6 +97,7 @@ export const brands = {
   terra: {
     name: 'Terra Community Workbench',
     alternativeName: 'Terra',
+    signInName: '',
     welcomeText: 'Welcome to Terra Community Workbench',
     description: 'Terra is a cloud-native platform for biomedical researchers to access data, run analysis tools, and collaborate.',
     enable: () => configOverridesStore.set({ isTerra: true }),

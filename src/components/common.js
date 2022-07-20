@@ -506,7 +506,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
       }
     }, [
       // width is set to prevent text from overlapping the background image and decreasing legibility
-      h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeText]),
+      h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
       div({
         style: {
           margin: '1rem 0', width: 'calc(100% - 460px)', maxWidth: 700, ...(bigSubhead ?
