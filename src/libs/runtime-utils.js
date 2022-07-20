@@ -373,19 +373,6 @@ export const getCostDisplayForTool = (app, appDataDisks, currentRuntime, current
   }]
 )
 
-export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntimeTool, toolLabel) => Utils.cond(
-  [toolLabel === tools.Galaxy.label, () => getGalaxyCost(app, appDataDisks)],
-  [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-  [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
-  [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => {
-    const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
-    return getRuntimeCost(runtime)
-  }],
-  [Utils.DEFAULT, () => {
-    return ''
-  }]
-)
-
 export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
   return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
@@ -405,7 +392,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
 }
 
 
-// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
+// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostDisplayForTool for example usage
 export const getRuntimeForTool = (toolLabel, currentRuntime, currentRuntimeTool) => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
   [Utils.DEFAULT, () => undefined])
 
