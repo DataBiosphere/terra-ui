@@ -51,7 +51,9 @@ const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 
         nextPageToken: pageNextPageToken
       } = await Ajax(signal).Buckets.list(googleProject, bucketName, prefix, requestOptions)
 
-      setAllObjects(prevObjects => _.concat(prevObjects, _.defaultTo([], pageObjects)))
+      // _.remove({ name: prefix }) filters out folder placeholder objects.
+      // See https://cloud.google.com/storage/docs/folders for more information.
+      setAllObjects(prevObjects => _.flow(_.defaultTo([]), _.remove({ name: prefix }), _.concat(prevObjects))(pageObjects))
       setAllPrefixes(prevPrefixes => _.concat(prevPrefixes, _.defaultTo([], pagePrefixes)))
       nextPageToken.current = pageNextPageToken
       setMoreToLoad(Boolean(nextPageToken.current))
@@ -424,6 +426,11 @@ const BucketBrowser = (({
         onSuccess: ({ name }) => {
           setCreatingNewFolder(false)
           setPrefix(`${prefix}${name}/`)
+
+          // Create a placeholder object for the new folder.
+          // See https://cloud.google.com/storage/docs/folders for more information.
+          const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
+          Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
         }
       }),
 
