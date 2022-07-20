@@ -1120,7 +1120,7 @@ const AzureStorage = signal => ({
   },
 
   details: async (workspaceId = {}) => {
-    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED`,
+    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
       _.merge(authOpts(), { signal })
     )
     const data = await res.json()

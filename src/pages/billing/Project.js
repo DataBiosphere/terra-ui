@@ -203,6 +203,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
+  const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers)
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(false)
@@ -662,6 +663,28 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         h(Link, {
           onClick: authorizeAndLoadAccounts
         }, ['View billing account'])
+      ]),
+      _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          margin: '1rem 1rem 0',
+          padding: '1rem',
+          border: `1px solid ${colors.warning()}`,
+          backgroundColor: colors.warning(0.15)
+        }
+      }, [
+        icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } }),
+        span(isOwner ? [
+          'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. ',
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps }, [
+            'More information about managing shared billing projects.'
+          ])
+        ] : [
+          'This shared billing project has only one owner. Consider requesting ',
+          h(Link, { mailto: projectOwners[0].email }, [projectOwners[0].email]),
+          ' to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.'
+        ])
       ]),
       h(SimpleTabBar, {
         'aria-label': 'project details',

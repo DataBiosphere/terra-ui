@@ -10,7 +10,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import {
@@ -58,7 +58,7 @@ const AnalysisLauncher = _.flow(
     const status = getConvertedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
-    const toolLabel = getTool(analysisName)
+    const toolLabel = getToolFromFileExtension(analysisName)
     const iframeStyles = { height: '100%', width: '100%' }
 
     useOnMount(() => {
@@ -376,7 +376,7 @@ const PreviewHeader = ({
     }),
     copyingAnalysis && h(AnalysisDuplicator, {
       printName: getFileName(analysisName),
-      toolLabel: getTool(analysisName),
+      toolLabel: getToolFromFileExtension(analysisName),
       fromLauncher: true,
       wsName: name, googleProject, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingAnalysis(false),
@@ -384,7 +384,7 @@ const PreviewHeader = ({
     }),
     exportingAnalysis && h(ExportAnalysisModal, {
       printName: getFileName(analysisName),
-      toolLabel: getTool(analysisName), workspace,
+      toolLabel: getToolFromFileExtension(analysisName), workspace,
       fromLauncher: true,
       onDismiss: () => setExportingAnalysis(false)
     }),
