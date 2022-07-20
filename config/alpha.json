@@ -20,6 +20,7 @@
   "rexUrlRoot": "https://terra-rex-alpha.appspot.com",
   "samUrlRoot": "https://sam.dsde-alpha.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
+  "shouldUseDrsHub": false,
   "workspaceManagerUrlRoot": "https://workspace.dsde-alpha.broadinstitute.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
