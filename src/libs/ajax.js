@@ -1762,7 +1762,6 @@ const Martha = signal => ({
   }
 })
 
-// TODO: test this and make sure it works
 const DrsHub = signal => ({
   getDataObjectMetadata: async (url, fields) => {
     const res = await fetchDrsHub(
