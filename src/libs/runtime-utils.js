@@ -388,7 +388,7 @@ export const getCostForTool = (app, appDataDisks, currentRuntime, currentRuntime
 
 export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
   const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
-  return diskCost ? `Disk ${Utils.formatUSD(getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))}/hr` : ''
+  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
 }
 
 export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
