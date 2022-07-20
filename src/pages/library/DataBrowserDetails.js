@@ -179,9 +179,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: dataObj.access !== datasetAccessTypes.GRANTED || true,
-        tooltip: 'We are currently working on preview dataset and this will be available soon',
-        //dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: true,
+        tooltip: 'We are currently working on preview dataset and this will be available soon.',
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -197,9 +196,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: dataObj.access !== datasetAccessTypes.GRANTED || true,
-        tooltip: 'We are currently working on the link to workspace feature which will be available soon',
-        // dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: true,
+        tooltip: 'We are currently working on the link to workspace feature which will be available soon.',
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
