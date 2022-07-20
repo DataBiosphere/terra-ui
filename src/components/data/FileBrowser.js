@@ -14,7 +14,7 @@ import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { useCancelable } from 'src/libs/react-utils'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import { useUploader } from 'src/libs/uploads'
@@ -451,23 +451,19 @@ const BucketBrowser = (({
       creatingNewFolder && h(NameModal, {
         thing: 'New folder',
         onDismiss: () => setCreatingNewFolder(false),
-        onSuccess: async ({ name }) => {
+        onSuccess: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error creating folder')
+        )(async ({ name }) => {
           setCreatingNewFolder(false)
 
-          setBusy(true)
-          try {
-            // Create a placeholder object for the new folder.
-            // See https://cloud.google.com/storage/docs/folders for more information.
-            const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
-            await Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
+          // Create a placeholder object for the new folder.
+          // See https://cloud.google.com/storage/docs/folders for more information.
+          const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
+          await Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
 
-            setBusy(false)
-            setPrefix(`${prefix}${name}/`)
-          } catch (error) {
-            setBusy(false)
-            reportError('Error creating folder', error)
-          }
-        }
+          setPrefix(`${prefix}${name}/`)
+        })
       }),
 
       deletingSelectedObjects && h(DeleteObjectsConfirmationModal, {
