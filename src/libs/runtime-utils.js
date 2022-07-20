@@ -363,8 +363,6 @@ export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, t
   const toolCost = getCostForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
   return Utils.cond(
     [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(toolCost)}` : ''],
-    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(toolCost)}/hr`],
     [Utils.DEFAULT, () => {
       return ''
