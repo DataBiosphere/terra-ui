@@ -395,9 +395,7 @@ const BucketBrowser = (({
             noObjectsMessage,
             h(ButtonOutline, {
               style: { marginTop: '1rem', textTransform: 'none' },
-              onClick: async () => {
-                setBusy(true)
-
+              onClick: Utils.withBusyState(setBusy, async () => {
                 // Attempt to delete folder placeholder object.
                 // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
                 // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
@@ -409,12 +407,10 @@ const BucketBrowser = (({
                   }
                 }
 
-                setBusy(false)
-
                 // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
                 // Dropping the last two items returns the parent "folder".
                 setPrefix(_.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix))
-              }
+              })
             }, ['Delete this folder'])
           ])],
           () => noObjectsMessage
