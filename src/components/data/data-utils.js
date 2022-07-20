@@ -80,6 +80,29 @@ export const entityAttributeText = (attributeValue, machineReadable) => {
 
 const maxListItemsRendered = 100
 
+const renderDataCellTooltip = attributeValue => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const renderArrayTooltip = items => {
+    return _.flow(
+      _.slice(0, maxListItemsRendered),
+      items.length > maxListItemsRendered ?
+        Utils.append(`and ${items.length - maxListItemsRendered} more`) :
+        _.identity,
+      _.join(', ')
+    )(items)
+  }
+
+  return Utils.cond(
+    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArrayTooltip(attributeValue)],
+    [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+    [type === 'reference' && isList, () => renderArrayTooltip(_.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => renderArrayTooltip(attributeValue.items)],
+    () => attributeValue?.toString()
+  )
+}
+
 export const renderDataCell = (attributeValue, googleProject) => {
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
@@ -103,14 +126,7 @@ export const renderDataCell = (attributeValue, googleProject) => {
 
   const { type, isList } = getAttributeType(attributeValue)
 
-  const tooltip = Utils.cond(
-    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => _.join(', ', attributeValue)],
-    [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
-    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
-    [type === 'reference', () => attributeValue.entityName],
-    [isList, () => _.join(', ', attributeValue.items)],
-    () => attributeValue?.toString()
-  )
+  const tooltip = renderDataCellTooltip(attributeValue)
 
   return h(TextCell, { title: tooltip }, [
     Utils.cond(
