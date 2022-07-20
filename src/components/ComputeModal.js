@@ -1190,7 +1190,7 @@ export const ComputeModalBase = ({
       _.map(({ cost, label, unitLabel }) => {
         return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
           div({ style: { fontSize: 10 } }, [label]),
-          div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
+          div({ style: { color: colors.dark(), marginTop: '0.25rem' } }, [
             span({ style: { fontSize: 20 } }, [cost]),
             span([' ', unitLabel])
           ])
