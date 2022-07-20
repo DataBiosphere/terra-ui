@@ -20,6 +20,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
 
+import TooltipTrigger from './TooltipTrigger'
+
 
 const contextBarStyles = {
   contextBarContainer: {
@@ -142,29 +144,41 @@ export const ContextBar = ({
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
         h(Fragment, [
-          h(Clickable, {
-            style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', cursor: 'default' },
-            hover: { ...contextBarStyles.hover },
-            tooltipSide: 'left',
-            tooltip: [
-              div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
-              br(),
-              div('Workflow and workspace storage costs are not included.')
-            ],
-            tooltipDelay: 100
-          }, [
-            div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
-            div({
-              style: {
-                textAlign: 'center', color: colors.dark(),
-                fontWeight: 'bold', fontSize: '1em'
-              }
+          h(TooltipTrigger,
+            {
+              side: 'left',
+              content: [
+                div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                br(),
+                div('Workflow and workspace storage costs are not included.')
+              ]
             },
             [
-              getTotalToolAndDiskCostDisplay(),
-              span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
-            ])
-          ]),
+              div({
+                style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', cursor: 'default' },
+                hover: { ...contextBarStyles.hover },
+                tooltipSide: 'left',
+                tooltip: [
+                  div('This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                  br(),
+                  div('Workflow and workspace storage costs are not included.')
+                ],
+                tooltipDelay: 100
+              }, [
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
+                div({
+                  style: {
+                    textAlign: 'center', color: colors.dark(),
+                    fontWeight: 'bold', fontSize: '1em'
+                  }
+                },
+                [
+                  getTotalToolAndDiskCostDisplay(),
+                  span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
+                ])
+              ])
+            ]
+          ),
           h(Clickable, {
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
