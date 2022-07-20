@@ -35,17 +35,17 @@ const sidebarSections = [{
   labels: ['10x analysis', 'Bisulfate Sequencing']
 }, {
   name: 'Scientific Domain',
-  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
+  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
 }, {
   name: 'Datasets',
   labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
-    'gnomAD', 'NCI', 'COVID-19']
+    'gnomAD', 'NCI', 'COVID-19', 'AMP PD']
 }, {
   name: 'Utilities',
   labels: ['Format Conversion', 'Developer Tools']
 }, {
   name: 'Projects',
-  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
+  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
 }]
 
 const WorkspaceCard = ({ workspace }) => {
