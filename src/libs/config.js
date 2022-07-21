@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { loadedConfigStore } from 'src/configStore'
 import { configOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { nonBreakingHyphen } from 'src/pages/library/common'
 
 
 export const getConfig = () => {
@@ -86,11 +87,11 @@ export const brands = {
     isEnabled: () => (window.location.hostname === 'projectsingular.terra.bio') || getConfig().isProjectSingular
   },
   rareX: {
-    name: 'The RARE‑X Data Analysis Platform',
-    alternativeName: 'The RARE‑X Data Analysis Platform',
-    signInName: 'the RARE‑X Data Analysis Platform',
-    welcomeHeader: 'Welcome to the RARE‑X Data Analysis Platform',
-    description: 'The RARE‑X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
+    name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
+    alternativeName: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
+    signInName: `the RARE${nonBreakingHyphen}X Data Analysis Platform`,
+    welcomeHeader: `Welcome to the RARE${nonBreakingHyphen}X Data Analysis Platform`,
+    description: `The RARE${nonBreakingHyphen}X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
     enable: () => configOverridesStore.set({ isRareX: true }),
     isEnabled: () => (window.location.hostname === 'rare-x.terra.bio') || getConfig().isRareX
   },

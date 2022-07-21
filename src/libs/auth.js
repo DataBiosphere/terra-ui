@@ -6,10 +6,9 @@ import { div, h } from 'react-hyperscript-helpers'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
+import { getConfig, getEnabledBrand } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
-import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
@@ -386,7 +385,7 @@ authStore.subscribe((state, oldState) => {
         message: h(Fragment, [
           'To regain access, ',
           h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
-          ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
+          ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getEnabledBrand().name}.`
         ]),
         action: {
           label: 'Do not remind me again',

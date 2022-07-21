@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { getAppName } from 'src/libs/logos'
+import { getEnabledBrand } from 'src/libs/config'
 import { useOnMount, useStore } from 'src/libs/react-utils'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -87,7 +87,7 @@ export const TitleManager = () => {
   const newTitle = Utils.cond(
     [_.isFunction(title), () => title({ ...params, queryParams: query })],
     [title, () => title],
-    () => getAppName({ capitalizeThe: true })
+    () => getEnabledBrand().name
   )
   useEffect(() => {
     document.title = newTitle

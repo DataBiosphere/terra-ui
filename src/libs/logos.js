@@ -19,7 +19,9 @@ import terraLogo from 'src/images/brands/terra/logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import colors from 'src/libs/colors'
-import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
+import {
+  getEnabledBrand, isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra
+} from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { nonBreakingHyphen } from 'src/pages/library/common'
 
@@ -54,7 +56,7 @@ const pickBrandLogo = (color = false) => Utils.cond(
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra', role: 'img', src: logoVariant, style })
 
 const brandLogoMaker = (size, color = false) => img({
-  alt: getAppName(), role: 'img',
+  alt: getEnabledBrand().name, role: 'img',
   src: pickBrandLogo(color),
   style: { height: size, marginRight: '1.5rem' }
 })
