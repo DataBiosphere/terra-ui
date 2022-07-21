@@ -171,7 +171,6 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchOk)
-const fetchShouldUseDrsHub = withUrlPrefix(`${getConfig().shouldUseDrsHub}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
@@ -1745,7 +1744,7 @@ const Dockstore = signal => ({
   listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
-const shouldUseDrsHub = !!fetchShouldUseDrsHub()
+const shouldUseDrsHub = !!getConfig().shouldUseDrsHub
 
 const DrsUriResolver = signal => ({
   //Currently only Martha and not DRSHub can get a signed URL
