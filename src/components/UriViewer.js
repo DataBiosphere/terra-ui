@@ -179,7 +179,7 @@ const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else {
-        // TODO: change below comment after switch to DRSHub is complete
+        // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
