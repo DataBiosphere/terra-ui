@@ -147,10 +147,10 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
 ])
 
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
-  title,
+  title: span({ style: { fontWeight: 'bold' } }, [title]),
   initialOpenState: true,
   titleFirst: true,
-  buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark(), fontWeight: 'bold' }
+  summaryStyle: { padding: '1rem 1rem 1rem 2rem' }
 }, [children])
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
