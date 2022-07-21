@@ -23,24 +23,7 @@ import {
   getEnabledBrand, isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra
 } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { nonBreakingHyphen } from 'src/pages/library/common'
 
-
-export const getAppName = ({ longName = false, capitalizeThe = false } = {}) => {
-  const maybeCapitalizedThe = capitalizeThe ? 'The' : 'the'
-
-  return Utils.cond(
-    [isFirecloud(), () => 'FireCloud'],
-    [isDatastage(), () => 'DataStage'],
-    [isAnvil(), () => longName ? `${maybeCapitalizedThe} NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)` : 'AnVIL'],
-    [isBioDataCatalyst(), () => 'NHLBI BioData Catalyst'],
-    [isBaseline(), () => longName ? `${maybeCapitalizedThe} Baseline Health Study Data Portal` : 'Project Baseline'],
-    [isElwazi(), () => longName ? `${maybeCapitalizedThe} eLwazi Open Data Science Platform` : 'eLwazi'],
-    [isProjectSingular(), () => 'Project Singular'],
-    [isRareX(), () => `${maybeCapitalizedThe} RARE${nonBreakingHyphen}X Data Analysis Platform`],
-    () => longName ? 'Terra Community Workbench' : 'Terra'
-  )
-}
 
 const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), () => color ? fcLogo : fcLogoWhite],
