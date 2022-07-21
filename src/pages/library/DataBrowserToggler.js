@@ -14,7 +14,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
       background: colors.dark(0.1),
       padding: '10px 15px',
       border: '1px solid', borderColor: colors.accent(), borderRadius: 3,
-      display: 'flex', width: 680
+      display: 'flex', width: catalogShowing ? 680 : 290
     }
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
@@ -32,7 +32,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         div({ style: { marginLeft: 10 } }, [`New Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
       ])
     ]),
-    catalogShowing ? div({ style: { display: 'flex' } }, [
+    catalogShowing && div({ style: { display: 'flex' } }, [
       icon('talk-bubble', { size: 45, style: { marginLeft: '1.5rem', margin: '0 0.5rem' } }),
       div({ style: { display: 'flex', flexDirection: 'column' } }, [
         'Provide feedback or looking for a dataset not listed?',
@@ -42,11 +42,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         },
         ['Let us know!'])
       ])
-    ]) : div({
-      style: {
-        padding: '0 15px', wordWrap: 'break-word', width: 400, lineHeight: 1.5, marginTop: '-.05rem'
-      }
-    }, ['Note: Not all datasets are represented in the new Data Catalog yet.']),
+    ]),
     feedbackShowing && h(DataBrowserFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
@@ -55,6 +51,10 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
       primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
       sourcePage: 'Catalog List'
     })
-  ])])
+  ]), !catalogShowing ? div({
+    style: {
+      padding: '15px 15px', wordWrap: 'break-word', width: 300, lineHeight: 1.5
+    }
+  }, ['Note: Not all datasets are represented in the new Data Catalog yet.']) : div()])
 }
 
