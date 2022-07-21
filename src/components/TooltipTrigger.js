@@ -16,16 +16,20 @@ const baseToolTip = {
 
 const styles = {
   tooltip: {
-    background: 'black', color: 'white',
-    padding: '0.5rem',
+    background: '#FFFFFF',
+    color: colors.dark(),
+    borderColor: colors.secondary(),
+    padding: '1rem',
+    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
     ...baseToolTip
   },
   notch: {
-    fill: 'black',
+    fill: '#FFFFFF',
     position: 'absolute',
-    width: 16, height: 8,
+    width: 17, height: 8,
     marginLeft: -8, marginRight: -8, marginTop: -8,
-    transformOrigin: 'bottom'
+    transformOrigin: 'bottom',
+    filter: 'drop-shadow(0px -2px 1px rgba(0,0,0,0.3))'
   },
   lightBox: {
     background: 'white',
@@ -59,10 +63,10 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
       (target.top + target.bottom) / 2 - position.top
     )
     return Utils.switchCase(finalSide,
-      ['top', () => ({ bottom: 0, left, transform: 'rotate(180deg)' })],
-      ['bottom', () => ({ top: 0, left })],
-      ['left', () => ({ right: 0, top, transform: 'rotate(90deg)' })],
-      ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
+      ['top', () => ({ bottom: 1, left, transform: 'rotate(180deg)' })],
+      ['bottom', () => ({ top: 1, left })],
+      ['left', () => ({ right: 1, top, transform: 'rotate(90deg)' })],
+      ['right', () => ({ left: 1, top, transform: 'rotate(270deg)' })]
     )
   }
 
