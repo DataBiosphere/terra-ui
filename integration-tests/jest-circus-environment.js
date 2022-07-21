@@ -1,11 +1,7 @@
 const PuppeteerEnvironment = require('jest-environment-puppeteer')
 const { maybeSaveScreenshot, savePageContent } = require('./utils/integration-utils')
 const { parse } = require('path')
-//const { send } = require('./services/slack')
-const slack = require('./services/slack-post-message')
-const slackChannels = require('./services/slack-notify-channels')
-const { failed } = require('./services/slack-templates')
-const _ = require('lodash/fp')
+const slack = require('./services/slack/post-message')
 
 
 class JestCircusEnvironment extends PuppeteerEnvironment {
@@ -27,41 +23,21 @@ class JestCircusEnvironment extends PuppeteerEnvironment {
       await savePageContent(activePage, this.testName)
     }
 
+    /*
     if (name === 'test_done') {
-      if (!!process.env.CI) { // Post a message to Slack channel when running tests has failed in CircleCI
-       // await this.postSlackWhenFail(this.testName)
+      if (!!process.env.CI) {
+        // Post a message to Slack channel when running tests has failed in CircleCI
+        await slack.postSlackWhenFail(this.testName)
       }
     }
+    */
 
     if (super.handleTestEvent) {
       await super.handleTestEvent(event, state)
     }
   }
 
-  async postSlackWhenFail(testName) {
-    if (this.isSuccess) { // TODO change to !
-      // await send()
 
-      const getIds = _.flow(
-        _.get('tests'),
-        _.find(testName),
-        _.get(testName),
-        _.groupBy('id'),
-        _.keys
-      )
-      const ids = getIds(slackChannels)
-      // console.log(ids) // array object. e.g: [ 'C03ESC8SRPB', 'C7H40L71D' ]
-      await Promise.all(
-        _.forEach(async id => {
-          // console.log(`send to id: ${id}`)
-          await slack.postMessage(id, { blocks: failed(_.merge({
-              TEST_NAME: this.testName,
-              CIRCLE_BUILD_URL: 'https://circleci.com/gh/DataBiosphere/terra-ui/47116'},
-              process.env.ENVIRONMENT)) })
-        }, ids)
-      )
-    }
-  }
 }
 
 module.exports = JestCircusEnvironment

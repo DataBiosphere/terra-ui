@@ -12,7 +12,7 @@ const testImportCohortDataFn = _.flow(
   // withWorkspace,
   // withUserToken
 )(async ({ page, testUrl, token, workspaceName }) => {
-  // nothing
+  //await click(page, clickable({ textContains: 'Browse Data' }))
 })
 
 registerTest({

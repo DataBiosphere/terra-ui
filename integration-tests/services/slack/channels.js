@@ -1,6 +1,7 @@
 module.exports = {
   tests: [
     {
+      // name found in registerTest()
       'import-cohort-data': [
         {
           name: 'alexw-slack-app-testing',

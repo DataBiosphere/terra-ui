@@ -105,7 +105,7 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const click = async (page, xpath, options) => {
+const click = async (page, xpath, options = { timeout: 2000 }) => {
   return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
 }
 
