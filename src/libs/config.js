@@ -2,8 +2,9 @@ import _ from 'lodash/fp'
 import { loadedConfigStore } from 'src/configStore'
 import { configOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { nonBreakingHyphen } from 'src/pages/library/common'
 
+
+export const nonBreakingHyphen = '\u2011'
 
 export const getConfig = () => {
   console.assert(loadedConfigStore.current, 'Called getConfig before initialization')
