@@ -4,7 +4,7 @@ import pluralize from 'pluralize'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Checkbox, DeleteConfirmationModal, Link, topSpinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
@@ -14,7 +14,7 @@ import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { useCancelable } from 'src/libs/react-utils'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import { useUploader } from 'src/libs/uploads'
@@ -51,7 +51,9 @@ const useBucketContents = ({ googleProject, bucketName, prefix, pageSize = 1000 
         nextPageToken: pageNextPageToken
       } = await Ajax(signal).Buckets.list(googleProject, bucketName, prefix, requestOptions)
 
-      setAllObjects(prevObjects => _.concat(prevObjects, _.defaultTo([], pageObjects)))
+      // _.remove({ name: prefix }) filters out folder placeholder objects.
+      // See https://cloud.google.com/storage/docs/folders for more information.
+      setAllObjects(prevObjects => _.flow(_.defaultTo([]), _.remove({ name: prefix }), _.concat(prevObjects))(pageObjects))
       setAllPrefixes(prevPrefixes => _.concat(prevPrefixes, _.defaultTo([], pagePrefixes)))
       nextPageToken.current = pageNextPageToken
       setMoreToLoad(Boolean(nextPageToken.current))
@@ -260,10 +262,10 @@ const BucketBrowser = (({
   basePrefix: inputBasePrefix = '',
   pageSize = 1000,
   noObjectsMessage = 'No files have been uploaded yet',
-  showNewFolderButton = true,
+  allowEditingFolders = true,
   extraMenuItems,
   style, controlPanelStyle,
-  onUploadFiles, onDeleteFiles
+  onUploadFiles = _.noop, onDeleteFiles = _.noop
 }) => {
   // Normalize base prefix to have a trailing slash.
   const basePrefix = Utils.cond(
@@ -366,7 +368,7 @@ const BucketBrowser = (({
           onClick: openUploader
         }, [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']),
 
-        showNewFolderButton && h(Link, {
+        allowEditingFolders && h(Link, {
           style: { padding: '0.5rem' },
           onClick: () => setCreatingNewFolder(true)
         }, [icon('folder'), ' New folder']),
@@ -387,6 +389,31 @@ const BucketBrowser = (({
         noObjectsMessage: Utils.cond(
           [loading, () => 'Loading bucket contents...'],
           [error, () => 'Unable to load bucket contents'],
+          [!!prefix && prefix !== basePrefix && allowEditingFolders, () => div({
+            style: { display: 'flex', flexDirection: 'column', alignItems: 'center' }
+          }, [
+            noObjectsMessage,
+            h(ButtonOutline, {
+              style: { marginTop: '1rem', textTransform: 'none' },
+              onClick: Utils.withBusyState(setBusy, async () => {
+                // Attempt to delete folder placeholder object.
+                // A placeholder object may not exist for the prefix being viewed, so do not an report error for 404 responses.
+                // See https://cloud.google.com/storage/docs/folders for more information on placeholder objects.
+                try {
+                  await Ajax().Buckets.delete(googleProject, bucketName, prefix)
+                } catch (error) {
+                  if (error.status !== 404) {
+                    reportError('Error deleting folder', error)
+                  }
+                }
+
+                // Since prefixes have a trailing slash, the last item in the split array will be an empty string.
+                // Dropping the last two items returns the parent "folder".
+                const parentPrefix = _.flow(_.split('/'), _.dropRight(2), _.join('/'))(prefix)
+                setPrefix(parentPrefix === '' ? '' : `${parentPrefix}/`)
+              })
+            }, ['Delete this folder'])
+          ])],
           () => noObjectsMessage
         ),
         selectedObjects, setSelectedObjects,
@@ -421,10 +448,19 @@ const BucketBrowser = (({
       creatingNewFolder && h(NameModal, {
         thing: 'New folder',
         onDismiss: () => setCreatingNewFolder(false),
-        onSuccess: ({ name }) => {
+        onSuccess: _.flow(
+          Utils.withBusyState(setBusy),
+          withErrorReporting('Error creating folder')
+        )(async ({ name }) => {
           setCreatingNewFolder(false)
+
+          // Create a placeholder object for the new folder.
+          // See https://cloud.google.com/storage/docs/folders for more information.
+          const placeholderObject = new File([''], `${name}/`, { type: 'text/plain' })
+          await Ajax().Buckets.upload(googleProject, bucketName, prefix, placeholderObject)
+
           setPrefix(`${prefix}${name}/`)
-        }
+        })
       }),
 
       deletingSelectedObjects && h(DeleteObjectsConfirmationModal, {

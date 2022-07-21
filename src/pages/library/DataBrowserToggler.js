@@ -1,85 +1,20 @@
-import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Link, spinnerOverlay, Switch } from 'src/components/common'
+import { Link, Switch } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextArea, TextInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { FormLabel } from 'src/libs/forms'
-import * as Utils from 'src/libs/utils'
-import validate from 'validate.js'
-
-
-const DataBrowserFeedbackModal = ({ onSuccess, onDismiss }) => {
-  const [contactEmail, setContactEmail] = useState('')
-  const [feedback, setFeedback] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const submit = Utils.withBusyState(setSubmitting, async () => {
-    await Ajax().Surveys.submitForm('1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
-      { 'entry.477992521': feedback, 'entry.82175827': contactEmail })
-    onSuccess()
-  })
-
-  const errors = validate({ feedback, contactEmail },
-    { feedback: { length: { minimum: 1, maximum: 2000 } }, contactEmail: contactEmail ? { email: true } : {} })
-
-  return h(Modal, {
-    onDismiss,
-    shouldCloseOnEsc: false,
-    width: 500,
-    title: 'Give feedback',
-    okButton: h(TooltipTrigger, { content: !!errors && _.map(error => div({ key: error }, [error]), errors) },
-      [h(ButtonPrimary, {
-        disabled: errors,
-        onClick: submit
-      }, ['Submit'])]
-    )
-  }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { required: true, htmlFor: id, style: { fontSize: 14, fontWeight: 300 } },
-        ['Please tell us about your experience with the new Data Catalog']),
-      h(TextArea, {
-        id,
-        autoFocus: true,
-        value: feedback,
-        onChange: setFeedback,
-        placeholder: 'Enter feedback',
-        style: { height: '8rem', marginTop: '0.25rem' }
-      }
-      )
-    ])]),
-    div({ style: { display: 'flex', justifyContent: 'flex-end', fontSize: 12 } }, ['2000 Character limit']),
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id, style: { fontSize: 14 } },
-        ['Can we contact you with further questions?']),
-      h(TextInput, {
-        id,
-        value: contactEmail,
-        onChange: setContactEmail,
-        placeholder: 'Enter email address',
-        style: { marginTop: '0.25rem' }
-      }
-      )
-    ])]),
-    submitting && spinnerOverlay
-  ])
-}
+import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 
 
 export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
   const [feedbackShowing, setFeedbackShowing] = useState(false)
-  const [thanksShowing, setThanksShowing] = useState(false)
 
   return div({ style: { display: 'flex', margin: 15 } }, [div({
     style: {
       background: colors.dark(0.1),
       padding: '10px 15px',
       border: '1px solid', borderColor: colors.accent(), borderRadius: 3,
-      display: 'flex', width: catalogShowing ? 680 : 290
+      display: 'flex', width: 680
     }
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
@@ -97,7 +32,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         div({ style: { marginLeft: 10 } }, [`New Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
       ])
     ]),
-    catalogShowing && div({ style: { display: 'flex' } }, [
+    catalogShowing ? div({ style: { display: 'flex' } }, [
       icon('talk-bubble', { size: 45, style: { marginLeft: '1.5rem', margin: '0 0.5rem' } }),
       div({ style: { display: 'flex', flexDirection: 'column' } }, [
         'Provide feedback or looking for a dataset not listed?',
@@ -107,30 +42,19 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         },
         ['Let us know!'])
       ])
-    ]),
+    ]) : div({
+      style: {
+        padding: '0 15px', wordWrap: 'break-word', width: 400, lineHeight: 1.5, marginTop: '-.05rem'
+      }
+    }, ['Note: Not all datasets are represented in the new Data Catalog yet.']),
     feedbackShowing && h(DataBrowserFeedbackModal, {
-      title: '',
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
         setFeedbackShowing(false)
-        setThanksShowing(true)
-      }
-    }),
-    thanksShowing && h(Modal, {
-      onDismiss: () => setThanksShowing(false),
-      showCancel: false,
-      okButton: h(ButtonPrimary, {
-        onClick: () => setThanksShowing(false)
       },
-      ['OK'])
-    },
-    [div({ style: { fontWeight: 600, fontSize: 18 } },
-      'Thank you for helping us improve the Data Catalog experience!')]
-    )
-  ]), !catalogShowing ? div({
-    style: {
-      padding: '15px 15px', wordWrap: 'break-word', width: 300, lineHeight: 1.5
-    }
-  }, ['Note: Not all datasets are represented in the new Data Catalog yet.']) : div()])
+      primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
+      sourcePage: 'Catalog List'
+    })
+  ])])
 }
 

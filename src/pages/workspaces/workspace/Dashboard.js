@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -18,6 +18,7 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
@@ -115,6 +116,7 @@ const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) =
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
         title: h3({ style: Style.dashboard.collapsibleHeader }, [title, info]),
+        summaryStyle: { color: colors.accent() },
         initialOpenState,
         titleFirst: true,
         onClick
@@ -196,7 +198,7 @@ const WorkspaceDashboard = _.flow(
     azureContext,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject, workspaceId,
       attributes, attributes: { description = '' }
     }
   }
@@ -205,6 +207,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
+  const [{ storageContainerName, storageLocation, sasUrl }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -214,6 +217,7 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
+  const sasTokenRefreshInterval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -222,6 +226,12 @@ const WorkspaceDashboard = _.flow(
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
+    } else {
+      loadAzureStorage()
+
+      // sas tokens expires after 1 hour
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ minutes: 50 }))
     }
   }
 
@@ -236,6 +246,13 @@ const WorkspaceDashboard = _.flow(
   useEffect(() => {
     setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
   }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    return () => {
+      clearInterval(sasTokenRefreshInterval.current)
+      sasTokenRefreshInterval.current = undefined
+    }
+  }, [sasTokenRefreshInterval])
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -255,6 +272,11 @@ const WorkspaceDashboard = _.flow(
       const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
       setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
     }
+  })
+
+  const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
+    const { storageContainerName, location, sasUrl } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerName, storageLocation: location, sasUrl })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -340,9 +362,26 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
+        h(InfoRow, { title: 'Location' }, [
+          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+        ]),
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+        ]),
+        h(InfoRow, { title: 'Storage Container Name' }, [
+          h(TooltipCell, [!!storageContainerName ? storageContainerName : 'Loading']),
+          h(ClipboardButton, {
+            'aria-label': 'Copy storage container name to clipboard',
+            text: storageContainerName, style: { marginLeft: '0.25rem' }
+          })
+        ]),
+        h(InfoRow, { title: 'Storage SAS URL' }, [
+          h(TooltipCell, [!!sasUrl ? sasUrl : 'Loading']),
+          h(ClipboardButton, {
+            'aria-label': 'Copy SAS URL to clipboard',
+            text: sasUrl, style: { marginLeft: '0.25rem' }
+          })
         ])
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
@@ -459,9 +498,9 @@ const WorkspaceDashboard = _.flow(
       }, [
         div({ style: { margin: '0.5rem' } }, [
           div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-            `${getAppName()} is not intended to host personally identifiable information.`,
+            `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information.`,
             h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-              `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+              `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information. Do not use any patient identifier including name,
               social security number, or medical record number.`
             ])
           ]),

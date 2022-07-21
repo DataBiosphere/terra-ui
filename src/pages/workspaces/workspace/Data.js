@@ -202,26 +202,20 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
       style: {
         margin: 0,
         fontSize: 16,
+        color: colors.dark(),
         textTransform: 'uppercase'
       }
     }, title),
     titleFirst: true,
     initialOpenState: true,
     summaryStyle: {
-      paddingRight: error ? '1rem' : 0,
+      padding: `1.125rem 1.5rem`,
       borderBottom: `0.5px solid ${colors.dark(0.2)}`,
       backgroundColor: colors.light(0.4),
       fontSize: 16
     },
-    buttonProps: {
-      hover: {
-        color: colors.dark(0.9)
-      }
-    },
-    buttonStyle: {
-      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
-      marginBottom: 0,
-      color: colors.dark()
+    hover: {
+      color: colors.dark(0.9)
     },
     afterToggle: error && h(Link, {
       onClick: retryFunction,
@@ -280,7 +274,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDeleteTable }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -366,7 +360,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, onRenameTable, onDel
       onDismiss: () => setRenaming(false),
       onUpdateSuccess: onRenameTable,
       namespace, name,
-      selectedDataType: tableName
+      selectedDataType: tableName,
+      entityMetadata
     }),
     deleting && h(DeleteConfirmationModal, {
       objectType: 'table',
@@ -627,6 +622,7 @@ const WorkspaceData = _.flow(
                   after: h(DataTableActions, {
                     tableName: type,
                     rowCount: typeDetails.count,
+                    entityMetadata,
                     workspace,
                     onRenameTable: () => loadMetadata(),
                     onDeleteTable: tableName => {
@@ -647,13 +643,15 @@ const WorkspaceData = _.flow(
                 return h(Collapse, {
                   key: snapshotName,
                   titleFirst: true,
-                  buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
-                  buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
+                  noTitleWrap: true,
+                  summaryStyle: { height: 50, paddingRight: '0.5rem', fontWeight: 600 },
+                  tooltip: snapshotName,
+                  tooltipDelay: 250,
                   style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                  title: snapshotName, noTitleWrap: true,
+                  title: snapshotName,
                   role: 'listitem',
                   afterToggle: h(Link, {
-                    style: { marginRight: '0.5rem' },
+                    style: { marginLeft: 'auto' },
                     tooltip: 'Snapshot Info',
                     onClick: () => {
                       setSelectedDataType([snapshotName])

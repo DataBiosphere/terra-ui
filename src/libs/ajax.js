@@ -8,7 +8,9 @@ import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { pdTypes } from 'src/libs/runtime-utils'
-import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
+import {
+  ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
+} from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -22,7 +24,8 @@ window.ajaxOverrideUtils = {
     return Math.random() < frequency ?
       Promise.resolve(new Response('Instrumented error', { status })) :
       wrappedFetch(...args)
-  })
+  }),
+  makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
@@ -157,6 +160,7 @@ export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRe
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
@@ -844,6 +848,11 @@ const Workspaces = signal => ({
             return res.json()
           },
 
+          getConfiguration: async () => {
+            const res = await fetchRawls(`${submissionPath}/configuration`, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
           abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
@@ -1102,6 +1111,43 @@ const DataRepo = signal => ({
   }
 })
 
+const AzureStorage = signal => ({
+  sasToken: async (workspaceId, containerId) => {
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+      _.merge(authOpts(), { signal, method: 'POST' }))
+
+    return tokenResponse.json()
+  },
+
+  details: async (workspaceId = {}) => {
+    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
+      _.merge(authOpts(), { signal })
+    )
+    const data = await res.json()
+    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+    if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
+      return {
+        location: 'Unknown',
+        storageContainerName: 'None',
+        sasUrl: 'None'
+      }
+    } else {
+      const container = _.find(
+        {
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
+        },
+        data.resources
+      )
+      const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
+      return {
+        location: storageAccount.resourceAttributes.azureStorage.region,
+        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+        sasUrl: sas.url
+      }
+    }
+  }
+})
 
 const Buckets = signal => ({
   getObject: async (googleProject, bucket, object, params = {}) => {
@@ -1778,6 +1824,7 @@ export const Ajax = signal => {
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
     DataRepo: DataRepo(signal),
+    AzureStorage: AzureStorage(signal),
     Buckets: Buckets(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),

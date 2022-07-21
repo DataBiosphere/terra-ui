@@ -65,5 +65,6 @@ const testRunAnalysisFn = _.flow(
 registerTest({
   name: 'run-analysis',
   fn: testRunAnalysisFn,
-  timeout: 20 * 60 * 1000
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: []
 })

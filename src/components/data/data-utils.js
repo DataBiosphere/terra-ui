@@ -62,28 +62,82 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
-export const renderDataCell = (data, googleProject) => {
-  const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
+const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
-  const renderCell = datum => {
-    const stringDatum = Utils.convertValue('string', datum)
+export const entityAttributeText = (attributeValue, machineReadable) => {
+  const { type, isList } = getAttributeType(attributeValue)
 
-    return h(TextCell, { title: stringDatum },
-      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum])
-  }
+  return Utils.cond(
+    [_.isNil(attributeValue), () => ''],
+    [type === 'json', () => JSON.stringify(attributeValue)],
+    [isList && machineReadable, () => JSON.stringify(attributeValue.items)],
+    [type === 'reference' && isList, () => _.join(', ', _.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => _.join(', ', attributeValue.items)],
+    () => attributeValue?.toString()
+  )
+}
 
-  const renderArray = items => {
-    return _.map(([i, v]) => h(Fragment, { key: i }, [
-      renderCell(v?.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ]), Utils.toIndexPairs(items))
+const maxListItemsRendered = 100
+
+const renderDataCellTooltip = attributeValue => {
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const renderArrayTooltip = items => {
+    return _.flow(
+      _.slice(0, maxListItemsRendered),
+      items.length > maxListItemsRendered ?
+        Utils.append(`and ${items.length - maxListItemsRendered} more`) :
+        _.identity,
+      _.join(', ')
+    )(items)
   }
 
   return Utils.cond(
-    [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
-    [_.isObject(data), () => JSON.stringify(data, undefined, 1)],
-    () => renderCell(data?.toString())
+    [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArrayTooltip(attributeValue)],
+    [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+    [type === 'reference' && isList, () => renderArrayTooltip(_.map('entityName', attributeValue.items))],
+    [type === 'reference', () => attributeValue.entityName],
+    [isList, () => renderArrayTooltip(attributeValue.items)],
+    () => attributeValue?.toString()
   )
+}
+
+export const renderDataCell = (attributeValue, googleProject) => {
+  const renderCell = datum => {
+    const stringDatum = Utils.convertValue('string', datum)
+
+    return isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum
+  }
+
+  const renderArray = items => {
+    return _.flow(
+      _.slice(0, maxListItemsRendered),
+      items.length > maxListItemsRendered ?
+        Utils.append(`and ${items.length - maxListItemsRendered} more`) :
+        _.identity,
+      Utils.toIndexPairs,
+      _.flatMap(([i, v]) => h(Fragment, { key: i }, [
+        i > 0 && span({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ','),
+        renderCell(v)
+      ]))
+    )(items)
+  }
+
+  const { type, isList } = getAttributeType(attributeValue)
+
+  const tooltip = renderDataCellTooltip(attributeValue)
+
+  return h(TextCell, { title: tooltip }, [
+    Utils.cond(
+      [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
+      [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+      [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
+      [type === 'reference', () => attributeValue.entityName],
+      [isList, () => renderArray(attributeValue.items)],
+      () => renderCell(attributeValue)
+    )
+  ])
 }
 
 export const EditDataLink = props => h(Link, {
@@ -1257,14 +1311,9 @@ export const AddEntityModal = ({ workspaceId: { namespace, name }, entityType, a
         }
       }, [
         h(Collapse, {
-          title: span({ style: { ...Style.noWrapEllipsis } }, [
-            `${attributeName}: ${Utils.entityAttributeText(attributeValues[attributeName], false)}`
-          ]),
-          buttonStyle: {
-            maxWidth: '100%',
-            padding: '0.5rem 0',
-            marginBottom: 0
-          }
+          title: `${attributeName}: ${entityAttributeText(attributeValues[attributeName], false)}`,
+          noTitleWrap: true,
+          summaryStyle: { margin: '0.5rem 0' }
         }, [
           div({ style: { margin: '0.5rem 0' } }, [
             h(AttributeInput, {
