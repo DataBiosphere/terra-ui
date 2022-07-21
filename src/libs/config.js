@@ -16,7 +16,7 @@ export const getConfig = () => {
  */
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
-export const isDataBrowserVisible = () => getConfig().isDataBrowserVisible
+export const isDataBrowserFrontPage = () => false
 
 /**
  * Co-brands (a.k.a. white label sites) of Terra

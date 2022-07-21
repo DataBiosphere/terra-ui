@@ -185,10 +185,12 @@ const enableDataCatalog = async (page, testUrl, token) => {
   await waitForNoSpinners(page)
 
   await findText(page, 'Browse Data')
-  await overrideConfig(page, { isDataBrowserVisible: true })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, { token })
+  await click(page, clickable({ textContains: 'datasets' }))
+  await click(page, clickable({ textContains: 'New Catalog OFF' }))
+  await waitForNoSpinners(page)
 }
 
 const clickNavChildAndLoad = async (page, tab) => {

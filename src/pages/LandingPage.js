@@ -6,13 +6,11 @@ import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
 import colors from 'src/libs/colors'
-import { getEnabledBrand, isDataBrowserVisible, isFirecloud, isTerra } from 'src/libs/config'
+import { getEnabledBrand, isDataBrowserFrontPage, isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getDatasetsPath } from 'src/pages/library/dataBrowser-utils'
 
 
 const styles = {
@@ -78,7 +76,7 @@ const LandingPage = () => {
         'Workspaces connect your data to popular analysis tools powered by the cloud. Use Workspaces to share data, code, and results easily and securely.'
       ]),
       makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
-      makeCard(getDatasetsPath(useStore(authStore)), 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+      makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
     ]),
     isTerra() && div({
       style: {
@@ -96,7 +94,7 @@ const LandingPage = () => {
       }, ['See this article']),
       ' for a summary of available resources.'
     ]),
-    isDataBrowserVisible() && div({
+    isDataBrowserFrontPage() && div({
       style: {
         ...styles.callToActionBanner,
         backgroundColor: colors.primary(),
@@ -107,13 +105,16 @@ const LandingPage = () => {
       }
     }, [
       div([
-        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['BETA Data Catalog']),
+        h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['New Data Catalog']),
         'Preview the Data Catalog and provide valuable feedback.'
       ]),
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
-        onClick: () => { Nav.goToPath('library-browser') }
-      }, ['Preview BETA Data Catalog'])
+        onClick: () => {
+          setLocalPref('catalog-toggle', true)
+          Nav.goToPath('library-datasets')
+        }
+      }, ['Preview the new Data Catalog'])
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
       'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',

@@ -11,8 +11,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import { datasetAccessTypes, importDataToWorkspace, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
@@ -235,7 +233,7 @@ const DataBrowserDetails = ({ id }) => {
   const dataObj = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab, useStore(authStore)),
+    libraryTopMatter(activeTab),
     !dataObj ?
       centeredSpinner() :
       h(Fragment, [
