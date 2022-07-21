@@ -214,7 +214,7 @@ const UriViewer = _.flow(
           'Error loading data. This file does not exist or you do not have permission to view it.'
         ]),
         h(Collapse, { title: 'Details' }, [
-          div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
             JSON.stringify(loadingError, null, 2)
           ])
         ])
@@ -251,7 +251,8 @@ const UriViewer = _.flow(
         ]),
         (timeCreated || updated) && h(Collapse, {
           title: 'More Information',
-          style: { marginTop: '2rem' }
+          style: { marginTop: '2rem' },
+          summaryStyle: { marginBottom: '0.5rem' }
         }, [
           timeCreated && els.cell([
             els.label('Created'),
