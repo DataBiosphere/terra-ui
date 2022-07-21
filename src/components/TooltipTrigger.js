@@ -20,7 +20,7 @@ const styles = {
     color: colors.dark(),
     borderColor: colors.secondary(),
     padding: '1rem',
-    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
+    boxShadow: '0 1px 3px 2px rgba(0,0,0,0.3)',
     ...baseToolTip
   },
   notch: {
