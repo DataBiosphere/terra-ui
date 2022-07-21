@@ -26,10 +26,10 @@ import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Browser } from 'src/pages/library/DataBrowser'
 import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 
 
@@ -447,16 +447,23 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-
 const Datasets = () => {
+  const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets', useStore(authStore)),
-    h(DataBrowserPreviewToggler, { checked: false }),
-    div({ role: 'main', style: styles.content }, [
+    libraryTopMatter('datasets'),
+    h(DataBrowserPreviewToggler, {
+      onChange: value => {
+        setCatalogShowing(value)
+        setLocalPref('catalog-toggle', value)
+      },
+      catalogShowing
+    }),
+    catalogShowing ? h(Browser) :
+      div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
-      hca(), nemo(), target(), tcga(), topMed(), rareX()
-    ])
+        thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
+        hca(), nemo(), target(), tcga(), topMed(), rareX()
+      ])
   ])
 }
 
@@ -466,7 +473,7 @@ export const navPaths = [
     name: 'library-datasets',
     path: '/library/datasets',
     component: Datasets,
-    public: true,
+    public: false,
     title: 'Datasets'
   }
 ]
