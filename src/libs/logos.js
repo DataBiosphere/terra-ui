@@ -44,10 +44,6 @@ const brandLogoMaker = (size, color = false) => img({
   style: { height: size, marginRight: '1.5rem' }
 })
 
-export const signInLogo = () => isTerra() ?
-  terraLogoMaker(terraLogo, { height: 150 }) :
-  brandLogoMaker(70, true)
-
 export const registrationLogo = () => isTerra() ?
   div({ style: { display: 'flex', alignItems: 'center' } }, [
     terraLogoMaker(terraLogo, { height: 100, marginRight: 20 }),
