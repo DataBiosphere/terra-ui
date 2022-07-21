@@ -15,7 +15,7 @@ import { useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { datasetAccessTypes, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, importDataToWorkspace, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -179,8 +179,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
-        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: true,
+        tooltip: 'We are currently working on preview dataset and this will be available soon.',
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -196,8 +196,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
-        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        disabled: true,
+        tooltip: 'We are currently working on the link to workspace feature which will be available soon.',
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
