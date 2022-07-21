@@ -11,7 +11,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig, getEnabledBrand } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import { getAppName } from 'src/libs/logos'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -84,7 +83,7 @@ export const MethodRepoTile = () => {
         href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}#methods`,
         style: { color: colors.accent(1.1) } // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
       }, 'Broad Methods Repository'),
-      div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
+      div([`Use Broad workflows in ${getEnabledBrand().name}. Share your own, or choose from > 700 public workflows`])
     ])
   ])
 }
