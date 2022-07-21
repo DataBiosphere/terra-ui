@@ -7,7 +7,7 @@
   "dataRepoUrlRoot": "https://jade-perf.datarepo-perf.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-perf.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
-  "drsHubUrlRoot": "https://us-central1-broad-dsde-perf.cloudfunctions.net",
+  "drsHubUrlRoot": "https://drshub.dsde-dev.broadinstitute.org",
   "externalCredsUrlRoot": "https://externalcreds.dsde-perf.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-perf",
   "firecloudUrlRoot": "https://firecloud.dsde-perf.broadinstitute.org",
