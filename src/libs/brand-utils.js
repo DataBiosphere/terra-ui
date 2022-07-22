@@ -26,5 +26,3 @@ export const getEnabledBrand = () => Utils.cond(
   [isTerra(), () => brands.terra],
   () => brands.terra
 )
-
-
