@@ -4,7 +4,6 @@ import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
 import colors from 'src/libs/colors'
 import { useLabelAssert } from 'src/libs/react-utils'
-import { DEFAULT_TRANSITION_DURATION } from 'src/libs/style'
 
 
 const drawer = {
@@ -25,15 +24,16 @@ const drawer = {
   })
 }
 
-const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => {
+const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, onExited, ...props }) => {
   useLabelAssert('ModalDrawer', props)
 
   return h(Transition, {
     in: isOpen,
-    timeout: { exit: DEFAULT_TRANSITION_DURATION },
+    timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
-    unmountOnExit: true
+    unmountOnExit: true,
+    onExited
   }, [transitionState => h(RModal, {
     aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true, hidden: transitionState !== 'entered' },
     ariaHideApp: false,
@@ -46,8 +46,8 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
 }
 
 export const withModalDrawer = ({ width, ...modalProps } = {}) => WrappedComponent => {
-  const Wrapper = ({ isOpen, onDismiss, ...props }) => {
-    return h(ModalDrawer, { isOpen, width, onDismiss, ...modalProps }, [
+  const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
+    return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [
       isOpen && h(WrappedComponent, { onDismiss, ...props })
     ])
   }

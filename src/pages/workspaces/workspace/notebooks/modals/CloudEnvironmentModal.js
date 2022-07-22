@@ -27,7 +27,6 @@ import {
   getPersistentDiskCostHourly, isCurrentGalaxyDiskDetaching, runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
-import { DEFAULT_TRANSITION_DURATION } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
 
@@ -49,9 +48,7 @@ export const CloudEnvironmentModal = ({
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
-  const resetModalView = () => setTimeout(() => {
-    setViewMode(undefined)
-  }, DEFAULT_TRANSITION_DURATION)
+  const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
@@ -61,18 +58,9 @@ export const CloudEnvironmentModal = ({
     runtimes,
     persistentDisks,
     location,
-    onDismiss: () => {
-      onDismiss()
-      resetModalView()
-    },
-    onSuccess: () => {
-      onSuccess()
-      resetModalView()
-    },
-    onError: () => {
-      onDismiss()
-      resetModalView()
-    }
+    onDismiss,
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
@@ -80,14 +68,8 @@ export const CloudEnvironmentModal = ({
     hideCloseButton: true,
     workspace,
     runtimes,
-    onDismiss: () => {
-      onDismiss()
-      resetModalView()
-    },
-    onSuccess: () => {
-      onSuccess()
-      resetModalView()
-    }
+    onDismiss,
+    onSuccess
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
@@ -95,14 +77,8 @@ export const CloudEnvironmentModal = ({
     workspace,
     apps,
     appDataDisks,
-    onDismiss: () => {
-      onDismiss()
-      resetModalView()
-    },
-    onSuccess: () => {
-      onSuccess()
-      resetModalView()
-    }
+    onDismiss,
+    onSuccess
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
@@ -450,10 +426,7 @@ export const CloudEnvironmentModal = ({
       title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
-      onDismiss: () => {
-        onDismiss()
-        resetModalView()
-      },
+      onDismiss,
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
@@ -471,10 +444,8 @@ export const CloudEnvironmentModal = ({
 
   const modalProps = {
     'aria-labelledby': titleId, isOpen, width,
-    onDismiss: () => {
-      onDismiss()
-      resetModalView()
-    }
+    onDismiss,
+    onExited: resetView
   }
   return h(ModalDrawer, { ...modalProps, children: modalBody })
 }

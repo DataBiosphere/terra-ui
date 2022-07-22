@@ -171,4 +171,3 @@ export const errorStyle = {
   backgroundColor: colors.danger(0.15)
 }
 
-export const DEFAULT_TRANSITION_DURATION = 200
