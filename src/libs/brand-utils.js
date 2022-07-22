@@ -3,8 +3,6 @@ import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-export const nonBreakingHyphen = '\u2011'
-
 // TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
 export const isAnvil = () => (window.location.hostname === brands.anvil.hostName) || getConfig().isAnvil
 export const isBaseline = () => (window.location.hostname === brands.baseline.hostName) || getConfig().isBaseline

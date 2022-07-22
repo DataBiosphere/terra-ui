@@ -1,4 +1,4 @@
-import { nonBreakingHyphen } from 'src/libs/brand-utils'
+const nonBreakingHyphen = '\u2011'
 
 
 /**
