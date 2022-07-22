@@ -18,10 +18,10 @@ import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
-import colors from 'src/libs/colors'
 import {
   getEnabledBrand, isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRareX, isTerra
-} from 'src/libs/config'
+} from 'src/libs/brand-utils'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 

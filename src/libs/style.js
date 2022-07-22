@@ -1,5 +1,5 @@
+import { isTerra } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
 
 
 export const topBarHeight = 66
