@@ -1,8 +1,27 @@
 import { tools } from 'src/components/notebook-utils'
 import {
-  getAnalysesDisplayList, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getAnalysesDisplayList, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 
+
+jest.mock('src/data/machines', () => {
+  const originalModule = jest.requireActual('src/data/machines')
+
+  return {
+    ...originalModule,
+    regionToPrices: [
+      {
+        name: 'US-CENTRAL1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17, monthlyBalancedDiskPrice: 0.1,
+        n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+        t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
+        preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
+        preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+      }
+    ]
+  }
+})
+
+jest.clearAllMocks(true)
 
 const cromwellRunning = {
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
@@ -378,6 +397,10 @@ const mockBucketAnalyses = [
       }
   }
 ]
+//Expecting (.toBeCalled()) only one call needs to clear between tests
+beforeEach(() => {
+  jest.clearAllMocks()
+})
 
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
@@ -446,5 +469,18 @@ describe('workspaceHasMultipleDisks', () => {
 describe('getDisplayList', () => {
   it('getDisplayList should return a string of the analysis names, comma separated', () => {
     expect(getAnalysesDisplayList(mockBucketAnalyses)).toBe('testA.Rmd, testB.Rmd')
+  })
+})
+
+describe('getCostDisplayForTool', () => {
+  it('will get compute cost and compute status for Galaxy app', () => {
+    // Arrange
+    const expectedResult = `Running $0.53/hr`
+
+    //Act
+    const result = getCostDisplayForTool(galaxyRunning, undefined, undefined, tools.Galaxy.label)
+
+    //Assert
+    expect(result).toBe(expectedResult)
   })
 })
