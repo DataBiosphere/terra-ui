@@ -16,17 +16,14 @@ const baseToolTip = {
 
 const styles = {
   tooltip: {
-    background: '#FFFFFF',
-    color: colors.dark(),
-    borderColor: colors.secondary(),
-    padding: '1rem',
-    boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
+    background: 'black', color: 'white',
+    padding: '0.5rem',
     ...baseToolTip
   },
   notch: {
-    fill: '#FFFFFF',
+    fill: 'black',
     position: 'absolute',
-    width: 17, height: 8,
+    width: 16, height: 8,
     marginLeft: -8, marginRight: -8, marginTop: -8,
     transformOrigin: 'bottom'
   },
