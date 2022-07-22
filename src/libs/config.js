@@ -9,7 +9,7 @@ export const getConfig = () => {
 }
 
 /**
- * Features hidden behind flags
+ * Flags for hidden features
  */
 export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
