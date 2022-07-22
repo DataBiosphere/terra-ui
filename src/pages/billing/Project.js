@@ -195,8 +195,17 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
-const otherCostsDomId = 'billing-other-costs'
-const otherMessaging = cost => `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.`
+
+const OtherMessaging = ({ cost }) => {
+  const msg = cost !== null ?
+    `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
+    'Total spend includes infrastructure or query costs related to the general operations of Terra'
+  return div([
+    span({ 'aria-hidden': true }, ['*']),
+    '',
+    msg
+  ])
+}
 
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
@@ -279,6 +288,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
+  const isProjectCostReady = projectCost !== null
+
   const CostCard = ({ title, amount, showAsterisk, ...props }) => {
     return div({
       ...props,
@@ -286,15 +297,18 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ...Style.elements.card.container,
         backgroundColor: 'white',
         padding: undefined,
-        boxShadow: undefined,
-        gridRowStart: 2
+        boxShadow: undefined
       }
     }, [
-      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': projectCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
+      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' } }, [
         h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
           amount,
-          showAsterisk ? span({ style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' } },
+          (!!showAsterisk && isProjectCostReady) ? span(
+            {
+              style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
+              'aria-hidden': true
+            },
             ['*']
           ) : null
         ])
@@ -353,9 +367,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
-      div({ style: { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
-        [
+    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.66rem' } }, [
+      div(
+        {
+          style: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+            rowGap: '1.25rem',
+            columnGap: '1.25rem'
+          }
+        }, [
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
@@ -372,25 +393,45 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                 }
               })
             ])])
-          ]),
-          ...(_.map(name => CostCard({
-            title: `Total ${name}`,
-            amount: (projectCost === null ? '...' : projectCost[name]),
-            showAsterisk: name === 'spend',
-            'aria-describedby': name === 'spend' ? otherCostsDomId : undefined
-          }),
-          ['spend', 'compute', 'storage'])
-          )
+          ])
         ]
       ),
-      div({ style: { gridRowStart: 2 }, id: otherCostsDomId }, [
-        span(['*']),
-        ' ',
-        otherMessaging(projectCost === null ? '...' : projectCost['other'])
-      ]),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 3, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
-        h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
-      ])
+      div(
+        {
+          style: { display: 'grid', rowGap: '1.25rem' },
+          'aria-atomic': true,
+          'aria-live': 'polite',
+          'aria-busy': !isProjectCostReady
+        }, [
+          div(
+            {
+              style: {
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+                columnGap: '1.25rem'
+              }
+            },
+            [
+              ...(_.map(name => h(CostCard, {
+                title: `Total ${name}`,
+                amount: (!isProjectCostReady ? '...' : projectCost[name]),
+                showAsterisk: name === 'spend',
+                key: name
+              }),
+              ['spend', 'compute', 'storage'])
+              )
+            ]
+          ),
+          h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
+          isProjectCostReady && costPerWorkspace.numWorkspaces > 0 && div(
+            {
+              style: { minWidth: 500 }
+            }, [ // Set minWidth so chart will shrink on resize
+              h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
+            ]
+          )
+        ]
+      )
     ])
   }
 
