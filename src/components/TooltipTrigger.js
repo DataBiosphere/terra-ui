@@ -62,6 +62,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
     const top = _.clamp(12, element.height - 12,
       (target.top + target.bottom) / 2 - position.top
     )
+    // Use 1 in placement below to to avoid a faint line along the base of the triangle, where it meets up with the tooltip rectangle.
     return Utils.switchCase(finalSide,
       ['top', () => ({ bottom: 1, left, transform: 'rotate(180deg)' })],
       ['bottom', () => ({ top: 1, left })],
