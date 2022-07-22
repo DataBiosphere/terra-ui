@@ -23,7 +23,6 @@ import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import events from 'src/libs/events'
 import Events from 'src/libs/events'
 import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -455,7 +454,7 @@ const Datasets = () => {
     h(DataBrowserPreviewToggler, {
       onChange: value => {
         setCatalogShowing(value)
-        Ajax().Metrics.captureEvent(events.catalogToggle, { enabled: true })
+        Ajax().Metrics.captureEvent(Events.catalogToggle, { enabled: true })
         setLocalPref('catalog-toggle', value)
       },
       catalogShowing
