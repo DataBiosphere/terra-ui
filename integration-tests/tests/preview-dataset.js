@@ -8,9 +8,6 @@ const datasetName = 'Readable Catalog Snapshot 1'
 
 const testPreviewDatasetFn = withUserToken(async ({ testUrl, page, token }) => {
   await enableDataCatalog(page, testUrl, token)
-  await click(page, clickable({ textContains: 'datasets' }))
-  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
-  await waitForNoSpinners(page)
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   await click(page, clickable({ textContains: `${datasetName}` }))
   await waitForNoSpinners(page)
@@ -30,5 +27,5 @@ registerTest({
   name: 'preview-dataset',
   fn: testPreviewDatasetFn,
   timeout: 2 * 60 * 1000,
-  targetEnvironments: ['dev', 'local']
+  targetEnvironments: []
 })

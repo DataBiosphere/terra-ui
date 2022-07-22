@@ -165,19 +165,19 @@ const NihLink = ({ nihToken }) => {
       )
     ]),
     isLinked && div({ style: styles.idLink.linkContentBottom }, [
-      h3({ style: { fontWeight: 500, marginTop: 0 } }, ['Resources']),
+      h3({ style: { fontWeight: 500, margin: 0 } }, ['Resources']),
       !_.isEmpty(authorizedDatasets) && h(Collapse, {
-        title: div({ style: { marginRight: '0.5rem' } }, ['Authorized to access']), titleFirst: true,
-        buttonStyle: { flex: '0 0 auto' }
+        style: { marginTop: '1rem' },
+        title: 'Authorized to access', titleFirst: true
       }, [
-        div({ style: { marginBottom: _.isEmpty(unauthorizedDatasets) ? 0 : '1rem' } }, [
+        div({ style: { marginTop: '0.5rem' } }, [
           _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), authorizedDatasets)
         ])
       ]),
       !_.isEmpty(unauthorizedDatasets) && h(Collapse, {
-        title: div({ style: { marginRight: '0.5rem' } }, ['Not authorized']), titleFirst: true,
-        buttonStyle: { flex: '0 0 auto' },
-        afterToggle: h(InfoBox, { style: { marginBottom: '0.5rem' } }, [
+        style: { marginTop: '1rem' },
+        title: 'Not authorized', titleFirst: true,
+        afterToggle: h(InfoBox, [
           'Your account was linked, but you are not authorized to view these controlled datasets. ',
           'If you think you should have access, please ',
           h(Link, {
@@ -190,7 +190,9 @@ const NihLink = ({ nihToken }) => {
           '.'
         ])
       }, [
-        _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), unauthorizedDatasets)
+        div({ style: { marginTop: '0.5rem' } }, [
+          _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), unauthorizedDatasets)
+        ])
       ])
     ]),
     isConfirmUnlinkModalOpen && h(Modal, {

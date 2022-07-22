@@ -61,6 +61,10 @@ export const CloudEnvironmentModal = ({
     onSuccess: () => {
       setViewMode(undefined)
       onSuccess()
+    },
+    onError: () => {
+      setViewMode(undefined)
+      onDismiss()
     }
   })
 

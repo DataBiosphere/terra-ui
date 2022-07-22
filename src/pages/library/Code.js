@@ -12,8 +12,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -127,7 +126,7 @@ const Code = () => {
   })
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('code & workflows', useStore(authStore)),
+    libraryTopMatter('code & workflows'),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       div({ style: { display: 'flex', flex: 1 } }, [
         div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [

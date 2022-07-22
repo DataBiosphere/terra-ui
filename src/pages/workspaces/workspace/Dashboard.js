@@ -116,6 +116,7 @@ const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) =
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
         title: h3({ style: Style.dashboard.collapsibleHeader }, [title, info]),
+        summaryStyle: { color: colors.accent() },
         initialOpenState,
         titleFirst: true,
         onClick

@@ -436,7 +436,7 @@ const DataUploadPanel = ({ workspace, collection, setNumFiles, children }) => {
     h(FileBrowser, {
       style: { flex: '1 1 auto', minHeight: '30rem', border: `1px solid ${colors.grey(0.4)}`, borderRadius: '0.5rem', overflow: 'hidden' },
       workspace, basePrefix,
-      showNewFolderButton: false,
+      allowEditingFolders: false,
       onUploadFiles: countFiles,
       onDeleteFiles: countFiles
     })
