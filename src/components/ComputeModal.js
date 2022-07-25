@@ -454,13 +454,6 @@ export const ComputeModalBase = ({
     const cloudService = isDataproc(runtimeType) ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = isDataprocCluster(runtimeType) ? computeConfig.numberOfWorkers : 0
 
-    // masterDiskSize here is 120 and we need to update it to defaultDataprocMasterDiskSize which is 150GB
-    //
-    // if (cloudService === cloudServices.DATAPROC ) {
-    //   updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
-    // }
-
-    // console.log('I THINK THIS IS ACTUALLY THE ANSWER')
     return {
       hasGpu: computeConfig.hasGpu,
       autopauseThreshold: computeConfig.autopauseThreshold,
@@ -757,8 +750,6 @@ export const ComputeModalBase = ({
         [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       )
 
-      // console.log('or is this the answer?')
-
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
@@ -924,11 +915,6 @@ export const ComputeModalBase = ({
     const autoPauseCheckboxEnabled = true
     const enableAutopauseSpan = span(['Enable autopause'])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
-    //const masterDiskSize =
-
-    // console.log('is this the answer???????')
-    // console.log('computeConfig: ', computeConfig)
-    // console.log('mainMachineType: ', mainMachineType)
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
@@ -1537,6 +1523,9 @@ export const ComputeModalBase = ({
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
         const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredTool)
         updateComputeConfig('masterMachineType', machineType)
+        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
+          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
+        }
       },
       isSearchable: true,
       isClearable: false,
@@ -1595,7 +1584,6 @@ export const ComputeModalBase = ({
       return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
     }
 
-    // console.log('existingRuntime: ', existingRuntime)
     return simplifiedForm ?
       div({ style: computeStyles.drawerContent }, [
         renderTitleAndTagline(),

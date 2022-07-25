@@ -100,18 +100,10 @@ export const normalizeRuntimeConfig = ({
   numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, region, zone
 }) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
-  // console.log('--------------')
-  // console.log('masterDiskSize: ', masterDiskSize)
-  // console.log('diskSize: ', diskSize)
-  // console.log('master or boot: ',isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize, ' | ', 'isDataproc: ', isDataproc)
-  // console.log(isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize)
-  // console.log('masterDiskSize: ', masterDiskSize)
 
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    // (isDataproc ? defaultDataprocMasterDiskSize : masterDiskSize)
-    // masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
     masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocMasterDiskSize : defaultGceBootDiskSize),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
