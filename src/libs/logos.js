@@ -1,8 +1,6 @@
 import { b, div, img } from 'react-hyperscript-helpers'
-import terraLogo from 'src/images/brands/terra/logo.svg'
-import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
-import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import { getEnabledBrand, isTerra, pickBrandLogo } from 'src/libs/brand-utils'
+import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 
 
@@ -16,16 +14,16 @@ const brandLogoMaker = (size, color = false) => img({
 
 export const registrationLogo = () => isTerra() ?
   div({ style: { display: 'flex', alignItems: 'center' } }, [
-    terraLogoMaker(terraLogo, { height: 100, marginRight: 20 }),
+    terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
     div({ style: { fontWeight: 500, fontSize: 70 } }, ['TERRA'])
   ]) :
   brandLogoMaker(100, true)
 
 export const topBarLogo = () => isTerra() ?
-  terraLogoMaker(terraLogoShadow, { height: 75, marginRight: '0.1rem' }) :
+  terraLogoMaker(brands.terra.logos.shadow, { height: 75, marginRight: '0.1rem' }) :
   brandLogoMaker(50, true)
 
-export const footerLogo = () => isTerra() ? terraLogoMaker(terraLogoWhite, { height: 40 }) : brandLogoMaker(40)
+export const footerLogo = () => isTerra() ? terraLogoMaker(brands.terra.logos.white, { height: 40 }) : brandLogoMaker(40)
 
 export const versionTag = (version, styles) => b({
   style: {

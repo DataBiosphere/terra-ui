@@ -1,3 +1,24 @@
+import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg'
+import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg'
+import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg'
+import baselineLogoWhite from 'src/images/brands/baseline/baseline-logo-white.svg'
+import bioDataCatalystLogo from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-color.svg'
+import bioDataCatalystLogoWhite from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-white.svg'
+import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg'
+import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg'
+import elwaziLogo from 'src/images/brands/elwazi/elwazi-logo-color.svg'
+import elwaziLogoWhite from 'src/images/brands/elwazi/elwazi-logo-white.svg'
+import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
+import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg'
+import projectSingularLogo from 'src/images/brands/projectSingular/project-singular-logo-black.svg'
+import projectSingularLogoWhite from 'src/images/brands/projectSingular/project-singular-logo-white.svg'
+import rareXLogo from 'src/images/brands/rareX/rarex-logo-color.svg'
+import rareXLogoWhite from 'src/images/brands/rareX/rarex-logo-white.svg'
+import terraLogo from 'src/images/brands/terra/logo.svg'
+import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
+import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
+
+
 const nonBreakingHyphen = '\u2011'
 
 
@@ -17,7 +38,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: anvilLogo,
+      white: anvilLogoWhite
+    }
   },
   baseline: {
     name: 'Project Baseline',
@@ -30,7 +55,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: baselineLogo,
+      white: baselineLogoWhite
+    }
   },
   bioDataCatalyst: {
     name: 'NHLBI BioData Catalyst',
@@ -43,7 +72,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: bioDataCatalystLogo,
+      white: bioDataCatalystLogoWhite
+    }
   },
   datastage: {
     name: 'DataStage',
@@ -56,7 +89,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: datastageLogo,
+      white: datastageLogoWhite
+    }
   },
   elwazi: {
     name: 'eLwazi',
@@ -69,7 +106,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: elwaziLogo,
+      white: elwaziLogoWhite
+    }
   },
   firecloud: {
     name: 'FireCloud',
@@ -90,7 +131,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us/articles/360033416912',
         text: 'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources'
       }
-    ]
+    ],
+    logos: {
+      color: fcLogo,
+      white: fcLogoWhite
+    }
   },
   projectSingular: {
     name: 'Project Singular',
@@ -103,7 +148,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: projectSingularLogo,
+      white: projectSingularLogoWhite
+    }
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
@@ -124,7 +173,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us',
         text: 'Find Terra how-to\'s, documentation, video tutorials, and discussion forums'
       }
-    ]
+    ],
+    logos: {
+      color: rareXLogo,
+      white: rareXLogoWhite
+    }
   },
   terra: {
     name: 'Terra',
@@ -141,6 +194,11 @@ export const brands = {
         link: 'https://support.terra.bio/hc/en-us/articles/360033416672',
         text: 'Learn more about the Terra platform and our co-branded sites'
       }
-    ]
+    ],
+    logos: {
+      color: terraLogo,
+      white: terraLogoWhite,
+      shadow: terraLogoShadow
+    }
   }
 }
