@@ -272,7 +272,7 @@ const cromwellProvisioningDiskUpdatedPd = {
   zone: 'us-central1-a'
 }
 
-const jupyterStopped = {
+const jupyter1 = {
   id: 75239,
   workspaceId: null,
   runtimeName: 'saturn-eae9168f-9b99-4910-945e-dbab66e04d91',
@@ -296,7 +296,7 @@ const jupyterStopped = {
     gpuConfig: null
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
-  status: 'Stopped',
+  status: 'Running',
   labels: {
     saturnWorkspaceNamespace: 'general-dev-billing-account',
     'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
@@ -314,7 +314,7 @@ const jupyterStopped = {
   patchInProgress: false
 }
 
-const jupyterDisk1 = {
+const jupyter1Disk = {
   id: 14692,
   googleProject: 'terra-dev-cf677740',
   cloudContext: {
@@ -324,35 +324,6 @@ const jupyterDisk1 = {
   zone: 'us-central1-a',
   name: 'saturn-pd-c4aea6ef-5618-47d3-b674-5d456c9dcf4f',
   status: 'Ready',
-  auditInfo: {
-    creator: 'testuser123@broad.com',
-    createdDate: '2022-07-18T18:35:32.012698Z',
-    destroyedDate: null,
-    dateAccessed: '2022-07-18T20:34:56.092Z'
-  },
-  size: 50,
-  diskType: {
-    label: 'pd-standard',
-    displayName: 'Standard',
-    regionToPricesName: 'monthlyStandardDiskPrice'
-  },
-  blockSize: 4096,
-  labels: {
-    saturnWorkspaceNamespace: 'general-dev-billing-account',
-    saturnWorkspaceName: 'Broad Test Workspace'
-  }
-}
-
-const jupyterDiskDeleting = {
-  id: 14692,
-  googleProject: 'terra-dev-cf677740',
-  cloudContext: {
-    cloudProvider: 'GCP',
-    cloudResource: 'terra-dev-cf677740'
-  },
-  zone: 'us-central1-a',
-  name: 'saturn-pd-c4aea6ef-5618-47d3-b674-5d456c9dcf4f',
-  status: 'Deleting',
   auditInfo: {
     creator: 'testuser123@broad.com',
     createdDate: '2022-07-18T18:35:32.012698Z',
@@ -574,52 +545,66 @@ describe('getDisplayList', () => {
 
 describe('getCostDisplayForTool', () => {
   it('will get compute cost and compute status for Galaxy app', () => {
-    //Arrange
+    // ARRANGE
     const expectedResult = `Running $0.53/hr`
     const app = galaxyRunning
     const currentRuntime = undefined
     const currentRuntimeTool = undefined
     const toolLabel = tools.Galaxy.label
 
-    //Act
+    // ACT
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
-  it('will get compute cost and compute status for Jupyter runtime', () => {
-    //Arrange
-    const expectedResult = `Paused $0.01/hr`
+  it('will get compute cost and compute status for a running Jupyter runtime', () => {
+    // ARRANGE
+    const expectedResult = `Running $0.06/hr`
     const app = undefined
-    const currentRuntime = jupyterStopped
+    const currentRuntime = jupyter1
     const currentRuntimeTool = tools.Jupyter.label
     const toolLabel = tools.Jupyter.label
 
-    //Act
+    // ACT
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    //Assert
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will get compute cost and compute status for a stopped Jupyter runtime', () => {
+    // ARRANGE
+    const expectedResult = `Paused $0.01/hr`
+    const app = undefined
+    const currentRuntime = { ...jupyter1, status: 'Stopped' }
+    const currentRuntimeTool = tools.Jupyter.label
+    const toolLabel = tools.Jupyter.label
+
+    // ACT
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
   it('will return blank because current runtime is not equal to currentRuntimeTool', () => {
-    //Arrange
+    // ARRANGE
     const expectedResult = ``
     const app = undefined
-    const currentRuntime = jupyterStopped
+    const currentRuntime = jupyter1
     const currentRuntimeTool = tools.RStudio.label
     const toolLabel = tools.Jupyter.label
 
-    //Act
+    // ACT
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
 })
 
 describe('getCostDisplayForDisk', () => {
   it('will get the disk cost for a Galaxy AppDataDisk', () => {
-    //Arrange
+    // ARRANGE
     const app = galaxyRunning
     const appDataDisks = [galaxyDisk]
     const computeRegion = 'US-CENTRAL1'
@@ -629,31 +614,31 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = tools.Galaxy.label
     const expectedResult = 'Disk $0.04/hr'
 
-    //Act
+    // ACT
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
   it('will get the disk cost for a Jupyter Persistent Disk', () => {
-    //Arrange
+    // ARRANGE
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
     const currentRuntimeTool = tools.Jupyter.label
-    const persistentDisks = [jupyterDisk1]
-    const runtimes = [jupyterStopped]
+    const persistentDisks = [jupyter1Disk]
+    const runtimes = [jupyter1]
     const toolLabel = tools.Jupyter.label
     const expectedResult = 'Disk < $0.01/hr'
 
-    //Act
+    // ACT
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
   it('will return empty string', () => {
-    //Arrange
+    // ARRANGE
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
@@ -663,27 +648,27 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = ''
     const expectedResult = ''
 
-    //Act
+    // ACT
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
   it('will return blank string because cost is 0 due to deleting disk.', () => {
-    //Arrange
+    // ARRANGE
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
     const currentRuntimeTool = tools.Jupyter.label
-    const persistentDisks = [jupyterDiskDeleting]
-    const runtimes = [jupyterStopped]
+    const persistentDisks = [{ ...jupyter1Disk, status: 'Deleting' }]
+    const runtimes = [jupyter1]
     const toolLabel = tools.Jupyter.label
     const expectedResult = ''
 
-    //Act
+    // ACT
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    //Assert
+    // ASSERT
     expect(result).toBe(expectedResult)
   })
 })
