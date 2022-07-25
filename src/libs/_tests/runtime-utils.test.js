@@ -21,8 +21,6 @@ jest.mock('src/data/machines', () => {
   }
 })
 
-jest.clearAllMocks(true)
-
 const cromwellRunning = {
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
   appType: 'CROMWELL',
@@ -468,10 +466,6 @@ const mockBucketAnalyses = [
       }
   }
 ]
-//Expecting (.toBeCalled()) only one call needs to clear between tests
-beforeEach(() => {
-  jest.clearAllMocks()
-})
 
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
@@ -637,7 +631,7 @@ describe('getCostDisplayForDisk', () => {
     // ASSERT
     expect(result).toBe(expectedResult)
   })
-  it('will return empty string', () => {
+  it('will return empty string because when there is no app or runtime to get cost information from.', () => {
     // ARRANGE
     const app = undefined
     const appDataDisks = []
@@ -646,6 +640,23 @@ describe('getCostDisplayForDisk', () => {
     const persistentDisks = []
     const runtimes = []
     const toolLabel = ''
+    const expectedResult = ''
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
+    // ARRANGE
+    const app = undefined
+    const appDataDisks = []
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = tools.Jupyter.label
+    const persistentDisks = []
+    const runtimes = []
+    const toolLabel = tools.RStudio.label
     const expectedResult = ''
 
     // ACT
