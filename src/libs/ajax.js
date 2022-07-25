@@ -170,6 +170,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
+const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
@@ -1743,23 +1744,33 @@ const Dockstore = signal => ({
   listTools: (params = {}) => fetchDockstore(`api/ga4gh/v1/tools?${qs.stringify(params)}`).then(r => r.json())
 })
 
+const shouldUseDrsHub = !!getConfig().shouldUseDrsHub
 
-const Martha = signal => ({
-  getDataObjectMetadata: async (url, fields) => {
+const DrsUriResolver = signal => ({
+  //Currently only Martha and not DRSHub can get a signed URL
+  getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
     const res = await fetchMartha(
-      'martha_v3',
-      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
-    )
+      'getSignedUrlV1',
+      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
     return res.json()
   },
 
-  getSignedUrl: async ({ bucket, object, dataObjectUri }) => {
-    const res = await fetchMartha('getSignedUrlV1',
-      _.mergeAll([jsonBody({ bucket, object, dataObjectUri }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
-    return res.json()
+  getDataObjectMetadata: async (url, fields) => {
+    if (shouldUseDrsHub) {
+      const res = await fetchDrsHub(
+        '/api/v4/drs/resolve',
+        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+      )
+      return res.json()
+    } else {
+      const res = await fetchMartha(
+        'martha_v3',
+        _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+      )
+      return res.json()
+    }
   }
 })
-
 
 const Duos = signal => ({
   getConsent: async orspId => {
@@ -1831,7 +1842,7 @@ export const Ajax = signal => {
     Runtimes: Runtimes(signal),
     Apps: Apps(signal),
     Dockstore: Dockstore(signal),
-    Martha: Martha(signal),
+    DrsUriResolver: DrsUriResolver(signal),
     Duos: Duos(signal),
     Metrics: Metrics(signal),
     Disks: Disks(signal),

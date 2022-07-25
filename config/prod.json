@@ -6,6 +6,7 @@
   "catalogUrlRoot": "https://catalog.dsde-prod.broadinstitute.org",
   "dataRepoUrlRoot": "https://data.terra.bio",
   "dockstoreUrlRoot": "https://dockstore.org",
+  "drsHubUrlRoot": "https://drshub.dsde-prod.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
   "isProd": true,
@@ -17,6 +18,7 @@
   "rexUrlRoot": "https://terra-rex-prod.appspot.com",
   "samUrlRoot": "https://sam.dsde-prod.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com",
+  "shouldUseDrsHub": false,
   "workspaceManagerUrlRoot": "https://workspace.dsde-prod.broadinstitute.org",
   "tCell": {
     "appId": "saturnprod-VuHKy",
