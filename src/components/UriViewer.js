@@ -113,7 +113,8 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
       setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
     } else {
       try {
-        const { url } = await Ajax(signal).Martha.getSignedUrl({
+        // This is still using Martha instead of DrsHub because DrsHub has not yet implemented signed URLs
+        const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
           bucket,
           object: name,
           dataObjectUri: isDrs(uri) ? uri : undefined
@@ -178,12 +179,13 @@ const UriViewer = _.flow(
         const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else {
+        // TODO: change below comment after switch to DRSHub is complete, tracked in ticket [ID-170]
         // Fields are mapped from the martha_v3 fields to those used by google
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =
-          await Ajax(signal).Martha.getDataObjectMetadata(
+          await Ajax(signal).DrsUriResolver.getDataObjectMetadata(
             uri,
             ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
           )
@@ -214,7 +216,7 @@ const UriViewer = _.flow(
           'Error loading data. This file does not exist or you do not have permission to view it.'
         ]),
         h(Collapse, { title: 'Details' }, [
-          div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
+          div({ style: { marginTop: '0.5rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', overflowWrap: 'break-word' } }, [
             JSON.stringify(loadingError, null, 2)
           ])
         ])
@@ -251,7 +253,8 @@ const UriViewer = _.flow(
         ]),
         (timeCreated || updated) && h(Collapse, {
           title: 'More Information',
-          style: { marginTop: '2rem' }
+          style: { marginTop: '2rem' },
+          summaryStyle: { marginBottom: '0.5rem' }
         }, [
           timeCreated && els.cell([
             els.label('Created'),

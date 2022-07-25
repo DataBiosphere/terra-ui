@@ -17,8 +17,6 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
 
   await enableDataCatalog(page, testUrl, token)
   await setDatasetsMockValues(page)
-  await click(page, clickable({ textContains: 'datasets' }))
-  await click(page, clickable({ textContains: 'BETA Data Catalog OFF' }))
   await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)

@@ -21,7 +21,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [showWipModal, setShowWipModal] = useState(false)
 
   return showWipModal ? h(Modal, {
-    title: `Keep in mind we're still in BETA`,
+    title: `Keep in mind we're still in development`,
     width: '32rem',
     showButtons: false,
     onDismiss: () => {}
@@ -32,7 +32,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
       strong(['Pending']), `.`
     ]),
     div({ style: { marginTop: 30, display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' } }, [
-      `Let's continue testing the BETA Data Catalog!`,
+      `Let's continue testing the new Data Catalog!`,
       h(ButtonPrimary, {
         onClick: onDismiss,
         style: { padding: '20px 30px' }

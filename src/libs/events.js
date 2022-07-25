@@ -28,6 +28,7 @@ const eventsList = {
   cloudEnvironmentDetailsLoad: 'analysis:details:load',
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
+  catalogToggle: 'catalog:toggle',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   datasetLibraryBrowseData: 'library:browseData',

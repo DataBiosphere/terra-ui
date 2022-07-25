@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, img, li, p, strong, ul } from 'react-hyperscript-helpers'
+import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
@@ -270,10 +270,9 @@ const ImportData = () => {
                       checked: isSelected,
                       onChange: () => setSelectedTemplateWorkspaceKey({ namespace, name }),
                       text: h(Collapse, {
-                        buttonStyle: { color: colors.dark(), fontWeight: 600 },
                         style: { fontSize: 14, marginLeft: '0.5rem' },
-                        title: h(Fragment, [
-                          name,
+                        title: span({ style: { display: 'flex', alignItems: 'center' } }, [
+                          span({ style: { fontWeight: 600 } }, [name]),
                           hasNotebooks && img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
                           hasWorkflows &&
                             wdlIcon({ style: { height: 23, width: 23, marginLeft: '0.5rem', borderRadius: 3, padding: '8px 4px 7px 4px' } })

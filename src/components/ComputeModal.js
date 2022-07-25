@@ -313,7 +313,7 @@ export const ComputeModalBase = ({
       if (shouldCreateRuntime) {
         const diskConfig = Utils.cond(
           [desiredRuntime.cloudService === cloudServices.DATAPROC, () => ({})],
-          [existingPersistentDisk && !shouldDeletePersistentDisk, () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
+          [existingPersistentDisk && (!shouldDeletePersistentDisk || shouldUpdatePersistentDisk), () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
           [Utils.DEFAULT, () => ({
             persistentDisk: {
               name: Utils.generatePersistentDiskName(),
@@ -323,6 +323,10 @@ export const ComputeModalBase = ({
             }
           })]
         )
+
+        if (shouldUpdatePersistentDisk) {
+          await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
+        }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
 
