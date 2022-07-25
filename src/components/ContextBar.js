@@ -16,7 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/libs/runtime-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -117,11 +117,12 @@ export const ContextBar = ({
   const getTotalToolAndDiskCostDisplay = () => {
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
     const galaxyDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
-    const galaxyCost = galaxyApp && galaxyDisk ? getGalaxyCost(galaxyApp, galaxyDisk) : 0
+    const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
+    const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
     const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
-    return `${Utils.formatUSD(galaxyCost + runtimeCost + diskCost)}`
+    return `${Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)}`
   }
 
   return h(Fragment, [
