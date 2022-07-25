@@ -350,7 +350,7 @@ const WorkspaceDashboard = _.flow(
 
   const oneOwnerNotice = Utils.cond(
     // No warning if there are multiple owners.
-    [_.size(owners) > 1, () => null],
+    [_.size(owners) !== 1, () => null],
     // If the current user does not own the workspace, then then workspace must be shared.
     [!Utils.isOwner(accessLevel), () => h(Fragment, [
       'This shared workspace has only one owner. Consider requesting ',
