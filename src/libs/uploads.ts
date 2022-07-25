@@ -5,7 +5,22 @@ import { useCancelable } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const init = () => {
+interface UploadState {
+  active: boolean
+  totalFiles: number
+  totalBytes: number
+  uploadedBytes: number
+  currentFileNum: number
+  currentFile: File | null
+  files: File[]
+  completedFiles: File[]
+  errors: Error[]
+  aborted: boolean
+  done: boolean
+}
+
+
+const init = (): UploadState => {
   return {
     active: false,
     totalFiles: 0,
@@ -21,8 +36,58 @@ const init = () => {
   }
 }
 
-export const useUploader = () => {
-  const [state, dispatch] = useReducer((state, update) => {
+interface Uploader {
+  uploadState: UploadState
+  uploadFiles: (_args: { googleProject: string, bucketName: string, prefix: string, files: File[] }) => void
+  cancelUpload: () => void
+}
+
+interface UploadFilesParams {
+  googleProject: string
+  bucketName: string
+  prefix: string
+  files: File[]
+}
+
+type UploadActionStart = {
+  action: 'start'
+  files: File[]
+}
+
+type UploadActionStartFile = {
+  action: 'startFile'
+  file: File
+  fileNum: number
+}
+
+type UploadActionFinishFile = {
+  action: 'finishFile'
+  file: File
+}
+
+type UploadActionError = {
+  action: 'error'
+  error: any
+}
+
+type UploadActionAbort = {
+  action: 'abort'
+}
+
+type UploadActionFinish = {
+  action: 'finish'
+}
+
+type UploadAction =
+  UploadActionStart |
+  UploadActionStartFile |
+  UploadActionFinishFile |
+  UploadActionError |
+  UploadActionAbort |
+  UploadActionFinish
+
+export const useUploader = (): Uploader => {
+  const [state, dispatch] = useReducer((state: UploadState, update: UploadAction) => {
     switch (update.action) {
       // Calculate how many files and how many bytes we are working with
       case 'start':
@@ -45,12 +110,14 @@ export const useUploader = () => {
         return {
           ...state,
           uploadedBytes: state.uploadedBytes + update.file.size,
+          // @ts-expect-error
           completedFiles: Utils.append(update.file, state.completedFiles)
         }
 
       case 'error':
         return {
           ...state,
+          // @ts-expect-error
           errors: Utils.append(update.error, state.errors)
         }
 
@@ -74,7 +141,7 @@ export const useUploader = () => {
 
   const { signal, abort } = useCancelable()
 
-  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }) => {
+  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }: UploadFilesParams) => {
     const uploadCancelled = new Promise((_resolve, reject) => {
       signal.addEventListener('abort', () => reject())
     })
