@@ -3,10 +3,10 @@ import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-// TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
 export const isAnvil = () => (window.location.hostname === brands.anvil.hostName) || getConfig().isAnvil
 export const isBaseline = () => (window.location.hostname === brands.baseline.hostName) || getConfig().isBaseline
 export const isBioDataCatalyst = () => (window.location.hostname === brands.bioDataCatalyst.hostName) || getConfig().isBioDataCatalyst
+// TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
 export const isDatastage = () => (window.location.hostname === brands.datastage.hostName) || getConfig().isDatastage
 export const isElwazi = () => (window.location.hostname === brands.elwazi.hostName) || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === brands.firecloud.hostName) || getConfig().isFirecloud
