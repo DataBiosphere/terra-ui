@@ -66,7 +66,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
-          [doesCloudEnvForToolExist, () => onSuccess],
+          [doesCloudEnvForToolExist, onSuccess],
           [!doesCloudEnvForToolExist && currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), onSuccess]
