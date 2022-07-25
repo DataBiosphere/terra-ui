@@ -111,7 +111,7 @@ const DashboardAuthContainer = props => {
   )
 }
 
-const RightBoxSection = ({ title, info, initialOpenState, afterToggle, onClick, children }) => {
+const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, children }) => {
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
@@ -119,7 +119,7 @@ const RightBoxSection = ({ title, info, initialOpenState, afterToggle, onClick, 
         summaryStyle: { color: colors.accent() },
         initialOpenState,
         titleFirst: true,
-        afterToggle,
+        afterTitle,
         onClick
       }, [children])
     ])
@@ -490,7 +490,7 @@ const WorkspaceDashboard = _.flow(
       h(RightBoxSection, {
         title: 'Owners',
         initialOpenState: ownersPanelOpen,
-        afterToggle: oneOwnerNotice && h(InfoBox, {
+        afterTitle: oneOwnerNotice && h(InfoBox, {
           iconOverride: 'error-standard',
           style: { color: colors.accent() }
         }, [oneOwnerNotice]),
