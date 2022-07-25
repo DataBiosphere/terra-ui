@@ -2,7 +2,7 @@ import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { div, h, h3, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -301,7 +301,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       }
     }, [
       div({ style: { flex: 'none', padding: '0.625rem 1.25rem' } }, [
-        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
+        div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
           amount,
           (!!showAsterisk && isProjectCostReady) ? span(
@@ -422,14 +422,14 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
               )
             ]
           ),
-          h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
-          isProjectCostReady && costPerWorkspace.numWorkspaces > 0 && div(
-            {
-              style: { minWidth: 500 }
-            }, [ // Set minWidth so chart will shrink on resize
-              h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
-            ]
-          )
+          h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null })
+        ]
+      ),
+      isProjectCostReady && costPerWorkspace.numWorkspaces > 0 && div(
+        {
+          style: { minWidth: 500 }
+        }, [ // Set minWidth so chart will shrink on resize
+          h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
         ]
       )
     ])
