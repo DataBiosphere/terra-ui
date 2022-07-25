@@ -217,7 +217,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
     hover: {
       color: colors.dark(0.9)
     },
-    afterToggle: error && h(Link, {
+    afterTitle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
     }, [icon('sync', { size: 18 })])
@@ -650,7 +650,7 @@ const WorkspaceData = _.flow(
                   style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
                   title: snapshotName,
                   role: 'listitem',
-                  afterToggle: h(Link, {
+                  afterTitle: h(Link, {
                     style: { marginLeft: 'auto' },
                     tooltip: 'Snapshot Info',
                     onClick: () => {

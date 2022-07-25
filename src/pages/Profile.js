@@ -177,7 +177,7 @@ const NihLink = ({ nihToken }) => {
       !_.isEmpty(unauthorizedDatasets) && h(Collapse, {
         style: { marginTop: '1rem' },
         title: 'Not authorized', titleFirst: true,
-        afterToggle: h(InfoBox, [
+        afterTitle: h(InfoBox, [
           'Your account was linked, but you are not authorized to view these controlled datasets. ',
           'If you think you should have access, please ',
           h(Link, {

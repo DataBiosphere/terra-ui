@@ -111,7 +111,7 @@ const DashboardAuthContainer = props => {
   )
 }
 
-const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) => {
+const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, children }) => {
   return div({ style: { paddingTop: '1rem' } }, [
     div({ style: Style.dashboard.rightBoxContainer }, [
       h(Collapse, {
@@ -119,6 +119,7 @@ const RightBoxSection = ({ title, info, initialOpenState, onClick, children }) =
         summaryStyle: { color: colors.accent() },
         initialOpenState,
         titleFirst: true,
+        afterTitle,
         onClick
       }, [children])
     ])
@@ -213,6 +214,7 @@ const WorkspaceDashboard = _.flow(
   const [busy, setBusy] = useState(false)
   const [consentStatus, setConsentStatus] = useState(undefined)
   const [tagsList, setTagsList] = useState(undefined)
+  const [acl, setAcl] = useState(undefined)
 
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
@@ -223,6 +225,12 @@ const WorkspaceDashboard = _.flow(
     loadSubmissionCount()
     loadConsent()
     loadWsTags()
+
+    // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
+    if (Utils.isOwner(accessLevel) && _.size(owners) === 1) {
+      loadAcl()
+    }
+
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
@@ -318,6 +326,11 @@ const WorkspaceDashboard = _.flow(
     setTagsList(await Ajax().Workspaces.workspace(namespace, name).deleteTag(tag))
   })
 
+  const loadAcl = withErrorReporting('Error loading ACL', async () => {
+    const { acl } = await Ajax(signal).Workspaces.workspace(namespace, name).getAcl()
+    setAcl(acl)
+  })
+
   const save = Utils.withBusyState(setSaving, async () => {
     try {
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ description: editDescription })
@@ -334,6 +347,19 @@ const WorkspaceDashboard = _.flow(
   useOnMount(() => {
     refresh()
   })
+
+  const oneOwnerNotice = Utils.cond(
+    // No warning if there are multiple owners.
+    [_.size(owners) !== 1, () => null],
+    // If the current user does not own the workspace, then then workspace must be shared.
+    [!Utils.isOwner(accessLevel), () => h(Fragment, [
+      'This shared workspace has only one owner. Consider requesting ',
+      h(Link, { mailto: owners[0] }, [owners[0]]),
+      ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.'
+    ])],
+    // If the current user is the only owner of the workspace, check if the workspace is shared.
+    [_.size(acl) > 1, () => 'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.']
+  )
 
   const getCloudInformation = () => {
     return !googleProject && !azureContext ? [] : [
@@ -464,6 +490,10 @@ const WorkspaceDashboard = _.flow(
       h(RightBoxSection, {
         title: 'Owners',
         initialOpenState: ownersPanelOpen,
+        afterTitle: oneOwnerNotice && h(InfoBox, {
+          iconOverride: 'error-standard',
+          style: { color: colors.accent() }
+        }, [oneOwnerNotice]),
         onClick: () => setOwnersPanelOpen(!ownersPanelOpen)
       }, [
         div({ style: { margin: '0.5rem' } },
