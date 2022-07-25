@@ -454,6 +454,7 @@ const Datasets = () => {
     h(DataBrowserPreviewToggler, {
       onChange: value => {
         setCatalogShowing(value)
+        Ajax().Metrics.captureEvent(Events.catalogToggle, { enabled: value })
         setLocalPref('catalog-toggle', value)
       },
       catalogShowing
