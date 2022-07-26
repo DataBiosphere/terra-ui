@@ -64,7 +64,7 @@ const WorkflowDashboard = _.flow(
     title: 'Job History', activeTab: 'job history'
   })
 )((props, _ref) => {
-  const { namespace, name, submissionId, workflowId, workspace, workspace: { workspace: { googleProject, bucketName } } } = props
+  const { namespace, name, submissionId, workflowId, workspace, workspace: { workspace: { googleProject } } } = props
 
   /*
    * State setup
@@ -83,8 +83,8 @@ const WorkflowDashboard = _.flow(
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result',
-        'callCaching:effectiveCallCachingMode', 'backendStatus'
+        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'callCaching:result',
+        'callCaching:effectiveCallCachingMode', 'backendStatus', 'workflowRoot'
       ]
       const excludeKey = []
 
@@ -108,7 +108,7 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
+  const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowRoot, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
@@ -171,7 +171,7 @@ const WorkflowDashboard = _.flow(
               }, [icon('tasks', { size: 18 }), ' Job Manager']),
               h(Link, {
                 ...Utils.newTabLinkProps,
-                href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
+                href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
                 style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
                 tooltip: 'Execution directory'
               }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
