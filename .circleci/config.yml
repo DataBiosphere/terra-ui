@@ -263,7 +263,9 @@ jobs:
       - integration-tests:
           local: true
           env: local
-
+      - notify-slack:
+          when: always
+          
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 1 # No way to prevent multiple Slack messages otherwise
@@ -291,14 +293,6 @@ workflows:
       - integration-tests-branch-against-dev:
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
-
-      - report-tests-results:
-          requires:
-            - integration-tests-branch-against-dev
           filters:
             branches:
               ignore:
