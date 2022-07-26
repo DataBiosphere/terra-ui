@@ -51,21 +51,19 @@ const makeCard = (link, title, body) => h(Clickable, {
   makeRightArrowWithBackgroundIcon()
 ])
 
-const makeDocLink = (href, title) => {
-  return div({ style: { marginBottom: '1rem', fontSize: 18 } }, [
-    h(Link, {
-      href,
-      ...Utils.newTabLinkProps,
-      style: { fontSize: 18 }
-    }, [
-      title,
-      icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
-    ])
+const makeDocLinks = _.map(
+  ({ link, text }) => div({ style: { marginBottom: '1rem', fontSize: 18 } }, [
+    h(Link,
+      {
+        href: link,
+        ...Utils.newTabLinkProps,
+        style: { fontSize: 18 }
+      }, [
+        text,
+        icon('pop-out', { size: 18, style: { marginLeft: '0.5rem' } })
+      ]
+    )
   ])
-}
-
-const makeDocLinks = linkTextPairs => _.map(
-  ({ link, text }) => makeDocLink(link, text), linkTextPairs
 )
 
 const LandingPage = () => {
