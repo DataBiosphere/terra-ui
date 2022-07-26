@@ -364,15 +364,11 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     const refreshedStarredWorkspaceList = await refreshStarredWorkspacesList()
-    if (star) {
-      const updatedWorkspaceIds = _.concat(refreshedStarredWorkspaceList, [workspaceId])
-      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-      authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
-    } else {
-      const updatedWorkspaceIds = _.without([workspaceId], refreshedStarredWorkspaceList)
-      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-      authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
-    }
+    const updatedWorkspaceIds = star ?
+      _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
+      _.without([workspaceId], refreshedStarredWorkspaceList)
+    await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
+    authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
     onUpdate(star)
   })
 
