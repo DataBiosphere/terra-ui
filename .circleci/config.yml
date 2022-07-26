@@ -167,9 +167,6 @@ commands:
           no_output_timeout: 16m
           command: |
             echo "LOG_DIR=${LOG_DIR}"
-            source $BASH_ENV
-            echo $BASH_ENV | awk '{print "export " $0}' > .env
-
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
             CI=true yarn test $TESTS_TO_RUN --maxWorkers=2
@@ -277,7 +274,9 @@ jobs:
           name: Send failed tests summary to Slack channels
           command: |
             echo "LOG_DIR=${LOG_DIR}"
-            ls -al integration-tests
+            pwd
+            ls -R
+
             node --require=./.pnp.cjs integration-tests/services/slack/slack.js
           when: always
 
