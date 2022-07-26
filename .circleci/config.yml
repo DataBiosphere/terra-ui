@@ -164,9 +164,9 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-            command: |
-              source $BASH_ENV
-              cat $BASH_ENV | awk '{print "export " $0}' >> .env
+          command: |
+            source $BASH_ENV
+            cat $BASH_ENV | awk '{print "export " $0}' >> .env
       - run:
           working_directory: integration-tests
           no_output_timeout: 16m
