@@ -186,7 +186,7 @@ commands:
           failure_message: ":sadpanda: $CIRCLE_JOB failed."
           success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
 
-  report-slack:
+  notify-slack:
     steps:
       - attach_workspace:
           at: .
@@ -263,7 +263,7 @@ jobs:
       - integration-tests:
           local: true
           env: local
-      - report-slack
+
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 1 # No way to prevent multiple Slack messages otherwise
@@ -281,7 +281,7 @@ jobs:
   report-tests-results:
     executor: puppeteer
     steps:
-      - report-slack
+      - notify-slack
 
 workflows:
   version: 2
@@ -295,14 +295,14 @@ workflows:
             branches:
               ignore:
                 - dev
-      - deploy-pr:
+
+      - report-tests-results:
           requires:
-            - build
+            - integration-tests-branch-against-dev
           filters:
             branches:
               ignore:
                 - dev
-
 
   nightly-integration-tests:
     triggers:
