@@ -354,16 +354,23 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
   const MAX_STARRED_WORKSPACES = 50
   const maxStarredWorkspacesReached = _.size(starredWorkspaceIds) >= MAX_STARRED_WORKSPACES
 
+  const refreshStarredWorkspacesList = async () => {
+    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+    const refreshedWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+    return refreshedWorkspaceIds
+  }
+
   const toggleStar = _.flow(
     Utils.withBusyState(setUpdating),
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
+    const refreshedStarredWorkspaceList = await refreshStarredWorkspacesList()
     if (star) {
-      const updatedWorkspaceIds = _.concat(starredWorkspaceIds, [workspaceId])
+      const updatedWorkspaceIds = _.concat(refreshedStarredWorkspaceList, [workspaceId])
       await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
       authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
     } else {
-      const updatedWorkspaceIds = _.without([workspaceId], starredWorkspaceIds)
+      const updatedWorkspaceIds = _.without([workspaceId], refreshedStarredWorkspaceList)
       await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
       authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
     }
