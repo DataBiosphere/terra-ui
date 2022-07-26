@@ -1,8 +1,25 @@
 import { tools } from 'src/components/notebook-utils'
 import {
-  getAnalysesDisplayList, getCurrentApp, getCurrentAppIncludingDeleting, getCurrentPersistentDisk, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 
+
+jest.mock('src/data/machines', () => {
+  const originalModule = jest.requireActual('src/data/machines')
+
+  return {
+    ...originalModule,
+    regionToPrices: [
+      {
+        name: 'US-CENTRAL1', monthlyStandardDiskPrice: 0.04, monthlySSDDiskPrice: 0.17, monthlyBalancedDiskPrice: 0.1,
+        n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+        t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
+        preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
+        preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+      }
+    ]
+  }
+})
 
 const cromwellRunning = {
   appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
@@ -253,6 +270,77 @@ const cromwellProvisioningDiskUpdatedPd = {
   zone: 'us-central1-a'
 }
 
+const jupyter1 = {
+  id: 75239,
+  workspaceId: null,
+  runtimeName: 'saturn-eae9168f-9b99-4910-945e-dbab66e04d91',
+  googleProject: 'terra-dev-cf677740',
+  cloudContext: {
+    cloudProvider: 'GCP',
+    cloudResource: 'terra-dev-cf677740'
+  },
+  auditInfo: {
+    creator: 'testuser123@broad.com',
+    createdDate: '2022-07-18T18:35:32.012698Z',
+    destroyedDate: null,
+    dateAccessed: '2022-07-18T21:44:17.565Z'
+  },
+  runtimeConfig: {
+    machineType: 'n1-standard-1',
+    persistentDiskId: 14692,
+    cloudService: 'GCE',
+    bootDiskSize: 120,
+    zone: 'us-central1-a',
+    gpuConfig: null
+  },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-cf677740/saturn-eae9168f-9b99-4910-945e-dbab66e04d91/jupyter',
+  status: 'Running',
+  labels: {
+    saturnWorkspaceNamespace: 'general-dev-billing-account',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'testuser123@broad.com',
+    clusterServiceAccount: 'pet-26534176105071279add1@terra-dev-cf677740.iam.gserviceaccount.com',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-eae9168f-9b99-4910-945e-dbab66e04d91',
+    saturnWorkspaceName: 'Broad Test Workspace',
+    saturnVersion: '6',
+    tool: 'Jupyter',
+    runtimeName: 'saturn-eae9168f-9b99-4910-945e-dbab66e04d91',
+    cloudContext: 'Gcp/terra-dev-cf677740',
+    googleProject: 'terra-dev-cf677740'
+  },
+  patchInProgress: false
+}
+
+const jupyter1Disk = {
+  id: 14692,
+  googleProject: 'terra-dev-cf677740',
+  cloudContext: {
+    cloudProvider: 'GCP',
+    cloudResource: 'terra-dev-cf677740'
+  },
+  zone: 'us-central1-a',
+  name: 'saturn-pd-c4aea6ef-5618-47d3-b674-5d456c9dcf4f',
+  status: 'Ready',
+  auditInfo: {
+    creator: 'testuser123@broad.com',
+    createdDate: '2022-07-18T18:35:32.012698Z',
+    destroyedDate: null,
+    dateAccessed: '2022-07-18T20:34:56.092Z'
+  },
+  size: 50,
+  diskType: {
+    label: 'pd-standard',
+    displayName: 'Standard',
+    regionToPricesName: 'monthlyStandardDiskPrice'
+  },
+  blockSize: 4096,
+  labels: {
+    saturnWorkspaceNamespace: 'general-dev-billing-account',
+    saturnWorkspaceName: 'Broad Test Workspace'
+  }
+}
+
 const jupyterDisk = {
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-12-02T16:38:13.777424Z', destroyedDate: null, dateAccessed: '2021-12-02T16:40:23.464Z'
@@ -409,19 +497,19 @@ describe('getDiskAppType', () => {
 
 describe('getCurrentPersistentDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
+    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
   })
   it('returns the newest attached disk, even if app is deleting', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)
-    expect(getCurrentPersistentDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(cromwellProvisioningDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(cromwellProvisioningDiskUpdatedPd)
   })
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
-    expect(getCurrentPersistentDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toStrictEqual(cromwellUnattachedDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toStrictEqual(cromwellUnattachedDiskUpdatedPd)
   })
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
-    expect(getCurrentPersistentDisk(tools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
+    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
   })
 })
 
@@ -446,5 +534,152 @@ describe('workspaceHasMultipleDisks', () => {
 describe('getDisplayList', () => {
   it('getDisplayList should return a string of the analysis names, comma separated', () => {
     expect(getAnalysesDisplayList(mockBucketAnalyses)).toBe('testA.Rmd, testB.Rmd')
+  })
+})
+
+describe('getCostDisplayForTool', () => {
+  it('will get compute cost and compute status for Galaxy app', () => {
+    // ARRANGE
+    const expectedResult = `Running $0.53/hr`
+    const app = galaxyRunning
+    const currentRuntime = undefined
+    const currentRuntimeTool = undefined
+    const toolLabel = tools.Galaxy.label
+
+    // ACT
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will get compute cost and compute status for a running Jupyter runtime', () => {
+    // ARRANGE
+    const expectedResult = `Running $0.06/hr`
+    const app = undefined
+    const currentRuntime = jupyter1
+    const currentRuntimeTool = tools.Jupyter.label
+    const toolLabel = tools.Jupyter.label
+
+    // ACT
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will get compute cost and compute status for a stopped Jupyter runtime', () => {
+    // ARRANGE
+    const expectedResult = `Paused $0.01/hr`
+    const app = undefined
+    const currentRuntime = { ...jupyter1, status: 'Stopped' }
+    const currentRuntimeTool = tools.Jupyter.label
+    const toolLabel = tools.Jupyter.label
+
+    // ACT
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will return blank because current runtime is not equal to currentRuntimeTool', () => {
+    // ARRANGE
+    const expectedResult = ``
+    const app = undefined
+    const currentRuntime = jupyter1
+    const currentRuntimeTool = tools.RStudio.label
+    const toolLabel = tools.Jupyter.label
+
+    // ACT
+    const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+})
+
+describe('getCostDisplayForDisk', () => {
+  it('will get the disk cost for a Galaxy AppDataDisk', () => {
+    // ARRANGE
+    const app = galaxyRunning
+    const appDataDisks = [galaxyDisk]
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = undefined
+    const persistentDisks = []
+    const runtimes = []
+    const toolLabel = tools.Galaxy.label
+    const expectedResult = 'Disk $0.04/hr'
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will get the disk cost for a Jupyter Persistent Disk', () => {
+    // ARRANGE
+    const app = undefined
+    const appDataDisks = []
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = tools.Jupyter.label
+    const persistentDisks = [jupyter1Disk]
+    const runtimes = [jupyter1]
+    const toolLabel = tools.Jupyter.label
+    const expectedResult = 'Disk < $0.01/hr'
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will return empty string because when there is no app or runtime to get cost information from.', () => {
+    // ARRANGE
+    const app = undefined
+    const appDataDisks = []
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = undefined
+    const persistentDisks = []
+    const runtimes = []
+    const toolLabel = ''
+    const expectedResult = ''
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
+    // ARRANGE
+    const app = undefined
+    const appDataDisks = []
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = tools.Jupyter.label
+    const persistentDisks = []
+    const runtimes = []
+    const toolLabel = tools.RStudio.label
+    const expectedResult = ''
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
+  })
+  it('will return blank string because cost is 0 due to deleting disk.', () => {
+    // ARRANGE
+    const app = undefined
+    const appDataDisks = []
+    const computeRegion = 'US-CENTRAL1'
+    const currentRuntimeTool = tools.Jupyter.label
+    const persistentDisks = [{ ...jupyter1Disk, status: 'Deleting' }]
+    const runtimes = [jupyter1]
+    const toolLabel = tools.Jupyter.label
+    const expectedResult = ''
+
+    // ACT
+    const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+
+    // ASSERT
+    expect(result).toBe(expectedResult)
   })
 })
