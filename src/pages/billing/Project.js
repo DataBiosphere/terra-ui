@@ -200,7 +200,7 @@ const OtherMessaging = ({ cost }) => {
   const msg = cost !== null ?
     `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
     'Total spend includes infrastructure or query costs related to the general operations of Terra'
-  return div([
+  return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
     span({ 'aria-hidden': true }, ['*']),
     '',
     msg
@@ -297,22 +297,30 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ...Style.elements.card.container,
         backgroundColor: 'white',
         padding: undefined,
-        boxShadow: undefined
+        boxShadow: undefined,
+        gridRowStart: '2'
       }
     }, [
-      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' } }, [
-        div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
-        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
-          amount,
-          (!!showAsterisk && isProjectCostReady) ? span(
-            {
-              style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
-              'aria-hidden': true
-            },
-            ['*']
-          ) : null
-        ])
-      ])
+      div(
+        {
+          style: { flex: 'none', padding: '0.625rem 1.25rem' },
+          'aria-live': projectCost !== null ? 'polite' : 'off',
+          'aria-atomic': true
+        },
+        [
+          div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
+          div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
+            amount,
+            (!!showAsterisk && isProjectCostReady) ? span(
+              {
+                style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
+                'aria-hidden': true
+              },
+              ['*']
+            ) : null
+          ])
+        ]
+      )
     ])
   }
 
@@ -393,39 +401,19 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                 }
               })
             ])])
-          ])
+          ]),
+          ...(_.map(name => CostCard({
+            title: `Total ${name}`,
+            amount: (!isProjectCostReady ? '...' : projectCost[name]),
+            showAsterisk: name === 'spend',
+            key: name
+          }),
+          ['spend', 'compute', 'storage'])
+          )
         ]
       ),
-      div(
-        {
-          style: { display: 'grid', rowGap: '1.25rem' },
-          'aria-atomic': true,
-          'aria-live': 'polite',
-          'aria-busy': !isProjectCostReady
-        }, [
-          div(
-            {
-              style: {
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
-                columnGap: '1.25rem'
-              }
-            },
-            [
-              ...(_.map(name => h(CostCard, {
-                title: `Total ${name}`,
-                amount: (!isProjectCostReady ? '...' : projectCost[name]),
-                showAsterisk: name === 'spend',
-                key: name
-              }),
-              ['spend', 'compute', 'storage'])
-              )
-            ]
-          ),
-          h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null })
-        ]
-      ),
-      isProjectCostReady && costPerWorkspace.numWorkspaces > 0 && div(
+      h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
+      costPerWorkspace.numWorkspaces > 0 && div(
         {
           style: { minWidth: 500 }
         }, [ // Set minWidth so chart will shrink on resize
