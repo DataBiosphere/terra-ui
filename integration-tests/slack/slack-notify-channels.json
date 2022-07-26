@@ -8,66 +8,7 @@
   "fail": [
     {
       "name": "dsde-qa",
-      "id": "C53JYBV9A",
-      "tests": [
-        {
-          "name": "analysis-context-bar"
-        },
-        {
-          "name": "billing-projects"
-        },
-        {
-          "name": "find-workflow"
-        },
-        {
-          "name": "import-cohort-data"
-        },
-        {
-          "name": "import-dockstore-workflow"
-        },
-        {
-          "name": "janitor"
-        },
-        {
-          "name": "link-to-new-workspace"
-        },
-        {
-          "name": "preview-dataset"
-        },
-        {
-          "name": "preview-drs-uri"
-        },
-        {
-          "name": "register-user"
-        },
-        {
-          "name": "request-access"
-        },
-        {
-          "name": "run-analysis"
-        },
-        {
-          "name": "run-catalog-filter"
-        },
-        {
-          "name": "run-catalog-workflow"
-        },
-        {
-          "name": "run-notebook"
-        },
-        {
-          "name": "run-rstudio"
-        },
-        {
-          "name": "run-workflow"
-        },
-        {
-          "name": "run-workflow-on-snapshot"
-        },
-        {
-          "name": "workspace-dashboard"
-        }
-      ]
+      "id": "C53JYBV9A"
     },
     {
       "name": "dsp-interactive-analysis",
