@@ -80,7 +80,7 @@ export const MethodRepoTile = () => {
     h(LogoTile, { logoFile: broadSquare, style: { backgroundSize: 37 } }),
     div([
       h(Link, {
-        href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}#methods`,
+        href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods`,
         style: { color: colors.accent(1.1) } // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
       }, 'Broad Methods Repository'),
       div([`Use Broad workflows in ${getEnabledBrand().name}. Share your own, or choose from > 700 public workflows`])
@@ -136,7 +136,7 @@ const Code = () => {
               const { namespace, name, id } = method
               const isMethodsRepoMethod = !!(namespace && name)
               const href = isMethodsRepoMethod ?
-                `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().signInName.toLowerCase()}#methods/${namespace}/${name}/` :
+                `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods/${namespace}/${name}/` :
                 `${getConfig().dockstoreUrlRoot}/workflows/${id.replace(/^#workflow\//, '')}`
 
               return h(MethodCard, {

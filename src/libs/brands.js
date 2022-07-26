@@ -30,6 +30,7 @@ export const brands = {
   anvil: {
     name: 'AnVIL',
     signInName: 'AnVIL',
+    queryName: 'anvil',
     welcomeHeader: 'Welcome to AnVIL',
     description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
     hostName: 'anvil.terra.bio',
@@ -47,6 +48,7 @@ export const brands = {
   baseline: {
     name: 'Project Baseline',
     signInName: 'Project Baseline',
+    queryName: 'project baseline',
     welcomeHeader: 'Welcome to Project Baseline',
     description: 'The Baseline Health Study Data Portal is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'baseline.terra.bio',
@@ -64,6 +66,7 @@ export const brands = {
   bioDataCatalyst: {
     name: 'NHLBI BioData Catalyst',
     signInName: 'NHLBI BioData Catalyst',
+    queryName: 'nhlbi biodata catalyst',
     welcomeHeader: 'Welcome to NHLBI BioData Catalyst',
     description: 'NHLBI BioData Catalyst is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'terra.biodatacatalyst.nhlbi.nih.gov',
@@ -81,6 +84,7 @@ export const brands = {
   datastage: {
     name: 'DataStage',
     signInName: 'DataStage',
+    queryName: 'datastage',
     welcomeHeader: 'Welcome to DataStage',
     description: 'DataStage is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'datastage.terra.bio',
@@ -98,6 +102,7 @@ export const brands = {
   elwazi: {
     name: 'eLwazi',
     signInName: 'eLwazi',
+    queryName: 'elwazi',
     welcomeHeader: 'Welcome to eLwazi',
     description: 'The eLwazi Open Data Science Platform is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'elwazi.terra.bio',
@@ -115,6 +120,7 @@ export const brands = {
   firecloud: {
     name: 'FireCloud',
     signInName: 'FireCloud',
+    queryName: 'firecloud',
     welcomeHeader: 'Welcome to FireCloud',
     description: 'FireCloud is a NCI Cloud Resource project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'firecloud.terra.bio',
@@ -140,6 +146,7 @@ export const brands = {
   projectSingular: {
     name: 'Project Singular',
     signInName: 'Project Singular',
+    queryName: 'project singular',
     welcomeHeader: 'Welcome to Project Singular',
     description: 'Project Singular is a project funded by Additional Ventures and powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'projectsingular.terra.bio',
@@ -156,6 +163,7 @@ export const brands = {
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
+    queryName: `the rare${nonBreakingHyphen}x data analysis platform`,
     signInName: `the RARE${nonBreakingHyphen}X Data Analysis Platform`,
     welcomeHeader: `Welcome to the RARE${nonBreakingHyphen}X Data Analysis Platform`,
     description: `The RARE${nonBreakingHyphen}X Data Analysis Platform is a federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
@@ -182,6 +190,7 @@ export const brands = {
   terra: {
     name: 'Terra',
     signInName: 'Terra',
+    queryName: 'terra',
     welcomeHeader: 'Welcome to Terra Community Workbench',
     description: 'Terra is a cloud-native platform for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'app.terra.bio',
