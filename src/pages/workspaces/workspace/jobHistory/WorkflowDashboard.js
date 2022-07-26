@@ -83,8 +83,8 @@ const WorkflowDashboard = _.flow(
   useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'callCaching:result',
-        'callCaching:effectiveCallCachingMode', 'backendStatus', 'workflowRoot'
+        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowRoot', 'callCaching:result',
+        'callCaching:effectiveCallCachingMode', 'backendStatus'
       ]
       const excludeKey = []
 
