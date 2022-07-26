@@ -207,8 +207,8 @@ jobs:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
             - deps-{{ .Branch }}-
       - run: yarn install --immutable-cache
-      - run: yarn eslint --max-warnings=0 .
-      - run: yarn test --maxWorkers=2
+      #- run: yarn eslint --max-warnings=0 .
+      #- run: yarn test --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
@@ -286,8 +286,10 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      # - build
+      - build
       - integration-tests-branch-against-dev:
+          requires:
+            - build
           filters:
             branches:
               ignore:
@@ -295,11 +297,13 @@ workflows:
           post-steps:
             - report-slack
       - deploy-pr:
+          requires:
+            - build
           filters:
             branches:
               ignore:
                 - dev
-    
+
 
   nightly-integration-tests:
     triggers:
