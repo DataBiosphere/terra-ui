@@ -144,7 +144,7 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   return h(Fragment, [
     hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
-      icon('error-standard', { style: { flexShrink: 0, marginRight: '1ch', color: colors.accent(), cursor: 'help' } })
+      icon('warning-info', { size: 20, style: { flexShrink: 0, marginRight: '1ch', color: colors.accent(), cursor: 'help' } })
     ]),
     h(TextCell, { title: tooltip }, [
       Utils.cond(
