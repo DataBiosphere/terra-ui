@@ -375,13 +375,13 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.66rem' } }, [
+    [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
       div(
         {
           style: {
             display: 'grid',
             gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
-            rowGap: '1.25rem',
+            rowGap: '1.66rem',
             columnGap: '1.25rem'
           }
         }, [
@@ -415,7 +415,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
       costPerWorkspace.numWorkspaces > 0 && div(
         {
-          style: { minWidth: 500 }
+          style: { minWidth: 500, marginTop: '1rem' }
         }, [ // Set minWidth so chart will shrink on resize
           h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
         ]
