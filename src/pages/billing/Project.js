@@ -404,7 +404,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
               })
             ])])
           ]),
-          ...(_.map(name => CostCard({
+          ...(_.map(name => h(CostCard, {
             title: `Total ${name}`,
             amount: (!isProjectCostReady ? '...' : projectCost[name]),
             showAsterisk: name === 'spend',
