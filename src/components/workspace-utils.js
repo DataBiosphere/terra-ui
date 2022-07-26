@@ -356,8 +356,7 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
 
   const refreshStarredWorkspacesList = async () => {
     const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
-    const refreshedWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
-    return refreshedWorkspaceIds
+    return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
   }
 
   const toggleStar = _.flow(
