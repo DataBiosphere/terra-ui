@@ -1,7 +1,6 @@
 const fetch = require('node-fetch')
 const _ = require('lodash/fp')
 const channels = require('./channels')
-const { failed } = require('./templates')
 
 
 const defaultToken = process.env.SLACK_BOT_TOKEN
@@ -19,22 +18,26 @@ const postMessage = async ({ channel = defaultChannel, token = defaultToken, blo
   }
   const requestData = { channel, blocks }
   try {
+    // Find more arguments and details of the response: https://api.slack.com/methods/chat.postMessage
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestData)
     })
     const respJson = await response.json()
-    if (!respJson.ok) {
-      console.error(`**  ERROR: ${new Date().toTimeString()}: Failed to post message to Slack channel ${channel}.`, respJson.error)
+    if (respJson.ok) {
+      console.log(`Notified Slack channel: ${channel}`)
+    } else {
+      console.error(`**  ERROR: ${new Date().toTimeString()}: Post message to Slack channel ${channel} failed.`, respJson.error)
     }
     return respJson
   } catch (e) {
-    console.error(`**  ERROR: Unexpected error when post message to Slack channel ${channel}.`, e)
+    console.error(`**  ERROR: Unexpected error when posting message to Slack channel ${channel}.`, e)
+    throw e
   }
 }
 
-const getChannelIDs = (testName) => {
+const getChannelIDs = testName => {
   return _.flow(
     _.get('tests'),
     _.find(testName),
@@ -44,32 +47,6 @@ const getChannelIDs = (testName) => {
   )(channels)
 }
 
-const postFailedMessage = async (testName) => {
-  if (!this.isSuccess) {
-    const channels = getChannelIDs(testName)
-    // console.log(ids) // array object. e.g: [ 'C03ESC8SRPB', 'C7H40L71D' ]
-
-    await Promise.all(
-      _.forEach(async channel => {
-        await postMessage({
-          channel: channel,
-          blocks: failed(
-            _.merge({
-              // mocked
-              TEST_NAME: testName,
-              CIRCLE_PROJECT_REPONAME: 'terra-ui',
-              CIRCLE_JOB: 'integration-tests-staging',
-              CIRCLE_BUILD_URL: 'https://circleci.com/gh/DataBiosphere/terra-ui/47116'
-            }, process.env)
-          )
-        })
-
-      }, channels)
-    )
-
-  }
-}
-
 module.exports = {
-  postMessage, getChannelIDs
+  postMessage
 }

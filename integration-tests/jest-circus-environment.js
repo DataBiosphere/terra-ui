@@ -36,8 +36,6 @@ class JestCircusEnvironment extends PuppeteerEnvironment {
       await super.handleTestEvent(event, state)
     }
   }
-
-
 }
 
 module.exports = JestCircusEnvironment

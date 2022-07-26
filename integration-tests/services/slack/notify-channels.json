@@ -1,0 +1,103 @@
+{
+  "pass": [
+    {
+      "name": "alexw-slack-app-testing",
+      "id": "C03ESC8SRPB"
+    }
+  ],
+  "fail": [
+    {
+      "name": "alexw-slack-app-testing",
+      "id": "C03ESC8SRPB",
+      "tests": [
+        {
+          "name": "analysis-context-bar"
+        },
+        {
+          "name": "billing-projects"
+        },
+        {
+          "name": "find-workflow"
+        },
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "import-dockstore-workflow"
+        },
+        {
+          "name": "janitor"
+        },
+        {
+          "name": "link-to-new-workspace"
+        },
+        {
+          "name": "preview-dataset"
+        },
+        {
+          "name": "preview-drs-uri"
+        },
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
+        },
+        {
+          "name": "run-analysis"
+        },
+        {
+          "name": "run-catalog-filter"
+        },
+        {
+          "name": "run-catalog-workflow"
+        },
+        {
+          "name": "run-notebook"
+        },
+        {
+          "name": "run-rstudio"
+        },
+        {
+          "name": "run-workflow"
+        },
+        {
+          "name": "run-workflow-on-snapshot"
+        },
+        {
+          "name": "workspace-dashboard"
+        }
+      ]
+    },
+    {
+      "name": "dsde-qa-notify",
+      "id": "C7H40L71D",
+      "tests": [
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "import-cohort-data"
+        }
+      ]
+    },
+    {
+      "name": "dsp-batch",
+      "id": "C1EH66VCM",
+      "tests": [
+        {
+          "name": "find-workflow-disabled"
+        },
+        {
+          "name": "import-dockstore-workflow-disabled"
+        },
+        {
+          "name": "run-workflow-disabled"
+        },
+        {
+          "name": "run-workflow-on-snapshot-disabled"
+        }
+      ]
+    }
+  ]
+}

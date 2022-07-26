@@ -109,7 +109,7 @@ const click = async (page, xpath, options = { timeout: 2000 }) => {
   return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
 }
 
-const findText = (page, textContains, options) => {
+const findText = (page, textContains, options = { timeout: 1000 }) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, defaultToVisibleTrue(options))
 }
 

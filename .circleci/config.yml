@@ -168,6 +168,11 @@ commands:
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ${LOG_DIR}/*
+
   notify-qa:
     parameters:
       channel:
@@ -180,6 +185,17 @@ commands:
           include_project_field: false
           failure_message: ":sadpanda: $CIRCLE_JOB failed."
           success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
+
+  report-slack:
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          working_directory: integration-tests
+          name: Send test results summary to Slack channels
+          command: node --require=../.pnp.cjs ./services/slack/slack.js
+
+
 
 jobs:
   build:
@@ -261,6 +277,10 @@ jobs:
       - integration-tests:
           env: staging
       - notify-qa
+  process-tests-summary:
+    executor: puppeteer
+    steps:
+      - report-slack
 
 workflows:
   version: 2
@@ -274,6 +294,8 @@ workflows:
             branches:
               ignore:
                 - dev
+          post-steps:
+            - report-slack
       - deploy-pr:
           requires:
             - build
@@ -311,12 +333,17 @@ workflows:
           filters:
             branches:
               only: dev
+          post-steps:
+            - report-slack
       - integration-tests-staging:
           requires:
             - deploy-staging
           filters:
             branches:
               only: dev
+          post-steps:
+            - report-slack
+
   nightly-integration-tests:
     triggers:
       - schedule:

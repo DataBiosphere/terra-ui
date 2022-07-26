@@ -9,7 +9,7 @@ function usage {
     echo ""
     echo "  --channel_id string     Required: Slack channel id. If not set, read from env variable SLACK_CHANNEL_ID"
     echo "                          (Example: C7H40L71D)"
-    echo "  --blocks     string     Required: Markdown text"
+    echo "  --blocks     string     Required: JSON text"
     echo "                          (Example: https://app.slack.com/block-kit-builder)"
     echo ""
 }
@@ -32,15 +32,13 @@ function terminate {
     exit 1
 }
 
-if [[ -z $channel ]]; then
-    usage
-    terminate "Missing parameter --channel_id"
-fi
 if [[ -z $token ]]; then
     usage
     terminate "Missing environment variable SLACK_BOT_TOKEN"
-fi
-if [[ -z $blocks ]]; then
+elif [[ -z $channel ]]; then
+    usage
+    terminate "Missing parameter --channel_id"
+elif [[ -z $blocks ]]; then
     usage
     terminate "Missing parameter --blocks"
 fi
@@ -48,16 +46,16 @@ fi
 
 URL="https://slack.com/api/chat.postMessage"
 
-printf "$blocks"
-echo ""
 
 function post() {
-  curl -X POST \
+  curl \
     -H "Content-type: application/json; charset=utf8" \
     -H "Authorization: Bearer ${token}" \
-    --data "{\"channel\": ${channel}, \"blocks\": [${blocks}]" \
-    "${URL}"
+    --data "{\"channel\": \"${channel}\", \"blocks\": ${blocks}}" \
+    -X POST "${URL}"
 }
+
+# --data '{"channel":"C123456","blocks":[{"type":"section","text":{"type":"mrkdwn","text":"Hi I am a bot that can post *_fancy_* messages to any public channel."}}]}' \
 
 post "$@"
 
