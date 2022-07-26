@@ -288,8 +288,6 @@ workflows:
     jobs:
       # - build
       - integration-tests-branch-against-dev:
-          #requires:
-            #- build
           filters:
             branches:
               ignore:
@@ -297,28 +295,11 @@ workflows:
           post-steps:
             - report-slack
       - deploy-pr:
-          #requires:
-            #- build
           filters:
             branches:
               ignore:
                 - dev
-      - integration-tests-alpha:
-          requires:
-            - deploy-alpha
-          filters:
-            branches:
-              only: dev
-          post-steps:
-            - report-slack
-      - integration-tests-staging:
-          requires:
-            - deploy-staging
-          filters:
-            branches:
-              only: dev
-          post-steps:
-            - report-slack
+    
 
   nightly-integration-tests:
     triggers:
