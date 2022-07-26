@@ -214,17 +214,15 @@ const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) =
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
-export const runtimeCost = ({ runtimeConfig, status }) => {
-  switch (status) {
-    case 'Stopped':
-      return runtimeConfigBaseCost(runtimeConfig)
-    case 'Deleting':
-    case 'Error':
-      return 0.0
-    default:
-      return runtimeConfigCost(runtimeConfig)
-  }
-}
+export const getRuntimeCost = ({ runtimeConfig, status }) => Utils.switchCase(status,
+  [
+    'Stopped',
+    () => runtimeConfigBaseCost(runtimeConfig)
+  ],
+  ['Error', () => 0.0],
+  [Utils.DEFAULT, () => runtimeConfigCost(runtimeConfig)]
+)
+
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
 
@@ -326,7 +324,17 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceName) => {
+/**
+ * A function to get the current app data disk from the list of appDataDisks and apps
+ * for the passed in appType for the passed in workspace name.
+ *
+ * @param {string} appType App type to retrieve app data disk for
+ * @param {string} apps List of apps in the current workspace
+ * @param {appDataDisk[]} appDataDisks List of appDataDisks in the workspace
+ * @param {string} workspaceName Name of the workspace
+ * @returns The appDataDisk from appDataDisks attached to the appType
+ */
+export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDiskName = currentApp?.diskName
@@ -344,6 +352,23 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceN
     )(appDataDisks))
 }
 
+/**
+ * Given the list of runtimes, returns the persistent disk attached to
+ * the current runtime.
+ * @param {runtime[]} runtimes List of runtimes.
+ * @param {persistentDisk[]} persistentDisks List of persistent disks.
+ * @returns persistentDisk attached to the currentRuntime.
+ */
+export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
+  const currentRuntime = getCurrentRuntime(runtimes)
+  const id = currentRuntime?.runtimeConfig.persistentDiskId
+  const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
+
+  return id ?
+    _.find({ id }, persistentDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
+}
+
 export const isCurrentGalaxyDiskDetaching = apps => {
   const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.Galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
@@ -352,8 +377,44 @@ export const isCurrentGalaxyDiskDetaching = apps => {
 export const getGalaxyCostTextChildren = (app, appDataDisks) => {
   const dataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
   return app ?
-    [getComputeStatusForDisplay(app.status), dataDisk ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk))} / hr)` : ``] : ['None']
+    [getComputeStatusForDisplay(app.status), dataDisk ? ` ${Utils.formatUSD(getGalaxyCost(app, dataDisk))}/hr` : ``] : ['']
 }
+
+// TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
+  return Utils.cond(
+    [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
+    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
+    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
+    [Utils.DEFAULT, () => {
+      return ''
+    }]
+  )
+}
+
+export const getCostDisplayForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  const diskCost = getCostForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
+  return diskCost ? `Disk ${Utils.formatUSD(diskCost)}/hr` : ''
+}
+
+export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel) => {
+  let diskCost = ''
+  if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
+    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+    diskCost = getPersistentDiskCostHourly(curPd, computeRegion)
+  } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
+    const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
+    //Occasionally currentDataDisk will be undefined on initial render.
+    diskCost = currentDataDisk ? getGalaxyDiskCost(currentDataDisk) : ''
+  }
+  return diskCost
+}
+
+
+// TODO: multiple runtime: build component around this logic for a multiple runtime approach. see getCostForTool for example usage
+export const getRuntimeForTool = (toolLabel, currentRuntime, currentRuntimeTool) => Utils.cond([toolLabel === currentRuntimeTool, () => currentRuntime],
+  [Utils.DEFAULT, () => undefined])
 
 export const getAnalysesDisplayList = _.flow(
   _.map(

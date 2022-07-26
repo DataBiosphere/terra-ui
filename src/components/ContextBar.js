@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { br, div, h, img, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { tools } from 'src/components/notebook-utils'
+import Interactive from 'src/components/Interactive'
+import { getAppType, tools } from 'src/components/notebook-utils'
+import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
@@ -14,10 +16,12 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
+
+import TooltipTrigger from './TooltipTrigger'
 
 
 const contextBarStyles = {
@@ -44,6 +48,7 @@ export const ContextBar = ({
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
   const [selectedToolIcon, setSelectedToolIcon] = useState(undefined)
 
+  const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
@@ -69,7 +74,10 @@ export const ContextBar = ({
     [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
 
+  const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+
   const getIconForTool = (toolLabel, status) => {
+    const app = currentApp(toolLabel)
     return h(Clickable, {
       style: { display: 'flex', flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
       hover: contextBarStyles.hover,
@@ -78,7 +86,11 @@ export const ContextBar = ({
         setCloudEnvOpen(true)
       },
       tooltipSide: 'left',
-      tooltip: `${toolLabel} Environment ( ${getComputeStatusForDisplay(status)} )`,
+      tooltip: div([
+        div({ style: { fontWeight: 'bold' } }, `${toolLabel} Environment`),
+        div(getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)),
+        div(getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel))
+      ]),
       tooltipDelay: 100,
       useTooltipAsLabel: true
     }, [
@@ -101,6 +113,18 @@ export const ContextBar = ({
     ])
   }
 
+  //This excludes cromwellapp in the calculation.
+  const getTotalToolAndDiskCostDisplay = () => {
+    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
+    const galaxyDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
+    const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
+    const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0
+    const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
+    const diskCost = curPd ? getPersistentDiskCostHourly(curPd, computeRegion) : 0
+    return `${Utils.formatUSD(galaxyRuntimeCost + galaxyDiskCost + runtimeCost + diskCost)}`
+  }
+
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
@@ -117,11 +141,42 @@ export const ContextBar = ({
         await refreshRuntimes(true)
         await refreshApps()
       },
-      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, locationType
+      runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, workspace, canCompute, persistentDisks, location, computeRegion
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
         h(Fragment, [
+          h(TooltipTrigger,
+            {
+              side: 'left',
+              delay: 100,
+              content: [
+                div({ key: 'p1' }, 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                br({ key: 'br' }),
+                div({ key: 'p2' }, 'Workflow and workspace storage costs are not included.')
+              ]
+            },
+            [
+              h(Interactive, {
+                as: 'div',
+                style: { flexDirection: 'column', justifyContent: 'center', ...contextBarStyles.contextBarButton, padding: '0', borderBottom: '0px', cursor: 'default' },
+                hover: { ...contextBarStyles.hover }
+              },
+              [
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
+                div({
+                  style: {
+                    textAlign: 'center', color: colors.dark(),
+                    fontWeight: 'bold', fontSize: '1em'
+                  }
+                },
+                [
+                  getTotalToolAndDiskCostDisplay(),
+                  span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
+                ])
+              ])
+            ]
+          ),
           h(Clickable, {
             style: { flexDirection: 'column', justifyContent: 'center', padding: '.75rem', ...contextBarStyles.contextBarButton, borderBottom: '0px' },
             hover: contextBarStyles.hover,
