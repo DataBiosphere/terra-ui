@@ -119,15 +119,6 @@
           "name": "janitor"
         },
         {
-          "name": "link-to-new-workspace"
-        },
-        {
-          "name": "register-user"
-        },
-        {
-          "name": "request-access"
-        },
-        {
           "name": "workspace-dashboard"
         }
       ]
@@ -136,9 +127,6 @@
       "name": "jade-data-explorer",
       "id": "C01TU3W2AL9",
       "tests": [
-        {
-          "name": "import-cohort-data"
-        },
         {
           "name": "preview-dataset"
         },
@@ -150,6 +138,33 @@
         },
         {
           "name": "run-catalog-workflow"
+        },
+        {
+          "name": "link-to-new-workspace"
+        }
+      ]
+    },
+    {
+      "name": "dsp-identiteam",
+      "id": "C03GMG4DUSE",
+      "tests": [
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
+        }
+      ]
+    },
+    {
+      "name": "dsp-analysis-journeys",
+      "id": "C02T8G2FJCQ",
+      "tests": [
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "request-access"
         }
       ]
     }
