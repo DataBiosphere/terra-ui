@@ -15,8 +15,6 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 
 
-export const nonBreakingHyphen = '\u2011'
-
 export const commonStyles = {
   access: {
     granted: colors.success(1.5),

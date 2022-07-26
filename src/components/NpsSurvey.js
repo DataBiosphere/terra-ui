@@ -7,9 +7,9 @@ import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring } from 'src/libs/error'
-import { getAppName } from 'src/libs/logos'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, userStatus } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -83,6 +83,8 @@ const NpsSurvey = () => {
   },
   _.range(0, 11))
 
+  const brand = getEnabledBrand()
+
   return requestable && div({
     className: 'animate__animated animate__fadeIn',
     style: {
@@ -107,10 +109,10 @@ const NpsSurvey = () => {
       }
     },
     !expanded ? [
-      div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
+      div({ style: styles.questionLabel }, `How likely are you to recommend ${brand.name} to others?`),
       div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios)
     ] : [
-      div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
+      div({ style: styles.questionLabel }, `How likely are you to recommend ${brand.name} to others?`),
       div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
       div({ style: styles.questionLabel }, ['What was the reason for this score? ',
         span({ style: { ...styles.questionLabel, fontStyle: 'italic' } }, '(Optional)')]),

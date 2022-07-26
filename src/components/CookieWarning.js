@@ -4,8 +4,8 @@ import { aside, div, h } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
@@ -26,6 +26,7 @@ const CookieWarning = () => {
   const [showWarning, setShowWarning] = useState(false)
   const { cookiesAccepted } = useStore(authStore)
   const timeout = useRef()
+  const brand = getEnabledBrand()
 
   const acceptCookies = acceptedCookies => {
     authStore.update(_.set('cookiesAccepted', acceptedCookies))
@@ -85,7 +86,7 @@ const CookieWarning = () => {
     }, [
       div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
         div({ style: { overflowY: 'auto', height: '100%' } }, [
-          `${getAppName({ capitalizeThe: true })} uses cookies to enable the proper functioning and security of our website,
+          `${brand.name} uses cookies to enable the proper functioning and security of our website,
             and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
             cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
             to use our site. To find out more, read our `,

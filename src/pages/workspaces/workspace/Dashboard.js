@@ -19,9 +19,9 @@ import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -422,6 +422,7 @@ const WorkspaceDashboard = _.flow(
 
   // Render
   const isEditing = _.isString(editDescription)
+  const brand = getEnabledBrand()
 
   return div({ style: { flex: 1, display: 'flex' } }, [
     div({ style: Style.dashboard.leftBox }, [
@@ -529,9 +530,9 @@ const WorkspaceDashboard = _.flow(
       }, [
         div({ style: { margin: '0.5rem' } }, [
           div({ style: { marginBottom: '0.5rem', fontSize: 12 } }, [
-            `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information.`,
+            `${brand.name} is not intended to host personally identifiable information.`,
             h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-              `${getAppName({ capitalizeThe: true })} is not intended to host personally identifiable information. Do not use any patient identifier including name,
+              `${brand.name} is not intended to host personally identifiable information. Do not use any patient identifier including name,
               social security number, or medical record number.`
             ])
           ]),

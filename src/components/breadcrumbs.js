@@ -1,7 +1,7 @@
 import { a } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
+import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 
 

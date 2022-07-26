@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, h1, img, input, label, span, strong } from 'react-hyperscript-helpers'
+import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
@@ -18,10 +18,10 @@ import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { getConfig, isFirecloud, isProjectSingular, isRareX, isTerra } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
@@ -351,7 +351,7 @@ export const backgroundLogo = img({
 export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
+    `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
@@ -490,7 +490,7 @@ export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True'
 })
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
-  const heavyWrapper = text => bigSubhead ? strong({ style: { whiteSpace: 'nowrap' } }, [text]) : text
+  const brand = getEnabledBrand()
 
   return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
@@ -506,26 +506,24 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
       }
     }, [
       // width is set to prevent text from overlapping the background image and decreasing legibility
-      h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [`Welcome to ${getAppName({ longName: isTerra() })}`]),
-      div({ style: { margin: '1rem 0', width: 'calc(100% - 460px)', maxWidth: 700, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
-        `${getAppName({ longName: !isTerra(), capitalizeThe: true })} is a ${Utils.cond(
-          [isTerra(), () => 'cloud-native platform'],
-          [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
-          [isProjectSingular(), () => 'project funded by Additional Ventures and powered by Terra'],
-          [isRareX(),
-            () => 'federated data repository of rare disease patient health data, including patient reported outcomes, clinical and molecular information. The platform is powered by Terra'],
-          () => 'project powered by Terra'
-        )} for biomedical researchers to `,
-        heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
-        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate')]),
-        isProjectSingular() && ' to advance research around single ventricle heart disease',
-        '. ',
+      h1({ style: { fontSize: 54, width: 'calc(100% - 460px)' } }, [brand.welcomeHeader]),
+      div({
+        style: {
+          margin: '1rem 0', width: 'calc(100% - 460px)', maxWidth: 700, ...(bigSubhead ?
+            { fontSize: 20, lineHeight: '28px' } :
+            { fontSize: 16, lineHeight: 1.5 })
+        }
+      }, [
+        brand.description,
         showDocLink ?
-          h(Link, {
-            style: { textDecoration: 'underline' },
-            href: `https://support.terra.bio/hc/en-us`,
-            ...Utils.newTabLinkProps
-          }, ['Learn more about Terra.']) : null
+          h(Fragment, [
+            ' ',
+            h(Link, {
+              style: { textDecoration: 'underline' },
+              href: `https://support.terra.bio/hc/en-us`,
+              ...Utils.newTabLinkProps
+            }, ['Learn more about Terra.'])
+          ]) : null
       ]),
       children
     ])
