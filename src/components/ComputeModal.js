@@ -124,7 +124,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 100, // less than this size causes failures in cluster creation
+        min: 150, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -205,7 +205,7 @@ export const ComputeModalBase = ({
     selectedPersistentDiskType: defaultPersistentDiskType,
     //The false here is valid because the modal never opens to dataproc as the default
     masterMachineType: getDefaultMachineType(false, tool),
-    masterDiskSize: defaultGceBootDiskSize,
+    masterDiskSize: defaultDataprocMasterDiskSize,
     numberOfWorkers: defaultNumDataprocWorkers,
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
@@ -1527,6 +1527,9 @@ export const ComputeModalBase = ({
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
         const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredTool)
         updateComputeConfig('masterMachineType', machineType)
+        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
+          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
+        }
       },
       isSearchable: true,
       isClearable: false,
@@ -1584,6 +1587,7 @@ export const ComputeModalBase = ({
     const renderDiskText = () => {
       return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
     }
+
     return simplifiedForm ?
       div({ style: computeStyles.drawerContent }, [
         renderTitleAndTagline(),
