@@ -352,20 +352,16 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
   //for the intended use case. If we find that 50 is not enough, consider introducing more powerful
   //workspace organization functionality like folders
   const MAX_STARRED_WORKSPACES = 50
+  const maxStarredWorkspacesReached = _.size(starredWorkspaceIds) >= MAX_STARRED_WORKSPACES
 
   const toggleStar = _.flow(
     Utils.withBusyState(setUpdating),
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     if (star) {
-      if (_.size(starredWorkspaceIds) < MAX_STARRED_WORKSPACES) {
-        const updatedWorkspaceIds = _.concat(starredWorkspaceIds, [workspaceId])
-        await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-        authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
-      } else {
-        reportError('Unable to star workspace.',
-          'A maximum of 50 workspaces can be starred. Please un-star another workspace before starring this workspace.')
-      }
+      const updatedWorkspaceIds = _.concat(starredWorkspaceIds, [workspaceId])
+      await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
+      authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
     } else {
       const updatedWorkspaceIds = _.without([workspaceId], starredWorkspaceIds)
       await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
@@ -378,9 +374,15 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
     as: 'span',
     role: 'checkbox',
     'aria-checked': isStarred,
-    tooltip: isStarred ? 'Unstar this workspace' : 'Star this workspace. Starred workspace will appear at the top of your workspace list.',
+    tooltip: Utils.cond(
+      [isStarred, () => 'Unstar this workspace'],
+      [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspace will appear at the top of your workspace list.'],
+      [!isStarred && maxStarredWorkspacesReached, () => ['A maximum of ',
+        MAX_STARRED_WORKSPACES, ' workspaces can be starred. Please un-star another workspace before starring this workspace.']]
+    ),
     'aria-label': isStarred ? 'This workspace is starred' : '',
     className: 'fa-layers fa-fw',
+    disabled: maxStarredWorkspacesReached && !isStarred,
     style: { verticalAlign: 'middle', ...style },
     onClick: () => toggleStar(!isStarred)
   }, [
