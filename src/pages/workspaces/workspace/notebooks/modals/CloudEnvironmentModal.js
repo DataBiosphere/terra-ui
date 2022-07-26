@@ -46,6 +46,8 @@ export const CloudEnvironmentModal = ({
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
+  const resetView = () => setViewMode(undefined)
+
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
@@ -54,18 +56,9 @@ export const CloudEnvironmentModal = ({
     runtimes,
     persistentDisks,
     location,
-    onDismiss: () => {
-      setViewMode(undefined)
-      onDismiss()
-    },
-    onSuccess: () => {
-      setViewMode(undefined)
-      onSuccess()
-    },
-    onError: () => {
-      setViewMode(undefined)
-      onDismiss()
-    }
+    onDismiss,
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
@@ -73,14 +66,8 @@ export const CloudEnvironmentModal = ({
     hideCloseButton: true,
     workspace,
     runtimes,
-    onDismiss: () => {
-      setViewMode(undefined)
-      onDismiss()
-    },
-    onSuccess: () => {
-      setViewMode(undefined)
-      onSuccess()
-    }
+    onDismiss,
+    onSuccess
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
@@ -88,14 +75,8 @@ export const CloudEnvironmentModal = ({
     workspace,
     apps,
     appDataDisks,
-    onDismiss: () => {
-      setViewMode(undefined)
-      onDismiss()
-    },
-    onSuccess: () => {
-      setViewMode(undefined)
-      onSuccess()
-    }
+    onDismiss,
+    onSuccess
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
@@ -429,10 +410,7 @@ export const CloudEnvironmentModal = ({
       title: filterForTool ? `${filterForTool} Environment Details` : 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
-      onDismiss: () => {
-        setViewMode(undefined)
-        onDismiss()
-      },
+      onDismiss,
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
     viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
@@ -450,10 +428,8 @@ export const CloudEnvironmentModal = ({
 
   const modalProps = {
     'aria-labelledby': titleId, isOpen, width,
-    onDismiss: () => {
-      setViewMode(undefined)
-      onDismiss()
-    }
+    onDismiss,
+    onExited: resetView
   }
   return h(ModalDrawer, { ...modalProps, children: modalBody })
 }
