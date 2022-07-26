@@ -17,6 +17,19 @@ executors:
     docker:
       - image: google/cloud-sdk:alpine
 
+anchors:
+  # Run jobs on PR branches only
+  filter-pr-branch: &filter-pr-branch
+    filters:
+      branches:
+        ignore: dev
+
+  # Run jobs on Dev branch only
+  filter-dev-branch: &filter-dev-branch
+    filters:
+      branches:
+        only: dev
+
 commands:
   notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
     parameters:
@@ -128,8 +141,9 @@ commands:
         type: boolean
         default: false
       env:
-        type: string
-        default: local
+        type: enum
+        enum: [ "local", "staging", "alpha" ]
+        default: "local"
       log_dir:
         type: string
         default: "/tmp"
@@ -267,55 +281,37 @@ workflows:
     jobs:
       - build
       - integration-tests-branch-against-dev:
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-pr:
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-dev:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-alpha:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-perf:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-staging:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - integration-tests-alpha:
+          <<: *filter-dev-branch
           requires:
             - deploy-alpha
-          filters:
-            branches:
-              only: dev
       - integration-tests-staging:
+          <<: *filter-dev-branch
           requires:
             - deploy-staging
-          filters:
-            branches:
-              only: dev
   nightly-integration-tests:
     triggers:
       - schedule:
