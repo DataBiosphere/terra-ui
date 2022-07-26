@@ -35,5 +35,6 @@ const testImportDockstoreWorkflowFn = _.flow(
 
 registerTest({
   name: 'import-dockstore-workflow',
-  fn: testImportDockstoreWorkflowFn
+  fn: testImportDockstoreWorkflowFn,
+  targetEnvironments: []
 })

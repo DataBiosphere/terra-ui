@@ -26,5 +26,6 @@ const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
 registerTest({
   name: 'request-access',
   fn: testRequestAccessFn,
-  timeout: 2 * 60 * 1000 // 2 min timeout
+  timeout: 2 * 60 * 1000, // 2 min timeout
+  targetEnvironments: []
 })

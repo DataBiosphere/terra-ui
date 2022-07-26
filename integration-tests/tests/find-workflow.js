@@ -15,5 +15,6 @@ const testFindWorkflowFn = _.flow(
 
 registerTest({
   name: 'find-workflow',
-  fn: testFindWorkflowFn
+  fn: testFindWorkflowFn,
+  targetEnvironments: []
 })
