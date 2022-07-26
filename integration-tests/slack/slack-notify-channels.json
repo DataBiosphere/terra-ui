@@ -1,0 +1,157 @@
+{
+  "pass": [
+    {
+      "name": "dsde-qa",
+      "id": "C53JYBV9A"
+    }
+  ],
+  "fail": [
+    {
+      "name": "dsde-qa",
+      "id": "C53JYBV9A",
+      "tests": [
+        {
+          "name": "analysis-context-bar"
+        },
+        {
+          "name": "billing-projects"
+        },
+        {
+          "name": "find-workflow"
+        },
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "import-dockstore-workflow"
+        },
+        {
+          "name": "janitor"
+        },
+        {
+          "name": "link-to-new-workspace"
+        },
+        {
+          "name": "preview-dataset"
+        },
+        {
+          "name": "preview-drs-uri"
+        },
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
+        },
+        {
+          "name": "run-analysis"
+        },
+        {
+          "name": "run-catalog-filter"
+        },
+        {
+          "name": "run-catalog-workflow"
+        },
+        {
+          "name": "run-notebook"
+        },
+        {
+          "name": "run-rstudio"
+        },
+        {
+          "name": "run-workflow"
+        },
+        {
+          "name": "run-workflow-on-snapshot"
+        },
+        {
+          "name": "workspace-dashboard"
+        }
+      ]
+    },
+    {
+      "name": "dsp-interactive-analysis",
+      "id": "CA3NP1733",
+      "tests": [
+        {
+          "name": "run-analysis"
+        },
+        {
+          "name": "run-rstudio"
+        },
+        {
+          "name": "analysis-context-bar"
+        },
+        {
+          "name": "run-notebook"
+        }
+      ]
+    },
+    {
+      "name": "dsp-batch",
+      "id": "C1EH66VCM",
+      "tests": [
+        {
+          "name": "find-workflow"
+        },
+        {
+          "name": "import-dockstore-workflow"
+        },
+        {
+          "name": "run-workflow"
+        },
+        {
+          "name": "run-workflow-on-snapshot"
+        },
+        {
+          "name": "run-catalog-workflow"
+        }
+      ]
+    },
+    {
+      "name": "dsp-workspaces",
+      "id": "C02LMB1PQ6R",
+      "tests": [
+        {
+          "name": "billing-projects"
+        },
+        {
+          "name": "janitor"
+        },
+        {
+          "name": "link-to-new-workspace"
+        },
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
+        },
+        {
+          "name": "workspace-dashboard"
+        }
+      ]
+    },
+    {
+      "name": "jade-data-explorer",
+      "id": "C01TU3W2AL9",
+      "tests": [
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "preview-dataset"
+        },
+        {
+          "name": "preview-drs-uri"
+        },
+        {
+          "name": "run-catalog-filter"
+        },
+        {
+          "name": "run-catalog-workflow"
+        }
+      ]
+    }
+  ]
+}
