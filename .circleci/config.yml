@@ -137,7 +137,7 @@ commands:
         default: local
       log_dir:
         type: string
-        default: "/tmp"
+        default: "."
     steps:
       - checkout
       - attach_workspace:
@@ -164,14 +164,12 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
-          command: |
-            source $BASH_ENV
-            cat $BASH_ENV | awk '{print "export " $0}' >> .env
-      - run:
-          working_directory: integration-tests
           no_output_timeout: 16m
           command: |
             echo "LOG_DIR=${LOG_DIR}"
+            source $BASH_ENV
+            echo $BASH_ENV | awk '{print "export " $0}' > .env
+
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
             CI=true yarn test $TESTS_TO_RUN --maxWorkers=2
@@ -278,7 +276,7 @@ jobs:
       - run:
           name: Send failed tests summary to Slack channels
           command: |
-            echo $LOG_DIR
+            echo "LOG_DIR=${LOG_DIR}"
             ls -al integration-tests
             node --require=./.pnp.cjs integration-tests/services/slack/slack.js
           when: always
