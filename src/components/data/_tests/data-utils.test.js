@@ -174,7 +174,7 @@ describe('entityAttributeText', () => {
 })
 
 describe('renderDataCell', () => {
-  const testWorkspace = { workspace: { googleProject: 'test-project' } }
+  const testWorkspace = { workspace: { bucketName: 'test-bucket', googleProject: 'test-project' } }
 
   describe('basic data types', () => {
     it('renders strings', () => {
@@ -254,6 +254,16 @@ describe('renderDataCell', () => {
       expect(container).toHaveTextContent('file.txt')
       const link = getByRole('link')
       expect(link).toHaveAttribute('href', 'gs://bucket/file.txt')
+    })
+
+    it('renders a warning for GCS URLs outside the workspace bucket', () => {
+      const { getByText } = render(renderDataCell('gs://other-bucket/file.txt', testWorkspace))
+      expect(getByText('Some files are located outside of the current workspace')).toBeTruthy()
+    })
+
+    it('does not render a warning for GCS URLs in the workspace bucket', () => {
+      const { queryByText } = render(renderDataCell('gs://test-bucket/file.txt', testWorkspace))
+      expect(queryByText('Some files are located outside of the current workspace')).toBeNull()
     })
 
     it('renders lists of GCS URLs', () => {
