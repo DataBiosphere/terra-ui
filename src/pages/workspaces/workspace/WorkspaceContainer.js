@@ -15,8 +15,9 @@ import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
+import { isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -209,6 +210,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
 
   const saturnWorkspaceNamespace = workspace?.workspace.namespace
   const saturnWorkspaceName = workspace?.workspace.name
+  const saturnWorkspaceVersion = workspace?.workspace.workspaceVersion
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -216,9 +218,11 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
   }
   const load = async maybeStale => {
     try {
-      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l),
-        { googleProject, saturnWorkspaceName, saturnWorkspaceNamespace, creator: getUser().email }
-      )
+      // v1 workspaces: cloud environment (runtime + disk) is used across workspaces that share the same googleProject
+      // v2 workspaces: 1 cloud environment per workspace - saturnWorkspaceName == workspaceName and saturnWorkspaceNamespace == Terra Billing Project (which is no longer equivalent to googleProject)
+      // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
+
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
       const [newDisks, newRuntimes] = !!workspace ? await Promise.all([

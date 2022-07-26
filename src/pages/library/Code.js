@@ -8,12 +8,11 @@ import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import { getAppName, returnParam } from 'src/libs/logos'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -81,10 +80,10 @@ export const MethodRepoTile = () => {
     h(LogoTile, { logoFile: broadSquare, style: { backgroundSize: 37 } }),
     div([
       h(Link, {
-        href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods`,
+        href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods`,
         style: { color: colors.accent(1.1) } // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
       }, 'Broad Methods Repository'),
-      div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
+      div([`Use Broad workflows in ${getEnabledBrand().name}. Share your own, or choose from > 700 public workflows`])
     ])
   ])
 }
@@ -127,7 +126,7 @@ const Code = () => {
   })
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('code & workflows', useStore(authStore)),
+    libraryTopMatter('code & workflows'),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       div({ style: { display: 'flex', flex: 1 } }, [
         div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
@@ -137,7 +136,7 @@ const Code = () => {
               const { namespace, name, id } = method
               const isMethodsRepoMethod = !!(namespace && name)
               const href = isMethodsRepoMethod ?
-                `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${namespace}/${name}/` :
+                `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods/${namespace}/${name}/` :
                 `${getConfig().dockstoreUrlRoot}/workflows/${id.replace(/^#workflow\//, '')}`
 
               return h(MethodCard, {

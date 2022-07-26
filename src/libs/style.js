@@ -1,5 +1,5 @@
+import { isTerra } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
 
 
 export const topBarHeight = 66
@@ -148,7 +148,7 @@ export const dashboard = {
   },
   collapsibleHeader: {
     ...elements.sectionHeader, color: colors.accent(), textTransform: 'uppercase',
-    padding: '0.5rem 0.5rem 0 0.5rem', display: 'flex', fontSize: 14
+    padding: '0.5rem 0 0.5rem 0.5rem', display: 'flex', fontSize: 14
   },
   infoTile: {
     backgroundColor: colors.dark(0.15), color: 'black',
@@ -170,3 +170,4 @@ export const errorStyle = {
   border: `1px solid ${colors.danger(0.8)}`,
   backgroundColor: colors.danger(0.15)
 }
+

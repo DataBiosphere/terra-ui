@@ -21,15 +21,15 @@ import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
-import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import { useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { Browser } from 'src/pages/library/DataBrowser'
 import { DataBrowserPreviewToggler } from 'src/pages/library/DataBrowserToggler'
 
 
@@ -229,7 +229,7 @@ const ccdg = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse CCDG data',
     tooltip: browseTooltip,
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     onClick: () => captureBrowseDataEvent('CCDG'),
     ...Utils.newTabLinkProps
   }, ['Browse data'])
@@ -245,7 +245,7 @@ const cmg = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse CMG data',
     tooltip: browseTooltip,
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=AnVIL CMG#library`,
     onClick: () => captureBrowseDataEvent('CMG'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
@@ -281,7 +281,7 @@ const fcDataLib = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Browse Broad Institute datasets',
     tooltip: 'Search for dataset workspaces',
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#library`,
     onClick: () => captureBrowseDataEvent('Broad Institute Datasets'),
     ...Utils.newTabLinkProps
   }, ['Browse Datasets'])
@@ -385,7 +385,7 @@ const target = () => h(Participant, {
   sizeText: 'Participants: 1,324'
 }, [h(ButtonPrimary, {
   'aria-label': 'Browse TARGET data',
-  href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
+  href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=TARGET#library`,
   onClick: () => captureBrowseDataEvent('TARGET'),
   ...Utils.newTabLinkProps
 }, ['Browse Data'])])
@@ -404,7 +404,7 @@ const tcga = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     'aria-label': 'Browse Cancer Genome Atlas data',
-    href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
+    href: `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}&project=TCGA#library`,
     onClick: () => captureBrowseDataEvent('Cancer Genome Atlas'),
     ...Utils.newTabLinkProps
   }, ['Browse Data'])
@@ -447,16 +447,24 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-
 const Datasets = () => {
+  const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('datasets', useStore(authStore)),
-    h(DataBrowserPreviewToggler, { checked: false }),
-    div({ role: 'main', style: styles.content }, [
+    libraryTopMatter('datasets'),
+    h(DataBrowserPreviewToggler, {
+      onChange: value => {
+        setCatalogShowing(value)
+        Ajax().Metrics.captureEvent(Events.catalogToggle, { enabled: value })
+        setLocalPref('catalog-toggle', value)
+      },
+      catalogShowing
+    }),
+    catalogShowing ? h(Browser) :
+      div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
-      thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
-      hca(), nemo(), target(), tcga(), topMed(), rareX()
-    ])
+        thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
+        hca(), nemo(), target(), tcga(), topMed(), rareX()
+      ])
   ])
 }
 
@@ -466,7 +474,7 @@ export const navPaths = [
     name: 'library-datasets',
     path: '/library/datasets',
     component: Datasets,
-    public: true,
+    public: false,
     title: 'Datasets'
   }
 ]

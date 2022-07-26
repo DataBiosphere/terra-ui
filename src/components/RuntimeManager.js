@@ -25,7 +25,7 @@ import { clearNotification, notify } from 'src/libs/notifications'
 import { useOnMount } from 'src/libs/react-utils'
 import {
   appIsSettingUp, cloudProviders, getComputeStatusForDisplay, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime,
-  getPersistentDiskCostHourly, runtimeCost,
+  getPersistentDiskCostHourly, getRuntimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
@@ -205,8 +205,8 @@ export default class RuntimeManager extends PureComponent {
       })
       errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
-      runtime.status === 'Running' && prevRuntime.status && prevRuntime.status !== 'Running' &&
-      runtime.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+      runtime?.status === 'Running' && prevRuntime?.status && prevRuntime.status !== 'Running' &&
+      runtime?.labels?.tool === tools.RStudio.label && window.location.hash !== rStudioLaunchLink
     ) {
       const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {
@@ -339,7 +339,7 @@ export default class RuntimeManager extends PureComponent {
       }
     }
 
-    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
+    const totalCost = _.sum(_.map(getRuntimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
 
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)

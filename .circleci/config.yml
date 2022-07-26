@@ -184,12 +184,12 @@ commands:
 jobs:
   build:
     executor: node
+    resource_class: medium+
     steps:
       - checkout
       - restore_cache:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-            - deps-{{ .Branch }}-
       - run: yarn install --immutable-cache
       - run: yarn eslint --max-warnings=0 .
       - run: yarn test --maxWorkers=2

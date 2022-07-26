@@ -7,6 +7,7 @@
   "dataRepoUrlRoot": "https://data.staging.envs-terra.bio",
   "devUrlRoot": "https://bvdp-saturn-staging.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
+  "drsHubUrlRoot": "https://drshub.dsde-staging.broadinstitute.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
   "firecloudUrlRoot": "https://firecloud.dsde-staging.broadinstitute.org",
   "isProd": true,
@@ -18,6 +19,7 @@
   "rexUrlRoot": "https://terra-rex-staging.appspot.com",
   "samUrlRoot": "https://sam.dsde-staging.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
+  "shouldUseDrsHub": false,
   "workspaceManagerUrlRoot": "https://workspace.dsde-staging.broadinstitute.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",

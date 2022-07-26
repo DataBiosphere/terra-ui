@@ -16,13 +16,14 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
   cloudProviders,
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, isApp, isComputePausable, isResourceDeletable, mapToPdTypes, runtimeCost,
-  workspaceHasMultipleApps,
+  getPersistentDiskCostMonthly, getRegionFromZone, getRuntimeCost,
+  isApp, isComputePausable, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
   workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -135,12 +136,16 @@ const Environments = () => {
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
+
+    const startTimeForLeoCallsEpochMs = Date.now()
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ? { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
+    const endTimeForLeoCallsEpochMs = Date.now()
 
+    const startTimeForRawlsCallsEpochMs = Date.now()
     const decorateLabeledCloudObjWithWorkspaceId = withErrorIgnoring(async cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
       const details = !!saturnWorkspaceNamespace && !!saturnWorkspaceName ? await Ajax(signal).Workspaces.workspace(saturnWorkspaceNamespace, saturnWorkspaceName).details(['workspace']).catch(_ => undefined) : undefined
@@ -148,11 +153,16 @@ const Environments = () => {
       return { ...cloudObject, workspaceId }
     })
 
-    const [decoratedRuntimes, decoratedDisks, decoratedApps] = [
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newDisks)),
-      await Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newApps))
-    ]
+    const [decoratedRuntimes, decoratedDisks, decoratedApps] = await Promise.all([
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newRuntimes)),
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newDisks)),
+      Promise.all(_.map(decorateLabeledCloudObjWithWorkspaceId, newApps))
+    ])
+    const endTimeForRawlsCallsEpochMs = Date.now()
+
+    const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs
+    const rawlsCallTimeTotalMs = endTimeForRawlsCallsEpochMs - startTimeForRawlsCallsEpochMs
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, rawlsCallTimeMs: rawlsCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs + rawlsCallTimeTotalMs })
 
     setRuntimes(decoratedRuntimes)
     setDisks(decoratedDisks)
@@ -205,7 +215,7 @@ const Environments = () => {
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
-    cost: runtimeCost
+    cost: getRuntimeCost
   }[sort.field]], [sort.direction], runtimes)
 
   const filteredDisks = mapToPdTypes(_.orderBy([{
@@ -229,7 +239,7 @@ const Environments = () => {
 
   const filteredCloudEnvironments = _.concat(filteredRuntimes, filteredApps)
 
-  const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
+  const totalRuntimeCost = _.sum(_.map(getRuntimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
   const totalDiskCost = _.sum(_.map(disk => getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone)), mapToPdTypes(disks)))
@@ -464,7 +474,7 @@ const Environments = () => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ?
                 Utils.formatUSD(getGalaxyComputeCost(cloudEnvironment)) :
-                Utils.formatUSD(runtimeCost(cloudEnvironment))
+                Utils.formatUSD(getRuntimeCost(cloudEnvironment))
             }
           },
           {

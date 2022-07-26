@@ -34,7 +34,7 @@ const styles = {
     navSection: {
       alignItems: 'center', flex: 'none', padding: '0.5rem 0'
     },
-    title: { color: colors.dark(), fontWeight: 700, borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: '0.75rem' }
+    title: { borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: '0.75rem', marginBottom: '1rem' }
   },
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
@@ -282,9 +282,12 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
         h(Collapse, {
           key: name,
           style: styles.nav.navSection,
-          buttonStyle: styles.nav.title,
+          summaryStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
-          title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
+          title: h(Fragment, [
+            span({ style: { fontWeight: 700 } }, [name]),
+            span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])
+          ])
         }, [
           h(FilterSection, { name, onTagFilter, selectedTags, labelRenderer, listDataByTag, labels, filteredData })
         ])

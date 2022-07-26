@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { concatenateAttributeNames, convertAttributeValue, entityAttributeText, getAttributeType, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
+import * as Utils from 'src/libs/utils'
 
 
 describe('concatenateAttributeNames', () => {
@@ -182,6 +183,19 @@ describe('renderDataCell', () => {
 
   it('renders empty lists', () => {
     expect(render(renderDataCell({ items: [], itemsType: 'AttributeValue' })).container).toHaveTextContent('')
+  })
+
+  it('limits the number of list items rendered', () => {
+    expect(render(renderDataCell({
+      items: _.map(_.toString, _.range(0, 1000)),
+      itemsType: 'AttributeValue'
+    })).container).toHaveTextContent(
+      _.flow(
+        _.map(_.toString),
+        Utils.append('and 900 more'),
+        _.join(',')
+      )(_.range(0, 100))
+    )
   })
 
   it('renders missing values', () => {

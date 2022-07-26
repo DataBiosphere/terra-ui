@@ -1,6 +1,7 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
 const { assertTextNotFound, click, clickable, findText, gotoPage, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { userEmail } = require('../utils/integration-config')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -335,4 +336,114 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
 registerTest({
   name: 'billing-project-delete',
   fn: testDeleteBillingProjectFn
+})
+
+const testBillingProjectOneOwnerWarning = withUserToken(async ({ page, testUrl, token }) => {
+  await signIntoTerra(page, { token, testUrl })
+
+  const ownedAndNoOtherUsersBillingProject = 'OwnedAndNoOtherUsers'
+  const ownedAndSharedBillingProject = 'OwnedAndShared'
+  const ownedWithMultipleOwnersBillingProject = 'OwnedWithMultipleOwners'
+  const usedWithOneOwnerBillingProject = 'UsedWithOneOwner'
+  const usedWithMultipleOwnersBillingProject = 'UsedWithMultipleOwners'
+
+  await page.evaluate(({
+    userEmail,
+    ownedAndNoOtherUsersBillingProject, ownedAndSharedBillingProject, ownedWithMultipleOwnersBillingProject,
+    usedWithOneOwnerBillingProject, usedWithMultipleOwnersBillingProject
+  }) => {
+    window.ajaxOverridesStore.set([
+      {
+        filter: { url: /api\/billing\/v2$/ },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          {
+            projectName: ownedAndNoOtherUsersBillingProject,
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+          },
+          {
+            projectName: ownedAndSharedBillingProject,
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+          },
+          {
+            projectName: ownedWithMultipleOwnersBillingProject,
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+          },
+          {
+            projectName: usedWithOneOwnerBillingProject,
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
+          },
+          {
+            projectName: usedWithMultipleOwnersBillingProject,
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
+          }
+        ])
+      },
+      {
+        filter: { url: new RegExp(`api/billing/v2/${ownedAndNoOtherUsersBillingProject}/members`) },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          { email: userEmail, role: 'Owner' },
+          { email: 'testuser1@example.com', role: 'User' }
+        ])
+      },
+      {
+        filter: { url: new RegExp(`api/billing/v2/${ownedAndSharedBillingProject}/members`) },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          { email: userEmail, role: 'Owner' }
+        ])
+      },
+      {
+        filter: { url: new RegExp(`api/billing/v2/${ownedWithMultipleOwnersBillingProject}/members`) },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          { email: userEmail, role: 'Owner' },
+          { email: 'testuser1@example.com', role: 'Owner' }
+        ])
+      },
+      {
+        filter: { url: new RegExp(`api/billing/v2/${usedWithOneOwnerBillingProject}/members`) },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          { email: userEmail, role: 'User' },
+          { email: 'testuser1@example.com', role: 'Owner' }
+        ])
+      },
+      {
+        filter: { url: new RegExp(`api/billing/v2/${usedWithMultipleOwnersBillingProject}/members`) },
+        fn: window.ajaxOverrideUtils.makeSuccess([
+          { email: userEmail, role: 'User' },
+          { email: 'testuser1@example.com', role: 'Owner' },
+          { email: 'testuser2@example.com', role: 'Owner' }
+        ])
+      }
+    ])
+  }, {
+    userEmail,
+    ownedAndNoOtherUsersBillingProject, ownedAndSharedBillingProject, ownedWithMultipleOwnersBillingProject,
+    usedWithOneOwnerBillingProject, usedWithMultipleOwnersBillingProject
+  })
+
+  const billingPage = billingProjectsPage(page, testUrl)
+  await billingPage.visit()
+
+  const ownerWarningText = 'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account.'
+
+  await billingPage.selectProject(ownedAndNoOtherUsersBillingProject)
+  await billingPage.assertText(ownerWarningText)
+
+  await billingPage.selectProject(ownedAndSharedBillingProject)
+  await billingPage.assertTextNotFound(ownerWarningText)
+
+  await billingPage.selectProject(ownedWithMultipleOwnersBillingProject)
+  await billingPage.assertTextNotFound(ownerWarningText)
+
+  const userWarningText = 'This shared billing project has only one owner. Consider requesting testuser1@example.com to add another owner to ensure someone is able to manage the billing project in case they lose access to their account.'
+
+  await billingPage.selectProject(usedWithOneOwnerBillingProject)
+  await billingPage.assertText(userWarningText)
+
+  await billingPage.selectProject(usedWithMultipleOwnersBillingProject)
+  await billingPage.assertTextNotFound(userWarningText)
+})
+
+registerTest({
+  name: 'billing-project-one-owner-warning',
+  fn: testBillingProjectOneOwnerWarning
 })
