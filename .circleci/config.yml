@@ -18,13 +18,11 @@ executors:
       - image: google/cloud-sdk:alpine
 
 anchors:
-  # Run jobs on PR branches only
   filter-pr-branch: &filter-pr-branch
     filters:
       branches:
         ignore: dev
 
-  # Run jobs on Dev branch only
   filter-dev-branch: &filter-dev-branch
     filters:
       branches:
@@ -88,8 +86,8 @@ commands:
         default: "SA_KEY_JSON"
       env:
         type: enum
-        enum: ["dev", "staging", "alpha", "perf"]
-        default: "dev"
+        enum: [dev, staging, alpha, perf]
+        default: dev
       pr:
         type: boolean
         default: false
@@ -142,8 +140,8 @@ commands:
         default: false
       env:
         type: enum
-        enum: [ "local", "staging", "alpha" ]
-        default: "local"
+        enum: [ local, staging, alpha ]
+        default: local
       log_dir:
         type: string
         default: "/tmp"
