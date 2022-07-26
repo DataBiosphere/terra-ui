@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -217,7 +216,7 @@ export const Browser = () => {
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
-  return h(FooterWrapper, { alwaysShow: true }, [
+  return [
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
@@ -232,5 +231,5 @@ export const Browser = () => {
       onDismiss: () => setRequestDatasetAccessList()
     }),
     loading && spinnerOverlay
-  ])
+  ]
 }
