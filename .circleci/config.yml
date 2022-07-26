@@ -158,13 +158,20 @@ commands:
             - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run:
           working_directory: integration-tests
+          name: "Set environment variables"
           environment:
             LOG_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results"
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
             SCREENSHOT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
+            command: |
+              source $BASH_ENV
+              cat $BASH_ENV | awk '{print "export " $0}' >> .env
+      - run:
+          working_directory: integration-tests
           no_output_timeout: 16m
           command: |
+            echo "LOG_DIR=${LOG_DIR}"
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
             CI=true yarn test $TESTS_TO_RUN --maxWorkers=2
@@ -269,9 +276,11 @@ jobs:
           local: true
           env: local
       - run:
+          name: Send failed tests summary to Slack channels
           command: |
-            ls -la
-            node --require=../.pnp.cjs ./services/slack/slack.js
+            echo $LOG_DIR
+            ls -al integration-tests
+            node --require=./.pnp.cjs integration-tests/services/slack/slack.js
           when: always
 
   integration-tests-alpha:
