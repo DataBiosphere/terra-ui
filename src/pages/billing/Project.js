@@ -396,8 +396,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                   value: days
                 }), [7, 30, 90]),
                 onChange: ({ value: selectedDays }) => {
-                  setSpendReportLengthInDays(selectedDays)
-                  setProjectCost(null)
+                  if (selectedDays !== spendReportLengthInDays) {
+                    setSpendReportLengthInDays(selectedDays)
+                    setProjectCost(null)
+                  }
                 }
               })
             ])])
