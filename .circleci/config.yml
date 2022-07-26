@@ -17,6 +17,17 @@ executors:
     docker:
       - image: google/cloud-sdk:alpine
 
+anchors:
+  filter-pr-branch: &filter-pr-branch
+    filters:
+      branches:
+        ignore: dev
+
+  filter-dev-branch: &filter-dev-branch
+    filters:
+      branches:
+        only: dev
+
 commands:
   notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
     parameters:
@@ -75,8 +86,8 @@ commands:
         default: "SA_KEY_JSON"
       env:
         type: enum
-        enum: ["dev", "staging", "alpha", "perf"]
-        default: "dev"
+        enum: [dev, staging, alpha, perf]
+        default: dev
       pr:
         type: boolean
         default: false
@@ -128,7 +139,8 @@ commands:
         type: boolean
         default: false
       env:
-        type: string
+        type: enum
+        enum: [ local, staging, alpha ]
         default: local
       log_dir:
         type: string
@@ -153,6 +165,7 @@ commands:
             - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run:
           working_directory: integration-tests
+          name: Running UI integration tests
           environment:
             LOG_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results"
             JEST_JUNIT_OUTPUT_DIR: "<< parameters.log_dir >>/<< parameters.env >>/test-results/junit"
@@ -268,55 +281,37 @@ workflows:
     jobs:
       - build
       - integration-tests-branch-against-dev:
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-pr:
+          <<: *filter-pr-branch
           requires:
             - build
-          filters:
-            branches:
-              ignore:
-                - dev
       - deploy-dev:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-alpha:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-perf:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - deploy-staging:
+          <<: *filter-dev-branch
           requires:
             - build
-          filters:
-            branches:
-              only: dev
       - integration-tests-alpha:
+          <<: *filter-dev-branch
           requires:
             - deploy-alpha
-          filters:
-            branches:
-              only: dev
       - integration-tests-staging:
+          <<: *filter-dev-branch
           requires:
             - deploy-staging
-          filters:
-            branches:
-              only: dev
   nightly-integration-tests:
     triggers:
       - schedule:
