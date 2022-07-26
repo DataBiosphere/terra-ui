@@ -3,6 +3,11 @@ version: 2.1
 orbs:
   slack: circleci/slack@3.4.2
 
+parameters:
+  run_slack:
+    type: boolean
+    default: true
+
 executors:
   node:
     working_directory: /mnt/ramdisk
@@ -263,9 +268,12 @@ jobs:
       - integration-tests:
           local: true
           env: local
-      - notify-slack:
+      - run:
+          command: |
+            ls -la
+            node --require=../.pnp.cjs ./services/slack/slack.js
           when: always
-          
+
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 1 # No way to prevent multiple Slack messages otherwise
