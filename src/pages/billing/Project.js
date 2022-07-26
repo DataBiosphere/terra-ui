@@ -304,7 +304,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div(
         {
           style: { flex: 'none', padding: '0.625rem 1.25rem' },
-          'aria-live': projectCost !== null ? 'polite' : 'off',
+          'aria-live': isProjectCostReady ? 'polite' : 'off',
           'aria-atomic': true
         },
         [
