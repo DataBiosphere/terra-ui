@@ -323,6 +323,16 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
+/**
+ * A function to get the current app data disk from the list of appDataDisks and apps
+ * for the passed in appType for the passed in workspace name.
+ *
+ * @param {string} appType App type to retrieve app data disk for
+ * @param {string} apps List of apps in the current workspace
+ * @param {appDataDisk[]} appDataDisks List of appDataDisks in the workspace
+ * @param {string} workspaceName Name of the workspace
+ * @returns The appDataDisk from appDataDisks attached to the appType
+ */
 export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
@@ -341,6 +351,13 @@ export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName
     )(appDataDisks))
 }
 
+/**
+ * Given the list of runtimes, returns the persistent disk attached to
+ * the current runtime.
+ * @param {runtime[]} runtimes List of runtimes.
+ * @param {persistentDisk[]} persistentDisks List of persistent disks.
+ * @returns persistentDisk attached to the currentRuntime.
+ */
 export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
   const currentRuntime = getCurrentRuntime(runtimes)
   const id = currentRuntime?.runtimeConfig.persistentDiskId
