@@ -10,6 +10,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -144,7 +145,9 @@ export const renderDataCell = (attributeValue, workspace) => {
 
   return h(Fragment, [
     hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
-      icon('warning-info', { size: 20, style: { flexShrink: 0, marginRight: '1ch', color: colors.accent(), cursor: 'help' } })
+      h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
+        icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
+      ])
     ]),
     h(TextCell, { title: tooltip }, [
       Utils.cond(
