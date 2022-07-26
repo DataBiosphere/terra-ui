@@ -2,9 +2,8 @@ import { Fragment } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
 import { HeroWrapper, Link } from 'src/components/common'
 import SignInButton from 'src/components/SignInButton'
+import { getEnabledBrand, isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/config'
-import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -20,12 +19,14 @@ const styles = {
 }
 
 const SignIn = () => {
+  const brand = getEnabledBrand()
+
   return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
-      div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${getAppName({ capitalizeThe: true })} requires a Google Account.`]),
+      div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${brand.name} requires a Google Account.`]),
       div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
-        `${getAppName({ capitalizeThe: true })} uses your Google account. Once you have signed in and completed the user profile registration step, you can start using ${getAppName()}.`
+        `Once you have signed in and completed the user profile registration step, you can start using ${brand.signInName}.`
       ]),
       h(SignInButton),
       !isAnvil() && !isElwazi() && div({ style: styles.warningNoticeContainer }, [
