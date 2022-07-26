@@ -2,10 +2,9 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
-import Interactive from 'src/components/Interactive'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -375,11 +374,12 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
     onUpdate(star)
   })
 
-  return h(Interactive, {
+  return h(Clickable, {
     as: 'span',
     role: 'checkbox',
     'aria-checked': isStarred,
     tooltip: isStarred ? 'Unstar this workspace' : 'Star this workspace',
+    'aria-label': isStarred ? 'This workspace is starred' : '',
     className: 'fa-layers fa-fw',
     style: { verticalAlign: 'middle', ...style },
     onClick: () => toggleStar(!isStarred)
