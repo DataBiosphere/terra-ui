@@ -286,10 +286,10 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      - build
+      # - build
       - integration-tests-branch-against-dev:
-          requires:
-            - build
+          #requires:
+            #- build
           filters:
             branches:
               ignore:
@@ -297,36 +297,12 @@ workflows:
           post-steps:
             - report-slack
       - deploy-pr:
-          requires:
-            - build
+          #requires:
+            #- build
           filters:
             branches:
               ignore:
                 - dev
-      - deploy-dev:
-          requires:
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-alpha:
-          requires:
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-perf:
-          requires:
-            - build
-          filters:
-            branches:
-              only: dev
-      - deploy-staging:
-          requires:
-            - build
-          filters:
-            branches:
-              only: dev
       - integration-tests-alpha:
           requires:
             - deploy-alpha
