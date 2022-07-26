@@ -203,7 +203,7 @@ jobs:
       - restore_cache:
           keys:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-      - run: yarn install --immutable-cache
+      - run: yarn install --immutable-cache --prefer-offline
       - run: yarn eslint --max-warnings=0 .
       - run: yarn test --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
