@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { getToolForImage, tools } from 'src/components/notebook-utils'
+import { getToolForImage, getToolFromRuntime, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
@@ -25,8 +25,9 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
-  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
+  defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
+  getCurrentPersistentDisk,
   getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
@@ -124,7 +125,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 100, // less than this size causes failures in cluster creation
+        min: 150, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -169,16 +170,6 @@ const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
 }
 
-const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
-  const currentRuntime = getCurrentRuntime(runtimes)
-  const id = currentRuntime?.runtimeConfig.persistentDiskId
-  const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
-
-  return id ?
-    _.find({ id }, persistentDisks) :
-    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
-}
-
 const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => isGce(runtimeType) &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 // Auxiliary functions -- end
@@ -203,8 +194,9 @@ export const ComputeModalBase = ({
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     selectedPersistentDiskType: defaultPersistentDiskType,
-    masterMachineType: defaultGceMachineType,
-    masterDiskSize: defaultGceBootDiskSize,
+    //The false here is valid because the modal never opens to dataproc as the default
+    masterMachineType: getDefaultMachineType(false, tool),
+    masterDiskSize: defaultDataprocMasterDiskSize,
     numberOfWorkers: defaultNumDataprocWorkers,
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
@@ -227,7 +219,7 @@ export const ComputeModalBase = ({
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType))
+  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(isDataproc(runtimeType), tool)
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
 
   const isRuntimeRunning = currentRuntimeDetails?.status === 'Running'
@@ -262,6 +254,7 @@ export const ComputeModalBase = ({
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
+    const desiredTool = getToolFromRuntime(desiredRuntime)
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
@@ -284,7 +277,7 @@ export const ComputeModalBase = ({
         cloudService: desiredRuntime.cloudService,
         ...(desiredRuntime.cloudService === cloudServices.GCE ? {
           zone: desiredRuntime.zone.toLowerCase(),
-          machineType: desiredRuntime.machineType || defaultGceMachineType,
+          machineType: desiredRuntime.machineType || getDefaultMachineType(false, desiredTool),
           ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
         } : {
           region: desiredRuntime.region.toLowerCase(),
@@ -311,7 +304,7 @@ export const ComputeModalBase = ({
       if (shouldCreateRuntime) {
         const diskConfig = Utils.cond(
           [desiredRuntime.cloudService === cloudServices.DATAPROC, () => ({})],
-          [existingPersistentDisk && !shouldDeletePersistentDisk, () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
+          [existingPersistentDisk && (!shouldDeletePersistentDisk || shouldUpdatePersistentDisk), () => ({ persistentDisk: { name: currentPersistentDiskDetails.name } })],
           [Utils.DEFAULT, () => ({
             persistentDisk: {
               name: Utils.generatePersistentDiskName(),
@@ -321,6 +314,10 @@ export const ComputeModalBase = ({
             }
           })]
         )
+
+        if (shouldUpdatePersistentDisk) {
+          await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
+        }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
 
@@ -410,7 +407,7 @@ export const ComputeModalBase = ({
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
-    const tool = currentRuntimeDetails?.labels?.tool
+    const tool = getToolFromRuntime(currentRuntimeDetails)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -422,7 +419,7 @@ export const ComputeModalBase = ({
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           zone: computeConfig.computeZone,
-          machineType: runtimeConfig.machineType || defaultGceMachineType,
+          machineType: runtimeConfig.machineType || getDefaultMachineType(false, tool),
           ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
@@ -464,7 +461,7 @@ export const ComputeModalBase = ({
             ...(cloudService === cloudServices.GCE ? {
               zone: computeConfig.computeZone,
               region: computeConfig.computeRegion,
-              machineType: computeConfig.masterMachineType || defaultGceMachineType,
+              machineType: computeConfig.masterMachineType || getDefaultMachineType(false, getToolFromRuntime(existingRuntime)),
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
               ...(shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected) ? {
@@ -515,12 +512,13 @@ export const ComputeModalBase = ({
    */
   const getPendingRuntimeConfig = () => {
     const { runtime: desiredRuntime, autopauseThreshold: desiredAutopauseThreshold } = getDesiredEnvironmentConfig()
+    const tool = getToolFromRuntime(desiredRuntime)
 
     return {
       cloudService: desiredRuntime.cloudService,
       autopauseThreshold: desiredAutopauseThreshold,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
-        machineType: desiredRuntime.machineType || defaultGceMachineType,
+        machineType: desiredRuntime.machineType || getDefaultMachineType(false, tool),
         bootDiskSize: desiredRuntime.bootDiskSize,
         region: desiredRuntime.region,
         zone: desiredRuntime.zone,
@@ -1187,7 +1185,7 @@ export const ComputeModalBase = ({
       _.map(({ cost, label, unitLabel }) => {
         return div({ key: label, style: { flex: 1, ...computeStyles.label } }, [
           div({ style: { fontSize: 10 } }, [label]),
-          div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
+          div({ style: { color: colors.dark(), marginTop: '0.25rem' } }, [
             span({ style: { fontSize: 20 } }, [cost]),
             span([' ', unitLabel])
           ])
@@ -1501,6 +1499,8 @@ export const ComputeModalBase = ({
       _.map(({ label, image }) => ({ label, value: image }))
     )(leoImages)
 
+    const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+
     return h(GroupedSelect, {
       ...props,
       maxMenuHeight: '25rem',
@@ -1516,7 +1516,11 @@ export const ComputeModalBase = ({
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))
-        updateComputeConfig('masterMachineType', isDataproc(newRuntimeType) ? defaultDataprocMachineType : defaultGceMachineType)
+        const machineType = getDefaultMachineType(isDataproc(newRuntimeType), desiredTool)
+        updateComputeConfig('masterMachineType', machineType)
+        if (isDataproc(newRuntimeType) && computeConfig.masterDiskSize < defaultDataprocMasterDiskSize) {
+          updateComputeConfig('masterDiskSize', defaultDataprocMasterDiskSize)
+        }
       },
       isSearchable: true,
       isClearable: false,
@@ -1574,6 +1578,7 @@ export const ComputeModalBase = ({
     const renderDiskText = () => {
       return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
     }
+
     return simplifiedForm ?
       div({ style: computeStyles.drawerContent }, [
         renderTitleAndTagline(),

@@ -12,8 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { datasetAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -129,7 +128,7 @@ const DataBrowserPreview = ({ id }) => {
   const dataset = _.find({ id }, dataCatalog)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab, useStore(authStore)),
+    libraryTopMatter(activeTab),
     catalogLoading || !tables ?
       centeredSpinner() :
       div({ style: { padding: 20 } }, [

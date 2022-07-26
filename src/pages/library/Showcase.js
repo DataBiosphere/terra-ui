@@ -11,8 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -35,17 +34,17 @@ const sidebarSections = [{
   labels: ['10x analysis', 'Bisulfate Sequencing']
 }, {
   name: 'Scientific Domain',
-  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
+  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology', 'Neurodegenerative Diseases']
 }, {
   name: 'Datasets',
   labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
-    'gnomAD', 'NCI', 'COVID-19']
+    'gnomAD', 'NCI', 'COVID-19', 'AMP PD']
 }, {
   name: 'Utilities',
   labels: ['Format Conversion', 'Developer Tools']
 }, {
   name: 'Projects',
-  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
+  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI', 'AMP PD']
 }]
 
 const WorkspaceCard = ({ workspace }) => {
@@ -111,7 +110,7 @@ const Showcase = () => {
   })
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('featured workspaces', useStore(authStore)),
+    libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
       searchType: 'Featured Workspaces'

@@ -2,16 +2,13 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { staticStorageSlot } from 'src/libs/browser-storage'
-import { getConfig, isDataBrowserVisible } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
-
-export const catalogPreviewStore = staticStorageSlot(localStorage, 'catalog-beta-preview')
 
 export const datasetAccessTypes = {
   CONTROLLED: 'Controlled',
@@ -103,12 +100,6 @@ const extractTags = dataset => {
   }
 }
 
-export const getDatasetsPath = ({ user: { id } }) => {
-  const catalogState = catalogPreviewStore?.get() || {}
-  return isDataBrowserVisible() && catalogState[id] ?
-    'library-browser' : 'library-datasets'
-}
-
 export const useDataCatalog = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
@@ -118,7 +109,7 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const datasets = !isDataBrowserVisible() ? {} : await Ajax(signal).Catalog.getDatasets()
+    const datasets = await Ajax(signal).Catalog.getDatasets()
     const normList = _.map(dataset => {
       const normalizedDataset = normalizeDataset(dataset)
       return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)

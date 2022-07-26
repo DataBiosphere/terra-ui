@@ -202,28 +202,22 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
       style: {
         margin: 0,
         fontSize: 16,
+        color: colors.dark(),
         textTransform: 'uppercase'
       }
     }, title),
     titleFirst: true,
     initialOpenState: true,
     summaryStyle: {
-      paddingRight: error ? '1rem' : 0,
+      padding: `1.125rem 1.5rem`,
       borderBottom: `0.5px solid ${colors.dark(0.2)}`,
       backgroundColor: colors.light(0.4),
       fontSize: 16
     },
-    buttonProps: {
-      hover: {
-        color: colors.dark(0.9)
-      }
+    hover: {
+      color: colors.dark(0.9)
     },
-    buttonStyle: {
-      padding: `1.125rem ${error ? '1rem' : '1.5rem'} 1.25rem 1.5rem`,
-      marginBottom: 0,
-      color: colors.dark()
-    },
-    afterToggle: error && h(Link, {
+    afterTitle: error && h(Link, {
       onClick: retryFunction,
       tooltip: 'Error loading, click to retry.'
     }, [icon('sync', { size: 18 })])
@@ -649,13 +643,15 @@ const WorkspaceData = _.flow(
                 return h(Collapse, {
                   key: snapshotName,
                   titleFirst: true,
-                  buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
-                  buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
+                  noTitleWrap: true,
+                  summaryStyle: { height: 50, paddingRight: '0.5rem', fontWeight: 600 },
+                  tooltip: snapshotName,
+                  tooltipDelay: 250,
                   style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                  title: snapshotName, noTitleWrap: true,
+                  title: snapshotName,
                   role: 'listitem',
-                  afterToggle: h(Link, {
-                    style: { marginRight: '0.5rem' },
+                  afterTitle: h(Link, {
+                    style: { marginLeft: 'auto' },
                     tooltip: 'Snapshot Info',
                     onClick: () => {
                       setSelectedDataType([snapshotName])

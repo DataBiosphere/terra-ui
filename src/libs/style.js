@@ -148,7 +148,7 @@ export const dashboard = {
   },
   collapsibleHeader: {
     ...elements.sectionHeader, color: colors.accent(), textTransform: 'uppercase',
-    padding: '0.5rem 0.5rem 0 0.5rem', display: 'flex', fontSize: 14
+    padding: '0.5rem 0 0.5rem 0.5rem', display: 'flex', fontSize: 14
   },
   infoTile: {
     backgroundColor: colors.dark(0.15), color: 'black',

@@ -12,7 +12,7 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getTool, getToolFromRuntime, notebookLockHash, tools
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
@@ -77,7 +77,7 @@ const AnalysisCard = ({
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: wsName, analysisName: getFileName(name) })
-  const toolLabel = getTool(name)
+  const toolLabel = getToolFromFileExtension(name)
 
   const currentRuntimeTool = getToolFromRuntime(currentRuntime)
 
@@ -286,7 +286,7 @@ const Analyses = _.flow(
     try {
       await Promise.all(_.map(async file => {
         const name = file.name
-        const toolLabel = getTool(file.name)
+        const toolLabel = getToolFromFileExtension(file.name)
         let resolvedName = name
         let c = 0
         while (_.includes(resolvedName, existingNames)) {
@@ -490,7 +490,7 @@ const Analyses = _.flow(
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getTool(renamingAnalysisName), googleProject,
+          toolLabel: getToolFromFileExtension(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
           onSuccess: () => {
@@ -500,7 +500,7 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getTool(copyingAnalysisName), googleProject,
+          toolLabel: getToolFromFileExtension(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
           onSuccess: () => {
@@ -510,12 +510,12 @@ const Analyses = _.flow(
         }),
         exportingAnalysisName && h(ExportAnalysisModal, {
           printName: getFileName(exportingAnalysisName),
-          toolLabel: getTool(exportingAnalysisName),
+          toolLabel: getToolFromFileExtension(exportingAnalysisName),
           workspace,
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(DeleteConfirmationModal, {
-          objectType: getTool(deletingAnalysisName) ? `${getTool(deletingAnalysisName)} analysis` : 'analysis',
+          objectType: getToolFromFileExtension(deletingAnalysisName) ? `${getToolFromFileExtension(deletingAnalysisName)} analysis` : 'analysis',
           objectName: getFileName(deletingAnalysisName),
           buttonText: 'Delete analysis',
           onConfirm: _.flow(
@@ -527,7 +527,7 @@ const Analyses = _.flow(
               googleProject,
               bucketName,
               getFileName(deletingAnalysisName),
-              getTool(deletingAnalysisName)
+              getToolFromFileExtension(deletingAnalysisName)
             ).delete()
             refreshAnalyses()
           }),
