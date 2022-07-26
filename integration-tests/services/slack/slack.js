@@ -93,7 +93,7 @@ const notifyFailedJobToAllChannels = async (channelAndTestMap) => {
 // Post a message to Slack channels
 const postNow = async () => {
   const currentTime = new Date().toTimeString()
-  console.log(currentTime)
+  console.log(`Process Slack at ${currentTime}`)
 
   const testFiles = getFailedTestFiles()
   console.log('testFiles.length:', testFiles.length)
