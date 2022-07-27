@@ -414,11 +414,12 @@ const gotoPage = async (page, url) => {
   const load = async url => {
     try {
       const httpResponse = await page.goto(url, navOptionNetworkIdle())
-      if (!(httpResponse.ok() || httpResponse.status() === 304)) {
+      if (httpResponse && !(httpResponse.ok() || httpResponse.status() === 304)) {
         throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
       }
       await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
     } catch (e) {
+      console.error(e)
       // Stop page loading, as if you hit "X" in the browser. ignore exception.
       await page._client.send('Page.stopLoading').catch(err => void err)
       throw new Error(e)
