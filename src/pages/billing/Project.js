@@ -196,6 +196,40 @@ const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
 
+const CostCard = ({ title, amount, isProjectCostReady, showAsterisk, ...props }) => {
+  return div({
+    ...props,
+    style: {
+      ...Style.elements.card.container,
+      backgroundColor: 'white',
+      padding: undefined,
+      boxShadow: undefined,
+      gridRowStart: '2'
+    }
+  }, [
+    div(
+      {
+        style: { flex: 'none', padding: '0.625rem 1.25rem' },
+        'aria-live': isProjectCostReady ? 'polite' : 'off',
+        'aria-atomic': true
+      },
+      [
+        div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
+        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
+          amount,
+          (!!showAsterisk && isProjectCostReady) ? span(
+            {
+              style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
+              'aria-hidden': true
+            },
+            ['*']
+          ) : null
+        ])
+      ]
+    )
+  ])
+}
+
 const OtherMessaging = ({ cost }) => {
   const msg = cost !== null ?
     `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
@@ -290,40 +324,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const isProjectCostReady = projectCost !== null
 
-  const CostCard = ({ title, amount, showAsterisk, ...props }) => {
-    return div({
-      ...props,
-      style: {
-        ...Style.elements.card.container,
-        backgroundColor: 'white',
-        padding: undefined,
-        boxShadow: undefined,
-        gridRowStart: '2'
-      }
-    }, [
-      div(
-        {
-          style: { flex: 'none', padding: '0.625rem 1.25rem' },
-          'aria-live': isProjectCostReady ? 'polite' : 'off',
-          'aria-atomic': true
-        },
-        [
-          div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
-          div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
-            amount,
-            (!!showAsterisk && isProjectCostReady) ? span(
-              {
-                style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
-                'aria-hidden': true
-              },
-              ['*']
-            ) : null
-          ])
-        ]
-      )
-    ])
-  }
-
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
@@ -407,6 +407,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           ...(_.map(name => h(CostCard, {
             title: `Total ${name}`,
             amount: (!isProjectCostReady ? '...' : projectCost[name]),
+            isProjectCostReady,
             showAsterisk: name === 'spend',
             key: name
           }),
