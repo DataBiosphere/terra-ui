@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
-import { computeStyles, getCurrentApp, getCurrentPersistentDisk } from 'src/libs/runtime-utils'
+import { computeStyles, getCurrentApp, getCurrentAppDataDisk } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -27,7 +27,7 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
   }) => {
     const app = getCurrentApp(tools.Cromwell.appType)(apps)
     const [loading, setLoading] = useState(false)
-    const currentDataDisk = getCurrentPersistentDisk(tools.Cromwell.appType, apps, appDataDisks, workspaceName)
+    const currentDataDisk = getCurrentAppDataDisk(tools.Cromwell.appType, apps, appDataDisks, workspaceName)
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),

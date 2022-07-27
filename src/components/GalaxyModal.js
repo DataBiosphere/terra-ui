@@ -16,7 +16,7 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import {
-  computeStyles, findMachineType, getCurrentApp, getCurrentAttachedDataDisk, getCurrentPersistentDisk, getGalaxyComputeCost, getGalaxyDiskCost,
+  computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -45,8 +45,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = getCurrentPersistentDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
-
+    const currentDataDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
     const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)))
 
     const createGalaxy = _.flow(

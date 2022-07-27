@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, Link, spinnerOverlay } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -165,7 +164,7 @@ export const Browser = () => {
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 
-  return h(FooterWrapper, { alwaysShow: true }, [
+  return h(Fragment, [
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,

@@ -24,7 +24,7 @@ const drawer = {
   })
 }
 
-const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => {
+const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, onExited, ...props }) => {
   useLabelAssert('ModalDrawer', props)
 
   return h(Transition, {
@@ -32,7 +32,8 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
     timeout: { exit: 200 },
     appear: true,
     mountOnEnter: true,
-    unmountOnExit: true
+    unmountOnExit: true,
+    onExited
   }, [transitionState => h(RModal, {
     aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true, hidden: transitionState !== 'entered' },
     ariaHideApp: false,
@@ -45,8 +46,8 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
 }
 
 export const withModalDrawer = ({ width, ...modalProps } = {}) => WrappedComponent => {
-  const Wrapper = ({ isOpen, onDismiss, ...props }) => {
-    return h(ModalDrawer, { isOpen, width, onDismiss, ...modalProps }, [
+  const Wrapper = ({ isOpen, onDismiss, onExited, ...props }) => {
+    return h(ModalDrawer, { isOpen, width, onDismiss, onExited, ...modalProps }, [
       isOpen && h(WrappedComponent, { onDismiss, ...props })
     ])
   }

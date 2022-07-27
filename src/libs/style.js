@@ -1,5 +1,5 @@
+import { isTerra } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
 
 
 export const topBarHeight = 66
@@ -170,3 +170,4 @@ export const errorStyle = {
   border: `1px solid ${colors.danger(0.8)}`,
   backgroundColor: colors.danger(0.15)
 }
+
