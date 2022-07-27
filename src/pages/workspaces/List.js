@@ -12,7 +12,7 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, RecentlyViewedWorkspace, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -379,6 +379,7 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
+      h(RecentlyViewedWorkspace, {}),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',
         value: tab,

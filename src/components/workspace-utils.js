@@ -1,17 +1,20 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { b, div, h, h2, p } from 'react-hyperscript-helpers'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
@@ -338,6 +341,59 @@ export const WorkspaceTagSelect = props => {
     loadOptions: getTagSuggestions,
     ...props
   })
+}
+
+export const RecentlyViewedWorkspace = () => {
+  return div({ style: { display: 'flex', flexWrap: 'wrap', padding: '1rem' } }, [
+    h(Clickable, {
+      style: { ...Style.elements.card.container, margin: '0.5rem', lineHeight: '22px', width: '24%' },
+      onClick: () => console.log('ok')
+    }, [
+      div({ style: { flex: 'none' } }, [
+        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['this-is-an-extremely-long-workspace-name-which-wont-fit-into-the-card',]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
+          h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+        ])
+      ])
+    ]),
+    h(Clickable, {
+      style: { ...Style.elements.card.container, margin: '0.5rem', lineHeight: '22px', width: '24%' },
+      onClick: () => console.log('ok')
+    }, [
+      div({ style: { flex: 'none' } }, [
+        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['Omesi Workspace',]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
+          h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+        ])
+      ])
+    ]),
+    h(Clickable, {
+      style: { ...Style.elements.card.container, margin: '0.5rem', lineHeight: '22px', width: '24%' },
+      onClick: () => console.log('ok')
+    }, [
+      div({ style: { flex: 'none' } }, [
+        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['appsec-test-1',]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
+          h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } })
+        ])
+      ])
+    ]),
+    h(Clickable, {
+      style: { ...Style.elements.card.container, margin: '0.5rem', lineHeight: '22px', width: '24%' },
+      onClick: () => console.log('ok')
+    }, [
+      div({ style: { flex: 'none' } }, [
+        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['covid-test',]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
+          h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+        ])
+      ])
+    ])
+  ])
 }
 
 export const NoWorkspacesMessage = ({ onClick }) => {
