@@ -117,7 +117,7 @@ const jupyter1Disk = {
 
 describe('getTotalToolAndDiskCostDisplay', () => {
   it('will get the total cost of all tools in the workspace.', () => {
-    //Arrange
+    // ARRANGE
     const runtimes = [jupyter1]
     const apps = [galaxyRunning]
     const appDataDisks = [galaxyDisk]
@@ -145,15 +145,8 @@ describe('getTotalToolAndDiskCostDisplay', () => {
       persistentDisks={persistentDisks}
     />)
 
-    //Act
+    // ACT
 
-    //Assert
+    // ASSERT
   })
 })
-
-
-// const workspace = { workspace: { namespace, name: workspaceName }
-//   render(<ContextBar
-//     props=({runtimes, apps, appDataDisks, refreshRuntimes, location, locationType, refreshApps,
-// workspace, persistentDisks, workspace: { workspace: { namespace, name: workspaceName }})
-//   />)
