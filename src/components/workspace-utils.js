@@ -378,7 +378,7 @@ export const WorkspaceStarControl = ({ workspace, initialStars, style }) => {
     'aria-checked': isStarred,
     tooltip: Utils.cond(
       [isStarred, () => 'Unstar this workspace'],
-      [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspace will appear at the top of your workspace list.'],
+      [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspaces will appear at the top of your workspace list.'],
       [!isStarred && maxStarredWorkspacesReached, () => ['A maximum of ',
         MAX_STARRED_WORKSPACES, ' workspaces can be starred. Please un-star another workspace before starring this workspace.']]
     ),
