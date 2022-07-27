@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -216,7 +216,7 @@ export const Browser = () => {
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
-  return [
+  return h(Fragment, [
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
@@ -231,5 +231,5 @@ export const Browser = () => {
       onDismiss: () => setRequestDatasetAccessList()
     }),
     loading && spinnerOverlay
-  ]
+  ])
 }
