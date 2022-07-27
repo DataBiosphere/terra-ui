@@ -427,6 +427,7 @@ const gotoPage = async (page, url) => {
 
   console.log(`Loading URL: ${url}`)
   await pRetry(() => load(url), retryOptions)
+  await waitForNoSpinners(page)
 }
 
 module.exports = {
