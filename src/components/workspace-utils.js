@@ -15,7 +15,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
-import { authStore, workspacesStore } from 'src/libs/state'
+import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -341,8 +341,9 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate, style }) => {
+export const WorkspaceStarControl = ({ workspace, initialStars, style }) => {
   const [updating, setUpdating] = useState(false)
+  const [starredWorkspaceIds, setStarredWorkspaceIds] = useState(initialStars)
 
   const { workspace: { workspaceId } } = workspace
   const isStarred = _.includes(workspaceId, starredWorkspaceIds)
@@ -368,8 +369,7 @@ export const WorkspaceStarControl = ({ workspace, starredWorkspaceIds, onUpdate,
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-    authStore.update(_.set('profile.starredWorkspaces', updatedWorkspaceIds))
-    onUpdate(star)
+    setStarredWorkspaceIds(updatedWorkspaceIds)
   })
 
   return h(Clickable, {

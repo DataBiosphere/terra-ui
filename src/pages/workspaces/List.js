@@ -192,8 +192,7 @@ export const WorkspaceList = () => {
             return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
               h(WorkspaceStarControl, {
                 workspace,
-                starredWorkspaceIds,
-                onUpdate: () => refreshWorkspaces()
+                initialStars: starredWorkspaceIds
               })
             ])
           },
