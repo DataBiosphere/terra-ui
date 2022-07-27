@@ -341,19 +341,18 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const WorkspaceStarControl = ({ workspace, initialStars, style }) => {
+export const WorkspaceStarControl = ({ workspace, stars, setStarredIds, style }) => {
   const [updating, setUpdating] = useState(false)
-  const [starredWorkspaceIds, setStarredWorkspaceIds] = useState(initialStars)
 
   const { workspace: { workspaceId } } = workspace
-  const isStarred = _.includes(workspaceId, starredWorkspaceIds)
+  const isStarred = _.includes(workspaceId, stars)
 
   //Thurloe has a limit of 2048 bytes for its VALUE column. That means we can store a max of 55
   //workspaceIds in list format. We'll use 50 because it's a nice round number and should be plenty
   //for the intended use case. If we find that 50 is not enough, consider introducing more powerful
   //workspace organization functionality like folders
   const MAX_STARRED_WORKSPACES = 50
-  const maxStarredWorkspacesReached = _.size(starredWorkspaceIds) >= MAX_STARRED_WORKSPACES
+  const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES
 
   const refreshStarredWorkspacesList = async () => {
     const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
@@ -369,7 +368,7 @@ export const WorkspaceStarControl = ({ workspace, initialStars, style }) => {
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-    setStarredWorkspaceIds(updatedWorkspaceIds)
+    setStarredIds(updatedWorkspaceIds)
   })
 
   return h(Clickable, {

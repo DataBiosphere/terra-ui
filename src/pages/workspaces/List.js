@@ -87,6 +87,10 @@ export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
 
+  const { profile: { starredWorkspaces } } = useStore(authStore)
+  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+  const [starredIds, setStarredIds] = useState(starredWorkspaceIds)
+
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
   // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
@@ -144,9 +148,6 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
-  const { profile: { starredWorkspaces } } = useStore(authStore)
-  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
-
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
     [ws => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
@@ -192,7 +193,8 @@ export const WorkspaceList = () => {
             return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
               h(WorkspaceStarControl, {
                 workspace,
-                initialStars: starredWorkspaceIds
+                setStarredIds,
+                stars: starredIds
               })
             ])
           },
