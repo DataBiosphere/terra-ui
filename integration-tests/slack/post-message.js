@@ -38,7 +38,7 @@ const postMessage = async ({ channel = defaultChannel, token = defaultToken, blo
     console.log(`Successfully posted message to Slack channel: ${channel}. Message: ${JSON.stringify(data)}`)
   } else {
     console.error(`**  ERROR: ${new Date().toTimeString()}: Failed to post message to Slack channel: ${channel}.`, responseJson.error)
-    throw new responseJson.error()
+    throw new Error(responseJson.error)
   }
   return responseJson
 }
