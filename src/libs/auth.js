@@ -446,6 +446,7 @@ authStore.subscribe((state, oldState) => {
     workspaceStore.reset()
     workspacesStore.reset()
     asyncImportJobStore.reset()
+    window.Appcues?.reset()
   }
 })
 
