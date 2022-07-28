@@ -40,7 +40,7 @@ export const convertInitialAttributes = _.flow(
   _.sortBy(_.first)
 )
 
-const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
+const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, firstRender, refreshKey }) => {
   const signal = useCancellation()
 
   const [editIndex, setEditIndex] = useState()
@@ -192,7 +192,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
               value: editKey,
               onChange: setEditKey
             }) :
-            renderDataCell(amendedAttributes[rowIndex][0], googleProject)
+            renderDataCell(amendedAttributes[rowIndex][0], workspace)
         }, {
           size: { grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Value']),
@@ -207,7 +207,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                     value: editValue,
                     onChange: setEditValue
                   }) :
-                  renderDataCell(originalValue, googleProject)
+                  renderDataCell(originalValue, workspace)
               ]),
               editIndex === rowIndex && h(Fragment, [
                 h(Select, {
@@ -238,7 +238,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProj
                     value: editDescription,
                     onChange: setEditDescription
                   }) :
-                  renderDataCell(originalDescription, googleProject)
+                  renderDataCell(originalDescription, workspace)
               ]),
               editIndex === rowIndex ?
                 h(Fragment, [

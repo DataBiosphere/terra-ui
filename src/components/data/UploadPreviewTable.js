@@ -19,10 +19,10 @@ import * as Utils from 'src/libs/utils'
 
 const UploadDataTable = props => {
   const {
-    workspace: { workspace: { googleProject, namespace, name } },
-    metadataTable, metadataTable: { entityType, rows, columns, idName },
+    workspace, metadataTable, metadataTable: { entityType, rows, columns, idName },
     onConfirm, onCancel, onRename, refreshKey
   } = props
+  const { workspace: { namespace, name } } = workspace
 
   const persistenceId = `${namespace}/${name}/${entityType}`
   const nonIdColumns = _.drop(1, columns)
@@ -232,7 +232,7 @@ const UploadDataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex, columnIndex }) => {
                       const value = sortedRows[rowIndex][columnIndex]
-                      return renderDataCell(value, googleProject)
+                      return renderDataCell(value, workspace)
                     }
                   }
                 }, columns)

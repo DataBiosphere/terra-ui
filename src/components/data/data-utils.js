@@ -10,6 +10,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
+import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -103,7 +104,9 @@ const renderDataCellTooltip = attributeValue => {
   )
 }
 
-export const renderDataCell = (attributeValue, googleProject) => {
+export const renderDataCell = (attributeValue, workspace) => {
+  const { workspace: { bucketName: workspaceBucket, googleProject } } = workspace
+
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
@@ -128,15 +131,34 @@ export const renderDataCell = (attributeValue, googleProject) => {
 
   const tooltip = renderDataCellTooltip(attributeValue)
 
-  return h(TextCell, { title: tooltip }, [
-    Utils.cond(
-      [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
-      [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
-      [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
-      [type === 'reference', () => attributeValue.entityName],
-      [isList, () => renderArray(attributeValue.items)],
-      () => renderCell(attributeValue)
-    )
+  const isOtherBucketGsUri = datum => {
+    const [bucket] = parseGsUri(datum)
+    return !!bucket && bucket !== workspaceBucket
+  }
+
+  const hasOtherBucketUrls = Utils.cond(
+    [type === 'json' && _.isArray(attributeValue), () => _.some(isOtherBucketGsUri, attributeValue)],
+    [type === 'string' && isList, () => _.some(isOtherBucketGsUri, attributeValue.items)],
+    [type === 'string', () => isOtherBucketGsUri(attributeValue)],
+    () => false
+  )
+
+  return h(Fragment, [
+    hasOtherBucketUrls && h(TooltipTrigger, { content: 'Some files are located outside of the current workspace' }, [
+      h(Interactive, { as: 'span', tabIndex: 0, style: { marginRight: '1ch' } }, [
+        icon('warning-info', { size: 20, style: { color: colors.accent(), cursor: 'help' } })
+      ])
+    ]),
+    h(TextCell, { title: tooltip }, [
+      Utils.cond(
+        [type === 'json' && _.isArray(attributeValue) && !_.some(_.isObject, attributeValue), () => renderArray(attributeValue)],
+        [type === 'json', () => JSON.stringify(attributeValue, undefined, 1)],
+        [type === 'reference' && isList, () => renderArray(_.map('entityName', attributeValue.items))],
+        [type === 'reference', () => attributeValue.entityName],
+        [isList, () => renderArray(attributeValue.items)],
+        () => renderCell(attributeValue)
+      )
+    ])
   ])
 }
 
