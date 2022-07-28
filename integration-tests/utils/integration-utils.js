@@ -218,7 +218,7 @@ const signIntoTerra = async (page, { token, testUrl }) => {
   if (!!testUrl) {
     await gotoPage(page, testUrl)
   } else {
-    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout: 60 * 1000 })
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   }
 
   await waitForNoSpinners(page)
