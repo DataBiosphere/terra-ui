@@ -89,7 +89,7 @@ export const WorkspaceList = () => {
 
   const { profile: { starredWorkspaces } } = useStore(authStore)
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
-  const [starredIds, setStarredIds] = useState(starredWorkspaceIds)
+  const [stars, setStars] = useState(starredWorkspaceIds)
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
@@ -193,8 +193,8 @@ export const WorkspaceList = () => {
             return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
               h(WorkspaceStarControl, {
                 workspace,
-                setStarredIds,
-                stars: starredIds
+                setStars,
+                stars
               })
             ])
           },

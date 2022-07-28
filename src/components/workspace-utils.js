@@ -341,7 +341,7 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const WorkspaceStarControl = ({ workspace, stars, setStarredIds, style }) => {
+export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
   const [updating, setUpdating] = useState(false)
 
   const { workspace: { workspaceId } } = workspace
@@ -368,7 +368,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStarredIds, style })
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-    setStarredIds(updatedWorkspaceIds)
+    setStars(updatedWorkspaceIds)
   })
 
   return h(Clickable, {
