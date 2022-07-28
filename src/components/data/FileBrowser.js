@@ -308,7 +308,8 @@ const BucketBrowser = (({
   const [deletingSelectedObjects, setDeletingSelectedObjects] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const canEditWorkspace = !Utils.editWorkspaceError(workspace)
+  const editWorkspaceError = Utils.editWorkspaceError(workspace)
+  const canEditWorkspace = !editWorkspaceError
 
   const numPrefixes = _.size(prefixes)
   const numObjects = _.size(objects)
@@ -364,18 +365,26 @@ const BucketBrowser = (({
         div({ style: { flex: '1 1 auto' } }),
 
         h(ButtonPrimary, {
+          disabled: !canEditWorkspace,
+          tooltip: editWorkspaceError,
           style: { padding: '0.5rem', marginRight: '0.5rem' },
           onClick: openUploader
         }, [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']),
 
         allowEditingFolders && h(Link, {
+          disabled: !canEditWorkspace,
+          tooltip: editWorkspaceError,
           style: { padding: '0.5rem' },
           onClick: () => setCreatingNewFolder(true)
         }, [icon('folder'), ' New folder']),
 
         h(Link, {
-          disabled: _.isEmpty(selectedObjects),
-          tooltip: _.isEmpty(selectedObjects) ? 'Select files to delete' : 'Delete selected files',
+          disabled: !canEditWorkspace || _.isEmpty(selectedObjects),
+          tooltip: Utils.cond(
+            [!canEditWorkspace, () => editWorkspaceError],
+            [_.isEmpty(selectedObjects), () => 'Select files to delete'],
+            () => 'Delete selected files'
+          ),
           style: { padding: '0.5rem' },
           onClick: () => setDeletingSelectedObjects(true)
         }, [icon('trash'), ' Delete']),
