@@ -345,6 +345,27 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
+export const WorkspaceSubmissionStatusIcon = (status, loadingSubmissionStats, size) => {
+  return div({}, [
+    loadingSubmissionStats && h(DelayedRender, [
+      h(TooltipTrigger, {
+        content: 'Loading submission status',
+        side: 'left'
+      }, [spinner({ size })])
+    ]),
+    !!status && h(TooltipTrigger, {
+      content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
+      side: 'left'
+    }, [
+      Utils.switchCase(status,
+        ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
+        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
+        ['running', () => icon('sync', { size, style: { color: colors.success() } })]
+      )
+    ])
+  ])
+}
+
 export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
   const { workspace: { namespace, name, googleProject } } = workspace
 
@@ -360,22 +381,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
         div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
-            loadingSubmissionStats && h(DelayedRender, [
-              h(TooltipTrigger, {
-                content: 'Loading submission status',
-                side: 'left'
-              }, [spinner({ size: 16 })])
-            ]),
-            !!submissionStatus && h(TooltipTrigger, {
-              content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(submissionStatus)])]),
-              side: 'left'
-            }, [
-              Utils.switchCase(submissionStatus,
-                ['success', () => icon('success-standard', { size: 16, style: { color: colors.success() } })],
-                ['failure', () => icon('error-standard', { size: 16, style: { color: colors.danger(0.85) } })],
-                ['running', () => icon('sync', { size: 16, style: { color: colors.success() } })]
-              )
-            ])
+            WorkspaceSubmissionStatusIcon(submissionStatus, loadingSubmissionStats, 16)
           ]),
           !!googleProject ?
             h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } }) :

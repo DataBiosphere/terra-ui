@@ -3,16 +3,16 @@ import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { DelayedRender, HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -285,22 +285,7 @@ export const WorkspaceList = () => {
                 })
               ]),
               div({ style: styles.tableCellContent }, [
-                loadingSubmissionStats && h(DelayedRender, [
-                  h(TooltipTrigger, {
-                    content: 'Loading submission status',
-                    side: 'left'
-                  }, [spinner({ size: 20 })])
-                ]),
-                !!lastRunStatus && h(TooltipTrigger, {
-                  content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
-                  side: 'left'
-                }, [
-                  Utils.switchCase(lastRunStatus,
-                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
-                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
-                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
-                  )
-                ])
+                WorkspaceSubmissionStatusIcon(lastRunStatus, loadingSubmissionStats, 20)
               ])
             ])
           },
