@@ -351,13 +351,13 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
   const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
   return h(Clickable, {
-    style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24.5%' },
+    style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', flex: '0 1 calc(25% - 10px)' },
     href: Nav.getLink('workspace-dashboard', { namespace, name })
   }, [
     div({ style: { flex: 'none' } }, [
       div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, dateViewed),
+        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
             loadingSubmissionStats && h(DelayedRender, [
