@@ -154,7 +154,7 @@ export const ContextBar = ({
               content: [
                 div({ key: 'p1' },
                   ['Estimated hourly rate for all applications in a running or paused state, as well as associated persistent disks. For details, click the',
-                    img({ src: cloudIcon, style: { height: 20, paddingLeft: 2, paddingRight: 2, verticalAlign: 'text-bottom' }, alt: '' }),
+                    img({ src: cloudIcon, style: { height: 20, paddingLeft: 4, paddingRight: 4, verticalAlign: 'text-bottom' }, alt: '' }),
                     'icon below.']
                 ),
                 br({ key: 'br' }),
