@@ -12,12 +12,13 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, RecentlyViewedWorkspace, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -85,6 +86,13 @@ const EMPTY_LIST = []
 export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
+
+  const persistenceId = 'workspaces/recentlyViewed'
+  const [recentlyViewed, setRecentlyViewed] = useState(() => getLocalPref(persistenceId)?.recentlyViewed || [])
+
+  useEffect(() => {
+    setLocalPref(persistenceId, { recentlyViewed })
+  }, [recentlyViewed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
@@ -197,6 +205,7 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
+                    setRecentlyViewed(_.concat(recentlyViewed, [workspaceId]))
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
                   },
                   tooltip: !canView &&
@@ -379,10 +388,17 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      p({ style: { } }, [
-        'RECENTLY VIEWED'
+      !_.isEmpty(workspaces) && div({}, [
+        p({ style: { } }, [
+          'RECENTLY VIEWED'
+        ]),
+        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } }, [
+          _.map(workspaceId => {
+            const workspace = getWorkspace(workspaceId)
+            return h(RecentlyViewedWorkspaceCard, { workspace, loadingSubmissionStats, submissionStatus: workspaceSubmissionStatus(workspace) })
+          }, recentlyViewed)
+        ])
       ]),
-      h(RecentlyViewedWorkspace, {}),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',
         value: tab,

@@ -1,13 +1,14 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { b, div, h, p, span } from 'react-hyperscript-helpers'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, DelayedRender, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -15,6 +16,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
@@ -343,65 +345,39 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const RecentlyViewedWorkspace = () => {
-  return div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } }, [
-    h(Clickable, {
-      style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0', lineHeight: '22px', width: '25%' },
-      onClick: () => console.log('ok')
-    }, [
-      div({ style: { flex: 'none' } }, [
-        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['this-is-an-extremely-long-workspace-name-which-wont-fit-into-the-card']),
-        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
-          div({ style: { display: 'flex', alignItems: 'center' }}, [
-            icon('success-standard', { size: 16, style: { color: colors.success(), marginRight: 5 } }),
+export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats }) => {
+  const { workspace: { namespace, name, googleProject } } = workspace
+
+  return h(Clickable, {
+    style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24%' },
+    href: Nav.getLink('workspace-dashboard', { namespace, name })
+  }, [
+    div({ style: { flex: 'none' } }, [
+      div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
+      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, 'Viewed Feb 6, 2022'),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
+            loadingSubmissionStats && h(DelayedRender, [
+              h(TooltipTrigger, {
+                content: 'Loading submission status',
+                side: 'left'
+              }, [spinner({ size: 16 })])
+            ]),
+            !!submissionStatus && h(TooltipTrigger, {
+              content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(submissionStatus)])]),
+              side: 'left'
+            }, [
+              Utils.switchCase(submissionStatus,
+                ['success', () => icon('success-standard', { size: 16, style: { color: colors.success() } })],
+                ['failure', () => icon('error-standard', { size: 16, style: { color: colors.danger(0.85) } })],
+                ['running', () => icon('sync', { size: 16, style: { color: colors.success() } })]
+              )
+            ])
+          ]),
+          !!googleProject ?
+            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } }) :
             h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
-          ])
-        ])
-      ])
-    ]),
-    h(Clickable, {
-      style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '25%' },
-      onClick: () => console.log('ok')
-    }, [
-      div({ style: { flex: 'none' } }, [
-        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['Omesi Workspace']),
-        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
-          div({ style: { display: 'flex', alignItems: 'center' }}, [
-            icon('success-standard', { size: 16, style: { color: colors.success(), marginRight: 5 } }),
-            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
-          ])
-        ])
-      ])
-    ]),
-    h(Clickable, {
-      style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24%' },
-      onClick: () => console.log('ok')
-    }, [
-      div({ style: { flex: 'none' } }, [
-        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['appsec-test-1']),
-        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
-          div({ style: { display: 'flex', alignItems: 'center' }}, [
-            icon('success-standard', { size: 16, style: { color: colors.success(), marginRight: 5 } }),
-            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } })
-          ])
-        ])
-      ])
-    ]),
-    h(Clickable, {
-      style: { ...Style.elements.card.container, margin: '0 0 0 0.25rem', lineHeight: '22px', width: '24%' },
-      onClick: () => console.log('ok')
-    }, [
-      div({ style: { flex: 'none' } }, [
-        div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, ['covid-test']),
-        div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-          div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, ['Viewed Feb 6, 2022']),
-          div({ style: { display: 'flex', alignItems: 'center' }}, [
-            icon('success-standard', { size: 16, style: { color: colors.success(), marginRight: 5 } }),
-            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
-          ])
         ])
       ])
     ])
