@@ -351,7 +351,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
   const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
   return h(Clickable, {
-    style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24%' },
+    style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24.5%' },
     href: Nav.getLink('workspace-dashboard', { namespace, name })
   }, [
     div({ style: { flex: 'none' } }, [

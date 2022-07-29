@@ -206,9 +206,10 @@ export const WorkspaceList = () => {
                   onClick: () => {
                     canAccessWorkspace()
                     const updatedRecentlyViewed = _.flow(
-                      _.take(3),
                       _.concat([{ workspaceId, timestamp: Date.now() }]),
-                      _.orderBy(['timestamp'], ['desc'])
+                      _.orderBy(['timestamp'], ['desc']),
+                      _.uniqBy('workspaceId'),
+                      _.take(4)
                     )(recentlyViewed)
                     setRecentlyViewed(updatedRecentlyViewed)
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
