@@ -368,7 +368,7 @@ const DataTable = props => {
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
                     return h(Fragment, [
-                      renderDataCell(entityName, googleProject),
+                      renderDataCell(entityName, workspace),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
                         'aria-label': `Rename ${entityType} ${entityName}`,
@@ -404,7 +404,7 @@ const DataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(dataInfo, googleProject)
+                      const dataCell = renderDataCell(dataInfo, workspace)
                       const divider = div({ style: { flexGrow: 1 } })
                       const editLink = editable && h(EditDataLink, {
                         'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
