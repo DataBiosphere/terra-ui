@@ -315,7 +315,7 @@ export const WorkspaceList = () => {
           href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
         }, ['Learn more about workspaces.'])
       ]),
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', marginBottom: '0.5rem' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
             placeholder: 'Search by keyword',
@@ -378,6 +378,9 @@ export const WorkspaceList = () => {
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
         ])
+      ]),
+      p({ style: { } }, [
+        'RECENTLY VIEWED'
       ]),
       h(RecentlyViewedWorkspace, {}),
       h(SimpleTabBar, {
