@@ -145,13 +145,18 @@ export const ContextBar = ({
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
+
         h(Fragment, [
           h(TooltipTrigger,
             {
               side: 'left',
               delay: 100,
               content: [
-                div({ key: 'p1' }, 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                div({ key: 'p1' },
+                  ['Estimated hourly rate for all applications in a running or paused state, as well as associated persistent disks. For details, click the',
+                    img({ src: cloudIcon, style: { height: 20, paddingLeft: 2, paddingRight: 2, verticalAlign: 'text-bottom' }, alt: '' }),
+                    'icon below.']
+                ),
                 br({ key: 'br' }),
                 div({ key: 'p2' }, 'Workflow and workspace storage costs are not included.')
               ]
@@ -163,17 +168,18 @@ export const ContextBar = ({
                 hover: { ...contextBarStyles.hover }
               },
               [
-                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '.8em' } }, 'Rate:'),
                 div({
                   style: {
                     textAlign: 'center', color: colors.dark(),
-                    fontWeight: 'bold', fontSize: '1em'
+                    fontWeight: 'bold', fontSize: '1.2em'
                   }
                 },
                 [
                   getTotalToolAndDiskCostDisplay(),
-                  span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
-                ])
+                  span({ style: { fontWeight: 'normal' } })
+                ]),
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '.8em' } }, 'per hour')
               ])
             ]
           ),
