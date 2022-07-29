@@ -544,7 +544,7 @@ const Billing = signal => ({
   },
 
   listAccounts: async () => {
-    const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
+    const res = await fetchRawls('user/billingAccounts?firecloudHasAccess=true', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
