@@ -153,12 +153,12 @@ export const ContextBar = ({
               delay: 100,
               content: [
                 div({ key: 'p1' },
-                  ['Estimated hourly rate for all applications in a running or paused state, as well as associated persistent disks. For details, click the',
+                  ['Estimated hourly rate for all applications in a running or paused state, and associated persistent disks. For details, click',
                     img({ src: cloudIcon, style: { height: 20, paddingLeft: 5, paddingRight: 5, verticalAlign: 'text-bottom' }, alt: 'Environment Configuration' }),
-                    'icon below.']
+                    'below.']
                 ),
                 br({ key: 'br' }),
-                div({ key: 'p2' }, 'Workflow and workspace storage costs are not included.')
+                div({ key: 'p2' }, 'Workflow and workspace storage costs\nare not included.')
               ]
             },
             [
