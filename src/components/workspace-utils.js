@@ -345,8 +345,10 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats }) => {
+export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
   const { workspace: { namespace, name, googleProject } } = workspace
+
+  const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
   return h(Clickable, {
     style: { ...Style.elements.card.container, margin: '0 0.25rem 0 0.25rem', lineHeight: '22px', width: '24%' },
@@ -355,7 +357,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
     div({ style: { flex: 'none' } }, [
       div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, 'Viewed Feb 6, 2022'),
+        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, dateViewed),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
             loadingSubmissionStats && h(DelayedRender, [

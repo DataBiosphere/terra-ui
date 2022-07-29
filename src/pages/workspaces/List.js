@@ -205,7 +205,12 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
-                    setRecentlyViewed(_.concat(recentlyViewed, [workspaceId]))
+                    const updatedRecentlyViewed = _.flow(
+                      _.take(3),
+                      _.concat([{ workspaceId, timestamp: Date.now() }]),
+                      _.orderBy(['timestamp'], ['desc'])
+                    )(recentlyViewed)
+                    setRecentlyViewed(updatedRecentlyViewed)
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
                   },
                   tooltip: !canView &&
@@ -388,14 +393,17 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      !_.isEmpty(workspaces) && div({}, [
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div({}, [
         p({ style: { } }, [
           'RECENTLY VIEWED'
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } }, [
-          _.map(workspaceId => {
+          _.map(({ workspaceId, timestamp }) => {
             const workspace = getWorkspace(workspaceId)
-            return h(RecentlyViewedWorkspaceCard, { workspace, loadingSubmissionStats, submissionStatus: workspaceSubmissionStatus(workspace) })
+            return h(RecentlyViewedWorkspaceCard, {
+              workspace, loadingSubmissionStats, timestamp,
+              submissionStatus: workspaceSubmissionStatus(workspace)
+            })
           }, recentlyViewed)
         ])
       ]),
