@@ -385,6 +385,13 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
     className: 'fa-layers fa-fw',
     disabled: maxStarredWorkspacesReached && !isStarred,
     style: { verticalAlign: 'middle', ...style },
+    onKeyDown: e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        e.stopPropagation()
+        e.target.click()
+      }
+    },
     onClick: () => toggleStar(!isStarred)
   }, [
     updating ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
