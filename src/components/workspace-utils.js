@@ -345,24 +345,23 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
+//todo for monday: fix this, you broke it!
 export const WorkspaceSubmissionStatusIcon = (status, loadingSubmissionStats, size) => {
-  return div({}, [
-    loadingSubmissionStats && h(DelayedRender, [
-      h(TooltipTrigger, {
-        content: 'Loading submission status',
-        side: 'left'
-      }, [spinner({ size })])
-    ]),
-    !!status && h(TooltipTrigger, {
-      content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
+  return loadingSubmissionStats && h(DelayedRender, [
+    h(TooltipTrigger, {
+      content: 'Loading submission status',
       side: 'left'
-    }, [
-      Utils.switchCase(status,
-        ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
-        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
-        ['running', () => icon('sync', { size, style: { color: colors.success() } })]
-      )
-    ])
+    }, [spinner({ size })])
+  ]),
+  !!status && h(TooltipTrigger, {
+    content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
+    side: 'left'
+  }, [
+    Utils.switchCase(status,
+      ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
+      ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
+      ['running', () => icon('sync', { size, style: { color: colors.success() } })]
+    )
   ])
 }
 
