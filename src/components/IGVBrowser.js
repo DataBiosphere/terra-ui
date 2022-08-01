@@ -16,13 +16,13 @@ import * as Utils from 'src/libs/utils'
 
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
-  const containerRef = useRef()
-  const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
-  const igvLibrary = useRef()
-  const igvBrowser = useRef()
   const [requesterPaysModal, setRequesterPaysModal] = useState(null)
   const [showAddTrackModal, setShowAddTrackModal] = useState(false)
+  const containerRef = useRef()
+  const igvLibrary = useRef()
+  const igvBrowser = useRef()
+  const signal = useCancellation()
 
   const addTracks = withErrorReporting('Unable to add tracks', async tracks => {
     // Select one file per each bucket represented in the tracks list.
