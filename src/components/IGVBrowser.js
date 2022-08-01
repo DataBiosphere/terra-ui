@@ -1,80 +1,113 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import { Link } from 'src/components/common'
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
 import { centeredSpinner, icon } from 'src/components/icons'
+import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import { Ajax, saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
-import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
+import { reportError, withErrorReporting } from 'src/libs/error'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 // format for selectedFiles prop: [{ filePath, indexFilePath } }]
-const IGVBrowser = _.flow(
-  withDisplayName('IGVBrowser'),
-  requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss, onRequesterPaysError }) => {
+const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace, onDismiss }) => {
   const containerRef = useRef()
   const signal = useCancellation()
   const [loadingIgv, setLoadingIgv] = useState(true)
   const igvLibrary = useRef()
+  const igvBrowser = useRef()
+  const [requesterPaysModal, setRequesterPaysModal] = useState(null)
+
+  const addTracks = withErrorReporting('Unable to add tracks', async tracks => {
+    // Select one file per each bucket represented in the tracks list.
+    const bucketExemplars = _.flow(
+      _.map(_.get('url')),
+      _.uniqBy(url => {
+        const [bucket] = parseGsUri(url)
+        return bucket
+      })
+    )(tracks)
+
+    // Learn the requester pays status of each bucket.
+    // Requesting a file will store its requester pays status in knownBucketRequesterPaysStatuses.
+    const isRequesterPays = await Promise.all(_.map(async url => {
+      const [bucket, file] = parseGsUri(url)
+
+      if (knownBucketRequesterPaysStatuses.get()[bucket] === undefined) {
+        try {
+          await Ajax(signal).Buckets.getObject(workspace.workspace.googleProject, bucket, file, { fields: 'kind' })
+        } catch (e) {
+          if (!e.requesterPaysError) {
+            throw e
+          }
+        }
+      }
+      return knownBucketRequesterPaysStatuses.get()[bucket]
+    }, bucketExemplars))
+
+    // If any bucket is requester pays, files in that bucket will need to have a user project included in the request.
+    let userProject
+    if (_.some(_.identity, isRequesterPays)) {
+      // Check if the user can bill to the current workspace.
+      userProject = await getUserProjectForWorkspace(workspace)
+
+      // If not, prompt to select a workspace to bill to.
+      if (!userProject) {
+        userProject = await new Promise((resolve, reject) => {
+          setRequesterPaysModal(
+            h(RequesterPaysModal, {
+              onDismiss: () => {
+                setRequesterPaysModal(null)
+                reject(new Error('No billing workspace selected.'))
+              },
+              onSuccess: selectedGoogleProject => {
+                setRequesterPaysModal(null)
+                requesterPaysProjectStore.set(selectedGoogleProject)
+                resolve(selectedGoogleProject)
+              }
+            })
+          )
+        })
+      }
+    }
+
+    _.forEach(({ url, indexURL }) => {
+      const [bucket] = parseGsUri(url)
+      const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined }
+
+      igvBrowser.current.loadTrack({
+        name: `${_.last(url.split('/'))} (${url})`,
+        url: Utils.mergeQueryParams(userProjectParam, url),
+        indexURL: !!indexURL ? Utils.mergeQueryParams(userProjectParam, indexURL) : undefined
+      })
+    }, tracks)
+  })
 
   useOnMount(() => {
     const igvSetup = async () => {
-      const fileBucketExemplars = _.uniqBy(({ filePath }) => /gs:\/\/([^/]+)/.exec(filePath)[1], selectedFiles)
+      try {
+        const { default: igv } = await import('igv')
+        igvLibrary.current = igv
 
-      // make sure any requester pays buckets get tagged, non-rp errors can be handled later for now
-      const bucketRpStatuses = await Promise.all(_.map(async ({ filePath }) => {
-        const [bucket, file] = parseGsUri(filePath)
-        const knownBucketStatus = knownBucketRequesterPaysStatuses.get()[bucket]
-
-        if (knownBucketStatus !== undefined) {
-          return knownBucketStatus
-        } else {
-          try {
-            await Ajax(signal).Buckets.getObject(workspace.workspace.googleProject, bucket, file, { fields: 'kind' })
-            return false
-          } catch (e) {
-            if (e.requesterPaysError) {
-              return true
-            }
-          }
+        const options = {
+          genome,
+          reference,
+          tracks: []
         }
-      }, fileBucketExemplars))
 
-      if (!requesterPaysProjectStore.get() && _.some(_.identity, bucketRpStatuses)) {
-        onRequesterPaysError()
-      } else {
-        try {
-          const { default: igv } = await import('igv')
-          igvLibrary.current = igv
+        igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject))
+        igvBrowser.current = await igv.createBrowser(containerRef.current, options)
 
-          const options = {
-            genome,
-            reference,
-            tracks: await Promise.all(_.map(async ({ filePath, indexFilePath }) => {
-              const [bucket] = parseGsUri(filePath)
-              const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? await getUserProjectForWorkspace(workspace) : undefined }
-
-              return {
-                name: `${_.last(filePath.split('/'))} (${filePath})`,
-                url: Utils.mergeQueryParams(userProjectParam, filePath),
-                indexURL: !!indexFilePath ? Utils.mergeQueryParams(userProjectParam, indexFilePath) : undefined
-              }
-            }, selectedFiles))
-          }
-
-          igv.setGoogleOauthToken(() => saToken(workspace.workspace.googleProject))
-          igv.createBrowser(containerRef.current, options)
-        } catch (e) {
-          reportError('Error loading IGV.js', e)
-        } finally {
-          setLoadingIgv(false)
-        }
+        const initialTracks = _.map(({ filePath, indexFilePath }) => ({ url: filePath, indexURL: indexFilePath }), selectedFiles)
+        addTracks(initialTracks)
+      } catch (e) {
+        reportError('Error loading IGV.js', e)
+      } finally {
+        setLoadingIgv(false)
       }
     }
 
@@ -98,8 +131,9 @@ const IGVBrowser = _.flow(
       }
     }, [
       loadingIgv && centeredSpinner()
-    ])
+    ]),
+    requesterPaysModal
   ])
-})
+}
 
 export default IGVBrowser
