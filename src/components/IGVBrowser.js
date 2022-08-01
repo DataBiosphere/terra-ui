@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Link } from 'src/components/common'
+import { ButtonOutline, Link } from 'src/components/common'
 import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
 import { centeredSpinner, icon } from 'src/components/icons'
+import IGVAddTrackModal from 'src/components/IGVAddTrackModal'
 import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import { Ajax, saToken } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -21,6 +22,7 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   const igvLibrary = useRef()
   const igvBrowser = useRef()
   const [requesterPaysModal, setRequesterPaysModal] = useState(null)
+  const [showAddTrackModal, setShowAddTrackModal] = useState(false)
 
   const addTracks = withErrorReporting('Unable to add tracks', async tracks => {
     // Select one file per each bucket represented in the tracks list.
@@ -75,12 +77,12 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
       }
     }
 
-    _.forEach(({ url, indexURL }) => {
+    _.forEach(({ name, url, indexURL }) => {
       const [bucket] = parseGsUri(url)
       const userProjectParam = { userProject: knownBucketRequesterPaysStatuses.get()[bucket] ? userProject : undefined }
 
       igvBrowser.current.loadTrack({
-        name: `${_.last(url.split('/'))} (${url})`,
+        name: name || `${_.last(url.split('/'))} (${url})`,
         url: Utils.mergeQueryParams(userProjectParam, url),
         indexURL: !!indexURL ? Utils.mergeQueryParams(userProjectParam, indexURL) : undefined
       })
@@ -117,10 +119,13 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
   })
 
   return h(Fragment, [
-    h(Link, {
-      onClick: onDismiss,
-      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '6.5px 8px' }
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to data table']),
+    div({ style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.5rem 0' } }, [
+      h(Link, { onClick: onDismiss }, [icon('arrowLeft', { style: { marginRight: '1ch' } }), 'Back to data table']),
+      h(ButtonOutline, {
+        disabled: loadingIgv,
+        onClick: () => setShowAddTrackModal(true)
+      }, ['Add track'])
+    ]),
     div({
       ref: containerRef,
       style: {
@@ -132,7 +137,14 @@ const IGVBrowser = ({ selectedFiles, refGenome: { genome, reference }, workspace
     }, [
       loadingIgv && centeredSpinner()
     ]),
-    requesterPaysModal
+    requesterPaysModal,
+    showAddTrackModal && h(IGVAddTrackModal, {
+      onDismiss: () => setShowAddTrackModal(false),
+      onSubmitTrack: track => {
+        setShowAddTrackModal(false)
+        addTracks([track])
+      }
+    })
   ])
 }
 
