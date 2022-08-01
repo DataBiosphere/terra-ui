@@ -284,9 +284,7 @@ export const WorkspaceList = () => {
                   workspaceInfo: { namespace, name }
                 })
               ]),
-              div({ style: styles.tableCellContent }, [
-                WorkspaceSubmissionStatusIcon(lastRunStatus, loadingSubmissionStats, 20)
-              ])
+              WorkspaceSubmissionStatusIcon(lastRunStatus, loadingSubmissionStats, 20)
             ])
           },
           size: { basis: 30, grow: 0, shrink: 0 }
@@ -380,9 +378,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div({}, [
-        p({ style: { } }, [
-          'RECENTLY VIEWED'
-        ]),
+        p({}, 'RECENTLY VIEWED'),
         div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } }, [
           _.map(({ workspaceId, timestamp }) => {
             const workspace = getWorkspace(workspaceId)
