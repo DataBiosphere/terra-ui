@@ -23,7 +23,7 @@ const IGVAddTrackModal = ({ onDismiss, onSubmitTrack }) => {
     () => null
   )
 
-  const isTrackValid = !urlError
+  const isTrackValid = _.isNull(urlError)
 
   const submit = () => {
     const track = {
