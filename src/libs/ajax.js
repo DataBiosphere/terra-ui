@@ -55,7 +55,7 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-const withRetryOnError = _.curry((errorsToIgnore, wrappedFetch) => async (...args) => {
+const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
   const timeout = 5000
   const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
@@ -66,8 +66,7 @@ const withRetryOnError = _.curry((errorsToIgnore, wrappedFetch) => async (...arg
     try {
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
-      const shouldNotRetry = _.intersection(_.keys(error), errorsToIgnore).length > 0
-      if (shouldNotRetry) {
+      if (shouldNotRetryFn(error)) {
         throw error
       }
       // ignore error will retry
@@ -157,7 +156,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
 // are not transient and the request should not be retried.
-const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(['requesterPaysError']), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
