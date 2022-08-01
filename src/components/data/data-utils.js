@@ -164,7 +164,8 @@ export const renderDataCell = (attributeValue, workspace) => {
 
 export const EditDataLink = props => h(Link, {
   className: 'cell-hover-only',
-  style: { marginLeft: '1rem' },
+  style: { marginLeft: '1ch' },
+  tooltip: 'Edit value',
   ...props
 }, [icon('edit')])
 
