@@ -284,7 +284,13 @@ export const WorkspaceList = () => {
                   workspaceInfo: { namespace, name }
                 })
               ]),
-              WorkspaceSubmissionStatusIcon(lastRunStatus, loadingSubmissionStats, 20)
+              div({ style: styles.tableCellContent }, [
+                h(WorkspaceSubmissionStatusIcon, {
+                  status: lastRunStatus,
+                  loadingSubmissionStats,
+                  size: 20
+                })
+              ])
             ])
           },
           size: { basis: 30, grow: 0, shrink: 0 }
@@ -379,7 +385,7 @@ export const WorkspaceList = () => {
       ]),
       !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div({}, [
         p({}, 'RECENTLY VIEWED'),
-        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } }, [
+        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
           _.map(({ workspaceId, timestamp }) => {
             const workspace = getWorkspace(workspaceId)
             return h(RecentlyViewedWorkspaceCard, {
@@ -387,7 +393,7 @@ export const WorkspaceList = () => {
               submissionStatus: workspaceSubmissionStatus(workspace)
             })
           }, recentlyViewed)
-        ])
+        )
       ]),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',

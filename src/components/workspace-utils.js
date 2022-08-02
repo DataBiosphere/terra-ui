@@ -345,7 +345,7 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const WorkspaceSubmissionStatusIcon = (status, loadingSubmissionStats, size) => {
+export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, size = 20 }) => {
   return div({}, [
     loadingSubmissionStats && h(DelayedRender, [
       h(TooltipTrigger, {
@@ -381,7 +381,11 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
         div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
-            WorkspaceSubmissionStatusIcon(submissionStatus, loadingSubmissionStats, 16)
+            h(WorkspaceSubmissionStatusIcon, {
+              status: submissionStatus,
+              loadingSubmissionStats,
+              size: 16
+            })
           ]),
           !!googleProject ?
             h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } }) :
