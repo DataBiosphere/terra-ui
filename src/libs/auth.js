@@ -11,7 +11,7 @@ import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { clearMatchingNotifications, clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { clearMatchingNotifications, clearNotification, muteNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
@@ -358,47 +358,55 @@ authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
   }
 }))
 
+export const updateNihLinkExpirationNotification = status => {
+  // Clear any old notifications
+  clearMatchingNotifications(`nih-link-expiration/`)
+
+  const now = Date.now()
+  // Orchestration API returns NIH link expiration time in seconds since epoch
+  const dateOfExpiration = status && new Date(status.linkExpireTime * 1000)
+  const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-1, dateOfExpiration)
+  if (shouldNotify) {
+    const hasExpired = now >= dateOfExpiration
+
+    // Previously, muting notifications for an expiring NIH account link would store the expiration time of
+    // the link for which notifications were muted. Now, these notifications are muted using muteNotification
+    // from libs/notifications. This is kept to avoid showing notifications that were muted using the old method.
+    // Once enough time has passed for NIH account links to expire and users to re-link them, this can be removed
+    // with less disruption.
+    const muteNotificationPreferenceKey = `mute-nih-notification/${hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'}`
+    const mutedNotificationExpirationTime = getLocalPref(muteNotificationPreferenceKey)
+    if (mutedNotificationExpirationTime && mutedNotificationExpirationTime === dateOfExpiration.getTime()) {
+      return
+    }
+
+    // Separate notifications for expired and expiring. If a user mutes the notification that a link will
+    // expire soon, then we still want to notify them once the link has actually expired.
+    // The link expiration time is included in the notification ID so that a muting notifications only
+    // applies to the current instance of the link. If an account is re-linked, notifications should
+    // be shown again when that link is expiring.
+    const notificationId = `nih-link-expiration/${dateOfExpiration.getTime()}/${hasExpired ? 'expired' : 'expiring'}`
+
+    notify('info', `Your access to NIH Controlled Access workspaces and data ${hasExpired ? 'has expired' : 'will expire soon'}.`, {
+      id: notificationId,
+      message: h(Fragment, [
+        'To regain access, ',
+        h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
+        ` your eRA Commons / NIH account (${status.linkedNihUsername}) with ${getEnabledBrand().name}.`
+      ]),
+      action: {
+        label: 'Do not remind me again',
+        callback: () => {
+          muteNotification(notificationId)
+        }
+      }
+    })
+  }
+}
+
 authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
-    const now = Date.now()
-    const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
-    const shouldNotify = expireTime && now > expireTime - (1000 * 60 * 60 * 24)
-    if (shouldNotify) {
-      const hasExpired = now >= expireTime
-
-      // There are separate notification IDs for expired and expires soon so that mute preferences can be stored
-      // individually for each. If a user mutes the expires soon notification, we still want to show them the expired
-      // notification.
-      const notificationId = hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'
-
-      // If/when the notification is muted, the expiration time of the current NIH link is stored in local preferences.
-      // This lets us apply the mute preference only to the current NIH link. If the user re-links their NIH account
-      // after muting notifications, we want to show these notifications when the new link will expire. In that case,
-      // the new link will have an expiration time greater than the time stored in the mute preference.
-      const muteNotificationPreferenceKey = `mute-nih-notification/${notificationId}`
-      const muteNotificationUntil = getLocalPref(muteNotificationPreferenceKey)
-      if (muteNotificationUntil && muteNotificationUntil >= expireTime) {
-        return
-      }
-
-      notify('info', `Your access to NIH Controlled Access workspaces and data ${hasExpired ? 'has expired' : 'will expire soon'}.`, {
-        id: notificationId,
-        message: h(Fragment, [
-          'To regain access, ',
-          h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
-          ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getEnabledBrand().name}.`
-        ]),
-        action: {
-          label: 'Do not remind me again',
-          callback: () => {
-            setLocalPref(muteNotificationPreferenceKey, expireTime)
-          }
-        }
-      })
-    } else {
-      clearNotification('nih-link-expired')
-      clearNotification('nih-link-expires-soon')
-    }
+    updateNihLinkExpirationNotification(state.nihStatus)
   }
 })
 
