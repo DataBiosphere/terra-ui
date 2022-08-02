@@ -67,6 +67,18 @@ describe('clearNotification', () => {
   })
 })
 
+describe('clearMatchingNotifications', () => {
+  it('clears all notifications in store with IDs matching prefix', () => {
+    notificationStore.set([
+      { id: 'category1/foo' },
+      { id: 'category1/bar' },
+      { id: 'category2/foo' }
+    ])
+    Notifications.clearMatchingNotifications('category1/')
+    expect(store.removeNotification.mock.calls).toEqual([['category1/foo'], ['category1/bar']])
+  })
+})
+
 describe('isNotificationMuted', () => {
   it('reads mute preference', () => {
     Notifications.isNotificationMuted('test-notification')

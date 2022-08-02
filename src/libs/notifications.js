@@ -38,6 +38,16 @@ export const notify = (type, title, props) => {
 
 export const clearNotification = id => store.removeNotification(id)
 
+export const clearMatchingNotifications = idPrefix => {
+  const matchingNotificationIds = _.flow(
+    _.map(_.get('id')),
+    _.filter(_.startsWith(idPrefix))
+  )(notificationStore.get())
+  matchingNotificationIds.forEach(id => {
+    store.removeNotification(id)
+  })
+}
+
 const muteNotificationPreferenceKey = id => `mute-notification/${id}`
 
 export const isNotificationMuted = id => {
