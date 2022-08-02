@@ -88,7 +88,7 @@ export const WorkspaceList = () => {
   const [featuredList, setFeaturedList] = useState()
 
   const persistenceId = 'workspaces/recentlyViewed'
-  const [recentlyViewed, setRecentlyViewed] = useState(() => getLocalPref(persistenceId)?.recentlyViewed || [])
+  const [recentlyViewed] = useState(() => getLocalPref(persistenceId)?.recentlyViewed || [])
 
   useEffect(() => {
     setLocalPref(persistenceId, { recentlyViewed })
@@ -205,13 +205,6 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
-                    const updatedRecentlyViewed = _.flow(
-                      _.remove({ workspaceId }),
-                      _.concat([{ workspaceId, timestamp: Date.now() }]),
-                      _.orderBy(['timestamp'], ['desc']),
-                      _.take(4)
-                    )(recentlyViewed)
-                    setRecentlyViewed(updatedRecentlyViewed) //todo move this to the dashboard to account for all cases
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
                   },
                   tooltip: !canView &&

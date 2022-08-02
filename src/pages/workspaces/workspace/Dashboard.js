@@ -216,7 +216,8 @@ const WorkspaceDashboard = _.flow(
   const [tagsList, setTagsList] = useState(undefined)
   const [acl, setAcl] = useState(undefined)
 
-  const persistenceId = `workspaces/${namespace}/${name}/dashboard`
+  const dashboardPersistenceId = `workspaces/${namespace}/${name}/dashboard`
+  const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
 
   const signal = useCancellation()
   const sasTokenRefreshInterval = useRef()
@@ -225,6 +226,7 @@ const WorkspaceDashboard = _.flow(
     loadSubmissionCount()
     loadConsent()
     loadWsTags()
+    updateRecentlyViewedWorkspaces()
 
     if (!azureContext) {
       loadStorageCost()
@@ -246,14 +248,15 @@ const WorkspaceDashboard = _.flow(
 
   useImperativeHandle(ref, () => ({ refresh }))
 
-  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
-  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
-  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
-  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
-  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
+  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.workspaceInfoPanelOpen)
+  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.cloudInfoPanelOpen || false)
+  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.ownersPanelOpen || false)
+  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.authDomainPanelOpen || false)
+  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.tagsPanelOpen || false)
+  const [recentlyViewed, setRecentlyViewed] = useState(() => getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || [])
 
   useEffect(() => {
-    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+    setLocalPref(dashboardPersistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
   }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -262,6 +265,10 @@ const WorkspaceDashboard = _.flow(
       sasTokenRefreshInterval.current = undefined
     }
   }, [sasTokenRefreshInterval])
+
+  useEffect(() => {
+    setLocalPref(recentlyViewedPersistenceId, { recentlyViewed })
+  }, [recentlyViewed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -418,6 +425,16 @@ const WorkspaceDashboard = _.flow(
       }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       )])
     ]
+  }
+
+  const updateRecentlyViewedWorkspaces = () => {
+    const updatedRecentlyViewed = _.flow(
+      _.remove({ workspaceId }),
+      _.concat([{ workspaceId, timestamp: Date.now() }]),
+      _.orderBy(['timestamp'], ['desc']),
+      _.take(4)
+    )(recentlyViewed)
+    setRecentlyViewed(updatedRecentlyViewed) //todo move this to the dashboard to account for all cases
   }
 
   // Render
