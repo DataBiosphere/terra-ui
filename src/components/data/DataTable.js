@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
-import { concatenateAttributeNames, EditDataLink, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, ClipboardButton, DeleteConfirmationModal, fixedSpinnerOverlay, Link, RadioButton } from 'src/components/common'
+import { concatenateAttributeNames, EditDataLink, entityAttributeText, EntityRenamer, HeaderOptions, renderDataCell, SingleEntityEditor } from 'src/components/data/data-utils'
 import RenameColumnModal from 'src/components/data/RenameColumnModal'
 import { allSavedColumnSettingsEntityTypeKey, allSavedColumnSettingsInWorkspace, ColumnSettingsWithSavedColumnSettings, decodeColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
@@ -368,8 +368,14 @@ const DataTable = props => {
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
                     return h(Fragment, [
-                      renderDataCell(entityName, googleProject),
+                      renderDataCell(entityName, workspace),
                       div({ style: { flexGrow: 1 } }),
+                      h(ClipboardButton, {
+                        'aria-label': `Copy ${entityName} to clipboard`,
+                        className: 'cell-hover-only',
+                        style: { marginLeft: '1rem' },
+                        text: entityName
+                      }),
                       editable && h(EditDataLink, {
                         'aria-label': `Rename ${entityType} ${entityName}`,
                         onClick: () => setRenamingEntity(entityName)
@@ -404,8 +410,14 @@ const DataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(dataInfo, googleProject)
+                      const dataCell = renderDataCell(dataInfo, workspace)
                       const divider = div({ style: { flexGrow: 1 } })
+                      const copyButton = h(ClipboardButton, {
+                        'aria-label': `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
+                        className: 'cell-hover-only',
+                        style: { marginLeft: '1rem' },
+                        text: entityAttributeText(dataInfo)
+                      })
                       const editLink = editable && h(EditDataLink, {
                         'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                         'aria-haspopup': 'dialog',
@@ -422,9 +434,9 @@ const DataTable = props => {
                           style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
                           onClick: () => setViewData(dataInfo)
                         }, ` (${dataInfo.items.length} ${label})`)
-                        return h(Fragment, [dataCell, divider, editLink, itemsLink])
+                        return h(Fragment, [dataCell, divider, copyButton, editLink, itemsLink])
                       } else {
-                        return h(Fragment, [dataCell, divider, editLink])
+                        return h(Fragment, [dataCell, divider, copyButton, editLink])
                       }
                     }
                   }

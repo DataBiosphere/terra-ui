@@ -1,18 +1,16 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
+import { ButtonOutline, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { MiniSortable, SimpleTable } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { datasetAccessTypes, datasetReleasePolicies, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, datasetReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -83,53 +81,13 @@ const extractCatalogFilters = dataCatalog => {
   }]
 }
 
-const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
-  const length = _.size(selectedData).toLocaleString()
 
-  return !_.isEmpty(selectedData) && div({
-    style: {
-      display: selectedData.length > 0 ? 'block' : 'none',
-      position: 'sticky', bottom: 0, marginTop: 20,
-      width: '100%', padding: '34px 60px',
-      backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0 0 8px 3px',
-      fontSize: 17
-    }
-  }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [
-        `${length} dataset${length > 1 ? 's' : ''} selected to be linked to a Terra Workspace`
-      ]),
-      h(ButtonSecondary, {
-        style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-        onClick: () => setSelectedData([])
-      }, 'Cancel'),
-      h(ButtonPrimary, {
-        style: { textTransform: 'none', fontSize: 14 },
-        onClick: () => {
-          Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:tableView`, {
-            id: _.map('id', selectedData),
-            // These are still using snapshot as a relic to ensure backwards search
-            // capabilities within the data browser.
-            snapshotIds: _.map('dct:identifier', selectedData),
-            snapshotName: _.map('dct:title', selectedData)
-          })
-          importDataToWorkspace(selectedData)
-        }
-      }, ['Link to a workspace'])
-    ])
-  ])
-}
-
-
-const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList }) => {
+const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList }) => {
   const DataBrowserTable = ({ filteredList }) => {
     return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
       'aria-label': 'dataset list',
       columns: [
         {
-          header: div({ className: 'sr-only' }, ['Select dataset']),
-          size: { basis: 37, grow: 0 }, key: 'checkbox'
-        }, {
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
           size: { grow: 2.2 }, key: 'name'
         }, {
@@ -154,14 +112,6 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
         const { project, dataModality, access } = datum
 
         return {
-          checkbox: h(TooltipTrigger, {
-            ...(datum.access !== datasetAccessTypes.GRANTED && { content: [uiMessaging.controlledFeature_tooltip] })
-          }, [h(Checkbox, {
-            'aria-label': datum['dct:title'],
-            disabled: datum.access !== datasetAccessTypes.GRANTED,
-            checked: _.includes(datum, selectedData),
-            onChange: () => toggleSelectedData(datum)
-          })]),
           name: h(Link,
             {
               onClick: () => {
@@ -211,13 +161,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
 
 export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 
-  const toggleSelectedData = data => setSelectedData(_.xor([data]))
-
-  return h(FooterWrapper, { alwaysShow: true }, [
+  return h(Fragment, [
     h(SearchAndFilterComponent, {
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
@@ -225,8 +172,7 @@ export const Browser = () => {
       titleField: 'dct:title',
       descField: 'dct:description',
       idField: 'id'
-    }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })]),
-    h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
+    }, [makeDataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList })]),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()

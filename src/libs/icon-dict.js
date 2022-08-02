@@ -33,6 +33,7 @@ import { ReactComponent as squareLight } from 'src/icons/square-light.svg'
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
 import { ReactComponent as talkBubble } from 'src/icons/talk-bubble.svg'
 import { ReactComponent as times } from 'src/icons/times-light.svg'
+import { ReactComponent as warningInfo } from 'src/icons/warning-info.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
@@ -121,6 +122,7 @@ const iconDict = {
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
   virus: fa(faVirus),
+  'warning-info': custom(warningInfo),
   'warning-standard': fa(faExclamationTriangle)
 }
 
