@@ -7,6 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -25,15 +26,33 @@ const makeNotification = props => _.defaults({ id: uuid() }, props)
 
 export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props })
-  const visibleNotificationIds = _.map('id', notificationStore.get())
-  notificationStore.update(Utils.append(notification))
-  if (!_.includes(notification.id, visibleNotificationIds)) {
-    showNotification(notification)
+  if (!isNotificationMuted(notification.id)) {
+    const visibleNotificationIds = _.map('id', notificationStore.get())
+    notificationStore.update(Utils.append(notification))
+    if (!_.includes(notification.id, visibleNotificationIds)) {
+      showNotification(notification)
+    }
   }
   return notification.id
 }
 
 export const clearNotification = id => store.removeNotification(id)
+
+const muteNotificationPreferenceKey = id => `mute-notification/${id}`
+
+export const isNotificationMuted = id => {
+  const mutedUntil = getLocalPref(muteNotificationPreferenceKey(id))
+  return Utils.switchCase(
+    mutedUntil,
+    [undefined, () => false],
+    [-1, () => true],
+    [Utils.DEFAULT, () => mutedUntil > Date.now()]
+  )
+}
+
+export const muteNotification = (id, until = -1) => {
+  setLocalPref(muteNotificationPreferenceKey(id), until)
+}
 
 const NotificationDisplay = ({ id }) => {
   const notificationState = useStore(notificationStore)
