@@ -443,7 +443,15 @@ export const updateFenceLinkExpirationNotification = (provider, status) => {
       ' your access or ',
       h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
       ' your account.'
-    ]), { id: notificationId })
+    ]), {
+      id: notificationId,
+      action: {
+        label: 'Do not remind me again',
+        callback: () => {
+          muteNotification(notificationId)
+        }
+      }
+    })
   }
 }
 
