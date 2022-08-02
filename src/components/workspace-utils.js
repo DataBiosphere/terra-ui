@@ -381,16 +381,14 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
       div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
         div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
         div({ style: { display: 'flex', alignItems: 'center' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', marginRight: 5 } }, [
-            h(WorkspaceSubmissionStatusIcon, {
-              status: submissionStatus,
-              loadingSubmissionStats,
-              size: 16
-            })
-          ]),
+          h(WorkspaceSubmissionStatusIcon, {
+            status: submissionStatus,
+            loadingSubmissionStats,
+            size: 16
+          }),
           !!googleProject ?
-            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { height: 16 } }) :
-            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
+            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
+            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
         ])
       ])
     ])
