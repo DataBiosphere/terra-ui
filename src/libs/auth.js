@@ -11,7 +11,7 @@ import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { clearMatchingNotifications, clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
@@ -411,32 +411,49 @@ authStore.subscribe(withErrorReporting('Error loading Framework Services account
   }
 }))
 
+export const updateFenceLinkExpirationNotification = (provider, status) => {
+  const { key, name } = provider
+
+  // Clear any old notifications
+  clearMatchingNotifications(`fence-link-expiration/${key}/`)
+
+  const now = Date.now()
+  // Bond API returns link time as an ISO formatted string.
+  const dateOfExpiration = status && addDays(provider.expiresAfter, parseJSON(status.issued_at))
+  const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-5, dateOfExpiration)
+
+  if (shouldNotify) {
+    const hasExpired = now >= dateOfExpiration
+
+    // Separate notifications for expired and expiring. If a user mutes the notification that a link will
+    // expire soon, then we still want to notify them once the link has actually expired.
+    // The link expiration time is included in the notification ID so that a muting notifications only
+    // applies to the current instance of the link. If an account is re-linked, notifications should
+    // be shown again when that link is expiring.
+    const notificationId = `fence-link-expiration/${key}/${dateOfExpiration.getTime()}/${hasExpired ? 'expired' : 'expiring'}`
+
+    const expireStatus = hasExpired ?
+      'has expired' :
+      `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`
+
+    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+    notify('info', div([
+      `Your access to ${name} ${expireStatus}. Log in to `,
+      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
+      ' your access or ',
+      h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
+      ' your account.'
+    ]), { id: notificationId })
+  }
+}
+
 authStore.subscribe((state, oldState) => {
-  _.forEach(({ key, name }) => {
-    const notificationId = `fence-${key}-link-warning`
+  _.forEach(provider => {
+    const { key } = provider
     const status = state.fenceStatus[key]
     const oldStatus = oldState.fenceStatus[key]
     if (status !== oldStatus) {
-      const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
-      const now = Date.now()
-      const dateOfExpiration = status && addDays(30, parseJSON(status.issued_at))
-      const dateFiveDaysBeforeExpiration = dateOfExpiration && addDays(-5, dateOfExpiration)
-      const expireStatus = Utils.cond(
-        [!dateOfExpiration, () => null],
-        [now >= dateOfExpiration, () => 'has expired'],
-        [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
-      )
-      if (expireStatus) {
-        notify('info', div([
-          `Your access to ${name} ${expireStatus}. Log in to `,
-          h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
-          ' your access or ',
-          h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
-          ' your account.'
-        ]), { id: notificationId })
-      } else {
-        clearNotification(notificationId)
-      }
+      updateFenceLinkExpirationNotification(provider, status)
     }
   }, allProviders)
 })
