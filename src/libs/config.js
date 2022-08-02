@@ -11,6 +11,5 @@ export const getConfig = () => {
 /**
  * Flags for hidden features
  */
-export const isAnalysisTabVisible = () => getConfig().isAnalysisTabVisible
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isDataBrowserFrontPage = () => false

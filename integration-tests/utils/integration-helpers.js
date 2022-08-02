@@ -213,7 +213,6 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
   await clickNavChildAndLoad(page, 'analyses')
   await dismissNotifications(page)

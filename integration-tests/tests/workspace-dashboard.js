@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
+const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
   assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
@@ -218,7 +218,6 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Must load page before setting mock responses.
   await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
   await setAzureAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
 
   const dashboard = workspaceDashboardPage(page, token, workspaceName)

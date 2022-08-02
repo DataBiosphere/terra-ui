@@ -22,9 +22,6 @@
         },
         {
           "name": "analysis-context-bar"
-        },
-        {
-          "name": "run-notebook"
         }
       ]
     },
