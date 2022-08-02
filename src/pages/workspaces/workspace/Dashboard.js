@@ -428,13 +428,15 @@ const WorkspaceDashboard = _.flow(
   }
 
   const updateRecentlyViewedWorkspaces = () => {
+    //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
+    //we only want the most recent instance stored in the list.
     const updatedRecentlyViewed = _.flow(
       _.remove({ workspaceId }),
       _.concat([{ workspaceId, timestamp: Date.now() }]),
       _.orderBy(['timestamp'], ['desc']),
       _.take(4)
     )(recentlyViewed)
-    setRecentlyViewed(updatedRecentlyViewed) //todo move this to the dashboard to account for all cases
+    setRecentlyViewed(updatedRecentlyViewed)
   }
 
   // Render
