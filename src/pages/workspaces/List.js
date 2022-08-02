@@ -287,8 +287,7 @@ export const WorkspaceList = () => {
               div({ style: styles.tableCellContent }, [
                 h(WorkspaceSubmissionStatusIcon, {
                   status: lastRunStatus,
-                  loadingSubmissionStats,
-                  size: 20
+                  loadingSubmissionStats
                 })
               ])
             ])
@@ -384,7 +383,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div({}, [
-        p({}, 'RECENTLY VIEWED'),
+        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
         div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
           _.map(({ workspaceId, timestamp }) => {
             const workspace = getWorkspace(workspaceId)
