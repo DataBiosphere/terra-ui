@@ -50,7 +50,6 @@ export const CloudEnvironmentModal = ({
 
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
-    isAnalysisMode: true,
     workspace,
     tool,
     runtimes,

@@ -175,8 +175,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  //TODO: deprecate isAnalysisMode
-  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, shouldHideCloseButton = true
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
@@ -707,18 +706,17 @@ export const ComputeModalBase = ({
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
       /* eslint-disable indent */
-      // TODO: open to feedback and still thinking about this...
       // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
       // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
       //   user is using custom image
-      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection)
       //   use default image for selected tool
       // else
       //   use imageUrl derived from users current runtime
       /* eslint-disable indent */
       const getSelectedImage = () => {
         if (foundImage) {
-          if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+          if (!_.includes(foundImage, filteredNewLeoImages)) {
             return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
           } else {
             return imageUrl
@@ -862,7 +860,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: isAnalysisMode ? tool !== tools.RStudio.label : true })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== tools.RStudio.label })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -1554,7 +1552,7 @@ export const ComputeModalBase = ({
         h(TitleBar, {
           id: titleId,
           style: { marginBottom: '0.5rem' },
-          title: isAnalysisMode ? `${tool} Cloud Environment` : 'Cloud Environment',
+          title: `${tool} Cloud Environment`,
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
