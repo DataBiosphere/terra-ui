@@ -15,7 +15,7 @@ import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
 
-window.ajaxOverrideUtils = {
+(window as any).ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
     return new Response(JSON.stringify(fn(await res.json())), res)
@@ -28,7 +28,7 @@ window.ajaxOverrideUtils = {
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
 
-const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
+const authOpts = (token = (getUser() as any).token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 
@@ -64,19 +64,21 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
   while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
     try {
+      // @ts-ignore -- unexpected 2nd argument to withDelay
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
       // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
       // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
       // are not transient and the request should not be retried.
 
-      const shouldNotRetry = Boolean(error.requesterPaysError)
+      const shouldNotRetry = Boolean((error as any).requesterPaysError)
       if (shouldNotRetry) {
         throw error
       }
       // ignore error will retry
     }
   }
+  // @ts-ignore -- wrappedFetch is of type unknown
   return wrappedFetch(...args)
 })
 
@@ -120,6 +122,7 @@ export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespac
  * project if the user has access, retrying the request once if necessary.
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
+  // @ts-ignore -- return of exec() - Object is possibly 'null'
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
 
@@ -190,18 +193,21 @@ const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) =
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
+  // @ts-ignore -- keyFn Type '(...args: any[]) => string' is not assignable to type 'LodashIdentity' - Type 'string' is not assignable to type 'undefined'.
 }, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
-export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
+export const saToken = googleProject => getServiceAccountToken(googleProject, (getUser() as any).token)
 
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
   return res.json()
+  // @ts-ignore -- keyFn Type '(...args: any[]) => string' is not assignable to type 'LodashIdentity' - Type 'string' is not assignable to type 'undefined'.
 }, { keyFn: (...args) => JSON.stringify(args) })
 
 const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
+  // @ts-ignore -- keyFn Type '(...args: any[]) => string' is not assignable to type 'LodashIdentity' - Type 'string' is not assignable to type 'undefined'.
 }, { keyFn: (...args) => JSON.stringify(args) })
 
 const User = signal => ({
@@ -255,9 +261,9 @@ const User = signal => ({
       const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
       return res.json()
     } catch (error) {
-      if (error.status === 404) {
+      if ((error as any).status === 404) {
         return null
-      } else if (error.status === 403) {
+      } else if ((error as any).status === 403) {
         return false
       } else {
         throw error
@@ -277,7 +283,7 @@ const User = signal => ({
         _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
       )
     } catch (error) {
-      if (error.status !== 404) {
+      if ((error as any).status !== 404) {
         throw error
       }
     }
@@ -324,7 +330,7 @@ const User = signal => ({
   },
 
   firstTimestamp: () => {
-    return getFirstTimeStamp(getUser().token)
+    return getFirstTimeStamp((getUser() as any).token)
   },
 
   // UX is testing using AppCues. If experiment is successful, all NpsSurvey code can be deleted.
@@ -343,7 +349,7 @@ const User = signal => ({
       const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
       return res.json()
     } catch (error) {
-      if (error.status === 404) {
+      if ((error as any).status === 404) {
         return {}
       } else {
         throw error
@@ -365,7 +371,7 @@ const User = signal => ({
       const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
       return res.json()
     } catch (error) {
-      if (error.status === 404) {
+      if ((error as any).status === 404) {
         return {}
       } else {
         throw error
@@ -409,7 +415,7 @@ const User = signal => ({
           const res = await fetchEcm(root, _.merge(authOpts(), { signal }))
           return res.json()
         } catch (error) {
-          if (error.status === 404) {
+          if ((error as any).status === 404) {
             return null
           } else {
             throw error
@@ -442,7 +448,7 @@ const User = signal => ({
     try {
       await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))
     } catch (error) {
-      if (error.status === 404) {
+      if ((error as any).status === 404) {
         return false
       } else {
         throw error
@@ -529,9 +535,45 @@ const Groups = signal => ({
   }
 })
 
+export interface ChangeBillingNameArgs {
+  billingProjectName: string;
+  newBillingAccountName: string;
+}
+
+export interface RemoveBillingAcctArgs {
+  billingProjectName: string;
+}
+
+export interface UpdateSpendConfigurationArgs {
+  billingProjectName: string;
+  datasetGoogleProject: string;
+  datasetName: string;
+}
+
+export type BillingProjectUserRole = 'Owner' | 'User';
+export type BillingProjectStatus = 'Ready';
+
+export interface BillingProjectUser {
+  email: string;
+  role: BillingProjectUserRole
+}
+
+export interface BillingProject {
+  billingAccount: string;
+  invalidBillingAccount: boolean;
+  projectName: string;
+  roles: BillingProjectUserRole[];
+  status: BillingProjectStatus
+}
+
+export interface BillingAccount {
+  accountName: string;
+  displayName: string;
+}
+
 
 const Billing = signal => ({
-  listProjects: async () => {
+  listProjects: async (): Promise<BillingProject[]> => {
     const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
     return res.json()
   },
@@ -542,45 +584,43 @@ const Billing = signal => ({
     return res.json()
   },
 
-  listAccounts: async () => {
+  listAccounts: async (): Promise<BillingAccount[]> => {
     const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing/v2',
+    return ( await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
-    return res
+    )
   },
 
   deleteProject: async projectName => {
     const route = `billing/v2/${projectName}`
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    return res
+    return ( await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' })) )
   },
-
-  changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+  changeBillingAccount: async ({ billingProjectName, newBillingAccountName }: ChangeBillingNameArgs) => {
+    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([
         authOpts(), { signal, method: 'PUT' },
         jsonBody({ billingAccount: newBillingAccountName })
       ]))
-    return res
+    )
   },
 
-  removeBillingAccount: async ({ billingProjectName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+  removeBillingAccount: async ({ billingProjectName }: RemoveBillingAcctArgs) => {
+    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.merge(authOpts(), { signal, method: 'DELETE' }))
-    return res
+    )
   },
 
-  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
+  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }: UpdateSpendConfigurationArgs) => {
+    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
       _.mergeAll([
         authOpts(), { signal, method: 'PUT' },
         jsonBody({ datasetGoogleProject, datasetName })
       ]))
-    return res
+    )
   },
 
   /**
@@ -600,9 +640,10 @@ const Billing = signal => ({
     return res.json()
   },
 
-  listProjectUsers: async projectName => {
+  listProjectUsers: async (projectName: string): Promise<BillingProjectUser[]> => {
     const res = await fetchRawls(`billing/v2/${projectName}/members`, _.merge(authOpts(), { signal }))
-    return res.json()
+    const final = await res.json();
+    return final as BillingProjectUser[]
   },
 
   addProjectUser: (projectName, roles, email) => {
@@ -624,6 +665,7 @@ const Billing = signal => ({
   },
 
   changeUserRoles: async (projectName, email, oldRoles, newRoles) => {
+    // @ts-ignore -- Billing - Expected 1 arguments, but got 0.
     const billing = Billing()
     if (!_.isEqual(oldRoles, newRoles)) {
       await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
@@ -671,9 +713,30 @@ const CromIAM = signal => ({
   }
 })
 
+export interface Workspace {
+  accessLevel: 'PROJECT_OWNER' | 'READER';
+  public : boolean;
+  workspace: {
+    attributes: Record<string, string>;
+    authorizationDomain: unknown[];
+    billingAccount: string;
+    bucketName: string;
+    createdBy: string;
+    googleProject: string;
+    googleProjectNumber: string;
+    isLocked: boolean;
+    lastModified: string;
+    name: string;
+    namespace: string;
+    workFlowCollectionName: string;
+    workspaceId: string;
+    workspaceType: 'rawls';
+    workspaceVersion: string;
+  }
+}
 
 const Workspaces = signal => ({
-  list: async fields => {
+  list: async (fields: string[]): Promise<Workspace[]> => {
     const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
@@ -689,7 +752,7 @@ const Workspaces = signal => ({
   },
 
   getTags: async (tag, limit) => {
-    const params = { q: tag }
+    const params: any = { q: tag }
     if (limit) {
       params.limit = limit
     }
@@ -708,6 +771,7 @@ const Workspaces = signal => ({
 
       checkBucketAccess: async (googleProject, bucket, accessLevel) => {
         // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+        // @ts-ignore -- canWrite - This expression is not callable. Type 'Boolean' has no call signatures
         if (!Utils.canWrite(accessLevel)) {
           return false
         }
@@ -904,7 +968,7 @@ const Workspaces = signal => ({
       },
 
       snapshotEntityMetadata: (googleProject, dataReference) => {
-        return getSnapshotEntityMetadata(getUser().token, namespace, name, googleProject, dataReference)
+        return getSnapshotEntityMetadata((getUser() as any).token, namespace, name, googleProject, dataReference)
       },
 
       createEntity: async payload => {
@@ -1001,8 +1065,7 @@ const Workspaces = signal => ({
       importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-        return res
+        return ( await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' })) )
       },
 
       importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {
@@ -1462,7 +1525,7 @@ const Methods = signal => ({
         return res.json()
       },
 
-      toWorkspace: async (workspace, config = {}) => {
+      toWorkspace: async (workspace, config: any = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({
             methodRepoMethod: {
@@ -1631,7 +1694,7 @@ const Runtimes = signal => ({
         try {
           await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
           return true
-        } catch (error) {
+        } catch (error: any) {
           if (error.status === 409) {
             return false
           } else {
@@ -1816,7 +1879,7 @@ const Surveys = signal => ({
   })
 })
 
-export const Ajax = signal => {
+export const Ajax = (signal?: AbortSignal) => {
   return {
     User: User(signal),
     Groups: Groups(signal),
@@ -1842,5 +1905,9 @@ export const Ajax = signal => {
   }
 }
 
+export type AjaxContract = ReturnType<typeof Ajax>;
+export type BillingContract = AjaxContract['Billing'];
+export type MetricsContract = AjaxContract['Metrics'];
+
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
-window.Ajax = Ajax
+(window as any).Ajax = Ajax

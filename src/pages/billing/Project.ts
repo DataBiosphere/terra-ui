@@ -12,7 +12,11 @@ import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
-import { Ajax } from 'src/libs/ajax'
+import {
+  Ajax, BillingAccount, BillingProject, BillingProjectUser,
+  RemoveBillingAcctArgs,
+  UpdateSpendConfigurationArgs
+} from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
@@ -26,6 +30,8 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
+import Highcharts from "highcharts";
+import {UserRolesEntry} from "src/libs/state-history";
 
 
 const workspaceLastModifiedWidth = 150
@@ -40,7 +46,7 @@ const billingAccountIcons = {
 
 const getBillingAccountIcon = status => {
   const { shape, color } = billingAccountIcons[status]
-  return icon(shape, { size: billingAccountIconSize, color })
+  return icon(shape, ({ size: billingAccountIconSize, color } as any))
 }
 
 const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
@@ -92,7 +98,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingAccount
   }
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
-    h(IdContainer, [id => h(Fragment, [
+    h(IdContainer, [id => h(Fragment as any, [
       div({ style: workspaceCardStyles.row }, [
         billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' } }, [
@@ -146,9 +152,9 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
     div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
   ])
 
-  const maybeAddStatus = (status, count) => count > 0 && div({ style: { marginRight: '2rem' } }, [
+  const maybeAddStatus = (status, count) => count > 0 ? div({ style: { marginRight: '2rem' } }, [
     h(StatusAndCount, { status, count })
-  ])
+  ]) : ''
 
   return div({
     style: {
@@ -167,12 +173,12 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
       maybeAddStatus('done', done),
       maybeAddStatus('error', error)
     ]),
-    error > 0 && div({ style: { padding: '1rem 0 0' } }, [
+    error > 0 ? div({ style: { padding: '1rem 0 0' } }, [
       'Try again or ',
       h(Link, { onClick: () => contactUsActive.set(true) }, [
         'contact us regarding unresolved errors'
       ]), '.'
-    ])
+    ]) : ""
   ])
 }
 
@@ -189,38 +195,49 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   //   W is the number of workspaces in a billing project (can be very large for GP).
   // Note we need to perform this search W times for each billing project; using a set reduces time
   // complexity by an order of magnitude.
-  return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
+  return _.mapValues((ws: unknown[]) => new Set(ws), _.groupBy(group, workspaces))
 }
 
 const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
 
-const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
+export interface ProjectDetailProps {
+  authorizeAndLoadAccounts: () => Promise<void>;
+  billingAccounts: Record<string, BillingAccount>;
+  billingProject: BillingProject;
+  isAlphaSpendReportUser: boolean;
+  isOwner: boolean;
+  reloadBillingProject: () => Promise<void>;
+}
+
+const ProjectDetail: React.FC<ProjectDetailProps> = (
+    { authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }: ProjectDetailProps
+) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
-  const projectOwners = _.filter(_.flow(_.get('roles'), _.includes(billingRoles.owner)), projectUsers)
+  const projectOwners = _.filter(({roles}) => _.includes(billingRoles.owner, roles), projectUsers)
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
-  const [deletingUser, setDeletingUser] = useState(false)
+  const [deletingUser, setDeletingUser] = useState<any>(false)
   const [updating, setUpdating] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
-  const [selectedBilling, setSelectedBilling] = useState()
+  const [selectedBilling, setSelectedBilling] = useState<any>()
   const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
-  const [selectedDatasetName, setSelectedDatasetName] = useState(null)
+  const [selectedDatasetName, setSelectedDatasetName] = useState<string | null>(null)
   const [tab, setTab] = useState(query.tab || 'workspaces')
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
-  const [projectCost, setProjectCost] = useState(null)
+  const [projectCost, setProjectCost] = useState<any>(null)
   const [costPerWorkspace, setCostPerWorkspace] = useState(
-    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: null }
+    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: (x) => x }
   )
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
@@ -253,7 +270,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       shared: true,
       headerFormat: '{point.key}',
       pointFormatter: function() { // eslint-disable-line object-shorthand
-        return `<br/><span style="color:${this.color}">\u25CF</span> ${this.series.name}: ${costPerWorkspace.costFormatter.format(this.y)}`
+        // Highcharts callbacks do funny business with this context
+        const point = this as unknown as Highcharts.Point
+        return `<br/><span style="color:${point.color}">\u25CF</span> ${point.series.name}: ${costPerWorkspace.costFormatter(point.y)}`
       }
     },
     xAxis: {
@@ -263,7 +282,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     yAxis: {
       crosshair: true, min: 0,
       labels: {
-        formatter: function() { return costPerWorkspace.costFormatter.format(this.value) }, // eslint-disable-line object-shorthand
+        formatter: function() {
+          // Highcharts callbacks do funny business with this context
+          const label = this as unknown as Highcharts.AxisLabelsFormatterContextObject
+          return costPerWorkspace.costFormatter(label.value) }, // eslint-disable-line object-shorthand
         style: { fontSize: '12px' }
       },
       title: { enabled: false },
@@ -272,7 +294,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     accessibility: {
       point: {
         descriptionFormatter: point => {
-          return `${point.index + 1}. Workspace ${point.category}, ${point.series.name}: ${costPerWorkspace.costFormatter.format(point.y)}.`
+          return `${point.index + 1}. Workspace ${point.category}, ${point.series.name}: ${costPerWorkspace.costFormatter(point.y)}.`
         }
       }
     },
@@ -302,16 +324,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
-    workspaces: h(Fragment, [
+    workspaces: h(Fragment as any, [
       h(WorkspaceCardHeaders, {
         needsStatusColumn: billingAccountsOutOfDate,
         sort: workspaceSort,
         onSort: setWorkspaceSort
       }),
-      div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } }, [
+      div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } },
         _.flow(
-          _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-          _.map(workspace => {
+          _.orderBy([workspaceSort.field as any], [workspaceSort.direction as any]),
+          _.map((workspace: any) => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
               workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
@@ -322,9 +344,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             })
           })
         )(workspacesInProject)
-      ])
+      )
     ]),
-    members: h(Fragment, [
+    members: h(Fragment as any, [
       isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
@@ -333,7 +355,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ]),
       div({ role: 'table', 'aria-label': `users in billing project ${billingProject.projectName}` }, [
         h(MemberCardHeaders, { sort, onSort: setSort }),
-        div(_.map(member => {
+        div(_.map((member: any) => {
           return h(MemberCard, {
             key: member.email,
             adminLabel: billingRoles.owner,
@@ -344,7 +366,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             onDelete: () => setDeletingUser(member),
             isOwner
           })
-        }, _.orderBy([sort.field], [sort.direction], projectUsers))
+        }, _.orderBy([sort.field], [sort.direction as any], projectUsers))
         )
       ])
     ]),
@@ -352,7 +374,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
         _.concat(
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
-            h(IdContainer, [id => h(Fragment, [
+            h(IdContainer, [id => h(Fragment as any, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
               h(Select, {
                 id,
@@ -372,13 +394,13 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           ['spend', 'compute', 'storage', 'other'])
         )
       ),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
-        h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
-      ])
+      costPerWorkspace.numWorkspaces > 0 ? div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
+        h(Suspense as any, { fallback: '' }, [h(LazyChart as any, { options: spendChartOptions })])
+      ]) : ''
     ])
   }
 
-  const tabs = _.map(key => ({
+  const tabs: any[] = _.map((key: string) => ({
     key,
     title: span({ style: { padding: '0 0.5rem' } }, [
       _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
@@ -400,7 +422,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const setBillingAccount = _.flow(
     reportErrorAndRethrow('Error updating billing account'),
     Utils.withBusyState(setUpdating)
-  )(newAccountName => {
+  )((newAccountName: string): Promise<any> => {
     Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
       oldName: billingProject.billingAccount,
       newName: newAccountName,
@@ -410,7 +432,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       billingProjectName: billingProject.projectName,
       newBillingAccountName: newAccountName
     })
-  })
+  }) as (args: string) => Promise<any>
 
   const removeBillingAccount = _.flow(
     reportErrorAndRethrow('Error removing billing account'),
@@ -422,23 +444,21 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     return Ajax(signal).Billing.removeBillingAccount({
       billingProjectName: billingProject.projectName
     })
-  })
+  }) as (args: RemoveBillingAcctArgs) => Promise<any>
 
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.updateSpendConfiguration({
-    billingProjectName: billingProject.projectName,
-    datasetGoogleProject: selectedDatasetProjectName,
-    datasetName: selectedDatasetName
-  }))
+  )(
+    (args: UpdateSpendConfigurationArgs) => Ajax(signal).Billing.updateSpendConfiguration(args)
+  ) as (args: UpdateSpendConfigurationArgs) => Promise<any>
 
-  const collectUserRoles = _.flow(
+  const collectUserRoles: (rawInfo: BillingProjectUser[]) => UserRolesEntry[] = _.flow(
     _.groupBy('email'),
-    _.entries,
+    _.entries as (grouped: Record<string, BillingProjectUser>) => [[string, BillingProjectUser[]]],
     _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
     _.sortBy('email')
-  )
+  ) as (rawInfo: BillingProjectUser[]) => UserRolesEntry[]
 
   const reloadBillingProjectUsers = _.flow(
     reportErrorAndRethrow('Error loading billing project users list'),
@@ -446,15 +466,17 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName)
     .then(collectUserRoles)
     .then(setProjectUsers)
-  )
+  ) as () => Promise<any>
 
   const removeUserFromBillingProject = _.flow(
     reportErrorAndRethrow('Error removing member from billing project'),
     Utils.withBusyState(setUpdating)
-  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]))
+  )(
+      _.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName])
+  ) as (roles: any, email: any) => Promise<any>
 
   // Lifecycle
-  useOnMount(() => { reloadBillingProjectUsers() })
+  useOnMount(() => { void reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
   // Update cost data only if report date range changes, or if spend report tab was selected.
@@ -468,20 +490,20 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         const endDate = new Date().toISOString().slice(0, 10)
         const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
         const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
-        const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-        const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
+        const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency }).format
+        const categoryDetails = _.find((details: any) => details.aggregationKey === 'Category')(spend.spendDetails)
         console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
         const getCategoryCosts = (categorySpendData, asFloat) => {
           const costDict = {}
           _.forEach(type => {
-            const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
-            costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
+            const costAsString = (_.find(['category', type])(categorySpendData) as any)?.cost ?? 0
+            costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter(costAsString)
           }, ['Compute', 'Storage', 'Other'])
           return costDict
         }
-        const costDict = getCategoryCosts(categoryDetails.spendData, false)
+        const costDict: any = getCategoryCosts(categoryDetails.spendData, false)
         const totalCosts = {
-          spend: costFormatter.format(spend.spendSummary.cost),
+          spend: costFormatter(spend.spendSummary.cost),
           compute: costDict.Compute,
           storage: costDict.Storage,
           other: costDict.Other
@@ -489,7 +511,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
         setProjectCost(totalCosts)
 
-        const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
+        const workspaceDetails = _.find((details: any) => details.aggregationKey === 'Workspace')(spend.spendDetails)
         console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
         // Get the most expensive workspaces, sorted from most to least expensive.
         const mostExpensiveWorkspaces = _.flow(
@@ -498,14 +520,14 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           _.slice(0, maxWorkspacesInChart)
         )(workspaceDetails?.spendData)
         // Pull out names and costs.
-        const costPerWorkspace = {
+        const costPerWorkspace: any = {
           workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
         }
-        _.forEach(workspaceCostData => {
+        _.forEach((workspaceCostData: any) => {
           costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
           const categoryDetails = workspaceCostData.subAggregation
           console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
-          const costDict = getCategoryCosts(categoryDetails.spendData, true)
+          const costDict: any = getCategoryCosts(categoryDetails.spendData, true)
           costPerWorkspace.computeCosts.push(costDict.Compute)
           costPerWorkspace.storageCosts.push(costDict.Storage)
           costPerWorkspace.otherCosts.push(costDict.Other)
@@ -513,8 +535,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         setCostPerWorkspace(costPerWorkspace)
         setUpdatingProjectCost(false)
       }
-    })
-    maybeLoadProjectCost()
+    }) as any as () => Promise<any>
+    void maybeLoadProjectCost()
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
@@ -522,7 +544,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const getShowBillingModal = useGetter(showBillingModal)
   const getBillingAccountsOutOfDate = useGetter(billingAccountsOutOfDate)
   usePollingEffect(
-    () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
+    () => !getShowBillingModal() && getBillingAccountsOutOfDate() && void (refreshWorkspaces as any as () => Promise<any>)(),
     { ms: 5000 }
   )
 
@@ -530,23 +552,22 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount))
   const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined
 
-  const billingAccountDisplayText = Utils.cond(
-    [!billingProjectHasBillingAccount, () => 'No linked billing account'],
-    [!billingAccount, () => 'No access to linked billing account'],
-    () => billingAccount.displayName || billingAccount.accountName
-  )
+  const billingAccountDisplayText: () => string =
+      (!billingProjectHasBillingAccount) ? () => 'No linked billing account' :
+          (!billingAccount) ? () => 'No access to linked billing account' :
+              () => billingAccount.displayName || billingAccount.accountName
 
-  return h(Fragment, [
+  return h(Fragment as any, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+      Auth.hasBillingScope() ? div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
-        isOwner && h(MenuTrigger, {
+        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText()),
+        isOwner ? h(MenuTrigger, {
           closeOnClick: true,
           side: 'bottom',
           style: { marginLeft: '0.5rem' },
-          content: h(Fragment, [
+          content: h(Fragment as any, [
             h(MenuButton, {
               onClick: async () => {
                 if (Auth.hasBillingScope()) {
@@ -571,10 +592,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           ])
         }, [
           h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
-            icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
+            icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' } as any)
           ])
-        ]),
-        showBillingModal && h(Modal, {
+        ]) : '',
+        showBillingModal ? h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
           okButton: h(ButtonPrimary, {
@@ -585,7 +606,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           }, ['Ok'])
         }, [
-          h(IdContainer, [id => h(Fragment, [
+          h(IdContainer, [id => h(Fragment as any, [
             h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
             h(Select, {
               id,
@@ -597,8 +618,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             div({ style: { marginTop: '1rem' } },
               ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
           ])])
-        ]),
-        showBillingRemovalModal && h(Modal, {
+        ]) : '',
+        showBillingRemovalModal ? h(Modal, {
           title: 'Remove Billing Account',
           onDismiss: () => setShowBillingRemovalModal(false),
           okButton: h(ButtonPrimary, {
@@ -610,8 +631,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         }, [
           div({ style: { marginTop: '1rem' } },
             ['Are you sure you want to remove this billing project\'s billing account?'])
-        ])
-      ]),
+        ]) : ''
+      ]) : '',
       Auth.hasBillingScope() && isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
         span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
@@ -627,37 +648,43 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             }
           }
         }, [icon('edit', { size: 12 })]),
-        showSpendReportConfigurationModal && h(Modal, {
+        showSpendReportConfigurationModal ? h(Modal, {
           title: 'Configure Workflow Spend Reporting',
           onDismiss: () => setShowSpendReportConfigurationModal(false),
           okButton: h(ButtonPrimary, {
             disabled: !selectedDatasetProjectName || !selectedDatasetName,
             onClick: async () => {
-              setShowSpendReportConfigurationModal(false)
-              await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName)
+              if (!!selectedDatasetProjectName && !!selectedDatasetName) {
+                setShowSpendReportConfigurationModal(false)
+                await updateSpendConfiguration({
+                  billingProjectName: billingProject.projectName,
+                  datasetGoogleProject: selectedDatasetProjectName,
+                  datasetName: selectedDatasetName
+                })
+              }
             }
           }, ['Ok'])
         }, [
-          h(IdContainer, [id => h(Fragment, [
+          h(IdContainer, [id => h(Fragment as any, [
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project Name']),
             h(TextInput, {
               id,
               onChange: setSelectedDatasetProjectName
             })
           ])]),
-          h(IdContainer, [id => h(Fragment, [
+          h(IdContainer, [id => h(Fragment as any, [
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
             h(TextInput, {
               id,
               onChange: setSelectedDatasetName
             }),
             div({ style: { marginTop: '1rem' } }, [
-              ['See '],
+              'See ',
               h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
-              [' for details on configuring workflow spend reporting for billing projects.']
+              ' for details on configuring workflow spend reporting for billing projects.'
             ])
           ])])
-        ])
+        ]) : ''
       ]),
       !Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         h(Link, {
@@ -674,7 +701,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           backgroundColor: colors.warning(0.15)
         }
       }, [
-        icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } }),
+        icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } } as any),
         span(isOwner ? [
           'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. ',
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps }, [
@@ -696,7 +723,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         key: `tabBarKey${isAlphaSpendReportUser}`, // The Spend report tab is only present for alpha users, so force recreation.
         onChange: newTab => {
           if (newTab === tab) {
-            reloadBillingProjectUsers()
+            void reloadBillingProjectUsers()
           } else {
             setTab(newTab)
           }
@@ -723,7 +750,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
-        reloadBillingProjectUsers()
+        void reloadBillingProjectUsers()
       }
     }),
     editingUser && h(EditUserModal, {

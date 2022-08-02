@@ -96,7 +96,7 @@ export const useUploader = (): Uploader => {
           active: true,
           files: update.files,
           totalFiles: update.files.length,
-          totalBytes: _.reduce((total, file) => total += file.size, 0, update.files)
+          totalBytes: _.reduce((total, file) => { total += file.size; return total }, 0, update.files)
         }
 
       case 'startFile':
@@ -110,14 +110,14 @@ export const useUploader = (): Uploader => {
         return {
           ...state,
           uploadedBytes: state.uploadedBytes + update.file.size,
-          // @ts-expect-error
+          // a@ts-expect-error
           completedFiles: Utils.append(update.file, state.completedFiles)
         }
 
       case 'error':
         return {
           ...state,
-          // @ts-expect-error
+          // a@ts-expect-error
           errors: Utils.append(update.error, state.errors)
         }
 

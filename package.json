@@ -126,5 +126,8 @@
     "**/*.js": [
       "yarn eslint --max-warnings=0"
     ]
+  },
+  "jest": {
+    "resetMocks": false
   }
 }

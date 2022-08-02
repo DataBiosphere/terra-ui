@@ -4,12 +4,14 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { div, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
+import {SafeCurry2} from "src/libs/type-utils";
 
 
-export const subscribable = () => {
-  let subscribers = []
+export const subscribable = <A extends any[]>() => {
+  type CallBack<AA extends any[]> = (...args: AA) => void;
+  let subscribers: CallBack<A>[] = []
   return {
-    subscribe: fn => {
+    subscribe: (fn: CallBack<A>) => {
       subscribers = append(fn, subscribers)
       return {
         unsubscribe: () => {
@@ -17,10 +19,20 @@ export const subscribable = () => {
         }
       }
     },
-    next: (...args) => {
+    next: (...args: A) => {
       _.forEach(fn => fn(...args), subscribers)
     }
   }
+}
+
+type AtomUpdateCallback<T> = (oldValue: T) => T
+
+export interface AtomContract<T = any> {
+  subscribe: (fn: (value: T, old: T) => void) => { unsubscribe: () => void };
+  get: () => T;
+  set: (value: T) => void;
+  update: (fn: AtomUpdateCallback<T>) => void;
+  reset: () => void;
 }
 
 /**
@@ -28,16 +40,23 @@ export const subscribable = () => {
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  * Implements the Store interface
  */
-export const atom = initialValue => {
-  let value = initialValue
-  const { subscribe, next } = subscribable()
+export const atom = <T>(initialValue: T): AtomContract<T> => {
+
+  let value: T = initialValue
+  const { subscribe, next } = subscribable<[T, T]>()
   const get = () => value
-  const set = newValue => {
-    const oldValue = value
+  const set = (newValue: T) => {
+    const oldValue: T = value
     value = newValue
     next(newValue, oldValue)
   }
-  return { subscribe, get, set, update: fn => set(fn(get())), reset: () => set(initialValue) }
+  return ({
+    subscribe,
+    get,
+    set,
+    update: (fn: AtomUpdateCallback<T>) => set(fn(get())),
+    reset: () => set(initialValue)
+  })
 }
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -130,22 +149,32 @@ export const switchCase = (value, ...pairs) => {
   return match && match[1]()
 }
 
-export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
+export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]: [any, any]) => [k * 1, v]))
+
+export interface MemoizeAsyncArgs<F extends (...args: any[]) => any> {
+  keyFn: (...args: Parameters<F>) => string;
+  expires: number;
+}
 
 /**
  * Memoizes an async function for up to `expires` ms.
  * Rejected promises are immediately removed from the cache.
  */
-export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }) => {
-  const cache = {}
-  return (...args) => {
+export const memoizeAsync = <F extends (...args: any[]) => any>(asyncFn: F, { keyFn, expires = Infinity }: MemoizeAsyncArgs<F>): F => {
+  interface CacheEntry {
+    timestamp: number;
+    value: ReturnType<F>;
+  }
+  const cache: Record<string, CacheEntry> = {}
+
+  const wrappedFn = ((...args: Parameters<F>) => {
     const now = Date.now()
     const key = keyFn(...args)
     const entry = cache[key]
     if (entry && now < entry.timestamp + expires) {
       return entry.value
     }
-    const value = asyncFn(...args)
+    const value: ReturnType<F> = asyncFn(...args)
     cache[key] = { timestamp: now, value }
     value.catch(() => {
       if (cache[key] && cache[key].value === value) {
@@ -153,7 +182,8 @@ export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }
       }
     })
     return value
-  }
+  });
+  return wrappedFn as F;
 }
 
 export const delay = ms => {
@@ -219,7 +249,7 @@ export const summarizeErrors = errors => {
   )
   if (errorList.length) {
     return _.map(([k, v]) => {
-      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v])
+      return div({ key: k, style: { marginTop: k !== '0' ? '0.5rem' : undefined } }, [v as any])
     }, _.toPairs(errorList))
   }
 }
@@ -263,7 +293,7 @@ export const convertValue = _.curry((type, value) => {
  */
 export const normalizeLabel = _.flow(_.camelCase, _.startCase)
 
-export const kvArrayToObject = _.reduce((acc, { key, value }) => _.set(key, value, acc), {})
+export const kvArrayToObject = _.reduce((acc: any, { key, value }: any) => _.set(key, value, acc), {} as any)
 
 export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
   const { workspace: { workspaceId: sourceId, authorizationDomain: sourceAD } } = sourceWs
@@ -274,16 +304,26 @@ export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
 
-// Transforms an async function so that it updates a busy flag via the provided callback 'setBusy'
-// Note that 'fn' does not get called during the transformation.
-export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
+type WithBusyState<A extends unknown[], R> = <A extends unknown[], R>(
+    setBusy: (isBusy: boolean) => void, fn: (...args: A) => Promise<R>
+) => (...args: A) => Promise<R>
+
+const withBusyStateFn = (<A extends any[], R>(
+    setBusy: (isBusy: boolean) => void, fn: (...args: A) => Promise<R>
+) => async (...args: A): Promise<R> => {
   try {
     setBusy(true)
     return await fn(...args)
   } finally {
     setBusy(false)
   }
-})
+}) as WithBusyState<any[], any>
+
+// Transforms an async function so that it updates a busy flag via the provided callback 'setBusy'
+// Note that 'fn' does not get called during the transformation.
+//export const withBusyState = _.curry(withBusyStateFn as typeof withBusyStateFn<Array<any>, any>)
+export const withBusyState = _.curry(withBusyStateFn) as SafeCurry2<typeof withBusyStateFn>
+
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
@@ -340,7 +380,7 @@ export const commaJoin = (list, conjunction = 'or') => {
 export const sha256 = async message => {
   const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
   return _.flow(
-    _.map(v => v.toString(16).padStart(2, '0')),
+    _.map((v: number) => v.toString(16).padStart(2, '0')),
     _.join('')
   )(new Uint8Array(hashBuffer))
 }
@@ -350,14 +390,20 @@ export const formatBytes = bytes => {
     return `${bytes} B`
   }
 
-  const [prefix, divisor] = [
+  const lookup: [string, number][] = [
     ['P', 2 ** 50],
     ['T', 2 ** 40],
     ['G', 2 ** 30],
     ['M', 2 ** 20],
     ['K', 2 ** 10]
-  ].find(([_p, d]) => bytes >= d)
-  return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+  ]
+  const found = lookup.find(([_p, d]) => bytes >= d)
+  if (found) {
+    const [prefix, divisor] = found;
+    return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
+  } else {
+    return `${bytes} B`
+  }
 }
 
 //Truncates an integer to the thousands, i.e. 10363 -> 10k

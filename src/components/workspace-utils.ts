@@ -79,7 +79,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label
     value,
     onChange: ({ value }) => onChange(value),
     options: _.flow(
-      _.sortBy(ws => ws.workspace.name.toLowerCase()),
+      _.sortBy((ws: any) => ws.workspace.name.toLowerCase()),
       _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
     )(workspaces),
     ...props
@@ -98,7 +98,7 @@ export const SnapshotInfo = ({
   onUpdate, onDelete
 }) => {
   // State
-  const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+  const [snapshotInfo, setSelectedSnapshotInfo] = useState<any | undefined>()
   const [newName, setNewName] = useState(snapshotName)
   const [editingName, setEditingName] = useState(false)
   const [newDescription, setNewDescription] = useState(undefined)
@@ -143,7 +143,8 @@ export const SnapshotInfo = ({
     length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
   })
 
-  return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
+  // noinspection SqlNoDataSourceInspection
+  return snapshotInfo === undefined ? spinnerOverlay : h(Fragment as any, [
     div({ style: { padding: '1rem' } }, [
       div({ style: Style.elements.card.container }, [
         div({
@@ -161,13 +162,13 @@ export const SnapshotInfo = ({
         ]),
         div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, [
           'Description:',
-          Utils.canWrite(accessLevel) && !editingDescription && h(Link, {
+          Utils.canWrite(accessLevel) && !editingDescription ? h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setNewDescription(description || ''), // description is null for newly-added snapshot references
             tooltip: 'Edit description'
-          }, [icon('edit')])
+          }, [icon('edit')]) : ''
         ]),
-        editingDescription ? h(Fragment, [
+        editingDescription ? h(Fragment as any, [
           h(MarkdownEditor, {
             placeholder: 'Enter a description',
             value: newDescription,
@@ -208,12 +209,12 @@ export const SnapshotInfo = ({
               }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
             })
           ])
-        }, source)
+        }, source) as any
       ]),
-      Utils.canWrite(accessLevel) && div({ style: { marginTop: '2rem' } }, [
+      Utils.canWrite(accessLevel) ? div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])
-      ]),
-      editingName && h(Modal, {
+      ]) : '',
+      editingName ? h(Modal, {
         onDismiss: () => {
           setNewName(snapshotName)
           setEditingName(false)
@@ -228,7 +229,7 @@ export const SnapshotInfo = ({
           tooltip: Utils.summarizeErrors(errors) || (snapshotName === newName && 'No change to save')
         }, ['Rename'])
       }, [
-        h(IdContainer, [id => h(Fragment, [
+        h(IdContainer, [id => h(Fragment as any, [
           h(FormLabel, { htmlFor: id }, ['New snapshot name']),
           h(ValidatedInput, {
             inputProps: {
@@ -241,8 +242,8 @@ export const SnapshotInfo = ({
             error: Utils.summarizeErrors(errors)
           })
         ])])
-      ]),
-      deleting && h(Modal, {
+      ]) : '',
+      deleting ? h(Modal, {
         onDismiss: () => setDeleting(false),
         okButton: async () => {
           try {
@@ -272,8 +273,8 @@ export const SnapshotInfo = ({
           b([sourceName]),
           ', will be unaffected.'
         ])
-      ]),
-      saving && spinnerOverlay
+      ]) : '',
+      saving ? spinnerOverlay : ''
     ])
   ])
 }
@@ -287,7 +288,7 @@ export const WorkspaceImporter = _.flow(
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
-  return h(Fragment, [
+  return h(Fragment as any, [
     h(WorkspaceSelector, {
       workspaces: _.filter(ws => {
         return Utils.canWrite(ws.accessLevel) &&

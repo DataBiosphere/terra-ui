@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { reloadAuthToken, signOut } from 'src/libs/auth'
 import { notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { SafeCurry2 } from "src/libs/type-utils";
 
 
 export const reportError = async (title, obj) => {
@@ -27,18 +28,24 @@ export const withErrorIgnoring = fn => async (...args) => {
   }
 }
 
+const reportErrorAndRethrowFn = <A extends any[], R>(
+  title: string, fn: (...args:A) => Promise<R>
+): (...args:A) => Promise<R> => {
+  return (async (...args:A): Promise<R> => {
+    try {
+      return await fn(...args)
+    } catch (error) {
+      void reportError(title, error)
+      throw error
+    }
+  })
+}
+
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
  * report the error to the user with `title` as a side effect.
  */
-export const reportErrorAndRethrow = _.curry((title, fn) => async (...args) => {
-  try {
-    return await fn(...args)
-  } catch (error) {
-    reportError(title, error)
-    throw error
-  }
-})
+export const reportErrorAndRethrow = _.curry(reportErrorAndRethrowFn) as SafeCurry2<typeof reportErrorAndRethrowFn>
 
 /**
  *  This function is designed for use in modals

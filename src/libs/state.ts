@@ -1,5 +1,6 @@
 import { staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
+import { Workspace } from "src/libs/ajax";
 
 
 export const routeHandlersStore = Utils.atom([])
@@ -37,11 +38,11 @@ export const notificationStore = Utils.atom([])
 
 export const contactUsActive = Utils.atom(false)
 
-export const workspaceStore = Utils.atom()
+export const workspaceStore = Utils.atom<any>(undefined)
 
-export const workspacesStore = Utils.atom()
+export const workspacesStore = Utils.atom<Workspace[] | undefined>(undefined)
 
-export const rerunFailuresStatus = Utils.atom()
+export const rerunFailuresStatus = Utils.atom<any>(undefined)
 
 export const errorNotifiedRuntimes = Utils.atom([])
 
@@ -49,7 +50,7 @@ export const errorNotifiedApps = Utils.atom([])
 
 export const knownBucketRequesterPaysStatuses = Utils.atom({})
 
-export const requesterPaysProjectStore = Utils.atom()
+export const requesterPaysProjectStore = Utils.atom<any>(undefined)
 
 export const workflowSelectionStore = Utils.atom({
   key: undefined,
@@ -59,11 +60,11 @@ export const workflowSelectionStore = Utils.atom({
 
 export const asyncImportJobStore = Utils.atom([])
 
-export const snapshotsListStore = Utils.atom()
+export const snapshotsListStore = Utils.atom<any>(undefined)
 
-export const snapshotStore = Utils.atom()
+export const snapshotStore = Utils.atom<any>(undefined)
 
-export const dataCatalogStore = Utils.atom()
+export const dataCatalogStore = Utils.atom<any>(undefined)
 
 /*
  * Modifies ajax responses for testing purposes.
@@ -71,12 +72,12 @@ export const dataCatalogStore = Utils.atom()
  * The fn should be a fetch wrapper (oldFetch => newFetch) that modifies the request process. (See ajaxOverrideUtils)
  * If present, filter should be a RegExp that is matched against the url to target specific requests.
  */
-export const ajaxOverridesStore = Utils.atom()
-window.ajaxOverridesStore = ajaxOverridesStore
+export const ajaxOverridesStore = Utils.atom<any>(undefined);
+(window as any).ajaxOverridesStore = ajaxOverridesStore
 
 /*
  * Modifies config settings for testing purposes.
  * Can be set to an object which will be merged with the loaded config object.
  */
-export const configOverridesStore = staticStorageSlot(sessionStorage, 'config-overrides')
-window.configOverridesStore = configOverridesStore
+export const configOverridesStore = staticStorageSlot(sessionStorage, 'config-overrides');
+(window as any).configOverridesStore = configOverridesStore

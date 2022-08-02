@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { v4 as uuid } from 'uuid'
+import { BillingProjectUserRole } from "src/libs/ajax";
 
 
 const getKey = () => {
@@ -14,8 +15,18 @@ const getKey = () => {
   }
 }
 
+export interface UserRolesEntry {
+  email: string;
+  roles: BillingProjectUserRole[];
+}
 
-export const get = () => {
+export interface StoredState {
+  projectUsers?: UserRolesEntry[]
+
+  // define other stuff stored in here
+}
+
+export const get = (): StoredState => {
   const data = getDynamic(sessionStorage, getKey())
   return _.isPlainObject(data) ? data : {}
 }

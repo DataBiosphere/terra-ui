@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { delay } from 'src/libs/utils'
+import {AtomContract, delay} from 'src/libs/utils'
 
 
 /**
@@ -67,10 +67,12 @@ export const useCancelable = () => {
 }
 
 export const useCancellation = () => {
-  const controller = useRef()
+  const controller = useRef<AbortController>()
   useOnMount(() => {
     const instance = controller.current
-    return () => instance.abort()
+    if (instance) {
+      return () => instance.abort()
+    }
   })
   if (!controller.current) {
     controller.current = new window.AbortController()
@@ -78,7 +80,7 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
-export const withDisplayName = _.curry((name, WrappedComponent) => {
+export const withDisplayName = _.curry((name: string, WrappedComponent) => {
   WrappedComponent.displayName = name
   return WrappedComponent
 })
@@ -95,11 +97,11 @@ export const combineRefs = refs => {
   }
 }
 
-export const forwardRefWithName = _.curry((name, WrappedComponent) => {
+export const forwardRefWithName = _.curry((name: string, WrappedComponent) => {
   return withDisplayName(name, forwardRef(WrappedComponent))
 })
 
-export const memoWithName = _.curry((name, WrappedComponent) => {
+export const memoWithName = _.curry((name: string, WrappedComponent) => {
   return withDisplayName(name, memo(WrappedComponent))
 })
 
@@ -110,7 +112,11 @@ export const withCancellationSignal = WrappedComponent => {
   })
 }
 
-export const usePollingEffect = (effectFn, { ms, leading }) => {
+interface UsePollingEffectArgs {
+  ms: number;
+  leading?: boolean;
+}
+export const usePollingEffect = (effectFn, { ms, leading }: UsePollingEffectArgs) => {
   const signal = useCancellation()
 
   useOnMount(() => {
@@ -144,8 +150,8 @@ export const useCurrentTime = (initialDelay = 250) => {
 /**
  * Hook that returns the value of a given store. When the store changes, the component will re-render
  */
-export const useStore = theStore => {
-  const [value, setValue] = useState(theStore.get())
+export const useStore = <T = any>(theStore: AtomContract<T>) => {
+  const [value, setValue] = useState<T>(theStore.get())
   useEffect(() => {
     return theStore.subscribe(v => setValue(v)).unsubscribe
   }, [theStore, setValue])
