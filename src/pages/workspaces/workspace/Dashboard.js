@@ -273,7 +273,7 @@ const WorkspaceDashboard = _.flow(
     if (Utils.canWrite(accessLevel)) {
       try {
         const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-        setStorageCost({ estimate, lastUpdated })
+        setStorageCost({ isSuccess: true, estimate, lastUpdated })
       } catch (error) {
         if (error.status === 404) {
           setStorageCost({ isSuccess: false, estimate: 'Not available' })
