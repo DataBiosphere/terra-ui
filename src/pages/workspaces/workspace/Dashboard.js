@@ -28,7 +28,6 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { __throw } from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -276,9 +275,11 @@ const WorkspaceDashboard = _.flow(
         const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
         setStorageCost({ estimate, lastUpdated })
       } catch (error) {
-        error.status === 404 ?
-          setStorageCost({ isSuccess: false, estimate: 'Not available' }) :
-          __throw(error)
+        if (error.status === 404) {
+          setStorageCost({ isSuccess: false, estimate: 'Not available' })
+        } else {
+          throw error
+        }
       }
     }
   })
@@ -289,9 +290,11 @@ const WorkspaceDashboard = _.flow(
         const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
         setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
       } catch (error) {
-        error.status === 404 ?
-          setBucketSize({ isSuccess: false, usage: 'Not available' }) :
-          __throw(error)
+        if (error.status === 404) {
+          setBucketSize({ isSuccess: false, usage: 'Not available' })
+        } else {
+          throw error
+        }
       }
     }
   })
@@ -392,15 +395,17 @@ const WorkspaceDashboard = _.flow(
         ]),
         Utils.canWrite(accessLevel) && h(InfoRow, {
           title: 'Estimated Storage Cost',
-          ...(storageCost?.isSuccess ?
-            { subtitle: `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` } :
-            !storageCost && { subtitle: 'Loading last updated...' })
+          subtitle: Utils.cond(
+            [!storageCost, () => 'Loading last updated...'],
+            [storageCost?.isSuccess, () => `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}`]
+          )
         }, [storageCost?.estimate || '$ ...']),
         Utils.canWrite(accessLevel) && h(InfoRow, {
           title: 'Bucket Size',
-          ...(bucketSize?.isSuccess ?
-            { subtitle: `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` } :
-            !bucketSize && { subtitle: 'Loading last updated...' })
+          subtitle: Utils.cond(
+            [!bucketSize, () => 'Loading last updated...'],
+            [bucketSize?.isSuccess, () => `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}`]
+          )
         }, [bucketSize?.usage])
       ] : [
         h(InfoRow, { title: 'Cloud Name' }, [

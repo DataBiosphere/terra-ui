@@ -368,7 +368,3 @@ export const truncateInteger = integer => {
 
   return `${Math.floor(integer / 1000)}k`
 }
-
-
-// See https://github.com/tc39/proposal-throw-expressions#other-notes
-export const __throw = exception => { throw exception }
