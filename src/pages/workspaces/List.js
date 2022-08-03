@@ -375,7 +375,7 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div({}, [
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
         p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
         div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
           _.map(({ workspaceId, timestamp }) => {
