@@ -347,14 +347,14 @@ export const WorkspaceTagSelect = props => {
 }
 
 export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, size = 20 }) => {
-  return div({}, [
-    loadingSubmissionStats && h(DelayedRender, [
+  return Utils.cond(
+    [loadingSubmissionStats, () => h(DelayedRender, [
       h(TooltipTrigger, {
         content: 'Loading submission status',
         side: 'left'
       }, [spinner({ size })])
-    ]),
-    !!status && h(TooltipTrigger, {
+    ])],
+    [status, () => h(TooltipTrigger, {
       content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
       side: 'left'
     }, [
@@ -363,8 +363,8 @@ export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, 
         ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
         ['running', () => icon('sync', { size, style: { color: colors.success() } })]
       )
-    ])
-  ])
+    ])],
+    () => null)
 }
 
 export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
