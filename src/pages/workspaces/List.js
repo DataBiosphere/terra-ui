@@ -88,7 +88,7 @@ export const WorkspaceList = () => {
   const [featuredList, setFeaturedList] = useState()
 
   const persistenceId = 'workspaces/recentlyViewed'
-  const [recentlyViewed] = useState(() => getLocalPref(persistenceId)?.recentlyViewed || [])
+  const recentlyViewed = useMemo(() => getLocalPref(persistenceId)?.recentlyViewed || [], [])
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
