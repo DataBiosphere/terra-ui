@@ -18,7 +18,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -89,10 +89,6 @@ export const WorkspaceList = () => {
 
   const persistenceId = 'workspaces/recentlyViewed'
   const [recentlyViewed] = useState(() => getLocalPref(persistenceId)?.recentlyViewed || [])
-
-  useEffect(() => {
-    setLocalPref(persistenceId, { recentlyViewed })
-  }, [recentlyViewed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
