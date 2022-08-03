@@ -307,7 +307,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.light() } }),
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: 'white' } }),
             isBioDataCatalyst() && h(Fragment, [
               h(Link,
                 {
@@ -323,7 +323,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 onClick: hideNav
               }, ['Terra Terms of Service'])
             ]),
-            div({ style: { color: colors.light(), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
+            div({ style: { color: 'white', fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
                 href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
