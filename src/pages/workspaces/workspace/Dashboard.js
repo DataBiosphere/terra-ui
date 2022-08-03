@@ -401,9 +401,7 @@ const WorkspaceDashboard = _.flow(
           ...(bucketSize?.isSuccess ?
             { subtitle: `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` } :
             !bucketSize && { subtitle: 'Loading last updated...' })
-        },
-        [bucketSize?.usage]
-        )
+        }, [bucketSize?.usage])
       ] : [
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
