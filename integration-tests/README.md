@@ -5,6 +5,10 @@
 1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
 2. Run `yarn install` in this directory.
 
+### Creating a test
+
+1. Update `slack-notify-channels.json` in `slack/` directory: Add new test name and Slack channel for test result notification.
+
 ### Running the tests
 
 ```sh

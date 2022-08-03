@@ -2,7 +2,7 @@ import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { div, h, h3, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -196,6 +196,51 @@ const LazyChart = lazy(() => import('src/components/Chart'))
 const maxWorkspacesInChart = 10
 const spendReportKey = 'spend report'
 
+const CostCard = ({ title, amount, isProjectCostReady, showAsterisk, ...props }) => {
+  return div({
+    ...props,
+    style: {
+      ...Style.elements.card.container,
+      backgroundColor: 'white',
+      padding: undefined,
+      boxShadow: undefined,
+      gridRowStart: '2'
+    }
+  }, [
+    div(
+      {
+        style: { flex: 'none', padding: '0.625rem 1.25rem' },
+        'aria-live': isProjectCostReady ? 'polite' : 'off',
+        'aria-atomic': true
+      },
+      [
+        div({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
+        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [
+          amount,
+          (!!showAsterisk && isProjectCostReady) ? span(
+            {
+              style: { fontSize: 16, fontWeight: 'normal', verticalAlign: 'super' },
+              'aria-hidden': true
+            },
+            ['*']
+          ) : null
+        ])
+      ]
+    )
+  ])
+}
+
+const OtherMessaging = ({ cost }) => {
+  const msg = cost !== null ?
+    `Total spend includes ${cost} in other infrastructure or query costs related to the general operations of Terra.` :
+    'Total spend includes infrastructure or query costs related to the general operations of Terra'
+  return div({ 'aria-live': cost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
+    span({ 'aria-hidden': true }, ['*']),
+    '',
+    msg
+  ])
+}
+
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
@@ -241,8 +286,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     plotOptions: { series: { stacking: 'normal' } },
     series: [
       { name: 'Compute', data: costPerWorkspace.computeCosts },
-      { name: 'Storage', data: costPerWorkspace.storageCosts },
-      { name: 'Other', data: costPerWorkspace.otherCosts }
+      { name: 'Storage', data: costPerWorkspace.storageCosts }
     ],
     title: {
       align: 'left', style: { fontSize: '16px' }, y: 25,
@@ -279,23 +323,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
-  const CostCard = ({ title, amount, ...props }) => {
-    return div({
-      ...props,
-      style: {
-        ...Style.elements.card.container,
-        backgroundColor: 'white',
-        padding: undefined,
-        boxShadow: undefined,
-        gridRowStart: 2
-      }
-    }, [
-      div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': projectCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
-        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
-        div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
-      ])
-    ])
-  }
+  const isProjectCostReady = projectCost !== null
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
@@ -348,9 +376,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         )
       ])
     ]),
-    [spendReportKey]: div({ style: { display: 'grid', rowGap: '1.25rem' } }, [
-      div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(max-content, 1fr))', rowGap: '1.25rem', columnGap: '1.25rem' } },
-        _.concat(
+    [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
+      div(
+        {
+          style: {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, minmax(max-content, 1fr))',
+            rowGap: '1.66rem',
+            columnGap: '1.25rem'
+          }
+        }, [
           div({ style: { gridRowStart: 1, gridColumnStart: 1 } }, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id }, ['Date range']),
@@ -362,19 +397,33 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                   value: days
                 }), [7, 30, 90]),
                 onChange: ({ value: selectedDays }) => {
-                  setSpendReportLengthInDays(selectedDays)
-                  setProjectCost(null)
+                  if (selectedDays !== spendReportLengthInDays) {
+                    setSpendReportLengthInDays(selectedDays)
+                    setProjectCost(null)
+                  }
                 }
               })
             ])])
-          ])
-        )(_.map(name => CostCard({ title: `Total ${name}`, amount: (projectCost === null ? '...' : projectCost[name]) }),
-          ['spend', 'compute', 'storage', 'other'])
-        )
+          ]),
+          ...(_.map(name => h(CostCard, {
+            title: `Total ${name}`,
+            amount: (!isProjectCostReady ? '...' : projectCost[name]),
+            isProjectCostReady,
+            showAsterisk: name === 'spend',
+            key: name
+          }),
+          ['spend', 'compute', 'storage'])
+          )
+        ]
       ),
-      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
-        h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
-      ])
+      h(OtherMessaging, { cost: isProjectCostReady ? projectCost['other'] : null }),
+      costPerWorkspace.numWorkspaces > 0 && div(
+        {
+          style: { minWidth: 500, marginTop: '1rem' }
+        }, [ // Set minWidth so chart will shrink on resize
+          h(Suspense, { fallback: null }, [h(LazyChart, { options: spendChartOptions })])
+        ]
+      )
     ])
   }
 

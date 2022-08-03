@@ -215,38 +215,10 @@ const dismissNPSSurvey = async page => {
 // Test workaround: Retry loading of Terra UI if fails first time. This issue often happens after new deploy to Staging/Alpha.
 const signIntoTerra = async (page, { token, testUrl }) => {
   console.log('signIntoTerra ...')
-
-  const retryOptions = {
-    factor: 1,
-    minTimeout: 1000, // This is min wait time between retries
-    onFailedAttempt: error => {
-      console.error(
-        `Sign in to Terra attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
-      )
-    },
-    retries: 2
-  }
-
-  const timeout = 60 * 1000
-  const run = async url => {
-    try {
-      const httpResponse = await gotoPage(page, url)
-      if (!(httpResponse.ok() || httpResponse.status() === 304)) {
-        throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
-      }
-      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
-    } catch (e) {
-      // Stop page loading, as if you hit "X" in the browser. ignore exception.
-      await page._client.send('Page.stopLoading').catch(err => void err)
-      throw new Error(e)
-    }
-  }
-
   if (!!testUrl) {
-    console.log(`Loading URL: ${testUrl}`)
-    await pRetry(() => run(testUrl), retryOptions)
+    await gotoPage(page, testUrl)
   } else {
-    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true, timeout })
+    await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   }
 
   await waitForNoSpinners(page)
@@ -428,8 +400,35 @@ const withPageLogging = fn => async options => {
 
 const navOptionNetworkIdle = (timeout = 60 * 1000) => ({ waitUntil: ['networkidle0'], timeout })
 
-const gotoPage = (page, url) => {
-  return page.goto(url, navOptionNetworkIdle())
+const gotoPage = async (page, url) => {
+  const retryOptions = {
+    factor: 1,
+    onFailedAttempt: error => {
+      console.error(
+        `Loading url attempt ${error.attemptNumber} failed. There are ${error.retriesLeft} retries left.`
+      )
+    },
+    retries: 2
+  }
+
+  const load = async url => {
+    try {
+      const httpResponse = await page.goto(url, navOptionNetworkIdle())
+      if (httpResponse && !(httpResponse.ok() || httpResponse.status() === 304)) {
+        throw new Error(`Error loading URL: ${url}. Http response status: ${httpResponse.statusText()}`)
+      }
+      await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
+    } catch (e) {
+      console.error(e)
+      // Stop page loading, as if you hit "X" in the browser. ignore exception.
+      await page._client.send('Page.stopLoading').catch(err => void err)
+      throw new Error(e)
+    }
+  }
+
+  console.log(`Loading URL: ${url}`)
+  await pRetry(() => load(url), retryOptions)
+  await waitForNoSpinners(page)
 }
 
 module.exports = {
