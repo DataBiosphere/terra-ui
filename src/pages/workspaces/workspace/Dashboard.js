@@ -28,6 +28,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { __throw } from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -271,15 +272,27 @@ const WorkspaceDashboard = _.flow(
 
   const loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
-      setStorageCost({ estimate, lastUpdated })
+      try {
+        const { estimate, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
+        setStorageCost({ estimate, lastUpdated })
+      } catch (error) {
+        error.status === 404 ?
+          setStorageCost({ isSuccess: false, estimate: 'Not available' }) :
+          __throw(error)
+      }
     }
   })
 
   const loadBucketSize = withErrorReporting('Error loading bucket size.', async () => {
     if (Utils.canWrite(accessLevel)) {
-      const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
-      setBucketSize({ usage: Utils.formatBytes(usageInBytes), lastUpdated })
+      try {
+        const { usageInBytes, lastUpdated } = await Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
+        setBucketSize({ isSuccess: true, usage: Utils.formatBytes(usageInBytes), lastUpdated })
+      } catch (error) {
+        error.status === 404 ?
+          setBucketSize({ isSuccess: false, usage: 'Not available' }) :
+          __throw(error)
+      }
     }
   })
 
@@ -379,12 +392,18 @@ const WorkspaceDashboard = _.flow(
         ]),
         Utils.canWrite(accessLevel) && h(InfoRow, {
           title: 'Estimated Storage Cost',
-          subtitle: !!storageCost ? `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
+          ...(storageCost?.isSuccess ?
+            { subtitle: `Updated on ${new Date(storageCost.lastUpdated).toLocaleDateString()}` } :
+            !storageCost && { subtitle: 'Loading last updated...' })
         }, [storageCost?.estimate || '$ ...']),
         Utils.canWrite(accessLevel) && h(InfoRow, {
           title: 'Bucket Size',
-          subtitle: !!bucketSize ? `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` : 'Loading last updated...'
-        }, [bucketSize?.usage])
+          ...(bucketSize?.isSuccess ?
+            { subtitle: `Updated on ${new Date(bucketSize.lastUpdated).toLocaleDateString()}` } :
+            !bucketSize && { subtitle: 'Loading last updated...' })
+        },
+        [bucketSize?.usage]
+        )
       ] : [
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
