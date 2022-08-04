@@ -105,7 +105,7 @@ const NotificationDisplay = ({ id }) => {
     // content and close button
     div({ style: { display: 'flex', padding: '0.75rem 1rem' } }, [
       // content
-      div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
+      div({ style: { display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' } }, [
         // icon and title
         div({ style: { display: 'flex' } }, [
           !!iconType && icon(iconType, {
@@ -113,9 +113,9 @@ const NotificationDisplay = ({ id }) => {
             size: 26,
             style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' }
           }),
-          div({ id: labelId, style: { fontWeight: 600 } }, [title])
+          div({ id: labelId, style: { fontWeight: 600, overflow: 'hidden', overflowWrap: 'break-word' } }, [title])
         ]),
-        !!message && div({ id: descId, style: { marginTop: '0.5rem' } }, [message]),
+        !!message && div({ id: descId, style: { marginTop: '0.5rem', overflowWrap: 'break-word' } }, [message]),
         div({ style: { display: 'flex' } }, [
           !!detail && h(Clickable, {
             style: { marginTop: '0.25rem', marginRight: '0.5rem', textDecoration: 'underline' },
