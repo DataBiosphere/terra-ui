@@ -13,9 +13,9 @@ const {
 
 /**
  * Fetch CircleCI artifact links to tests summary JSON files (were created in onRunComplete() in jest-reporter.js)
- * @param token
- * @param buildNum
- * @returns {Promise<*[]>} URL to tests-summary-[0-9].json
+ * @param { string } token
+ * @param { string } buildNum
+ * @returns { Promise<Array[string]> } URL to tests-summary-[0-9].json
  */
 const fetchCircleJobArtifacts = async ({ token = defaultToken, buildNum = circleJobBuildNum } = {}) => {
   if (!buildNum) {
@@ -50,6 +50,10 @@ const getFailedTestFileName = aggregatedResult => {
   return failedTests
 }
 
+/**
+ *
+ * @returns {Promise<Array>}
+ */
 const getFailedTests = async () => {
   const headers = { Accept: 'application/json' }
   const urls = await fetchCircleJobArtifacts()
@@ -69,6 +73,11 @@ const getFailedTests = async () => {
   return tests
 }
 
+/**
+ *
+ * @param { Array[string] } failedTests
+ * @returns { Map<string, Array[string]> }
+ */
 const getChannelsNotifyFailed = failedTests => {
   const channels = new Map()
   const data = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
@@ -98,8 +107,8 @@ const getChannelsNotifyFailed = failedTests => {
 
 /**
  * Slack to notify job failed. Message contains failed test names.
- * @param failedTests
- * @returns {Promise<void>}
+ * @param { Array[string] } failedTests
+ * @returns { Promise<void> }
  */
 // eslint-disable-next-line
 const notifyFailure = async failedTests => {
