@@ -102,10 +102,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
   // Verify expected tabs are present.
-  await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
-
-  // Verify Analyses tab not present (config override is not set)
-  await dashboard.assertTabs(['analyses'], false)
+  await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
 })
 
 registerTest({
