@@ -402,7 +402,7 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   let diskCost = ''
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
-    const { size, status, diskType } = curPd || { size: 0, status: 'Running', diskType: pdTypes.standard }
+    const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {}
     diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion)
   } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
