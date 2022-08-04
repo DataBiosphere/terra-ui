@@ -24,6 +24,7 @@ import igvLogo from 'src/images/igv-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
+import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -399,7 +400,7 @@ const EntitiesContent = ({
         ]),
         deleteColumnUpdateMetadata,
         controlPanelStyle: {
-          background: colors.light(),
+          background: colors.light(isRadX() ? 0.3 : 1),
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
         border: false
