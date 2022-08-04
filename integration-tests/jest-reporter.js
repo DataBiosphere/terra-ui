@@ -57,7 +57,7 @@ module.exports = class JestReporter {
   // Called after all tests have completed
   onRunComplete(_test, runResults) {
     // Save run summary to a file.
-    const summaryFile = `tests-summary.json`
+    const summaryFile = `tests-summary${process.env.CIRCLE_NODE_INDEX ? `-${process.env.CIRCLE_NODE_INDEX}` : ''}.json`
     writeFileSync(`${this.logRootDir}/${summaryFile}`, JSON.stringify(runResults, null, 2))
     console.log(`**  Saved all tests summary: ${this.logRootDir}/${summaryFile}`)
   }
