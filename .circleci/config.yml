@@ -380,7 +380,7 @@ jobs:
                 if [[ $status = "success" ]] || [[ $status = "failed" ]]; then
                   break
                 fi
-                if [[ $status = "canceled" ]]; then
+                if [ $status = "canceled" ]; then
                   circleci-agent step halt
                 fi
 
