@@ -181,23 +181,6 @@ commands:
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
             yarn test janitor.js
-      - run:
-          name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = 0
-          command: |
-            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              waiting_job_id=$(curl --request GET \
-                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job \
-                --header "Circle-Token: $CIRCLECI_TOKEN" \
-                --header "content-type: application/json" \
-              | jq -r '.items[] | select(.name == "notify-test-results").id')
-
-              curl --request POST \
-                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/approve/$waiting_job_id \
-                --header "Circle-Token: $CIRCLECI_TOKEN" \
-                --header "content-type: application/json"
-
-            fi
-          when: always
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
@@ -278,10 +261,31 @@ jobs:
   integration-tests-branch-against-dev:
     executor: puppeteer
     parallelism: 1
+    parameters:
+      approval_job:
+        type: string
+        default: notify-test-results-pr
     steps:
       - integration-tests:
           local: true
           env: local
+      - run:
+          name: Trigger notify-test-results-pr job only on CIRCLE_NODE_INDEX = 0
+          command: |
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
+              waiting_job_id=$(curl --request GET \
+                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job \
+                --header "Circle-Token: $CIRCLECI_TOKEN" \
+                --header "content-type: application/json" \
+              | jq -r '.items[] | select(.name == "<< parameters.approval_job >>").id')
+
+              curl --request POST \
+                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/approve/$waiting_job_id \
+                --header "Circle-Token: $CIRCLECI_TOKEN" \
+                --header "content-type: application/json"
+
+            fi
+          when: always
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 4
