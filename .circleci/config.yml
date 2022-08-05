@@ -296,10 +296,10 @@ jobs:
         enum: [ integration-tests-alpha, integration-tests-staging, integration-tests-branch-against-dev ]
         default: integration-tests-alpha
     steps:
+      - checkout
       - when:
           condition: << pipeline.parameters.start_notify_job >>
           steps:
-            - checkout
             - attach_workspace:
                 at: .
             - restore_cache:
