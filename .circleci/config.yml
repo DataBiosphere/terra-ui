@@ -180,13 +180,12 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
-            yarn test $TESTS_TO_RUN --maxWorkers=2
+            yarn test janitor.js
       - run:
-          name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = $CIRCLE_NODE_INDEX
+          name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = 0
           command: |
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              curl -X POST \
-                --header "Circle-Token: $CIRCLECI_TOKEN" \
+              curl -u ${API_TOKEN}: \
                 --header 'content-type: application/json' \
                 --url https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline \
                 --data '{"parameters":{"start_notify_job":true}}'
@@ -271,7 +270,7 @@ jobs:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-branch-against-dev:
     executor: puppeteer
-    parallelism: 4
+    parallelism: 1
     steps:
       - integration-tests:
           local: true
