@@ -55,7 +55,7 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
+const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
   const timeout = 5000
   const somePointInTheFuture = Date.now() + timeout
   const maxDelayIncrement = 1500
@@ -66,12 +66,7 @@ const withRetryOnError = _.curry(wrappedFetch => async (...args) => {
     try {
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
-      // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
-      // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
-      // are not transient and the request should not be retried.
-
-      const shouldNotRetry = Boolean(error.requesterPaysError)
-      if (shouldNotRetry) {
+      if (shouldNotRetryFn(error)) {
         throw error
       }
       // ignore error will retry
@@ -158,7 +153,10 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withRetryOnError, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
@@ -544,7 +542,7 @@ const Billing = signal => ({
   },
 
   listAccounts: async () => {
-    const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
+    const res = await fetchRawls('user/billingAccounts?firecloudHasAccess=true', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
