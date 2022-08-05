@@ -187,12 +187,13 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
       - run:
+          name: Trigger notify-test-results job
           command: |
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              curl --request POST \
-                --url https://circleci.com/api/v2/project/gh/DataBiosphere/terra-ui/pipeline \
+              curl -u ${CIRCLECI_TOKEN}: -X POST \
                 --header 'content-type: application/json' \
-                --data '{"branch":"dev","parameters":{"start_notify_job":true}}'
+                --url https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline \
+                --data '{"parameters":{"start_notify_job":true}}'
             fi
           when: always
 
@@ -295,15 +296,15 @@ jobs:
         enum: [ integration-tests-alpha, integration-tests-staging, integration-tests-branch-against-dev ]
         default: integration-tests-alpha
     steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - when:
           condition: << pipeline.parameters.start_notify_job >>
           steps:
+            - checkout
+            - attach_workspace:
+                at: .
+            - restore_cache:
+                keys:
+                  - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
             - run:
                 name: Wait up to 15 minutes for << parameters.job_name >> to finish
                 command: |
