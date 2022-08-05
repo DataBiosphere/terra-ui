@@ -374,7 +374,7 @@ jobs:
             echo "Waited $x seconds"
             date
       - run:
-          name: Set JOB_BUILD_NUM from << parameters.job_name >>
+          name: Set JOB_BUILD_NUM from << pipeline.parameters.job_name >>
           command: |
             job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.workflow_id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.job_name >>") | .job_number')
             echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
