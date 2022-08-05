@@ -1,24 +1,10 @@
 const {
   JOB_NAME: CIRCLE_JOB,
   JOB_BUILD_NUM: CIRCLE_BUILD_NUM,
-  CIRCLE_PROJECT_REPONAME,
-  CIRCLE_SHA1,
-  CIRCLE_USERNAME
+  CIRCLE_SHA1
 } = process.env
 
-const printTimestamp = () => {
-  return {
-    type: 'context',
-    elements: [
-      {
-        type: 'mrkdwn',
-        text: `*Generated at*:  ${new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })}`
-      }
-    ]
-  }
-}
-
-const printHeader = numFailedTests => {
+const getHeaderBlock = numFailedTests => {
   if (numFailedTests === 0) {
     return {
       type: 'header',
@@ -39,35 +25,26 @@ const printHeader = numFailedTests => {
   }
 }
 
-const printJobDetail = () => {
+const getJobDetailBlock = () => {
   return {
     type: 'section',
     fields: [
       {
         type: 'mrkdwn',
-        text: `*Github Project*: <https://github.com/DataBiosphere/terra-ui/commit/${CIRCLE_SHA1} | ${CIRCLE_PROJECT_REPONAME}>`
+        text: `*Commit*: <https://github.com/DataBiosphere/terra-ui/commit/${CIRCLE_SHA1} | ${`${CIRCLE_SHA1}`.slice(0, 7)}>`
       },
       {
         type: 'mrkdwn',
-        text: `*User*: ${CIRCLE_USERNAME}`
-      },
-      {
-        type: 'mrkdwn',
-        text: `*Job*: <https://circleci.com/gh/DataBiosphere/terra-ui/${CIRCLE_BUILD_NUM} | ${CIRCLE_JOB}>`
-      },
-      {
-        type: 'mrkdwn',
-        text: `*Job Build Number*: ${CIRCLE_BUILD_NUM}`
+        text: `*Job ${CIRCLE_BUILD_NUM}*: <https://circleci.com/gh/DataBiosphere/terra-ui/${CIRCLE_BUILD_NUM} | ${CIRCLE_JOB}>`
       }
     ]
   }
 }
 
 // any non-zero number to indicate test(s) has failed in circleci job
-const printMessageTemplate = (numFailedTests = 0) => [
-  printHeader(numFailedTests),
-  printTimestamp(),
-  printJobDetail()
+const getMessageBlockTemplate = (numFailedTests = 0) => [
+  getHeaderBlock(numFailedTests),
+  getJobDetailBlock()
 ]
 
-module.exports = { printMessageTemplate }
+module.exports = { getMessageBlockTemplate }
