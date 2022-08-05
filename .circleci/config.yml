@@ -363,7 +363,7 @@ jobs:
       - checkout
       - run:
           command: |
-            echo "trigger-notify: << pipeline.parameters.trigger-notify >>"
+            echo "trigger-notify: << pipeline.parameters.run-notify-job >>"
             echo "notify-job-name: << pipeline.parameters.notify-job-name >>"
             echo "notify-workflow-id: << pipeline.parameters.notify-workflow-id >>"
 
