@@ -377,9 +377,10 @@ jobs:
                 status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" \
                           --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .status')
                 echo "Job status: ${status}"
-                if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
+                if [[ $status = "success" ]] || [[ $status = "failed" ]]; then
                   break
-                elif [[ $status == "canceled" ]]; then
+                fi
+                if [[ $status = "canceled" ]]; then
                   circleci-agent step halt
                 fi
 
