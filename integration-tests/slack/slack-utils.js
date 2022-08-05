@@ -114,7 +114,7 @@ const notifyFailure = failedTests => {
         [
           {
             type: 'mrkdwn',
-            text: `\`\`\`*  ${testNames.join('\n*  ')}\`\`\``
+            text: `*  ${testNames.join('\n*  ')}`
           }
         ]
     })
@@ -127,7 +127,7 @@ const notifySuccess = () => {
   const blocks = getMessageBlockTemplate()
   const { pass: passNotifyChannels } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
   const channelIds = _.map(_.get('id'), passNotifyChannels)
-  _.forEach(async channelId => await postMessage({ channelId, blocks }), channelIds)
+  _.forEach(async channelId => await postMessage({ channel: channelId, blocks }), channelIds)
 }
 
 module.exports = {
