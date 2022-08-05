@@ -361,7 +361,8 @@ jobs:
       - run:
           command: |
             echo << pipeline.parameters.trigger-notify >>
-            exit 0
+            echo << pipeline.parameters.notify-job-name >>
+            echo << pipeline.parameters.notify-workflow-id >>
 
       - run:
           name: Wait up to 15 minutes for << pipeline.parameters.notify-job-name >> to finish
