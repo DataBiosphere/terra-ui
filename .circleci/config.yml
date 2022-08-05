@@ -273,7 +273,7 @@ jobs:
       - integration-tests:
           env: staging
   notify-test-results:
-    executor: puppeteer
+    executor: node
     parameters:
       job_name:
         type: enum
