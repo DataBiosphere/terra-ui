@@ -28,6 +28,11 @@ anchors:
       branches:
         only: dev
 
+parameters:
+  start_notify_job:
+    type: boolean
+    default: false
+
 commands:
   notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
     parameters:
@@ -176,6 +181,17 @@ commands:
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
             yarn test $TESTS_TO_RUN --maxWorkers=2
+      - run:
+          name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = $CIRCLE_NODE_INDEX
+          command: |
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
+              curl -X POST \
+                --header "Circle-Token: $CIRCLECI_TOKEN" \
+                --header 'content-type: application/json' \
+                --url https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline \
+                --data '{"parameters":{"start_notify_job":true}}'
+            fi
+          when: always
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
       - store_artifacts:
@@ -338,6 +354,12 @@ workflows:
           <<: *filter-pr-branch
           requires:
             - build
+
+      - notify-test-results:
+          name: notify-test-results-pr
+          <<: *filter-pr-branch
+          job_name: integration-tests-branch-against-dev
+
       - deploy-pr:
           <<: *filter-pr-branch
           requires:
