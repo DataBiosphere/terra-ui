@@ -203,7 +203,7 @@ commands:
               curl -u ${CIRCLECI_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
                 --url 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline' \
-                --data '{"branch":"$CIRCLE_BRANCH","parameters":{"run-notify-job":true,"notify-workflow-id":"'$CIRCLE_WORKFLOW_ID'","notify-job-name":"'$CIRCLE_JOB'"}}'
+                --data '{"branch":"'$CIRCLE_BRANCH'","parameters":{"run-notify-job":true,"notify-workflow-id":"'$CIRCLE_WORKFLOW_ID'","notify-job-name":"'$CIRCLE_JOB'"}}'
             fi
           when: always
 
