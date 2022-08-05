@@ -188,7 +188,7 @@ commands:
               curl -u ${API_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
                 --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
-                --data '{"parameters":{"start_notify_job":true}}'
+                --data '{"branch":"slack-notify-job-copy","parameters":{"start_notify_job":true}}'
             fi
           when: always
       - store_test_results:
