@@ -1,5 +1,17 @@
 version: 2.1
 
+parameters:
+  trigger-notify:
+    type: boolean
+    default: false
+  notify-workflow-id:
+    type: string
+    default: ""
+  notify-job-name:
+    type: string
+    default: integration-tests-alpha
+
+
 orbs:
   slack: circleci/slack@3.4.2
 
@@ -27,17 +39,6 @@ anchors:
     filters:
       branches:
         only: dev
-
-parameters:
-  notify_test_result:
-    type: boolean
-    default: false
-  workflow_id:
-    type: string
-    default: ''
-  job_name:
-    type: string
-    default: integration-tests-alpha
 
 commands:
   notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
@@ -200,7 +201,7 @@ commands:
               curl -u ${CIRCLECI_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
                 --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
-                --data '{"branch":"slack-notify-job-copy","parameters":{"notify_test_result":true,"workflow_id":"$CIRCLE_WORKFLOW_ID","job_name":"$CIRCLE_JOB"}}'
+                --data '{"branch":"slack-notify-job-copy","parameters":{"trigger-notify":true,"notify-workflow-id":"$CIRCLE_WORKFLOW_ID","notify-job-name":"$CIRCLE_JOB"}}'
             fi
           when: always
 
@@ -358,12 +359,17 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Wait up to 15 minutes for << pipeline.parameters.job_name >> to finish
+          command: |
+            echo << pipeline.parameters.trigger-notify >>
+            exit 0
+
+      - run:
+          name: Wait up to 15 minutes for << pipeline.parameters.notify-jobname >> to finish
           command: |
             x=0
             while [[ $x -le 900 ]]
               do
-                status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.workflow_id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.job_name >>") | .status')
+                status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .status')
                 echo "Job status: ${status}"
                 if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
                   break
@@ -378,9 +384,9 @@ jobs:
             echo "Waited $x seconds"
             date
       - run:
-          name: Set JOB_BUILD_NUM from << pipeline.parameters.job_name >>
+          name: Set JOB_BUILD_NUM from << pipeline.parameters.notify-job-name >>
           command: |
-            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.workflow_id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.job_name >>") | .job_number')
+            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .job_number')
             echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
             echo "export JOB_NAME=<< pipeline.parameters.job_name >>" >> "$BASH_ENV"
             source $BASH_ENV
@@ -395,7 +401,7 @@ workflows:
   version: 2
 
   notify-slack:
-    when: << pipeline.parameters.notify_test_result >>
+    when: << pipeline.parameters.trigger-notify >>
     jobs:
       - notify-test-results
           #<<: *filter-dev-branch
