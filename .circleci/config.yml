@@ -29,6 +29,9 @@ anchors:
         only: dev
 
 parameters:
+  notify_test_result:
+    type: boolean
+    default: false
   workflow_id:
     type: string
     default: ''
@@ -197,7 +200,8 @@ commands:
               curl -u ${CIRCLECI_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
                 --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
-                --data '{"branch":"slack-notify-job-copy","parameters":{"workflow_id":"$CIRCLE_WORKFLOW_ID","job_name":"$CIRCLE_JOB"}}'
+                --data '{"branch":"slack-notify-job-copy","parameters":{"notify_test_result":true,"workflow_id":"$CIRCLE_WORKFLOW_ID","job_name":"$CIRCLE_JOB"}}'
+            fi
           when: always
 
   notify-qa:
@@ -391,6 +395,7 @@ workflows:
   version: 2
 
   notify-slack:
+    when: << pipeline.parameters.notify_test_result >>
     jobs:
       - notify-test-results
           #<<: *filter-dev-branch
