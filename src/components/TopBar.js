@@ -354,7 +354,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         ...styles.topBar,
         // This div contains the primary fallback color for a11y which will be used to calculate color contrast when the background is manually hidden
         // A 1.47 intensity results in precisely a 4.5:1 ratio against the white text
-        backgroundColor: isTerra() ? colors.primary(1.47) : colors.light(isRadX() ? 0.4 : undefined)
+        backgroundColor: isTerra() ? colors.primary(1.47) : colors.light(isRadX() ? 0.4 : 1)
       }
     }, [
       div({
