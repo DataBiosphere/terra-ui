@@ -360,9 +360,9 @@ jobs:
       - checkout
       - run:
           command: |
-            echo << pipeline.parameters.trigger-notify >>
-            echo << pipeline.parameters.notify-job-name >>
-            echo << pipeline.parameters.notify-workflow-id >>
+            echo "<< pipeline.parameters.trigger-notify >>"
+            echo "<< pipeline.parameters.notify-job-name >>"
+            echo "<< pipeline.parameters.notify-workflow-id >>"
 
       - run:
           name: Wait up to 15 minutes for << pipeline.parameters.notify-job-name >> to finish
