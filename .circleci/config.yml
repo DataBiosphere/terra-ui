@@ -364,7 +364,7 @@ jobs:
             exit 0
 
       - run:
-          name: Wait up to 15 minutes for << pipeline.parameters.notify-jobname >> to finish
+          name: Wait up to 15 minutes for << pipeline.parameters.notify-job-name >> to finish
           command: |
             x=0
             while [[ $x -le 900 ]]
@@ -388,7 +388,7 @@ jobs:
           command: |
             job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .job_number')
             echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
-            echo "export JOB_NAME=<< pipeline.parameters.job_name >>" >> "$BASH_ENV"
+            echo "export JOB_NAME=<< pipeline.parameters.notify-job-name >>" >> "$BASH_ENV"
             source $BASH_ENV
       - run:
           name: Slack test results
