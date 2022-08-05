@@ -145,7 +145,6 @@ export const ContextBar = ({
     }),
     div({ style: { ...Style.elements.contextBarContainer, width: 70 } }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-
         h(Fragment, [
           h(TooltipTrigger,
             {
@@ -168,18 +167,18 @@ export const ContextBar = ({
                 hover: { ...contextBarStyles.hover }
               },
               [
-                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '.8em' } }, 'Rate:'),
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'Rate:'),
                 div({
                   style: {
                     textAlign: 'center', color: colors.dark(),
-                    fontWeight: 'bold', fontSize: '1.2em'
+                    fontWeight: 'bold', fontSize: 16
                   }
                 },
                 [
                   getTotalToolAndDiskCostDisplay(),
                   span({ style: { fontWeight: 'normal' } })
                 ]),
-                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '.8em' } }, 'per hour')
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'per hour')
               ])
             ]
           ),
