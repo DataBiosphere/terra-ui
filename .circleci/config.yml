@@ -185,9 +185,9 @@ commands:
           name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = 0
           command: |
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              curl -u ${API_TOKEN}: \
+              curl -u ${API_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
-                --url https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline \
+                --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
                 --data '{"parameters":{"start_notify_job":true}}'
             fi
           when: always
