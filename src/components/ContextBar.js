@@ -151,9 +151,13 @@ export const ContextBar = ({
               side: 'left',
               delay: 100,
               content: [
-                div({ key: 'p1' }, 'This rate reflects the estimated aggregate hourly cost for running and paused applications, as well as associated persistent disks. For more details, click on the Cloud icon.'),
+                div({ key: 'p1' },
+                  ['Estimated hourly rate for all applications in a running or paused state, and associated persistent disks. For details, click',
+                    img({ src: cloudIcon, style: { height: 20, padding: '0 5px', verticalAlign: 'text-bottom' }, alt: 'Environment Configuration Icon' }),
+                    'below.']
+                ),
                 br({ key: 'br' }),
-                div({ key: 'p2' }, 'Workflow and workspace storage costs are not included.')
+                div({ key: 'p2' }, 'Workflow and workspace storage costs\nare not included.')
               ]
             },
             [
@@ -163,17 +167,18 @@ export const ContextBar = ({
                 hover: { ...contextBarStyles.hover }
               },
               [
-                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: '0.8em' } }, 'Rate'),
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'Rate:'),
                 div({
                   style: {
                     textAlign: 'center', color: colors.dark(),
-                    fontWeight: 'bold', fontSize: '1em'
+                    fontWeight: 'bold', fontSize: 16
                   }
                 },
                 [
                   getTotalToolAndDiskCostDisplay(),
-                  span({ style: { fontWeight: 'normal', fontSize: '0.8em' } }, '/hr')
-                ])
+                  span({ style: { fontWeight: 'normal' } })
+                ]),
+                div({ style: { textAlign: 'center', color: colors.dark(), fontSize: 12 } }, 'per hour')
               ])
             ]
           ),
