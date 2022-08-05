@@ -1,14 +1,15 @@
 version: 2.1
 
 parameters:
-  trigger-notify:
+  run-notify-job:
     type: boolean
     default: false
   notify-workflow-id:
     type: string
     default: ""
   notify-job-name:
-    type: string
+    type: enum
+    enum: [ integration-tests-alpha, integration-tests-staging, integration-tests-branch-against-dev ]
     default: integration-tests-alpha
 
 
@@ -194,14 +195,15 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
       - run:
-          # notify-test-results job works on Dev branch only
+          # Trigger notify-test-results job. Works on Dev branch only.
+          # TODO $CIRCLE_BRANCH == "dev"
           name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = 0
           command: |
-            if [[ $CIRCLE_NODE_INDEX -eq 0 ]] && [[ $CIRCLE_BRANCH == "slack-notify-job-copy" ]]; then
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
               curl -u ${CIRCLECI_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
-                --url 'https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline' \
-                --data '{"branch":"slack-notify-job-copy","parameters":{"trigger-notify":true,"notify-workflow-id":"$CIRCLE_WORKFLOW_ID","notify-job-name":"$CIRCLE_JOB"}}'
+                --url 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/pipeline' \
+                --data '{"branch":"$CIRCLE_BRANCH","parameters":{"run-notify-job":true,"notify-workflow-id":"'$CIRCLE_WORKFLOW_ID'","notify-job-name":"'$CIRCLE_JOB'"}}'
             fi
           when: always
 
@@ -300,7 +302,7 @@ jobs:
     steps:
       - integration-tests:
           env: staging
-  notify-test-results-original:
+  notify-test-results-unused:
     executor: node
     parameters:
       job_name:
@@ -354,15 +356,16 @@ jobs:
           command: |
             node --require ../.pnp.cjs ./slack/slack-circleci-results.js
 
+
   notify-test-results:
     executor: node
     steps:
       - checkout
       - run:
           command: |
-            echo "<< pipeline.parameters.trigger-notify >>"
-            echo "<< pipeline.parameters.notify-job-name >>"
-            echo "<< pipeline.parameters.notify-workflow-id >>"
+            echo "trigger-notify: << pipeline.parameters.trigger-notify >>"
+            echo "notify-job-name: << pipeline.parameters.notify-job-name >>"
+            echo "notify-workflow-id: << pipeline.parameters.notify-workflow-id >>"
 
       - run:
           name: Wait up to 15 minutes for << pipeline.parameters.notify-job-name >> to finish
@@ -370,7 +373,8 @@ jobs:
             x=0
             while [[ $x -le 900 ]]
               do
-                status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .status')
+                status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" \
+                          --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .status')
                 echo "Job status: ${status}"
                 if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
                   break
@@ -387,7 +391,8 @@ jobs:
       - run:
           name: Set JOB_BUILD_NUM from << pipeline.parameters.notify-job-name >>
           command: |
-            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .job_number')
+            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.notify-workflow-id >>/job" \
+                        --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.notify-job-name >>") | .job_number')
             echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
             echo "export JOB_NAME=<< pipeline.parameters.notify-job-name >>" >> "$BASH_ENV"
             source $BASH_ENV
@@ -402,13 +407,13 @@ workflows:
   version: 2
 
   notify-slack:
-    when: << pipeline.parameters.trigger-notify >>
+    when: << pipeline.parameters.run-notify-job >>
     jobs:
       - notify-test-results
           #<<: *filter-dev-branch
 
   build-deploy:
-    unless: << pipeline.parameters.trigger-notify >>
+    unless: << pipeline.parameters.run-notify-job >>
     jobs:
       - build
       - integration-tests-branch-against-dev:
