@@ -22,10 +22,10 @@ const fetchCircleJobArtifacts = async ({ buildNum = circleJobBuildNum } = {}) =>
   }
 
   // Find more arguments and details of the response: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
-  const apiUrl = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui'
+  const apiUrlRoot = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui'
 
   try {
-    const response = await fetch(`${apiUrl}/${buildNum}/artifacts`)
+    const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`)
     const { items } = await response.json()
     const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items)
     return _.map(_.get('url'), testSummaryArtifacts)
@@ -41,13 +41,10 @@ const fetchCircleJobArtifacts = async ({ buildNum = circleJobBuildNum } = {}) =>
  * @returns { Array[string] }
  */
 const getFailedTestFileNames = aggregatedResult => {
-  const failedTests = []
-  _.forEach(testResult => {
-    if (testResult.numFailingTests > 0) {
-      failedTests.push(parse(testResult.testFilePath).name)
-    }
-  }, aggregatedResult.testResults)
-  return failedTests
+  return _.flow(
+    _.filter(testResult => testResult.numFailingTests > 0),
+    _.map(testResult => parse(testResult.testFilePath).name)
+  )(aggregatedResult.testResults)
 }
 
 /**
@@ -55,15 +52,13 @@ const getFailedTestFileNames = aggregatedResult => {
  * @returns { Promise<Array[string]> }
  */
 const getFailedTests = async () => {
-  const headers = { Accept: 'application/json' }
   const urls = await fetchCircleJobArtifacts()
   const tests = []
   for (const url of urls) {
     try {
       // Parse all tests-summary JSON for failed tests
-      const response = await fetch(url, { method: 'GET', headers })
-      const json = await response.json()
-      const failedTests = getFailedTestFileNames(json)
+      const response = await fetch(url)
+      const failedTests = getFailedTestFileNames(await response.json())
       tests.push(...failedTests)
     } catch (e) {
       console.error(`**  ERROR: Encountered unexpected error when getting CircleCI artifacts tests-summary file: ${url}.`, e)
@@ -79,28 +74,28 @@ const getFailedTests = async () => {
  * @returns { Map<string, Array[string]> } A map object where key is channel_id, value is test_names array
  */
 const getChannelsNotifyFailed = failedTests => {
-  const channels = new Map()
-  const { fail: jsonItems } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
-
+  const { fail: failJsonBlock } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
+  const channelIdsAndTests = new Map() // Map<string, Array[string]>()
   _.forEach(item => {
-    const id = _.get(['id'], item)
+    const channelId = _.get(['id'], item)
     const { tests } = item
-    const names = _.map(item => item.name, tests)
-    channels.set(id, names)
-  }, jsonItems)
+    const testNames = _.map(item => item.name, tests)
+    channelIdsAndTests.set(channelId, testNames)
+  }, failJsonBlock)
 
-  const idsMap = new Map()
+  const idsAndTestsMap = new Map() // Map<string, Array[string]>()
   _.forEach(test => {
-    const filtered = Array.from(channels.keys())
-      .map(key => channels.get(key).includes(test) || channels.get(key).length === 0 ? key : undefined)
-      .filter(key => key)
-    if (filtered.length === 0) {
+    const channelIdsForFailedTest = Array.from(channelIdsAndTests.keys())
+      .filter(key => channelIdsAndTests.get(key).includes(test) || channelIdsAndTests.get(key).length === 0)
+    if (channelIdsForFailedTest.length === 0) {
       throw new Error(`Test: ${test} was not found in slack-notify-channels.json`)
     }
-    _.forEach(k => idsMap.has(k) ? idsMap.get(k).push(test) : idsMap.set(k, new Array(test)), filtered)
+    _.forEach(channelId => idsAndTestsMap.has(channelId) ? idsAndTestsMap.get(channelId).push(test) : idsAndTestsMap.set(channelId, new Array(test)),
+      channelIdsForFailedTest
+    )
   }, failedTests)
 
-  return idsMap
+  return idsAndTestsMap
 }
 
 /**
@@ -109,7 +104,7 @@ const getChannelsNotifyFailed = failedTests => {
  * @returns { Promise<void> }
  */
 const notifyFailure = failedTests => {
-  const data = getChannelsNotifyFailed(failedTests)
+  const idsAndTestsMap = getChannelsNotifyFailed(failedTests)
   // Slack issue: No way to post the same message to multiple channels at once. https://github.com/slackapi/bolt-js/issues/696
   _.forEach(async ([channelId, testNames]) => {
     const blocks = getMessageBlockTemplate(failedTests.length)
@@ -124,16 +119,15 @@ const notifyFailure = failedTests => {
         ]
     })
     await postMessage({ channel: channelId, blocks })
-  }, _.toPairs(data))
+  }, _.toPairs(idsAndTestsMap))
 }
 
 // Slack to notify job succeeded
 const notifySuccess = () => {
   const blocks = getMessageBlockTemplate()
-  const data = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
-  const { pass: passNotifyChannels } = data
-  const channels = _.map(_.get('id'), passNotifyChannels)
-  _.forEach(async channel => await postMessage({ channel, blocks }), channels)
+  const { pass: passNotifyChannels } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
+  const channelIds = _.map(_.get('id'), passNotifyChannels)
+  _.forEach(async channelId => await postMessage({ channelId, blocks }), channelIds)
 }
 
 module.exports = {
