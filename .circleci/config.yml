@@ -200,7 +200,7 @@ commands:
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]] && [[ $CIRCLE_BRANCH == "slack-notify-job-copy" ]]; then
               curl -u ${CIRCLECI_TOKEN}: -X POST  \
                 --header 'content-type: application/json' \
-                --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
+                --url 'https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline' \
                 --data '{"branch":"slack-notify-job-copy","parameters":{"trigger-notify":true,"notify-workflow-id":"$CIRCLE_WORKFLOW_ID","notify-job-name":"$CIRCLE_JOB"}}'
             fi
           when: always
