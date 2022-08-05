@@ -31,11 +31,11 @@ const getJobDetailBlock = () => {
     fields: [
       {
         type: 'mrkdwn',
-        text: `*Commit*: <https://github.com/DataBiosphere/terra-ui/commit/${CIRCLE_SHA1} | ${`${CIRCLE_SHA1}`.slice(0, 7)}>`
+        text: `*Job ${CIRCLE_BUILD_NUM}*: <https://circleci.com/gh/DataBiosphere/terra-ui/${CIRCLE_BUILD_NUM} | ${CIRCLE_JOB}>`
       },
       {
         type: 'mrkdwn',
-        text: `*Job ${CIRCLE_BUILD_NUM}*: <https://circleci.com/gh/DataBiosphere/terra-ui/${CIRCLE_BUILD_NUM} | ${CIRCLE_JOB}>`
+        text: `*Commit*: <https://github.com/DataBiosphere/terra-ui/commit/${CIRCLE_SHA1} | ${`${CIRCLE_SHA1}`.slice(0, 7)}>`
       }
     ]
   }

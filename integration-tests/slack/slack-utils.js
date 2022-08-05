@@ -127,7 +127,9 @@ const notifySuccess = () => {
   const blocks = getMessageBlockTemplate()
   const { pass: passNotifyChannels } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
   const channelIds = _.map(_.get('id'), passNotifyChannels)
-  _.forEach(async channelId => await postMessage({ channelId, blocks }), channelIds)
+  console.log(channelIds)
+  console.log(JSON.stringify(blocks))
+  _.forEach(async channelId => await postMessage({ channel: channelId, blocks }), channelIds)
 }
 
 module.exports = {
