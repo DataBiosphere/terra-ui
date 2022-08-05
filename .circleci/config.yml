@@ -407,6 +407,7 @@ workflows:
           #<<: *filter-dev-branch
 
   build-deploy:
+    unless: << pipeline.parameters.trigger-notify >>
     jobs:
       - build
       - integration-tests-branch-against-dev:
