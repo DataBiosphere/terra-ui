@@ -29,9 +29,12 @@ anchors:
         only: dev
 
 parameters:
-  start_notify_job:
-    type: boolean
-    default: false
+  workflow_id:
+    type: string
+    default: ''
+  job_name:
+    type: string
+    default: integration-tests-alpha
 
 commands:
   notify-github: # borrows from https://circleci.com/developer/orbs/orb/mmnfst/github-deployments#orb-source
@@ -186,6 +189,17 @@ commands:
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
+      - run:
+          # notify-test-results job works on Dev branch only
+          name: Trigger notify-test-results job only on CIRCLE_NODE_INDEX = 0
+          command: |
+            if [[ $CIRCLE_NODE_INDEX -eq 0 ]] && [[ $CIRCLE_BRANCH == "slack-notify-job-copy" ]]; then
+              curl -u ${CIRCLECI_TOKEN}: -X POST  \
+                --header 'content-type: application/json' \
+                --url https://circleci.com/api/v2/project/github/databiosphere/terra-ui/pipeline \
+                --data '{"branch":"slack-notify-job-copy","parameters":{"workflow_id":"$CIRCLE_WORKFLOW_ID","JOB_NAME":"$CIRCLE_JOB"}}'
+          when: always
+
   notify-qa:
     parameters:
       channel:
@@ -269,23 +283,6 @@ jobs:
       - integration-tests:
           local: true
           env: local
-      - run:
-          name: Trigger notify-test-results-pr job only on CIRCLE_NODE_INDEX = 0
-          command: |
-            if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              waiting_job_id=$(curl --request GET \
-                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job \
-                --header "Circle-Token: $CIRCLECI_TOKEN" \
-                --header "content-type: application/json" \
-              | jq -r '.items[] | select(.name == "<< parameters.approval_job >>").id')
-
-              curl --request POST \
-                --url https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/approve/$waiting_job_id \
-                --header "Circle-Token: $CIRCLECI_TOKEN" \
-                --header "content-type: application/json"
-
-            fi
-          when: always
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 4
@@ -298,7 +295,7 @@ jobs:
     steps:
       - integration-tests:
           env: staging
-  notify-test-results:
+  notify-test-results-original:
     executor: node
     parameters:
       job_name:
@@ -342,7 +339,7 @@ jobs:
       - run:
           name: Set JOB_BUILD_NUM from << parameters.job_name >>
           command: |
-            build_num=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[]|select(.name == "<< parameters.job_name >>")|.job_number')
+            build_num=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[]|select(.name == "<< pipeline.parameters.job_name >>")|.job_number')
             echo "export JOB_BUILD_NUM=$build_num" >> "$BASH_ENV"
             echo "export JOB_NAME=<< parameters.job_name >>" >> "$BASH_ENV"
             source $BASH_ENV
@@ -352,8 +349,52 @@ jobs:
           command: |
             node --require ../.pnp.cjs ./slack/slack-circleci-results.js
 
+  notify-test-results:
+    executor: node
+    steps:
+      - checkout
+      - run:
+          name: Wait up to 15 minutes for << pipeline.parameters.job_name >> to finish
+          command: |
+            x=0
+            while [[ $x -le 900 ]]
+              do
+                status=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.workflow_id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.job_name >>") | .status')
+                echo "Job status: ${status}"
+                if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
+                  break
+                elif [[ $status == "canceled" ]]; then
+                  circleci-agent step halt
+                fi
+
+                sleep 10
+                x=$(( $x + 10 ))
+              done
+
+            echo "Waited $x seconds"
+            date
+      - run:
+          name: Set JOB_BUILD_NUM from << parameters.job_name >>
+          command: |
+            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/<< pipeline.parameters.workflow_id >>/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "<< pipeline.parameters.job_name >>") | .job_number')
+            echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
+            echo "export JOB_NAME=<< pipeline.parameters.job_name >>" >> "$BASH_ENV"
+            source $BASH_ENV
+      - run:
+          name: Slack test results
+          working_directory: integration-tests
+          command: |
+            node --require ../.pnp.cjs ./slack/slack-circleci-results.js
+
+
 workflows:
   version: 2
+
+  notify-slack:
+    jobs:
+      - notify-test-results
+          #<<: *filter-dev-branch
+
   build-deploy:
     jobs:
       - build
@@ -361,14 +402,6 @@ workflows:
           <<: *filter-pr-branch
           requires:
             - build
-
-      - notify-test-results:
-          type: approval
-          name: notify-test-results-pr
-          <<: *filter-pr-branch
-          requires:
-            - build
-          job_name: integration-tests-branch-against-dev
 
       - deploy-pr:
           <<: *filter-pr-branch
@@ -398,18 +431,7 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - deploy-staging
-      - notify-test-results:
-          name: notify-test-results-alpha
-          <<: *filter-dev-branch
-          requires:
-            - deploy-alpha
-          job_name: integration-tests-alpha
-      - notify-test-results:
-          name: notify-test-results-staging
-          <<: *filter-dev-branch
-          requires:
-            - deploy-staging
-          job_name: integration-tests-staging
+
 
   nightly-integration-tests:
     triggers:
@@ -421,9 +443,3 @@ workflows:
     jobs:
       - integration-tests-alpha
       - integration-tests-staging
-      - notify-test-results:
-          name: notify-test-results-alpha
-          job_name: integration-tests-alpha
-      - notify-test-results:
-          name: notify-test-results-staging
-          job_name: integration-tests-staging
