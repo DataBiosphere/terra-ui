@@ -57,6 +57,9 @@
           "name": "billing-projects"
         },
         {
+          "name": "janitor"
+        },
+        {
           "name": "workspace-dashboard"
         }
       ]
