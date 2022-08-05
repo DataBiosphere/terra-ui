@@ -73,7 +73,7 @@ const NotificationDisplay = ({ id }) => {
   const onFirst = notificationNumber === 0
   const onLast = notificationNumber + 1 === notifications.length
 
-  const { title, message, detail, type, action } = notifications[notificationNumber]
+  const { title, message, detail, type, action, onDismiss } = notifications[notificationNumber]
   const [baseColor, ariaLabel] = Utils.switchCase(type,
     ['success', () => [colors.success, 'success notification']],
     ['info', () => [colors.accent, 'info notification']],
@@ -134,7 +134,10 @@ const NotificationDisplay = ({ id }) => {
         style: { alignSelf: 'start' },
         'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
         title: 'Dismiss notification',
-        onClick: () => store.removeNotification(id)
+        onClick: () => {
+          store.removeNotification(id)
+          onDismiss?.()
+        }
       }, [icon('times', { size: 20 })])
     ]),
     notifications.length > 1 && div({
