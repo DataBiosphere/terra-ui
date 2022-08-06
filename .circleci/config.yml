@@ -182,6 +182,7 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
       - run:
+          working_directory: integration-tests
           name: Wait up to 15 minutes for $CIRCLE_JOB to finish
           command: |
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
@@ -196,7 +197,7 @@ commands:
               pwd
               ls -al
 
-              node --require .pnp.cjs ./slack/slack-circleci-results.js
+              node --require ../.pnp.cjs ./slack/slack-circleci-results.js
             else
               echo "CIRCLE_NODE_INDEX != 0"
             fi
