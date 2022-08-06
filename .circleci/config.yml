@@ -194,6 +194,26 @@ commands:
           failure_message: ":sadpanda: $CIRCLE_JOB failed."
           success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
 
+  slack-test-results:
+    steps:
+      - run:
+          name: Wait up to 15 minutes for $CIRCLE_JOB to finish
+          command: ./wait-workflow-job-finish.sh
+      - run:
+          name: Set JOB_BUILD_NUM from $CIRCLE_JOB
+          command: |
+            job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" \
+                        --header "Circle-Token: $CIRCLECI_TOKEN" \
+                        | jq -r '.items[] | select(.name == "'$CIRCLE_JOB'") | .job_number')
+            echo "export JOB_BUILD_NUM=$job_num" >> "$BASH_ENV"
+            echo "export JOB_NAME=$CIRCLE_JOB" >> "$BASH_ENV"
+            source $BASH_ENV
+      - run:
+          name: Slack test results
+          working_directory: integration-tests
+          command: |
+            node --require ../.pnp.cjs ./slack/slack-circleci-results.js
+
 jobs:
   build:
     executor: node
@@ -260,6 +280,9 @@ jobs:
       - integration-tests:
           local: true
           env: local
+      - slack-test-results:
+          when: always
+
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 4
@@ -272,62 +295,7 @@ jobs:
     steps:
       - integration-tests:
           env: staging
-  notify-test-results:
-    executor: node
-    parameters:
-      job_name:
-        type: enum
-        enum: [ integration-tests-alpha, integration-tests-staging, integration-tests-branch-against-dev ]
-        default: integration-tests-alpha
-    steps:
-      - checkout
-      - when:
-          condition: << pipeline.parameters.start_notify_job >>
-          steps:
-            - attach_workspace:
-                at: .
-            - restore_cache:
-                keys:
-                  - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
-            - run:
-                name: Wait up to 15 minutes for << parameters.job_name >> to finish
-                command: |
-                  x=0
-                  while [[ $x -le 900 ]]
-                    do
-                      status=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[]|select(.name == "<< parameters.job_name >>")|.status')
-                      echo "Job status: ${status}"
-                      if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
-                        break
-                      elif [[ $status == "canceled" ]]; then
-                        circleci-agent step halt
-                      fi
 
-                      sleep 10
-                      x=$(( $x + 10 ))
-                    done
-
-                  echo "Waited $x seconds"
-                  date
-
-                  # Is job stuck?
-                  if [[ x -ge 900 ]]; then
-                    status=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[]|select(.name == "<< parameters.job_name >>")|.status')
-                    echo "Final job status: ${status}"
-                    exit 1
-                  fi
-            - run:
-                name: Set JOB_BUILD_NUM from << parameters.job_name >>
-                command: |
-                  build_num=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[]|select(.name == "<< parameters.job_name >>")|.job_number')
-                  echo "export JOB_BUILD_NUM=$build_num" >> "$BASH_ENV"
-                  echo "export JOB_NAME=<< parameters.job_name >>" >> "$BASH_ENV"
-                  source $BASH_ENV
-            - run:
-                name: Slack test results
-                working_directory: integration-tests
-                command: |
-                  node --require ../.pnp.cjs ./slack/slack-circleci-results.js
 
 workflows:
   version: 2
@@ -366,18 +334,6 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - deploy-staging
-      - notify-test-results:
-          name: notify-test-results-alpha
-          <<: *filter-dev-branch
-          requires:
-            - deploy-alpha
-          job_name: integration-tests-alpha
-      - notify-test-results:
-          name: notify-test-results-staging
-          <<: *filter-dev-branch
-          requires:
-            - deploy-staging
-          job_name: integration-tests-staging
 
   nightly-integration-tests:
     triggers:
@@ -389,9 +345,3 @@ workflows:
     jobs:
       - integration-tests-alpha
       - integration-tests-staging
-      - notify-test-results:
-          name: notify-test-results-alpha
-          job_name: integration-tests-alpha
-      - notify-test-results:
-          name: notify-test-results-staging
-          job_name: integration-tests-staging
