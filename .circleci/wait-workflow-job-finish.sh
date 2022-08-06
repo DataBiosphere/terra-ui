@@ -11,17 +11,12 @@ set -o pipefail
 
 # Wait up to 15 minutes for job to finish
 x=0
+NODE_INDEX=0
 while [[ $x -le 900 ]]; do
-  curl "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.'
-
-
-  status=$(curl "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.items[] | select(.name == "'$CIRCLE_JOB'") | .status')
-  echo "$CIRCLE_JOB Job Status: $status"
-  if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
+  # Find number of nodes still is running
+  runningNodesCount=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.parallel_runs[] | select(.index != "'$NODE_INDEX'") | select(.status == "running")' | grep "running" | wc -l)
+  if [[ $runningNodesCount -eq 0 ]]; then
     break
-  fi
-  if [[ $status == "canceled" ]]; then
-    circleci-agent step halt
   fi
 
   sleep 10
@@ -31,8 +26,9 @@ done
 echo "Waited $x seconds"
 date
 
-# Is job stuck?
+# Something is wrong. Log response for error troubleshooting
 if [[ x -ge 900 ]]; then
-  echo "Job may be stuck in Running. Exit CircleCI now."
+  curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.'
+  echo "Wait time exceeded 15 minutes. This is unexpected. Job: \"$CIRCLE_JOB\"."
   exit 1
 fi
