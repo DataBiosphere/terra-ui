@@ -193,6 +193,9 @@ commands:
               echo "export JOB_NAME=$CIRCLE_JOB" >> "$BASH_ENV"
               source $BASH_ENV
 
+              pwd
+              ls -al
+
               node --require .pnp.cjs ./slack/slack-circleci-results.js
             else
               echo "CIRCLE_NODE_INDEX != 0"
