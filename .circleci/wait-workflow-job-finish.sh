@@ -12,6 +12,9 @@ set -o pipefail
 # Wait up to 15 minutes for job to finish
 x=0
 while [[ $x -le 900 ]]; do
+  curl "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.'
+
+
   status=$(curl "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.items[] | select(.name == "'$CIRCLE_JOB'") | .status')
   echo "$CIRCLE_JOB Job Status: $status"
   if [[ $status == "success" ]] || [[ $status == "failed" ]]; then
