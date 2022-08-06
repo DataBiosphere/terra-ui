@@ -186,7 +186,7 @@ commands:
           name: Wait up to 15 minutes for $CIRCLE_JOB to finish
           command: |
             if [[ $CIRCLE_NODE_INDEX -eq 0 ]]; then
-              .circleci/wait-workflow-job-finish.sh
+              ../.circleci/wait-workflow-job-finish.sh
 
               job_num=$(curl --request GET "https://circleci.com/api/v2/workflow/$CIRCLE_WORKFLOW_ID/job" --header "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.items[] | select(.name == "'$CIRCLE_JOB'") | .job_number')
 
