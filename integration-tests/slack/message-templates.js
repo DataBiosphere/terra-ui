@@ -1,6 +1,6 @@
 const {
-  JOB_NAME: CIRCLE_JOB,
-  JOB_BUILD_NUM: CIRCLE_BUILD_NUM,
+  CIRCLE_JOB,
+  CIRCLE_BUILD_NUM,
   CIRCLE_SHA1
 } = process.env
 
