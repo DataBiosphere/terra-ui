@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Exit script if you try to use an uninitialized variable.
 set -o nounset
@@ -12,10 +12,11 @@ EXCLUDE_NODE_INDEX=0
 while [[ $x -le 300 ]]; do
   # Find number of nodes still is running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"')
-  runningNodesCount=$(cat $job_detail | jq -r '.parallel_runs[] | select(.index != "'$EXCLUDE_NODE_INDEX'") | select(.status == "running")' | grep "running" | wc -l)
-  echo $runningNodesCount
-  if [[ $runningNodesCount -eq 0 ]]; then
-    echo "$runningNodesCount -eq 0"
+  job_running_nodes_count=$(echo $job_detail | jq -r '.parallel_runs[] | select(.index != "'$EXCLUDE_NODE_INDEX'") | select(.status == "running")' | grep "running" | wc -l)
+  echo $job_running_nodes_count
+
+  if [[ $job_running_nodes_count -eq 0 ]]; then
+    echo "$job_running_nodes_count -eq 0"
     exit 0
   fi
 
