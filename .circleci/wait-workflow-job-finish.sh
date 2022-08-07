@@ -6,7 +6,6 @@ set -o nounset
 # Use the error status of the first failure, rather than that of the last item in a pipeline.
 set -o pipefail
 
-# Wait up to 5 minutes for tests to finish on parallel run nodes except CIRCLE_NODE_INDEX=0: 0
 x=0
 EXCLUDE_NODE_INDEX=0
 while [ $x -le 300 ]; do
