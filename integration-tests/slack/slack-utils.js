@@ -7,7 +7,7 @@ const { getMessageBlockTemplate } = require('./message-templates')
 
 
 const {
-  JOB_BUILD_NUM: circleJobBuildNum
+  CIRCLE_BUILD_NUM
 } = process.env
 
 /**
@@ -16,7 +16,7 @@ const {
  * @param { string } buildNum
  * @returns { Promise<Array[string]> } URL to tests-summary-[0-9].json
  */
-const fetchCircleJobArtifacts = async ({ buildNum = circleJobBuildNum } = {}) => {
+const fetchCircleJobArtifacts = async ({ buildNum = CIRCLE_BUILD_NUM } = {}) => {
   if (!buildNum) {
     throw new Error(`**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.`)
   }
