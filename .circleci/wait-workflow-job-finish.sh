@@ -13,13 +13,13 @@ while [ $x -le 300 ]; do
   # Find number of nodes still is running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"')
   job_running_nodes_count=$(echo $job_detail | jq -r '.parallel_runs[] | select(.status == "running") | select(.index != '$EXCLUDE_NODE_INDEX')' | grep "running" | wc -l)
-  echo $job_running_nodes_count
+  echo "job_running_nodes_count: $job_running_nodes_count"
 
   if [ $job_running_nodes_count -eq 0 ]; then
-    echo "$job_running_nodes_count -eq 0"
     exit 0
   fi
 
+  echo "sleep 10 seconds"
   sleep 10
   x=$(($x + 10))
 done
