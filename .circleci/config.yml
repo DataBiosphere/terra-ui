@@ -183,9 +183,10 @@ commands:
           destination: results
       - run:
           working_directory: integration-tests
-          name: Wait up to 5 minutes for tests to finish on parallel run nodes except CIRCLE_NODE_INDEX=0
+          name: Test results Slack notification
           command: |
             if [ $CIRCLE_NODE_INDEX -eq 0 ]; then
+              # Wait up to 5 minutes for tests to finish on parallel run nodes except CIRCLE_NODE_INDEX=0
               ../.circleci/wait-workflow-job-finish.sh
               node --require ../.pnp.cjs ./slack/slack-circleci-results.js
             else
