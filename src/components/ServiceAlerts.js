@@ -32,6 +32,10 @@ export const ServiceAlerts = () => {
       return !dismissal || differenceInDays(parseJSON(dismissal.date), now) >= 1
     }, _.zip(newAlerts, newHashes))
     _.forEach(([{ link: readMoreLink, message, title, 'link-title': linkTitle, severity }, hash]) => {
+      const notificationId = `alert-${hash}`
+      const onDismiss = () => {
+        setDynamic(localStorage, `dismiss-alerts/${hash}`, { date: now })
+      }
       notify(
         severity === 'info' ? 'info' : 'warn',
         h(Fragment, [
@@ -44,15 +48,15 @@ export const ServiceAlerts = () => {
               ]),
               h(Link, {
                 onClick: () => {
-                  clearNotification(`alert-${hash}`)
-                  setDynamic(localStorage, `dismiss-alerts/${hash}`, { date: now })
+                  clearNotification(notificationId)
+                  onDismiss()
                 },
                 style: { marginLeft: 'auto' }
               }, ['Dismiss'])
             ])
           ])
         ]),
-        { id: `alert-${hash}` }
+        { id: notificationId, onDismiss }
       )
     }, newAlertsWithHashes)
   }

@@ -147,7 +147,7 @@ const Code = () => {
             }, featuredMethods)
           ])
         ]),
-        div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(), lineHeight: '20px' } }, [
+        div({ style: { width: 385, padding: '25px 30px', backgroundColor: colors.light(0.7), lineHeight: '20px' } }, [
           div({ style: { ...styles.header, fontSize: 16 } }, 'FIND ADDITIONAL WORKFLOWS'),
           h(DockstoreTile),
           div({ style: { marginTop: 40 } }, [
