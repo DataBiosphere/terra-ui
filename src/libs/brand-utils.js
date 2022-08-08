@@ -11,9 +11,10 @@ export const isDatastage = () => (window.location.hostname === brands.datastage.
 export const isElwazi = () => (window.location.hostname === brands.elwazi.hostName) || getConfig().isElwazi
 export const isFirecloud = () => (window.location.hostname === brands.firecloud.hostName) || getConfig().isFirecloud
 export const isProjectSingular = () => (window.location.hostname === brands.projectSingular.hostName) || getConfig().isProjectSingular
+export const isRadX = () => (window.location.hostname === brands.radX.hostName) || getConfig().isRadX
 export const isRareX = () => (window.location.hostname === brands.rareX.hostName) || getConfig().isRareX
 export const isTerra = () => (window.location.hostname === brands.terra.hostName) || getConfig().isTerra ||
-  (!isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isProjectSingular() && !isRareX())
+  (!isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isProjectSingular() && !isRadX() && !isRareX())
 
 export const getEnabledBrand = () => Utils.cond(
   [isAnvil(), () => brands.anvil],
@@ -23,6 +24,7 @@ export const getEnabledBrand = () => Utils.cond(
   [isElwazi(), () => brands.elwazi],
   [isFirecloud(), () => brands.firecloud],
   [isProjectSingular(), () => brands.projectSingular],
+  [isRadX(), () => brands.radX],
   [isRareX(), () => brands.rareX],
   [isTerra(), () => brands.terra],
   () => brands.terra

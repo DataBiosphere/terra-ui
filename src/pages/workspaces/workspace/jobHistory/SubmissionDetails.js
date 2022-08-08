@@ -56,8 +56,8 @@ const deletedInfoIcon = ({ name, iconOverride }) => {
 const tableRowHeight = flexTableDefaultRowHeight
 
 const SubmissionWorkflowsTable = ({ workspace, submission }) => {
-  const { workspace: { namespace, name, bucketName } } = workspace
-  const { submissionId, workflows = [], cost } = submission
+  const { workspace: { namespace, name } } = workspace
+  const { submissionId, submissionRoot, workflows = [], cost } = submission
 
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
@@ -195,7 +195,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
                 inputName && h(Link, {
                   key: 'directory',
                   ...Utils.newTabLinkProps,
-                  href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
+                  href: bucketBrowserUrl(`${submissionRoot.replace('gs://', '')}/${inputName.split('.')[0]}/${workflowId}`),
                   style: { margin: '0.5rem', display: 'flex' },
                   tooltip: 'Execution directory',
                   'aria-label': `Execution directory (for workflow ID ${workflowId})`
@@ -276,7 +276,7 @@ const SubmissionDetails = _.flow(
     title: 'Job History', activeTab: 'job history'
   })
 )((props, _ref) => {
-  const { namespace, name, submissionId, workspace, workspace: { workspace: { bucketName } } } = props
+  const { namespace, name, submissionId, workspace } = props
 
   /*
    * State setup
@@ -345,7 +345,7 @@ const SubmissionDetails = _.flow(
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
     submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, deleteIntermediateOutputFiles,
-    useReferenceDisks, memoryRetryMultiplier, workflows = []
+    submissionRoot, useReferenceDisks, memoryRetryMultiplier, workflows = []
   } = submission
 
   const statusGroups = _.groupBy(wf => collapseStatus(wf.status).id, workflows)
@@ -419,7 +419,7 @@ const SubmissionDetails = _.flow(
           makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
           makeSection('Data Entity', [div([entityName]), div([entityType])]),
           makeSection('Submission ID', [h(Link,
-            { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
+            { href: bucketBrowserUrl(submissionRoot.replace('gs://', '')), ...Utils.newTabLinkProps },
             submissionId
           )]),
           makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),

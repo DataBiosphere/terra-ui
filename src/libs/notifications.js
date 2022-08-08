@@ -7,6 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -25,15 +26,43 @@ const makeNotification = props => _.defaults({ id: uuid() }, props)
 
 export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props })
-  const visibleNotificationIds = _.map('id', notificationStore.get())
-  notificationStore.update(Utils.append(notification))
-  if (!_.includes(notification.id, visibleNotificationIds)) {
-    showNotification(notification)
+  if (!isNotificationMuted(notification.id)) {
+    const visibleNotificationIds = _.map('id', notificationStore.get())
+    notificationStore.update(Utils.append(notification))
+    if (!_.includes(notification.id, visibleNotificationIds)) {
+      showNotification(notification)
+    }
   }
   return notification.id
 }
 
 export const clearNotification = id => store.removeNotification(id)
+
+export const clearMatchingNotifications = idPrefix => {
+  const matchingNotificationIds = _.flow(
+    _.map(_.get('id')),
+    _.filter(_.startsWith(idPrefix))
+  )(notificationStore.get())
+  matchingNotificationIds.forEach(id => {
+    store.removeNotification(id)
+  })
+}
+
+const muteNotificationPreferenceKey = id => `mute-notification/${id}`
+
+export const isNotificationMuted = id => {
+  const mutedUntil = getLocalPref(muteNotificationPreferenceKey(id))
+  return Utils.switchCase(
+    mutedUntil,
+    [undefined, () => false],
+    [-1, () => true],
+    [Utils.DEFAULT, () => mutedUntil > Date.now()]
+  )
+}
+
+export const muteNotification = (id, until = -1) => {
+  setLocalPref(muteNotificationPreferenceKey(id), until)
+}
 
 const NotificationDisplay = ({ id }) => {
   const notificationState = useStore(notificationStore)
@@ -44,7 +73,7 @@ const NotificationDisplay = ({ id }) => {
   const onFirst = notificationNumber === 0
   const onLast = notificationNumber + 1 === notifications.length
 
-  const { title, message, detail, type, action } = notifications[notificationNumber]
+  const { title, message, detail, type, action, onDismiss } = notifications[notificationNumber]
   const [baseColor, ariaLabel] = Utils.switchCase(type,
     ['success', () => [colors.success, 'success notification']],
     ['info', () => [colors.accent, 'info notification']],
@@ -76,7 +105,7 @@ const NotificationDisplay = ({ id }) => {
     // content and close button
     div({ style: { display: 'flex', padding: '0.75rem 1rem' } }, [
       // content
-      div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
+      div({ style: { display: 'flex', flex: 1, flexDirection: 'column', overflow: 'hidden' } }, [
         // icon and title
         div({ style: { display: 'flex' } }, [
           !!iconType && icon(iconType, {
@@ -84,9 +113,9 @@ const NotificationDisplay = ({ id }) => {
             size: 26,
             style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' }
           }),
-          div({ id: labelId, style: { fontWeight: 600 } }, [title])
+          div({ id: labelId, style: { fontWeight: 600, overflow: 'hidden', overflowWrap: 'break-word' } }, [title])
         ]),
-        !!message && div({ id: descId, style: { marginTop: '0.5rem' } }, [message]),
+        !!message && div({ id: descId, style: { marginTop: '0.5rem', overflowWrap: 'break-word' } }, [message]),
         div({ style: { display: 'flex' } }, [
           !!detail && h(Clickable, {
             style: { marginTop: '0.25rem', marginRight: '0.5rem', textDecoration: 'underline' },
@@ -105,7 +134,10 @@ const NotificationDisplay = ({ id }) => {
         style: { alignSelf: 'start' },
         'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
         title: 'Dismiss notification',
-        onClick: () => store.removeNotification(id)
+        onClick: () => {
+          store.removeNotification(id)
+          onDismiss?.()
+        }
       }, [icon('times', { size: 20 })])
     ]),
     notifications.length > 1 && div({
