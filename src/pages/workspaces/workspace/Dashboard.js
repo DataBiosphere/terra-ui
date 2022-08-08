@@ -217,7 +217,6 @@ const WorkspaceDashboard = _.flow(
   const [acl, setAcl] = useState(undefined)
 
   const dashboardPersistenceId = `workspaces/${namespace}/${name}/dashboard`
-  const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
 
   const signal = useCancellation()
   const sasTokenRefreshInterval = useRef()
@@ -226,7 +225,6 @@ const WorkspaceDashboard = _.flow(
     loadSubmissionCount()
     loadConsent()
     loadWsTags()
-    updateRecentlyViewedWorkspaces()
 
     if (!azureContext) {
       loadStorageCost()
@@ -253,7 +251,6 @@ const WorkspaceDashboard = _.flow(
   const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.ownersPanelOpen || false)
   const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.authDomainPanelOpen || false)
   const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.tagsPanelOpen || false)
-  const [recentlyViewed, setRecentlyViewed] = useState(() => getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || [])
 
   useEffect(() => {
     setLocalPref(dashboardPersistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
@@ -265,10 +262,6 @@ const WorkspaceDashboard = _.flow(
       sasTokenRefreshInterval.current = undefined
     }
   }, [sasTokenRefreshInterval])
-
-  useEffect(() => {
-    setLocalPref(recentlyViewedPersistenceId, { recentlyViewed })
-  }, [recentlyViewed]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -447,18 +440,6 @@ const WorkspaceDashboard = _.flow(
       }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       )])
     ]
-  }
-
-  const updateRecentlyViewedWorkspaces = () => {
-    //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
-    //we only want the most recent instance stored in the list.
-    const updatedRecentlyViewed = _.flow(
-      _.remove({ workspaceId }),
-      _.concat([{ workspaceId, timestamp: Date.now() }]),
-      _.orderBy(['timestamp'], ['desc']),
-      _.take(4)
-    )(recentlyViewed)
-    setRecentlyViewed(updatedRecentlyViewed)
   }
 
   // Render

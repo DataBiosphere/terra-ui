@@ -1,6 +1,6 @@
 import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { ContextBar } from 'src/components/ContextBar'
@@ -21,6 +21,7 @@ import { isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
@@ -301,6 +302,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const [azureContext, setAzureContext] = useState(workspace?.azureContext)
     const [{ location, locationType }, setBucketLocation] = useState({ location: defaultLocation, locationType: locationTypes.default })
 
+    const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
+    const [recentlyViewed, setRecentlyViewed] = useState(() => getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || [])
+
     const prevGoogleProject = usePrevious(googleProject)
     const prevAzureContext = usePrevious(azureContext)
 
@@ -325,6 +329,18 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }
     }
 
+    const updateRecentlyViewedWorkspaces = workspaceId => {
+      //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
+      //we only want the most recent instance stored in the list.
+      const updatedRecentlyViewed = _.flow(
+        _.remove({ workspaceId }),
+        _.concat([{ workspaceId, timestamp: Date.now() }]),
+        _.orderBy(['timestamp'], ['desc']),
+        _.take(4)
+      )(recentlyViewed)
+      setRecentlyViewed(updatedRecentlyViewed)
+    }
+
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
       Utils.withBusyState(setLoadingWorkspace)
@@ -333,11 +349,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
-          'workspace.isLocked', 'workspaceSubmissionStats'
+          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
         setAzureContext(workspace.azureContext)
+        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
         const isGoogleWorkspace = !!googleProject
@@ -370,6 +387,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         }
       }
     })
+
+    useEffect(() => {
+      setLocalPref(recentlyViewedPersistenceId, { recentlyViewed })
+    }, [recentlyViewed]) // eslint-disable-line react-hooks/exhaustive-deps
 
     useOnMount(() => {
       if (!workspace) {
