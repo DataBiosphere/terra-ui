@@ -3,7 +3,7 @@ const fetch = require('node-fetch')
 
 const defaultToken = process.env.SLACK_BOT_TOKEN
 const defaultChannel = process.env.SLACK_CHANNEL_ID
-const apiUrl = 'https://slack.com/api' // See: https://api.slack.com/web
+const apiUrl = 'https://slack.com/api'
 
 const postMessage = async ({ channel = defaultChannel, token = defaultToken, blocks }) => {
   if (!channel) {
