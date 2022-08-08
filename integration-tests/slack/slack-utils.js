@@ -7,7 +7,7 @@ const { getMessageBlockTemplate } = require('./message-templates')
 
 
 const {
-  JOB_BUILD_NUM: circleJobBuildNum
+  JOB_BUILD_NUM
 } = process.env
 
 /**
@@ -16,7 +16,7 @@ const {
  * @param { string } buildNum
  * @returns { Promise<Array[string]> } URL to tests-summary-[0-9].json
  */
-const fetchCircleJobArtifacts = async ({ buildNum = circleJobBuildNum } = {}) => {
+const fetchCircleJobArtifacts = async ({ buildNum = JOB_BUILD_NUM } = {}) => {
   if (!buildNum) {
     throw new Error(`**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.`)
   }
@@ -75,18 +75,18 @@ const getFailedTests = async () => {
  */
 const getChannelsNotifyFailed = failedTests => {
   const { fail: failJsonBlock } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
-  const channelIdsAndTests = new Map() // Map<string, Array[string]>()
+  const idsAndNames = new Map() // Map<string, Array[string]>()
   _.forEach(item => {
     const channelId = _.get(['id'], item)
     const { tests } = item
     const testNames = _.map(item => item.name, tests)
-    channelIdsAndTests.set(channelId, testNames)
+    idsAndNames.set(channelId, testNames)
   }, failJsonBlock)
 
   const idsAndTestsMap = new Map() // Map<string, Array[string]>()
   _.forEach(test => {
-    const channelIdsForFailedTest = Array.from(channelIdsAndTests.keys())
-      .filter(key => channelIdsAndTests.get(key).includes(test) || channelIdsAndTests.get(key).length === 0)
+    const channelIdsForFailedTest = Array.from(idsAndNames.keys())
+      .filter(key => idsAndNames.get(key).includes(test) || idsAndNames.get(key).length === 0)
     if (channelIdsForFailedTest.length === 0) {
       throw new Error(`Test: ${test} was not found in slack-notify-channels.json`)
     }
@@ -101,10 +101,10 @@ const getChannelsNotifyFailed = failedTests => {
 /**
  * Slack to notify job failed. Message contains failed test names.
  * @param { Array[string] } failedTests
- * @returns { Promise<void> }
+ * @returns void
  */
 const notifyFailure = failedTests => {
-  const idsAndTestsMap = getChannelsNotifyFailed(failedTests)
+  const idsAndNames = getChannelsNotifyFailed(failedTests)
   // Slack issue: No way to post the same message to multiple channels at once. https://github.com/slackapi/bolt-js/issues/696
   _.forEach(async ([channelId, testNames]) => {
     const blocks = getMessageBlockTemplate(failedTests.length)
@@ -119,10 +119,13 @@ const notifyFailure = failedTests => {
         ]
     })
     await postMessage({ channel: channelId, blocks })
-  }, _.toPairs(idsAndTestsMap))
+  }, _.toPairs(idsAndNames))
 }
 
-// Slack to notify job succeeded
+/**
+ * Slack to notify job succeeded.
+ * @returns void
+ */
 const notifySuccess = () => {
   const blocks = getMessageBlockTemplate()
   const { pass: passNotifyChannels } = JSON.parse(fs.readFileSync('./slack/slack-notify-channels.json', 'utf8'))
