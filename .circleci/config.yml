@@ -313,12 +313,12 @@ workflows:
           requires:
             - deploy-staging
   nightly-integration-tests:
-    triggers:
-      - schedule:
-          cron: "0 13 * * *"
-          filters:
-            branches:
-              only: dev
+    #triggers:
+    #  - schedule:
+    #      cron: "0 13 * * *"
+    #      filters:
+    #        branches:
+    #          only: dev
     jobs:
       - integration-tests-alpha
       - integration-tests-staging
