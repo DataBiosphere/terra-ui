@@ -28,6 +28,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { getLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
@@ -53,14 +54,14 @@ const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'fle
 const AnalysisCardHeaders = ({ sort, onSort }) => {
   const [sortHover, setSortHover] = useState()
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, 'Application'), style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'application', sortHover, onMouseEnter: () => { setSortHover('application') }, onMouseLeave: () => { setSortHover('') } })
+    div({ 'aria-sort': ariaSort(sort, 'Application'), onMouseEnter: () => { setSortHover('application') }, onMouseLeave: () => { setSortHover('') }, style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'application', sortHover })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: centerColumnFlex }, [
-      h(HeaderRenderer, { sort, onSort, name: 'name', sortHover, onMouseEnter: () => { setSortHover('name') }, onMouseLeave: () => { setSortHover('') } })
+    div({ 'aria-sort': ariaSort(sort, 'name'), onMouseEnter: () => { setSortHover('name') }, onMouseLeave: () => { setSortHover('') }, style: centerColumnFlex }, [
+      h(HeaderRenderer, { sort, onSort, name: 'name', sortHover })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'lastModified', sortHover, onMouseEnter: () => { setSortHover('lastModified') }, onMouseLeave: () => { setSortHover('') } })
+    div({ 'aria-sort': ariaSort(sort, 'lastModified'), onMouseEnter: () => { setSortHover('lastModified') }, onMouseLeave: () => { setSortHover('') }, style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'lastModified', sortHover })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])
@@ -233,8 +234,10 @@ const Analyses = _.flow(
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
-  const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
-  const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
+  const [sortOrder, setSortOrder] = useState(() => getLocalPref('AnalysesSortOrder') || defaultSort.value)
+  const [filter, setFilter] = useState(() => getLocalPref('AnalysesFilter') || '')
+  // const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
+  // const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
   const [azureCreating, setAzureCreating] = useState(false)
