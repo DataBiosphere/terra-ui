@@ -553,7 +553,7 @@ export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   }, [children, icon(copied ? 'check' : 'copy-to-clipboard', !!children && { style: { marginLeft: '0.5rem' } })])
 }
 
-export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
+export const HeaderRenderer = ({ name, label, sort, onSort, style, sortHover, ...props }) => h(MiniSortable, { sort, field: name, onSort, sortHover }, [
   div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
 

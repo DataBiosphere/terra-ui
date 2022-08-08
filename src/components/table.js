@@ -757,8 +757,25 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   ])])
 }
 
-export const MiniSortable = ({ sort, field, onSort, children }) => {
+export const MiniSortable = ({ sort, field, onSort, children, sortHover }) => {
   const cursor = sort ? 'pointer' : 'default'
+
+  let sortIcon
+
+  if (sort?.field === field) {
+    sortIcon = div({
+      style: { color: colors.accent(), marginLeft: '1rem' }
+    }, [
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
+    ])
+  } else if (sortHover === field) {
+    sortIcon = div({
+      style: { color: colors.accent(), marginLeft: '1rem' }
+    }, [
+      icon('long-arrow-alt-down')
+    ])
+  }
+
   return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor, height: '100%' },
     disabled: !sort,
@@ -766,11 +783,7 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
     'aria-describedby': id
   }, [
     children,
-    sort?.field === field && div({
-      style: { color: colors.accent(), marginLeft: '1rem' }
-    }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-    ]),
+    sortIcon,
     div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
 }

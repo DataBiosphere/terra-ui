@@ -51,15 +51,16 @@ const centerColumnFlex = { flex: 5 }
 const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
+  const [sortHover, setSortHover] = useState()
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
     div({ 'aria-sort': ariaSort(sort, 'Application'), style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'application' })
+      h(HeaderRenderer, { sort, onSort, name: 'application', sortHover, onMouseEnter: () => { setSortHover('application') }, onMouseLeave: () => { setSortHover('') } })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'name'), style: centerColumnFlex }, [
-      h(HeaderRenderer, { sort, onSort, name: 'name' })
+      h(HeaderRenderer, { sort, onSort, name: 'name', sortHover, onMouseEnter: () => { setSortHover('name') }, onMouseLeave: () => { setSortHover('') } })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+      h(HeaderRenderer, { sort, onSort, name: 'lastModified', sortHover, onMouseEnter: () => { setSortHover('lastModified') }, onMouseLeave: () => { setSortHover('') } })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])
@@ -379,7 +380,12 @@ const Analyses = _.flow(
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
         [Utils.DEFAULT, () => h(Fragment, [
-          h(AnalysisCardHeaders, { sort: sortOrder, onSort: setSortOrder }),
+          h(AnalysisCardHeaders, {
+            sort: sortOrder, onSort: newSortOrder => {
+              StateHistory.update({ sortOrder: newSortOrder })
+              setSortOrder(newSortOrder)
+            }
+          }),
           div({ role: 'list', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
         ])]
       )
