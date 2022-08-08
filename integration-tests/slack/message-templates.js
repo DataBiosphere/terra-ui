@@ -40,10 +40,22 @@ const getJobDetailBlock = () => {
   }
 }
 
+const getTestsListBlock = testNames => {
+  return {
+    type: 'section',
+    fields: [
+      {
+        type: 'mrkdwn',
+        text: `*  ${testNames.join('\n*  ')}`
+      }
+    ]
+  }
+}
+
 // any non-zero number to indicate test(s) has failed in circleci job
 const getMessageBlockTemplate = (numFailedTests = 0) => [
   getHeaderBlock(numFailedTests),
   getJobDetailBlock()
 ]
 
-module.exports = { getMessageBlockTemplate }
+module.exports = { getMessageBlockTemplate, getTestsListBlock }
