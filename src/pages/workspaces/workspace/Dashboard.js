@@ -216,7 +216,7 @@ const WorkspaceDashboard = _.flow(
   const [tagsList, setTagsList] = useState(undefined)
   const [acl, setAcl] = useState(undefined)
 
-  const dashboardPersistenceId = `workspaces/${namespace}/${name}/dashboard`
+  const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
   const sasTokenRefreshInterval = useRef()
@@ -246,14 +246,14 @@ const WorkspaceDashboard = _.flow(
 
   useImperativeHandle(ref, () => ({ refresh }))
 
-  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.workspaceInfoPanelOpen)
-  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.cloudInfoPanelOpen || false)
-  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.ownersPanelOpen || false)
-  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.authDomainPanelOpen || false)
-  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(dashboardPersistenceId)?.tagsPanelOpen || false)
+  const [workspaceInfoPanelOpen, setWorkspaceInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.workspaceInfoPanelOpen)
+  const [cloudInfoPanelOpen, setCloudInfoPanelOpen] = useState(() => getLocalPref(persistenceId)?.cloudInfoPanelOpen || false)
+  const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
+  const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
+  const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
 
   useEffect(() => {
-    setLocalPref(dashboardPersistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
+    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
   }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
