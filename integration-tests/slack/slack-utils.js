@@ -21,7 +21,7 @@ const fetchCircleJobArtifacts = async ({ buildNum = JOB_BUILD_NUM } = {}) => {
     throw new Error(`**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.`)
   }
 
-  // Find more arguments and details of the response: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
+  // For more arguments and details of the response, see: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts
   const apiUrlRoot = 'https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui'
 
   try {
@@ -37,7 +37,7 @@ const fetchCircleJobArtifacts = async ({ buildNum = JOB_BUILD_NUM } = {}) => {
 
 /**
  *
- * @param { string }aggregatedResult
+ * @param { string } aggregatedResult
  * @returns { Array[string] }
  */
 const getFailedTestFileNames = aggregatedResult => {
@@ -83,19 +83,19 @@ const getChannelsNotifyFailed = failedTests => {
     idsAndNames.set(channelId, testNames)
   }, failJsonBlock)
 
-  const idsAndTestsMap = new Map() // Map<string, Array[string]>()
+  const filteredIdsAndNames = new Map() // Map<string, Array[string]>()
   _.forEach(test => {
     const channelIdsForFailedTest = Array.from(idsAndNames.keys())
       .filter(key => idsAndNames.get(key).includes(test) || idsAndNames.get(key).length === 0)
     if (channelIdsForFailedTest.length === 0) {
       throw new Error(`Test: ${test} was not found in slack-notify-channels.json`)
     }
-    _.forEach(channelId => idsAndTestsMap.has(channelId) ? idsAndTestsMap.get(channelId).push(test) : idsAndTestsMap.set(channelId, new Array(test)),
+    _.forEach(channelId => filteredIdsAndNames.has(channelId) ? filteredIdsAndNames.get(channelId).push(test) : filteredIdsAndNames.set(channelId, new Array(test)),
       channelIdsForFailedTest
     )
   }, failedTests)
 
-  return idsAndTestsMap
+  return filteredIdsAndNames
 }
 
 /**
