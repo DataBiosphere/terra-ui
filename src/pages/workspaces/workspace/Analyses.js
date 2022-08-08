@@ -28,7 +28,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { getLocalPref } from 'src/libs/prefs'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
@@ -235,9 +235,7 @@ const Analyses = _.flow(
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref('AnalysesSortOrder') || defaultSort.value)
-  const [filter, setFilter] = useState(() => getLocalPref('AnalysesFilter') || '')
-  // const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
-  // const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
   const [azureCreating, setAzureCreating] = useState(false)
@@ -385,7 +383,7 @@ const Analyses = _.flow(
         [Utils.DEFAULT, () => h(Fragment, [
           h(AnalysisCardHeaders, {
             sort: sortOrder, onSort: newSortOrder => {
-              StateHistory.update({ sortOrder: newSortOrder })
+              setLocalPref('AnalysesSortOrder', newSortOrder)
               setSortOrder(newSortOrder)
             }
           }),
