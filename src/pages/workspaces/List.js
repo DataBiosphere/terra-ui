@@ -380,7 +380,7 @@ export const WorkspaceList = () => {
               workspace, loadingSubmissionStats, timestamp,
               submissionStatus: workspaceSubmissionStatus(workspace)
             })
-          }, recentlyViewed)
+          }, _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), recentlyViewed))
         )
       ]),
       h(SimpleTabBar, {
