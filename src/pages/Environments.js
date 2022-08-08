@@ -119,7 +119,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
 
 const MigratePersistentDisksBanner = ({ count }) => {
   const deadline = new Date('01 January 2023 00:00 UTC')
-  return div({
+  return count > 0 && div({
     style: {
       position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
       backgroundColor: colors.warning(0.15),
@@ -127,12 +127,12 @@ const MigratePersistentDisksBanner = ({ count }) => {
       zIndex: 9999
     }
   }, [
-    div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.25rem' } }, [
-        icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-        strong([`You have ${Math.floor((deadline - Date.now()) / 86400000)} days to migrate ${count} shared persistent ${count > 1 ? 'disks' : 'disk'}.`])
-      ]),
-      `Un-migrated disks will be DELETED after ${deadline.toString()}.`
+    div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
+      icon('warning-standard', { size: 32, style: { color: colors.warning(), marginRight: '0.25rem' } }),
+      div([
+        strong([`You have ${Math.floor((deadline - Date.now()) / 86400000)} days to migrate ${count} shared persistent ${count > 1 ? 'disks' : 'disk'}. `]),
+        `Un-migrated disks will be DELETED after ${Utils.makeCompleteDate(deadline)}.`
+      ])
     ])
   ])
 }
@@ -428,8 +428,6 @@ const Environments = () => {
       disks).length > 1
   }
 
-  const numDisksRequiringMigration = _.countBy('requiresMigration', disks).true
-
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments' }),
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
@@ -699,7 +697,7 @@ const Environments = () => {
         }
       })
     ]),
-    numDisksRequiringMigration > 0 && h(MigratePersistentDisksBanner, { count: numDisksRequiringMigration }, []),
+    h(MigratePersistentDisksBanner, { count: _.countBy('requiresMigration', disks).true }, []),
     loading && spinnerOverlay
   ])
 }
