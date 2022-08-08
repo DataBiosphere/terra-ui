@@ -178,8 +178,8 @@ const WorkspaceContainer = ({
 
 
 const WorkspaceAccessError = () => {
-  const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
-  const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
+  const groupURL = 'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-'
+  const authorizationURL = 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains'
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
