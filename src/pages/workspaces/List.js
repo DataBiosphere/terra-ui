@@ -14,6 +14,8 @@ import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -249,27 +251,16 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
-          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
+          headerRenderer: () => div({ className: 'sr-only' }),
           cellRenderer: ({ rowIndex }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            const { accessLevel, ...workspace } = sortedWorkspaces[rowIndex]
             if (!Utils.canRead(accessLevel)) {
-              // No menu shown if user does not have read acccess.
+              // No menu shown if user does not have read access.
               return null
             }
-            const onClone = () => setCloningWorkspaceId(workspaceId)
-            const onDelete = () => setDeletingWorkspaceId(workspaceId)
-            const onLock = () => setLockingWorkspaceId(workspaceId)
-            const onShare = () => setSharingWorkspaceId(workspaceId)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-              div({ style: styles.tableCellContent }, [
-                h(WorkspaceMenu, {
-                  iconSize: 20, popupLocation: 'left',
-                  callbacks: { onClone, onShare, onLock, onDelete },
-                  workspaceInfo: { namespace, name }
-                })
-              ]),
               div({ style: styles.tableCellContent }, [
                 loadingSubmissionStats && h(DelayedRender, [
                   h(TooltipTrigger, {
@@ -282,11 +273,57 @@ export const WorkspaceList = () => {
                   side: 'left'
                 }, [
                   Utils.switchCase(lastRunStatus,
-                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
-                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
-                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
+                    ['success', () => icon('success-standard', {
+                      size: 20, style: { color: colors.success() },
+                      'aria-label': 'Workflow Status Success'
+                    })],
+                    ['failure', () => icon('error-standard', {
+                      size: 20, style: { color: colors.danger(0.85) },
+                      'aria-label': 'Workflow Status Failure'
+                    })],
+                    ['running', () => icon('sync', {
+                      size: 20, style: { color: colors.success() },
+                      'aria-label': 'Workflow Status Running'
+                    })]
                   )
                 ])
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
+          headerRenderer: () => div({ className: 'sr-only' }),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                Utils.switchCase(cloudPlatform,
+                  ['Gcp', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+                  ['Azure', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name } } = sortedWorkspaces[rowIndex]
+            if (!Utils.canRead(accessLevel)) {
+              // No menu shown if user does not have read access.
+              return null
+            }
+            const onClone = () => setCloningWorkspaceId(workspaceId)
+            const onDelete = () => setDeletingWorkspaceId(workspaceId)
+            const onLock = () => setLockingWorkspaceId(workspaceId)
+            const onShare = () => setSharingWorkspaceId(workspaceId)
+
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                h(WorkspaceMenu, {
+                  iconSize: 20, popupLocation: 'left',
+                  callbacks: { onClone, onShare, onLock, onDelete },
+                  workspaceInfo: { namespace, name }
+                })
               ])
             ])
           },
