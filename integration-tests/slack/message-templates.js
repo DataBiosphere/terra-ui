@@ -52,7 +52,6 @@ const getTestsListBlock = testNames => {
   }
 }
 
-// any non-zero number to indicate test(s) has failed in circleci job
 const getMessageBlockTemplate = testNames => {
   const size = testNames.length
 
