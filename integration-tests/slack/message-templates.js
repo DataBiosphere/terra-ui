@@ -53,9 +53,18 @@ const getTestsListBlock = testNames => {
 }
 
 // any non-zero number to indicate test(s) has failed in circleci job
-const getMessageBlockTemplate = (numFailedTests = 0) => [
-  getHeaderBlock(numFailedTests),
-  getJobDetailBlock()
-]
+const getMessageBlockTemplate = testNames => {
+  const size = testNames.length
 
-module.exports = { getMessageBlockTemplate, getTestsListBlock }
+  const blocksArray = [
+    getHeaderBlock(size),
+    getJobDetailBlock()
+  ]
+
+  if (size === 0) {
+    return blocksArray
+  } else {
+    return blocksArray.concat(getTestsListBlock(testNames))
+  }
+}
+module.exports = { getMessageBlockTemplate }
