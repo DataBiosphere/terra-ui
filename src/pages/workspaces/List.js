@@ -88,7 +88,8 @@ export const WorkspaceList = () => {
   const [featuredList, setFeaturedList] = useState()
 
   const persistenceId = 'workspaces/recentlyViewed'
-  const recentlyViewed = useMemo(() => getLocalPref(persistenceId)?.recentlyViewed || [], [])
+  //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
+  const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(persistenceId)?.recentlyViewed || []), [workspaces])
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
@@ -380,7 +381,7 @@ export const WorkspaceList = () => {
               workspace, loadingSubmissionStats, timestamp,
               submissionStatus: workspaceSubmissionStatus(workspace)
             })
-          }, _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), recentlyViewed))
+          }, recentlyViewed)
         )
       ]),
       h(SimpleTabBar, {
