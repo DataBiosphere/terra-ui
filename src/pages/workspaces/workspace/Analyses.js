@@ -58,16 +58,15 @@ const centerColumnFlex = { flex: 5 }
 const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
-  const [sortHover, setSortHover] = useState()
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, FIELD_APPLICATION), onMouseEnter: () => { setSortHover(FIELD_APPLICATION) }, onMouseLeave: () => { setSortHover('') }, style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_APPLICATION, sortHover })
+    div({ 'aria-sort': ariaSort(sort, FIELD_APPLICATION), style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: FIELD_APPLICATION })
     ]),
-    div({ 'aria-sort': ariaSort(sort, FIELD_NAME), onMouseEnter: () => { setSortHover(FIELD_NAME) }, onMouseLeave: () => { setSortHover('') }, style: centerColumnFlex }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_NAME, sortHover })
+    div({ 'aria-sort': ariaSort(sort, FIELD_NAME), style: centerColumnFlex }, [
+      h(HeaderRenderer, { sort, onSort, name: FIELD_NAME })
     ]),
-    div({ 'aria-sort': ariaSort(sort, FIELD_LAST_MODIFIED), onMouseEnter: () => { setSortHover(FIELD_LAST_MODIFIED) }, onMouseLeave: () => { setSortHover('') }, style: { ...endColumnFlex, paddingRight: '1rem' } }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_LAST_MODIFIED, sortHover })
+    div({ 'aria-sort': ariaSort(sort, FIELD_LAST_MODIFIED), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: FIELD_LAST_MODIFIED })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])

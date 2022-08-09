@@ -741,43 +741,50 @@ export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 600 } }, props))
 }
 
-export const Sortable = ({ sort, field, onSort, children }) => {
-  return h(IdContainer, [id => h(Clickable, {
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field)),
-    'aria-describedby': id
-  }, [
-    children,
-    sort.field === field && div({
-      style: { color: colors.accent(), marginLeft: '0.1rem' }
-    }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-    ]),
-    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
-  ])])
-}
-
-export const MiniSortable = ({ sort, field, onSort, children, sortHover }) => {
-  const cursor = sort ? 'pointer' : 'default'
-
+const getSortIcon = (sort, field, sortHover, style) => {
   let sortIcon
-
   if (sort?.field === field) {
     sortIcon = div({
-      style: { color: colors.accent(), marginLeft: '1rem' }
+      style
     }, [
       icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ])
   } else if (sortHover === field) {
     sortIcon = div({
-      style: { color: colors.accent(), marginLeft: '1rem' }
+      style
     }, [
       icon('long-arrow-alt-down')
     ])
   }
+  return sortIcon
+}
+
+export const Sortable = ({ sort, field, onSort, children }) => {
+  const [sortHover, setSortHover] = useState()
+  const sortIcon = getSortIcon(sort, field, sortHover, { color: colors.accent(), marginLeft: '0.1rem' })
+  return h(IdContainer, [id => h(Clickable, {
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
+    onMouseEnter: () => { setSortHover(field) },
+    onMouseLeave: () => { setSortHover('') },
+    onClick: () => onSort(Utils.nextSort(sort, field)),
+    'aria-describedby': id
+  }, [
+    children,
+    sortIcon,
+    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
+  ])])
+}
+
+export const MiniSortable = ({ sort, field, onSort, children }) => {
+  const cursor = sort ? 'pointer' : 'default'
+  const [sortHover, setSortHover] = useState()
+
+  const sortIcon = getSortIcon(sort, field, sortHover, { color: colors.accent(), marginLeft: '1rem' })
 
   return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor, height: '100%' },
+    onMouseEnter: () => { setSortHover(field) },
+    onMouseLeave: () => { setSortHover('') },
     disabled: !sort,
     onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id
