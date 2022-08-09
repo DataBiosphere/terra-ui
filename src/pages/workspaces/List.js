@@ -308,7 +308,19 @@ export const WorkspaceList = () => {
           href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
         }, ['Learn more about workspaces.'])
       ]),
-      div({ style: { display: 'flex', marginBottom: '0.5rem' } }, [
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
+        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
+        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
+          _.map(({ workspaceId, timestamp }) => {
+            const workspace = getWorkspace(workspaceId)
+            return h(RecentlyViewedWorkspaceCard, {
+              workspace, loadingSubmissionStats, timestamp,
+              submissionStatus: workspaceSubmissionStatus(workspace)
+            })
+          }, recentlyViewed)
+        )
+      ]),
+      div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
             placeholder: 'Search by keyword',
@@ -371,18 +383,6 @@ export const WorkspaceList = () => {
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
         ])
-      ]),
-      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
-        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
-        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
-          _.map(({ workspaceId, timestamp }) => {
-            const workspace = getWorkspace(workspaceId)
-            return h(RecentlyViewedWorkspaceCard, {
-              workspace, loadingSubmissionStats, timestamp,
-              submissionStatus: workspaceSubmissionStatus(workspace)
-            })
-          }, recentlyViewed)
-        )
       ]),
       h(SimpleTabBar, {
         'aria-label': 'choose a workspace collection',
