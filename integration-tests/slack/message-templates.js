@@ -24,8 +24,8 @@ const getHeaderBlock = numFailedTests => {
   }
 }
 
-const getJobDetailBlock = () => {
-  return {
+const getJobDetailBlock = () => (
+  {
     type: 'section',
     fields: [
       {
@@ -38,10 +38,10 @@ const getJobDetailBlock = () => {
       }
     ]
   }
-}
+)
 
-const getTestsListBlock = testNames => {
-  return {
+const getTestsListBlock = testNames => (
+  {
     type: 'section',
     fields: [
       {
@@ -50,10 +50,10 @@ const getTestsListBlock = testNames => {
       }
     ]
   }
-}
+)
 
-const getMessageBlockTemplate = testNames => {
-  const size = testNames.length
+const getMessageBlockTemplate = failedTestNames => {
+  const size = failedTestNames.length
 
   const blocksArray = [
     getHeaderBlock(size),
@@ -63,7 +63,7 @@ const getMessageBlockTemplate = testNames => {
   if (size === 0) {
     return blocksArray
   } else {
-    return blocksArray.concat(getTestsListBlock(testNames))
+    return blocksArray.concat(getTestsListBlock(failedTestNames))
   }
 }
 module.exports = { getMessageBlockTemplate }
