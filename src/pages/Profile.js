@@ -74,7 +74,7 @@ const styles = {
     },
     linkContentTop: hasBottom => ({
       display: 'grid', rowGap: '0.6rem',
-      backgroundColor: colors.light(), padding: '1.2rem',
+      backgroundColor: colors.light(0.2), padding: '1.2rem',
       borderRadius: hasBottom ? '4px 4px 0 0' : 4
     }),
     linkContentBottom: {

@@ -127,7 +127,8 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attributes } }, referenceKey, firstRender }) => {
+const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
+  const { workspace: { attributes } } = workspace
   const [textFilter, setTextFilter] = useState('')
 
   const selectedData = _.flow(
@@ -165,12 +166,12 @@ const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attribu
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Key']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, googleProject)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, workspace)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, workspace)
             }
           ],
           border: false
