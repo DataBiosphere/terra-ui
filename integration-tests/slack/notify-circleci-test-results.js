@@ -36,19 +36,22 @@ const getAllSlackChannelsForFailedJob = () => {
 const getFailedTestsAndChannelIDs = failedTests => {
   const allChannelsAndTests = getAllSlackChannelsForFailedJob()
 
-  const includeFailedTests = new Map() // Map<string, Array[string]>
+  const filteredIncludeOnlyFailedTests = new Map() // Map<string, Array[string]>
   _.forEach(test => {
     const channelIdsForFailedTest = Array.from(allChannelsAndTests.keys())
       .filter(key => allChannelsAndTests.get(key).includes(test) || allChannelsAndTests.get(key).length === 0) // A channel without a list of tests means notify that channel for any failing test
     if (channelIdsForFailedTest.length === 0) {
       throw new Error(`Test: ${test} was not found in slack-notify-channels.json`)
     }
-    _.forEach(channelId => includeFailedTests.has(channelId) ? includeFailedTests.get(channelId).push(test) : includeFailedTests.set(channelId, new Array(test)),
-      channelIdsForFailedTest
-    )
+    _.forEach(channelId => {
+      if (!filteredIncludeOnlyFailedTests.has(channelId)) {
+        filteredIncludeOnlyFailedTests.set(channelId, [])
+      }
+      filteredIncludeOnlyFailedTests.get(channelId).push(test)
+    }, channelIdsForFailedTest)
   }, failedTests)
 
-  return includeFailedTests
+  return filteredIncludeOnlyFailedTests
 }
 
 // Post CircleCI UI test report to Slack channels
