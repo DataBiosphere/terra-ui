@@ -4,10 +4,10 @@ const { parse } = require('path')
 
 
 /**
- * Fetch CircleCI artifact links to tests summary JSON files (were created in onRunComplete() in jest-reporter.js)
- * @param { string } token
- * @param { string } buildNum
- * @returns { Promise<Array[string]> } URL to tests-summary-[0-9].json
+ * Fetch CircleCI artifact links to tests summary JSON files (created in onRunComplete() in jest-reporter.js)
+ * @param {string} token
+ * @param {string} buildNum
+ * @returns {Promise<Array[string]>} URL to tests-summary-[0-9].json
  */
 const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {}) => {
   if (!buildNum) {
@@ -30,8 +30,8 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
 
 /**
  *
- * @param { string } aggregatedResults A JSON object
- * @returns { Array[string] }
+ * @param {@link https://github.com/facebook/jest/blob/240587bde5dae1467ced0fdeee2e668e01caf896/packages/jest-test-result/src/types.ts#L77 AggregatedResult} Results from the test run.
+ * @returns {Array[string]}
  */
 const getFailedTestNames = aggregatedResults => {
   return _.flow(
@@ -41,12 +41,11 @@ const getFailedTestNames = aggregatedResults => {
 }
 
 /**
- *
- * @returns { Promise<Array[string]> }
+ * Parse all tests-summary JSON to look for failed test names
+ * @returns {Promise<Array[string]>}
  */
 const getFailedTestNamesFromArtifacts = async () => {
   const tests = []
-  // Parse all tests-summary JSON to look for failed test names
   const urls = await fetchJobArtifacts()
   await Promise.all(_.map(async url => {
     try {
