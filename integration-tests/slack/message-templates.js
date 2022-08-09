@@ -60,10 +60,6 @@ const getMessageBlockTemplate = failedTestNames => {
     getJobDetailBlock()
   ]
 
-  if (size === 0) {
-    return blocksArray
-  } else {
-    return blocksArray.concat(getTestsListBlock(failedTestNames))
-  }
+  return size === 0 ? blocksArray : blocksArray.concat(getTestsListBlock(failedTestNames))
 }
 module.exports = { getMessageBlockTemplate }
