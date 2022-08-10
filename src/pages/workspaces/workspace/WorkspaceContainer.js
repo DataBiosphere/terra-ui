@@ -13,6 +13,7 @@ import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
@@ -21,7 +22,6 @@ import { isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
 import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
@@ -324,20 +324,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const bucketLocation = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
         setBucketLocation(bucketLocation)
       }
-    }
-
-    const updateRecentlyViewedWorkspaces = workspaceId => {
-      const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
-      const recentlyViewed = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
-      //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
-      //we only want the most recent instance stored in the list.
-      const updatedRecentlyViewed = _.flow(
-        _.remove({ workspaceId }),
-        _.concat([{ workspaceId, timestamp: Date.now() }]),
-        _.orderBy(['timestamp'], ['desc']),
-        _.take(4)
-      )(recentlyViewed)
-      setLocalPref(recentlyViewedPersistenceId, { recentlyViewed: updatedRecentlyViewed })
     }
 
     const refreshWorkspace = _.flow(

@@ -19,6 +19,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -365,6 +366,21 @@ export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, 
       )
     ])],
     () => null)
+}
+
+export const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
+
+export const updateRecentlyViewedWorkspaces = workspaceId => {
+  const recentlyViewed = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
+  //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
+  //we only want the most recent instance stored in the list.
+  const updatedRecentlyViewed = _.flow(
+    _.remove({ workspaceId }),
+    _.concat([{ workspaceId, timestamp: Date.now() }]),
+    _.orderBy(['timestamp'], ['desc']),
+    _.take(4)
+  )(recentlyViewed)
+  setLocalPref(recentlyViewedPersistenceId, { recentlyViewed: updatedRecentlyViewed })
 }
 
 export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
