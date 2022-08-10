@@ -64,7 +64,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error deleting galaxy instance', onError)
     )(async () => {
-      await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
+      await Ajax().Apps.app(app.cloudContext?.cloudResource, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
       Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
@@ -73,7 +73,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error stopping galaxy instance', onError)
     )(async () => {
-      await Ajax().Apps.app(app.googleProject, app.appName).pause()
+      await Ajax().Apps.app(app.cloudContext?.cloudResource, app.appName).pause()
       Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
@@ -82,7 +82,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReportingInModal('Error starting galaxy instance', onError)
     )(async () => {
-      await Ajax().Apps.app(app.googleProject, app.appName).resume()
+      await Ajax().Apps.app(app.cloudContext?.cloudResource, app.appName).resume()
       Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
     })
