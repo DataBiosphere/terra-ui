@@ -686,7 +686,7 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
+export const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
   const [edited, setEdited] = useState(false)
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
