@@ -150,7 +150,6 @@ export const CloudEnvironmentModal = ({
   const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
-      //TODO: Potential issue in leonardo needs to be fixed.
       Ajax().Apps.app(cloudContext?.cloudResource, appName).resume())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
