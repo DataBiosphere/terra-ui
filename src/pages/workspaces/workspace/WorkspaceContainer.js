@@ -13,6 +13,7 @@ import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
@@ -333,11 +334,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
-          'workspace.isLocked', 'workspaceSubmissionStats'
+          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
         setAzureContext(workspace.azureContext)
+        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
         const isGoogleWorkspace = !!googleProject

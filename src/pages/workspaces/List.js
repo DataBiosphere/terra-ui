@@ -4,21 +4,21 @@ import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
-import DelayedRender from 'src/components/DelayedRender'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -86,6 +86,9 @@ const EMPTY_LIST = []
 export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
+
+  //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
+  const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
@@ -271,22 +274,10 @@ export const WorkspaceList = () => {
                 })
               ]),
               div({ style: styles.tableCellContent }, [
-                loadingSubmissionStats && h(DelayedRender, [
-                  h(TooltipTrigger, {
-                    content: 'Loading submission status',
-                    side: 'left'
-                  }, [spinner({ size: 20 })])
-                ]),
-                !!lastRunStatus && h(TooltipTrigger, {
-                  content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
-                  side: 'left'
-                }, [
-                  Utils.switchCase(lastRunStatus,
-                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
-                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
-                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
-                  )
-                ])
+                h(WorkspaceSubmissionStatusIcon, {
+                  status: lastRunStatus,
+                  loadingSubmissionStats
+                })
               ])
             ])
           },
@@ -316,7 +307,19 @@ export const WorkspaceList = () => {
           href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
         }, ['Learn more about workspaces.'])
       ]),
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
+        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
+        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
+          _.map(({ workspaceId, timestamp }) => {
+            const workspace = getWorkspace(workspaceId)
+            return h(RecentlyViewedWorkspaceCard, {
+              workspace, loadingSubmissionStats, timestamp,
+              submissionStatus: workspaceSubmissionStatus(workspace)
+            })
+          }, recentlyViewed)
+        )
+      ]),
+      div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
             placeholder: 'Search by keyword',
