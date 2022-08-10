@@ -12,7 +12,12 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import {
+  NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon,
+  WorkspaceTagSelect
+} from 'src/components/workspace-utils'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -276,7 +281,7 @@ export const WorkspaceList = () => {
         }, {
           headerRenderer: () => div({ className: 'sr-only' }, ['Last Workflow Submitted Status']),
           cellRenderer: ({ rowIndex }) => {
-            const { ...workspace } = sortedWorkspaces[rowIndex]
+            const workspace = sortedWorkspaces[rowIndex]
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
@@ -308,7 +313,7 @@ export const WorkspaceList = () => {
             const { accessLevel, workspace: { workspaceId, namespace, name } } = sortedWorkspaces[rowIndex]
             if (!Utils.canRead(accessLevel)) {
               // No menu shown if user does not have read access.
-              return div({ className: 'sr-only' }, ['Action menu is not available due to access level.'])
+              return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.'])
             }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
