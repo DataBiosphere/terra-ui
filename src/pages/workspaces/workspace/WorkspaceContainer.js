@@ -13,6 +13,7 @@ import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
@@ -178,8 +179,8 @@ const WorkspaceContainer = ({
 
 
 const WorkspaceAccessError = () => {
-  const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
-  const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
+  const groupURL = 'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-'
+  const authorizationURL = 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains'
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
@@ -333,11 +334,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
-          'workspace.isLocked', 'workspaceSubmissionStats'
+          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
         setAzureContext(workspace.azureContext)
+        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
         const isGoogleWorkspace = !!googleProject

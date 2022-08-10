@@ -119,7 +119,7 @@ const JobHistory = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { bucketName } } }, ref) => {
+)(({ namespace, name, workspace }, ref) => {
   // State
   const [submissions, setSubmissions] = useState(undefined)
   const [loading, setLoading] = useState(false)
@@ -322,11 +322,11 @@ const JobHistory = _.flow(
               field: 'submissionId',
               headerRenderer: makeHeaderRenderer('submissionId', 'Submission ID'),
               cellRenderer: ({ rowIndex }) => {
-                const { submissionId } = sortedSubmissions[rowIndex]
+                const { submissionId, submissionRoot } = sortedSubmissions[rowIndex]
                 return h(Link, {
                   style: styles.multiLineCellText,
                   ...Utils.newTabLinkProps,
-                  href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
+                  href: bucketBrowserUrl(submissionRoot.replace('gs://', ''))
                 }, [submissionId])
               }
             },

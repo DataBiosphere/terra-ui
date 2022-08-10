@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -18,7 +18,7 @@ import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
-import { getEnabledBrand } from 'src/libs/brand-utils'
+import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
@@ -336,7 +336,7 @@ export const PageBox = ({ children, variant, style = {}, ...props }) => {
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0,
       ...Utils.switchCase(variant,
-        [PageBoxVariants.LIGHT, () => ({ backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' })],
+        [PageBoxVariants.LIGHT, () => ({ backgroundColor: colors.light(isRadX() ? 0.3 : 1), margin: 0, padding: '3rem 3rem 1.5rem' })],
         [Utils.DEFAULT, () => ({})]), ...style
     }
   }, props), [children])
@@ -604,14 +604,4 @@ export const DeleteConfirmationModal = ({
       ])])
     ])
   ])
-}
-
-export const DelayedRender = ({ children = null, delay = 1000 }) => {
-  const [shouldRender, setShouldRender] = useState(false)
-  useEffect(() => {
-    const timeout = setTimeout(() => setShouldRender(true), delay)
-    return () => clearTimeout(timeout)
-  }, [delay])
-
-  return shouldRender && children
 }
