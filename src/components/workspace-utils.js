@@ -417,12 +417,12 @@ export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, 
       side: 'left'
     }, [
       Utils.switchCase(status,
-        ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
-        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
-        ['running', () => icon('sync', { size, style: { color: colors.success() } })]
+        ['success', () => icon('success-standard', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Success' })],
+        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) }, 'aria-label': 'Workflow Status Failure' })],
+        ['running', () => icon('sync', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Running' })]
       )
     ])],
-    () => null)
+    () => div({ className: 'sr-only' }, ['No workflows have been run']))
 }
 
 export const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'

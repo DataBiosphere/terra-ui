@@ -12,7 +12,7 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -274,18 +274,46 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Last Workflow Submitted Status']),
+          cellRenderer: ({ rowIndex }) => {
+            const { ...workspace } = sortedWorkspaces[rowIndex]
+            const lastRunStatus = workspaceSubmissionStatus(workspace)
+
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                h(WorkspaceSubmissionStatusIcon, {
+                  status: lastRunStatus,
+                  loadingSubmissionStats
+                })
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                Utils.switchCase(cloudPlatform,
+                  ['Gcp', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+                  ['Azure', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
           headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            const { accessLevel, workspace: { workspaceId, namespace, name } } = sortedWorkspaces[rowIndex]
             if (!Utils.canRead(accessLevel)) {
-              // No menu shown if user does not have read acccess.
-              return null
+              // No menu shown if user does not have read access.
+              return div({ className: 'sr-only' }, ['Action menu is not available due to access level.'])
             }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onLock = () => setLockingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const lastRunStatus = workspaceSubmissionStatus(workspace)
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
@@ -293,12 +321,6 @@ export const WorkspaceList = () => {
                   iconSize: 20, popupLocation: 'left',
                   callbacks: { onClone, onShare, onLock, onDelete },
                   workspaceInfo: { namespace, name }
-                })
-              ]),
-              div({ style: styles.tableCellContent }, [
-                h(WorkspaceSubmissionStatusIcon, {
-                  status: lastRunStatus,
-                  loadingSubmissionStats
                 })
               ])
             ])
