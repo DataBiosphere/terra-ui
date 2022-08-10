@@ -759,7 +759,7 @@ const getSortIcon = (sort, field, sortHover, style) => {
   return sortIcon
 }
 
-export const Sortable = ({ sort, field, onSort, children }) => {
+export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
   const [sortHover, setSortHover] = useState()
   const sortIcon = getSortIcon(sort, field, sortHover, { color: colors.accent(), marginLeft: '0.1rem' })
   return h(IdContainer, [id => h(Clickable, {
@@ -771,7 +771,8 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sortIcon,
-    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
+    div({ id, style: { display: 'none' } }, ['Click to sort by this column']),
+    columnMenu
   ])])
 }
 

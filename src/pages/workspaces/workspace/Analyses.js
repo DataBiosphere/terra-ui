@@ -40,9 +40,11 @@ import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/Export
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const FIELD_APPLICATION = 'application'
-const FIELD_NAME = 'name'
-const FIELD_LAST_MODIFIED = 'lastModified'
+const tableFields = {
+  application: 'application',
+  name: 'name',
+  lastModified: 'lastModified'
+}
 
 const KEY_ANALYSES_SORT_ORDER = 'AnalysesSortOrder'
 
@@ -51,7 +53,7 @@ const noWrite = 'You do not have access to modify this workspace.'
 const sortTokens = {
   name: notebook => notebook.name.toLowerCase()
 }
-const defaultSort = { label: 'Most Recently Updated', value: { field: FIELD_LAST_MODIFIED, direction: 'desc' } }
+const defaultSort = { label: 'Most Recently Updated', value: { field: tableFields.lastModified, direction: 'desc' } }
 
 const analysisContextMenuSize = 16
 const centerColumnFlex = { flex: 5 }
@@ -59,14 +61,14 @@ const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'fle
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, FIELD_APPLICATION), style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_APPLICATION })
+    div({ 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.application })
     ]),
-    div({ 'aria-sort': ariaSort(sort, FIELD_NAME), style: centerColumnFlex }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_NAME })
+    div({ 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.name })
     ]),
-    div({ 'aria-sort': ariaSort(sort, FIELD_LAST_MODIFIED), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
-      h(HeaderRenderer, { sort, onSort, name: FIELD_LAST_MODIFIED })
+    div({ 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.lastModified })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])
@@ -274,7 +276,7 @@ const Analyses = _.flow(
     const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
-    setAnalyses(_.reverse(_.sortBy(FIELD_LAST_MODIFIED, analyses)))
+    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
   }) : () => setAnalyses([])
 
   const getActiveFileTransfers = _.flow(

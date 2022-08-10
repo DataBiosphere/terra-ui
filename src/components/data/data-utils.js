@@ -1397,10 +1397,10 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) =
   ])
 
   return h(Sortable, {
-    sort, field, onSort
+    sort, field, onSort, columnMenu
   }, [
     children,
-    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } }, [columnMenu])
+    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
   ])
 }
 
