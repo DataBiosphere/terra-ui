@@ -741,7 +741,7 @@ export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 600 } }, props))
 }
 
-const getSortIcon = (sort, field, sortHover, style) => {
+const getSortIcon = (sort, field, hovered, style) => {
   let sortIcon
   if (sort?.field === field) {
     sortIcon = div({
@@ -749,7 +749,7 @@ const getSortIcon = (sort, field, sortHover, style) => {
     }, [
       icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ])
-  } else if (sortHover === field) {
+  } else if (hovered) {
     sortIcon = div({
       style
     }, [
@@ -760,12 +760,14 @@ const getSortIcon = (sort, field, sortHover, style) => {
 }
 
 export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
-  const [sortHover, setSortHover] = useState()
-  const sortIcon = getSortIcon(sort, field, sortHover, { color: colors.accent(), marginLeft: '0.1rem' })
+  const [hovered, setHovered] = useState()
+  const sortIcon = getSortIcon(sort, field, hovered, { color: colors.accent(), marginLeft: '0.1rem' })
   return h(IdContainer, [id => h(Clickable, {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
-    onMouseEnter: () => { setSortHover(field) },
-    onMouseLeave: () => { setSortHover('') },
+    onMouseEnter: () => { setHovered(true) },
+    onMouseLeave: () => { setHovered(false) },
+    onFocus: () => { setHovered(true) },
+    onBlur: () => { setHovered(false) },
     onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id
   }, [
@@ -778,14 +780,16 @@ export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
 
 export const MiniSortable = ({ sort, field, onSort, children }) => {
   const cursor = sort ? 'pointer' : 'default'
-  const [sortHover, setSortHover] = useState()
+  const [hovered, setHovered] = useState()
 
-  const sortIcon = getSortIcon(sort, field, sortHover, { color: colors.accent(), marginLeft: '1rem' })
+  const sortIcon = getSortIcon(sort, field, hovered, { color: colors.accent(), marginLeft: '1rem' })
 
   return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor, height: '100%' },
-    onMouseEnter: () => { setSortHover(field) },
-    onMouseLeave: () => { setSortHover('') },
+    onMouseEnter: () => { setHovered(true) },
+    onMouseLeave: () => { setHovered(false) },
+    onFocus: () => { setHovered(true) },
+    onBlur: () => { setHovered(false) },
     disabled: !sort,
     onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id

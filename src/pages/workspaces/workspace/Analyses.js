@@ -53,7 +53,7 @@ const noWrite = 'You do not have access to modify this workspace.'
 const sortTokens = {
   name: notebook => notebook.name.toLowerCase()
 }
-const defaultSort = { label: 'Most Recently Updated', value: { field: tableFields.lastModified, direction: 'desc' } }
+const defaultSort = { value: { field: tableFields.lastModified, direction: 'desc' } }
 
 const analysisContextMenuSize = 16
 const centerColumnFlex = { flex: 5 }
