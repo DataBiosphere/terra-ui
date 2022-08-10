@@ -1,18 +1,25 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { b, div, h, p, span } from 'react-hyperscript-helpers'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import DelayedRender from 'src/components/DelayedRender'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -338,6 +345,70 @@ export const WorkspaceTagSelect = props => {
     loadOptions: getTagSuggestions,
     ...props
   })
+}
+
+export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, size = 20 }) => {
+  return Utils.cond(
+    [loadingSubmissionStats, () => h(DelayedRender, [
+      h(TooltipTrigger, {
+        content: 'Loading submission status',
+        side: 'left'
+      }, [spinner({ size })])
+    ])],
+    [status, () => h(TooltipTrigger, {
+      content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
+      side: 'left'
+    }, [
+      Utils.switchCase(status,
+        ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
+        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
+        ['running', () => icon('sync', { size, style: { color: colors.success() } })]
+      )
+    ])],
+    () => null)
+}
+
+export const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
+
+export const updateRecentlyViewedWorkspaces = workspaceId => {
+  const recentlyViewed = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
+  //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
+  //we only want the most recent instance stored in the list.
+  const updatedRecentlyViewed = _.flow(
+    _.remove({ workspaceId }),
+    _.concat([{ workspaceId, timestamp: Date.now() }]),
+    _.orderBy(['timestamp'], ['desc']),
+    _.take(4)
+  )(recentlyViewed)
+  setLocalPref(recentlyViewedPersistenceId, { recentlyViewed: updatedRecentlyViewed })
+}
+
+export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
+  const { workspace: { namespace, name, googleProject } } = workspace
+
+  const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
+
+  return h(Clickable, {
+    style: { ...Style.elements.card.container, margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
+    href: Nav.getLink('workspace-dashboard', { namespace, name })
+  }, [
+    div({ style: { flex: 'none' } }, [
+      div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
+      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(WorkspaceSubmissionStatusIcon, {
+            status: submissionStatus,
+            loadingSubmissionStats,
+            size: 16
+          }),
+          !!googleProject ?
+            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
+            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
+        ])
+      ])
+    ])
+  ])
 }
 
 export const NoWorkspacesMessage = ({ onClick }) => {
