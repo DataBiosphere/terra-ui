@@ -10,8 +10,8 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
-import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -417,12 +417,12 @@ export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, 
       side: 'left'
     }, [
       Utils.switchCase(status,
-        ['success', () => icon('success-standard', { size, style: { color: colors.success() } })],
-        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) } })],
-        ['running', () => icon('sync', { size, style: { color: colors.success() } })]
+        ['success', () => icon('success-standard', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Success' })],
+        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) }, 'aria-label': 'Workflow Status Failure' })],
+        ['running', () => icon('sync', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Running' })]
       )
     ])],
-    () => null)
+    () => div({ className: 'sr-only' }, ['No workflows have been run']))
 }
 
 export const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
@@ -460,8 +460,8 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             size: 16
           }),
           !!googleProject ?
-            h(GcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
-            h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
+            h(CloudGcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
+            h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
         ])
       ])
     ])
