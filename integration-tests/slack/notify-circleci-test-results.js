@@ -39,9 +39,6 @@ const getFailedTestsAndChannelIDs = failedTests => {
   _.forEach(test => {
     const channelIdsForFailedTest = Array.from(allChannelsAndTests.keys())
       .filter(key => allChannelsAndTests.get(key).includes(test) || allChannelsAndTests.get(key).length === 0) // A channel without a list of tests means notify that channel for any failing test
-    if (channelIdsForFailedTest.length === 0) {
-      throw new Error(`Test: ${test} was not found in slack-notify-channels.json`)
-    }
     _.forEach(channelId => {
       if (!filteredIncludeOnlyFailedTests.has(channelId)) {
         filteredIncludeOnlyFailedTests.set(channelId, [])
