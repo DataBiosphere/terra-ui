@@ -585,6 +585,66 @@ export const getAttributeType = attributeValue => {
   return { type, isList }
 }
 
+export const AttributeTypeInput = ({ label: labelText = 'Type', value, onChange, entityTypes = [], defaultReferenceEntityType = null, showJsonTypeOption = false }) => {
+  const { type, entityType: referenceEntityType } = value
+
+  const typeOptions = [
+    { type: 'string' },
+    { type: 'reference', tooltip: 'A link to another entity' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+
+  if (showJsonTypeOption) {
+    typeOptions.push({ type: 'json', label: 'JSON' })
+  }
+
+  const sortedEntityTypes = _.sortBy(_.identity, entityTypes)
+
+  return div({ style: { marginBottom: '1rem' } }, [
+    fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+      legend({ style: { marginBottom: '0.5rem' } }, [`${labelText}:`]),
+      div({
+        style: {
+          display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
+          marginBottom: '0.5rem'
+        }
+      }, _.map(({ label, type: typeOption, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+        span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
+          h(RadioButton, {
+            text: label || _.startCase(typeOption),
+            name: 'edit-type',
+            checked: type === typeOption,
+            onChange: () => {
+              const newType = { type: typeOption }
+              if (typeOption === 'reference') {
+                newType.entityType = defaultReferenceEntityType || sortedEntityTypes[0]
+              }
+              onChange(newType)
+            },
+            labelStyle: { paddingLeft: '0.5rem' }
+          })
+        ])
+      ]),
+      typeOptions)
+      )
+    ]),
+    type === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+        h(Select, {
+          id,
+          value: referenceEntityType,
+          options: sortedEntityTypes,
+          onChange: ({ value: newReferenceEntityType }) => {
+            onChange({ ...value, entityType: newReferenceEntityType })
+          }
+        })
+      ])])
+    ])
+  ])
+}
+
 export const convertAttributeValue = (attributeValue, newType, referenceEntityType) => {
   if (newType === 'reference' && !referenceEntityType) {
     throw new Error('An entity type is required to convert an attribute to a reference')
@@ -692,12 +752,11 @@ export const AttributeInput = ({ autoFocus = false, value: attributeValue, initi
 
   const renderInput = renderInputForAttributeType(attributeType)
 
-  const defaultReferenceEntityType = Utils.cond(
+  const referenceEntityType = Utils.cond(
     [attributeType === 'reference' && isList, () => !_.isEmpty(attributeValue.items) ? attributeValue.items[0].entityType : entityTypes[0]],
-    [attributeType === 'reference', () => attributeValue.entityType],
-    () => entityTypes[0]
+    [attributeType === 'reference', () => attributeValue.entityType]
   )
-  const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+  const defaultValue = defaultValueForAttributeType(attributeType, referenceEntityType)
 
   const focusLastListItemInput = useRef(false)
   const lastListItemInput = useRef(null)
@@ -711,64 +770,22 @@ export const AttributeInput = ({ autoFocus = false, value: attributeValue, initi
     }
   }, [attributeValue, isList])
 
-  const typeOptions = [
-    { type: 'string' },
-    { type: 'reference', tooltip: 'A link to another entity' },
-    { type: 'number' },
-    { type: 'boolean' }
-  ]
-
-  if (attributeType === 'json' || showJsonTypeOption) {
-    typeOptions.push({ type: 'json', label: 'JSON' })
-  }
-
   return h(Fragment, [
-    div({ style: { marginBottom: '1rem' } }, [
-      fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
-        div({
-          style: {
-            display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
-            marginBottom: '0.5rem'
-          }
-        }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
-            h(RadioButton, {
-              text: label || _.startCase(type),
-              name: 'edit-type',
-              checked: attributeType === type,
-              onChange: () => {
-                const newAttributeValue = convertAttributeValue(
-                  initialValue && !edited ? initialValue : attributeValue,
-                  type,
-                  defaultReferenceEntityType
-                )
-                onChange(newAttributeValue)
-              },
-              labelStyle: { paddingLeft: '0.5rem' }
-            })
-          ])
-        ]),
-        typeOptions)
+    h(AttributeTypeInput, {
+      label: isList ? 'List item type' : 'Type',
+      value: { type: attributeType, entityType: referenceEntityType },
+      entityTypes,
+      defaultReferenceEntityType: referenceEntityType,
+      showJsonTypeOption: attributeType === 'json' || showJsonTypeOption,
+      onChange: ({ type: newType, entityType: newEntityType }) => {
+        const newAttributeValue = convertAttributeValue(
+          initialValue && !edited ? initialValue : attributeValue,
+          newType,
+          newEntityType
         )
-      ]),
-      attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-        h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-          h(Select, {
-            id,
-            value: defaultReferenceEntityType,
-            options: entityTypes,
-            onChange: ({ value }) => {
-              const newAttributeValue = isList ?
-                _.update('items', _.map(_.set('entityType', value)), attributeValue) :
-                _.set('entityType', value, attributeValue)
-              onChange(newAttributeValue)
-            }
-          })
-        ])])
-      ])
-    ]),
+        onChange(newAttributeValue)
+      }
+    }),
     attributeType !== 'json' && div({ style: { marginBottom: '0.5rem' } }, [
       h(LabeledCheckbox, {
         checked: isList,

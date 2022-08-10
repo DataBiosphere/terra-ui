@@ -3,7 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import { AttributeInput, concatenateAttributeNames, convertAttributeValue, entityAttributeText, getAttributeType, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
+import { AttributeInput, AttributeTypeInput, concatenateAttributeNames, convertAttributeValue, entityAttributeText, getAttributeType, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -426,6 +426,84 @@ describe('prepareAttributeForUpload', () => {
     })).toEqual({
       items: [1, 2, 3],
       itemsType: 'AttributeValue'
+    })
+  })
+})
+
+describe('AttributeTypeInput', () => {
+  it('renders radio buttons for available types', () => {
+    const { getAllByRole } = render(h(AttributeTypeInput, {
+      value: { type: 'string' },
+      onChange: jest.fn()
+    }))
+
+    const radioButtons = getAllByRole('radio')
+    const labels = Array.from(radioButtons).map(el => el.labels[0].textContent)
+
+    expect(radioButtons.length).toBe(4)
+    expect(labels).toEqual(['String', 'Reference', 'Number', 'Boolean'])
+  })
+
+  it('renders a radio button for JSON type if requested', () => {
+    const { queryByLabelText } = render(h(AttributeTypeInput, {
+      value: { type: 'string' },
+      onChange: jest.fn(),
+      showJsonTypeOption: true
+    }))
+
+    const jsonRadioButton = queryByLabelText('JSON')
+    expect(jsonRadioButton).not.toBeNull()
+  })
+
+  it('calls onChange callback when a type is selected', () => {
+    const onChange = jest.fn()
+    const { getByLabelText } = render(h(AttributeTypeInput, {
+      value: { type: 'string' },
+      onChange
+    }))
+
+    fireEvent.click(getByLabelText('Number'))
+
+    expect(onChange).toHaveBeenCalledWith({ type: 'number' })
+  })
+
+  describe('references', () => {
+    it('renders an entity types menu for reference values', () => {
+      const { getByLabelText } = render(h(AttributeTypeInput, {
+        value: { type: 'reference', entityType: 'foo' },
+        entityTypes: ['foo', 'bar', 'baz'],
+        onChange: jest.fn()
+      }))
+
+      const entityTypeInput = getByLabelText('Referenced entity type:')
+      expect(entityTypeInput.getAttribute('role')).toBe('combobox')
+    })
+
+    it('selecting reference type uses the default reference entity type is one is provided', () => {
+      const onChange = jest.fn()
+      const { getByLabelText } = render(h(AttributeTypeInput, {
+        value: { type: 'string' },
+        entityTypes: ['foo', 'bar', 'baz'],
+        defaultReferenceEntityType: 'baz',
+        onChange
+      }))
+
+      fireEvent.click(getByLabelText('Reference'))
+
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'baz' })
+    })
+
+    it('selecting reference type uses the alphabetically first entity type if no default reference entity type is provided', () => {
+      const onChange = jest.fn()
+      const { getByLabelText } = render(h(AttributeTypeInput, {
+        value: { type: 'string' },
+        entityTypes: ['foo', 'bar', 'baz'],
+        onChange
+      }))
+
+      fireEvent.click(getByLabelText('Reference'))
+
+      expect(onChange).toHaveBeenCalledWith({ type: 'reference', entityType: 'bar' })
     })
   })
 })
