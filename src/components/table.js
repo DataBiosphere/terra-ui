@@ -744,19 +744,15 @@ export const HeaderCell = props => {
 const getSortIcon = (sort, field, hovered, style) => {
   let sortIcon
   if (sort?.field === field) {
-    sortIcon = div({
-      style
-    }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-    ])
+    sortIcon = icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
   } else if (hovered) {
-    sortIcon = div({
-      style
-    }, [
-      icon('long-arrow-alt-down')
-    ])
+    sortIcon = icon('long-arrow-alt-down')
   }
-  return sortIcon
+  return div({
+    style
+  }, [
+    sortIcon
+  ])
 }
 
 export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
