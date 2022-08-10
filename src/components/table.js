@@ -741,23 +741,19 @@ export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 600 } }, props))
 }
 
-const getSortIcon = (sort, field, hovered, style) => {
-  let sortIcon
-  if (sort?.field === field) {
-    sortIcon = icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-  } else if (hovered) {
-    sortIcon = icon('long-arrow-alt-down')
-  }
-  return div({
-    style
-  }, [
-    sortIcon
-  ])
+const getSortIcon = (sort, field, hovered) => {
+  return Utils.cond(
+    [
+      sort?.field === field,
+      () => icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
+    ],
+    [hovered, () => icon('long-arrow-alt-down')]
+  )
 }
 
 export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
-  const [hovered, setHovered] = useState()
-  const sortIcon = getSortIcon(sort, field, hovered, { color: colors.accent(), marginLeft: '0.1rem' })
+  const [hovered, setHovered] = useState(false)
+
   return h(IdContainer, [id => h(Clickable, {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
     onMouseEnter: () => { setHovered(true) },
@@ -768,7 +764,10 @@ export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
     'aria-describedby': id
   }, [
     children,
-    sortIcon,
+    div(
+      { style: { color: colors.accent(), marginLeft: '0.1rem' } },
+      [getSortIcon(sort, field, hovered)]
+    ),
     div({ id, style: { display: 'none' } }, ['Click to sort by this column']),
     columnMenu
   ])])
@@ -776,9 +775,7 @@ export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
 
 export const MiniSortable = ({ sort, field, onSort, children }) => {
   const cursor = sort ? 'pointer' : 'default'
-  const [hovered, setHovered] = useState()
-
-  const sortIcon = getSortIcon(sort, field, hovered, { color: colors.accent(), marginLeft: '1rem' })
+  const [hovered, setHovered] = useState(false)
 
   return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor, height: '100%' },
@@ -791,7 +788,10 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
     'aria-describedby': id
   }, [
     children,
-    sortIcon,
+    div(
+      { style: { color: colors.accent(), marginLeft: '1rem' } },
+      [getSortIcon(sort, field, hovered)]
+    ),
     div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
 }
