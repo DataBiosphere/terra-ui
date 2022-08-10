@@ -347,6 +347,63 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
+export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
+  const [updating, setUpdating] = useState(false)
+
+  const { workspace: { workspaceId } } = workspace
+  const isStarred = _.includes(workspaceId, stars)
+
+  //Thurloe has a limit of 2048 bytes for its VALUE column. That means we can store a max of 55
+  //workspaceIds in list format. We'll use 50 because it's a nice round number and should be plenty
+  //for the intended use case. If we find that 50 is not enough, consider introducing more powerful
+  //workspace organization functionality like folders
+  const MAX_STARRED_WORKSPACES = 50
+  const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES
+
+  const refreshStarredWorkspacesList = async () => {
+    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+    return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+  }
+
+  const toggleStar = _.flow(
+    Utils.withBusyState(setUpdating),
+    withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
+  )(async star => {
+    const refreshedStarredWorkspaceList = await refreshStarredWorkspacesList()
+    const updatedWorkspaceIds = star ?
+      _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
+      _.without([workspaceId], refreshedStarredWorkspaceList)
+    await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
+    setStars(updatedWorkspaceIds)
+  })
+
+  return h(Clickable, {
+    as: 'span',
+    role: 'checkbox',
+    'aria-checked': isStarred,
+    tooltip: Utils.cond(
+      [isStarred, () => 'Unstar this workspace'],
+      [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspaces will appear at the top of your workspace list.'],
+      [!isStarred && maxStarredWorkspacesReached, () => ['A maximum of ',
+        MAX_STARRED_WORKSPACES, ' workspaces can be starred. Please un-star another workspace before starring this workspace.']]
+    ),
+    'aria-label': isStarred ? 'This workspace is starred' : '',
+    className: 'fa-layers fa-fw',
+    disabled: maxStarredWorkspacesReached && !isStarred,
+    style: { verticalAlign: 'middle', ...style },
+    onKeyDown: e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        e.stopPropagation()
+        e.target.click()
+      }
+    },
+    onClick: () => toggleStar(!isStarred)
+  }, [
+    updating ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
+  ])
+}
+
 export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, size = 20 }) => {
   return Utils.cond(
     [loadingSubmissionStats, () => h(DelayedRender, [

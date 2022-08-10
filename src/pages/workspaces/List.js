@@ -12,14 +12,15 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref } from 'src/libs/prefs'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -87,6 +88,10 @@ export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
 
+  const { profile: { starredWorkspaces } } = useStore(authStore)
+  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+  const [stars, setStars] = useState(starredWorkspaceIds)
+
   //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
   const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
@@ -147,9 +152,11 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
+  //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
-    [sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
-    [sort.direction],
+    [ws => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
+      sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
+    ['desc', sort.direction],
     filteredWorkspaces[tab]
   )
 
@@ -182,6 +189,21 @@ export const WorkspaceList = () => {
       rowHeight: 70,
       sort,
       columns: [
+        {
+          field: 'starred',
+          headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
+          cellRenderer: ({ rowIndex }) => {
+            const workspace = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
+              h(WorkspaceStarControl, {
+                workspace,
+                setStars,
+                stars
+              })
+            ])
+          },
+          size: { basis: 40, grow: 0, shrink: 0 }
+        },
         {
           field: 'name',
           headerRenderer: makeHeaderRenderer('name'),
