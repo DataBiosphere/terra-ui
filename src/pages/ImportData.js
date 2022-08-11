@@ -76,7 +76,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -174,6 +174,10 @@ const ImportData = () => {
           await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, normalizeSnapshotName(snapshotName))
           notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
         }
+      }],
+      ['catalog', async () => {
+        await Ajax().Catalog.exportDataset({ id: catalogDatasetId, workspaceId: selectedWorkspaceId })
+        notify('success', 'Catalog dataset imported successfully.', { timeout: 3000 })
       }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
