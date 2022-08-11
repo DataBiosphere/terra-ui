@@ -10,7 +10,7 @@ const testsInfo = require('./slack-notify-channels.json')
  * @returns {Array[string]}
  */
 const getAllSlackChannelsForPassedJob = () => {
-  return _.map(_.get('id'), testsInfo.pass)
+  return _.map('id', testsInfo.pass)
 }
 
 /**
@@ -60,8 +60,7 @@ const notifyCircleCITestResults = async () => {
     const messageBlocks = getMessageBlockTemplate(failedTestNames)
     // Using _.forEach to post same message to each Slack channels separately because a Slack issue: No way to post the same message to multiple channels at once.
     // See: https://github.com/slackapi/bolt-js/issues/696
-    _.forEach(async channelId => await postMessage({ channel: channelId, blocks: messageBlocks }), channelIDs)
-    return
+    return _.forEach(async channelId => await postMessage({ channel: channelId, blocks: messageBlocks }), channelIDs)
   }
 
   // Slack notification: CircleCI job failed. Message contains list of failed test names.

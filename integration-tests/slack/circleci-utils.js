@@ -21,7 +21,7 @@ const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {
     const response = await fetch(`${apiUrlRoot}/${buildNum}/artifacts`)
     const { items } = await response.json()
     const testSummaryArtifacts = _.filter(_.flow(_.get('path'), _.includes('tests-summary')), items)
-    return _.map(_.get('url'), testSummaryArtifacts)
+    return _.map('url', testSummaryArtifacts)
   } catch (e) {
     console.error(`**  ERROR: Encountered error when getting CircleCI JOB_BUILD_NUM: ${buildNum} artifacts.`, e)
     throw e
@@ -45,20 +45,16 @@ const getFailedTestNames = aggregatedResults => {
  * @returns {Promise<Array[string]>}
  */
 const getFailedTestNamesFromArtifacts = async () => {
-  const tests = []
   const urls = await fetchJobArtifacts()
-  await Promise.all(_.map(async url => {
+  return _.flatten(await Promise.all(_.map(async url => {
     try {
       const response = await fetch(url)
-      const failedTests = getFailedTestNames(await response.json())
-      tests.push(...failedTests)
+      return getFailedTestNames(await response.json())
     } catch (e) {
       console.error(`**  ERROR: Encountered error when getting CircleCI artifacts tests-summary.json: ${url}.`, e)
       throw e
     }
-  }, urls))
-
-  return tests
+  }, urls)))
 }
 
 module.exports = {
