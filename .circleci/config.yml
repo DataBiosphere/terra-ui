@@ -278,14 +278,12 @@ jobs:
     steps:
       - integration-tests:
           env: alpha
-      - notify-qa
   integration-tests-staging:
     executor: puppeteer
     parallelism: 1 # No way to prevent multiple Slack messages otherwise
     steps:
       - integration-tests:
           env: staging
-      - notify-qa
 
 workflows:
   version: 2

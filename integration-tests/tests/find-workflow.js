@@ -10,7 +10,7 @@ const testFindWorkflowFn = _.flow(
   withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
-  await signIntoTerra(page, { token, testUrl })
+  // await signIntoTerra(page, { token, testUrl })
 
   await click(page, clickable({ textContains: 'View Examples' }))
   await click(page, clickable({ textContains: 'code & workflows' }))
