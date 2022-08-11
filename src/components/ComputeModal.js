@@ -736,7 +736,7 @@ export const ComputeModalBase = ({
 
       const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
-      const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+      const runtimeConfig = currentRuntimeDetails?.runtimeConfig || computeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const autopauseThresholdCalculated = !!currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutopauseThreshold
       const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
@@ -1468,18 +1468,18 @@ export const ComputeModalBase = ({
               'This change requires rebuilding your cloud environment, which will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
             ]),
-            existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+            existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willDeletePersistentDisk(), () => h(Fragment, [
             p([
               'To reduce the size of the PD, the existing PD will be deleted and a new one will be created and attached to your virtual machine instance. This will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
             ]),
-            existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+            existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime.tool !== desiredTool ?
-              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ',
+            existingRuntime && existingRuntime.tool !== desiredTool ?
+              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime?.tool]), ' to ',
                 strong([desiredTool]), '.']) :
               undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),

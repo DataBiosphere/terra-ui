@@ -452,6 +452,7 @@ export const getConvertedRuntimeStatus = runtime => {
 }
 
 export const getComputeStatusForDisplay = status => Utils.switchCase(_.lowerCase(status),
+  ['leo reconfiguring', () => 'Updating'],
   ['starting', () => 'Resuming'],
   ['stopping', () => 'Pausing'],
   ['stopped', () => 'Paused'],

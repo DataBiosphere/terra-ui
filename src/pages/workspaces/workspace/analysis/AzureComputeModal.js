@@ -24,12 +24,11 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onError, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
+  onDismiss, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
-
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
 
@@ -210,7 +209,7 @@ export const AzureComputeModalBase = ({
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReportingInModal('Error modifying cloud environment', onError)
+    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
     //TODO: metrics onclick
     //sendCloudEnvironmentMetrics()
