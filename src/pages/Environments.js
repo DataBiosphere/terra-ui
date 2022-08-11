@@ -300,7 +300,7 @@ const Environments = () => {
   const renderDetailsRuntime = (runtime, disks) => {
     const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId }, auditInfo: { creator }, workspaceId } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
-    return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspaceId)
+    return getDetailsPopup(runtimeName, cloudContext.cloudResource, disk, creator, workspaceId)
   }
 
   const renderDeleteButton = (resourceType, resource) => {
