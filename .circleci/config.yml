@@ -205,7 +205,7 @@ jobs:
             - deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
       - run: yarn install --immutable-cache
       - run: yarn eslint --max-warnings=0 .
-      - run: yarn test --maxWorkers=2
+      - run: yarn test --coverage --maxWorkers=2
       - run: DISABLE_ESLINT_PLUGIN=true yarn build # already linted above
       - save_cache:
           key: deps-{{ .Branch }}-{{ checksum ".pnp.cjs" }}
@@ -215,6 +215,8 @@ jobs:
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
+      - store_artifacts:
+          path: coverage
       - persist_to_workspace:
           root: .
           paths:
