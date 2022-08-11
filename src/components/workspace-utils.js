@@ -446,7 +446,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
   const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
   return h(Clickable, {
-    style: { ...Style.elements.card.container, margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
+    style: { ...Style.elements.card.container, maxWidth: 'calc(25% - 10px)', margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
     href: Nav.getLink('workspace-dashboard', { namespace, name })
   }, [
     div({ style: { flex: 'none' } }, [
