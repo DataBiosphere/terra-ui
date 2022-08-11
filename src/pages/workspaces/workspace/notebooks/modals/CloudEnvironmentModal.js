@@ -150,7 +150,7 @@ export const CloudEnvironmentModal = ({
   const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
-      Ajax().Apps.app(cloudContext?.cloudResource, appName).resume())
+      Ajax().Apps.app(cloudContext.cloudResource, appName).resume())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel,
@@ -159,7 +159,7 @@ export const CloudEnvironmentModal = ({
 
   const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
-    executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext?.cloudResource, appName).pause())
+    executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext.cloudResource, appName).pause())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
