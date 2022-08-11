@@ -12,7 +12,7 @@ EXCLUDE_NODE_INDEX=0
 # Wait up to 5 minutes for job to finish. This is useful when job is executed on multiple nodes: parallelism > 1
 while [ $x -le 300 ]; do
   # Find number of nodes in running
-  job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"')
+  job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_USER_TOKEN'"')
   job_running_nodes_count=$(echo $job_detail | jq -r '.parallel_runs[] | select(.status == "running") | select(.index != '$EXCLUDE_NODE_INDEX')' | grep "running" | wc -l)
   echo "job_running_nodes_count: $job_running_nodes_count"
 
@@ -29,6 +29,6 @@ echo "Waited $x seconds"
 date
 
 # Something is wrong. Log response for error troubleshooting
-curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_TOKEN'"' | jq -r '.'
+curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_USER_TOKEN'"' | jq -r '.'
 echo "ERROR: Exceeded maximum waiting time 5 minutes is exceeded."
 exit 1
