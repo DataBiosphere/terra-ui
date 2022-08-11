@@ -590,7 +590,7 @@ export const AttributeTypeInput = ({ label: labelText = 'Type', value, onChange,
 
   const typeOptions = [
     { type: 'string' },
-    { type: 'reference', tooltip: 'A link to another entity' },
+    { type: 'reference', tooltip: 'A link to another row' },
     { type: 'number' },
     { type: 'boolean' }
   ]
