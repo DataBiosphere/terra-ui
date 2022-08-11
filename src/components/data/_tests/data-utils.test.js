@@ -479,7 +479,7 @@ describe('AttributeTypeInput', () => {
       expect(entityTypeInput.getAttribute('role')).toBe('combobox')
     })
 
-    it('selecting reference type uses the default reference entity type is one is provided', () => {
+    it('selecting reference type uses the default reference entity type if one is provided', () => {
       const onChange = jest.fn()
       const { getByLabelText } = render(h(AttributeTypeInput, {
         value: { type: 'string' },
