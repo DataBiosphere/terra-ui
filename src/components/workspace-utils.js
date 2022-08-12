@@ -212,7 +212,7 @@ export const SnapshotInfo = ({
               title: 'Data Repo Dataset Id:', text: [h(Link, {
                 href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
                 'aria-label': 'Go to the dataset in a new tab'
-              }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+              }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: id, style: { marginLeft: '0.25rem' } })]
             })
           ])
         }, source)
