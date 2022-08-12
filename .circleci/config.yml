@@ -184,8 +184,8 @@ commands:
       - when:
           condition:
             and:
-              - equal: [ $CIRCLE_NODE_INDEX, 0 ]
-              - equal: [ $CIRCLE_BRANCH, "alexw/notify-slack-circleci-step" ]
+              - equal: [ 0, << CIRCLE_NODE_INDEX >> ]
+              - equal: [ "alexw/notify-slack-circleci-step", << CIRCLE_BRANCH >> ]
           steps:
             - run:
                 working_directory: integration-tests
