@@ -181,14 +181,17 @@ commands:
       - store_artifacts:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
-      - run:
-          working_directory: integration-tests
-          name: Test results Slack notification on Dev branch
-          command: |
-            if [ "$CIRCLE_NODE_INDEX" -eq 0 ] && [ "$CIRCLE_BRANCH" = "dev" ]; then
-              bash ../.circleci/wait-for-job-finish.sh
-              node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
-            fi
+      - when:
+          and:
+            - equal: [ $CIRCLE_NODE_INDEX, 0 ]
+            - equal: [ $CIRCLE_BRANCH, "dev" ]
+              steps:
+                - run:
+                    working_directory: integration-tests
+                    name: Test results Slack notification on Dev branch
+                    command: |
+                      bash ../.circleci/wait-for-job-finish.sh
+                      node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
           when: always
 
   notify-qa:
