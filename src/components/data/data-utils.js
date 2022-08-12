@@ -24,7 +24,6 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { useCancellation } from 'src/libs/react-utils'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -949,6 +948,23 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   ])
 }
 
+const editEntitiesSetValue = ({ namespace, name }, entityType, entities, attributeToEdit, newValue) => {
+  const entityUpdates = _.map(entity => ({
+    entityType,
+    name: entity.name,
+    operations: [{
+      op: 'AddUpdateAttribute',
+      attributeName: attributeToEdit,
+      addUpdateAttribute: prepareAttributeForUpload(newValue)
+    }]
+  }), entities)
+
+  return Ajax()
+    .Workspaces
+    .workspace(namespace, name)
+    .upsertEntities(entityUpdates)
+}
+
 export const MultipleEntityEditor = ({ entityType, entities, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
@@ -959,28 +975,13 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
 
   const [newValue, setNewValue] = useState('')
 
-  const signal = useCancellation()
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
 
   const doEdit = async () => {
     try {
       setIsBusy(true)
-
-      const entityUpdates = _.map(entity => ({
-        entityType,
-        name: entity.name,
-        operations: [{
-          op: 'AddUpdateAttribute',
-          attributeName: attributeToEdit,
-          addUpdateAttribute: prepareAttributeForUpload(newValue)
-        }]
-      }), entities)
-
-      await Ajax(signal)
-        .Workspaces
-        .workspace(namespace, name)
-        .upsertEntities(entityUpdates)
+      await editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue)
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -991,7 +992,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
   const doDelete = async () => {
     try {
       setIsBusy(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities))
+      await Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities))
       onSuccess()
     } catch (e) {
       onDismiss()
