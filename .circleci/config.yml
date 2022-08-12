@@ -183,7 +183,7 @@ commands:
           destination: results
       - when:
           condition:
-            - and:
+            and:
               - equal: [ $CIRCLE_NODE_INDEX, 0 ]
               - equal: [ $CIRCLE_BRANCH, "dev" ]
           steps:
