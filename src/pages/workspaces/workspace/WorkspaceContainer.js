@@ -95,7 +95,7 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete },
-        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner }
+        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ])
   ])
