@@ -176,7 +176,7 @@ const ImportData = () => {
         }
       }],
       ['catalog', async () => {
-        await Ajax().Catalog.exportDataset({ id: catalogDatasetId, workspaceId: selectedWorkspaceId })
+        await Ajax().Catalog.exportDataset({ id: catalogDatasetId, workspaceId: workspace.workspaceId })
         notify('success', 'Catalog dataset imported successfully.', { timeout: 3000 })
       }],
       [Utils.DEFAULT, async () => {
@@ -214,7 +214,7 @@ const ImportData = () => {
                 ])))(snapshots)
             ])
           ]) :
-          div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+          url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
           'within a workspace of your choice where you can then perform analysis.'
