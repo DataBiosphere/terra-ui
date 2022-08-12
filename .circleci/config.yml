@@ -182,16 +182,17 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
       - when:
-          and:
-            - equal: [ $CIRCLE_NODE_INDEX, 0 ]
-            - equal: [ $CIRCLE_BRANCH, "dev" ]
-              steps:
-                - run:
-                    working_directory: integration-tests
-                    name: Test results Slack notification on Dev branch
-                    command: |
-                      bash ../.circleci/wait-for-job-finish.sh
-                      node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
+          condition:
+            and:
+              - equal: [ $CIRCLE_NODE_INDEX, 0 ]
+              - equal: [ $CIRCLE_BRANCH, "dev" ]
+                steps:
+                  - run:
+                      working_directory: integration-tests
+                      name: Test results Slack notification on Dev branch
+                      command: |
+                        bash ../.circleci/wait-for-job-finish.sh
+                        node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
           when: always
 
   notify-qa:
