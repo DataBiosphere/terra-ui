@@ -978,10 +978,10 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
 
-  const doEdit = async () => {
+  const withBusyStateAndErrorHandling = operation => async () => {
     try {
       setIsBusy(true)
-      await editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue)
+      await operation()
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -989,16 +989,8 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     }
   }
 
-  const doDelete = async () => {
-    try {
-      setIsBusy(true)
-      await Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities))
-      onSuccess()
-    } catch (e) {
-      onDismiss()
-      reportError('Unable to modify entities.', e)
-    }
-  }
+  const saveAttributeEdits = withBusyStateAndErrorHandling(() => editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue))
+  const deleteAttributes = withBusyStateAndErrorHandling(() => Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities)))
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
@@ -1015,7 +1007,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
+          h(ButtonPrimary, { onClick: deleteAttributes }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -1075,7 +1067,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
             h(ButtonPrimary, {
               disabled: attributeToEditError,
               tooltip: attributeToEditError,
-              onClick: doEdit
+              onClick: saveAttributeEdits
             }, ['Save edits'])
           ])
         ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
