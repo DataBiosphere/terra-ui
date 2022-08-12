@@ -25,7 +25,7 @@ while [ $x -le 300 ]; do
   x=$(($x + 10))
 done
 
-echo "Waited $x seconds"
+echo "Waited total $x seconds"
 date
 
 # Something is wrong. Log response for error troubleshooting
