@@ -430,7 +430,7 @@ const EntitiesContent = ({
       }),
       editingEntities && h(MultipleEntityEditor, {
         entityType: entityKey,
-        entityNames: _.keys(selectedEntities),
+        entities: _.values(selectedEntities),
         attributeNames: entityMetadata[entityKey].attributeNames,
         entityTypes: _.keys(entityMetadata),
         workspaceId: { namespace, name },

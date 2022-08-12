@@ -949,7 +949,7 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   ])
 }
 
-export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+export const MultipleEntityEditor = ({ entityType, entities, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
   const attributeToEditError = attributeToEditTouched && Utils.cond(
@@ -967,15 +967,15 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
     try {
       setIsBusy(true)
 
-      const entityUpdates = _.map(entityName => ({
+      const entityUpdates = _.map(entity => ({
         entityType,
-        name: entityName,
+        name: entity.name,
         operations: [{
           op: 'AddUpdateAttribute',
           attributeName: attributeToEdit,
           addUpdateAttribute: prepareAttributeForUpload(newValue)
         }]
-      }), entityNames)
+      }), entities)
 
       await Ajax(signal)
         .Workspaces
@@ -991,7 +991,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   const doDelete = async () => {
     try {
       setIsBusy(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, entityNames)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities))
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -1002,14 +1002,14 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: `Edit fields in ${pluralize('row', entityNames.length, true)}`,
+    title: `Edit fields in ${pluralize('row', entities.length, true)}`,
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
         'Are you sure you want to delete the value ', boldish(attributeToEdit),
-        ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
+        ' from ', boldish(`${entities.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
