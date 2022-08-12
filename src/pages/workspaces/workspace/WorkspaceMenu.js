@@ -41,9 +41,10 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.azureContext
+  const workspaceLoaded = !!workspace
+  const isAzureWorkspace = workspaceLoaded && workspace.azureContext
   return WorkspaceMenuContent({
-    canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded: !!workspace
+    canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded
   })
 }
 
