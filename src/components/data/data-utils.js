@@ -965,6 +965,25 @@ const editEntitiesSetValue = ({ namespace, name }, entityType, entities, attribu
     .upsertEntities(entityUpdates)
 }
 
+const editEntitiesConvertType = ({ namespace, name }, entityType, entities, attributeToEdit, newType) => {
+  const { type, entityType: referenceEntityType } = newType
+
+  const entityUpdates = _.map(entity => ({
+    entityType,
+    name: entity.name,
+    operations: [{
+      op: 'AddUpdateAttribute',
+      attributeName: attributeToEdit,
+      addUpdateAttribute: convertAttributeValue(entity.attributes[attributeToEdit], type, referenceEntityType)
+    }]
+  }), entities)
+
+  return Ajax()
+    .Workspaces
+    .workspace(namespace, name)
+    .upsertEntities(entityUpdates)
+}
+
 export const MultipleEntityEditor = ({ entityType, entities, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
@@ -973,7 +992,10 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
   )
 
+  const [operation, setOperation] = useState('setValue')
+
   const [newValue, setNewValue] = useState('')
+  const [newType, setNewType] = useState({ type: 'string' })
 
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
@@ -989,7 +1011,10 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     }
   }
 
-  const saveAttributeEdits = withBusyStateAndErrorHandling(() => editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue))
+  const saveAttributeEdits = withBusyStateAndErrorHandling(() => Utils.switchCase(operation,
+    ['setValue', () => editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue)],
+    ['convertType', () => editEntitiesConvertType({ namespace, name }, entityType, entities, attributeToEdit, newType)]
+  ))
   const deleteAttributes = withBusyStateAndErrorHandling(() => Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities)))
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
@@ -1050,12 +1075,46 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
-          p({ style: { fontWeight: 'bold' } }, ['Change selected values to:']),
-          h(AttributeInput, {
-            value: newValue,
-            onChange: setNewValue,
-            entityTypes
-          }),
+          div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Operation'),
+              h(Select, {
+                id,
+                options: [
+                  { label: 'Set value', value: 'setValue' },
+                  { label: 'Convert type', value: 'convertType' }
+                ],
+                value: operation,
+                onChange: ({ value: newOperation }) => {
+                  setOperation(newOperation)
+                  if (newOperation === 'setValue') {
+                    setNewValue('')
+                  }
+                  if (newOperation === 'convertType') {
+                    setNewType({ type: 'string' })
+                  }
+                }
+              })
+            ])])
+          ]),
+          Utils.cond(
+            [operation === 'setValue', () => h(Fragment, [
+              p({ style: { fontWeight: 'bold' } }, ['Set selected values to:']),
+              h(AttributeInput, {
+                value: newValue,
+                onChange: setNewValue,
+                entityTypes
+              })
+            ])],
+            [operation === 'convertType', () => h(Fragment, [
+              p({ style: { fontWeight: 'bold' } }, ['Convert selected values to:']),
+              h(AttributeTypeInput, {
+                value: newType,
+                onChange: setNewType,
+                entityTypes
+              })
+            ])]
+          ),
           div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
             h(ButtonOutline, {
               disabled: !!attributeToEditError,
