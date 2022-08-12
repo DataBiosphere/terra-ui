@@ -9,6 +9,105 @@
     {
       "name": "dsde-qa",
       "id": "C53JYBV9A"
+    },
+    {
+      "name": "dsp-interactive-analysis",
+      "id": "CA3NP1733",
+      "tests": [
+        {
+          "name": "run-analysis"
+        },
+        {
+          "name": "run-rstudio"
+        },
+        {
+          "name": "analysis-context-bar"
+        },
+        {
+          "name": "run-notebook"
+        }
+      ]
+    },
+    {
+      "name": "cromwell_jenkins_ci_errors",
+      "id": "C01AG7GEJ3D",
+      "tests": [
+        {
+          "name": "find-workflow"
+        },
+        {
+          "name": "import-dockstore-workflow"
+        },
+        {
+          "name": "run-workflow"
+        },
+        {
+          "name": "run-workflow-on-snapshot"
+        },
+        {
+          "name": "run-catalog-workflow"
+        }
+      ]
+    },
+    {
+      "name": "dsp-workspaces-test-alerts",
+      "id": "C03F21QEWV7",
+      "tests": [
+        {
+          "name": "billing-projects"
+        },
+        {
+          "name": "janitor"
+        },
+        {
+          "name": "workspace-dashboard"
+        }
+      ]
+    },
+    {
+      "name": "jade-data-explorer",
+      "id": "C01TU3W2AL9",
+      "tests": [
+        {
+          "name": "preview-dataset"
+        },
+        {
+          "name": "preview-drs-uri"
+        },
+        {
+          "name": "run-catalog-filter"
+        },
+        {
+          "name": "run-catalog-workflow"
+        },
+        {
+          "name": "link-to-new-workspace"
+        }
+      ]
+    },
+    {
+      "name": "dsp-identiteam",
+      "id": "C03GMG4DUSE",
+      "tests": [
+        {
+          "name": "register-user"
+        },
+        {
+          "name": "request-access"
+        }
+      ]
+    },
+    {
+      "name": "dsp-analysis-journeys",
+      "id": "C02T8G2FJCQ",
+      "tests": [
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "request-access"
+        }
+      ]
     }
   ]
 }

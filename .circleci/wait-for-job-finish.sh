@@ -9,7 +9,7 @@ set -o pipefail
 x=0
 EXCLUDE_NODE_INDEX=0
 
-# Wait up to 5 minutes for job to finish. This is useful when job is executed on multiple nodes: parallelism > 1
+# Wait up to 5 minutes for job to finish. A job can run on multiple nodes: parallelism > 1
 while [ $x -le 300 ]; do
   # Find number of nodes in running
   job_detail=$(curl -s "https://circleci.com/api/v2/project/github/DataBiosphere/terra-ui/job/$CIRCLE_BUILD_NUM" --header 'Circle-Token: "'$CIRCLECI_USER_TOKEN'"')
