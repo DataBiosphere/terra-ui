@@ -185,7 +185,7 @@ commands:
           working_directory: integration-tests
           name: Slack notification on dev branch only
           command: |
-            if [ "$CIRCLE_NODE_INDEX" -eq 0 ] && [ "$CIRCLE_BRANCH" = "alexw/notify-slack-circleci-step" ]; then
+            if [ "$CIRCLE_NODE_INDEX" -eq 0 ] && [ "$CIRCLE_BRANCH" = "dev" ]; then
               bash ../.circleci/wait-for-job-finish.sh
               node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
             fi
