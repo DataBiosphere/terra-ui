@@ -6,6 +6,10 @@ set -o nounset
 # Use the error status of the first failure, rather than that of the last item in a pipeline.
 set -o pipefail
 
+if [ "$CIRCLE_BRANCH" != "alexw/notify-slack-circleci-step" ] || [ "$CIRCLE_NODE_INDEX" -ne 0 ]; then
+  circleci-agent step halt
+fi
+
 counter=0
 
 # Wait up to 5 minutes for job to finish. A job can run on multiple nodes: parallelism > 1

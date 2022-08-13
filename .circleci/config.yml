@@ -182,15 +182,8 @@ commands:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results
           destination: results
       - run:
-          name: Halt step if CIRCLE_BRANCH != dev OR CIRCLE_NODE_INDEX != 0
-          command: |
-            if [ "$CIRCLE_BRANCH" != "dev" ] || [ "$CIRCLE_NODE_INDEX" -ne 0 ]; then
-              circleci-agent step halt
-            fi
-          when: always
-      - run:
           working_directory: integration-tests
-          name: Test results Slack notification on Dev branch
+          name: Slack notification on dev branch only
           command: |
             bash ../.circleci/wait-for-job-finish.sh
             node --require ../.pnp.cjs ./slack/notify-circleci-test-results.js
