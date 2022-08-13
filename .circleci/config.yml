@@ -183,10 +183,13 @@ commands:
           destination: results
       - when:
           condition:
-            and:
-              - equal: [ "0", $CIRCLE_NODE_INDEX ]
-              - equal: [ "alexw/notify-slack-circleci-step", $CIRCLE_BRANCH ]
+            - equal: [ "alexw/notify-slack-circleci-step", << pipeline.git.branch >> ]
           steps:
+            - run:
+                name: in run
+                command: |
+                  echo "hello"
+                  circleci-agent step halt
             - run:
                 working_directory: integration-tests
                 name: Test results Slack notification on Dev branch
