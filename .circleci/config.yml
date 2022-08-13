@@ -183,7 +183,7 @@ commands:
           destination: results
       - when:
           condition:
-            - equal: [ "alexw/notify-slack-circleci-step", << pipeline.git.branch >> ]
+            equal: [ "alexw/notify-slack-circleci-step", $CIRCLE_BRANCH ]
           steps:
             - run:
                 name: in run
