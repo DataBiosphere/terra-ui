@@ -6,7 +6,11 @@ set -o nounset
 # Use the error status of the first failure, rather than that of the last item in a pipeline.
 set -o pipefail
 
-if [ "$CIRCLE_BRANCH" != "alexw/notify-slack-circleci-step" ] && [ "$CIRCLE_NODE_INDEX" -ne 0 ]; then
+if [ "$CIRCLE_BRANCH" != "alexw/notify-slack-circleci-step" ]; then
+  circleci-agent step halt
+fi
+
+if [ "$CIRCLE_NODE_INDEX" -ne 0 ]; then
   circleci-agent step halt
 fi
 
