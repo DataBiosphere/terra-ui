@@ -7,11 +7,11 @@ set -o nounset
 set -o pipefail
 
 if [ "$CIRCLE_BRANCH" != "alexw/notify-slack-circleci-step" ]; then
-  circleci-agent step halt
+  exit 0
 fi
 
 if [ "$CIRCLE_NODE_INDEX" -ne 0 ]; then
-  circleci-agent step halt
+  exit 0
 fi
 
 counter=0
