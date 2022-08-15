@@ -15,7 +15,7 @@ const WorkspaceMenu = ({
   workspaceInfo: { name, namespace, canShare, isAzureWorkspace, isLocked, isOwner }
 }) => {
   const navIconProps = {
-    style: { opacity: 0.65, marginRight: '1rem' },
+    style: { opacity: 0.65, marginRight: '1rem', height: iconSize },
     hover: { opacity: 1 }, focus: 'hover'
   }
 

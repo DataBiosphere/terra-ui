@@ -456,8 +456,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
         div({ style: { display: 'flex', alignItems: 'center' } }, [
           h(WorkspaceSubmissionStatusIcon, {
             status: submissionStatus,
-            loadingSubmissionStats,
-            size: 16
+            loadingSubmissionStats
           }),
           !!googleProject ?
             h(CloudGcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
