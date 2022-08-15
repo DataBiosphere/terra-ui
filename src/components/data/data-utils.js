@@ -956,7 +956,11 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
   )
 
-  const [operation, setOperation] = useState('setValue')
+  const Operation = {
+    setValue: 'setValue',
+    convertType: 'convertType'
+  }
+  const [operation, setOperation] = useState(Operation.setValue)
 
   const [newValue, setNewValue] = useState('')
   const [newType, setNewType] = useState({ type: 'string' })
@@ -983,8 +987,8 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
         op: 'AddUpdateAttribute',
         attributeName: attributeToEdit,
         addUpdateAttribute: Utils.switchCase(operation,
-          ['setValue', () => prepareAttributeForUpload(newValue)],
-          ['convertType', () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
+          [Operation.setValue, () => prepareAttributeForUpload(newValue)],
+          [Operation.convertType, () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
         )
       }]
     }), entities)
@@ -1060,16 +1064,16 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
               h(Select, {
                 id,
                 options: [
-                  { label: 'Set value', value: 'setValue' },
-                  { label: 'Convert type', value: 'convertType' }
+                  { label: 'Set value', value: Operation.setValue },
+                  { label: 'Convert type', value: Operation.convertType }
                 ],
                 value: operation,
                 onChange: ({ value: newOperation }) => {
                   setOperation(newOperation)
-                  if (newOperation === 'setValue') {
+                  if (newOperation === Operation.setValue) {
                     setNewValue('')
                   }
-                  if (newOperation === 'convertType') {
+                  if (newOperation === Operation.convertType) {
                     setNewType({ type: 'string' })
                   }
                 }
@@ -1077,7 +1081,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
             ])])
           ]),
           Utils.cond(
-            [operation === 'setValue', () => h(Fragment, [
+            [operation === Operation.setValue, () => h(Fragment, [
               p({ style: { fontWeight: 'bold' } }, ['Set selected values to:']),
               h(AttributeInput, {
                 value: newValue,
@@ -1085,7 +1089,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
                 entityTypes
               })
             ])],
-            [operation === 'convertType', () => h(Fragment, [
+            [operation === Operation.convertType, () => h(Fragment, [
               p({ style: { fontWeight: 'bold' } }, ['Convert selected values to:']),
               h(AttributeTypeInput, {
                 value: newType,
