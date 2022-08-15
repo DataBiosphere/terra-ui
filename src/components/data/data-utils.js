@@ -948,42 +948,6 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   ])
 }
 
-const editEntitiesSetValue = ({ namespace, name }, entityType, entities, attributeToEdit, newValue) => {
-  const entityUpdates = _.map(entity => ({
-    entityType,
-    name: entity.name,
-    operations: [{
-      op: 'AddUpdateAttribute',
-      attributeName: attributeToEdit,
-      addUpdateAttribute: prepareAttributeForUpload(newValue)
-    }]
-  }), entities)
-
-  return Ajax()
-    .Workspaces
-    .workspace(namespace, name)
-    .upsertEntities(entityUpdates)
-}
-
-const editEntitiesConvertType = ({ namespace, name }, entityType, entities, attributeToEdit, newType) => {
-  const { type, entityType: referenceEntityType } = newType
-
-  const entityUpdates = _.map(entity => ({
-    entityType,
-    name: entity.name,
-    operations: [{
-      op: 'AddUpdateAttribute',
-      attributeName: attributeToEdit,
-      addUpdateAttribute: convertAttributeValue(entity.attributes[attributeToEdit], type, referenceEntityType)
-    }]
-  }), entities)
-
-  return Ajax()
-    .Workspaces
-    .workspace(namespace, name)
-    .upsertEntities(entityUpdates)
-}
-
 export const MultipleEntityEditor = ({ entityType, entities, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
@@ -1011,10 +975,25 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     }
   }
 
-  const saveAttributeEdits = withBusyStateAndErrorHandling(() => Utils.switchCase(operation,
-    ['setValue', () => editEntitiesSetValue({ namespace, name }, entityType, entities, attributeToEdit, newValue)],
-    ['convertType', () => editEntitiesConvertType({ namespace, name }, entityType, entities, attributeToEdit, newType)]
-  ))
+  const saveAttributeEdits = withBusyStateAndErrorHandling(() => {
+    const entityUpdates = _.map(entity => ({
+      entityType,
+      name: entity.name,
+      operations: [{
+        op: 'AddUpdateAttribute',
+        attributeName: attributeToEdit,
+        addUpdateAttribute: Utils.switchCase(operation,
+          ['setValue', () => prepareAttributeForUpload(newValue)],
+          ['convertType', () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
+        )
+      }]
+    }), entities)
+
+    return Ajax()
+      .Workspaces
+      .workspace(namespace, name)
+      .upsertEntities(entityUpdates)
+  })
   const deleteAttributes = withBusyStateAndErrorHandling(() => Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities)))
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
