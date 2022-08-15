@@ -1058,27 +1058,29 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
-          div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
-            h(IdContainer, [id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Operation'),
-              h(Select, {
-                id,
-                options: [
-                  { label: 'Set value', value: Operation.setValue },
-                  { label: 'Convert type', value: Operation.convertType }
-                ],
-                value: operation,
-                onChange: ({ value: newOperation }) => {
-                  setOperation(newOperation)
-                  if (newOperation === Operation.setValue) {
-                    setNewValue('')
-                  }
-                  if (newOperation === Operation.convertType) {
-                    setNewType({ type: 'string' })
-                  }
-                }
-              })
-            ])])
+          div({ style: { marginBottom: '1rem' } }, [
+            fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+              legend({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Operation']),
+              div({ style: { display: 'flex', flexDirection: 'row', marginBottom: '0.5rem' } }, [
+                _.map(({ operation: operationOption, label }) => span({
+                  key: operationOption,
+                  style: { display: 'inline-block', marginRight: '1ch', whiteSpace: 'nowrap' }
+                }, [
+                  h(RadioButton, {
+                    text: label,
+                    name: 'operation',
+                    checked: operation === operationOption,
+                    onChange: () => {
+                      setOperation(operationOption)
+                    },
+                    labelStyle: { paddingLeft: '0.5rem' }
+                  })
+                ]), [
+                  { operation: Operation.setValue, label: 'Set value' },
+                  { operation: Operation.convertType, label: 'Convert type' }
+                ])
+              ])
+            ])
           ]),
           Utils.cond(
             [operation === Operation.setValue, () => h(Fragment, [
