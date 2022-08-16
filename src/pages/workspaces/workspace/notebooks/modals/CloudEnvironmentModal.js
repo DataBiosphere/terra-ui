@@ -67,7 +67,8 @@ export const CloudEnvironmentModal = ({
     workspace,
     runtimes,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
@@ -76,7 +77,8 @@ export const CloudEnvironmentModal = ({
     apps,
     appDataDisks,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
