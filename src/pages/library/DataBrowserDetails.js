@@ -109,6 +109,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const { access } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
+  const [preparingExport, setPreparingExport] = useState(false)
   const sidebarButtonWidth = 230
 
   return h(Fragment, [
@@ -194,17 +195,15 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: true,
-        tooltip: 'We are currently working on the link to workspace feature which will be available soon.',
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
             id,
             title: dataObj['dct:title']
           })
-          importDataToWorkspace([dataObj])
+          importDataToWorkspace(dataObj, () => setPreparingExport(true))
         }
-      }, ['Link to a workspace']),
+      }, [preparingExport ? 'Preparing data' : 'Link to a workspace']),
       div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
         icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [

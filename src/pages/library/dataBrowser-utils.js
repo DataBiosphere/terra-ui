@@ -39,6 +39,14 @@ export const datasetReleasePolicies = {
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
+export const isWorkspace = dataset => {
+  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
+}
+
+export const isDatarepoSnapshot = dataset => {
+  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
+}
+
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
     _.replace(/,+/g, ' '),
@@ -123,14 +131,31 @@ export const useDataCatalog = () => {
   return { dataCatalog, refresh, loading }
 }
 
-export const importDataToWorkspace = datasets => {
-  // TODO (DC-284): Call data catalog to figure out what the format should be for importing to workspace
-  const format = 'snapshot'
-  Nav.history.push({
-    pathname: Nav.getPath('import-data'),
-    search: qs.stringify({
-      url: getConfig().dataRepoUrlRoot, format, referrer: 'data-catalog',
-      snapshotIds: _.map('dct:identifier', datasets)
-    })
-  })
+export const importDataToWorkspace = (dataset, asyncHandler) => {
+  const routeOptions = Utils.cond(
+    [isWorkspace(dataset), () => {
+      return {
+        pathname: Nav.getPath('import-data'),
+        search: qs.stringify({
+          format: 'catalog',
+          snapshotName: dataset['dct:title'],
+          catalogDatasetId: dataset.id
+        })
+      }
+    }],
+    [
+      isDatarepoSnapshot(dataset), () => {
+        asyncHandler()
+
+        return {
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            url: getConfig().dataRepoUrlRoot, format: 'snapshot', referrer: 'data-catalog',
+            snapshotIds: [dataset['dct:identifier']]
+          })
+        }
+      }
+    ]
+  )
+  Nav.history.push(routeOptions)
 }
