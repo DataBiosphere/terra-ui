@@ -368,3 +368,5 @@ export const truncateInteger = integer => {
 
   return `${Math.floor(integer / 1000)}k`
 }
+
+export const enumify = keys => _.flow(_.map(key => [key, key]), _.fromPairs)(keys)

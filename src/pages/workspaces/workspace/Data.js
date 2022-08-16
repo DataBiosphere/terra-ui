@@ -387,13 +387,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   ])
 }
 
-const workspaceDataTypes = {
-  entities: 'entities',
-  snapshot: 'snapshot',
-  referenceData: 'referenceData',
-  localVariables: 'localVariables',
-  bucketObjects: 'bucketObjects'
-}
+const workspaceDataTypes = Utils.enumify(['entities', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
