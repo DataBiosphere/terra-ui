@@ -18,12 +18,13 @@ module.exports = {
       wrapScriptExecution(executor, project, locator, scriptName) {
         if (scriptName === 'build' && !process.env.CI) {
           return async () => {
-            await executor()
+            const status = await executor()
             console.warn('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗')
             console.warn('║ Be sure to copy a config/xxx.json to build/config.json if you\'re planning to'.padEnd(79) + '║')
             console.warn('║ deploy this build.'.padEnd(79) + '║')
             console.warn('╚'.padEnd(79, '═') + '╝')
             console.warn('\x1b[0m' /* not-bold */)
+            return status
           }
         } else {
           return executor
