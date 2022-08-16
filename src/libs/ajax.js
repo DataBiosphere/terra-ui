@@ -1108,6 +1108,22 @@ const DataRepo = signal => ({
       details: async () => {
         const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+      exportSnapshot: async () => {
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}/export`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }
+    }
+  },
+  job: jobId => {
+    return {
+      details: async () => {
+        const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+      result: async () => {
+        const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }

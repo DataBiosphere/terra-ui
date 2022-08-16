@@ -368,3 +368,13 @@ export const truncateInteger = integer => {
 
   return `${Math.floor(integer / 1000)}k`
 }
+
+// can this be done with usePollingEffect?
+export const poll = async (pollFn, pollTime, pollUntil) => {
+  let result = await pollFn()
+  while (!pollUntil(result)) {
+    await delay(pollTime)
+    result = !pollUntil(result) && await pollFn()
+  }
+  return result
+}

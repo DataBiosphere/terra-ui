@@ -7,6 +7,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
+import { poll } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -131,8 +132,8 @@ export const useDataCatalog = () => {
   return { dataCatalog, refresh, loading }
 }
 
-export const importDataToWorkspace = (dataset, asyncHandler) => {
-  const routeOptions = Utils.cond(
+export const importDataToWorkspace = async (dataset, asyncHandler) => {
+  const routeOptions = await Utils.cond(
     [isWorkspace(dataset), () => {
       return {
         pathname: Nav.getPath('import-data'),
@@ -144,14 +145,17 @@ export const importDataToWorkspace = (dataset, asyncHandler) => {
       }
     }],
     [
-      isDatarepoSnapshot(dataset), () => {
+      isDatarepoSnapshot(dataset), async () => {
         asyncHandler()
-
+        const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
+        await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
+        const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
+        const jobResultManifest = jobResult && jobResult.format && jobResult.format.parquet && jobResult.format.parquet.manifest
         return {
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, format: 'snapshot', referrer: 'data-catalog',
-            snapshotIds: [dataset['dct:identifier']]
+            url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
+            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
           })
         }
       }

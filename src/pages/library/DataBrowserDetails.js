@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
@@ -13,7 +13,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { datasetAccessTypes, importDataToWorkspace, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -195,6 +195,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
+        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -203,7 +205,11 @@ export const SidebarComponent = ({ dataObj, id }) => {
           })
           importDataToWorkspace(dataObj, () => setPreparingExport(true))
         }
-      }, [preparingExport ? 'Preparing data' : 'Link to a workspace']),
+      }, [preparingExport ?
+        div({ style: { fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'space-around' } }, [
+          spinner({}),
+          div({ style: { marginLeft: '1rem' } }, ['Preparing data'])
+        ]) : 'Link to a workspace']),
       div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
         icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
