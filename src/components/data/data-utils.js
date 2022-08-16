@@ -956,11 +956,11 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
     [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
   )
 
-  const Operation = {
+  const operations = {
     setValue: 'setValue',
     convertType: 'convertType'
   }
-  const [operation, setOperation] = useState(Operation.setValue)
+  const [operation, setOperation] = useState(operations.setValue)
 
   const [newValue, setNewValue] = useState('')
   const [newType, setNewType] = useState({ type: 'string' })
@@ -987,8 +987,8 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
         op: 'AddUpdateAttribute',
         attributeName: attributeToEdit,
         addUpdateAttribute: Utils.switchCase(operation,
-          [Operation.setValue, () => prepareAttributeForUpload(newValue)],
-          [Operation.convertType, () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
+          [operations.setValue, () => prepareAttributeForUpload(newValue)],
+          [operations.convertType, () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
         )
       }]
     }), entities)
@@ -1076,14 +1076,14 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
                     labelStyle: { paddingLeft: '0.5rem' }
                   })
                 ]), [
-                  { operation: Operation.setValue, label: 'Set value' },
-                  { operation: Operation.convertType, label: 'Convert type' }
+                  { operation: operations.setValue, label: 'Set value' },
+                  { operation: operations.convertType, label: 'Convert type' }
                 ])
               ])
             ])
           ]),
           Utils.cond(
-            [operation === Operation.setValue, () => h(Fragment, [
+            [operation === operations.setValue, () => h(Fragment, [
               p({ style: { fontWeight: 'bold' } }, ['Set selected values to:']),
               h(AttributeInput, {
                 value: newValue,
@@ -1091,7 +1091,7 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
                 entityTypes
               })
             ])],
-            [operation === Operation.convertType, () => h(Fragment, [
+            [operation === operations.convertType, () => h(Fragment, [
               p({ style: { fontWeight: 'bold' } }, ['Convert selected values to:']),
               h(AttributeTypeInput, {
                 value: newType,
