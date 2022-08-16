@@ -961,6 +961,8 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.text()),
+
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
           sourceWorkspace: { namespace, name },
