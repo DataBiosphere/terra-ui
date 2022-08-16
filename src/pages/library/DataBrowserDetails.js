@@ -177,8 +177,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: true,
-        tooltip: 'We are currently working on preview dataset and this will be available soon.',
+        disabled: dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
