@@ -30,6 +30,7 @@ const testRunRStudioFn = _.flow(
 
   await click(page, clickable({ textContains: 'Close' }))
 
+
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: rFileName }))
   await click(page, clickable({ textContains: rFileName }))
@@ -41,10 +42,12 @@ const testRunRStudioFn = _.flow(
 
   //Create a cloud env from analysis launcher
   await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await findElement(page, clickable({ textContains: 'RStudio Environment ( Creating )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 })
 
   // Wait for the environment to be running
-  await findElement(page, clickable({ textContains: 'RStudio Environment ( Running )' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 })
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'Open' }))
 

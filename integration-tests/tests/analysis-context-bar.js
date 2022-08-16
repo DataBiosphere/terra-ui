@@ -34,7 +34,7 @@ const testAnalysisContextBarFn = _.flow(
   // Ensure UI displays the runtime is creating and the Terminal icon is present + enabled
   await findElement(page, clickable({ textContains: tooltipTextTerminal, isEnabled: true }), { visible: true })
 
-  const tooltipTextEnvCreating = 'Jupyter Environment ( Creating )'
+  const tooltipTextEnvCreating = 'Creating'
   const jupyterEnvIcon = await findElement(page, clickable({ textContains: tooltipTextEnvCreating, isEnabled: true }), { visible: true })
   await jupyterEnvIcon.click()
 
@@ -45,16 +45,17 @@ const testAnalysisContextBarFn = _.flow(
   await click(page, clickable({ textContains: 'Close' }))
 
   // Environment should eventually be running and the terminal icon should be enabled once the environment is running
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60 * 1000 })
+  await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
   await findElement(page, clickable({ textContains: 'Terminal' }))
 
   // The environment should now be pausable, and the UI should display its pausing
-  await click(page, clickable({ textContains: 'Jupyter Environment ( Running )' }))
+  await click(page, clickable({ textContains: 'Running' }))
   await findElement(page, getAnimatedDrawer('Jupyter Environment Details'), { timeout: 40000 })
   await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Pause' })) })
   await findElement(page, clickable({ textContains: 'Pausing', isEnabled: false }))
   await click(page, clickable({ textContains: 'Close' }))
-  await findElement(page, clickable({ textContains: 'Jupyter Environment ( Pausing )' }), { timeout: 40000 })
+  await findElement(page, clickable({ textContains: 'Pausing' }), { timeout: 40000 })
 
   // We don't wait for the env to pause for the sake of time, since its redundant and more-so tests the backend
 })
