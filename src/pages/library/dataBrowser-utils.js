@@ -150,7 +150,7 @@ export const importDataToWorkspace = async (dataset, asyncHandler) => {
         const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
         await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
         const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
-        const jobResultManifest = jobResult && jobResult.format && jobResult.format.parquet && jobResult.format.parquet.manifest
+        const jobResultManifest = jobResult?.format?.parquet?.manifest
         return {
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
