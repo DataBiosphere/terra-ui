@@ -72,14 +72,14 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
   searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`)
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, wrapperProps, ...props }) => {
   const isEntity = entityName !== undefined
 
   return h(Interactive, {
+    ...wrapperProps,
     style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
     hover: Style.navList.itemHover(selected),
-    as: 'div',
-    role: 'listitem'
+    as: 'div'
   }, [
     h(Clickable, {
       style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
@@ -591,6 +591,7 @@ const WorkspaceData = _.flow(
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
+                  wrapperProps: { role: 'listitem' },
                   selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
@@ -662,6 +663,7 @@ const WorkspaceData = _.flow(
                     _.map(([tableName, { count }]) => {
                       const canCompute = !!(workspace?.canCompute)
                       return h(DataTypeButton, {
+                        wrapperProps: { role: 'listitem' },
                         buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
                         tooltip: canCompute ?
                           tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
@@ -695,6 +697,7 @@ const WorkspaceData = _.flow(
               title: 'Reference Data'
             }, [_.map(type => h(DataTypeButton, {
               key: type,
+              wrapperProps: { role: 'listitem' },
               selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
               onClick: () => {
                 setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
@@ -744,6 +747,7 @@ const WorkspaceData = _.flow(
               title: 'Other Data'
             }, [
               h(DataTypeButton, {
+                wrapperProps: { role: 'listitem' },
                 selected: selectedData?.type === workspaceDataTypes.localVariables,
                 onClick: () => {
                   setSelectedData({ type: workspaceDataTypes.localVariables })
@@ -751,6 +755,7 @@ const WorkspaceData = _.flow(
                 }
               }, ['Workspace Data']),
               h(DataTypeButton, {
+                wrapperProps: { role: 'listitem' },
                 iconName: 'folder', iconSize: 18,
                 selected: selectedData?.type === workspaceDataTypes.bucketObjects,
                 onClick: () => {
