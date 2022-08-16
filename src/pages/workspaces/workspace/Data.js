@@ -35,9 +35,6 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const localVariables = 'localVariables'
-const bucketObjects = '__bucket_objects__'
-
 const styles = {
   tableContainer: {
     display: 'flex', flex: 1, flexBasis: '15rem',
@@ -180,7 +177,7 @@ const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
     ])
   ])
 }
-const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, firstRender, snapshotKey: [snapshotName, tableName] }) => {
+const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, firstRender, snapshotName, tableName }) => {
   return Utils.cond(
     [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
     [!!tableName, () => h(EntitiesContent, {
@@ -390,6 +387,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   ])
 }
 
+const workspaceDataTypes = {
+  entities: 'entities',
+  snapshot: 'snapshot',
+  referenceData: 'referenceData',
+  localVariables: 'localVariables',
+  bucketObjects: 'bucketObjects'
+}
+
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
@@ -401,7 +406,7 @@ const WorkspaceData = _.flow(
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
-  const [selectedDataType, setSelectedDataType] = useState(() => StateHistory.get().selectedDataType)
+  const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
   const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
   const [importingReference, setImportingReference] = useState(false)
@@ -417,32 +422,20 @@ const WorkspaceData = _.flow(
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
 
-
-  // Helpers
-  const getSelectionType = () => {
-    const referenceData = getReferenceData(attributes)
-    return Utils.cond(
-      [!selectedDataType, () => 'none'],
-      [selectedDataType === localVariables, () => 'localVariables'],
-      [selectedDataType === bucketObjects, () => 'bucketObjects'],
-      [_.isArray(selectedDataType), () => 'snapshots'],
-      [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
-      () => 'entities'
-    )
-  }
-
   const loadEntityMetadata = async () => {
     try {
       setEntityMetadata(undefined)
       setEntityMetadataError(false)
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
-      setSelectedDataType(getSelectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType)
+      if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
+        setSelectedData(null)
+      }
       setEntityMetadata(entityMetadata)
     } catch (error) {
       reportError('Error loading workspace entity data', error)
       setEntityMetadataError(true)
-      setSelectedDataType(undefined)
+      setSelectedData(null)
       setEntityMetadata({})
     }
   }
@@ -462,7 +455,7 @@ const WorkspaceData = _.flow(
     } catch (error) {
       reportError('Error loading workspace snapshot data', error)
       setSnapshotMetadataError(true)
-      setSelectedDataType(undefined)
+      setSelectedData(null)
       setSnapshotDetails({})
     }
   }
@@ -531,8 +524,8 @@ const WorkspaceData = _.flow(
   })
 
   useEffect(() => {
-    StateHistory.update({ entityMetadata, selectedDataType, snapshotDetails })
-  }, [entityMetadata, selectedDataType, snapshotDetails])
+    StateHistory.update({ entityMetadata, selectedData, snapshotDetails })
+  }, [entityMetadata, selectedData, snapshotDetails])
 
   useImperativeHandle(ref, () => ({
     refresh: () => {
@@ -610,14 +603,14 @@ const WorkspaceData = _.flow(
               _.map(([type, typeDetails]) => {
                 return h(DataTypeButton, {
                   key: type,
-                  selected: selectedDataType === type,
+                  selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
                   entityName: type,
                   entityCount: typeDetails.count,
                   filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
                   activeCrossTableTextFilter,
                   crossTableSearchInProgress,
                   onClick: () => {
-                    setSelectedDataType(type)
+                    setSelectedData({ type: workspaceDataTypes.entities, entityType: type })
                     forceRefresh()
                   },
                   after: h(DataTableActions, {
@@ -627,7 +620,7 @@ const WorkspaceData = _.flow(
                     workspace,
                     onRenameTable: () => loadMetadata(),
                     onDeleteTable: tableName => {
-                      setSelectedDataType(undefined)
+                      setSelectedData(null)
                       setEntityMetadata(_.unset(tableName))
                     }
                   })
@@ -655,11 +648,11 @@ const WorkspaceData = _.flow(
                     style: { marginLeft: 'auto' },
                     tooltip: 'Snapshot Info',
                     onClick: () => {
-                      setSelectedDataType([snapshotName])
+                      setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName })
                       forceRefresh()
                     }
-                  }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })]),
-                  initialOpenState: _.head(selectedDataType) === snapshotName,
+                  }, [icon(`info-circle${selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName ? '' : '-regular'}`, { size: 20 })]),
+                  initialOpenState: selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName,
                   onFirstOpen: () => loadSnapshotEntities(snapshotName)
                 }, [Utils.cond(
                   [snapshotTablesError, () => div({
@@ -689,12 +682,12 @@ const WorkspaceData = _.flow(
                             'Contact the owner of this workspace to change your permissions.')],
                         tooltipSide: canCompute ? 'bottom' : 'left',
                         key: `${snapshotName}_${tableName}`,
-                        selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                        selected: selectedData?.type === workspaceDataTypes.snapshot && selectedData.snapshotName === snapshotName && selectedData.tableName === tableName,
                         entityName: tableName,
                         entityCount: count,
                         onClick: () => {
                           if (canCompute) {
-                            setSelectedDataType([snapshotName, tableName])
+                            setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName, tableName })
                             Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
                               ...extractWorkspaceDetails(workspace.workspace),
                               resourceId,
@@ -714,9 +707,9 @@ const WorkspaceData = _.flow(
               title: 'Reference Data'
             }, [_.map(type => h(DataTypeButton, {
               key: type,
-              selected: selectedDataType === type,
+              selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
               onClick: () => {
-                setSelectedDataType(type)
+                setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
                 refreshWorkspace()
               },
               after: h(Link, {
@@ -742,7 +735,9 @@ const WorkspaceData = _.flow(
               onDismiss: () => setDeletingReference(false),
               onSuccess: () => {
                 setDeletingReference(false)
-                setSelectedDataType(selectedDataType === deletingReference ? undefined : selectedDataType)
+                if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
+                  setSelectedData(null)
+                }
                 refreshWorkspace()
               },
               namespace, name, referenceDataType: deletingReference
@@ -761,17 +756,17 @@ const WorkspaceData = _.flow(
               title: 'Other Data'
             }, [
               h(DataTypeButton, {
-                selected: selectedDataType === localVariables,
+                selected: selectedData?.type === workspaceDataTypes.localVariables,
                 onClick: () => {
-                  setSelectedDataType(localVariables)
+                  setSelectedData({ type: workspaceDataTypes.localVariables })
                   forceRefresh()
                 }
               }, ['Workspace Data']),
               h(DataTypeButton, {
                 iconName: 'folder', iconSize: 18,
-                selected: selectedDataType === bucketObjects,
+                selected: selectedData?.type === workspaceDataTypes.bucketObjects,
                 onClick: () => {
-                  setSelectedDataType(bucketObjects)
+                  setSelectedData({ type: workspaceDataTypes.bucketObjects })
                   forceRefresh()
                 }
               }, ['Files'])
@@ -781,20 +776,20 @@ const WorkspaceData = _.flow(
       ]),
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
-        Utils.switchCase(getSelectionType(),
-          ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
-          ['localVariables', () => h(LocalVariablesContent, {
+        Utils.switchCase(selectedData?.type,
+          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
+          [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
             workspace,
             refreshKey,
             firstRender
           })],
-          ['referenceData', () => h(ReferenceDataContent, {
-            key: selectedDataType,
+          [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
+            key: selectedData.reference,
             workspace,
-            referenceKey: selectedDataType,
+            referenceKey: selectedData.reference,
             firstRender
           })],
-          ['bucketObjects', () => h(FileBrowser, {
+          [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
             style: { flex: '1 1 auto' },
             controlPanelStyle: {
               padding: '1rem',
@@ -806,30 +801,31 @@ const WorkspaceData = _.flow(
               style: { padding: '0.5rem' }
             }, [icon('pop-out'), ' Analyze in Seqr'])
           })],
-          ['snapshots', () => h(SnapshotContent, {
+          [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
             key: refreshKey,
             workspace,
             snapshotDetails,
-            snapshotKey: selectedDataType,
-            loadMetadata: () => loadSnapshotEntities(selectedDataType[0]),
+            snapshotName: selectedData.snapshotName,
+            tableName: selectedData.tableName,
+            loadMetadata: () => loadSnapshotEntities(selectedData.snapshotName),
             onUpdate: async newSnapshotName => {
               await loadSnapshotMetadata()
-              setSelectedDataType([newSnapshotName])
+              setSelectedData({ type: workspaceDataTypes.snapshot, snapshotName: newSnapshotName })
               forceRefresh()
             },
             onDelete: async () => {
               await loadSnapshotMetadata()
-              setSelectedDataType()
+              setSelectedData(null)
               forceRefresh()
             },
             firstRender
           })],
-          ['entities', () => h(EntitiesContent, {
+          [workspaceDataTypes.entities, () => h(EntitiesContent, {
             key: refreshKey,
             workspace,
             entityMetadata,
             setEntityMetadata,
-            entityKey: selectedDataType,
+            entityKey: selectedData.entityType,
             activeCrossTableTextFilter,
             loadMetadata,
             firstRender,
