@@ -429,13 +429,13 @@ const WorkspaceData = _.flow(
       const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
       if (selectedData?.type === workspaceDataTypes.entities && !entityMetadata[selectedData.entityType]) {
-        setSelectedData(null)
+        setSelectedData(undefined)
       }
       setEntityMetadata(entityMetadata)
     } catch (error) {
       reportError('Error loading workspace entity data', error)
       setEntityMetadataError(true)
-      setSelectedData(null)
+      setSelectedData(undefined)
       setEntityMetadata({})
     }
   }
@@ -455,7 +455,7 @@ const WorkspaceData = _.flow(
     } catch (error) {
       reportError('Error loading workspace snapshot data', error)
       setSnapshotMetadataError(true)
-      setSelectedData(null)
+      setSelectedData(undefined)
       setSnapshotDetails({})
     }
   }
@@ -620,7 +620,7 @@ const WorkspaceData = _.flow(
                     workspace,
                     onRenameTable: () => loadMetadata(),
                     onDeleteTable: tableName => {
-                      setSelectedData(null)
+                      setSelectedData(undefined)
                       setEntityMetadata(_.unset(tableName))
                     }
                   })
@@ -736,7 +736,7 @@ const WorkspaceData = _.flow(
               onSuccess: () => {
                 setDeletingReference(false)
                 if (selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === deletingReference) {
-                  setSelectedData(null)
+                  setSelectedData(undefined)
                 }
                 refreshWorkspace()
               },
@@ -815,7 +815,7 @@ const WorkspaceData = _.flow(
             },
             onDelete: async () => {
               await loadSnapshotMetadata()
-              setSelectedData(null)
+              setSelectedData(undefined)
               forceRefresh()
             },
             firstRender
