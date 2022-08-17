@@ -7,7 +7,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
-import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
@@ -124,7 +124,7 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
+const ReferenceDataContent = ({ workspace, referenceKey }) => {
   const { workspace: { attributes } } = workspace
   const [textFilter, setTextFilter] = useState('')
 
@@ -132,7 +132,6 @@ const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
     _.filter(({ key, value }) => Utils.textMatch(textFilter, `${key} ${value}`)),
     _.sortBy('key')
   )(getReferenceData(attributes)[referenceKey])
-  const { initialY } = firstRender ? StateHistory.get() : {}
 
   return h(Fragment, [
     div({
@@ -156,8 +155,6 @@ const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
         ({ width, height }) => h(FlexTable, {
           'aria-label': 'reference data',
           width, height, rowCount: selectedData.length,
-          onScroll: y => saveScroll(0, y),
-          initialY,
           noContentMessage: 'No matching data',
           columns: [
             {
@@ -177,7 +174,7 @@ const ReferenceDataContent = ({ workspace, referenceKey, firstRender }) => {
     ])
   ])
 }
-const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, firstRender, snapshotName, tableName }) => {
+const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, snapshotName, tableName }) => {
   return Utils.cond(
     [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
     [!!tableName, () => h(EntitiesContent, {
@@ -186,8 +183,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
       setEntityMetadata: () => {},
       entityKey: tableName,
-      loadMetadata,
-      firstRender
+      loadMetadata
     })],
     () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
   )
@@ -397,7 +393,6 @@ const WorkspaceData = _.flow(
   })
 )(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes, workspaceId } }, refreshWorkspace }, ref) => {
   // State
-  const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
   const forceRefresh = () => setRefreshKey(_.add(1))
   const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
@@ -514,7 +509,6 @@ const WorkspaceData = _.flow(
   // Lifecycle
   useOnMount(() => {
     loadMetadata()
-    setFirstRender(false)
   })
 
   useEffect(() => {
@@ -774,14 +768,12 @@ const WorkspaceData = _.flow(
           [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
           [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
             workspace,
-            refreshKey,
-            firstRender
+            refreshKey
           })],
           [workspaceDataTypes.referenceData, () => h(ReferenceDataContent, {
             key: selectedData.reference,
             workspace,
-            referenceKey: selectedData.reference,
-            firstRender
+            referenceKey: selectedData.reference
           })],
           [workspaceDataTypes.bucketObjects, () => h(FileBrowser, {
             style: { flex: '1 1 auto' },
@@ -811,8 +803,7 @@ const WorkspaceData = _.flow(
               await loadSnapshotMetadata()
               setSelectedData(undefined)
               forceRefresh()
-            },
-            firstRender
+            }
           })],
           [workspaceDataTypes.entities, () => h(EntitiesContent, {
             key: refreshKey,
@@ -822,7 +813,6 @@ const WorkspaceData = _.flow(
             entityKey: selectedData.entityType,
             activeCrossTableTextFilter,
             loadMetadata,
-            firstRender,
             deleteColumnUpdateMetadata,
             forceRefresh
           })]

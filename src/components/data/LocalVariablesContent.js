@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { DeleteConfirmationModal, Link, Select, spinnerOverlay } from 'src/components/common'
-import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import { renderDataCell } from 'src/components/data/data-utils'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon } from 'src/components/icons'
@@ -14,7 +14,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation } from 'src/libs/react-utils'
-import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
@@ -40,7 +39,7 @@ export const convertInitialAttributes = _.flow(
   _.sortBy(_.first)
 )
 
-const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, firstRender, refreshKey }) => {
+const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, refreshKey }) => {
   const signal = useCancellation()
 
   const [editIndex, setEditIndex] = useState()
@@ -145,7 +144,6 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
   })
 
-  const { initialY } = firstRender ? StateHistory.get() : {}
   return h(Dropzone, {
     disabled: !!Utils.editWorkspaceError(workspace),
     style: { flex: 1, display: 'flex', flexDirection: 'column' },
@@ -177,8 +175,6 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
         'aria-label': 'workspace data local variables table',
         width, height, rowCount: amendedAttributes.length,
-        onScroll: y => saveScroll(0, y),
-        initialY,
         hoverHighlight: true,
         noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
         border: false,

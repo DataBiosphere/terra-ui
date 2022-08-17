@@ -25,7 +25,6 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -1457,10 +1456,6 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) =
     div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
   ])
 }
-
-export const saveScroll = _.throttle(100, (initialX, initialY) => {
-  StateHistory.update({ initialX, initialY })
-})
 
 // Accepts two arrays of attribute names. Concatenates, uniquifies, and sorts those attribute names, returning
 // the resultant array. This is broken out into this helper method so as to easily control the criteria for uniqueness
