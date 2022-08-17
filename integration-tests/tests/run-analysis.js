@@ -8,7 +8,7 @@ const { registerTest } = require('../utils/jest-utils')
 
 
 const notebookName = 'test-notebook'
-const notebookNameWithExt = 'test-notebook.ipynb'
+
 const testRunAnalysisFn = _.flow(
   withWorkspace,
   withBilling,
@@ -35,8 +35,8 @@ const testRunAnalysisFn = _.flow(
   })
 
   // Navigate to analysis launcher
-  await findElement(page, clickable({ textContains: notebookNameWithExt }))
-  await click(page, clickable({ textContains: notebookNameWithExt }))
+  await findElement(page, clickable({ textContains: notebookName }))
+  await click(page, clickable({ textContains: notebookName }))
   await dismissNotifications(page)
 
   await noSpinnersAfter(page, {
