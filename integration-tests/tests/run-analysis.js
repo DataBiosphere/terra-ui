@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, findElement, noSpinnersAfter, delay, fillIn, findIframe, findText, dismissNotifications, select, getAnimatedDrawer, image, input
+  afterModalCollapse, click, clickable, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, select, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -30,9 +30,9 @@ const testRunAnalysisFn = _.flow(
   })
 
 
-  await click(page, clickable({ textContains: 'Close' }))
-
-  await delay(10000)
+  await afterModalCollapse(page, {
+    action: () => click(page, clickable({ textContains: 'Close' }))
+  })
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: notebookNameWithExt }))
@@ -44,10 +44,10 @@ const testRunAnalysisFn = _.flow(
   })
 
   //Create a cloud env from analysis launcher
-  //await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
+  await afterModalCollapse(page, {
+    action: () => click(page, clickable({ text: 'Create' }))
+  })
 
-  await click(page, clickable({ text: 'Create' }))
-  await delay(10000)
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 40000 })
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 })
   await click(page, clickable({ textContains: 'Open' }))

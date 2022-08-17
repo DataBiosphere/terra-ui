@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, findElement, noSpinnersAfter, fillIn, findIframe, findText, delay, dismissNotifications, getAnimatedDrawer, image, input
+  click, clickable, afterModalCollapse, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -28,9 +28,9 @@ const testRunRStudioFn = _.flow(
     action: () => findText(page, 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).')
   })
 
-  await click(page, clickable({ textContains: 'Close' }))
-
-  await delay(10000)
+  await afterModalCollapse(page, {
+    action: () => click(page, clickable({ textContains: 'Close' }))
+  })
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: rFileName }))
@@ -43,8 +43,10 @@ const testRunRStudioFn = _.flow(
 
   //Create a cloud env from analysis launcher
   //await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await click(page, clickable({ text: 'Create' }))
-  await delay(10000)
+  await afterModalCollapse(page, {
+    action: () => click(page, clickable({ text: 'Create' }))
+  })
+
   await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 })
 
