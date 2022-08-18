@@ -18,7 +18,6 @@ import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -77,10 +76,9 @@ const WorkspaceTabs = ({
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
     ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
-    ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    { name: 'analyses', link: analysisTabName },
     ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
@@ -146,15 +144,15 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      (isAnalysisTabVisible() ?
-        [div({ style: { flex: 1, display: 'flex' } }, [
-          div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
-            children
-          ]),
-          workspace && h(ContextBar, {
-            workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
-          })
-        ])] : [children])),
+      [div({ style: { flex: 1, display: 'flex' } }, [
+        div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
+          children
+        ]),
+        workspace && h(ContextBar, {
+          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
+        })
+      ])]
+    ),
     deletingWorkspace && h(DeleteWorkspaceModal, {
       workspace,
       onDismiss: () => setDeletingWorkspace(false),

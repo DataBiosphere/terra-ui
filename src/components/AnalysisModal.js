@@ -99,7 +99,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
-      isAnalysisMode: true,
       location,
       workspace,
       tool: currentTool,

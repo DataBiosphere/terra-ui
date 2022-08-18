@@ -391,3 +391,10 @@ export const pollWithCancellation = (pollFn, pollTime, leading, signal) => {
     return { result: !signal.aborted && await pollFn(), shouldContinue: !signal.aborted }
   }, pollTime, leading)
 }
+
+/**
+ * Convert a list of keys into an enum object.
+ * @param {string[]} keys
+ * @returns {Object}
+ */
+export const enumify = _.flow(_.map(key => [key, key]), _.fromPairs)

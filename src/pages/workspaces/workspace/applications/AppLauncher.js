@@ -3,7 +3,6 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, iframe, p, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
-import { ComputeModal } from 'src/components/ComputeModal'
 import Modal from 'src/components/Modal'
 import { getExtension, getPatternFromTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
@@ -26,10 +25,9 @@ const ApplicationLauncher = _.flow(
     activeTab: appLauncherTabName
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
-  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes, persistentDisks, location },
-  application, workspace, workspace: { azureContext, workspace: { googleProject, bucketName } }
+  name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
+  application, workspace: { azureContext, workspace: { googleProject, bucketName } }
 }, _ref) => {
-  const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
   const [fileOutdatedOpen, setFileOutdatedOpen] = useState(false)
@@ -242,21 +240,6 @@ const ApplicationLauncher = _.flow(
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
-        h(ComputeModal, {
-          isOpen: showCreate,
-          workspace,
-          runtimes,
-          persistentDisks,
-          location,
-          onDismiss: () => setShowCreate(false),
-          onSuccess: _.flow(
-            withErrorReporting('Error loading cloud environment'),
-            Utils.withBusyState(setBusy)
-          )(async () => {
-            setShowCreate(false)
-            await refreshRuntimes(true)
-          })
-        }),
         busy && spinnerOverlay
       ])
   ])
