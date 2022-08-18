@@ -13,6 +13,7 @@ import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons
 import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
@@ -352,6 +353,10 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
   ])
 }
 
+const ExternalIdentitiesTab = {
+
+}
+
 
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
@@ -360,6 +365,7 @@ const Profile = ({ queryParams }) => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
   const [saving, setSaving] = useState()
+  const [tab, setTab] = useState('personalInfo')
 
   const signal = useCancellation()
 
@@ -423,109 +429,25 @@ const Profile = ({ queryParams }) => {
   return h(FooterWrapper, [
     saving && spinnerOverlay,
     h(TopBar, { title: 'User Profile' }),
-    div({ role: 'main', style: { flexGrow: 1 } }, [
-      !profileInfo ? centeredSpinner() : h(Fragment, [
-        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
-        div({ style: styles.header.line }, [
-          div({ style: { position: 'relative' } }, [
-            profilePic({ size: 48 }),
-            h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
-              'To change your profile image, visit your ',
-              h(Link, {
-                href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                ...Utils.newTabLinkProps
-              }, ['Google account page.'])
-            ])
-          ]),
-          div({ style: styles.header.nameLine }, [
-            `Hello again, ${firstName}`
-          ])
-        ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: styles.page }, [
-            line([
-              textField('firstName', 'First Name', { required: true }),
-              textField('lastName', 'Last Name', { required: true })
-            ]),
-            line([
-              textField('title', 'Title')
-            ]),
-            line([
-              div([
-                div({ style: styles.form.title }, ['Email']),
-                div({ style: { margin: '1rem' } }, [profileInfo.email])
-              ]),
-              textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
-            ]),
-            line([
-              textField('institute', 'Institution'),
-              textField('institutionalProgram', 'Institutional Program')
-            ]),
-
-            div({ style: styles.form.title }, [
-              span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
-              h(InfoBox, [
-                'For more information about proxy groups, see the ',
-                h(Link, {
-                  href: 'https://support.terra.bio/hc/en-us/articles/360031023592',
-                  ...Utils.newTabLinkProps
-                }, ['user guide.'])
-              ])
-            ]),
-            div({ style: { margin: '1rem' } }, [proxyGroup]),
-
-            sectionTitle('Program Info'),
-
-            h(IdContainer, [id => div({
-              role: 'radiogroup', 'aria-labelledby': id
-            }, [
-              span({ id, style: styles.form.title }, ['Non-Profit Status']),
-              div({ style: { margin: '1rem' } }, [
-                radioButton('nonProfitStatus', 'Profit'),
-                radioButton('nonProfitStatus', 'Non-Profit')
-              ])
-            ])]),
-            line([
-              textField('pi', 'Principal Investigator/Program Lead')
-            ]),
-            line([
-              textField('programLocationCity', 'City'),
-              textField('programLocationState', 'State')
-            ]),
-            line([
-              textField('programLocationCountry', 'Country')
-            ]),
-
-            sectionTitle('Account Notifications'),
-
-            checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
-            checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
-            checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
-
-            h(ButtonPrimary, {
-              style: { marginTop: '3rem' },
-              onClick: _.flow(
-                Utils.withBusyState(setSaving),
-                withErrorReporting('Error saving profile')
-              )(async () => {
-                const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
-                await Promise.all([
-                  Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
-                  Ajax().User.profile.setPreferences(prefsData)
-                ])
-                await refreshTerraProfile()
-              }),
-              disabled: !!errors,
-              tooltip: !!errors && 'Please fill out all required fields'
-            }, ['Save Profile'])
-          ]),
-          div({ style: { margin: '0 2rem 0' } }, [
-            sectionTitle('External Identities'),
-            h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
-            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
-            !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
-          ])
-        ])
+    div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, 'Profile'),
+      h(SimpleTabBar, {
+        'aria-label': 'Profile tabs',
+        value: tab,
+        onChange: setTab,
+        tabs: [
+          { key: 'personalInfo', title: 'Personal Information' },
+          { key: 'externalIdentities', title: 'External Identities' },
+          { key: 'notifications', title: 'Notification Settings' }
+        ],
+        style: { marginTop: '2rem' }
+      }, [
+        Utils.switchCase(tab,
+          ['personalInfo', () => div('personalInfo')],
+          ['externalIdentities', () => div('externalIdentities!')],
+          ['notifications', () => div('notifications!')],
+          [Utils.DEFAULT, () => null]
+        )
       ])
     ])
   ])
