@@ -36,14 +36,13 @@ export const datasetReleasePolicies = {
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
-export const isWorkspace = _.flow(
-  _.toLower,
-  _.includes('/#workspaces/'))
+export const isWorkspace = dataset => {
+  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
+}
 
-
-export const isDatarepoSnapshot = _.flow(
-  _.toLower,
-  _.includes('/snapshots/details/'))
+export const isDatarepoSnapshot = dataset => {
+  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
+}
 
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(

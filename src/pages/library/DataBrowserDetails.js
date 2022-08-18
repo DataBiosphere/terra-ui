@@ -119,14 +119,16 @@ export const SidebarComponent = ({ dataObj, id }) => {
 
   const importDataToWorkspace = dataset => {
     Utils.cond(
-      [isWorkspace(dataset), () => Nav.history.push({
-        pathname: Nav.getPath('import-data'),
-        search: qs.stringify({
-          format: 'catalog',
-          snapshotName: dataset['dct:title'],
-          catalogDatasetId: dataset.id
+      [isWorkspace(dataset), () => {
+        Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            format: 'catalog',
+            snapshotName: dataset['dct:title'],
+            catalogDatasetId: dataset.id
+          })
         })
-      })],
+      }],
       [
         isDatarepoSnapshot(dataset), async () => {
           setPreparingExport(true)
