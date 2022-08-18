@@ -6,6 +6,7 @@ import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/compone
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -115,6 +116,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [preparingExport, setPreparingExport] = useState(false)
+  const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
   const sidebarButtonWidth = 230
 
   const importDataToWorkspace = dataset => {
@@ -130,18 +132,25 @@ export const SidebarComponent = ({ dataObj, id }) => {
       [isDatarepoSnapshot(dataset), async () => {
         setPreparingExport(true)
         const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
-        await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
-        const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
-        const jobResultManifest = jobResult?.format?.parquet?.manifest
+        const jobStatus = await poll(async () => {
+          const result = await Ajax().DataRepo.job(jobInfo.id).details()
+          return { result, shouldContinue: result['job_status'] === 'running' }
+        }, 1000)
+        Utils.switchCase(jobStatus['jobStatus'],
+          ['succeeded', async () => {
+            const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
+            const jobResultManifest = jobResult?.format?.parquet?.manifest
 
-        return Nav.history.push({
-          pathname: Nav.getPath('import-data'),
-          search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
-          })
-        })
-      }]
+            return Nav.history.push({
+              pathname: Nav.getPath('import-data'),
+              search: qs.stringify({
+                url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
+                snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
+              })
+            })
+          }])
+      }],
+      () => setDatasetNotSupportedForExport(true)
     )
   }
 
@@ -261,7 +270,12 @@ export const SidebarComponent = ({ dataObj, id }) => {
     showRequestAccessModal && h(RequestDatasetAccessModal, {
       datasets: [dataObj],
       onDismiss: () => setShowRequestAccessModal(false)
-    })
+    }),
+    datasetNotSupportedForExport === true && h(Modal, {
+      title: 'Cannot Export Dataset',
+      showCancel: false,
+      onDismiss: () => setDatasetNotSupportedForExport(false)
+    }, ['This dataset is not hosted in a storage system that currently has the ability to export to a research environment.'])
   ])
 }
 

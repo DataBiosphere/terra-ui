@@ -371,26 +371,23 @@ export const truncateInteger = integer => {
 
 /**
  * Polls using a given function until the pollUntil function returns true.
- * @param {() => A} pollFn - The function to poll using
+ * @param {() => { result: A, shouldContinue: boolean }} pollFn - The function to poll using
  * @param {number} pollTime - How much time there should be in ms between calls of the pollFn
- * @param {() => boolean} pollUntil - The function to test against to see if polling should continue. If true, it stops, if false, it continues
  * @param {boolean} leading - Whether the function should wait {pollTime} ms before running for the first time
- * @param {Signal} signal - The signal from the component on whether the poll should stop or not - used for usePollingEffect
 
  * @returns {A} - The response of pollFn
  */
-export const poll = async (pollFn, pollTime, pollUntil, leading = true, signal = {}) => {
-  const initialResult = leading ? await pollFn() : undefined
-  if (!_.isUndefined(initialResult) && pollUntil(initialResult)) {
-    return initialResult
-  }
+export const poll = async (pollFn, pollTime, leading = true) => {
+  do {
+    !leading && await delay(pollTime)
+    const r = await pollFn()
+    if (!r.shouldContinue) { return r.result }
+    leading && await delay(pollTime)
+  } while (true)
+}
 
-  let result = initialResult
-
-  while (!signal.aborted && !pollUntil(result)) {
-    await delay(pollTime)
-    result = !signal.aborted && await pollFn()
-  }
-
-  return result
+export const pollWithCancellation = (pollFn, pollTime, leading, signal) => {
+  poll(async () => {
+    return { result: !signal.aborted && await pollFn(), shouldContinue: !signal.aborted }
+  }, pollTime, leading)
 }

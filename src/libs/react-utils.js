@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { delay, poll } from 'src/libs/utils'
+import { delay, pollWithCancellation } from 'src/libs/utils'
 
 
 /**
@@ -114,7 +114,7 @@ export const usePollingEffect = (effectFn, { ms, leading }) => {
   const signal = useCancellation()
 
   useOnMount(() => {
-    poll(effectFn, ms, () => false, leading, signal)
+    pollWithCancellation(async () => ({ result: await effectFn(), shouldContinue: true }), ms, leading, signal)
   })
 }
 
