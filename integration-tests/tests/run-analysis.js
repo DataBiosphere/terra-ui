@@ -49,7 +49,6 @@ const testRunAnalysisFn = _.flow(
   await findText(page, 'Creating cloud environment')
   await findElement(page, clickable({ textContains: 'Jupyter Environment ( Running )' }), { timeout: 10 * 60000 })
 
-  // This is code is duplicated, but will be deleted from the run-notebook test shortly.
   // Find the iframe, wait until the Jupyter kernel is ready, and execute some code
   const frame = await findIframe(page, '//iframe[@id="analysis-iframe"]')
 

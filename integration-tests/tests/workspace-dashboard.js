@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
+const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
   assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
@@ -102,10 +102,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
   // Verify expected tabs are present.
-  await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
-
-  // Verify Analyses tab not present (config override is not set)
-  await dashboard.assertTabs(['analyses'], false)
+  await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
 })
 
 registerTest({
@@ -218,7 +215,6 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Must load page before setting mock responses.
   await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
   await setAzureAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
 
   const dashboard = workspaceDashboardPage(page, token, workspaceName)

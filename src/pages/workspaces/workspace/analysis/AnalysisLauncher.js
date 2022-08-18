@@ -29,7 +29,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -85,7 +85,6 @@ const AnalysisLauncher = _.flow(
           isOpen: createOpen,
           tool: toolLabel,
           shouldHideCloseButton: false,
-          isAnalysisMode: true,
           workspace,
           runtimes,
           persistentDisks,
