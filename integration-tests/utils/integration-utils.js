@@ -181,11 +181,6 @@ const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-const afterModalCollapse = async ({ action }) => {
-  await Promise.all([action()])
-  await delay(3000)
-}
-
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
   const notificationCloseButtons = await page.$x(
@@ -444,7 +439,6 @@ module.exports = {
   click,
   clickable,
   clickTableCell,
-  afterModalCollapse,
   dismissNotifications,
   findIframe,
   findInGrid,
