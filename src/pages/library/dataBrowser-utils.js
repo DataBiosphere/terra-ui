@@ -1,13 +1,9 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
-import { poll } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -18,7 +14,7 @@ export const datasetAccessTypes = {
 }
 
 export const uiMessaging = {
-  controlledFeature_tooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
+  controlledFeatureTooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
 }
 
 export const datasetReleasePolicies = {
@@ -40,13 +36,14 @@ export const datasetReleasePolicies = {
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
-export const isWorkspace = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
-}
+export const isWorkspace = _.flow(
+  _.toLower,
+  _.includes('/#workspaces/'))
 
-export const isDatarepoSnapshot = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
-}
+
+export const isDatarepoSnapshot = _.flow(
+  _.toLower,
+  _.includes('/snapshots/details/'))
 
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
@@ -130,36 +127,4 @@ export const useDataCatalog = () => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }
-}
-
-export const importDataToWorkspace = async (dataset, asyncHandler) => {
-  const routeOptions = await Utils.cond(
-    [isWorkspace(dataset), () => {
-      return {
-        pathname: Nav.getPath('import-data'),
-        search: qs.stringify({
-          format: 'catalog',
-          snapshotName: dataset['dct:title'],
-          catalogDatasetId: dataset.id
-        })
-      }
-    }],
-    [
-      isDatarepoSnapshot(dataset), async () => {
-        asyncHandler()
-        const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
-        await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
-        const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
-        const jobResultManifest = jobResult?.format?.parquet?.manifest
-        return {
-          pathname: Nav.getPath('import-data'),
-          search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
-          })
-        }
-      }
-    ]
-  )
-  Nav.history.push(routeOptions)
 }

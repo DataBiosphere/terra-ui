@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
@@ -9,11 +10,15 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { poll } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { datasetAccessTypes, importDataToWorkspace, uiMessaging, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import {
+  datasetAccessTypes, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+} from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -112,6 +117,36 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [preparingExport, setPreparingExport] = useState(false)
   const sidebarButtonWidth = 230
 
+  const importDataToWorkspace = dataset => {
+    Utils.cond(
+      [isWorkspace(dataset), () => Nav.history.push({
+        pathname: Nav.getPath('import-data'),
+        search: qs.stringify({
+          format: 'catalog',
+          snapshotName: dataset['dct:title'],
+          catalogDatasetId: dataset.id
+        })
+      })],
+      [
+        isDatarepoSnapshot(dataset), async () => {
+          setPreparingExport(true)
+          const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
+          await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
+          const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
+          const jobResultManifest = jobResult?.format?.parquet?.manifest
+
+          return Nav.history.push({
+            pathname: Nav.getPath('import-data'),
+            search: qs.stringify({
+              url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
+              snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
+            })
+          })
+        }
+      ]
+    )
+  }
+
   return h(Fragment, [
     div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
       h2({ className: 'sr-only' }, [`${dataObj.type} Data Details`]),
@@ -196,20 +231,20 @@ export const SidebarComponent = ({ dataObj, id }) => {
       ]),
       h(ButtonPrimary, {
         disabled: dataObj.access !== datasetAccessTypes.GRANTED,
-        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeature_tooltip,
+        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
             id,
             title: dataObj['dct:title']
           })
-          importDataToWorkspace(dataObj, () => setPreparingExport(true))
+          importDataToWorkspace(dataObj)
         }
       }, [preparingExport ?
         div({ style: { fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'space-around' } }, [
-          spinner({}),
+          spinner({ style: { color: 'white' } }),
           div({ style: { marginLeft: '1rem' } }, ['Preparing data'])
-        ]) : 'Link to a workspace']),
+        ]) : 'Prepare for analysis']),
       div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
         icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
