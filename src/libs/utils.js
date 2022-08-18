@@ -370,16 +370,14 @@ export const truncateInteger = integer => {
 }
 
 /**
- Polls using a given function until the pollUntil function returns true.
+ * Polls using a given function until the pollUntil function returns true.
+ * @param {() => A} pollFn - The function to poll using
+ * @param {number} pollTime - How much time there should be in ms between calls of the pollFn
+ * @param {() => boolean} pollUntil - The function to test against to see if polling should continue. If true, it stops, if false, it continues
+ * @param {boolean} leading - Whether the function should wait {pollTime} ms before running for the first time
+ * @param {Signal} signal - The signal from the component on whether the poll should stop or not - used for usePollingEffect
 
- @author srubenstein
- @param {() => A} pollFn The function to poll using
- @param {number} pollTime How much time there should be in ms between calls of the pollFn
- @param {() => boolean} pollUntil The function to test against to see if polling should continue. If true, it stops, if false, it continues
- @param {boolean} leading Whether the function should wait {pollTime} ms before running for the first time
- @param {Signal} signal The signal from the component on whether the poll should stop or not - used for usePollingEffect
-
- @returns {A} The response of pollFn
+ * @returns {A} - The response of pollFn
  */
 export const poll = async (pollFn, pollTime, pollUntil, leading = true, signal = {}) => {
   const initialResult = leading ? await pollFn() : undefined

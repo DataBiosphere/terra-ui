@@ -127,23 +127,21 @@ export const SidebarComponent = ({ dataObj, id }) => {
           catalogDatasetId: dataset.id
         })
       })],
-      [
-        isDatarepoSnapshot(dataset), async () => {
-          setPreparingExport(true)
-          const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
-          await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
-          const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
-          const jobResultManifest = jobResult?.format?.parquet?.manifest
+      [isDatarepoSnapshot(dataset), async () => {
+        setPreparingExport(true)
+        const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
+        await poll(async () => await Ajax().DataRepo.job(jobInfo.id).details(), 1000, jobStatus => jobStatus['job_status'] !== 'running')
+        const jobResult = await Ajax().DataRepo.job(jobInfo.id).result()
+        const jobResultManifest = jobResult?.format?.parquet?.manifest
 
-          return Nav.history.push({
-            pathname: Nav.getPath('import-data'),
-            search: qs.stringify({
-              url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-              snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
-            })
+        return Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
+            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
           })
-        }
-      ]
+        })
+      }]
     )
   }
 
