@@ -32,7 +32,7 @@ import validate from 'validate.js'
 const styles = {
   page: {
     margin: '0 2rem 2rem',
-    width: 700
+    width: 1050
   },
   sectionTitle: {
     margin: '2rem 0 1rem',
@@ -52,18 +52,18 @@ const styles = {
   },
   form: {
     line: {
-      display: 'flex', justifyContent: 'space-between',
+      display: 'flex', justifyContent: 'normal',
       margin: '2rem 0'
     },
     container: {
-      width: 320
+      width: 320, margin: '0.5rem'
     },
     title: {
       whiteSpace: 'nowrap', fontSize: 16,
       marginBottom: '0.3rem'
     },
     checkboxLine: {
-      margin: '0.75rem 0'
+      display: 'flex', margin: '1rem'
     },
     checkboxLabel: {
       marginLeft: '0.5rem'
@@ -353,8 +353,176 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
   ])
 }
 
-const ExternalIdentitiesTab = {
+const ExternalIdentitiesTab = queryParams => {
+  return div({ style: { margin: '0 2rem', width: 500 } }, [
+    sectionTitle('External Identities'),
+    h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
+    _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
+    !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
+  ])
+}
 
+const PersonalInfoTab = () => {
+  const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
+  const [proxyGroup, setProxyGroup] = useState()
+  const [saving, setSaving] = useState()
+  const [tab, setTab] = useState('personalInfo')
+  const [areasOfResearch, setAreasOfResearch] = useState([])
+
+  const signal = useCancellation()
+
+  console.log(areasOfResearch)
+
+  // Helpers
+  const assignValue = _.curry((key, value) => {
+    setProfileInfo(_.set(key, value))
+  })
+  const line = children => div({ style: styles.form.line }, children)
+  const checkboxLine = children => div({ style: styles.form.container }, children)
+  const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
+    label({ htmlFor: id, style: styles.form.title }, [title]),
+    required ?
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          value: profileInfo[key],
+          onChange: assignValue(key),
+          placeholder: placeholder || 'Required'
+        },
+        error: Utils.summarizeErrors(errors && errors[key])
+      }) :
+      h(TextInput, {
+        id,
+        value: profileInfo[key],
+        onChange: assignValue(key),
+        placeholder
+      })
+  ])])
+  const radioButton = (key, value) => h(RadioButton, {
+    text: value, name: key, checked: profileInfo[key] === value,
+    labelStyle: { margin: '0 2rem 0 0.25rem' },
+    onChange: () => assignValue(key, value)
+  })
+  const checkbox = title => div([
+    h(LabeledCheckbox, {
+      checked: _.includes(title, areasOfResearch),
+      onChange: v => {
+        console.log(v)
+        v ? setAreasOfResearch(_.concat(areasOfResearch, [title])) :
+          setAreasOfResearch(_.without([title], areasOfResearch))
+      }
+    }, [span({ style: styles.form.checkboxLabel }, [title])])
+  ])
+  // Lifecycle
+  useOnMount(() => {
+    const loadProxyGroup = async () => {
+      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
+    }
+    loadProxyGroup()
+  })
+  // Render
+  const { firstName, lastName } = profileInfo
+  const required = { presence: { allowEmpty: false } }
+  const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
+
+  return div({ style: { paddingTop: '1rem'} }, [
+    div({ style: styles.header.line }, [
+      div({ style: { position: 'relative' } }, [
+        profilePic({ size: 48 }),
+        h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
+          'To change your profile image, visit your ',
+          h(Link, {
+            href: `https://myaccount.google.com?authuser=${getUser().email}`,
+            ...Utils.newTabLinkProps
+          }, ['Google account page.'])
+        ])
+      ]),
+      div({ style: styles.header.nameLine }, [
+        `Hello again, ${firstName}`
+      ])
+    ]),
+    div({ style: { display: 'flex' } }, [
+      div({ style: styles.page }, [
+        line([
+          textField('firstName', 'First Name', { required: true }),
+          textField('lastName', 'Last Name', { required: true })
+        ]),
+        line([
+          textField('title', 'Title'),
+          textField('researchArea', 'Research Area'),
+          textField('institute', 'Organization or Company'), //keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+        ]),
+        line([
+          textField('programLocationCity', 'City'),
+          textField('programLocationState', 'State'),
+          textField('programLocationCountry', 'Country')
+        ]),
+        line([
+          div({ style: styles.form.container }, [
+            div({ style: styles.form.title }, ['Email']),
+            div({ style: { margin: '0.5rem', width: 320 } }, [profileInfo.email])
+          ]),
+          textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
+        ]),
+
+        line([
+          div({ style: styles.form.container }, [
+            div({ style: styles.form.title }, [
+              span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
+              h(InfoBox, [
+                'For more information about proxy groups, see the ',
+                h(Link, {
+                  href: 'https://support.terra.bio/hc/en-us/articles/360031023592',
+                  ...Utils.newTabLinkProps
+                }, ['user guide.'])
+              ])
+            ]),
+            div({ style: { margin: '1rem' } }, proxyGroup ? proxyGroup : 'Loading...')
+          ])
+        ]),
+
+        sectionTitle('What is your area of research? (multi-select)'),
+
+        line([
+          checkboxLine([
+            checkbox('Cancer'),
+            checkbox('Cardiovascular disease'),
+            checkbox('Epidemiology'),
+            checkbox('Epigenetics')
+          ]),
+          checkboxLine([
+            checkbox('Immunology'),
+            checkbox('Infectious disease and microbiome'),
+            checkbox('Medical and Population Genetics'),
+            checkbox('Psychiatric disease')
+          ]),
+          checkboxLine([
+            checkbox('Rare Disease'),
+            checkbox('Single Cell Genomics'),
+            checkbox('Agricultural'),
+            checkbox('Other (please specify)')
+          ])
+        ]),
+
+        h(ButtonPrimary, {
+          style: { marginTop: '3rem' },
+          onClick: _.flow(
+            Utils.withBusyState(setSaving),
+            withErrorReporting('Error saving profile')
+          )(async () => {
+            const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
+            await Promise.all([
+              Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
+              Ajax().User.profile.setPreferences(prefsData)
+            ])
+            await refreshTerraProfile()
+          }),
+          disabled: !!errors,
+          tooltip: !!errors && 'Please fill out all required fields'
+        }, ['Save Profile'])
+      ])
+    ])
+  ])
 }
 
 
@@ -369,7 +537,7 @@ const Profile = ({ queryParams }) => {
 
   const signal = useCancellation()
 
-
+  console.log(queryParams)
   // Helpers
   const assignValue = _.curry((key, value) => {
     setProfileInfo(_.set(key, value))
@@ -440,11 +608,11 @@ const Profile = ({ queryParams }) => {
           { key: 'externalIdentities', title: 'External Identities' },
           { key: 'notifications', title: 'Notification Settings' }
         ],
-        style: { marginTop: '2rem' }
+        style: { marginTop: '1rem' }
       }, [
         Utils.switchCase(tab,
-          ['personalInfo', () => div('personalInfo')],
-          ['externalIdentities', () => div('externalIdentities!')],
+          ['personalInfo', () => h(PersonalInfoTab)],
+          ['externalIdentities', () => ExternalIdentitiesTab(queryParams)],
           ['notifications', () => div('notifications!')],
           [Utils.DEFAULT, () => null]
         )
