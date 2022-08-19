@@ -1245,6 +1245,13 @@ const Buckets = signal => ({
     )
   },
 
+  patch: async (googleProject, bucket, name, metadata) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
+    )
+  },
+
   //TODO: this should be deprecated in favor of the smarter `analysis` set of functions
   notebook: (googleProject, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`

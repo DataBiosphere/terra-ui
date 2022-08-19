@@ -7,6 +7,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
+import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -16,13 +17,14 @@ import RenameTableModal from 'src/components/data/RenameTableModal'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
+import { useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -268,7 +270,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -280,6 +282,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const [loading, setLoading] = useState(false)
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
+  const [savingVersion, setSavingVersion] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -331,7 +334,10 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
-        }, 'Delete table')
+        }, 'Delete table'),
+        h(MenuDivider),
+        h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
+        h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
       ])
     }, [
       h(Clickable, {
@@ -349,6 +355,15 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       selectedDataType: tableName,
       selectedEntities: entities,
       runningSubmissionsCount
+    }),
+    savingVersion && h(DataTableSaveVersionModal, {
+      workspace,
+      entityType: tableName,
+      onDismiss: () => setSavingVersion(false),
+      onSubmit: versionOpts => {
+        setSavingVersion(false)
+        onSaveVersion(versionOpts)
+      }
     }),
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
@@ -383,7 +398,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   ])
 }
 
-const workspaceDataTypes = Utils.enumify(['entities', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -407,6 +422,9 @@ const WorkspaceData = _.flow(
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
+  const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+
+  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion } = useDataTableVersions(workspace)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -589,31 +607,45 @@ const WorkspaceData = _.flow(
                   ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })] :
                   [`${_.sum(_.map(c => c.filteredCount, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
-                return h(DataTypeButton, {
-                  key: type,
-                  wrapperProps: { role: 'listitem' },
-                  selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
-                  entityName: type,
-                  entityCount: typeDetails.count,
-                  filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
-                  activeCrossTableTextFilter,
-                  crossTableSearchInProgress,
-                  onClick: () => {
-                    setSelectedData({ type: workspaceDataTypes.entities, entityType: type })
-                    forceRefresh()
-                  },
-                  after: h(DataTableActions, {
-                    tableName: type,
-                    rowCount: typeDetails.count,
-                    entityMetadata,
-                    workspace,
-                    onRenameTable: () => loadMetadata(),
-                    onDeleteTable: tableName => {
-                      setSelectedData(undefined)
-                      setEntityMetadata(_.unset(tableName))
-                    }
+                const isShowingVersionHistory = !!showDataTableVersionHistory[type]
+                return div({ key: type, role: 'listitem' }, [
+                  h(DataTypeButton, {
+                    key: type,
+                    selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
+                    entityName: type,
+                    entityCount: typeDetails.count,
+                    filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
+                    activeCrossTableTextFilter,
+                    crossTableSearchInProgress,
+                    onClick: () => {
+                      setSelectedData({ type: workspaceDataTypes.entities, entityType: type })
+                      forceRefresh()
+                    },
+                    after: h(DataTableActions, {
+                      tableName: type,
+                      rowCount: typeDetails.count,
+                      entityMetadata,
+                      workspace,
+                      onRenameTable: () => loadMetadata(),
+                      onDeleteTable: tableName => {
+                        setSelectedData(undefined)
+                        setEntityMetadata(_.unset(tableName))
+                      },
+                      isShowingVersionHistory,
+                      onSaveVersion: withErrorReporting('Error saving version', versionOpts => saveDataTableVersion(type, versionOpts)),
+                      onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
+                        setShowDataTableVersionHistory(_.set(type, showVersionHistory))
+                        if (showVersionHistory) {
+                          loadDataTableVersions(type)
+                        }
+                      })
+                    })
+                  }),
+                  isShowingVersionHistory && h(DataTableVersions, {
+                    ...dataTableVersions[type],
+                    onClickVersion: version => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version })
                   })
-                })
+                ])
               }, sortedEntityPairs)
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
@@ -820,6 +852,14 @@ const WorkspaceData = _.flow(
             loadMetadata,
             deleteColumnUpdateMetadata,
             forceRefresh
+          })],
+          [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
+            workspace,
+            version: selectedData.version,
+            onDelete: withErrorReporting('Error deleting version', async () => {
+              await deleteDataTableVersion(selectedData.version)
+              setSelectedData(undefined)
+            })
           })]
         )
       ])
