@@ -64,7 +64,7 @@ export const deleteDataTableVersion = async (workspace, version) => {
 
 export const useDataTableVersions = workspace => {
   const signal = useCancellation()
-  // { [entityType: string]: { loading: boolean, error: boolean, versions: Version[] }
+  // { [entityType: string]: { loading: boolean, error: boolean, versions: Version[], savingNewVersion: boolean }
   const [dataTableVersions, setDataTableVersions] = useState({})
 
   return {
@@ -84,11 +84,16 @@ export const useDataTableVersions = workspace => {
     },
 
     saveDataTableVersion: async (entityType, { description = null } = {}) => {
-      const newVersion = await saveDataTableVersion(workspace, entityType, { description })
-      notify('success', `Saved version of ${entityType}`, { timeout: 3000 })
-      setDataTableVersions(_.update([entityType, 'versions'],
-        _.flow(_.defaultTo([]), Utils.append(newVersion), _.sortBy(version => -version.timestamp))
-      ))
+      setDataTableVersions(_.update(entityType, _.set('savingNewVersion', true)))
+      try {
+        const newVersion = await saveDataTableVersion(workspace, entityType, { description })
+        notify('success', `Saved version of ${entityType}`, { timeout: 3000 })
+        setDataTableVersions(_.update([entityType, 'versions'],
+          _.flow(_.defaultTo([]), Utils.append(newVersion), _.sortBy(version => -version.timestamp))
+        ))
+      } finally {
+        setDataTableVersions(_.update(entityType, _.set('savingNewVersion', false)))
+      }
     },
 
     deleteDataTableVersion: async version => {

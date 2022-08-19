@@ -87,7 +87,7 @@ export const DataTableVersion = ({ version, onDelete }) => {
   ])
 }
 
-export const DataTableVersions = ({ loading, error, versions, onClickVersion }) => {
+export const DataTableVersions = ({ loading, error, versions, savingNewVersion, onClickVersion }) => {
   return div({ style: { padding: '1rem 0.5rem 1rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` } }, [
     Utils.cond(
       [loading, () => div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -95,12 +95,15 @@ export const DataTableVersions = ({ loading, error, versions, onClickVersion }) 
         'Loading version history'
       ])],
       [error, () => div({ style: { display: 'flex', alignItems: 'center' } }, [
-        // spinner({ size: 16, style: { marginRight: '1ch' } }),
         'Error loading version history'
       ])],
-      [_.isEmpty(versions), () => 'No versions saved'],
+      [_.isEmpty(versions) && !savingNewVersion, () => 'No versions saved'],
       () => h(IdContainer, [id => h(Fragment, [
         div({ id, style: { marginBottom: '0.5rem' } }, ['Version history']),
+        savingNewVersion && div({ style: { display: 'flex', alignItems: 'center' } }, [
+          spinner({ size: 16, style: { marginRight: '1ch' } }),
+          'Saving new version'
+        ]),
         ol({ 'aria-labelledby': id, style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
           _.map(version => {
             return li({ key: version.url }, [

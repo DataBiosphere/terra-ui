@@ -634,7 +634,10 @@ const WorkspaceData = _.flow(
                         setEntityMetadata(_.unset(tableName))
                       },
                       isShowingVersionHistory,
-                      onSaveVersion: withErrorReporting('Error saving version', versionOpts => saveDataTableVersion(type, versionOpts)),
+                      onSaveVersion: withErrorReporting('Error saving version', versionOpts => {
+                        setShowDataTableVersionHistory(_.set(type, true))
+                        return saveDataTableVersion(type, versionOpts)
+                      }),
                       onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
                         setShowDataTableVersionHistory(_.set(type, showVersionHistory))
                         if (showVersionHistory) {
