@@ -3,7 +3,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { code, div, em, h, h3, p, span, strong } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, fixedSpinnerOverlay } from 'src/components/common'
-import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import { renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table'
@@ -13,7 +13,6 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
@@ -32,11 +31,10 @@ const UploadDataTable = props => {
   const [metadata, setMetadata] = useState(null)
   const [metadataLoading, setMetadataLoading] = useState(false)
 
-  const [sort, setSort] = useState(StateHistory.get().sort || { field: 'name', direction: 'asc' })
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [renamingTable, setRenamingTable] = useState(false)
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
-  const { initialX, initialY } = StateHistory.get() || {}
 
   const table = useRef()
   const signal = useCancellation()
@@ -89,10 +87,6 @@ const UploadDataTable = props => {
   useEffect(() => {
     table.current?.recomputeColumnSizes()
   }, [columnWidths])
-
-  useEffect(() => {
-    StateHistory.update({ sort })
-  }, [sort])
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
@@ -214,7 +208,7 @@ const UploadDataTable = props => {
               width, height,
               rowCount: sortedRows.length,
               noContentMessage: `No ${entityType}s to display.`,
-              onScroll: saveScroll, initialX, initialY, sort,
+              sort,
               columns: [
                 ..._.map(name => {
                   const thisWidth = columnWidths[name] || 300

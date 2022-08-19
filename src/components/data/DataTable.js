@@ -58,7 +58,7 @@ const DataTable = props => {
     childrenBefore,
     editable,
     activeCrossTableTextFilter,
-    persist, refreshKey, firstRender,
+    persist, refreshKey,
     snapshotName,
     deleteColumnUpdateMetadata,
     controlPanelStyle,
@@ -75,11 +75,10 @@ const DataTable = props => {
   const [filteredCount, setFilteredCount] = useState(0)
   const [totalRowCount, setTotalRowCount] = useState(0)
 
-  const stateHistory = firstRender ? StateHistory.get() : {}
-  const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 100)
-  const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
-  const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
-  const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || activeCrossTableTextFilter || '')
+  const [itemsPerPage, setItemsPerPage] = useState(100)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [activeTextFilter, setActiveTextFilter] = useState(activeCrossTableTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const [columnState, setColumnState] = useState(() => {

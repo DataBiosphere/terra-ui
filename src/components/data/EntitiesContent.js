@@ -7,7 +7,7 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonSecondary } from 'src/components/common'
-import { AddColumnModal, AddEntityModal, CreateEntitySetModal, entityAttributeText, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, entityAttributeText, EntityDeleter, ModalToolButton, MultipleEntityEditor } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import { icon } from 'src/components/icons'
@@ -31,7 +31,6 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -210,7 +209,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -366,7 +365,6 @@ const EntitiesContent = ({
   }
 
   // Render
-  const { initialX, initialY } = firstRender ? StateHistory.get() : {}
   const selectedKeys = _.keys(selectedEntities)
   const selectedLength = selectedKeys.length
 
@@ -374,9 +372,8 @@ const EntitiesContent = ({
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :
     h(Fragment, [
       h(DataTable, {
-        persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
+        persist: true, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
         entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
-        onScroll: saveScroll, initialX, initialY,
         loadMetadata,
         snapshotName,
         selectionModel: {
