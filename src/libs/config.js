@@ -13,3 +13,4 @@ export const getConfig = () => {
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isDataBrowserFrontPage = () => false
+export const isDataTableVersioningEnabled = () => getConfig().isDataTableVersioningEnabled

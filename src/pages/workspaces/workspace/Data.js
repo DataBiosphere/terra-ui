@@ -23,7 +23,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
 import { useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -335,9 +335,11 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Delete table'),
-        h(MenuDivider),
-        h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
-        h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
+        isDataTableVersioningEnabled() && h(Fragment, [
+          h(MenuDivider),
+          h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
+          h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
+        ])
       ])
     }, [
       h(Clickable, {
