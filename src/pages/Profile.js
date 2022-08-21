@@ -449,7 +449,6 @@ const PersonalInfoTab = () => {
         ]),
         line([
           textField('title', 'Title'),
-          textField('researchArea', 'Research Area'),
           textField('institute', 'Organization or Company'), //keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
         ]),
         line([
