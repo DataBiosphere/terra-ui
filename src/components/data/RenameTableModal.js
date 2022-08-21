@@ -80,8 +80,10 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
     setTableExists && div({
       style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
     }, [
-      icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-      'We have detected a set table associated with the table that you are renaming. Please choose an option:',
+      div({ style: { display: 'flex' } }, [
+        icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+        'We have detected a set table associated with the table that you are renaming. Please choose an option:'
+      ]),
       div({ role: 'radiogroup', 'aria-label': 'we have detected a set table associated with the table that you are renaming. please choose an option.' }, [
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
