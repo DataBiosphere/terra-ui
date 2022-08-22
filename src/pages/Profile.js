@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay,
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
   UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -391,12 +391,6 @@ const Profile = ({ queryParams }) => {
       })
   ])])
 
-  const radioButton = (key, value) => h(RadioButton, {
-    text: value, name: key, checked: profileInfo[key] === value,
-    labelStyle: { margin: '0 2rem 0 0.25rem' },
-    onChange: () => assignValue(key, value)
-  })
-
   const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
     h(LabeledCheckbox, {
       checked: profileInfo[key] === 'true',
@@ -458,8 +452,7 @@ const Profile = ({ queryParams }) => {
               textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
             ]),
             line([
-              textField('institute', 'Institution'),
-              textField('institutionalProgram', 'Institutional Program')
+              textField('institute', 'Institution')
             ]),
 
             div({ style: styles.form.title }, [
@@ -476,18 +469,6 @@ const Profile = ({ queryParams }) => {
 
             sectionTitle('Program Info'),
 
-            h(IdContainer, [id => div({
-              role: 'radiogroup', 'aria-labelledby': id
-            }, [
-              span({ id, style: styles.form.title }, ['Non-Profit Status']),
-              div({ style: { margin: '1rem' } }, [
-                radioButton('nonProfitStatus', 'Profit'),
-                radioButton('nonProfitStatus', 'Non-Profit')
-              ])
-            ])]),
-            line([
-              textField('pi', 'Principal Investigator/Program Lead')
-            ]),
             line([
               textField('programLocationCity', 'City'),
               textField('programLocationState', 'State')
