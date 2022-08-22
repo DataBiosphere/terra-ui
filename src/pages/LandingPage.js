@@ -7,7 +7,6 @@ import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isDataBrowserFrontPage } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import { setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
@@ -93,7 +92,7 @@ const LandingPage = () => {
       }, ['See this article']),
       ' for a summary of available resources.'
     ]),
-    isDataBrowserFrontPage() && div({
+    div({
       style: {
         ...styles.callToActionBanner,
         backgroundColor: colors.primary(),
