@@ -5,8 +5,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay,
-  UnlinkFenceAccount
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink,
+  spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -15,6 +15,7 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -23,8 +24,9 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -362,6 +364,93 @@ const ExternalIdentitiesTab = queryParams => {
   ])
 }
 
+const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    div({ style: { flex: 1, paddingLeft: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'name' }),
+    ]),
+    div({ style: { flex: 1, paddingLeft: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'Succeeded' }),
+    ]),
+    div({ style: { flex: 1, paddingLeft: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'Failed' }),
+    ]),
+    div({ style: { flex: 1, paddingLeft: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'Aborted' }),
+    ])
+  ])
+})
+
+const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
+  const workspaceCardStyles = {
+    field: {
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
+    },
+    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' }
+  }
+
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
+    h(IdContainer, [id => h(Fragment, [
+      div({ style: workspaceCardStyles.row }, [
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
+          h(Link, {
+            style: Style.noWrapEllipsis,
+            href: Nav.getLink('workspace-dashboard', { namespace, name })
+          }, [name])
+        ]),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, 'x'),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, 'x'),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, 'x')
+      ])
+    ])])
+  ])
+})
+
+const NotificationSettingsTab = () => {
+  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
+  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
+
+  console.log(workspaces)
+
+  return h(Fragment, [
+    h(WorkspaceCardHeaders, {
+      sort: workspaceSort,
+      onSort: setWorkspaceSort
+    }),
+    div({ role: 'list', style: {  flexGrow: 1, width: '100%' } }, [
+      _.flow(
+        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+        _.map(workspace => {
+          return h(WorkspaceCard, {
+            workspace: workspace.workspace,
+            key: workspace.workspaceId
+          })
+        })
+      )(workspaces)
+    ])
+  ])
+
+//  return h(Fragment, [
+//    sectionTitle('Submission Notifications'),
+//    h(WorkspaceCardHeaders, {
+//      sort: workspaceSort,
+//      onSort: setWorkspaceSort
+//    }),
+//    div({ role: 'list', style: { flexGrow: 1, width: '100%' } }, [
+//      _.flow(
+//        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+//        _.map(workspace => {
+//          return h(WorkspaceCard, {
+//            workspace,
+//            key: workspace.workspaceId
+//          })
+//        })
+//      )(workspaces)
+//    ])
+//  ])
+}
+
 const PersonalInfoTab = () => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
@@ -370,8 +459,6 @@ const PersonalInfoTab = () => {
   const [areasOfResearch, setAreasOfResearch] = useState([])
 
   const signal = useCancellation()
-
-  console.log(areasOfResearch)
 
   // Helpers
   const assignValue = _.curry((key, value) => {
@@ -407,7 +494,6 @@ const PersonalInfoTab = () => {
     h(LabeledCheckbox, {
       checked: _.includes(title, areasOfResearch),
       onChange: v => {
-        console.log(v)
         v ? setAreasOfResearch(_.concat(areasOfResearch, [title])) :
           setAreasOfResearch(_.without([title], areasOfResearch))
       }
@@ -536,7 +622,6 @@ const Profile = ({ queryParams }) => {
 
   const signal = useCancellation()
 
-  console.log(queryParams)
   // Helpers
   const assignValue = _.curry((key, value) => {
     setProfileInfo(_.set(key, value))
@@ -596,8 +681,8 @@ const Profile = ({ queryParams }) => {
   return h(FooterWrapper, [
     saving && spinnerOverlay,
     h(TopBar, { title: 'User Profile' }),
-    div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, 'Profile'),
+    div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [sectionTitle('Profile')]),
       h(SimpleTabBar, {
         'aria-label': 'Profile tabs',
         value: tab,
@@ -606,13 +691,12 @@ const Profile = ({ queryParams }) => {
           { key: 'personalInfo', title: 'Personal Information' },
           { key: 'externalIdentities', title: 'External Identities' },
           { key: 'notifications', title: 'Notification Settings' }
-        ],
-        style: { marginTop: '1rem' }
+        ]
       }, [
         Utils.switchCase(tab,
           ['personalInfo', () => h(PersonalInfoTab)],
           ['externalIdentities', () => ExternalIdentitiesTab(queryParams)],
-          ['notifications', () => div('notifications!')],
+          ['notifications', () => h(NotificationSettingsTab)],
           [Utils.DEFAULT, () => null]
         )
       ])
