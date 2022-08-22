@@ -77,9 +77,9 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
     }, [
       div({ style: { display: 'flex' } }, [
         icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-        'We have detected a set table that may be associated with the table that you are renaming. Please choose an option:'
+        'The table that you are renaming may have an associated set table. You may choose to also rename the set table:'
       ]),
-      div({ role: 'radiogroup', 'aria-label': 'we have detected a set table that may be associated with the table that you are renaming. please choose an option.' }, [
+      div({ role: 'radiogroup', 'aria-label': 'the table that you are renaming may have an associated set table. you may choose to also rename the set table.' }, [
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
             text: `Do not rename ${selectedDataType}_set table (default)`,
