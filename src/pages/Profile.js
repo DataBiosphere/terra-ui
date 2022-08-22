@@ -474,7 +474,7 @@ const Profile = ({ queryParams }) => {
             ]),
             div({ style: { margin: '1rem' } }, [proxyGroup]),
 
-            sectionTitle('Program Info'),
+            sectionTitle('Location'),
 
             h(IdContainer, [id => div({
               role: 'radiogroup', 'aria-labelledby': id
