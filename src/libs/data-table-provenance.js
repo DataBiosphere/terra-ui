@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
@@ -82,7 +83,9 @@ export const useColumnProvenance = (workspace, entityType) => {
       }
     }
 
-    loadColumnProvenance()
+    if (isDataTableProvenanceEnabled()) {
+      loadColumnProvenance()
+    }
   }, [workspace, entityType, signal])
 
   return { columnProvenance, loading, error }
