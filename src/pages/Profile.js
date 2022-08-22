@@ -467,7 +467,7 @@ const Profile = ({ queryParams }) => {
             ]),
             div({ style: { margin: '1rem' } }, [proxyGroup]),
 
-            sectionTitle('Program Info'),
+            sectionTitle('Location'),
 
             line([
               textField('programLocationCity', 'City'),
