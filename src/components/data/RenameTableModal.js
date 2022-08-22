@@ -19,8 +19,9 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
   // State
   const [newName, setNewName] = useState('')
   const [renaming, setRenaming] = useState(false)
-  const setTableExists = _.includes(`${selectedDataType}_set`, _.keys(entityMetadata))
   const [renameSetTable, setRenameSetTable] = useState(false)
+
+  const setTableExists = _.includes(`${selectedDataType}_set`, _.keys(entityMetadata))
 
   const {
     getAllSavedColumnSettings,
@@ -81,7 +82,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
       div({ role: 'radiogroup', 'aria-label': 'we have detected a set table that may be associated with the table that you are renaming. please choose an option.' }, [
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
-            text: 'Do not rename set table (default)',
+            text: `Do not rename ${selectedDataType}_set table (default)`,
             name: 'rename-set-table',
             checked: !renameSetTable,
             onChange: () => setRenameSetTable(false),
@@ -90,7 +91,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         ]),
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
-            text: 'Rename set table',
+            text: `Rename ${selectedDataType}_set table`,
             name: 'rename-set-table',
             checked: renameSetTable,
             onChange: () => setRenameSetTable(true),
