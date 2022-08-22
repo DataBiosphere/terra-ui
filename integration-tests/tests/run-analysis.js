@@ -75,5 +75,5 @@ registerTest({
   name: 'run-analysis',
   fn: testRunAnalysisFn,
   timeout: 20 * 60 * 1000,
-  targetEnvironments: ['dev']
+  targetEnvironments: ['local', 'dev']
 })
