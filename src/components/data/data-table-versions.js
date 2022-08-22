@@ -56,6 +56,7 @@ export const DataTableVersion = ({ version, onDelete }) => {
     }, [
       `${entityType} (${Utils.makeCompleteDate(timestamp)})`
     ]),
+    version.createdBy && p([`Created by: ${version.createdBy}`]),
     p([description || 'No description']),
     div({ style: { marginBottom: '1rem' } }, [
       h(DownloadVersionButton, { url: version.url })

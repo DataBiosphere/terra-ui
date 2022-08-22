@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
@@ -21,8 +22,10 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsRoot}/${entityType}/`, tsvFile)
 
   const objectName = `${dataTableVersionsRoot}/${entityType}/${versionName}`
+  const createdBy = getUser().email
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
     metadata: {
+      createdBy,
       entityType,
       timestamp,
       description
@@ -31,6 +34,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
 
   return {
     url: `gs://${bucketName}/${objectName}`,
+    createdBy,
     entityType,
     timestamp,
     description
@@ -47,6 +51,7 @@ export const listDataTableVersions = async (workspace, entityType, { signal } = 
     _.filter(item => item.metadata?.entityType && item.metadata?.timestamp),
     _.map(item => ({
       url: `gs://${item.bucket}/${item.name}`,
+      createdBy: item.metadata.createdBy,
       entityType,
       timestamp: parseInt(item.metadata.timestamp),
       description: item.metadata.description
