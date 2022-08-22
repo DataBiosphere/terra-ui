@@ -32,6 +32,7 @@ const testRunAnalysisFn = _.flow(
 
   await click(page, clickable({ textContains: 'Close' }))
 
+  //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
   await delay(3000)
 
   // Navigate to analysis launcher
@@ -46,6 +47,7 @@ const testRunAnalysisFn = _.flow(
   //Create a cloud env from analysis launcher
   await click(page, clickable({ text: 'Create' }))
 
+  //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
   await delay(3000)
 
   await findElement(page, clickable({ textContains: 'Jupyter Environment' }), { timeout: 40000 })
