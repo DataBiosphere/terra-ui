@@ -105,11 +105,12 @@ export const DataTableVersions = ({ loading, error, versions, savingNewVersion, 
           'Saving new version'
         ]),
         ol({ 'aria-labelledby': id, style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
-          _.map(version => {
-            return li({ key: version.url }, [
-              h(ButtonSecondary, { onClick: () => onClickVersion(version) }, [Utils.makeCompleteDate(version.timestamp)])
+          _.map(([index, version]) => {
+            return li({ key: version.url, style: { marginBottom: index < versions.length - 1 ? '0.5rem' : 0 } }, [
+              h(ButtonSecondary, { style: { height: 'auto' }, onClick: () => onClickVersion(version) }, [Utils.makeCompleteDate(version.timestamp)]),
+              div({ style: { ...Style.noWrapEllipsis } }, [version.description || 'No description'])
             ])
-          }, versions)
+          }, Utils.toIndexPairs(versions))
         ])
       ])])
     )
