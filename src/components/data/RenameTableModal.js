@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
+import { warningBoxStyle } from 'src/components/data/data-utils'
 import { allSavedColumnSettingsEntityTypeKey, useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -13,12 +14,6 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
-
-export const warningBoxStyle = {
-  backgroundColor: colors.warning(0.15),
-  padding: '1rem 1.25rem',
-  color: colors.dark(), fontWeight: 'bold', fontSize: 12
-}
 
 const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selectedDataType, entityMetadata }) => {
   // State
@@ -32,7 +27,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
     updateAllSavedColumnSettings
   } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: selectedDataType, entityMetadata })
 
-  const handleRename = async ({ oldName, newName }) => {
+  const handleTableRename = async ({ oldName, newName }) => {
     await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
 
@@ -58,9 +53,8 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         withErrorReporting('Error renaming data table.'),
         Utils.withBusyState(setRenaming)
       )(async () => {
-        await handleRename({ oldName: selectedDataType, newName })
-        if (renameSetTable) await handleRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
-
+        await handleTableRename({ oldName: selectedDataType, newName })
+        if (renameSetTable) await handleTableRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
         onUpdateSuccess()
       })
     }, ['Rename'])
