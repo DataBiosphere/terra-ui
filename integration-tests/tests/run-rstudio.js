@@ -31,7 +31,7 @@ const testRunRStudioFn = _.flow(
   await click(page, clickable({ textContains: 'Close' }))
 
   //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(3000)
+  await delay(200)
 
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: rFileName }))
@@ -46,7 +46,7 @@ const testRunRStudioFn = _.flow(
   await click(page, clickable({ text: 'Create' }))
 
   //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
-  await delay(3000)
+  await delay(200)
 
   await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
   await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 })
