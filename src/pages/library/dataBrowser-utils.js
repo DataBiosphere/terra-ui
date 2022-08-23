@@ -1,12 +1,9 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { dataCatalogStore, tdrSnapshotLinkingStore } from 'src/libs/state'
+import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -129,21 +126,4 @@ export const useDataCatalog = () => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }
-}
-
-export const completeTdrSnapshotExport = (tdrSnapshotPrepareResult, dataset, unsupportedResponse) => {
-  Utils.switchCase(tdrSnapshotPrepareResult['job_status'],
-    ['succeeded', async () => {
-      const jobResult = await Ajax().DataRepo.job(tdrSnapshotPrepareResult.id).result()
-      const jobResultManifest = jobResult?.format?.parquet?.manifest
-      tdrSnapshotLinkingStore.set({})
-      jobResultManifest ? Nav.history.push({
-        pathname: Nav.getPath('import-data'),
-        search: qs.stringify({
-          url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-          snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
-        })
-      }) : unsupportedResponse()
-    }],
-    [Utils.DEFAULT, () => unsupportedResponse()])
 }
