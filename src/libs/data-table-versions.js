@@ -24,12 +24,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   const objectName = `${dataTableVersionsRoot}/${entityType}/${versionName}`
   const createdBy = getUser().email
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
-    metadata: {
-      createdBy,
-      entityType,
-      timestamp,
-      description
-    }
+    metadata: { createdBy, entityType, timestamp, description }
   })
 
   return {
