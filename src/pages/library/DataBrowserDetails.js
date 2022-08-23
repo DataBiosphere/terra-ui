@@ -124,15 +124,27 @@ export const SidebarComponent = ({ dataObj, id }) => {
 
   const importDataToWorkspace = dataset => {
     Utils.cond(
-      [isWorkspace(dataset), () => Nav.history.push({
-        pathname: Nav.getPath('import-data'),
-        search: qs.stringify({
-          format: 'catalog',
-          snapshotName: dataset['dct:title'],
-          catalogDatasetId: dataset.id
+      [isWorkspace(dataset), () => {
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+          id,
+          title: dataObj['dct:title'],
+          type: 'workspace'
         })
-      })],
+        Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            format: 'catalog',
+            snapshotName: dataset['dct:title'],
+            catalogDatasetId: dataset.id
+          })
+        })
+      }],
       [isDatarepoSnapshot(dataset), async () => {
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+          id,
+          title: dataObj['dct:title'],
+          type: 'tdrSnapshot'
+        })
         setTdrSnapshotPreparePolling(true)
         const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
         setSnapshotExportJobId(jobInfo.id)
@@ -228,10 +240,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
         tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip,
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
-          Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-            id,
-            title: dataObj['dct:title']
-          })
           importDataToWorkspace(dataObj)
         }
       }, ['Prepare for analysis']),
