@@ -231,7 +231,8 @@ const EntitiesContent = ({
   const {
     columnProvenance,
     loading: loadingColumnProvenance,
-    error: columnProvenanceError
+    error: columnProvenanceError,
+    loadColumnProvenance
   } = useColumnProvenance(workspace, entityKey)
   const [showColumnProvenance, setShowColumnProvenance] = useState(undefined)
 
@@ -412,7 +413,15 @@ const EntitiesContent = ({
         },
         border: false,
         extraColumnActions: isDataTableProvenanceEnabled() ?
-          columnName => [{ label: 'Show Provenance', onClick: () => setShowColumnProvenance(columnName) }] :
+          columnName => [{
+            label: 'Show Provenance',
+            onClick: () => {
+              if (!(loadingColumnProvenance || columnProvenance)) {
+                loadColumnProvenance()
+              }
+              setShowColumnProvenance(columnName)
+            }
+          }] :
           undefined
       }),
       addingEntity && h(AddEntityModal, {

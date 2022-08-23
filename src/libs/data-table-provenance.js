@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
@@ -65,28 +64,27 @@ const getColumnProvenance = async (workspace, entityType, { signal } = {}) => {
 
 export const useColumnProvenance = (workspace, entityType) => {
   const signal = useCancellation()
-  const [loading, setLoading] = useState(true)
-  const [columnProvenance, setColumnProvenance] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [columnProvenance, setColumnProvenance] = useState(null)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const loadColumnProvenance = async () => {
-      setError(null)
-      setLoading(true)
-      try {
-        setColumnProvenance(await getColumnProvenance(workspace, entityType, { signal }))
-      } catch (error) {
-        setError(error)
-        reportError('Error loading column provenance', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (isDataTableProvenanceEnabled()) {
-      loadColumnProvenance()
+  const loadColumnProvenance = useCallback(async () => {
+    setError(null)
+    setLoading(true)
+    try {
+      setColumnProvenance(await getColumnProvenance(workspace, entityType, { signal }))
+    } catch (error) {
+      setError(error)
+      reportError('Error loading column provenance', error)
+    } finally {
+      setLoading(false)
     }
   }, [workspace, entityType, signal])
 
-  return { columnProvenance, loading, error }
+  return {
+    columnProvenance,
+    loading,
+    error,
+    loadColumnProvenance: loading ? _.noop : () => { loadColumnProvenance() }
+  }
 }
