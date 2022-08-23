@@ -17,26 +17,30 @@ import * as Utils from 'src/libs/utils'
 const DownloadVersionButton = ({ url }) => {
   const signal = useCancellation()
   const [downloadUrl, setDownloadUrl] = useState()
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    const loadUrl = async () => {
+    const loadUrl = Utils.withBusyState(setLoading, async () => {
       try {
         setDownloadUrl(null)
+        setError(false)
         const [bucket, object] = parseGsUri(url)
         const { url: signedUrl } = await Ajax(signal).DrsUriResolver.getSignedUrl({ bucket, object })
         setDownloadUrl(signedUrl)
       } catch (error) {
-        setDownloadUrl(null)
+        setError(true)
       }
-    }
+    })
     loadUrl()
   }, [signal, url])
 
   return h(ButtonPrimary, {
     disabled: !downloadUrl,
-    href: downloadUrl
+    href: downloadUrl,
+    tooltip: !!error && 'Error generating download URL'
   }, [
-    !downloadUrl && icon('loadingSpinner', { size: 12, style: { marginRight: '1ch' } }),
+    loading && icon('loadingSpinner', { size: 12, style: { marginRight: '1ch' } }),
     'Download TSV'
   ])
 }
