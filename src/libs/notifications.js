@@ -73,7 +73,7 @@ const NotificationDisplay = ({ id }) => {
   const onFirst = notificationNumber === 0
   const onLast = notificationNumber + 1 === notifications.length
 
-  const { title, message, detail, type, action, onDismiss } = notifications[notificationNumber]
+  const { title, message, detail, type, action, onDismiss, showX = true } = notifications[notificationNumber]
   const [baseColor, ariaLabel] = Utils.switchCase(type,
     ['success', () => [colors.success, 'success notification']],
     ['info', () => [colors.accent, 'info notification']],
@@ -130,7 +130,7 @@ const NotificationDisplay = ({ id }) => {
           }, [action.label])
         ])
       ]),
-      h(Link, {
+      showX && h(Link, {
         style: { alignSelf: 'start' },
         'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
         title: 'Dismiss notification',
