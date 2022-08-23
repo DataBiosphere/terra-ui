@@ -490,6 +490,7 @@ const EntitiesContent = ({
       }),
       showColumnProvenance && h(Modal, {
         title: 'Column Provenance',
+        showCancel: false,
         onDismiss: () => setShowColumnProvenance(undefined)
       }, [
         Utils.cond(
