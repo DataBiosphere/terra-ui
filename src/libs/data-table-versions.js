@@ -8,7 +8,7 @@ import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-export const dataTableVersionsRoot = '.data-table-versions'
+const dataTableVersionsPathRoot = '.data-table-versions'
 
 export const saveDataTableVersion = async (workspace, entityType, { description = null } = {}) => {
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
@@ -19,9 +19,9 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   const tsvContent = await Ajax().Workspaces.workspace(namespace, name).getEntitiesTsv(entityType)
 
   const tsvFile = new File([tsvContent], versionName, { type: 'text/tab-separated-values' })
-  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsRoot}/${entityType}/`, tsvFile)
+  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, tsvFile)
 
-  const objectName = `${dataTableVersionsRoot}/${entityType}/${versionName}`
+  const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}`
   const createdBy = getUser().email
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
     metadata: { createdBy, entityType, timestamp, description }
@@ -39,7 +39,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
 export const listDataTableVersions = async (workspace, entityType, { signal } = {}) => {
   const { workspace: { googleProject, bucketName } } = workspace
 
-  const prefix = `${dataTableVersionsRoot}/${entityType}/`
+  const prefix = `${dataTableVersionsPathRoot}/${entityType}/`
   const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix })
 
   return _.flow(
