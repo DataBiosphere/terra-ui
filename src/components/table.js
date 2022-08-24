@@ -755,7 +755,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   const [hovered, setHovered] = useState(false)
 
   return h(IdContainer, [id => h(Clickable, {
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%', overflow: 'hidden' },
     onMouseEnter: () => { setHovered(true) },
     onMouseLeave: () => { setHovered(false) },
     onFocus: () => { setHovered(true) },
