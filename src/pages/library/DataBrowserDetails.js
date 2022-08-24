@@ -4,7 +4,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
@@ -286,6 +286,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
 const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
   const signal = useCancellation()
   const [jobStatus, setJobStatus] = useState('running')
+  const [abortWarningShowing, setAbortWarningShowing] = useState(false)
 
   usePollingEffect(
     withErrorReporting('Problem checking status of snapshot import', async () => {
@@ -312,12 +313,27 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
       [Utils.DEFAULT, onFailure])
   }
 
+  const buttonStyle = { width: 88, borderRadius: 1 }
+
   return h(Modal, {
     title: 'Preparing Dataset for Analysis',
     onDismiss,
-    showButtons: false,
-    showX: true
-  }, ['Your dataset is being prepared for analysis. This may take up to a minute. Close this dialog to abort'])
+    showCancel: false,
+    shouldCloseOnOverlayClick: false,
+    shouldCloseOnEsc: false,
+    okButton: abortWarningShowing ? div(
+      { style: { display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' } },
+      [
+        'Are you sure you want to abort?',
+        h(ButtonOutline, { onClick: () => setAbortWarningShowing(false), style: buttonStyle }, ['No']),
+        h(ButtonOutline, { onClick: onDismiss, style: buttonStyle }, ['Yes'])
+      ]) : h(ButtonOutline, { onClick: () => setAbortWarningShowing(true), style: buttonStyle }, ['Abort'])
+  }, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      spinner({ size: 100 }),
+      div({ style: { marginLeft: 10 } }, ['Your dataset is being prepared for analysis. This may take up to a minute. Close this dialog to abort'])
+    ])
+  ])
 }
 
 const DataBrowserDetails = ({ id }) => {
