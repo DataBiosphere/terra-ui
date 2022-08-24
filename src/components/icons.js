@@ -48,7 +48,7 @@ export const icon = (shape, { size = 16, ...props } = {}) => {
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 }
 
-export const spinner = ({ message = 'Loading', ...props }) => h(Fragment, [
+export const spinner = ({ message = 'Loading', ...props } = {}) => h(Fragment, [
   icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
   h(DelayedRender, { delay: 150 }, [div({ className: 'sr-only', role: 'alert' }, [message])])
 ])
