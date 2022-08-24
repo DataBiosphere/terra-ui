@@ -331,7 +331,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       spinner({ size: 100 }),
-      div({ style: { marginLeft: 10 } }, ['Your dataset is being prepared for analysis. This may take up to a minute. Close this dialog to abort'])
+      div({ style: { marginLeft: 10 } }, ['Your dataset is being prepared for analysis. This may take a minute or two.'])
     ])
   ])
 }
