@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace, performAnalysisTabSetup } = require('../utils/integration-helpers')
 const {
-  click, clickable, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
+  click, clickable, delay, findElement, noSpinnersAfter, fillIn, findIframe, findText, dismissNotifications, getAnimatedDrawer, image, input
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 
@@ -30,6 +30,9 @@ const testRunRStudioFn = _.flow(
 
   await click(page, clickable({ textContains: 'Close' }))
 
+  //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
+  await delay(200)
+
   // Navigate to analysis launcher
   await findElement(page, clickable({ textContains: rFileName }))
   await click(page, clickable({ textContains: rFileName }))
@@ -40,11 +43,17 @@ const testRunRStudioFn = _.flow(
   })
 
   //Create a cloud env from analysis launcher
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ text: 'Create' })) })
-  await findElement(page, clickable({ textContains: 'RStudio Environment ( Creating )' }), { timeout: 40000 })
+  await click(page, clickable({ text: 'Create' }))
+
+  //The Compute Modal does not close quickly enough, so the subsequent click does not properly click on the element
+  await delay(200)
+
+  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Creating' }), { timeout: 40000 })
 
   // Wait for the environment to be running
-  await findElement(page, clickable({ textContains: 'RStudio Environment ( Running )' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'RStudio Environment' }), { timeout: 10 * 60000 })
+  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60000 })
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'Open' }))
 
@@ -63,5 +72,5 @@ registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
   timeout: 20 * 60 * 1000,
-  targetEnvironments: []
+  targetEnvironments: ['local', 'dev']
 })
