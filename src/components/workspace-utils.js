@@ -347,9 +347,7 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
-  const [updating, setUpdating] = useState(false)
-
+export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updatingStars, setUpdatingStars }) => {
   const { workspace: { workspaceId } } = workspace
   const isStarred = _.includes(workspaceId, stars)
 
@@ -366,7 +364,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
   }
 
   const toggleStar = _.flow(
-    Utils.withBusyState(setUpdating),
+    Utils.withBusyState(setUpdatingStars),
     withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
   )(async star => {
     const refreshedStarredWorkspaceList = await refreshStarredWorkspacesList()
@@ -382,14 +380,15 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
     role: 'checkbox',
     'aria-checked': isStarred,
     tooltip: Utils.cond(
-      [isStarred, () => 'Unstar this workspace'],
+      [updatingStars, () => 'Updating starred workspaces.'],
+      [isStarred, () => 'Unstar this workspace.'],
       [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspaces will appear at the top of your workspace list.'],
       [!isStarred && maxStarredWorkspacesReached, () => ['A maximum of ',
         MAX_STARRED_WORKSPACES, ' workspaces can be starred. Please un-star another workspace before starring this workspace.']]
     ),
     'aria-label': isStarred ? 'This workspace is starred' : '',
     className: 'fa-layers fa-fw',
-    disabled: maxStarredWorkspacesReached && !isStarred,
+    disabled: updatingStars || (maxStarredWorkspacesReached && !isStarred),
     style: { verticalAlign: 'middle', ...style },
     onKeyDown: e => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -400,7 +399,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style }) => {
     },
     onClick: () => toggleStar(!isStarred)
   }, [
-    updating ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
+    updatingStars ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
   ])
 }
 
