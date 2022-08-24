@@ -24,7 +24,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
-import { useDataTableVersions } from 'src/libs/data-table-versions'
+import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -827,7 +827,11 @@ const WorkspaceData = _.flow(
             extraMenuItems: h(Link, {
               href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
               style: { padding: '0.5rem' }
-            }, [icon('pop-out'), ' Analyze in Seqr'])
+            }, [icon('pop-out'), ' Analyze in Seqr']),
+            noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
+              'Files in this folder are managed via data table versioning.' :
+              null,
+            shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
           })],
           [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
             key: refreshKey,
