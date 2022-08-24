@@ -96,6 +96,7 @@ export const WorkspaceList = () => {
   const { profile: { starredWorkspaces } } = useStore(authStore)
   const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
   const [stars, setStars] = useState(starredWorkspaceIds)
+  const [updatingStars, setUpdatingStars] = useState(false)
 
   //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
   const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
@@ -201,9 +202,8 @@ export const WorkspaceList = () => {
             const workspace = sortedWorkspaces[rowIndex]
             return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
               h(WorkspaceStarControl, {
-                workspace,
-                setStars,
-                stars
+                workspace, setStars, updatingStars,
+                setUpdatingStars, stars
               })
             ])
           },
