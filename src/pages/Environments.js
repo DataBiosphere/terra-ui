@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, li, p, span, strong, ul } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -10,7 +9,7 @@ import { getToolFromRuntime, isPauseSupported, tools } from 'src/components/note
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
-import SupportRequest from 'src/components/SupportRequest'
+import SupportRequestWrapper from 'src/components/SupportRequest'
 import { SimpleFlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -23,17 +22,19 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost,
-  getPersistentDiskCostMonthly, getRegionFromZone, getRuntimeCost,
-  isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
+  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
+  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
   workspaceHasMultipleDisks
 } from 'src/libs/runtime-utils'
-import { topBarHeight } from 'src/libs/style'
+import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
+import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const DeleteRuntimeModal = ({ runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspace }, onDismiss, onSuccess }) => {
+const DeleteRuntimeModal = ({
+  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspace }, onDismiss, onSuccess
+}) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteRuntime = _.flow(
@@ -132,7 +133,9 @@ const MigratePersistentDisksBanner = ({ count }) => {
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.warning(), marginRight: '0.25rem' } }),
       div([
-        strong([`You have ${Math.floor((deadline - Date.now()) / 86400000)} days to migrate ${count} shared persistent ${count > 1 ? 'disks' : 'disk'}. `]),
+        strong([`You have ${Math.floor((deadline - Date.now()) / 86400000)} days to migrate ${count} shared persistent ${count > 1 ?
+          'disks' :
+          'disk'}. `]),
         `Un-migrated disks will be DELETED after ${Utils.makeCompleteDate(deadline)}.`
       ])
     ])
@@ -159,16 +162,19 @@ const MigratePersistentDiskCell = ({ disk, setMigrateDisk }) => div({
 
 const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, contactSupport, deleteDiskId }) => {
   const [migrating, setMigrating] = useState()
-  const [isSelected, setIsSelected] = useState({ })
+  const [isSelected, setIsSelected] = useState({})
   const [deleteDisk, setDeleteDisk] = useState(false)
 
   const migrateDisk = _.flow(
     withErrorReportingInModal('Error migrating persistent disk.', onDismiss),
     Utils.withBusyState(setMigrating)
-  )(() => { throw Error('Not implemented.'); onSuccess() })
+  )(() => {
+    throw Error('Not implemented.')
+    onSuccess()
+  })
 
   const WorkspaceSelection = ({ accessLevel, public: isPublic, workspace: { authorizationDomain, name, workspaceId } }) => {
-    const authDomains = _.map('membersGroupName', authorizationDomain)?.join(", ")
+    const authDomains = _.map('membersGroupName', authorizationDomain)?.join(', ')
     return div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', margin: '0.5rem' } }, [
       h(LabeledCheckbox, {
           style: { marginRight: '0.25rem' },
@@ -202,7 +208,12 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
   return h(Modal, {
     title: `Migrate ${disk.name}`,
     okButton: deleteDisk || workspaces.length === 0 ?
-      h(ButtonPrimary, { disabled: !deleteDisk, onClick: () => { onDismiss(); deleteDiskId(disk.id); } }, 'Delete') :
+      h(ButtonPrimary, {
+        disabled: !deleteDisk, onClick: () => {
+          onDismiss()
+          deleteDiskId(disk.id)
+        }
+      }, 'Delete') :
       h(ButtonPrimary, { onClick: migrateDisk }, 'Migrate'),
     onDismiss
   }, [
@@ -224,7 +235,12 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
         strong(['You own this disk but do not have access to any workspaces where it can be shared.']),
         h(DeleteDiskSelection, { text: 'Delete this disk for all users.' }, []),
         'OR',
-        div([h(Link, { onClick: () => { onDismiss(); contactSupport() } }, ['Contact Terra Support']),
+        div([h(Link, {
+          onClick: () => {
+            onDismiss()
+            contactSupport()
+          }
+        }, ['Contact Terra Support']),
           ' to have it transferred to another user'
         ])
       ]),
@@ -261,7 +277,7 @@ const Environments = () => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
   const [shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator] = useState(true)
   const [migrateDisk, setMigrateDisk] = useState()
-  const [contactSupport, setContactSupport] = useState()
+  const [contactSupport, setContactSupport] = useState(false)
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
@@ -272,7 +288,9 @@ const Environments = () => {
 
     const startTimeForLeoCallsEpochMs = Date.now()
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ? { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ?
+        { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } :
+        { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
       Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
     ])
@@ -325,7 +343,10 @@ const Environments = () => {
     await loadData()
   })
 
-  useOnMount(async () => { await refreshWorkspaces(); await loadData() })
+  useOnMount(async () => {
+    await refreshWorkspaces()
+    await loadData()
+  })
   usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
@@ -779,15 +800,18 @@ const Environments = () => {
       }),
       migrateDisk && h(MigratePersistentDiskModal, {
         disk: migrateDisk,
-        workspaces: _.flow(_.get(migrateDisk.googleProject), _.values)(workspaces),
+        workspaces: _.flow(_.get(migrateDisk.googleProject), _.values, _.filter(Utils.canWrite))(workspaces),
         onDismiss: () => setMigrateDisk(undefined),
-        onSuccess: () => { setMigrateDisk(undefined); loadData() },
-        contactSupport: () => setContactSupport(true),
+        onSuccess: () => {
+          setMigrateDisk(undefined)
+          loadData()
+        },
+        contactSupport: () => contactUsActive.set(true),
         deleteDiskId: setDeleteDiskId
       })
     ]),
     h(MigratePersistentDisksBanner, { count: _.countBy('requiresMigration', disks).true }, []),
-    contactSupport && h(SupportRequest),
+    contactSupport && h(SupportRequestWrapper),
     (loadingWorkspaces || loading) && spinnerOverlay
   ])
 }
