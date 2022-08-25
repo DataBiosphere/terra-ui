@@ -137,8 +137,12 @@ export const SnapshotInfo = ({
         setSelectedSnapshotInfo(snapshotInfo)
         setSnapshotLoadError(undefined)
       } catch (e) {
-        setSelectedSnapshotInfo({ createdDate: Date.now() }) // fake data prevents problems with Utils.makeCompleteDate below
-        setSnapshotLoadError(e)
+        try {
+          setSnapshotLoadError(await e.json())
+        } catch (inner) {
+          setSnapshotLoadError('unknown error')
+        }
+        setSelectedSnapshotInfo({})
       }
     }
     loadSnapshotInfo()
