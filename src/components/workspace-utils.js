@@ -106,6 +106,7 @@ export const SnapshotInfo = ({
 }) => {
   // State
   const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+  const [snapshotLoadError, setSnapshotLoadError] = useState()
   const [newName, setNewName] = useState(snapshotName)
   const [editingName, setEditingName] = useState(false)
   const [newDescription, setNewDescription] = useState(undefined)
@@ -131,13 +132,21 @@ export const SnapshotInfo = ({
   // Lifecycle
   useOnMount(() => {
     const loadSnapshotInfo = async () => {
-      const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
-      setSelectedSnapshotInfo(snapshotInfo)
+      try {
+        const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
+        setSelectedSnapshotInfo(snapshotInfo)
+        setSnapshotLoadError(undefined)
+      } catch (e) {
+        try {
+          setSnapshotLoadError(await e.json())
+        } catch (inner) {
+          setSnapshotLoadError('unknown error')
+        }
+        setSelectedSnapshotInfo({})
+      }
     }
-
     loadSnapshotInfo()
   })
-
 
   // Render
   const { name: sourceName, description: sourceDescription, createdDate, source = [] } = snapshotInfo || {}
@@ -149,6 +158,43 @@ export const SnapshotInfo = ({
     },
     length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
   })
+
+  const tdrErrorDisplay = () => div({ style: { paddingLeft: '1rem' } }, [
+    div({ style: Style.dashboard.header }, ['Error']),
+    `Details of this snapshot could not be loaded due to a problem calling Terra Data Repo: ${JSON.stringify(snapshotLoadError)}`
+  ])
+
+  const tdrDetails = () => !snapshotLoadError && div({ style: { paddingLeft: '1rem' } }, [
+    div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
+    h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
+    h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
+    div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+    div([sourceDescription]),
+    h(SnapshotLabeledInfo, {
+      title: 'Data Repo Snapshot Id:', text: [h(Link, {
+        href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
+        'aria-label': 'Go to the snapshot in a new tab'
+      }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+    }),
+    div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
+    _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
+      return div({
+        key: id,
+        style: { marginBottom: '1rem' }
+      }, [
+        h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
+        h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
+        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+        div([datasetDescription]),
+        h(SnapshotLabeledInfo, {
+          title: 'Data Repo Dataset Id:', text: [h(Link, {
+            href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
+            'aria-label': 'Go to the dataset in a new tab'
+          }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: id, style: { marginLeft: '0.25rem' } })]
+        })
+      ])
+    }, source)
+  ])
 
   return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
     div({ style: { padding: '1rem' } }, [
@@ -186,37 +232,9 @@ export const SnapshotInfo = ({
           ])
         ]) : h(MarkdownViewer, [description || '']) // description is null for newly-added snapshot references
       ]),
-      div({ style: { paddingLeft: '1rem' } }, [
-        div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
-        h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
-        h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
-        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-        div([sourceDescription]),
-        h(SnapshotLabeledInfo, {
-          title: 'Data Repo Snapshot Id:', text: [h(Link, {
-            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
-            'aria-label': 'Go to the snapshot in a new tab'
-          }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
-        }),
-        div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
-        _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
-          return div({
-            key: id,
-            style: { marginBottom: '1rem' }
-          }, [
-            h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
-            h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
-            div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-            div([datasetDescription]),
-            h(SnapshotLabeledInfo, {
-              title: 'Data Repo Dataset Id:', text: [h(Link, {
-                href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
-                'aria-label': 'Go to the dataset in a new tab'
-              }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: id, style: { marginLeft: '0.25rem' } })]
-            })
-          ])
-        }, source)
-      ]),
+
+      snapshotLoadError ? tdrErrorDisplay() : tdrDetails(),
+
       Utils.canWrite(accessLevel) && div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])
       ]),
