@@ -53,7 +53,7 @@ const getColumnProvenance = async (workspace, entityType, { signal } = {}) => {
 
   return _.flow(
     _.flatMap(submission => _.map(([output, expression]) => ({ ...submission, output, expression }), _.toPairs(submission.configuration.outputs))),
-    _.map(output => ({ ..._.omit(['expression'], output), column: getColumnFromOutputExpression(output.expression) })),
+    _.map(({ expression, ...output }) => ({ ...output, column: getColumnFromOutputExpression(expression) })),
     _.filter(output => !!output.column),
     _.reduce((acc, { submission, configuration, output, column }) => {
       const provenanceEntry = { submissionId: submission.submissionId, submissionDate: submission.submissionDate, configuration, output }
