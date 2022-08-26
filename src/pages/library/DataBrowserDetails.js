@@ -146,8 +146,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
           type: 'tdrSnapshot'
         })
         setTdrSnapshotPreparePolling(true)
-        // const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
-        // const jobInfo = await reportErrorAndRethrow('Error exporting dataset')(async () => await Ajax().DataRepo.snapshot('blah').exportSnapshot())
         const jobInfo = await withErrorReporting('Error exporting dataset', async () => await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot())()
         setSnapshotExportJobId(jobInfo.id)
       }],
