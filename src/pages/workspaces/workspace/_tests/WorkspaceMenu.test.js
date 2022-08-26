@@ -62,8 +62,8 @@ describe('test workspace undefined', () => {
       callbacks: { onClone },
       workspaceInfo: { name: 'example1', namespace: 'example-billing-project' }
     }))
-    const button = screen.getByText('Clone')
-    expect(button).toHaveAttribute('disabled')
+    const menuText = screen.getByText('Clone')
+    expect(menuText).toHaveAttribute('disabled')
   })
 
   it('tests clone tooltip when workspace is undefined', () => {
@@ -84,8 +84,8 @@ describe('test workspace undefined', () => {
       callbacks: { onShare },
       workspaceInfo: { name: 'example1', namespace: 'example-billing-project' }
     }))
-    const button = screen.getByText('Share')
-    expect(button).toHaveAttribute('disabled')
+    const menuText = screen.getByText('Share')
+    expect(menuText).toHaveAttribute('disabled')
   })
 
   it('tests share tooltip when workspace is undefined', () => {
