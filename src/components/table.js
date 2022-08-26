@@ -751,11 +751,11 @@ const getSortIcon = (sort, field, hovered) => {
   )
 }
 
-export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
+export const Sortable = ({ sort, field, onSort, children }) => {
   const [hovered, setHovered] = useState(false)
 
   return h(IdContainer, [id => h(Clickable, {
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%', overflow: 'hidden' },
     onMouseEnter: () => { setHovered(true) },
     onMouseLeave: () => { setHovered(false) },
     onFocus: () => { setHovered(true) },
@@ -768,8 +768,7 @@ export const Sortable = ({ sort, field, onSort, children, columnMenu }) => {
       { style: { color: colors.accent(), marginLeft: '0.1rem' } },
       [getSortIcon(sort, field, hovered)]
     ),
-    div({ id, style: { display: 'none' } }, ['Click to sort by this column']),
-    columnMenu
+    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
 }
 
