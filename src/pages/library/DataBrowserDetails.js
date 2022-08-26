@@ -146,7 +146,9 @@ export const SidebarComponent = ({ dataObj, id }) => {
           type: 'tdrSnapshot'
         })
         setTdrSnapshotPreparePolling(true)
-        const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
+        // const jobInfo = await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot()
+        // const jobInfo = await reportErrorAndRethrow('Error exporting dataset')(async () => await Ajax().DataRepo.snapshot('blah').exportSnapshot())
+        const jobInfo = await withErrorReporting('Error exporting dataset', async () => await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot())()
         setSnapshotExportJobId(jobInfo.id)
       }],
       () => setDatasetNotSupportedForExport(true)
@@ -298,7 +300,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
     const newJobStatus = jobInfo['job_status']
     Utils.switchCase(newJobStatus,
       ['succeeded', async () => {
-        const jobResult = await Ajax().DataRepo.job(jobId).result()
+        const jobResult = await withErrorReporting('Error getting export result', async () => await Ajax().DataRepo.job(jobId).result())()
         const jobResultManifest = jobResult?.format?.parquet?.manifest
         Ajax().Metrics.captureEvent(Events.catalogWorkspaceLinkExportFinished)
         jobResultManifest ? Nav.history.push({
