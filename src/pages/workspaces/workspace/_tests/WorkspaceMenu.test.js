@@ -182,7 +182,7 @@ describe('test Gcp workspace', () => {
   })
 })
 
-describe('Azure workspace', () => {
+describe('test Azure workspace', () => {
   beforeEach(() => {
     useWorkspaceDetails.mockReturnValue({
       workspace:
