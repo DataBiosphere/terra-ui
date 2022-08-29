@@ -106,9 +106,8 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
 }
 
 const click = async (page, xpath, options) => {
-  const element = await page.waitForXPath(xpath, defaultToVisibleTrue(options))
   try {
-    return element.click()
+    return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
   } catch (e) {
     // Handle Error: Node is detached from document
     //   at ElementHandle._scrollIntoViewIfNeeded (/mnt/ramdisk/.yarn/unplugged/puppeteer-npm-13.5.1-231e586c7a/node_modules/puppeteer/src/common/JSHandle.ts:475:22)
