@@ -236,8 +236,10 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling,
-        tooltip: dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip,
+        disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
+        tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
+          dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+          uiMessaging.unsupportedDatasetTypeTooltip('preparing for analysis'),
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           importDataToWorkspace(dataObj)
@@ -262,7 +264,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
       datasets: [dataObj],
       onDismiss: () => setShowRequestAccessModal(false)
     }),
-    datasetNotSupportedForExport === true && h(Modal, {
+    datasetNotSupportedForExport && h(Modal, {
       title: 'Cannot Export Dataset',
       showCancel: false,
       onDismiss: () => setDatasetNotSupportedForExport(false)
@@ -271,12 +273,12 @@ export const SidebarComponent = ({ dataObj, id }) => {
       jobId: snapshotExportJobId,
       dataset: dataObj,
       onDismiss: () => {
-        setSnapshotExportJobId()
+        setSnapshotExportJobId(undefined)
         setTdrSnapshotPreparePolling(false)
       },
       onFailure: () => {
         setDatasetNotSupportedForExport(true)
-        setSnapshotExportJobId()
+        setSnapshotExportJobId(undefined)
         setTdrSnapshotPreparePolling(false)
       }
     })

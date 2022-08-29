@@ -14,7 +14,8 @@ export const datasetAccessTypes = {
 }
 
 export const uiMessaging = {
-  controlledFeatureTooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
+  controlledFeatureTooltip: 'You do not have access to this dataset. Please request access to unlock this feature.',
+  unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
 }
 
 export const datasetReleasePolicies = {

@@ -1112,7 +1112,7 @@ const DataRepo = signal => ({
         return res.json()
       },
       exportSnapshot: async () => {
-        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}/export`, _.merge(authOpts(), { signal }))
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, _.merge(authOpts(), { signal }))
         return res.json()
       }
     }
