@@ -29,15 +29,20 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
   } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: selectedDataType, entityMetadata })
 
   const handleTableRename = async ({ oldName, newName }) => {
+    console.log(`handling rename for ${oldName}`)
     await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
 
     // Move column settings to new table
     const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
     const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+    console.log(oldTableColumnSettingsKey)
+    console.log(newTableColumnSettingsKey)
     const allColumnSettings = await getAllSavedColumnSettings()
     const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
     if (tableColumnSettings) {
+      console.log('doing the thing')
+      console.log(tableColumnSettings)
       await updateAllSavedColumnSettings(_.flow(
         _.set(newTableColumnSettingsKey, tableColumnSettings),
         _.unset(oldTableColumnSettingsKey)
@@ -55,7 +60,10 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         Utils.withBusyState(setRenaming)
       )(async () => {
         await handleTableRename({ oldName: selectedDataType, newName })
-        if (renameSetTable) await handleTableRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
+        if (renameSetTable) {
+          console.log("renaming column settings for set")
+          await handleTableRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
+        }
         onUpdateSuccess()
       })
     }, ['Rename'])
