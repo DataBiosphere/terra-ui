@@ -32,7 +32,7 @@ jest.mock('src/components/TooltipTrigger', () => ({
 }))
 
 
-describe('test workspace undefined', () => {
+describe('WorkspaceMenu - undefined workspace', () => {
   beforeEach(() => {
     useWorkspaceDetails.mockReturnValue({ workspace: undefined })
     MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
@@ -55,7 +55,7 @@ describe('test workspace undefined', () => {
     })
   })
 
-  it('tests disabled state for clone menu item when workspace is undefined', () => {
+  it('renders Clone menu item as disabled', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -66,7 +66,7 @@ describe('test workspace undefined', () => {
     expect(menuText).toHaveAttribute('disabled')
   })
 
-  it('tests clone tooltip when workspace is undefined', () => {
+  it('renders Clone tooltip', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -77,7 +77,7 @@ describe('test workspace undefined', () => {
     expect(screen.queryByText('Cloning is not currently supported on Azure Workspaces')).toBeNull()
   })
 
-  it('tests disabled state for share menu item when workspace is undefined', () => {
+  it('renders Share menu item as disabled', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -88,7 +88,7 @@ describe('test workspace undefined', () => {
     expect(menuText).toHaveAttribute('disabled')
   })
 
-  it('tests share tooltip when workspace is undefined', () => {
+  it('renders Share tooltip', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -101,7 +101,7 @@ describe('test workspace undefined', () => {
 })
 
 
-describe('test Gcp workspace', () => {
+describe('WorkspaceMenu - GCP workspace', () => {
   beforeEach(() => {
     useWorkspaceDetails.mockReturnValue({ workspace: { canShare: false, workspace: { isLocked: false } } })
     MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
@@ -124,7 +124,7 @@ describe('test Gcp workspace', () => {
     })
   })
 
-  it('tests disabled state for clone menu item for gcp workspace', () => {
+  it('renders Clone menu item as disabled', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -135,7 +135,7 @@ describe('test Gcp workspace', () => {
     expect(menuText).not.toHaveAttribute('disabled')
   })
 
-  it('tests clone tooltip for gcp workspace', () => {
+  it('renders Clone tooltip', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -146,7 +146,7 @@ describe('test Gcp workspace', () => {
     expect(screen.queryByText('Cloning is not currently supported on Azure Workspaces')).toBeNull()
   })
 
-  it('tests disabled state (canShare: false) for share menu item for gcp workspace', () => {
+  it('renders Share menu item as disabled', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -157,7 +157,7 @@ describe('test Gcp workspace', () => {
     expect(menuText).toHaveAttribute('disabled')
   })
 
-  it('tests disabled state (canShare: true) for share menu item for gcp workspace', () => {
+  it('renders Share menu item as enabled', () => {
     useWorkspaceDetails.mockReturnValue({ workspace: { canShare: true, workspace: { isLocked: false } } })
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
@@ -169,7 +169,7 @@ describe('test Gcp workspace', () => {
     expect(menuText).not.toHaveAttribute('disabled')
   })
 
-  it('tests share tooltip for gcp workspace', () => {
+  it('renders Share tooltip', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -182,7 +182,7 @@ describe('test Gcp workspace', () => {
   })
 })
 
-describe('test Azure workspace', () => {
+describe('WorkspaceMenu - Azure workspace', () => {
   beforeEach(() => {
     useWorkspaceDetails.mockReturnValue({
       workspace:
@@ -211,7 +211,7 @@ describe('test Azure workspace', () => {
     })
   })
 
-  it('tests disabled state for clone menu item for Azure workspace', () => {
+  it('renders Clone menu item as disabled', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -222,7 +222,7 @@ describe('test Azure workspace', () => {
     expect(menuText).toHaveAttribute('disabled')
   })
 
-  it('tests clone tooltip for Azure workspace', () => {
+  it('renders Clone tooltip', () => {
     const onClone = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -233,7 +233,7 @@ describe('test Azure workspace', () => {
     screen.getByText('Cloning is not currently supported on Azure Workspaces')
   })
 
-  it('tests disabled state share menu item for Azure workspace', () => {
+  it('renders Share menu item as disabled', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
@@ -244,7 +244,7 @@ describe('test Azure workspace', () => {
     expect(menuText).toHaveAttribute('disabled')
   })
 
-  it('tests share tooltip for Azure workspace', () => {
+  it('renders Share tooltip', () => {
     const onShare = jest.fn()
     render(h(WorkspaceMenu, {
       iconSize: 20, popupLocation: 'left',
