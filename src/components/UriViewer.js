@@ -164,7 +164,9 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
 const UriViewer = _.flow(
   withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
+)(({ workspace, uri, onDismiss, onRequesterPaysError }) => {
+  const { workspace: { googleProject } } = workspace
+
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
@@ -275,7 +277,7 @@ const UriViewer = _.flow(
   ])
 })
 
-export const UriViewerLink = ({ uri, googleProject }) => {
+export const UriViewerLink = ({ uri, workspace }) => {
   const [modalOpen, setModalOpen] = useState(false)
   return h(Fragment, [
     h(Link, {
@@ -288,7 +290,7 @@ export const UriViewerLink = ({ uri, googleProject }) => {
     }, [isGs(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
-      uri, googleProject
+      uri, workspace
     })
   ])
 }

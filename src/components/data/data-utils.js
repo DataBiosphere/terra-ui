@@ -103,12 +103,12 @@ const renderDataCellTooltip = attributeValue => {
 }
 
 export const renderDataCell = (attributeValue, workspace) => {
-  const { workspace: { bucketName: workspaceBucket, googleProject } } = workspace
+  const { workspace: { bucketName: workspaceBucket } } = workspace
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
-    return isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum
+    return isUri(datum) ? h(UriViewerLink, { uri: datum, workspace }) : stringDatum
   }
 
   const renderArray = items => {

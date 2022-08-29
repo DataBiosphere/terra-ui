@@ -459,7 +459,7 @@ const BucketBrowser = (({
       ]),
 
       viewingObject && h(UriViewer, {
-        googleProject,
+        workspace,
         uri: `gs://${bucketName}/${viewingObject.name}`,
         onDismiss: () => setViewingObject(null)
       }),
