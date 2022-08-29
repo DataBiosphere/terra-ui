@@ -47,7 +47,7 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   })
 }
 
-const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded = false }) => {
+const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
     [workspaceLoaded && isAzureWorkspace, () => 'Sharing is not currently supported on Azure Workspaces'],
     [workspaceLoaded && !canShare, () => 'You have not been granted permission to share this workspace'],
