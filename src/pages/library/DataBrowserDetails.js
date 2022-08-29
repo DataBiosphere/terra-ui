@@ -214,8 +214,10 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: true,
-        tooltip: 'We are currently working on preview dataset and this will be available soon.',
+        disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
+          dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+          uiMessaging.unsupportedDatasetTypeTooltip('preview'),
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
