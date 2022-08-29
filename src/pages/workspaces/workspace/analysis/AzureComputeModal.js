@@ -13,7 +13,7 @@ import {
   getRegionLabel
 } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
-import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
+import { withErrorReportingInModal } from 'src/libs/error'
 import { useOnMount } from 'src/libs/react-utils'
 import {
   computeStyles, getCurrentRuntime, getIsRuntimeBusy
@@ -24,18 +24,17 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'azure-compute-modal-title'
 
 export const AzureComputeModalBase = ({
-  onDismiss, onError, onSuccess, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
+  onDismiss, onSuccess, onError = onDismiss, workspace: { workspace: { namespace, name: workspaceName, workspaceId } }, runtimes, hideCloseButton = false
 }) => {
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState(undefined)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
-
   const [computeConfig, setComputeConfig] = useState(defaultAzureComputeConfig)
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value, computeConfig))
 
   // Lifecycle
   useOnMount(_.flow(
-    withErrorReporting('Error loading cloud environment'),
+    withErrorReportingInModal('Error loading cloud environment', onError),
     Utils.withBusyState(setLoading)
   )(async () => {
     const currentRuntime = getCurrentRuntime(runtimes)

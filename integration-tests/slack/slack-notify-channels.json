@@ -22,15 +22,12 @@
         },
         {
           "name": "analysis-context-bar"
-        },
-        {
-          "name": "run-notebook"
         }
       ]
     },
     {
-      "name": "dsp-batch",
-      "id": "C1EH66VCM",
+      "name": "cromwell_jenkins_ci_errors",
+      "id": "C01AG7GEJ3D",
       "tests": [
         {
           "name": "find-workflow"
@@ -86,8 +83,8 @@
       ]
     },
     {
-      "name": "dsp-identiteam",
-      "id": "C03GMG4DUSE",
+      "name": "identiteam-alerts",
+      "id": "C03HV2AD20N",
       "tests": [
         {
           "name": "register-user"

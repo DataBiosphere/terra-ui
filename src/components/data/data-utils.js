@@ -24,9 +24,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { useCancellation } from 'src/libs/react-utils'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -585,6 +583,66 @@ export const getAttributeType = attributeValue => {
   return { type, isList }
 }
 
+export const AttributeTypeInput = ({ label: labelText = 'Type', value, onChange, entityTypes = [], defaultReferenceEntityType = null, showJsonTypeOption = false }) => {
+  const { type, entityType: referenceEntityType } = value
+
+  const typeOptions = [
+    { type: 'string' },
+    { type: 'reference', tooltip: 'A link to another row' },
+    { type: 'number' },
+    { type: 'boolean' }
+  ]
+
+  if (showJsonTypeOption) {
+    typeOptions.push({ type: 'json', label: 'JSON' })
+  }
+
+  const sortedEntityTypes = _.sortBy(_.identity, entityTypes)
+
+  return div({ style: { marginBottom: '1rem' } }, [
+    fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+      legend({ style: { marginBottom: '0.5rem' } }, [`${labelText}:`]),
+      div({
+        style: {
+          display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
+          marginBottom: '0.5rem'
+        }
+      }, _.map(({ label, type: typeOption, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
+        span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
+          h(RadioButton, {
+            text: label || _.startCase(typeOption),
+            name: 'edit-type',
+            checked: type === typeOption,
+            onChange: () => {
+              const newType = { type: typeOption }
+              if (typeOption === 'reference') {
+                newType.entityType = defaultReferenceEntityType || sortedEntityTypes[0]
+              }
+              onChange(newType)
+            },
+            labelStyle: { paddingLeft: '0.5rem' }
+          })
+        ])
+      ]),
+      typeOptions)
+      )
+    ]),
+    type === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+        h(Select, {
+          id,
+          value: referenceEntityType,
+          options: sortedEntityTypes,
+          onChange: ({ value: newReferenceEntityType }) => {
+            onChange({ ...value, entityType: newReferenceEntityType })
+          }
+        })
+      ])])
+    ])
+  ])
+}
+
 export const convertAttributeValue = (attributeValue, newType, referenceEntityType) => {
   if (newType === 'reference' && !referenceEntityType) {
     throw new Error('An entity type is required to convert an attribute to a reference')
@@ -686,18 +744,17 @@ const defaultValueForAttributeType = (attributeType, referenceEntityType) => {
   )
 }
 
-const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
+export const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue, onChange, entityTypes = [], showJsonTypeOption = false }) => {
   const [edited, setEdited] = useState(false)
   const { type: attributeType, isList } = getAttributeType(attributeValue)
 
   const renderInput = renderInputForAttributeType(attributeType)
 
-  const defaultReferenceEntityType = Utils.cond(
+  const referenceEntityType = Utils.cond(
     [attributeType === 'reference' && isList, () => !_.isEmpty(attributeValue.items) ? attributeValue.items[0].entityType : entityTypes[0]],
-    [attributeType === 'reference', () => attributeValue.entityType],
-    () => entityTypes[0]
+    [attributeType === 'reference', () => attributeValue.entityType]
   )
-  const defaultValue = defaultValueForAttributeType(attributeType, defaultReferenceEntityType)
+  const defaultValue = defaultValueForAttributeType(attributeType, referenceEntityType)
 
   const focusLastListItemInput = useRef(false)
   const lastListItemInput = useRef(null)
@@ -711,64 +768,22 @@ const AttributeInput = ({ autoFocus = false, value: attributeValue, initialValue
     }
   }, [attributeValue, isList])
 
-  const typeOptions = [
-    { type: 'string' },
-    { type: 'reference', tooltip: 'A link to another entity' },
-    { type: 'number' },
-    { type: 'boolean' }
-  ]
-
-  if (attributeType === 'json' || showJsonTypeOption) {
-    typeOptions.push({ type: 'json', label: 'JSON' })
-  }
-
   return h(Fragment, [
-    div({ style: { marginBottom: '1rem' } }, [
-      fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
-        legend({ style: { marginBottom: '0.5rem' } }, [isList ? 'List item type:' : 'Type:']),
-        div({
-          style: {
-            display: 'flex', flexFlow: 'row', justifyContent: 'space-between',
-            marginBottom: '0.5rem'
-          }
-        }, _.map(({ label, type, tooltip }) => h(TooltipTrigger, { content: tooltip }, [
-          span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
-            h(RadioButton, {
-              text: label || _.startCase(type),
-              name: 'edit-type',
-              checked: attributeType === type,
-              onChange: () => {
-                const newAttributeValue = convertAttributeValue(
-                  initialValue && !edited ? initialValue : attributeValue,
-                  type,
-                  defaultReferenceEntityType
-                )
-                onChange(newAttributeValue)
-              },
-              labelStyle: { paddingLeft: '0.5rem' }
-            })
-          ])
-        ]),
-        typeOptions)
+    h(AttributeTypeInput, {
+      label: isList ? 'List item type' : 'Type',
+      value: { type: attributeType, entityType: referenceEntityType },
+      entityTypes,
+      defaultReferenceEntityType: referenceEntityType,
+      showJsonTypeOption: attributeType === 'json' || showJsonTypeOption,
+      onChange: ({ type: newType, entityType: newEntityType }) => {
+        const newAttributeValue = convertAttributeValue(
+          initialValue && !edited ? initialValue : attributeValue,
+          newType,
+          newEntityType
         )
-      ]),
-      attributeType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-        h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-          h(Select, {
-            id,
-            value: defaultReferenceEntityType,
-            options: entityTypes,
-            onChange: ({ value }) => {
-              const newAttributeValue = isList ?
-                _.update('items', _.map(_.set('entityType', value)), attributeValue) :
-                _.set('entityType', value, attributeValue)
-              onChange(newAttributeValue)
-            }
-          })
-        ])])
-      ])
-    ]),
+        onChange(newAttributeValue)
+      }
+    }),
     attributeType !== 'json' && div({ style: { marginBottom: '0.5rem' } }, [
       h(LabeledCheckbox, {
         checked: isList,
@@ -932,7 +947,7 @@ export const SingleEntityEditor = ({ entityType, entityName, attributeName, attr
   ])
 }
 
-export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
+export const MultipleEntityEditor = ({ entityType, entities, attributeNames, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const [attributeToEdit, setAttributeToEdit] = useState('')
   const [attributeToEditTouched, setAttributeToEditTouched] = useState(false)
   const attributeToEditError = attributeToEditTouched && Utils.cond(
@@ -940,30 +955,22 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
     [!_.includes(attributeToEdit, attributeNames), () => 'The selected attribute does not exist.']
   )
 
-  const [newValue, setNewValue] = useState('')
+  const operations = {
+    setValue: 'setValue',
+    convertType: 'convertType'
+  }
+  const [operation, setOperation] = useState(operations.setValue)
 
-  const signal = useCancellation()
+  const [newValue, setNewValue] = useState('')
+  const [newType, setNewType] = useState({ type: 'string' })
+
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
 
-  const doEdit = async () => {
+  const withBusyStateAndErrorHandling = operation => async () => {
     try {
       setIsBusy(true)
-
-      const entityUpdates = _.map(entityName => ({
-        entityType,
-        name: entityName,
-        operations: [{
-          op: 'AddUpdateAttribute',
-          attributeName: attributeToEdit,
-          addUpdateAttribute: prepareAttributeForUpload(newValue)
-        }]
-      }), entityNames)
-
-      await Ajax(signal)
-        .Workspaces
-        .workspace(namespace, name)
-        .upsertEntities(entityUpdates)
+      await operation()
       onSuccess()
     } catch (e) {
       onDismiss()
@@ -971,33 +978,43 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
     }
   }
 
-  const doDelete = async () => {
-    try {
-      setIsBusy(true)
-      await Ajax(signal).Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, entityNames)
-      onSuccess()
-    } catch (e) {
-      onDismiss()
-      reportError('Unable to modify entities.', e)
-    }
-  }
+  const saveAttributeEdits = withBusyStateAndErrorHandling(() => {
+    const entityUpdates = _.map(entity => ({
+      entityType,
+      name: entity.name,
+      operations: [{
+        op: 'AddUpdateAttribute',
+        attributeName: attributeToEdit,
+        addUpdateAttribute: Utils.switchCase(operation,
+          [operations.setValue, () => prepareAttributeForUpload(newValue)],
+          [operations.convertType, () => convertAttributeValue(entity.attributes[attributeToEdit], newType.type, newType.entityType)]
+        )
+      }]
+    }), entities)
+
+    return Ajax()
+      .Workspaces
+      .workspace(namespace, name)
+      .upsertEntities(entityUpdates)
+  })
+  const deleteAttributes = withBusyStateAndErrorHandling(() => Ajax().Workspaces.workspace(namespace, name).deleteAttributeFromEntities(entityType, attributeToEdit, _.map('name', entities)))
 
   const boldish = text => span({ style: { fontWeight: 600 } }, [text])
 
   return h(Modal, {
-    title: `Edit fields in ${pluralize('row', entityNames.length, true)}`,
+    title: `Edit fields in ${pluralize('row', entities.length, true)}`,
     onDismiss,
     showButtons: false
   }, [
     consideringDelete ?
       h(Fragment, [
         'Are you sure you want to delete the value ', boldish(attributeToEdit),
-        ' from ', boldish(`${entityNames.length} ${entityType}s`), '?',
+        ' from ', boldish(`${entities.length} ${entityType}s`), '?',
         div({ style: { marginTop: '1rem' } }, [boldish('This cannot be undone.')]),
         div({ style: { marginTop: '1rem', display: 'flex', alignItems: 'baseline' } }, [
           div({ style: { flexGrow: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setConsideringDelete(false) }, ['Back to editing']),
-          h(ButtonPrimary, { onClick: doDelete }, ['Delete'])
+          h(ButtonPrimary, { onClick: deleteAttributes }, ['Delete'])
         ])
       ]) :
       h(Fragment, [
@@ -1040,12 +1057,48 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
           ])
         ]),
         attributeToEditTouched ? h(Fragment, [
-          p({ style: { fontWeight: 'bold' } }, ['Change selected values to:']),
-          h(AttributeInput, {
-            value: newValue,
-            onChange: setNewValue,
-            entityTypes
-          }),
+          div({ style: { marginBottom: '1rem' } }, [
+            fieldset({ style: { border: 'none', margin: 0, padding: 0 } }, [
+              legend({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Operation']),
+              div({ style: { display: 'flex', flexDirection: 'row', marginBottom: '0.5rem' } }, [
+                _.map(({ operation: operationOption, label }) => span({
+                  key: operationOption,
+                  style: { display: 'inline-block', marginRight: '1ch', whiteSpace: 'nowrap' }
+                }, [
+                  h(RadioButton, {
+                    text: label,
+                    name: 'operation',
+                    checked: operation === operationOption,
+                    onChange: () => {
+                      setOperation(operationOption)
+                    },
+                    labelStyle: { paddingLeft: '0.5rem' }
+                  })
+                ]), [
+                  { operation: operations.setValue, label: 'Set value' },
+                  { operation: operations.convertType, label: 'Convert type' }
+                ])
+              ])
+            ])
+          ]),
+          Utils.cond(
+            [operation === operations.setValue, () => h(Fragment, [
+              p({ style: { fontWeight: 'bold' } }, ['Set selected values to:']),
+              h(AttributeInput, {
+                value: newValue,
+                onChange: setNewValue,
+                entityTypes
+              })
+            ])],
+            [operation === operations.convertType, () => h(Fragment, [
+              p({ style: { fontWeight: 'bold' } }, ['Convert selected values to:']),
+              h(AttributeTypeInput, {
+                value: newType,
+                onChange: setNewType,
+                entityTypes
+              })
+            ])]
+          ),
           div({ style: { marginTop: '2rem', display: 'flex', alignItems: 'baseline' } }, [
             h(ButtonOutline, {
               disabled: !!attributeToEditError,
@@ -1057,7 +1110,7 @@ export const MultipleEntityEditor = ({ entityType, entityNames, attributeNames, 
             h(ButtonPrimary, {
               disabled: attributeToEditError,
               tooltip: attributeToEditError,
-              onClick: doEdit
+              onClick: saveAttributeEdits
             }, ['Save edits'])
           ])
         ]) : div({ style: { display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' } }, [
@@ -1380,37 +1433,34 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
-    h(MenuTrigger, {
-      closeOnClick: true,
-      side: 'bottom',
-      content: h(Fragment, [
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
-      ])
-    }, [
-      h(Link, { 'aria-label': 'Column menu' }, [
-        icon('cardMenuIcon', { size: 16 })
-      ])
+  const columnMenu = h(MenuTrigger, {
+    closeOnClick: true,
+    side: 'bottom',
+    content: h(Fragment, [
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+    ])
+  }, [
+    h(Link, { 'aria-label': 'Column menu' }, [
+      icon('cardMenuIcon', { size: 16 })
     ])
   ])
 
-  return h(Sortable, {
-    sort, field, onSort
-  }, [
-    children,
-    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } }, [columnMenu])
+  return h(Fragment, [
+    h(Sortable, {
+      sort, field, onSort
+    }, [
+      children,
+      div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
+    ]),
+    columnMenu
   ])
 }
 
-export const saveScroll = _.throttle(100, (initialX, initialY) => {
-  StateHistory.update({ initialX, initialY })
-})
-
 // Accepts two arrays of attribute names. Concatenates, uniquifies, and sorts those attribute names, returning
-// the resultant array. Uniqification is case-insensitive but case-preserving, to mirror backend behavior of the
-// entity type metadata API. Uniqification prefers the leftmost attribute.
+// the resultant array. This is broken out into this helper method so as to easily control the criteria for uniqueness
+// and sorting; for instance, we could use localeCompare for case-insensitive uniqueness.
 export const concatenateAttributeNames = (attrList1, attrList2) => {
-  return _.uniqWith((left, right) => !left.localeCompare(right, undefined, { sensitivity: 'accent' }), _.concat(attrList1, attrList2)).sort()
+  return _.uniq(_.concat(attrList1, attrList2)).sort()
 }

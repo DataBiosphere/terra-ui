@@ -50,7 +50,6 @@ export const CloudEnvironmentModal = ({
 
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
-    isAnalysisMode: true,
     workspace,
     tool,
     runtimes,
@@ -67,7 +66,8 @@ export const CloudEnvironmentModal = ({
     workspace,
     runtimes,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
@@ -76,7 +76,8 @@ export const CloudEnvironmentModal = ({
     apps,
     appDataDisks,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
@@ -118,6 +119,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+
   const isLaunchSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isLaunchUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
@@ -147,9 +149,9 @@ export const CloudEnvironmentModal = ({
 
   // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
   const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
-    const { googleProject, appName } = currentApp(toolLabel)
+    const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
-      Ajax().Apps.app(googleProject, appName).resume())
+      Ajax().Apps.app(cloudContext.cloudResource, appName).resume())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel,
@@ -157,8 +159,8 @@ export const CloudEnvironmentModal = ({
   }])
 
   const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
-    const { googleProject, appName } = currentApp(toolLabel)
-    executeAndRefresh(toolLabel, Ajax().Apps.app(googleProject, appName).pause())
+    const { appName, cloudContext } = currentApp(toolLabel)
+    executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext.cloudResource, appName).pause())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())

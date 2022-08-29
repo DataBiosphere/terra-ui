@@ -76,7 +76,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -175,6 +175,10 @@ const ImportData = () => {
           notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
         }
       }],
+      ['catalog', async () => {
+        await Ajax().Catalog.exportDataset({ id: catalogDatasetId, workspaceId: workspace.workspaceId })
+        notify('success', 'Catalog dataset imported successfully.', { timeout: 3000 })
+      }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
         notify('success', 'Data imported successfully.', { timeout: 3000 })
@@ -210,7 +214,7 @@ const ImportData = () => {
                 ])))(snapshots)
             ])
           ]) :
-          div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+          url && div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
           'within a workspace of your choice where you can then perform analysis.'

@@ -175,7 +175,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, shouldHideCloseButton = true
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
@@ -706,18 +706,17 @@ export const ComputeModalBase = ({
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
       /* eslint-disable indent */
-      // TODO: open to feedback and still thinking about this...
       // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
       // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
       //   user is using custom image
-      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection)
       //   use default image for selected tool
       // else
       //   use imageUrl derived from users current runtime
       /* eslint-disable indent */
       const getSelectedImage = () => {
         if (foundImage) {
-          if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+          if (!_.includes(foundImage, filteredNewLeoImages)) {
             return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
           } else {
             return imageUrl
@@ -736,7 +735,7 @@ export const ComputeModalBase = ({
 
       const locationType = getLocationType(location)
       const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
-      const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+      const runtimeConfig = currentRuntimeDetails?.runtimeConfig || computeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const autopauseThresholdCalculated = !!currentRuntimeDetails ? currentRuntimeDetails.autopauseThreshold : defaultAutopauseThreshold
       const newRuntimeType = Utils.switchCase(runtimeConfig?.cloudService,
@@ -861,7 +860,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: isAnalysisMode ? tool !== tools.RStudio.label : true })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== tools.RStudio.label })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -1468,18 +1467,18 @@ export const ComputeModalBase = ({
               'This change requires rebuilding your cloud environment, which will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
             ]),
-            existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+            existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willDeletePersistentDisk(), () => h(Fragment, [
             p([
               'To reduce the size of the PD, the existing PD will be deleted and a new one will be created and attached to your virtual machine instance. This will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
             ]),
-            existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+            existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime.tool !== desiredTool ?
-              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ',
+            existingRuntime && existingRuntime.tool !== desiredTool ?
+              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime?.tool]), ' to ',
                 strong([desiredTool]), '.']) :
               undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
@@ -1553,7 +1552,7 @@ export const ComputeModalBase = ({
         h(TitleBar, {
           id: titleId,
           style: { marginBottom: '0.5rem' },
-          title: isAnalysisMode ? `${tool} Cloud Environment` : 'Cloud Environment',
+          title: `${tool} Cloud Environment`,
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),

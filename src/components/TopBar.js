@@ -13,7 +13,7 @@ import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
 import { signIn, signOut } from 'src/libs/auth'
-import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/brand-utils'
+import { isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isRadX, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
@@ -307,7 +307,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
-            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.light() } }),
+            h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: 'white' } }),
             isBioDataCatalyst() && h(Fragment, [
               h(Link,
                 {
@@ -323,7 +323,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 onClick: hideNav
               }, ['Terra Terms of Service'])
             ]),
-            div({ style: { color: colors.light(), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
+            div({ style: { color: 'white', fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
                 href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
@@ -354,7 +354,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         ...styles.topBar,
         // This div contains the primary fallback color for a11y which will be used to calculate color contrast when the background is manually hidden
         // A 1.47 intensity results in precisely a 4.5:1 ratio against the white text
-        backgroundColor: isTerra() ? colors.primary(1.47) : colors.light()
+        backgroundColor: isTerra() ? colors.primary(1.47) : colors.light(isRadX() ? 0.4 : 1)
       }
     }, [
       div({

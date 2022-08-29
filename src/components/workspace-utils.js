@@ -1,18 +1,25 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { b, div, h, p, span } from 'react-hyperscript-helpers'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, ClipboardButton, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import DelayedRender from 'src/components/DelayedRender'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import TooltipTrigger from 'src/components/TooltipTrigger'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -99,6 +106,7 @@ export const SnapshotInfo = ({
 }) => {
   // State
   const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+  const [snapshotLoadError, setSnapshotLoadError] = useState()
   const [newName, setNewName] = useState(snapshotName)
   const [editingName, setEditingName] = useState(false)
   const [newDescription, setNewDescription] = useState(undefined)
@@ -124,13 +132,21 @@ export const SnapshotInfo = ({
   // Lifecycle
   useOnMount(() => {
     const loadSnapshotInfo = async () => {
-      const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
-      setSelectedSnapshotInfo(snapshotInfo)
+      try {
+        const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
+        setSelectedSnapshotInfo(snapshotInfo)
+        setSnapshotLoadError(undefined)
+      } catch (e) {
+        try {
+          setSnapshotLoadError(await e.json())
+        } catch (inner) {
+          setSnapshotLoadError('unknown error')
+        }
+        setSelectedSnapshotInfo({})
+      }
     }
-
     loadSnapshotInfo()
   })
-
 
   // Render
   const { name: sourceName, description: sourceDescription, createdDate, source = [] } = snapshotInfo || {}
@@ -142,6 +158,43 @@ export const SnapshotInfo = ({
     },
     length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
   })
+
+  const tdrErrorDisplay = () => div({ style: { paddingLeft: '1rem' } }, [
+    div({ style: Style.dashboard.header }, ['Error']),
+    `Details of this snapshot could not be loaded due to a problem calling Terra Data Repo: ${JSON.stringify(snapshotLoadError)}`
+  ])
+
+  const tdrDetails = () => !snapshotLoadError && div({ style: { paddingLeft: '1rem' } }, [
+    div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
+    h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
+    h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
+    div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+    div([sourceDescription]),
+    h(SnapshotLabeledInfo, {
+      title: 'Data Repo Snapshot Id:', text: [h(Link, {
+        href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
+        'aria-label': 'Go to the snapshot in a new tab'
+      }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
+    }),
+    div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
+    _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
+      return div({
+        key: id,
+        style: { marginBottom: '1rem' }
+      }, [
+        h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
+        h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
+        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+        div([datasetDescription]),
+        h(SnapshotLabeledInfo, {
+          title: 'Data Repo Dataset Id:', text: [h(Link, {
+            href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
+            'aria-label': 'Go to the dataset in a new tab'
+          }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: id, style: { marginLeft: '0.25rem' } })]
+        })
+      ])
+    }, source)
+  ])
 
   return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
     div({ style: { padding: '1rem' } }, [
@@ -179,37 +232,9 @@ export const SnapshotInfo = ({
           ])
         ]) : h(MarkdownViewer, [description || '']) // description is null for newly-added snapshot references
       ]),
-      div({ style: { paddingLeft: '1rem' } }, [
-        div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
-        h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
-        h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
-        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-        div([sourceDescription]),
-        h(SnapshotLabeledInfo, {
-          title: 'Data Repo Snapshot Id:', text: [h(Link, {
-            href: `${getConfig().dataRepoUrlRoot}/snapshots/${snapshotId}`, target: '_blank',
-            'aria-label': 'Go to the snapshot in a new tab'
-          }, [snapshotId]), h(ClipboardButton, { 'aria-label': 'Copy data repo snapshot id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
-        }),
-        div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
-        _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
-          return div({
-            key: id,
-            style: { marginBottom: '1rem' }
-          }, [
-            h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
-            h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
-            div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-            div([datasetDescription]),
-            h(SnapshotLabeledInfo, {
-              title: 'Data Repo Dataset Id:', text: [h(Link, {
-                href: `${getConfig().dataRepoUrlRoot}/datasets/${id}`, target: '_blank',
-                'aria-label': 'Go to the dataset in a new tab'
-              }, [id]), h(ClipboardButton, { 'aria-label': 'Copy data repo dataset id to clipboard', text: snapshotId, style: { marginLeft: '0.25rem' } })]
-            })
-          ])
-        }, source)
-      ]),
+
+      snapshotLoadError ? tdrErrorDisplay() : tdrDetails(),
+
       Utils.canWrite(accessLevel) && div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])
       ]),
@@ -338,6 +363,125 @@ export const WorkspaceTagSelect = props => {
     loadOptions: getTagSuggestions,
     ...props
   })
+}
+
+export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updatingStars, setUpdatingStars }) => {
+  const { workspace: { workspaceId } } = workspace
+  const isStarred = _.includes(workspaceId, stars)
+
+  //Thurloe has a limit of 2048 bytes for its VALUE column. That means we can store a max of 55
+  //workspaceIds in list format. We'll use 50 because it's a nice round number and should be plenty
+  //for the intended use case. If we find that 50 is not enough, consider introducing more powerful
+  //workspace organization functionality like folders
+  const MAX_STARRED_WORKSPACES = 50
+  const maxStarredWorkspacesReached = _.size(stars) >= MAX_STARRED_WORKSPACES
+
+  const refreshStarredWorkspacesList = async () => {
+    const { starredWorkspaces } = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
+    return _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+  }
+
+  const toggleStar = _.flow(
+    Utils.withBusyState(setUpdatingStars),
+    withErrorReporting(`Unable to ${isStarred ? 'unstar' : 'star'} workspace`)
+  )(async star => {
+    const refreshedStarredWorkspaceList = await refreshStarredWorkspacesList()
+    const updatedWorkspaceIds = star ?
+      _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
+      _.without([workspaceId], refreshedStarredWorkspaceList)
+    await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
+    setStars(updatedWorkspaceIds)
+  })
+
+  return h(Clickable, {
+    as: 'span',
+    role: 'checkbox',
+    'aria-checked': isStarred,
+    tooltip: Utils.cond(
+      [updatingStars, () => 'Updating starred workspaces.'],
+      [isStarred, () => 'Unstar this workspace.'],
+      [!isStarred && !maxStarredWorkspacesReached, () => 'Star this workspace. Starred workspaces will appear at the top of your workspace list.'],
+      [!isStarred && maxStarredWorkspacesReached, () => ['A maximum of ',
+        MAX_STARRED_WORKSPACES, ' workspaces can be starred. Please un-star another workspace before starring this workspace.']]
+    ),
+    'aria-label': isStarred ? 'This workspace is starred' : '',
+    className: 'fa-layers fa-fw',
+    disabled: updatingStars || (maxStarredWorkspacesReached && !isStarred),
+    style: { verticalAlign: 'middle', ...style },
+    onKeyDown: e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        e.stopPropagation()
+        e.target.click()
+      }
+    },
+    onClick: () => toggleStar(!isStarred)
+  }, [
+    updatingStars ? spinner({ size: 20 }) : icon('star', { size: 20, color: isStarred ? colors.warning() : colors.light(2) })
+  ])
+}
+
+export const WorkspaceSubmissionStatusIcon = ({ status, loadingSubmissionStats, size = 20 }) => {
+  return Utils.cond(
+    [loadingSubmissionStats, () => h(DelayedRender, [
+      h(TooltipTrigger, {
+        content: 'Loading submission status',
+        side: 'left'
+      }, [spinner({ size })])
+    ])],
+    [status, () => h(TooltipTrigger, {
+      content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(status)])]),
+      side: 'left'
+    }, [
+      Utils.switchCase(status,
+        ['success', () => icon('success-standard', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Success' })],
+        ['failure', () => icon('error-standard', { size, style: { color: colors.danger(0.85) }, 'aria-label': 'Workflow Status Failure' })],
+        ['running', () => icon('sync', { size, style: { color: colors.success() }, 'aria-label': 'Workflow Status Running' })]
+      )
+    ])],
+    () => div({ className: 'sr-only' }, ['No workflows have been run']))
+}
+
+export const recentlyViewedPersistenceId = 'workspaces/recentlyViewed'
+
+export const updateRecentlyViewedWorkspaces = workspaceId => {
+  const recentlyViewed = getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []
+  //Recently viewed workspaces are limited to 4. Additionally, if a user clicks a workspace multiple times,
+  //we only want the most recent instance stored in the list.
+  const updatedRecentlyViewed = _.flow(
+    _.remove({ workspaceId }),
+    _.concat([{ workspaceId, timestamp: Date.now() }]),
+    _.orderBy(['timestamp'], ['desc']),
+    _.take(4)
+  )(recentlyViewed)
+  setLocalPref(recentlyViewedPersistenceId, { recentlyViewed: updatedRecentlyViewed })
+}
+
+export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
+  const { workspace: { namespace, name, googleProject } } = workspace
+
+  const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
+
+  return h(Clickable, {
+    style: { ...Style.elements.card.container, maxWidth: 'calc(25% - 10px)', margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
+    href: Nav.getLink('workspace-dashboard', { namespace, name })
+  }, [
+    div({ style: { flex: 'none' } }, [
+      div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
+      div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+        div({ style: { ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', fontStyle: 'italic' } }, `Viewed ${dateViewed}`),
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(WorkspaceSubmissionStatusIcon, {
+            status: submissionStatus,
+            loadingSubmissionStats
+          }),
+          !!googleProject ?
+            h(CloudGcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
+            h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
+        ])
+      ])
+    ])
+  ])
 }
 
 export const NoWorkspacesMessage = ({ onClick }) => {

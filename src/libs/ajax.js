@@ -961,6 +961,8 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.text()),
+
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
           sourceWorkspace: { namespace, name },
@@ -1095,6 +1097,9 @@ const Catalog = signal => ({
   getDatasetPreviewTable: async ({ id, tableName }) => {
     const res = await fetchCatalog(`v1/datasets/${id}/tables/${tableName}`, _.merge(authOpts(), { signal }))
     return res.json()
+  },
+  exportDataset: async ({ id, workspaceId }) => {
+    return await fetchCatalog(`v1/datasets/${id}/export/${workspaceId}`, _.merge(authOpts(), { signal, method: 'POST' }))
   }
 })
 
@@ -1237,6 +1242,13 @@ const Buckets = signal => ({
         signal, method: 'POST', body: file,
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
+    )
+  },
+
+  patch: async (googleProject, bucket, name, metadata) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
     )
   },
 

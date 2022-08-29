@@ -4,22 +4,28 @@ import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
-import DelayedRender from 'src/components/DelayedRender'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import {
+  NoWorkspacesMessage, recentlyViewedPersistenceId, RecentlyViewedWorkspaceCard, useWorkspaces, WorkspaceStarControl, WorkspaceSubmissionStatusIcon,
+  WorkspaceTagSelect
+} from 'src/components/workspace-utils'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { getLocalPref } from 'src/libs/prefs'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -87,6 +93,14 @@ export const WorkspaceList = () => {
   const { workspaces, refresh: refreshWorkspaces, loadingWorkspaces, loadingSubmissionStats } = useWorkspacesWithSubmissionStats()
   const [featuredList, setFeaturedList] = useState()
 
+  const { profile: { starredWorkspaces } } = useStore(authStore)
+  const starredWorkspaceIds = _.isEmpty(starredWorkspaces) ? [] : _.split(',', starredWorkspaces)
+  const [stars, setStars] = useState(starredWorkspaceIds)
+  const [updatingStars, setUpdatingStars] = useState(false)
+
+  //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
+  const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
+
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
   // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
@@ -144,9 +158,11 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
+  //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
-    [sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
-    [sort.direction],
+    [ws => _.includes(ws.workspace.workspaceId, starredWorkspaceIds),
+      sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
+    ['desc', sort.direction],
     filteredWorkspaces[tab]
   )
 
@@ -179,6 +195,20 @@ export const WorkspaceList = () => {
       rowHeight: 70,
       sort,
       columns: [
+        {
+          field: 'starred',
+          headerRenderer: () => div({ className: 'sr-only' }, ['Starred']),
+          cellRenderer: ({ rowIndex }) => {
+            const workspace = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, justifyContent: 'center', alignItems: 'center', padding: '0.5rem 0' } }, [
+              h(WorkspaceStarControl, {
+                workspace, setStars, updatingStars,
+                setUpdatingStars, stars
+              })
+            ])
+          },
+          size: { basis: 40, grow: 0, shrink: 0 }
+        },
         {
           field: 'name',
           headerRenderer: makeHeaderRenderer('name'),
@@ -249,18 +279,46 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Last Workflow Submitted Status']),
+          cellRenderer: ({ rowIndex }) => {
+            const workspace = sortedWorkspaces[rowIndex]
+            const lastRunStatus = workspaceSubmissionStatus(workspace)
+
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                h(WorkspaceSubmissionStatusIcon, {
+                  status: lastRunStatus,
+                  loadingSubmissionStats
+                })
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
+          headerRenderer: () => div({ className: 'sr-only' }, ['Cloud Platform']),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                Utils.switchCase(cloudPlatform,
+                  ['Gcp', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+                  ['Azure', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }, {
           headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            const { accessLevel, workspace: { workspaceId, namespace, name } } = sortedWorkspaces[rowIndex]
             if (!Utils.canRead(accessLevel)) {
-              // No menu shown if user does not have read acccess.
-              return null
+              // No menu shown if user does not have read access.
+              return div({ className: 'sr-only' }, ['You do not have permission to perform actions on this workspace.'])
             }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onLock = () => setLockingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const lastRunStatus = workspaceSubmissionStatus(workspace)
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
@@ -269,24 +327,6 @@ export const WorkspaceList = () => {
                   callbacks: { onClone, onShare, onLock, onDelete },
                   workspaceInfo: { namespace, name }
                 })
-              ]),
-              div({ style: styles.tableCellContent }, [
-                loadingSubmissionStats && h(DelayedRender, [
-                  h(TooltipTrigger, {
-                    content: 'Loading submission status',
-                    side: 'left'
-                  }, [spinner({ size: 20 })])
-                ]),
-                !!lastRunStatus && h(TooltipTrigger, {
-                  content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
-                  side: 'left'
-                }, [
-                  Utils.switchCase(lastRunStatus,
-                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
-                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
-                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
-                  )
-                ])
               ])
             ])
           },
@@ -316,7 +356,19 @@ export const WorkspaceList = () => {
           href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
         }, ['Learn more about workspaces.'])
       ]),
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
+        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
+        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
+          _.map(({ workspaceId, timestamp }) => {
+            const workspace = getWorkspace(workspaceId)
+            return h(RecentlyViewedWorkspaceCard, {
+              workspace, loadingSubmissionStats, timestamp,
+              submissionStatus: workspaceSubmissionStatus(workspace)
+            })
+          }, recentlyViewed)
+        )
+      ]),
+      div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
           h(DelayedSearchInput, {
             placeholder: 'Search by keyword',

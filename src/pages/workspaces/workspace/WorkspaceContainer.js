@@ -13,11 +13,11 @@ import { analysisTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -76,10 +76,9 @@ const WorkspaceTabs = ({
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
     ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
-    ...(isGoogleWorkspace && !isAnalysisTabVisible() ? [{ name: 'notebooks', link: 'workspace-notebooks' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
+    { name: 'analyses', link: analysisTabName },
     ...(isGoogleWorkspace ? [{ name: 'workflows', link: 'workspace-workflows' }] : []),
     ...(isGoogleWorkspace ? [{ name: 'job history', link: 'workspace-job-history' }] : [])
   ]
@@ -145,15 +144,15 @@ const WorkspaceContainer = ({
       setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      (isAnalysisTabVisible() ?
-        [div({ style: { flex: 1, display: 'flex' } }, [
-          div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
-            children
-          ]),
-          workspace && h(ContextBar, {
-            workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
-          })
-        ])] : [children])),
+      [div({ style: { flex: 1, display: 'flex' } }, [
+        div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
+          children
+        ]),
+        workspace && h(ContextBar, {
+          workspace, apps, appDataDisks, refreshApps, runtimes, persistentDisks, refreshRuntimes, location, locationType
+        })
+      ])]
+    ),
     deletingWorkspace && h(DeleteWorkspaceModal, {
       workspace,
       onDismiss: () => setDeletingWorkspace(false),
@@ -178,8 +177,8 @@ const WorkspaceContainer = ({
 
 
 const WorkspaceAccessError = () => {
-  const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
-  const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
+  const groupURL = 'https://support.terra.bio/hc/en-us/articles/360024617851-Managing-access-to-shared-resources-data-and-tools-'
+  const authorizationURL = 'https://support.terra.bio/hc/en-us/articles/360026775691-Managing-access-to-controlled-data-with-Authorization-Domains'
   return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
@@ -333,11 +332,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
           'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
-          'workspace.isLocked', 'workspaceSubmissionStats'
+          'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
         setAzureContext(workspace.azureContext)
+        updateRecentlyViewedWorkspaces(workspace.workspace.workspaceId)
 
         const { accessLevel, workspace: { bucketName, createdBy, createdDate, googleProject } } = workspace
         const isGoogleWorkspace = !!googleProject

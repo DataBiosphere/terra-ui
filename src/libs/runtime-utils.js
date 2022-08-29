@@ -402,7 +402,8 @@ export const getCostForDisk = (app, appDataDisks, computeRegion, currentRuntimeT
   let diskCost = ''
   if (currentRuntimeTool === toolLabel && persistentDisks && persistentDisks.length > 0) {
     const curPd = getCurrentPersistentDisk(runtimes, persistentDisks)
-    diskCost = getPersistentDiskCostHourly(curPd, computeRegion)
+    const { size = 0, status = 'Running', diskType = pdTypes.standard } = curPd || {}
+    diskCost = getPersistentDiskCostHourly({ size, status, diskType }, computeRegion)
   } else if (app && appDataDisks && (toolLabel === 'Galaxy')) {
     const currentDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
     //Occasionally currentDataDisk will be undefined on initial render.
@@ -451,6 +452,7 @@ export const getConvertedRuntimeStatus = runtime => {
 }
 
 export const getComputeStatusForDisplay = status => Utils.switchCase(_.lowerCase(status),
+  ['leo reconfiguring', () => 'Updating'],
   ['starting', () => 'Resuming'],
   ['stopping', () => 'Pausing'],
   ['stopped', () => 'Paused'],

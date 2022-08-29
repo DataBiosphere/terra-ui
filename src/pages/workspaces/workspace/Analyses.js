@@ -7,7 +7,7 @@ import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -25,9 +25,9 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
@@ -35,16 +35,24 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModal } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+
+const tableFields = {
+  application: 'application',
+  name: 'name',
+  lastModified: 'lastModified'
+}
+
+const KEY_ANALYSES_SORT_ORDER = 'AnalysesSortOrder'
 
 const noWrite = 'You do not have access to modify this workspace.'
 
 const sortTokens = {
   name: notebook => notebook.name.toLowerCase()
 }
-const defaultSort = { label: 'Most Recently Updated', value: { field: 'lastModified', direction: 'desc' } }
+const defaultSort = { value: { field: tableFields.lastModified, direction: 'desc' } }
 
 const analysisContextMenuSize = 16
 const centerColumnFlex = { flex: 5 }
@@ -52,14 +60,14 @@ const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'fle
 
 const AnalysisCardHeaders = ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, 'Application'), style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'application' })
+    div({ 'aria-sort': ariaSort(sort, tableFields.application), style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.application })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: centerColumnFlex }, [
-      h(HeaderRenderer, { sort, onSort, name: 'name' })
+    div({ 'aria-sort': ariaSort(sort, tableFields.name), style: centerColumnFlex }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.name })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    div({ 'aria-sort': ariaSort(sort, tableFields.lastModified), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: tableFields.lastModified })
     ]),
     div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])
@@ -232,7 +240,7 @@ const Analyses = _.flow(
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
-  const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
+  const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -267,7 +275,7 @@ const Analyses = _.flow(
     const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
-    setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
+    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
   }) : () => setAnalyses([])
 
   const getActiveFileTransfers = _.flow(
@@ -379,7 +387,12 @@ const Analyses = _.flow(
           return div({ style: { fontStyle: 'italic' } }, ['No matching analyses'])
         }],
         [Utils.DEFAULT, () => h(Fragment, [
-          h(AnalysisCardHeaders, { sort: sortOrder, onSort: setSortOrder }),
+          h(AnalysisCardHeaders, {
+            sort: sortOrder, onSort: newSortOrder => {
+              setLocalPref(KEY_ANALYSES_SORT_ORDER, newSortOrder)
+              setSortOrder(newSortOrder)
+            }
+          }),
           div({ role: 'list', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
         ])]
       )
@@ -411,33 +424,6 @@ const Analyses = _.flow(
           div({ style: { marginLeft: '0.5rem' } }, ['Start'])
         ]),
         div({ style: { flex: 1 } }),
-        div({
-          style: {
-            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem', width: 275,
-            backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
-          }, hidden: false
-        }, [
-          div({ style: { maxWidth: 250 } }, [
-            span(['We\'d love to hear your thoughts. ']),
-            h(Link, {
-              href: 'https://www.surveymonkey.com/r/HBXP537', ...Utils.newTabLinkProps
-            }, [
-              'Submit feedback'
-            ])
-          ]),
-          h(ButtonPrimary, {
-            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'center' },
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
-                workspaceName: wsName,
-                workspaceNamespace: namespace
-              })
-              window.configOverridesStore.set({ isAnalysisTabVisible: false })
-              Nav.goToPath('workspace-notebooks', { namespace, name: wsName })
-            },
-            tooltip: 'Exit the analysis tab beta feature'
-          }, ['Revert layout'])
-        ]),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
           style: { marginRight: '0.75rem', width: 220 },
