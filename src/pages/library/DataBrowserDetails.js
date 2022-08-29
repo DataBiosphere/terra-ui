@@ -123,13 +123,13 @@ export const SidebarComponent = ({ dataObj, id }) => {
 
 
   const importDataToWorkspace = dataset => {
+    Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+      id,
+      title: dataObj['dct:title'],
+      source: dataset['dcat:accessURL']
+    })
     Utils.cond(
       [isWorkspace(dataset), () => {
-        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-          id,
-          title: dataObj['dct:title'],
-          type: 'workspace'
-        })
         Nav.history.push({
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
@@ -140,11 +140,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
         })
       }],
       [isDatarepoSnapshot(dataset), async () => {
-        Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-          id,
-          title: dataObj['dct:title'],
-          type: 'tdrSnapshot'
-        })
         setTdrSnapshotPreparePolling(true)
         const jobInfo = await withErrorReporting('Error exporting dataset', async () => await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot())()
         setSnapshotExportJobId(jobInfo.id)
