@@ -106,7 +106,19 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
 }
 
 const click = async (page, xpath, options) => {
-  return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
+  const element = await page.waitForXPath(xpath, defaultToVisibleTrue(options))
+  try {
+    return element.click()
+  } catch (e) {
+    // Handle Error: Node is detached from document
+    //   at ElementHandle._scrollIntoViewIfNeeded (/mnt/ramdisk/.yarn/unplugged/puppeteer-npm-13.5.1-231e586c7a/node_modules/puppeteer/src/common/JSHandle.ts:475:22)
+    //   at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    //   at ElementHandle.click (/mnt/ramdisk/.yarn/unplugged/puppeteer-npm-13.5.1-231e586c7a/node_modules/puppeteer/src/common/JSHandle.ts:617:5)
+    if (e instanceof Error && e.message?.includes('Node is detached from document')) {
+      return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
+    }
+    throw e
+  }
 }
 
 const findText = (page, textContains, options) => {
