@@ -8,7 +8,7 @@ import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const dataTableVersionsPathRoot = '.data-table-versions'
+export const dataTableVersionsPathRoot = '.data-table-versions'
 
 export const saveDataTableVersion = async (workspace, entityType, { description = null } = {}) => {
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
