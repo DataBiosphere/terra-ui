@@ -127,7 +127,7 @@ const MigratePersistentDisksBanner = ({ count }) => {
       position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
       backgroundColor: colors.warning(0.15),
       border: '2px solid', borderRadius: '12px', borderColor: colors.warning(),
-      zIndex: 9999
+      zIndex: 8000 // Must be under 9000 to not draw over notifications
     }
   }, [
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
@@ -168,83 +168,84 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
   const migrateDisk = _.flow(
     withErrorReportingInModal('Error migrating persistent disk.', onDismiss),
     Utils.withBusyState(setMigrating)
-  )(() => {
-    throw Error('Not implemented.')
-    onSuccess()
+  )(async () => {
+    await _.flow(
+      _.filter(({ workspaceId }) => isSelected[workspaceId]),
+      _.map(workspace => {
+        const { namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName } = workspace
+        return Ajax().Disks.disk(workspace.googleProject, disk.name).create({
+          ..._.pick(['size', 'blockSize'], disk),
+          diskType: disk.diskType.label,
+          labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
+          sourceDisk: _.pick(['googleProject', 'name'], disk)
+        })
+      }),
+      ps => Promise.all(ps)
+    )(workspaces)
+    await onSuccess()
   })
 
-  const WorkspaceSelection = ({ accessLevel, public: isPublic, workspace: { authorizationDomain, name, workspaceId } }) => {
+  const WorkspaceSelection = ({ authorizationDomain, name, workspaceId }) => {
     const authDomains = _.map('membersGroupName', authorizationDomain)?.join(', ')
-    return div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', margin: '0.5rem' } }, [
+    return div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
       h(LabeledCheckbox, {
-          style: { marginRight: '0.25rem' },
-          disabled: !(Utils.canWrite(accessLevel) || isPublic),
-          checked: isSelected[workspaceId],
-          onChange: selected => setIsSelected(previousState => _.set(workspaceId, selected, previousState))
-        }, [div({ style: { width: '100%', ...Style.noWrapEllipsis } }, [name]), Utils.cond(
-          [authorizationDomain.length === 1, () => ` (Authorization Domain: ${authDomains})`],
-          [authorizationDomain.length > 1, () => ` (Authorization Domains: ${authDomains})`]
-        )]
-      )
+        checked: isSelected[workspaceId],
+        onChange: selected => setIsSelected(previousState => _.set(workspaceId, selected, previousState)),
+        style: { marginRight: '0.25rem' }
+      }),
+      span({ style: { width: '100%', ...Style.noWrapEllipsis } }, Utils.cond(
+        [authorizationDomain.length === 1, () => `${name} (Authorization Domain: ${authDomains})`],
+        [authorizationDomain.length > 1, () => `${name} (Authorization Domains: ${authDomains})`],
+        [Utils.DEFAULT, () => name]
+      ))
     ])
   }
 
-  const DeleteDiskSelection = ({ text }) => div({
-    style: {
-      display: 'flex', flexDirection: 'row', alignItems: 'center',
-      margin: '0.5rem'
-    }
-  }, [
-    h(LabeledCheckbox, {
-      style: { display: 'flex' },
-      checked: deleteDisk,
-      onChange: setDeleteDisk
-    }, [text])
-  ])
+  const DeleteDiskSelection = ({ children, ...props }) => {
+    return div({ style: { ...props?.style, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+      h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk, style: { marginRight: '0.25rem' } }, []),
+      children
+    ])
+  }
 
   const costPerCopy = getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone))
-  const numberOfCopies = _.flow(_.values, _.filter(_.identity), _.size)(isSelected)
+  const numberOfCopies = _.flow(_.values, _.compact, _.size)(isSelected)
+
+  const space = { style: { marginBottom: '0.5rem' } }
 
   return h(Modal, {
     title: `Migrate ${disk.name}`,
+    width: '33%',
     okButton: deleteDisk || workspaces.length === 0 ?
-      h(ButtonPrimary, {
-        disabled: !deleteDisk, onClick: () => {
-          onDismiss()
-          deleteDiskId(disk.id)
-        }
-      }, 'Delete') :
-      h(ButtonPrimary, { onClick: migrateDisk }, 'Migrate'),
+      h(ButtonPrimary, { disabled: !deleteDisk, onClick: _.flow(onDismiss, _.constant(disk.id), deleteDiskId) }, 'Delete') :
+      h(ButtonPrimary, { disabled: numberOfCopies === 0, onClick: migrateDisk }, 'Migrate'),
     onDismiss
-  }, [
-    'Due to data security policies, persistent disks can no longer be shared between workspaces.',
-    workspaces.length > 0 ?
-      div({ style: { display: 'flex', flexDirection: 'column' } }, [
-        strong(['Select workspaces where you what to use a copy of this disk.']),
-        div({ style: { width: '100%', padding: '0', overflowX: 'hidden', overflowY: 'scroll' } },
-          _.map(workspace => h(WorkspaceSelection, workspace, []), workspaces)
+  },
+  [
+    div({ style: { display: 'flex', flexDirection: 'column' } }, [
+      span(space, 'Due to data security policies, persistent disks can no longer be shared between workspaces.'),
+      workspaces.length > 0 ? [
+        strong(space, 'Select workspaces where you what to use a copy of this disk.'),
+        div({ style: { ...space.style, overflowX: 'hidden', overflowY: 'scroll' } },
+          _.map(workspace => div(space, [h(WorkspaceSelection, workspace, [])]), workspaces)
         ),
-        'OR',
-        h(DeleteDiskSelection, { text: 'Do not copy. Delete this disk for all users.' }, []),
+        span(space, 'OR'),
+        h(DeleteDiskSelection, space, ['Do not copy. Delete this disk for all users.']),
         div({ style: { display: 'flex', flexDirection: 'column' } }, [
-          strong(['Cost']),
+          strong(space, 'Cost'),
           `${Utils.formatUSD(costPerCopy)}/month per copy. (${Utils.formatUSD(costPerCopy * numberOfCopies)}/month total after migration)`
         ])
-      ]) :
-      div({ style: { display: 'flex', flexDirection: 'column' } }, [
-        strong(['You own this disk but do not have access to any workspaces where it can be shared.']),
-        h(DeleteDiskSelection, { text: 'Delete this disk for all users.' }, []),
-        'OR',
-        div([h(Link, {
-          onClick: () => {
-            onDismiss()
-            contactSupport()
-          }
-        }, ['Contact Terra Support']),
+      ] : [
+        strong(space, 'You own this disk but do not have access to any workspaces where it is shared.'),
+        h(DeleteDiskSelection, space, ['Delete this disk for all users.']),
+        span(space, 'OR'),
+        div([
+          h(Link, { onClick: _.flow(onDismiss, contactSupport) }, 'Contact Terra Support'),
           ' to have it transferred to another user'
         ])
-      ]),
-    migrating && spinnerOverlay
+      ],
+      migrating && spinnerOverlay
+    ])
   ])
 }
 
@@ -277,7 +278,6 @@ const Environments = () => {
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
   const [shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator] = useState(true)
   const [migrateDisk, setMigrateDisk] = useState()
-  const [contactSupport, setContactSupport] = useState(false)
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
@@ -800,7 +800,13 @@ const Environments = () => {
       }),
       migrateDisk && h(MigratePersistentDiskModal, {
         disk: migrateDisk,
-        workspaces: _.flow(_.get(migrateDisk.googleProject), _.values, _.filter(Utils.canWrite))(workspaces),
+        workspaces: _.flow(
+          _.get(migrateDisk.googleProject),
+          _.values,
+          //_.filter(Utils.canWrite),
+          _.map('workspace'),
+          _.filter(({ googleProject }) => googleProject !== migrateDisk.googleProject)
+        )(workspaces),
         onDismiss: () => setMigrateDisk(undefined),
         onSuccess: () => {
           setMigrateDisk(undefined)
@@ -811,7 +817,7 @@ const Environments = () => {
       })
     ]),
     h(MigratePersistentDisksBanner, { count: _.countBy('requiresMigration', disks).true }, []),
-    contactSupport && h(SupportRequestWrapper),
+    contactUsActive.get() && h(SupportRequestWrapper),
     (loadingWorkspaces || loading) && spinnerOverlay
   ])
 }
