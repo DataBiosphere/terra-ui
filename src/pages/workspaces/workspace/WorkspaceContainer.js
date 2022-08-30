@@ -229,10 +229,10 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = _.map(_.remove(isV1Artefact), !!workspace ? await Promise.all([
+      const [newDisks, newRuntimes] = !!workspace ? _.map(_.remove(isV1Artefact), await Promise.all([
         Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
-      ]) : [[], []])
+      ])) : [[], []]
 
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
