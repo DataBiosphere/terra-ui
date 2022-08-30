@@ -47,9 +47,14 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   })
 }
 
+export const TooltipText = {
+  AzureCloneTooltip: 'Cloning is not currently supported on Azure Workspaces',
+  AzureShareTooltip: 'Sharing is not currently supported on Azure Workspaces'
+}
+
 const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
-    [workspaceLoaded && isAzureWorkspace, () => 'Sharing is not currently supported on Azure Workspaces'],
+    [workspaceLoaded && isAzureWorkspace, () => TooltipText.AzureShareTooltip],
     [workspaceLoaded && !canShare, () => 'You have not been granted permission to share this workspace'],
     [Utils.DEFAULT, () => '']
   )
@@ -62,7 +67,7 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
   return h(Fragment, [
     h(MenuButton, {
       disabled: !workspaceLoaded || isAzureWorkspace,
-      tooltip: workspaceLoaded && isAzureWorkspace && 'Cloning is not currently supported on Azure Workspaces',
+      tooltip: workspaceLoaded && isAzureWorkspace && TooltipText.AzureCloneTooltip,
       tooltipSide: 'left',
       onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
