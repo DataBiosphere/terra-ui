@@ -62,7 +62,8 @@ const DataTable = props => {
     snapshotName,
     deleteColumnUpdateMetadata,
     controlPanelStyle,
-    border = true
+    border = true,
+    extraColumnActions
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -393,13 +394,15 @@ const DataTable = props => {
                     }, [
                       h(HeaderOptions, {
                         sort, field: attributeName, onSort: setSort,
-                        extraActions: editable && [
-                          // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
-                          // Without this, autofocus doesn't work in the modals.
-                          { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
-                          { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
-                          { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
-                        ]
+                        extraActions: _.concat(
+                          editable ? [
+                            // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                            // Without this, autofocus doesn't work in the modals.
+                            { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
+                            { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                            { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                          ] : [],
+                          extraColumnActions ? extraColumnActions(attributeName) : [])
                       }, [
                         h(HeaderCell, [
                           !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),

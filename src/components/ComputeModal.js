@@ -1162,7 +1162,7 @@ export const ComputeModalBase = ({
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(location))
+                options: getAvailableComputeRegions(location)
               })
             ])
           ])
