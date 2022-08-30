@@ -407,7 +407,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, isExpanded, on
   ])
 })
 
-const NotificationSettingsTab = () => {
+const NotificationSettingsTab = setSaving => {
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
 
@@ -451,17 +451,19 @@ const NotificationSettingsTab = () => {
 //  ])
 }
 
-const PersonalInfoTab = () => {
+const PersonalInfoTab = setSaving => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
-  const [saving, setSaving] = useState()
   const [tab, setTab] = useState('personalInfo')
-  const [areasOfResearch, setAreasOfResearch] = useState([])
+  const { researchArea } = profileInfo
+  const [areasOfResearch, setAreasOfResearch] = useState(_.isEmpty(researchArea) ? [] : _.split(',', researchArea))
 
   const signal = useCancellation()
 
   // Helpers
   const assignValue = _.curry((key, value) => {
+    console.log(key)
+    console.log(value)
     setProfileInfo(_.set(key, value))
   })
   const line = children => div({ style: styles.form.line }, children)
@@ -490,12 +492,18 @@ const PersonalInfoTab = () => {
     labelStyle: { margin: '0 2rem 0 0.25rem' },
     onChange: () => assignValue(key, value)
   })
-  const checkbox = title => div([
+  const researchAreaCheckbox = title => div([
     h(LabeledCheckbox, {
       checked: _.includes(title, areasOfResearch),
       onChange: v => {
+//        console.log(v)
+//        console.log(areasOfResearch)
         v ? setAreasOfResearch(_.concat(areasOfResearch, [title])) :
           setAreasOfResearch(_.without([title], areasOfResearch))
+//        console.log(areasOfResearch)
+        console.log(profileInfo)
+        assignValue('researchArea', _.join(',', areasOfResearch))
+        console.log(profileInfo)
       }
     }, [span({ style: styles.form.checkboxLabel }, [title])])
   ])
@@ -570,36 +578,36 @@ const PersonalInfoTab = () => {
 
         line([
           checkboxLine([
-            checkbox('Cancer'),
-            checkbox('Cardiovascular disease'),
-            checkbox('Epidemiology'),
-            checkbox('Epigenetics')
+            researchAreaCheckbox('Cancer'),
+            researchAreaCheckbox('Cardiovascular disease'),
+            researchAreaCheckbox('Epidemiology'),
+            researchAreaCheckbox('Epigenetics')
           ]),
           checkboxLine([
-            checkbox('Immunology'),
-            checkbox('Infectious disease and microbiome'),
-            checkbox('Medical and Population Genetics'),
-            checkbox('Psychiatric disease')
+            researchAreaCheckbox('Immunology'),
+            researchAreaCheckbox('Infectious disease and microbiome'),
+            researchAreaCheckbox('Medical and Population Genetics'),
+            researchAreaCheckbox('Psychiatric disease')
           ]),
           checkboxLine([
-            checkbox('Rare Disease'),
-            checkbox('Single Cell Genomics'),
-            checkbox('Agricultural'),
-            checkbox('Other (please specify)')
+            researchAreaCheckbox('Rare Disease'),
+            researchAreaCheckbox('Single Cell Genomics'),
+            researchAreaCheckbox('Agricultural'),
+            researchAreaCheckbox('Other (please specify)'),
+            true && textField('researchAreaOther')
           ])
         ]),
 
         h(ButtonPrimary, {
-          style: { marginTop: '3rem' },
+          style: { marginTop: '1rem' },
           onClick: _.flow(
             Utils.withBusyState(setSaving),
             withErrorReporting('Error saving profile')
           )(async () => {
-            const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
-            await Promise.all([
-              Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
-              Ajax().User.profile.setPreferences(prefsData)
-            ])
+//            const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
+//            await Promise.all([
+              await Ajax().User.profile.set(_.pickBy(_.identity, profileInfo))
+//            ])
             await refreshTerraProfile()
           }),
           disabled: !!errors,
@@ -615,69 +623,11 @@ const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const Profile = ({ queryParams }) => {
   // State
-  const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
-  const [proxyGroup, setProxyGroup] = useState()
   const [saving, setSaving] = useState()
   const [tab, setTab] = useState('personalInfo')
 
-  const signal = useCancellation()
-
-  // Helpers
-  const assignValue = _.curry((key, value) => {
-    setProfileInfo(_.set(key, value))
-  })
-
-  const line = children => div({ style: styles.form.line }, children)
-
-  const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
-    label({ htmlFor: id, style: styles.form.title }, [title]),
-    required ?
-      h(ValidatedInput, {
-        inputProps: {
-          id,
-          value: profileInfo[key],
-          onChange: assignValue(key),
-          placeholder: placeholder || 'Required'
-        },
-        error: Utils.summarizeErrors(errors && errors[key])
-      }) :
-      h(TextInput, {
-        id,
-        value: profileInfo[key],
-        onChange: assignValue(key),
-        placeholder
-      })
-  ])])
-
-  const radioButton = (key, value) => h(RadioButton, {
-    text: value, name: key, checked: profileInfo[key] === value,
-    labelStyle: { margin: '0 2rem 0 0.25rem' },
-    onChange: () => assignValue(key, value)
-  })
-
-  const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
-    h(LabeledCheckbox, {
-      checked: profileInfo[key] === 'true',
-      onChange: v => assignValue(key, v.toString())
-    }, [span({ style: styles.form.checkboxLabel }, [title])])
-  ])
-
-
-  // Lifecycle
-  useOnMount(() => {
-    const loadProxyGroup = async () => {
-      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
-    }
-
-    loadProxyGroup()
-  })
-
 
   // Render
-  const { firstName, lastName } = profileInfo
-  const required = { presence: { allowEmpty: false } }
-  const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
-
   return h(FooterWrapper, [
     saving && spinnerOverlay,
     h(TopBar, { title: 'User Profile' }),
@@ -694,9 +644,9 @@ const Profile = ({ queryParams }) => {
         ]
       }, [
         Utils.switchCase(tab,
-          ['personalInfo', () => h(PersonalInfoTab)],
+          ['personalInfo', () => PersonalInfoTab(setSaving)],
           ['externalIdentities', () => ExternalIdentitiesTab(queryParams)],
-          ['notifications', () => h(NotificationSettingsTab)],
+          ['notifications', () => NotificationSettingsTab(setSaving)],
           [Utils.DEFAULT, () => null]
         )
       ])
