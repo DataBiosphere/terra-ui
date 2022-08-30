@@ -1595,26 +1595,22 @@ export const ComputeModalBase = ({
                   h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
-                  'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
+                  'Compute profile: ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
                   span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
                   existingPersistentDisk ?
-                    h(Fragment, ['your existing ', renderDiskText()]) :
-                    h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+                    h(Fragment, ['your existing ', renderDiskText(), '.']) :
+                    h(Fragment, ['a ', renderDiskText(), '.']),
+                  div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   p([
-                    'This cloud environment will be created in the region ',
+                    'Region: This cloud environment will be created in the region ',
                     strong([computeConfig.computeRegion.toLowerCase()]), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
-                    'Note that network egress charges are not accounted for in cost estimates. ',
-                    'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
-                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                      'documentation.',
-                      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-                    ])
+                    'Network egress charges are not accounted for in cost estimates. ',
+                    div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+                      'Learn more about Regionality.'
+                    ])])
                   ])
                 ])
               ])
