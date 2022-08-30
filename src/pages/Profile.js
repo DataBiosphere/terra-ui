@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
   UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -15,6 +15,7 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -23,8 +24,9 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -365,6 +367,97 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
+const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    div({ style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'Name' })
+    ]),
+    div({ style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'Opt In' })
+    ])
+  ])
+})
+
+const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving }) => {
+  const { namespace, name } = workspace
+  const workspaceCardStyles = {
+    field: {
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
+    },
+    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' }
+  }
+
+  const NotificationCheckbox = ({ key, namespace, name }) => div([
+    h(LabeledCheckbox, {
+      checked: true,
+      onChange: _.flow(
+        Utils.withBusyState(setSaving),
+        withErrorReporting('Error saving profile')
+      )(async v => {
+        console.log(namespace)
+        await refreshTerraProfile()
+      })
+    })
+  ])
+
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
+    h(IdContainer, [id => h(Fragment, [
+      div({ style: workspaceCardStyles.row }, [
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [
+          h(Link, {
+            style: Style.noWrapEllipsis,
+            href: Nav.getLink('workspace-dashboard', { namespace, name })
+          }, [name])
+        ]),
+        div({ style: workspaceCardStyles.field }, [h(NotificationCheckbox, { key: id, namespace, name })])
+      ])
+    ])])
+  ])
+})
+
+const NotificationSettingsTab = ({ setSaving }) => {
+  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
+  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
+
+  return h(Fragment, [
+    h(WorkspaceCardHeaders, {
+      sort: workspaceSort,
+      onSort: setWorkspaceSort
+    }),
+    div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } }, [
+      _.flow(
+        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+        _.map(workspace => {
+          return h(WorkspaceCard, {
+            setSaving,
+            workspace: workspace.workspace,
+            key: workspace.workspaceId,
+          })
+        })
+      )(workspaces)
+    ])
+  ])
+
+//  return h(Fragment, [
+//    sectionTitle('Submission Notifications'),
+//    h(WorkspaceCardHeaders, {
+//      sort: workspaceSort,
+//      onSort: setWorkspaceSort
+//    }),
+//    div({ role: 'list', style: { flexGrow: 1, width: '100%' } }, [
+//      _.flow(
+//        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+//        _.map(workspace => {
+//          return h(WorkspaceCard, {
+//            workspace,
+//            key: workspace.workspaceId
+//          })
+//        })
+//      )(workspaces)
+//    ])
+//  ])
+}
+
 const PersonalInfoTab = ({ setSaving }) => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
@@ -500,7 +593,6 @@ const PersonalInfoTab = ({ setSaving }) => {
         ]),
 
         h(ButtonPrimary, {
-          style: { marginTop: '1rem' },
           onClick: _.flow(
             Utils.withBusyState(setSaving),
             withErrorReporting('Error saving profile')
@@ -547,7 +639,7 @@ const Profile = ({ queryParams }) => {
         Utils.switchCase(tab,
           ['personalInfo', () => h(PersonalInfoTab, { setSaving })],
           ['externalIdentities', () => h(ExternalIdentitiesTab, { queryParams })],
-          ['notificationSettings', () => h(ExternalIdentitiesTab, { queryParams })],
+          ['notificationSettings', () => h(NotificationSettingsTab, { setSaving })],
           [Utils.DEFAULT, () => null]
         )
       ])
