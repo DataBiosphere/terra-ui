@@ -101,7 +101,7 @@ export const availableBucketRegions = _.filter(({ value }) => isSupportedBucketL
 // and the same region as your workspace bucket.
 export const getAvailableComputeRegions = location => {
   const usCentralRegion = _.find({ value: defaultComputeRegion }, allRegions)
-  return isUSLocation(location) ? [usCentralRegion] : [usCentralRegion, _.find({ value: location }, allRegions)]
+  return isUSLocation(location) ? [usCentralRegion] : [_.find({ value: location }, allRegions), usCentralRegion]
 }
 
 export const isUSLocation = location => {
