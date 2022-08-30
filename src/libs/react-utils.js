@@ -114,7 +114,7 @@ export const usePollingEffect = (effectFn, { ms, leading }) => {
   const signal = useCancellation()
 
   useOnMount(() => {
-    pollWithCancellation(async () => ({ result: await effectFn(), shouldContinue: true }), ms, leading, signal)
+    pollWithCancellation(effectFn, ms, leading, signal)
   })
 }
 
