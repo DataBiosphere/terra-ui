@@ -374,6 +374,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
+      } else {
+        loadBucketLocation(googleProject, workspace.workspace.bucketName)
       }
     })
 
