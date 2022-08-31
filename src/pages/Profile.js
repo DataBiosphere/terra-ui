@@ -366,17 +366,6 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
-const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    div({ style: { flex: 1 } }, [
-      div({ style: { fontWeight: 600 } }, 'Name')
-    ]),
-    div({ style: { flex: 1 } }, [
-      div({ style: { fontWeight: 600 } }, 'Opt In')
-    ])
-  ])
-})
-
 const NotificationCheckbox = ({ key, notificationKeys, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {
     return Object.assign(...notificationKeys.map(notificationKey => ({ [notificationKey]: `${JSON.stringify(value)}` })))
@@ -395,6 +384,17 @@ const NotificationCheckbox = ({ key, notificationKeys, setSaving, prefsData }) =
     })
   ])
 }
+
+const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    div({ style: { flex: 1 } }, [
+      div({ style: { fontWeight: 600 } }, 'Name')
+    ]),
+    div({ style: { flex: 1 } }, [
+      div({ style: { fontWeight: 600 } }, 'Opt In')
+    ])
+  ])
+})
 
 const NotificationCard = memoWithName('NotificationCard', ({ key, label, notificationKeys, setSaving, prefsData }) => {
   const notificationCardStyles = {
