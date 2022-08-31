@@ -1163,11 +1163,12 @@ const AzureStorage = signal => ({
     )
     const data = await res.json()
     const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+
     if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
       return {
-        location: 'Unknown',
-        storageContainerName: 'None',
-        sasUrl: 'None'
+        location: undefined,
+        storageContainerName: undefined,
+        sas: { url: undefined, token: undefined }
       }
     } else {
       const container = _.find(
@@ -1178,11 +1179,116 @@ const AzureStorage = signal => ({
         data.resources
       )
       const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
+
       return {
         location: storageAccount.resourceAttributes.azureStorage.region,
         storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
-        sasUrl: sas.url
+        sas
       }
+    }
+  },
+
+  listFiles: async (workspaceId, suffixFilter = '') => {
+    if (!workspaceId) {
+      return []
+    }
+
+    const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+    const azureContainerUrl = _.flow(
+      _.split('?'),
+      _.head,
+      Utils.append(`?restype=container&comp=list&${token}`),
+      _.join('')
+    )(url)
+
+    const res = await fetchOk(azureContainerUrl)
+    const text = await res.text()
+    const xml = new window.DOMParser().parseFromString(text, 'text/xml')
+    const blobs = _.map(
+      blob => ({
+        name: _.head(blob.getElementsByTagName('Name')).textContent,
+        lastModified: new Date(
+          _.head(blob.getElementsByTagName('Last-Modified')).textContent
+        ).getTime()
+      }),
+      xml.getElementsByTagName('Blob')
+    )
+
+    const filteredBlobs = _.filter(blob => _.endsWith(suffixFilter, blob.name), blobs)
+    return filteredBlobs
+  },
+
+  listNotebooks: async workspaceId => {
+    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
+    return _.map(notebook => ({ ...notebook, application: tools.Jupyter.label }), notebooks)
+  },
+
+  blob: (workspaceId, blobName) => {
+    const calhounPath = 'api/convert'
+
+    const getObject = async () => {
+      const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+      const res = await fetchOk(azureStorageUrl)
+      const text = await res.text()
+      return text
+    }
+
+    const getBlobUrl = async (workspaceId, blobName) => {
+      const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+      const encodedBlobName = encodeURIComponent(blobName)
+
+      const azureStorageUrl = _.flow(
+        _.split('?'),
+        _.head,
+        Utils.append(`/${encodedBlobName}?&${token}`),
+        _.join('')
+      )(url)
+
+      return azureStorageUrl
+    }
+
+    // https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob#request
+    const copy = async (destBlob, destWorkspaceId = workspaceId) => {
+      const destStorageUrl = await getBlobUrl(destWorkspaceId, `${destBlob}.${getExtension(blobName)}`)
+      const srcStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+      return fetchOk(destStorageUrl, { method: 'PUT', headers: { 'x-ms-copy-source': srcStorageUrl } })
+    }
+
+    const doDelete = async () => {
+      const storageUrl = await getBlobUrl(workspaceId, blobName)
+
+      return fetchOk(storageUrl, { method: 'DELETE' })
+    }
+
+    return {
+      get: getObject,
+
+      preview: async () => {
+        const textFileContents = await getObject()
+        return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
+        ).then(res => res.text())
+      },
+
+      create: async textContents => {
+        const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+        return fetchOk(azureStorageUrl, {
+          method: 'PUT', body: JSON.stringify(textContents),
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': _.size(textContents) }
+        })
+      },
+
+      copy,
+
+      rename: async destBlob => {
+        await copy(destBlob)
+        return doDelete()
+      },
+
+      delete: doDelete
     }
   }
 })
@@ -1346,6 +1452,7 @@ const Buckets = signal => ({
     }
   },
 
+  //TODO: this should take a type `file`, instead of (name, toolLabel), and then we can remove `toolLabel` param
   analysis: (googleProject, bucket, name, toolLabel) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
@@ -1388,6 +1495,7 @@ const Buckets = signal => ({
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
+
 
     const getObject = async () => {
       const res = await fetchBuckets(
@@ -1555,10 +1663,6 @@ const Runtimes = signal => ({
     return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
   },
 
-  setAzureCookie: proxyUrl => {
-    return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
-  },
-
   setCookie: () => {
     return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
@@ -1607,6 +1711,24 @@ const Runtimes = signal => ({
       delete: deleteDisk => {
         return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      }
+    }
+  },
+
+  azureProxy: proxyUrl => {
+    return {
+      setAzureCookie: () => {
+        return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+      },
+
+      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+        return fetchOk(`${proxyUrl}/welder/storageLinks`,
+          _.mergeAll([authOpts(), jsonBody({
+            localBaseDirectory,
+            localSafeModeBaseDirectory,
+            cloudStorageDirectory,
+            pattern
+          }), { signal, method: 'POST' }]))
       }
     }
   },
