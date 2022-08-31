@@ -7,7 +7,7 @@ import { MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { useWorkspaceDetails } from 'src/components/workspace-utils'
 import * as Utils from 'src/libs/utils'
-import WorkspaceMenu, { TooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu'
+import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
 
 jest.mock('src/components/workspace-utils', () => {
@@ -79,20 +79,19 @@ describe('WorkspaceMenu - undefined workspace', () => {
     expect(menuItem).toHaveAttribute('disabled')
   })
 
-  it('renders Clone tooltip', () => {
+  it.each([
+    { menuText: 'Clone', tooltipText: tooltipText.cloneAzureUnsupported },
+    { menuText: 'Share', tooltipText: tooltipText.shareAzureUnsupported },
+    { menuText: 'Share', tooltipText: tooltipText.shareNoPermission },
+    { menuText: 'Delete', tooltipText: tooltipText.deleteLocked },
+    { menuText: 'Delete', tooltipText: tooltipText.deleteNoPermission },
+    { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission }
+  ])('does not render tooltip text "$tooltipText" for menu item $menuText', ({ menuText, tooltipText }) => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Clone'))
+    fireEvent.mouseOver(screen.getByText(menuText))
     // Assert
-    expect(screen.queryByText(TooltipText.AzureCloneTooltip)).toBeNull()
-  })
-
-  it('renders Share tooltip', () => {
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Share'))
-    // Assert
-    expect(screen.queryByText(TooltipText.AzureShareTooltip)).toBeNull()
+    expect(screen.queryByText(tooltipText)).toBeNull()
   })
 })
 
@@ -109,7 +108,7 @@ describe('WorkspaceMenu - GCP workspace', () => {
 
   it.each([
     true, false
-  ])('enables Share menu item based on canShare: %s', canShare => {
+  ])('enables/disables Share menu item based on canShare: %s', canShare => {
     // Arrange
     useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
     // Act
@@ -123,25 +122,31 @@ describe('WorkspaceMenu - GCP workspace', () => {
     }
   })
 
-  it('renders Share tooltip', () => {
+  it.each([
+    true, false
+  ])('renders Share tooltip based on canShare: %s', canShare => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare: false, workspace: {} } })
+    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Share')
     fireEvent.mouseOver(menuItem)
     // Assert
-    expect(screen.queryByText('You have not been granted permission to share this workspace')).not.toBeNull()
+    if (canShare) {
+      expect(screen.queryByText(tooltipText.shareNoPermission)).toBeNull()
+    } else {
+      expect(screen.queryByText(tooltipText.shareNoPermission)).not.toBeNull()
+    }
   })
 
   it.each([
     { menuText: 'Lock', accessLevel: 'OWNER' },
     { menuText: 'Lock', accessLevel: 'READER' },
-    { menuText: 'Delete', accessLevel: 'OWNER' },
-    { menuText: 'Delete', accessLevel: 'READER' }
-  ])('enables $menuText menu item based on access level $accessLevel (Unlocked workspace)', ({ menuText, accessLevel }) => {
+    { menuText: 'Unlock', accessLevel: 'OWNER' },
+    { menuText: 'Unlock', accessLevel: 'READER' }
+  ])('enables/disables $menuText menu item based on access level $accessLevel', ({ menuText, accessLevel }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: false }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: menuText === 'Unlock' }, accessLevel } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText(menuText)
@@ -154,76 +159,57 @@ describe('WorkspaceMenu - GCP workspace', () => {
   })
 
   it.each([
-    { accessLevel: 'OWNER' },
-    { accessLevel: 'READER' }
-  ])('enables Unlock menu item based on access level $accessLevel (Locked workspace)', ({ accessLevel }) => {
+    { menuText: 'Unlock', tooltipText: tooltipText.unlockNoPermission },
+    { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission }
+  ])('renders $menuText menu item tooltip "$tooltipText" for access level READER', ({ menuText, tooltipText }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: true }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: menuText === 'Unlock' } } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText('Unlock')
+    fireEvent.mouseOver(screen.getByText(menuText))
     // Assert
-    if (Utils.isOwner(accessLevel)) {
+    expect(screen.queryByText(tooltipText)).not.toBeNull()
+  })
+
+  it.each([
+    { accessLevel: 'READER', locked: true },
+    { accessLevel: 'OWNER', locked: true },
+    { accessLevel: 'READER', locked: false },
+    { accessLevel: 'OWNER', locked: false }
+  ])('renders Delete menu item as enabled/disabled for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Delete')
+    // Assert
+    if (!locked && Utils.isOwner(accessLevel)) {
       expect(menuItem).not.toHaveAttribute('disabled')
     } else {
       expect(menuItem).toHaveAttribute('disabled')
     }
   })
 
-  it('renders Unlock tooltip for access level READER', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: true } } })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Unlock'))
-    // Assert
-    expect(screen.queryByText('You have not been granted permission to unlock this workspace')).not.toBeNull()
-  })
-
-  it('renders Lock tooltip for access level READER', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: false } } })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Lock'))
-    // Assert
-    expect(screen.queryByText('You have not been granted permission to lock this workspace')).not.toBeNull()
-  })
-
   it.each([
-    { accessLevel: 'READER' },
-    { accessLevel: 'OWNER' }
-  ])('renders Delete menu item as disabled for access level $accessLevel (Locked workspace)', ({ accessLevel }) => {
+    { accessLevel: 'READER', locked: true },
+    { accessLevel: 'OWNER', locked: true },
+    { accessLevel: 'READER', locked: false },
+    { accessLevel: 'OWNER', locked: false }
+  ])('renders Delete tooltip for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: true }, accessLevel } })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText('Delete')
-    // Assert
-    expect(menuItem).toHaveAttribute('disabled')
-  })
-
-  it.each([
-    { accessLevel: 'OWNER' },
-    { accessLevel: 'READER' }
-  ])('renders Delete tooltip for access level $accessLevel (Locked workspace)', accessLevel => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: true }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     fireEvent.mouseOver(screen.getByText('Delete'))
     // Assert
-    expect(screen.queryByText('You cannot delete a locked workspace')).not.toBeNull()
-  })
-
-  it('renders Delete tooltip for access level READER (Unlocked workspace)', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: false } } })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Delete'))
-    // Assert
-    expect(screen.queryByText('You must be an owner of this workspace or the underlying billing project')).not.toBeNull()
+    if (!locked && Utils.isOwner(accessLevel)) {
+      expect(screen.queryByText(tooltipText.deleteLocked)).toBeNull()
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).toBeNull()
+    } else if (locked) {
+      expect(screen.queryByText(tooltipText.deleteLocked)).not.toBeNull()
+    } else {
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).not.toBeNull()
+    }
   })
 })
 
@@ -248,36 +234,25 @@ describe('WorkspaceMenu - Azure workspace', () => {
     expect(menuItem).toHaveAttribute('disabled')
   })
 
-  it('renders Clone tooltip', () => {
+  it.each([
+    { menuText: 'Clone', tooltipText: tooltipText.cloneAzureUnsupported },
+    { menuText: 'Share', tooltipText: tooltipText.shareAzureUnsupported }
+  ])('renders $menuText menu item tooltip "$tooltipText"', ({ menuText, tooltipText }) => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Clone'))
+    fireEvent.mouseOver(screen.getByText(menuText))
     // Assert
-    expect(screen.queryByText(TooltipText.AzureCloneTooltip)).not.toBeNull()
-  })
-
-  it('renders Share tooltip', () => {
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Share'))
-    // Assert
-    expect(screen.queryByText(TooltipText.AzureShareTooltip)).not.toBeNull()
+    expect(screen.queryByText(tooltipText)).not.toBeNull()
   })
 
   it.each([
     { menuText: 'Lock', accessLevel: 'OWNER' },
     { menuText: 'Lock', accessLevel: 'READER' },
-    { menuText: 'Delete', accessLevel: 'OWNER' },
-    { menuText: 'Delete', accessLevel: 'READER' }
-  ])('enables $menuText menu item based on access level $accessLevel (Unlocked workspace)', ({ menuText, accessLevel, isLocked }) => {
+    { menuText: 'Unlock', accessLevel: 'OWNER' },
+    { menuText: 'Unlock', accessLevel: 'READER' }
+  ])('enables/disables $menuText menu item based on access level $accessLevel', ({ menuText, accessLevel }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        workspace: { isLocked },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
-        accessLevel
-      }
-    })
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: menuText === 'Unlock' }, accessLevel } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText(menuText)
@@ -290,109 +265,56 @@ describe('WorkspaceMenu - Azure workspace', () => {
   })
 
   it.each([
-    { accessLevel: 'OWNER' },
-    { accessLevel: 'READER' }
-  ])('enables Unlock menu item based on access level $accessLevel (Locked workspace)', ({ accessLevel }) => {
+    { menuText: 'Unlock', tooltipText: tooltipText.unlockNoPermission },
+    { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission }
+  ])('renders $menuText menu item tooltip "$tooltipText" for access level READER', ({ menuText, tooltipText }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        workspace: { isLocked: true },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
-        accessLevel
-      }
-    })
+    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: menuText === 'Unlock' } } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText('Unlock')
+    fireEvent.mouseOver(screen.getByText(menuText))
     // Assert
-    if (Utils.isOwner(accessLevel)) {
+    expect(screen.queryByText(tooltipText)).not.toBeNull()
+  })
+
+  it.each([
+    { accessLevel: 'READER', locked: true },
+    { accessLevel: 'OWNER', locked: true },
+    { accessLevel: 'READER', locked: false },
+    { accessLevel: 'OWNER', locked: false }
+  ])('renders Delete menu item as enabled/disabled for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Delete')
+    // Assert
+    if (!locked && Utils.isOwner(accessLevel)) {
       expect(menuItem).not.toHaveAttribute('disabled')
     } else {
       expect(menuItem).toHaveAttribute('disabled')
     }
   })
 
-  it('renders Unlock tooltip for access level READER', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        accessLevel: 'READER', workspace: { isLocked: true },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' }
-      }
-    })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Unlock'))
-    // Assert
-    expect(screen.queryByText('You have not been granted permission to unlock this workspace')).not.toBeNull()
-  })
-
-  it('renders Lock tooltip for access level READER', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        accessLevel: 'READER', workspace: { isLocked: false },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' }
-      }
-    })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Lock'))
-    // Assert
-    expect(screen.queryByText('You have not been granted permission to lock this workspace')).not.toBeNull()
-  })
-
   it.each([
-    { accessLevel: 'READER' },
-    { accessLevel: 'OWNER' }
-  ])('renders Delete menu item as disabled for all access level $accessLevel (Locked workspace)', ({ accessLevel }) => {
+    { accessLevel: 'READER', locked: true },
+    { accessLevel: 'OWNER', locked: true },
+    { accessLevel: 'READER', locked: false },
+    { accessLevel: 'OWNER', locked: false }
+  ])('renders Delete tooltip for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        workspace: { isLocked: true },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
-        accessLevel
-      }
-    })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText('Delete')
-    // Assert
-    expect(menuItem).toHaveAttribute('disabled')
-  })
-
-  it.each([
-    { accessLevel: 'OWNER' },
-    { accessLevel: 'READER' }
-  ])('renders Delete tooltip for access level $accessLevel (Locked workspace)', accessLevel => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        workspace: { isLocked: true },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
-        accessLevel
-      }
-    })
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     fireEvent.mouseOver(screen.getByText('Delete'))
     // Assert
-    expect(screen.queryByText('You cannot delete a locked workspace')).not.toBeNull()
-  })
-
-  it('renders Delete tooltip for access level READER (Unlocked workspace)', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({
-      workspace: {
-        accessLevel: 'READER', workspace: { isLocked: false },
-        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' }
-      }
-    })
-    // Act
-    render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText('Delete'))
-    // Assert
-    expect(screen.queryByText('You must be an owner of this workspace or the underlying billing project')).not.toBeNull()
+    if (!locked && Utils.isOwner(accessLevel)) {
+      expect(screen.queryByText(tooltipText.deleteLocked)).toBeNull()
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).toBeNull()
+    } else if (locked) {
+      expect(screen.queryByText(tooltipText.deleteLocked)).not.toBeNull()
+    } else {
+      expect(screen.queryByText(tooltipText.deleteNoPermission)).not.toBeNull()
+    }
   })
 })
-

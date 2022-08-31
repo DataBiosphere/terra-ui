@@ -47,27 +47,32 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   })
 }
 
-export const TooltipText = {
-  AzureCloneTooltip: 'Cloning is not currently supported on Azure Workspaces',
-  AzureShareTooltip: 'Sharing is not currently supported on Azure Workspaces'
+export const tooltipText = {
+  cloneAzureUnsupported: 'Cloning is not currently supported on Azure Workspaces',
+  shareAzureUnsupported: 'Sharing is not currently supported on Azure Workspaces',
+  shareNoPermission: 'You have not been granted permission to share this workspace',
+  deleteLocked: 'You cannot delete a locked workspace',
+  deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
+  lockNoPermission: 'You have not been granted permission to lock this workspace',
+  unlockNoPermission: 'You have not been granted permission to unlock this workspace'
 }
 
 const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
-    [workspaceLoaded && isAzureWorkspace, () => TooltipText.AzureShareTooltip],
-    [workspaceLoaded && !canShare, () => 'You have not been granted permission to share this workspace'],
+    [workspaceLoaded && isAzureWorkspace, () => tooltipText.shareAzureUnsupported],
+    [workspaceLoaded && !canShare, () => tooltipText.shareNoPermission],
     [Utils.DEFAULT, () => '']
   )
   const deleteTooltip = Utils.cond(
-    [workspaceLoaded && isLocked, () => 'You cannot delete a locked workspace'],
-    [workspaceLoaded && !isOwner, () => 'You must be an owner of this workspace or the underlying billing project'],
+    [workspaceLoaded && isLocked, () => tooltipText.deleteLocked],
+    [workspaceLoaded && !isOwner, () => tooltipText.deleteNoPermission],
     [Utils.DEFAULT, () => '']
   )
 
   return h(Fragment, [
     h(MenuButton, {
       disabled: !workspaceLoaded || isAzureWorkspace,
-      tooltip: workspaceLoaded && isAzureWorkspace && TooltipText.AzureCloneTooltip,
+      tooltip: workspaceLoaded && isAzureWorkspace && tooltipText.cloneAzureUnsupported,
       tooltipSide: 'left',
       onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
@@ -79,7 +84,7 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !workspaceLoaded || !isOwner,
-      tooltip: workspaceLoaded && !isOwner && ['You have not been granted permission to ', isLocked ? 'unlock' : 'lock', ' this workspace'],
+      tooltip: workspaceLoaded && !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
       tooltipSide: 'left',
       onClick: onLock
     }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
