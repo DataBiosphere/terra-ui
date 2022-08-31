@@ -379,10 +379,10 @@ export const truncateInteger = integer => {
  */
 export const poll = async (pollFn, pollTime, leading = true) => {
   do {
-    leading && await delay(pollTime)
+    leading || await delay(pollTime)
     const r = await pollFn()
     if (!r.shouldContinue) { return r.result }
-    leading = true
+    leading = false
   } while (true)
 }
 
