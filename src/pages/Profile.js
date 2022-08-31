@@ -378,7 +378,7 @@ const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ sort, onSor
   ])
 })
 
-const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving }) => {
+const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving, prefsData }) => {
   const { namespace, name } = workspace
   const workspaceCardStyles = {
     field: {
@@ -387,14 +387,25 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving }) =
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' }
   }
 
-  const NotificationCheckbox = ({ key, namespace, name }) => div([
+  const submissionNotificationKeys = {
+    [`notifications/SuccessfulSubmissionNotification/${namespace}/${name}`]: 'false',
+    [`notifications/AbortedSubmissionNotification/${namespace}/${name}`]: 'false',
+    [`notifications/FailedSubmissionNotification/${namespace}/${name}`]: 'false'
+  }
+
+  const NotificationCheckbox = ({ namespace, name }) => div([
     h(LabeledCheckbox, {
-      checked: true,
+      checked: !_.isMatch(submissionNotificationKeys, prefsData),
       onChange: _.flow(
         Utils.withBusyState(setSaving),
-        withErrorReporting('Error saving profile')
+        withErrorReporting('Error saving preferences')
       )(async v => {
-        console.log(namespace)
+        const newPrefsData = {
+          [`notifications/SuccessfulSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`,
+          [`notifications/AbortedSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`,
+          [`notifications/FailedSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`
+        }
+        await Ajax().User.profile.setPreferences(newPrefsData)
         await refreshTerraProfile()
       })
     })
@@ -403,12 +414,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving }) =
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [
-          h(Link, {
-            style: Style.noWrapEllipsis,
-            href: Nav.getLink('workspace-dashboard', { namespace, name })
-          }, [name])
-        ]),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [`${namespace}/${name}`]),
         div({ style: workspaceCardStyles.field }, [h(NotificationCheckbox, { key: id, namespace, name })])
       ])
     ])])
@@ -416,10 +422,14 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving }) =
 })
 
 const NotificationSettingsTab = ({ setSaving }) => {
-  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
+  const { workspaces } = useWorkspaces()
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
+  const [profileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
+  const [prefsData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
 
   return h(Fragment, [
+    sectionTitle('Account Notifications'),
+    sectionTitle('Submission Notifications'),
     h(WorkspaceCardHeaders, {
       sort: workspaceSort,
       onSort: setWorkspaceSort
@@ -430,32 +440,14 @@ const NotificationSettingsTab = ({ setSaving }) => {
         _.map(workspace => {
           return h(WorkspaceCard, {
             setSaving,
+            prefsData,
             workspace: workspace.workspace,
-            key: workspace.workspaceId,
+            key: workspace.workspaceId
           })
         })
       )(workspaces)
     ])
   ])
-
-//  return h(Fragment, [
-//    sectionTitle('Submission Notifications'),
-//    h(WorkspaceCardHeaders, {
-//      sort: workspaceSort,
-//      onSort: setWorkspaceSort
-//    }),
-//    div({ role: 'list', style: { flexGrow: 1, width: '100%' } }, [
-//      _.flow(
-//        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-//        _.map(workspace => {
-//          return h(WorkspaceCard, {
-//            workspace,
-//            key: workspace.workspaceId
-//          })
-//        })
-//      )(workspaces)
-//    ])
-//  ])
 }
 
 const PersonalInfoTab = ({ setSaving }) => {
