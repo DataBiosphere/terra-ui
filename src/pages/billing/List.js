@@ -256,7 +256,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
           h(Select, {
             id,
             isMulti: false,
-            placeholder: 'Select billing account',
+            placeholder: 'Select a billing account',
             value: chosenBillingAccount,
             onChange: ({ value }) => setChosenBillingAccount(value),
             options: _.map(account => {

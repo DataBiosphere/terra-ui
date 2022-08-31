@@ -39,42 +39,41 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       onSuccess()
     } catch (error) {
       if (error.status === 409) {
-        setExisting(_.concat(billingProjectName, existing)) // What about this?
+        setExisting(_.concat(billingProjectName, existing))
       } else {
         throw error
       }
     }
   })
 
-  const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
-
+  // Field validation
+  const billingProjectNameErrors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
   const subscriptionIdErrors = validate({ subscriptionId }, { subscriptionId: { type: 'uuid' } })
   const isValidSubscriptionId = !!subscriptionId && !subscriptionIdErrors
 
   useEffect(() => {
-    const getManagedApps = Utils.withBusyState(setIsBusy,
-      async () => {
-        try {
-          // console.log('fetching for ' + subscriptionId)
-          const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId)
-          // console.log(managedApps)
-          setManagedApps(managedApps.managedApps)
-          setErrorFetchingManagedApps(false)
-        } catch (obj) {
-          setManagedApps([])
-          setChosenManagedApp('')
-          setErrorFetchingManagedApps(true)
-          // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
-          const error = await (obj instanceof Response ? obj.text() : obj)
-          console.error(error)
-        }
-      }
-    )
-
     if (isValidSubscriptionId) {
-      getManagedApps()
+      const fetchManagedApps = Utils.withBusyState(setIsBusy,
+        async () => {
+          try {
+            // console.log('fetching for ' + subscriptionId)
+            const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId)
+            // console.log(managedApps)
+            setManagedApps(managedApps.managedApps)
+            setErrorFetchingManagedApps(false)
+          } catch (obj) {
+            setManagedApps([])
+            setChosenManagedApp('')
+            setErrorFetchingManagedApps(true)
+            // We can't rely on the formatting of the error, so show a generic message but include the error in the console for debugging purposes.
+            const error = await (obj instanceof Response ? obj.text() : obj)
+            console.error(error)
+          }
+        }
+      )
+      fetchManagedApps()
     }
-  }, [isValidSubscriptionId, subscriptionIdErrors, subscriptionId, signal])
+  }, [isValidSubscriptionId, subscriptionId, signal])
 
   const subscriptionIdError = Utils.cond(
     [subscriptionIdTouched && !isValidSubscriptionId, () => Utils.summarizeErrors(subscriptionIdErrors?.subscriptionId)],
@@ -89,7 +88,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
     title: 'Create Terra Billing Project',
     okButton:
       h(ButtonPrimary, {
-        disabled: errors || !isValidSubscriptionId || !chosenManagedApp,
+        disabled: billingProjectNameErrors || !isValidSubscriptionId || !chosenManagedApp,
         onClick: submit
       }, ['Create'])
   }, [
@@ -107,10 +106,10 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
               setBillingProjectNameTouched(true)
             }
           },
-          error: billingProjectNameTouched && Utils.summarizeErrors(errors?.billingProjectName)
+          error: billingProjectNameTouched && Utils.summarizeErrors(billingProjectNameErrors?.billingProjectName)
         })
       ])]),
-      !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
+      !(billingProjectNameTouched && billingProjectNameErrors) && formHint('Name must be unique and cannot be changed.'),
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Azure subscription']),
         h(ValidatedInput, {
@@ -134,7 +133,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             id,
             isMulti: false,
             placeholder: 'Select a managed application',
-            isDisabled: !isValidSubscriptionId || errorFetchingManagedApps !== false,
+            isDisabled: errorFetchingManagedApps !== false || !!subscriptionIdError,
             value: chosenManagedApp,
             onChange: ({ value }) => setChosenManagedApp(value),
             options: _.map(application => {
