@@ -359,8 +359,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const ExternalIdentitiesTab = ({ queryParams }) => {
-  return div({ style: { margin: '0 2rem', width: 500 } }, [
-    sectionTitle('External Identities'),
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
     h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
     _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
     !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
@@ -378,7 +377,26 @@ const NotificationCardHeaders = memoWithName('NotificationCardHeaders', ({ sort,
   ])
 })
 
-const NotificationCard = memoWithName('NotificationCard', ({ label, setSaving, prefsData }) => {
+const NotificationCheckbox = ({ key, notificationKeys, setSaving, prefsData }) => {
+  const notificationKeysWithValue = ({ notificationKeys, value }) => {
+    return Object.assign(...notificationKeys.map(notificationKey => ({ [notificationKey]: `${JSON.stringify(value)}` })))
+  }
+
+  return div({ key }, [
+    h(LabeledCheckbox, {
+      checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
+      onChange: _.flow(
+        Utils.withBusyState(setSaving),
+        withErrorReporting('Error saving preferences')
+      )(async v => {
+        await Ajax().User.profile.setPreferences(notificationKeysWithValue({ notificationKeys, value: v }))
+        await refreshTerraProfile()
+      })
+    })
+  ])
+}
+
+const NotificationCard = memoWithName('NotificationCard', ({ key, label, notificationKeys, setSaving, prefsData }) => {
   const notificationCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
@@ -386,35 +404,11 @@ const NotificationCard = memoWithName('NotificationCard', ({ label, setSaving, p
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' }
   }
 
-  const submissionNotificationKeys = {
-    [`notifications/SuccessfulSubmissionNotification/${label}`]: 'false',
-    [`notifications/AbortedSubmissionNotification/${label}`]: 'false',
-    [`notifications/FailedSubmissionNotification/${label}`]: 'false'
-  }
-
-  const NotificationCheckbox = ({ label }) => div([
-    h(LabeledCheckbox, {
-      checked: !_.isMatch(submissionNotificationKeys, prefsData),
-      onChange: _.flow(
-        Utils.withBusyState(setSaving),
-        withErrorReporting('Error saving preferences')
-      )(async v => {
-        const newPrefsData = {
-          [`notifications/SuccessfulSubmissionNotification/${label}`]: `${JSON.stringify(v)}`,
-          [`notifications/AbortedSubmissionNotification/${label}`]: `${JSON.stringify(v)}`,
-          [`notifications/FailedSubmissionNotification/${label}`]: `${JSON.stringify(v)}`
-        }
-        await Ajax().User.profile.setPreferences(newPrefsData)
-        await refreshTerraProfile()
-      })
-    })
-  ])
-
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
-      div({ style: notificationCardStyles.row }, [
-        div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [`${label}`]),
-        div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { label })])
+      div({ key, style: notificationCardStyles.row }, [
+        div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, [label]),
+        div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { key: id, notificationKeys, setSaving, prefsData })])
       ])
     ])])
   ])
@@ -432,7 +426,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
         'Account Notifications',
         h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-          'You may receive email notifications regarding certain events in Terra. You may opt in or out of these notifications below.'
+          'You may receive email notifications regarding certain events in Terra. You may globally opt in or out of receiving these emails.'
         ])
       ])
     ]),
@@ -441,17 +435,20 @@ const NotificationSettingsTab = ({ setSaving }) => {
       h(NotificationCard, {
         setSaving,
         prefsData,
-        label: 'Group Access Requested'
+        label: 'Group Access Requested',
+        notificationKeys: ['notifications/GroupAccessRequestNotification']
       }),
       h(NotificationCard, {
         setSaving,
         prefsData,
-        label: 'Workspace Access Added'
+        label: 'Workspace Access Added',
+        notificationKeys: ['notifications/WorkspaceAddedNotification']
       }),
       h(NotificationCard, {
         setSaving,
         prefsData,
-        label: 'Workspace Access Removed'
+        label: 'Workspace Access Removed',
+        notificationKeys: ['notifications/WorkspaceRemovedNotification']
       })
     ]),
     div({ style: Style.cardList.toolbarContainer }, [
@@ -470,11 +467,12 @@ const NotificationSettingsTab = ({ setSaving }) => {
       _.flow(
         _.orderBy([workspaceSort.field], [workspaceSort.direction]),
         _.map(workspace => {
+          const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
           return h(NotificationCard, {
             setSaving,
             prefsData,
-            label: `${workspace.workspace.namespace}/${workspace.workspace.name}`,
-            key: workspace.workspace.id
+            label, key: workspace.workspace.id,
+            notificationKeys: [`notifications/SuccessfulSubmissionNotification/${label}`, `notifications/FailedSubmissionNotification/${label}`, `notifications/AbortedSubmissionNotification/${label}`]
           })
         })
       )(workspaces)
@@ -537,7 +535,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   const required = { presence: { allowEmpty: false } }
   const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
 
-  return div({ style: { paddingTop: '1rem' } }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
     div({ style: styles.header.line }, [
       div({ style: { position: 'relative' } }, [
         profilePic({ size: 48 }),
