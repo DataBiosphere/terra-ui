@@ -252,7 +252,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     { menuText: 'Unlock', accessLevel: 'READER' }
   ])('enables/disables $menuText menu item based on access level $accessLevel', ({ menuText, accessLevel }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: menuText === 'Unlock' }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: { isLocked: menuText === 'Unlock' },
+        accessLevel
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText(menuText)
@@ -269,7 +275,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     { menuText: 'Lock', tooltipText: tooltipText.lockNoPermission }
   ])('renders $menuText menu item tooltip "$tooltipText" for access level READER', ({ menuText, tooltipText }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { accessLevel: 'READER', workspace: { isLocked: menuText === 'Unlock' } } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: { isLocked: menuText === 'Unlock' },
+        accessLevel: 'READER'
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     fireEvent.mouseOver(screen.getByText(menuText))
@@ -284,7 +296,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     { accessLevel: 'OWNER', locked: false }
   ])('renders Delete menu item as enabled/disabled for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: { isLocked: locked },
+        accessLevel
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Delete')
@@ -303,7 +321,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     { accessLevel: 'OWNER', locked: false }
   ])('renders Delete tooltip for access level $accessLevel and locked status $locked', ({ accessLevel, locked }) => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: { isLocked: locked }, accessLevel } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: { isLocked: locked },
+        accessLevel
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     fireEvent.mouseOver(screen.getByText('Delete'))
