@@ -6,7 +6,7 @@ import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
   ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
-  UnlinkFenceAccount
+  UnlinkFenceAccount, PageBox, PageBoxVariants
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, profilePic, spinner } from 'src/components/icons'
@@ -367,7 +367,7 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
-const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
+const NotificationCardHeaders = memoWithName('NotificationCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
     div({ style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'Name' })
@@ -378,9 +378,8 @@ const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ sort, onSor
   ])
 })
 
-const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving, prefsData }) => {
-  const { namespace, name } = workspace
-  const workspaceCardStyles = {
+const NotificationCard = memoWithName('NotificationCard', ({ label, setSaving, prefsData }) => {
+  const notificationCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
     },
@@ -388,12 +387,12 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving, pre
   }
 
   const submissionNotificationKeys = {
-    [`notifications/SuccessfulSubmissionNotification/${namespace}/${name}`]: 'false',
-    [`notifications/AbortedSubmissionNotification/${namespace}/${name}`]: 'false',
-    [`notifications/FailedSubmissionNotification/${namespace}/${name}`]: 'false'
+    [`notifications/SuccessfulSubmissionNotification/${label}`]: 'false',
+    [`notifications/AbortedSubmissionNotification/${label}`]: 'false',
+    [`notifications/FailedSubmissionNotification/${label}`]: 'false'
   }
 
-  const NotificationCheckbox = ({ namespace, name }) => div([
+  const NotificationCheckbox = ({ label }) => div([
     h(LabeledCheckbox, {
       checked: !_.isMatch(submissionNotificationKeys, prefsData),
       onChange: _.flow(
@@ -401,9 +400,9 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving, pre
         withErrorReporting('Error saving preferences')
       )(async v => {
         const newPrefsData = {
-          [`notifications/SuccessfulSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`,
-          [`notifications/AbortedSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`,
-          [`notifications/FailedSubmissionNotification/${namespace}/${name}`]: `${JSON.stringify(v)}`
+          [`notifications/SuccessfulSubmissionNotification/${label}`]: `${JSON.stringify(v)}`,
+          [`notifications/AbortedSubmissionNotification/${label}`]: `${JSON.stringify(v)}`,
+          [`notifications/FailedSubmissionNotification/${label}`]: `${JSON.stringify(v)}`
         }
         await Ajax().User.profile.setPreferences(newPrefsData)
         await refreshTerraProfile()
@@ -413,9 +412,9 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, setSaving, pre
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
-      div({ style: workspaceCardStyles.row }, [
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [`${namespace}/${name}`]),
-        div({ style: workspaceCardStyles.field }, [h(NotificationCheckbox, { key: id, namespace, name })])
+      div({ style: notificationCardStyles.row }, [
+        div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '2rem' } }, [`${label}`]),
+        div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { label })])
       ])
     ])])
   ])
@@ -427,10 +426,77 @@ const NotificationSettingsTab = ({ setSaving }) => {
   const [profileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [prefsData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
 
+
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+   div({ style: Style.cardList.toolbarContainer }, [
+     h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
+       'Account Notifications'
+     ]),
+   ]),
+   h(NotificationCardHeaders),
+   div({ role: 'list', 'aria-label': 'notification settings for your account', style: { flexGrow: 1, width: '100%' } }, [
+     h(NotificationCard, {
+       setSaving,
+       prefsData,
+       label: 'Group Access Requested'
+     }),
+     h(NotificationCard, {
+       setSaving,
+       prefsData,
+       label: 'Workspace Access Added'
+     }),
+     h(NotificationCard, {
+       setSaving,
+       prefsData,
+       label: 'Workspace Access Removed'
+     })
+   ]),
+   div({ style: Style.cardList.toolbarContainer }, [
+     h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
+       'Submission Notifications'
+     ]),
+   ]),
+   h(NotificationCardHeaders, {
+     sort: workspaceSort,
+     onSort: setWorkspaceSort
+   }),
+   div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } }, [
+     _.flow(
+       _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+       _.map(workspace => {
+         return h(NotificationCard, {
+           setSaving,
+           prefsData,
+           label: `${workspace.workspace.namespace}/${workspace.workspace.name}`,
+         })
+       })
+     )(workspaces)
+   ])
+ ])
+
+
   return h(Fragment, [
     sectionTitle('Account Notifications'),
+    h(NotificationCardHeaders),
+    div({ role: 'list', 'aria-label': 'notification settings for your account', style: { flexGrow: 1, width: '100%' } }, [
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Group Access Requested'
+      }),
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Workspace Access Added'
+      }),
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Workspace Access Removed'
+      })
+    ]),
     sectionTitle('Submission Notifications'),
-    h(WorkspaceCardHeaders, {
+    h(NotificationCardHeaders, {
       sort: workspaceSort,
       onSort: setWorkspaceSort
     }),
@@ -438,11 +504,10 @@ const NotificationSettingsTab = ({ setSaving }) => {
       _.flow(
         _.orderBy([workspaceSort.field], [workspaceSort.direction]),
         _.map(workspace => {
-          return h(WorkspaceCard, {
+          return h(NotificationCard, {
             setSaving,
             prefsData,
-            workspace: workspace.workspace,
-            key: workspace.workspaceId
+            label: `${workspace.workspace.namespace}/${workspace.workspace.name}`,
           })
         })
       )(workspaces)
