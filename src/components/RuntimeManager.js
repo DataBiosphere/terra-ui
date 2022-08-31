@@ -184,7 +184,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
       })
       errorNotifiedApps.update(Utils.append(galaxyApp.appName))
     }
-  }, [runtimes, apps]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [runtimes, apps, namespace, name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return null
 }
