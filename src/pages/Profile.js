@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
   ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -366,13 +366,13 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
-const NotificationCardHeaders = memoWithName('NotificationCardHeaders', ({ sort, onSort }) => {
+const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
     div({ style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'Name' })
+      div({ style: { fontWeight: 600 } }, 'Name')
     ]),
     div({ style: { flex: 1 } }, [
-      h(HeaderRenderer, { sort, onSort, name: 'Opt In' })
+      div({ style: { fontWeight: 600 } }, 'Opt In')
     ])
   ])
 })
@@ -416,7 +416,6 @@ const NotificationCard = memoWithName('NotificationCard', ({ key, label, notific
 
 const NotificationSettingsTab = ({ setSaving }) => {
   const { workspaces } = useWorkspaces()
-  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [profileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [prefsData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
 
@@ -459,23 +458,17 @@ const NotificationSettingsTab = ({ setSaving }) => {
         ])
       ])
     ]),
-    h(NotificationCardHeaders, {
-      sort: workspaceSort,
-      onSort: setWorkspaceSort
-    }),
+    h(NotificationCardHeaders),
     div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } }, [
-      _.flow(
-        _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-        _.map(workspace => {
-          const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
-          return h(NotificationCard, {
-            setSaving,
-            prefsData,
-            label, key: workspace.workspace.id,
-            notificationKeys: [`notifications/SuccessfulSubmissionNotification/${label}`, `notifications/FailedSubmissionNotification/${label}`, `notifications/AbortedSubmissionNotification/${label}`]
-          })
+      _.map(workspace => {
+        const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
+        return h(NotificationCard, {
+          setSaving,
+          prefsData,
+          label, key: workspace.workspace.id,
+          notificationKeys: [`notifications/SuccessfulSubmissionNotification/${label}`, `notifications/FailedSubmissionNotification/${label}`, `notifications/AbortedSubmissionNotification/${label}`]
         })
-      )(workspaces)
+      })(workspaces)
     ])
   ])
 }
