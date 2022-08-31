@@ -52,7 +52,7 @@ const billingProjectTypes = {
 const CreateBillingProjectControl = ({ isAlphaSpendReportUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
-      tooltip: 'Create new billing project',
+      'aria-label': 'Create new billing project',
       onClick: () => !!onClickCallback && onClickCallback(type)
     }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
   }
