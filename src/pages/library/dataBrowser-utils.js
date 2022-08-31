@@ -1,10 +1,7 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -17,7 +14,8 @@ export const datasetAccessTypes = {
 }
 
 export const uiMessaging = {
-  controlledFeature_tooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
+  controlledFeatureTooltip: 'You do not have access to this dataset. Please request access to unlock this feature.',
+  unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
 }
 
 export const datasetReleasePolicies = {
@@ -129,33 +127,4 @@ export const useDataCatalog = () => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }
-}
-
-export const importDataToWorkspace = (dataset, asyncHandler) => {
-  const routeOptions = Utils.cond(
-    [isWorkspace(dataset), () => {
-      return {
-        pathname: Nav.getPath('import-data'),
-        search: qs.stringify({
-          format: 'catalog',
-          snapshotName: dataset['dct:title'],
-          catalogDatasetId: dataset.id
-        })
-      }
-    }],
-    [
-      isDatarepoSnapshot(dataset), () => {
-        asyncHandler()
-
-        return {
-          pathname: Nav.getPath('import-data'),
-          search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, format: 'snapshot', referrer: 'data-catalog',
-            snapshotIds: [dataset['dct:identifier']]
-          })
-        }
-      }
-    ]
-  )
-  Nav.history.push(routeOptions)
 }
