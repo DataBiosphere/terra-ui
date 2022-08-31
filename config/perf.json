@@ -1,6 +1,7 @@
 {
   "agoraUrlRoot": "https://agora.dsde-perf.broadinstitute.org",
   "bardRoot": "https://terra-bard-perf.appspot.com",
+  "billingProjectManagerUrlRoot": "https://bpm.dsde-perf.broadinstitute.org",
   "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-perf.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-perf.broadinstitute.org",

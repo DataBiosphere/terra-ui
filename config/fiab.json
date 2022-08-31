@@ -1,6 +1,7 @@
 {
   "agoraUrlRoot": "https://agora-fiab.dsde-dev.broadinstitute.org:20443",
   "bardRoot": "https://terra-bard-dev.appspot.com",
+  "billingProjectManagerUrlRoot": "https://bpm.dsde-dev.broadinstitute.org",
   "bondUrlRoot": "https://bond-fiab.dsde-dev.broadinstitute.org:31443",
   "calhounUrlRoot": "https://calhoun.dsde-dev.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-dev.broadinstitute.org",
