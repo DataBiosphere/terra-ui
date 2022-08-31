@@ -5,8 +5,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
-  UnlinkFenceAccount, PageBox, PageBoxVariants
+  ButtonPrimary, ClipboardButton, FrameworkServiceLink, HeaderRenderer, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
+  ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, profilePic, spinner } from 'src/components/icons'
@@ -428,55 +428,14 @@ const NotificationSettingsTab = ({ setSaving }) => {
 
 
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
-   div({ style: Style.cardList.toolbarContainer }, [
-     h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
-       'Account Notifications'
-     ]),
-   ]),
-   h(NotificationCardHeaders),
-   div({ role: 'list', 'aria-label': 'notification settings for your account', style: { flexGrow: 1, width: '100%' } }, [
-     h(NotificationCard, {
-       setSaving,
-       prefsData,
-       label: 'Group Access Requested'
-     }),
-     h(NotificationCard, {
-       setSaving,
-       prefsData,
-       label: 'Workspace Access Added'
-     }),
-     h(NotificationCard, {
-       setSaving,
-       prefsData,
-       label: 'Workspace Access Removed'
-     })
-   ]),
-   div({ style: Style.cardList.toolbarContainer }, [
-     h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
-       'Submission Notifications'
-     ]),
-   ]),
-   h(NotificationCardHeaders, {
-     sort: workspaceSort,
-     onSort: setWorkspaceSort
-   }),
-   div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } }, [
-     _.flow(
-       _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-       _.map(workspace => {
-         return h(NotificationCard, {
-           setSaving,
-           prefsData,
-           label: `${workspace.workspace.namespace}/${workspace.workspace.name}`,
-         })
-       })
-     )(workspaces)
-   ])
- ])
-
-
-  return h(Fragment, [
-    sectionTitle('Account Notifications'),
+    div({ style: Style.cardList.toolbarContainer }, [
+      h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
+        'Account Notifications',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'You may receive email notifications regarding certain events in Terra. You may opt in or out of these notifications below.'
+        ])
+      ])
+    ]),
     h(NotificationCardHeaders),
     div({ role: 'list', 'aria-label': 'notification settings for your account', style: { flexGrow: 1, width: '100%' } }, [
       h(NotificationCard, {
@@ -495,7 +454,14 @@ const NotificationSettingsTab = ({ setSaving }) => {
         label: 'Workspace Access Removed'
       })
     ]),
-    sectionTitle('Submission Notifications'),
+    div({ style: Style.cardList.toolbarContainer }, [
+      h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
+        'Submission Notifications',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+          'You may receive email notifications regarding terminal submissions in Terra (i.e. if a submission has succeeded, failed, or been aborted). You may opt in or out of receiving these emails for individual workspaces.'
+        ])
+      ])
+    ]),
     h(NotificationCardHeaders, {
       sort: workspaceSort,
       onSort: setWorkspaceSort
@@ -508,6 +474,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
             setSaving,
             prefsData,
             label: `${workspace.workspace.namespace}/${workspace.workspace.name}`,
+            key: workspace.workspace.id
           })
         })
       )(workspaces)
