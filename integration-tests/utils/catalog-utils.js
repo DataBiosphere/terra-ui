@@ -1,4 +1,4 @@
-const { enableDataCatalog } = require('../utils/integration-helpers')
+const { navigateToDataCatalog } = require('../utils/integration-helpers')
 const { click, clickable, checkbox, clickTableCell, noSpinnersAfter } = require('../utils/integration-utils')
 
 
@@ -13,11 +13,11 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
 
 //chance to dataset with asses
 const linkDataToWorkspace = async (page, testUrl, token) => {
-  await enableDataCatalog(page, testUrl, token)
+  await navigateToDataCatalog(page, testUrl, token)
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
   // TODO: add test data with granted access DC-321
   await clickTableCell(page, { tableName: 'dataset list', columnHeader: 'Dataset Name', text: 'Readable Catalog Snapshot 1', isDescendant: true })
-  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Link to a workspace' })) })
+  await noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: 'Prepare for analysis' })) })
 }
 
 module.exports = { eitherThrow, linkDataToWorkspace }

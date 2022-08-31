@@ -175,14 +175,16 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
-const enableDataCatalog = async (page, testUrl, token) => {
+const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
-
   await findText(page, 'Browse Data')
-
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, { token })
+  await enableDataCatalog(page)
+}
+
+const enableDataCatalog = async page => {
   await click(page, clickable({ textContains: 'datasets' }))
   await click(page, clickable({ textContains: 'New Catalog OFF' }))
   await waitForNoSpinners(page)
@@ -217,6 +219,7 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
+  navigateToDataCatalog,
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
