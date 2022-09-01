@@ -153,7 +153,7 @@ const AnalysisCard = ({
       }, [makeMenuIcon('copy-to-clipboard'), 'Copy analysis URL to clipboard']),
       h(MenuButton, {
         'aria-label': `Rename`,
-        disabled: !canWrite,
+        disabled: true,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onRename()
