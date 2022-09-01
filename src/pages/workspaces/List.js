@@ -134,7 +134,7 @@ export const WorkspaceList = () => {
 
   useEffect(() => {
     setLocalPref(persistenceId, { recentlyViewedOpen })
-  }, [recentlyViewedOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [recentlyViewedOpen, persistenceId])
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
