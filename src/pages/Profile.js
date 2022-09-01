@@ -595,8 +595,8 @@ const PersonalInfoTab = ({ setSaving }) => {
             researchAreaCheckbox('Rare Disease'),
             researchAreaCheckbox('Single Cell Genomics'),
             researchAreaCheckbox('Agricultural'),
-            researchAreaCheckbox('Other (please specify)'),
-            true && textField('researchAreaOther')
+            researchAreaCheckbox('Other'),
+            _.includes('Other', areasOfResearch) && textField('researchAreaOther')
           ])
         ]),
 
