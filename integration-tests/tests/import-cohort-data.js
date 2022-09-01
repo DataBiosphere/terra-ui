@@ -1,7 +1,9 @@
 const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require(
-  '../utils/integration-utils')
+const {
+  findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement,
+  navOptionNetworkIdle, noSpinnersAfter
+} = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -15,7 +17,11 @@ const testImportCohortDataFn = _.flow(
   await signIntoTerra(page, { token, testUrl })
 
   await click(page, clickable({ textContains: 'Browse Data' }))
-  await click(page, clickable({ textContains: '1000 Genomes Low Coverage' }))
+
+  await Promise.all([
+    page.waitForNavigation(navOptionNetworkIdle()),
+    noSpinnersAfter(page, { action: () => click(page, clickable({ textContains: '1000 Genomes Low Coverage' })) })
+  ])
 
   const frame = await findIframe(page)
   await click(frame, svgText({ textContains: 'Has WGS Low' }))
