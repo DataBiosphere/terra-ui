@@ -103,7 +103,7 @@ export const WorkspaceList = () => {
   const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
   const persistenceId = `workspaces/list`
-  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => getLocalPref(persistenceId)?.recentlyViewedOpen)
+  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen))
 
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
