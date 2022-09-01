@@ -366,23 +366,21 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
-const NotificationCheckbox = ({ key, notificationKeys, setSaving, prefsData }) => {
+const NotificationCheckbox = ({ notificationKeys, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {
     return Object.assign(...notificationKeys.map(notificationKey => ({ [notificationKey]: `${JSON.stringify(value)}` })))
   }
 
-  return div({ key }, [
-    h(LabeledCheckbox, {
-      checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
-      onChange: _.flow(
-        Utils.withBusyState(setSaving),
-        withErrorReporting('Error saving preferences')
-      )(async v => {
-        await Ajax().User.profile.setPreferences(notificationKeysWithValue({ notificationKeys, value: v }))
-        await refreshTerraProfile()
-      })
+  return h(LabeledCheckbox, {
+    checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
+    onChange: _.flow(
+      Utils.withBusyState(setSaving),
+      withErrorReporting('Error saving preferences')
+    )(async v => {
+      await Ajax().User.profile.setPreferences(notificationKeysWithValue({ notificationKeys, value: v }))
+      await refreshTerraProfile()
     })
-  ])
+  })
 }
 
 const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
@@ -396,7 +394,7 @@ const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
   ])
 })
 
-const NotificationCard = memoWithName('NotificationCard', ({ key, label, notificationKeys, setSaving, prefsData }) => {
+const NotificationCard = memoWithName('NotificationCard', ({ label, notificationKeys, setSaving, prefsData }) => {
   const notificationCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
@@ -405,12 +403,10 @@ const NotificationCard = memoWithName('NotificationCard', ({ key, label, notific
   }
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
-    h(IdContainer, [id => h(Fragment, [
-      div({ key, style: notificationCardStyles.row }, [
-        div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, [label]),
-        div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { key: id, notificationKeys, setSaving, prefsData })])
-      ])
-    ])])
+    div({ style: notificationCardStyles.row }, [
+      div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, label),
+      div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { notificationKeys, setSaving, prefsData })])
+    ])
   ])
 })
 
@@ -424,9 +420,9 @@ const NotificationSettingsTab = ({ setSaving }) => {
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
         'Account Notifications',
-        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        h(InfoBox, { style: { marginLeft: '0.5rem' } },
           'You may receive email notifications regarding certain events in Terra. You may globally opt in or out of receiving these emails.'
-        ])
+        )
       ])
     ]),
     h(NotificationCardHeaders),
@@ -453,23 +449,23 @@ const NotificationSettingsTab = ({ setSaving }) => {
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
         'Submission Notifications',
-        h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+        h(InfoBox, { style: { marginLeft: '0.5rem' } },
           'You may receive email notifications regarding terminal submissions in Terra (i.e. if a submission has succeeded, failed, or been aborted). You may opt in or out of receiving these emails for individual workspaces.'
-        ])
+        )
       ])
     ]),
     h(NotificationCardHeaders),
-    div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } }, [
+    div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } },
       _.map(workspace => {
         const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
         return h(NotificationCard, {
           setSaving,
           prefsData,
-          label, key: workspace.workspace.id,
+          label,
           notificationKeys: [`notifications/SuccessfulSubmissionNotification/${label}`, `notifications/FailedSubmissionNotification/${label}`, `notifications/AbortedSubmissionNotification/${label}`]
         })
       })(workspaces)
-    ])
+    )
   ])
 }
 
