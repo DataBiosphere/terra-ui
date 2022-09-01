@@ -55,26 +55,6 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
-  const timeout = 5000
-  const somePointInTheFuture = Date.now() + timeout
-  const maxDelayIncrement = 1500
-  const minDelay = 500
-
-  while (Date.now() < somePointInTheFuture) {
-    const until = Math.random() * maxDelayIncrement + minDelay
-    try {
-      return await Utils.withDelay(until, wrappedFetch)(...args)
-    } catch (error) {
-      if (shouldNotRetryFn(error)) {
-        throw error
-      }
-      // ignore error will retry
-    }
-  }
-  return wrappedFetch(...args)
-})
-
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
@@ -156,7 +136,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
 // are not transient and the request should not be retried.
-const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
@@ -1321,7 +1301,7 @@ const Buckets = signal => ({
 
       rename: async newName => {
         await copy(newName, bucket, false)
-        return doDelete()
+        await doDelete()
       }
     }
   },
@@ -1338,7 +1318,7 @@ const Buckets = signal => ({
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
     const doCopy = async (newName, newBucket, body) => {
-      fetchBuckets(
+      return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
