@@ -56,9 +56,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       const fetchManagedApps = Utils.withBusyState(setIsBusy,
         async () => {
           try {
-            // console.log('fetching for ' + subscriptionId)
             const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId)
-            // console.log(managedApps)
             setManagedApps(managedApps.managedApps)
             setErrorFetchingManagedApps(false)
           } catch (obj) {

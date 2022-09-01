@@ -154,7 +154,7 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
   ])
 }
 
-const billingProjectNameValidator = existing => ({
+export const billingProjectNameValidator = existing => ({
   length: { minimum: 6, maximum: 30 },
   format: {
     pattern: /(\w|-)+/,
