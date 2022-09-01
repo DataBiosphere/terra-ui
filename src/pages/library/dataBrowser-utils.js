@@ -1,7 +1,10 @@
 import _ from 'lodash/fp'
+import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -14,8 +17,7 @@ export const datasetAccessTypes = {
 }
 
 export const uiMessaging = {
-  controlledFeatureTooltip: 'You do not have access to this dataset. Please request access to unlock this feature.',
-  unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
+  controlledFeature_tooltip: 'You do not have access to this dataset. Please request access to unlock this feature.'
 }
 
 export const datasetReleasePolicies = {
@@ -35,14 +37,6 @@ export const datasetReleasePolicies = {
   'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
   'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
-}
-
-export const isWorkspace = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
-}
-
-export const isDatarepoSnapshot = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
 }
 
 const normalizeDataset = dataset => {
@@ -127,4 +121,16 @@ export const useDataCatalog = () => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }
+}
+
+export const importDataToWorkspace = datasets => {
+  // TODO (DC-284): Call data catalog to figure out what the format should be for importing to workspace
+  const format = 'snapshot'
+  Nav.history.push({
+    pathname: Nav.getPath('import-data'),
+    search: qs.stringify({
+      url: getConfig().dataRepoUrlRoot, format, referrer: 'data-catalog',
+      snapshotIds: _.map('dct:identifier', datasets)
+    })
+  })
 }
