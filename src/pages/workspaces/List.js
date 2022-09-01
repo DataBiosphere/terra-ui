@@ -368,7 +368,7 @@ export const WorkspaceList = () => {
         title: 'Recently Viewed',
         initialOpenState: recentlyViewedOpen,
         noTitleWrap: true,
-        onClick: () => setRecentlyViewedOpen(recentlyViewedOpen === undefined ? false : !recentlyViewedOpen),
+        onClick: () => setRecentlyViewedOpen(v => !v),
         summaryStyle: { margin: '0.5rem 0' }
       }, [
         div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
