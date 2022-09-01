@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
+  ButtonPrimary, Checkbox, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
   ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -364,13 +364,14 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
   ])
 }
 
-const NotificationCheckbox = ({ notificationKeys, setSaving, prefsData }) => {
+const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {
     return _.fromPairs(_.map(notificationKey => [notificationKey, JSON.stringify(value)], notificationKeys))
   }
 
-  return h(LabeledCheckbox, {
+  return h(Checkbox, {
     //Thurloe defaults all notifications to being on. So if the key is not present, then we also treat that as enabled
+    'aria-label': label,
     checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
     onChange: _.flow(
       Utils.withBusyState(setSaving),
@@ -404,7 +405,7 @@ const NotificationCard = memoWithName('NotificationCard', ({ label, notification
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     div({ style: notificationCardStyles.row }, [
       div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, label),
-      div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { notificationKeys, setSaving, prefsData })])
+      div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { notificationKeys, label, setSaving, prefsData })])
     ])
   ])
 })
