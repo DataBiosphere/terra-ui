@@ -504,9 +504,9 @@ const PersonalInfoTab = ({ setSaving }) => {
     h(LabeledCheckbox, {
       checked: _.includes(title, areasOfResearch),
       onChange: v => {
-        v ? setAreasOfResearch(_.concat(areasOfResearch, [title])) :
-          setAreasOfResearch(_.without([title], areasOfResearch))
-        assignValue('researchArea', _.join(',', areasOfResearch))
+        const updatedAreasOfResearch = v ? _.concat(areasOfResearch, [title]) : _.without([title], areasOfResearch)
+        setAreasOfResearch(updatedAreasOfResearch)
+        assignValue('researchArea', _.join(',', updatedAreasOfResearch))
       }
     }, [span({ style: styles.form.checkboxLabel }, [title])])
   ])
