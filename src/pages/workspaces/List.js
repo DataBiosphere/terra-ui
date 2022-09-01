@@ -366,7 +366,7 @@ export const WorkspaceList = () => {
       ]),
       !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && h(Collapse, {
         title: 'Recently Viewed',
-        initialOpenState: recentlyViewedOpen !== undefined ? recentlyViewedOpen : true,
+        initialOpenState: recentlyViewedOpen,
         noTitleWrap: true,
         onClick: () => setRecentlyViewedOpen(recentlyViewedOpen === undefined ? false : !recentlyViewedOpen),
         summaryStyle: { margin: '0.5rem 0' }
