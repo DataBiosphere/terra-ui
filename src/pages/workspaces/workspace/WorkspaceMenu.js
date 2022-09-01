@@ -12,7 +12,7 @@ import * as Utils from 'src/libs/utils'
 const WorkspaceMenu = ({
   iconSize, popupLocation,
   callbacks: { onClone, onShare, onLock, onDelete },
-  workspaceInfo: { name, namespace, canShare, isAzureWorkspace, isLocked, isOwner }
+  workspaceInfo: { name, namespace, canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded }
 }) => {
   const navIconProps = {
     style: { opacity: 0.65, marginRight: '1rem', height: iconSize },
@@ -21,7 +21,7 @@ const WorkspaceMenu = ({
 
   const menuContent = !!namespace ?
     h(DynamicWorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete, onLock }) :
-    h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete })
+    h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded })
 
   return h(MenuTrigger, {
     side: popupLocation,
@@ -47,39 +47,49 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
   })
 }
 
-const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded = true }) => {
+export const tooltipText = {
+  cloneAzureUnsupported: 'Cloning is not currently supported on Azure Workspaces',
+  shareAzureUnsupported: 'Sharing is not currently supported on Azure Workspaces',
+  shareNoPermission: 'You have not been granted permission to share this workspace',
+  deleteLocked: 'You cannot delete a locked workspace',
+  deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
+  lockNoPermission: 'You have not been granted permission to lock this workspace',
+  unlockNoPermission: 'You have not been granted permission to unlock this workspace'
+}
+
+const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
-    [isAzureWorkspace, () => 'Sharing is not currently supported on Azure Workspaces'],
-    [workspaceLoaded && !canShare, () => 'You have not been granted permission to share this workspace'],
+    [workspaceLoaded && isAzureWorkspace, () => tooltipText.shareAzureUnsupported],
+    [workspaceLoaded && !canShare, () => tooltipText.shareNoPermission],
     [Utils.DEFAULT, () => '']
   )
   const deleteTooltip = Utils.cond(
-    [workspaceLoaded && isLocked, () => 'You cannot delete a locked workspace'],
-    [workspaceLoaded && !isOwner, () => 'You must be an owner of this workspace or the underlying billing project'],
+    [workspaceLoaded && isLocked, () => tooltipText.deleteLocked],
+    [workspaceLoaded && !isOwner, () => tooltipText.deleteNoPermission],
     [Utils.DEFAULT, () => '']
   )
 
   return h(Fragment, [
     h(MenuButton, {
-      disabled: isAzureWorkspace,
-      tooltip: workspaceLoaded && isAzureWorkspace && 'Cloning is not currently supported on Azure Workspaces',
+      disabled: !workspaceLoaded || isAzureWorkspace,
+      tooltip: workspaceLoaded && isAzureWorkspace && tooltipText.cloneAzureUnsupported,
       tooltipSide: 'left',
       onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
-      disabled: !canShare || isAzureWorkspace,
+      disabled: !workspaceLoaded || !canShare || isAzureWorkspace,
       tooltip: shareTooltip,
       tooltipSide: 'left',
       onClick: onShare
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
-      disabled: !isOwner,
-      tooltip: workspaceLoaded && !isOwner && ['You have not been granted permission to ', isLocked ? 'unlock' : 'lock', ' this workspace'],
+      disabled: !workspaceLoaded || !isOwner,
+      tooltip: workspaceLoaded && !isOwner && [isLocked ? tooltipText.unlockNoPermission : tooltipText.lockNoPermission],
       tooltipSide: 'left',
       onClick: onLock
     }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
     h(MenuButton, {
-      disabled: !isOwner || isLocked,
+      disabled: !workspaceLoaded || !isOwner || isLocked,
       tooltip: deleteTooltip,
       tooltipSide: 'left',
       onClick: onDelete
