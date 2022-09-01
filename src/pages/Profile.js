@@ -366,7 +366,7 @@ const ExternalIdentitiesTab = ({ queryParams }) => {
 
 const NotificationCheckbox = ({ notificationKeys, setSaving, prefsData }) => {
   const notificationKeysWithValue = ({ notificationKeys, value }) => {
-    return Object.assign(...notificationKeys.map(notificationKey => ({ [notificationKey]: `${JSON.stringify(value)}` })))
+    return _.fromPairs(_.map(notificationKey => [notificationKey, JSON.stringify(value)], notificationKeys))
   }
 
   return h(LabeledCheckbox, {
