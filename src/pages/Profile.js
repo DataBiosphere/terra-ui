@@ -33,7 +33,6 @@ import validate from 'validate.js'
 
 const styles = {
   page: {
-    margin: '0 2rem 2rem',
     width: 1050
   },
   sectionTitle: {
@@ -42,7 +41,6 @@ const styles = {
   },
   header: {
     line: {
-      margin: '0 2rem',
       display: 'flex', alignItems: 'center'
     },
 
