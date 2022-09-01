@@ -2,7 +2,7 @@ import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
   ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
@@ -577,7 +577,9 @@ const PersonalInfoTab = ({ setSaving }) => {
           ])
         ]),
 
-        sectionTitle('What is your area of research? (multi-select)'),
+        sectionTitle('What is your area of research?'),
+
+        p('Check all that apply.'),
 
         line([
           checkboxLine([
