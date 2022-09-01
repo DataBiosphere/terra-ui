@@ -382,7 +382,7 @@ const NotificationCheckbox = ({ notificationKeys, setSaving, prefsData }) => {
 }
 
 const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+  return div({ style: { display: 'flex', justifyContent: 'space-between', margin: '1.5rem 0 0.5rem 0', padding: '0 1rem' } }, [
     div({ style: { flex: 1 } }, [
       div({ style: { fontWeight: 600 } }, 'Name')
     ]),
@@ -410,8 +410,7 @@ const NotificationCard = memoWithName('NotificationCard', ({ label, notification
 
 const NotificationSettingsTab = ({ setSaving }) => {
   const { workspaces } = useWorkspaces()
-  const [profileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
-  const [prefsData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
+  const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile)
 
 
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
