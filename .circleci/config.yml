@@ -327,8 +327,5 @@ workflows:
       - schedule:
           <<: *filter-dev-branch
           cron: "0 13 * * *"
-          filters:
-            branches:
-              only: dev
     jobs:
       - integration-tests-alpha
