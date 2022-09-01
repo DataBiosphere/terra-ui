@@ -448,7 +448,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
       h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
         'Submission Notifications',
         h(InfoBox, { style: { marginLeft: '0.5rem' } },
-          'You may receive email notifications regarding terminal submissions in Terra (i.e. if a submission has succeeded, failed, or been aborted). You may opt in or out of receiving these emails for individual workspaces.'
+          'You may receive email notifications when a submission has succeeded, failed, or been aborted. You may opt in or out of receiving these emails for individual workspaces.'
         )
       ])
     ]),
