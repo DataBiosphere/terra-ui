@@ -188,16 +188,11 @@ const amppd = () => h(Participant, {
   sizeText: 'Participants: 10,772'
 }, [
   h(ButtonPrimary, {
-    'aria-label': 'Browse AMP-PD Tier 1 data',
-    style: { marginBottom: '1rem' },
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' }),
-    onClick: () => captureBrowseDataEvent('AMP PD Clinical - 2020_v2release_1218')
-  }, ['Browse Tier 1 Data']),
-  h(ButtonPrimary, {
-    'aria-label': 'Browse AMP-PD Tier 2 data',
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' }),
-    onClick: () => captureBrowseDataEvent('AMP PD - 2020_v2release_1218')
-  }, ['Browse Tier 2 Data'])
+    'aria-label': 'Learn about AMP PD data',
+    tooltip: 'Visit the Featured Workspace',
+    href: 'https://app.terra.bio/#workspaces/amp-pd-public/AMP-PD-In-Terra',
+    onClick: () => captureBrowseDataEvent('AMP PD Featured Workspace')
+  }, ['Explore AMP PD'])
 ])
 
 const baseline = () => h(Participant, {
