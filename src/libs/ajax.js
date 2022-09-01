@@ -1338,7 +1338,7 @@ const Buckets = signal => ({
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
     const doCopy = async (newName, newBucket, body) => {
-      fetchBuckets(
+      return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
