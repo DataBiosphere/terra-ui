@@ -370,6 +370,7 @@ const NotificationCheckbox = ({ notificationKeys, setSaving, prefsData }) => {
   }
 
   return h(LabeledCheckbox, {
+    //Thurloe defaults all notifications to being on. So if the key is not present, then we also treat that as enabled
     checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
     onChange: _.flow(
       Utils.withBusyState(setSaving),
