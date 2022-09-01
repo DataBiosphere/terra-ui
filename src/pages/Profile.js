@@ -56,7 +56,7 @@ const styles = {
       margin: '2rem 0'
     },
     container: {
-      width: 320, margin: '0.5rem'
+      width: 320, marginRight: '1rem'
     },
     title: {
       whiteSpace: 'nowrap', fontSize: 16,
