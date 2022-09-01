@@ -472,7 +472,6 @@ const PersonalInfoTab = ({ setSaving }) => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
   const { researchArea } = profileInfo
-  const [areasOfResearch, setAreasOfResearch] = useState(_.isEmpty(researchArea) ? [] : _.split(',', researchArea))
 
   const signal = useCancellation()
 
@@ -503,11 +502,11 @@ const PersonalInfoTab = ({ setSaving }) => {
   ])])
   const researchAreaCheckbox = title => div([
     h(LabeledCheckbox, {
-      checked: _.includes(title, areasOfResearch),
+      checked: _.includes(title, researchArea),
       onChange: v => {
-        const updatedAreasOfResearch = v ? _.concat(areasOfResearch, [title]) : _.without([title], areasOfResearch)
-        setAreasOfResearch(updatedAreasOfResearch)
-        assignValue('researchArea', _.join(',', updatedAreasOfResearch))
+        const areasOfResearchList = _.isEmpty(researchArea) ? [] : _.split(',', researchArea)
+        const updatedAreasOfResearchList = v ? _.concat(areasOfResearchList, [title]) : _.without([title], areasOfResearchList)
+        assignValue('researchArea', _.join(',', updatedAreasOfResearchList))
       }
     }, [span({ style: styles.form.checkboxLabel }, [title])])
   ])
