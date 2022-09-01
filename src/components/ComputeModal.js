@@ -94,6 +94,7 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
         div([
           h(Select, {
             id,
+            menuPlacement: 'auto',
             isSearchable: false,
             value: currentCpu,
             onChange: option => onChange(_.find({ cpu: option.value }, machineTypeOptions)?.name || value),
@@ -108,6 +109,7 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
         div([
           h(Select, {
             id,
+            menuPlacement: 'auto',
             isSearchable: false,
             value: currentMemory,
             onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
@@ -913,7 +915,7 @@ export const ComputeModalBase = ({
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 5rem 1fr 6rem 1fr 5rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
@@ -1106,7 +1108,7 @@ export const ComputeModalBase = ({
       isDataprocCluster(runtimeType) && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
         legend({ style: { padding: 0, ...computeStyles.label } }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem', marginTop: '0.75rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
               label({ htmlFor: id, style: computeStyles.label }, ['Workers']),
@@ -1726,7 +1728,7 @@ export const ComputeModalBase = ({
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
-          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
               h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
                 renderPersistentDiskType(id)
