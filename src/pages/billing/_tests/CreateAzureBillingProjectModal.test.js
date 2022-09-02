@@ -101,7 +101,9 @@ describe('CreateAzureBillingProjectModal', () => {
       }
     })
     // Act
-    fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
+    await act(async () => {
+      await userEvent.type(getSubscriptionInput(), uuid())
+    })
     // Assert
     await screen.findByText(noManagedApps)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
@@ -117,7 +119,9 @@ describe('CreateAzureBillingProjectModal', () => {
       }
     })
     // Act
-    fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
+    await act(async () => {
+      await userEvent.type(getSubscriptionInput(), uuid())
+    })
     // Assert
     await screen.findByText(managedAppCallFailed)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
@@ -154,12 +158,16 @@ describe('CreateAzureBillingProjectModal', () => {
         }
       }
     })
-    fireEvent.change(getBillingProjectInput(), { target: { value: projectName } })
+    await act(async () => {
+      await userEvent.type(getBillingProjectInput(), projectName)
+    })
     verifyDisabled(getCreateButton())
 
     // Act
     // Supply a valid subscription ID
-    fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
+    await act(async () => {
+      await userEvent.type(getSubscriptionInput(), uuid())
+    })
     // Wait for Ajax response
     await waitFor(() => verifyEnabled(getManagedAppInput()))
     verifyDisabled(getCreateButton())
@@ -169,7 +177,6 @@ describe('CreateAzureBillingProjectModal', () => {
     await userEvent.click(selectOption)
     // Click the Create button
     verifyEnabled(getCreateButton())
-    // Need act due to busy flag update
     await act(async () => {
       await userEvent.click(getCreateButton())
     })
