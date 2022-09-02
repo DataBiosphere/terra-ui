@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
+import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
@@ -38,6 +39,7 @@ describe('CreateAzureBillingProjectModal', () => {
 
   const invalidUuidError = 'Subscription id must be a UUID'
   const noManagedApps = 'No Terra Managed Applications exist for that subscription'
+  const managedAppCallFailed = 'Unable to retrieve Managed Applications for that subscription'
   const getSubscriptionInput = () => screen.getByLabelText('Azure subscription *')
   const getManagedAppInput = () => screen.getByLabelText('Managed application *')
   const getCreateButton = () => screen.getByText('Create')
@@ -87,21 +89,17 @@ describe('CreateAzureBillingProjectModal', () => {
     fireEvent.change(getSubscriptionInput(), { target: { value: 'invalid UUID' } })
     // Assert
     expect(screen.queryByText(invalidUuidError)).not.toBeNull()
-    // TODO Verify no ajax call made
     verifyDisabled(getCreateButton())
     verifyDisabled(getManagedAppInput())
   })
 
-  it('fetches shows an error if there are no managed apps (valid subscription ID)', async () => {
+  it('shows an error if there are no managed apps (valid subscription ID)', async () => {
     // Arrange
     Ajax.mockImplementation(() => {
       return {
-        Billing: {
-          listAzureManagedApplications: () => Promise.resolve({ managedApps: [] })
-        }
+        Billing: { listAzureManagedApplications: () => Promise.resolve({ managedApps: [] }) }
       }
     })
-    expect(screen.queryByText(invalidUuidError)).toBeNull() // Should not initially be visible
     // Act
     fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
     // Assert
@@ -111,27 +109,75 @@ describe('CreateAzureBillingProjectModal', () => {
     verifyDisabled(getCreateButton())
   })
 
-  it('renders available managed applications (valid subscription ID)', async () => {
+  it('shows an error if the listAzureManagedApplications Ajax call errors', async () => {
     // Arrange
+    Ajax.mockImplementation(() => {
+      return {
+        Billing: { listAzureManagedApplications: () => Promise.reject('expected test failure') }
+      }
+    })
+    // Act
+    fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
+    // Assert
+    await screen.findByText(managedAppCallFailed)
+    expect(screen.queryByText(invalidUuidError)).toBeNull()
+    verifyDisabled(getManagedAppInput())
+    verifyDisabled(getCreateButton())
+  })
+
+  it('renders available managed applications and can create a project', async () => {
+    // Arrange
+    const createResult = {}
+    const projectName = 'Billing_Project_Name'
+    const appName = 'appName'
+    const tenant = 'tenant'
+    const subscription = 'subscription'
+    const mrg = 'mrg'
     Ajax.mockImplementation(() => {
       return {
         Billing: {
           listAzureManagedApplications: () => Promise.resolve(
-            { managedApps: [{ applicationDeploymentName: 'testApp1' }, { applicationDeploymentName: 'testApp2' }] }
-          )
+            {
+              managedApps: [
+                { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1' },
+                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg }
+              ]
+            }
+          ),
+          createAzureProject: (billingProjectName, tenantId, subscriptionId, managedResourceGroupId) => {
+            createResult.billingProjectName = billingProjectName
+            createResult.tenantId = tenantId
+            createResult.subscriptionId = subscriptionId
+            createResult.managedResourceGroupId = managedResourceGroupId
+            Promise.resolve(createResult)
+          }
         }
       }
     })
-    fireEvent.change(getBillingProjectInput(), { target: { value: 'ThisIs-a_suitableName' } })
+    fireEvent.change(getBillingProjectInput(), { target: { value: projectName } })
     verifyDisabled(getCreateButton())
+
     // Act
+    // Supply a valid subscription ID
     fireEvent.change(getSubscriptionInput(), { target: { value: uuid() } })
-    // Assert
-    await waitFor(() => verifyEnabled(getManagedAppInput()), { timeout: 5000 })
+    // Wait for Ajax response
+    await waitFor(() => verifyEnabled(getManagedAppInput()))
     verifyDisabled(getCreateButton())
+    // Select one of the managed apps
     await userEvent.click(getManagedAppInput())
-    const selectOption = await screen.findByText('testApp2')
+    const selectOption = await screen.findByText(appName)
     await userEvent.click(selectOption)
+    // Click the Create button
     verifyEnabled(getCreateButton())
+    // Need act due to busy flag update
+    await act(async () => {
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    expect(createResult.billingProjectName).toBe(projectName)
+    expect(createResult.tenantId).toBe(tenant)
+    expect(createResult.subscriptionId).toBe(subscription)
+    expect(createResult.managedResourceGroupId).toBe(mrg)
   })
 })
