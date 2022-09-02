@@ -17,7 +17,7 @@ jest.mock('src/components/Modal', () => {
     ...originalModule,
     __esModule: true,
     default: props => div({ id: 'modal-root' }, [
-      h(originalModule.default, props)
+      h(originalModule.default, { onAfterOpen: jest.fn(), ...props })
     ])
   }
 })
@@ -116,9 +116,9 @@ describe('CreateAzureBillingProjectModal', () => {
     Ajax.mockImplementation(() => {
       return {
         Billing: {
-          listAzureManagedApplications: () => {
-            Promise.resolve({ managedApps: [{ applicationDeploymentName: 'testApp1' }, { applicationDeploymentName: 'testApp2' }] })
-          }
+          listAzureManagedApplications: () => Promise.resolve(
+            { managedApps: [{ applicationDeploymentName: 'testApp1' }, { applicationDeploymentName: 'testApp2' }] }
+          )
         }
       }
     })
