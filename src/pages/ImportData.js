@@ -76,7 +76,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId, tdrSyncPermissions } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -143,7 +143,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['tdrexport', async () => {
-        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(tdrmanifest, 'tdrexport')
+        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(tdrmanifest, 'tdrexport', tdrSyncPermissions)
         asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
         notifyDataImportProgress(jobId)
       }],
