@@ -34,6 +34,7 @@ describe('CreateAzureBillingProjectModal', () => {
   const tooShortError = 'Billing project name is too short (minimum is 6 characters)'
   const tooLongError = 'Billing project name is too long (maximum is 30 characters)'
   const badCharsError = 'Billing project name can only contain letters, numbers, underscores and hyphens.'
+  const duplicateProjectError = 'Billing project name already exists'
   const getBillingProjectInput = () => screen.getByLabelText('Terra billing project *')
   const getBillingProjectHint = () => screen.queryByText('Name must be unique and cannot be changed.')
 
@@ -62,7 +63,7 @@ describe('CreateAzureBillingProjectModal', () => {
     { text: 'ThisIs-a_suitableName', errors: [] }
   ])('validates billing project name "$text"', ({ text, errors }) => {
     // Arrange
-    const allErrors = [tooShortError, tooLongError, badCharsError]
+    const allErrors = [tooShortError, tooLongError, badCharsError, duplicateProjectError]
     // Act
     if (text === '') {
       // Must first insert something and then replace with empty string.
@@ -115,7 +116,7 @@ describe('CreateAzureBillingProjectModal', () => {
     // Arrange
     Ajax.mockImplementation(() => {
       return {
-        Billing: { listAzureManagedApplications: () => Promise.reject('expected test failure') }
+        Billing: { listAzureManagedApplications: () => Promise.reject('expected test failure-- ignore console.error message') }
       }
     })
     // Act
@@ -186,5 +187,50 @@ describe('CreateAzureBillingProjectModal', () => {
     expect(createResult.tenantId).toBe(tenant)
     expect(createResult.subscriptionId).toBe(subscription)
     expect(createResult.managedResourceGroupId).toBe(mrg)
+  })
+
+  it('shows an error if billing project name is not unique', async () => {
+    // Arrange
+    const projectName = 'Dupe_Billing_Project_Name'
+    const appName = 'appName'
+    Ajax.mockImplementation(() => {
+      return {
+        Billing: {
+          listAzureManagedApplications: () => Promise.resolve(
+            {
+              managedApps: [
+                { applicationDeploymentName: appName, tenantId: 'fakeTenant', subscriptionId: 'fakeSub', managedResourceGroupId: 'fakeMrg' }
+              ]
+            }
+          ),
+          createAzureProject: () => Promise.reject(new Response('Mock duplicate error', { status: 409 }))
+        }
+      }
+    })
+    await act(async () => {
+      await userEvent.type(getBillingProjectInput(), projectName)
+    })
+    verifyDisabled(getCreateButton())
+
+    // Act
+    // Supply a valid subscription ID
+    await act(async () => {
+      await userEvent.type(getSubscriptionInput(), uuid())
+    })
+    // Wait for Ajax response
+    await waitFor(() => verifyEnabled(getManagedAppInput()))
+    // Select one of the managed apps
+    await userEvent.click(getManagedAppInput())
+    const selectOption = await screen.findByText(appName)
+    await userEvent.click(selectOption)
+    // Click the Create button
+    verifyEnabled(getCreateButton())
+    await act(async () => {
+      await userEvent.click(getCreateButton())
+    })
+
+    // Assert
+    expect(screen.queryByText(duplicateProjectError)).not.toBeNull()
+    verifyDisabled(getCreateButton())
   })
 })
