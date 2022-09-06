@@ -106,7 +106,14 @@ const clickTableCell = async (page, { tableName, columnHeader, text, isDescendan
 }
 
 const click = async (page, xpath, options) => {
-  return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
+  try {
+    return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
+  } catch (e) {
+    if (e.message.includes('Node is detached from document')) {
+      return (await page.waitForXPath(xpath, defaultToVisibleTrue(options))).click()
+    }
+    throw e
+  }
 }
 
 const findText = (page, textContains, options) => {
