@@ -3,7 +3,13 @@ import { useEffect } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { useRoute } from 'src/libs/nav'
 
-
+/*
+ * NOTE: In order to show up in reports, new events MUST be marked as expected in the
+ * Mixpanel lexicon:
+ *   https://mixpanel.com/project/2085496/view/19055/app/lexicon#transformations
+ * See our Mixpanel Documentation Guide for more details:
+ *   https://docs.google.com/document/d/11FTFwcSby_Y3syQCvjLz124xgv5LGd0HBhEjup59O7Q
+ */
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
   appcuesEvent: 'appcues:event',
