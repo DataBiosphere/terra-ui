@@ -25,8 +25,6 @@ const renderAndSanitizeMarkdown = (text, renderers = {}) => DOMPurify.sanitize(m
 }))
 
 /**
- * WARNING: Be very careful when using custom renderers because they may override marked's built-in
- * content sanitization.
  * @param {string} children - markdown content
  * @param {Object} renderers - element-specific renderers
  * @param {Object} props - properties for wrapper div
