@@ -158,7 +158,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 // are not transient and the request should not be retried.
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchBillingProjectManager = _.flow(withUrlPrefix(`${getConfig().billingProjectManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -641,7 +641,7 @@ const Billing = signal => ({
   },
 
   listAzureManagedApplications: async subscriptionId => {
-    const response = await fetchBillingProjectManager(`azure/v1/managedApps?azureSubscriptionId=${subscriptionId}`,
+    const response = await fetchBillingProfileManager(`azure/v1/managedApps?azureSubscriptionId=${subscriptionId}`,
       _.merge(authOpts(), { signal }))
     return response.json()
   }

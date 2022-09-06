@@ -49,7 +49,7 @@ const billingProjectTypes = {
   gcp: 'gcp'
 }
 
-const CreateBillingProjectControl = ({ isAlphaSpendReportUser, showCreateProjectModal }) => {
+const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
       'aria-label': 'Create new billing project',
@@ -57,7 +57,7 @@ const CreateBillingProjectControl = ({ isAlphaSpendReportUser, showCreateProject
     }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
   }
 
-  if (!isAlphaSpendReportUser) {
+  if (!isAlphaAzureUser) {
     return createButton(showCreateProjectModal, billingProjectTypes.gcp)
   } else {
     return h(MenuTrigger, {
@@ -300,6 +300,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
   const [isAlphaSpendReportUser, setIsAlphaSpendReportUser] = useState(false)
+  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
 
   const signal = useCancellation()
   const interval = useRef()
@@ -312,6 +313,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   const loadAlphaSpendReportMember = reportErrorAndRethrow('Error loading spend report group membership')(async () => {
     setIsAlphaSpendReportUser(await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember())
+  })
+
+  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
+    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
   })
 
   const reloadBillingProject = _.flow(
@@ -363,6 +368,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     loadProjects()
     tryAuthorizeAccounts().then(loadAccounts)
     loadAlphaSpendReportMember()
+    loadAlphaAzureMember()
   })
 
   useEffect(() => {
@@ -413,7 +419,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           }
         }, [
           h2({ style: { fontSize: 16 } }, 'Billing Projects'),
-          h(CreateBillingProjectControl, { isAlphaSpendReportUser, showCreateProjectModal })
+          h(CreateBillingProjectControl, { isAlphaAzureUser, showCreateProjectModal })
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
@@ -441,7 +447,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      creatingBillingProject === billingProjectTypes.azure && isAlphaSpendReportUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === billingProjectTypes.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: () => {
           setCreatingBillingProject(null)
