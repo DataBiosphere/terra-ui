@@ -1,19 +1,26 @@
 import _ from 'lodash/fp'
+import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import Modal from 'src/components/Modal'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { datasetAccessTypes, importDataToWorkspace, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import {
+  datasetAccessTypes, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+} from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -109,7 +116,37 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const { access } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
+  const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
+  const [snapshotExportJobId, setSnapshotExportJobId] = useState()
+  const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
+
+
+  const importDataToWorkspace = dataset => {
+    Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
+      id,
+      title: dataObj['dct:title'],
+      source: dataset['dcat:accessURL']
+    })
+    Utils.cond(
+      [isWorkspace(dataset), () => {
+        Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            format: 'catalog',
+            snapshotName: dataset['dct:title'],
+            catalogDatasetId: dataset.id
+          })
+        })
+      }],
+      [isDatarepoSnapshot(dataset), async () => {
+        setTdrSnapshotPreparePolling(true)
+        const jobInfo = await withErrorReporting('Error exporting dataset', async () => await Ajax().DataRepo.snapshot(dataset['dct:identifier']).exportSnapshot())()
+        setSnapshotExportJobId(jobInfo.id)
+      }],
+      () => setDatasetNotSupportedForExport(true)
+    )
+  }
 
   return h(Fragment, [
     div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
@@ -177,8 +214,10 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonOutline, {
-        disabled: true,
-        tooltip: 'We are currently working on preview dataset and this will be available soon.',
+        disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && dataObj.access !== datasetAccessTypes.GRANTED,
+        tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
+          dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+          uiMessaging.unsupportedDatasetTypeTooltip('preview'),
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
           Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -194,17 +233,15 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ])
       ]),
       h(ButtonPrimary, {
-        disabled: true,
-        tooltip: 'We are currently working on the link to workspace feature which will be available soon.',
+        disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
+        tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
+          dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+          uiMessaging.unsupportedDatasetTypeTooltip('preparing for analysis'),
         style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
         onClick: () => {
-          Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
-            id,
-            title: dataObj['dct:title']
-          })
-          importDataToWorkspace([dataObj])
+          importDataToWorkspace(dataObj)
         }
-      }, ['Link to a workspace']),
+      }, ['Prepare for analysis']),
       div({ style: { display: 'flex', width: sidebarButtonWidth, marginTop: 20 } }, [
         icon('talk-bubble', { size: 60, style: { width: 60, height: 45 } }),
         div({ style: { marginLeft: 10, lineHeight: '1.3rem' } }, [
@@ -223,7 +260,78 @@ export const SidebarComponent = ({ dataObj, id }) => {
     showRequestAccessModal && h(RequestDatasetAccessModal, {
       datasets: [dataObj],
       onDismiss: () => setShowRequestAccessModal(false)
+    }),
+    datasetNotSupportedForExport && h(Modal, {
+      title: 'Cannot Export Dataset',
+      showCancel: false,
+      onDismiss: () => setDatasetNotSupportedForExport(false)
+    }, ['This dataset is not hosted in a storage system that currently has the ability to export to a research environment.']),
+    !!snapshotExportJobId && h(SnapshotExportModal, {
+      jobId: snapshotExportJobId,
+      dataset: dataObj,
+      onDismiss: () => {
+        setSnapshotExportJobId(undefined)
+        setTdrSnapshotPreparePolling(false)
+      },
+      onFailure: () => {
+        setDatasetNotSupportedForExport(true)
+        setSnapshotExportJobId(undefined)
+        setTdrSnapshotPreparePolling(false)
+      }
     })
+  ])
+}
+
+const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
+  const signal = useCancellation()
+  const [jobStatus, setJobStatus] = useState('running')
+  const [abortWarningShowing, setAbortWarningShowing] = useState(false)
+
+  usePollingEffect(
+    withErrorReporting('Problem checking status of snapshot import', async () => {
+      jobStatus === 'running' && await checkJobStatus()
+    }), { ms: 1000 })
+
+  const checkJobStatus = async () => {
+    const jobInfo = await Ajax(signal).DataRepo.job(jobId).details()
+    const newJobStatus = jobInfo['job_status']
+    Utils.switchCase(newJobStatus,
+      ['succeeded', async () => {
+        const jobResult = await withErrorReporting('Error getting export result', async () => await Ajax().DataRepo.job(jobId).result())()
+        const jobResultManifest = jobResult?.format?.parquet?.manifest
+        Ajax().Metrics.captureEvent(Events.catalogWorkspaceLinkExportFinished)
+        jobResultManifest ? Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
+            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
+          })
+        }) : onFailure()
+      }],
+      ['running', () => setJobStatus('running')],
+      [Utils.DEFAULT, onFailure])
+  }
+
+  const buttonStyle = { width: 88, borderRadius: 1 }
+
+  return h(Modal, {
+    title: 'Preparing Dataset for Analysis',
+    onDismiss,
+    showCancel: false,
+    shouldCloseOnOverlayClick: false,
+    shouldCloseOnEsc: false,
+    okButton: abortWarningShowing ? div(
+      { style: { display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' } },
+      [
+        'Are you sure you want to abort?',
+        h(ButtonOutline, { onClick: () => setAbortWarningShowing(false), style: buttonStyle }, ['No']),
+        h(ButtonOutline, { onClick: onDismiss, style: buttonStyle }, ['Yes'])
+      ]) : h(ButtonOutline, { onClick: () => setAbortWarningShowing(true), style: buttonStyle }, ['Abort'])
+  }, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      spinner({ size: 100 }),
+      div({ style: { marginLeft: 10 } }, ['Your dataset is being prepared for analysis. This may take a minute or two.'])
+    ])
   ])
 }
 
