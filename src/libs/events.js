@@ -31,7 +31,6 @@ const eventsList = {
   catalogToggle: 'catalog:toggle',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
-  catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
