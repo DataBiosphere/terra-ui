@@ -371,15 +371,18 @@ export const WorkspaceList = () => {
         onClick: () => setRecentlyViewedOpen(v => !v),
         summaryStyle: { margin: '0.5rem 0' }
       }, [
-        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
-          _.map(({ workspaceId, timestamp }) => {
-            const workspace = getWorkspace(workspaceId)
-            return h(RecentlyViewedWorkspaceCard, {
-              workspace, loadingSubmissionStats, timestamp,
-              submissionStatus: workspaceSubmissionStatus(workspace)
-            })
-          }, recentlyViewed)
-        )
+        // Stop the click propagation here, otherwise using spacebar to click on a card will also collapse the Recently Viewed section
+        span({ onClick: e => e.stopPropagation() }, [
+          div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
+            _.map(({ workspaceId, timestamp }) => {
+              const workspace = getWorkspace(workspaceId)
+              return h(RecentlyViewedWorkspaceCard, {
+                workspace, loadingSubmissionStats, timestamp,
+                submissionStatus: workspaceSubmissionStatus(workspace)
+              })
+            }, recentlyViewed)
+          )
+        ])
       ]),
       div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
