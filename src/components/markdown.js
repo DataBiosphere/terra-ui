@@ -52,6 +52,7 @@ export const FirstParagraphMarkdownViewer = ({ children, renderers, ...props }) 
       code: () => '',
       heading: () => '',
       hr: () => '',
+      html: () => '',
       image: () => '',
       list: () => '',
       listitem: () => '',
