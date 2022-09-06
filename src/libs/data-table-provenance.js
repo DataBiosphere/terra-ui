@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { validate as validateUUID } from 'uuid'
 
 
 export const maxSubmissionsQueriedForProvenance = 25
@@ -86,5 +88,100 @@ export const useColumnProvenance = (workspace, entityType) => {
     loading,
     error,
     loadColumnProvenance: loading ? _.noop : () => { loadColumnProvenance() }
+  }
+}
+
+export const fileProvenanceTypes = Utils.enumify(['externalFile', 'unknown', 'maybeSubmission', 'workflowOutput', 'workflowLog'])
+
+const isLog = (url, task) => _.some(log => _.includes(url, [log.backendLogs.log, log.stdout, log.stderr]), task.logs)
+
+const isOutput = (url, task) => _.some(
+  // outputs can contain a value, a collection of values, or a collection of collections of values
+  output => output === url || _.includes(url, output) || _.some(_.includes(url), output),
+  task.outputs
+)
+
+const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => {
+  const { workspace: { namespace, name, bucketName: workspaceBucket } } = workspace
+
+  const [bucket, path] = parseGsUri(fileUrl)
+  if (!bucket || bucket !== workspaceBucket) {
+    return { type: fileProvenanceTypes.externalFile }
+  }
+
+  const pathParts = path.split('/')
+
+  // Previously, submission roots were `gs://<workspace bucket>/<submission ID>`.
+  // Now, they are `gs://<workspace bucket>/submissions/<submission ID>`.
+  if (!(validateUUID(pathParts[0]) || (pathParts[0] === 'submissions' && validateUUID(pathParts[1])))) {
+    return { type: fileProvenanceTypes.unknown }
+  }
+
+  // Workflow outputs and logs are in submissions/<submission ID>/<workflow name>/<workflow ID>/<task name>.
+  const [submissionId, workflowId] = _.filter(validateUUID, pathParts)
+  if (!workflowId) {
+    return {
+      type: fileProvenanceTypes.maybeSubmission,
+      submissionId
+    }
+  }
+
+  const workflowOutputs = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId).outputs()
+
+  const [taskName, task] = _.flow(
+    _.toPairs,
+    _.find(([, task]) => isLog(fileUrl, task) || isOutput(fileUrl, task)),
+    _.defaultTo([])
+  )(workflowOutputs.tasks)
+
+  if (!(taskName && task)) {
+    return {
+      type: fileProvenanceTypes.maybeSubmission,
+      submissionId
+    }
+  }
+
+  if (isLog(fileUrl, task)) {
+    return {
+      type: fileProvenanceTypes.workflowLog,
+      submissionId,
+      workflowId
+    }
+  }
+
+  return {
+    type: fileProvenanceTypes.workflowOutput,
+    submissionId,
+    workflowId
+  }
+}
+
+export const useFileProvenance = (workspace, fileUrl) => {
+  const signal = useCancellation()
+  const [loading, setLoading] = useState(true)
+  const [fileProvenance, setFileProvenance] = useState(null)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const loadFileProvenance = async () => {
+      setError(null)
+      setLoading(true)
+      try {
+        setFileProvenance(await getFileProvenance(workspace, fileUrl, { signal }))
+      } catch (error) {
+        setError(error)
+        reportError('Error loading file provenance', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFileProvenance()
+  }, [workspace, fileUrl, signal])
+
+  return {
+    fileProvenance,
+    loading,
+    error
   }
 }

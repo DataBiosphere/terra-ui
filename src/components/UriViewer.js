@@ -5,6 +5,7 @@ import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ClipboardButton, Link } from 'src/components/common'
+import { FileProvenance } from 'src/components/data/data-table-provenance'
 import { getDownloadCommand, getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -12,6 +13,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
@@ -267,7 +269,11 @@ const UriViewer = _.flow(
             els.data(new Date(updated).toLocaleString())
           ])
         ]),
-        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
+        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
+        isDataTableProvenanceEnabled() && h(Fragment, [
+          div({ style: { margin: '2rem 0 0.5rem', fontWeight: 500 } }, ['Where did this file come from?']),
+          h(FileProvenance, { workspace, fileUrl: uri })
+        ])
       ])],
       () => h(Fragment, [
         isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',

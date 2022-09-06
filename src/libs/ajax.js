@@ -888,7 +888,9 @@ const Workspaces = signal => ({
                   excludeKey
                 }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
                 return res.json()
-              }
+              },
+
+              outputs: () => fetchRawls(`${submissionPath}/workflows/${workflowId}/outputs`, _.merge(authOpts(), { signal })).then(r => r.json())
             }
           }
         }
