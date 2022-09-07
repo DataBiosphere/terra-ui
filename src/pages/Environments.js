@@ -826,7 +826,7 @@ const Environments = () => {
             return Utils.canWrite(accessLevel) && _.isEmpty(disksByProject[googleProject])
           }),
           _.map('workspace'),
-          _.sortBy('name')
+          _.sortBy(({ name }) => _.lowerCase(name))
         )(workspaces),
         onDismiss: () => setMigrateDisk(undefined),
         onSuccess: () => {
