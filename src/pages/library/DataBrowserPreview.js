@@ -83,7 +83,7 @@ const DataBrowserPreview = ({ id }) => {
           style: { fontSize: 16, textTransform: 'none' },
           onClick: () => setViewJSON({ title: `${table}, Row ${rowIndex} - ${cellKey}`, cellData: maybeJSON })
         }, ['View JSON'])],
-        [Utils.DEFAULT, () => cellContent]
+        [Utils.DEFAULT, () => cellContent ? cellContent.toString() : '']
       )
     }
 
