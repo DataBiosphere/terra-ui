@@ -157,7 +157,15 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       },
       {
         metadata: {
-          resourceType: 'AZURE_STORAGE_CONTAINER'
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'PRIVATE_ACCESS' }
+        },
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'private-sc-name' } }
+      },
+      {
+        metadata: {
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
         },
         resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
       }
