@@ -1138,7 +1138,7 @@ const AzureStorage = signal => ({
     } else {
       const container = _.find(
         {
-          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } },
           resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
         },
         data.resources
