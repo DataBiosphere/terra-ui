@@ -26,6 +26,7 @@ jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
   beforeEach(() => {
+    // Arrange
     Ajax.mockImplementation(() => {})
     render(h(CreateAzureBillingProjectModal, { onSuccess: jest.fn(), onDismiss: jest.fn(), billingProjectNameValidator }))
   })
@@ -48,6 +49,7 @@ describe('CreateAzureBillingProjectModal', () => {
   const verifyEnabled = item => expect(item).not.toHaveAttribute('disabled')
 
   it('has the correct initial state', () => {
+    // Assert
     expect(getBillingProjectHint()).not.toBeNull()
     verifyDisabled(getManagedAppInput())
     verifyDisabled(getCreateButton())
@@ -61,13 +63,15 @@ describe('CreateAzureBillingProjectModal', () => {
     { text: 'ThisIs-a_suitableName', errors: [] }
   ])('validates billing project name "$text"', ({ text, errors }) => {
     const allErrors = [tooShortError, tooLongError, badCharsError, duplicateProjectError]
-    // Insert billing project name
+
+    // Act - Insert billing project name
     if (text === '') {
       // Must first insert something and then replace with empty string.
       fireEvent.change(getBillingProjectInput(), { target: { value: 'temp' } })
     }
     fireEvent.change(getBillingProjectInput(), { target: { value: text } })
-    // Verify expected error message and presence of hint (hint will not show if there is an error).
+
+    // Assert - Verify expected error message(s) and presence of hint (hint will not show if there is an error).
     if (_.isEmpty(errors)) {
       expect(getBillingProjectHint()).not.toBeNull()
       _.forEach(unexpectedError => expect(screen.queryByText(unexpectedError)).toBeNull(), allErrors)
@@ -81,28 +85,28 @@ describe('CreateAzureBillingProjectModal', () => {
   })
 
   it('validates the subscription ID', () => {
-    // UUID error message should not initially be visible, even though subscription ID field is empty.
+    // Assert - UUID error message should not initially be visible, even though subscription ID field is empty.
     expect(screen.queryByText(invalidUuidError)).toBeNull()
-    // Supply invalid UUID
+    // Act - Supply invalid UUID
     fireEvent.change(getSubscriptionInput(), { target: { value: 'invalid UUID' } })
-    // Verify error message and expected disabled states.
+    // Assert
     expect(screen.queryByText(invalidUuidError)).not.toBeNull()
     verifyDisabled(getCreateButton())
     verifyDisabled(getManagedAppInput())
   })
 
   it('shows an error if there are no managed apps (valid subscription ID)', async () => {
-    // Mock managed app Ajax call to return an empty list.
+    // Arrange - Mock managed app Ajax call to return an empty list.
     Ajax.mockImplementation(() => {
       return {
         Billing: { listAzureManagedApplications: () => Promise.resolve({ managedApps: [] }) }
       }
     })
-    // Supply valid UUID
+    // Act - Supply valid UUID
     await act(async () => {
       await userEvent.type(getSubscriptionInput(), uuid())
     })
-    // Verify error message and expected disabled states.
+    // Assert
     await screen.findByText(noManagedApps)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
     verifyDisabled(getManagedAppInput())
@@ -110,17 +114,17 @@ describe('CreateAzureBillingProjectModal', () => {
   })
 
   it('shows an error if the listAzureManagedApplications Ajax call errors', async () => {
-    // Mock managed app Ajax call to return a server error.
+    // Arrange - Mock managed app Ajax call to return a server error.
     Ajax.mockImplementation(() => {
       return {
         Billing: { listAzureManagedApplications: () => Promise.reject('expected test failure-- ignore console.error message') }
       }
     })
-    // Supply valid UUID
+    // Act - Supply valid UUID
     await act(async () => {
       await userEvent.type(getSubscriptionInput(), uuid())
     })
-    // Verify error message and expected disabled states.
+    // Assert
     await screen.findByText(managedAppCallFailed)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
     verifyDisabled(getManagedAppInput())
@@ -128,7 +132,7 @@ describe('CreateAzureBillingProjectModal', () => {
   })
 
   it('renders available managed applications and can create a project', async () => {
-    // Mock managed app and create project Ajax calls to succeed.
+    // Arrange - Mock managed app and create project Ajax calls to succeed.
     const createResult = {}
     const projectName = 'Billing_Project_Name'
     const appName = 'appName'
@@ -156,30 +160,34 @@ describe('CreateAzureBillingProjectModal', () => {
         }
       }
     })
-    // Insert valid billing project name.
+
+    // Act - Insert valid billing project name.
     await act(async () => {
       await userEvent.type(getBillingProjectInput(), projectName)
     })
+    // Assert
     verifyDisabled(getCreateButton())
 
-    // Supply valid subscription UUID
+    // Act - Supply valid subscription UUID and wait for Ajax response
     await act(async () => {
       await userEvent.type(getSubscriptionInput(), uuid())
     })
-    // Wait for managed app Ajax response
     await waitFor(() => verifyEnabled(getManagedAppInput()))
+    // Assert
     verifyDisabled(getCreateButton())
-    // Select one of the managed apps
+
+    // Act - Select one of the managed apps
     await userEvent.click(getManagedAppInput())
     const selectOption = await screen.findByText(appName)
     await userEvent.click(selectOption)
-    // Click the Create button
+    // Assert
     verifyEnabled(getCreateButton())
+
+    // Act - Click Create
     await act(async () => {
       await userEvent.click(getCreateButton())
     })
-
-    // Verify Ajax billing project creation function was called.
+    // Assert - Verify Ajax billing project creation function was called.
     expect(createResult.billingProjectName).toBe(projectName)
     expect(createResult.tenantId).toBe(tenant)
     expect(createResult.subscriptionId).toBe(subscription)
@@ -187,7 +195,7 @@ describe('CreateAzureBillingProjectModal', () => {
   })
 
   it('shows an error if billing project name is not unique', async () => {
-    // Mock managed app Ajax call to succeed, but create billing project call to return duplicate error.
+    // Arrange - Mock managed app Ajax call to succeed, but create billing project call to return duplicate error.
     const projectName = 'Dupe_Billing_Project_Name'
     const appName = 'appName'
     Ajax.mockImplementation(() => {
@@ -204,29 +212,27 @@ describe('CreateAzureBillingProjectModal', () => {
         }
       }
     })
-    // Insert valid billing project name.
+
+    // Act - Insert valid billing project name and subscription UUID, select the managed app.
     await act(async () => {
       await userEvent.type(getBillingProjectInput(), projectName)
-    })
-    verifyDisabled(getCreateButton())
-
-    // Supply a valid subscription UUID
-    await act(async () => {
       await userEvent.type(getSubscriptionInput(), uuid())
     })
-    // Wait for managed app Ajax response
     await waitFor(() => verifyEnabled(getManagedAppInput()))
     // Select one of the managed apps
     await userEvent.click(getManagedAppInput())
     const selectOption = await screen.findByText(appName)
     await userEvent.click(selectOption)
-    // Click the Create button
+
+    // Assert
     verifyEnabled(getCreateButton())
+
+    // Act - Click Create
     await act(async () => {
       await userEvent.click(getCreateButton())
     })
 
-    // Verify expected error message and Create button disabled.
+    // Assert - Verify expected error message and Create button disabled.
     expect(screen.queryByText(duplicateProjectError)).not.toBeNull()
     verifyDisabled(getCreateButton())
   })
