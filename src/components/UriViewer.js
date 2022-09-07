@@ -267,13 +267,13 @@ const UriViewer = _.flow(
           updated && els.cell([
             els.label('Updated'),
             els.data(new Date(updated).toLocaleString())
+          ]),
+          isDataTableProvenanceEnabled() && els.cell([
+            els.label('Where did this file come from?'),
+            els.data([h(FileProvenance, { workspace, fileUrl: uri })])
           ])
         ]),
-        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.']),
-        isDataTableProvenanceEnabled() && h(Fragment, [
-          div({ style: { margin: '2rem 0 0.5rem', fontWeight: 500 } }, ['Where did this file come from?']),
-          h(FileProvenance, { workspace, fileUrl: uri })
-        ])
+        div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
       ])],
       () => h(Fragment, [
         isGs(uri) ? 'Loading metadata...' : 'Resolving DOS object...',
