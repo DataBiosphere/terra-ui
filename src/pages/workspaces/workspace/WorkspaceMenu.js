@@ -53,12 +53,11 @@ export const tooltipText = {
   shareNoPermission: 'You have not been granted permission to share this workspace',
   deleteLocked: 'You cannot delete a locked workspace',
   deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
-  leavePublic: 'You may not leave a workspace that is public',
   lockNoPermission: 'You have not been granted permission to lock this workspace',
   unlockNoPermission: 'You have not been granted permission to unlock this workspace'
 }
 
-const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, isPublic, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded }) => {
+const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
     [workspaceLoaded && isAzureWorkspace, () => tooltipText.shareAzureUnsupported],
     [workspaceLoaded && !canShare, () => tooltipText.shareNoPermission],
@@ -90,8 +89,6 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, i
       onClick: onLock
     }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
     h(MenuButton, {
-      disabled: isPublic,
-      tooltip: workspaceLoaded && isPublic && tooltipText.leavePublic,
       tooltipSide: 'left',
       onClick: onLeave
     }, [makeMenuIcon('arrowRight'), 'Leave']),
