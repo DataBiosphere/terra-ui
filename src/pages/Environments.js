@@ -144,16 +144,13 @@ const MigratePersistentDisksBanner = ({ count }) => {
 
 const MigratePersistentDiskCell = ({ disk, setMigrateDisk }) => div({
   style: {
-    display: 'flex', flex: 1, flexDirection: 'column',
-    height: '100%', margin: '-1rem', padding: '0.5rem 0 0 1rem',
+    display: 'flex', flex: 1, flexDirection: 'column', textAlign: 'center',
+    height: '100%', margin: '-1rem', padding: '0.5rem 0 0 0',
     backgroundColor: colors.danger(0.15), color: colors.danger()
   }
 }, [
-  div({ style: { display: 'flex', alignItems: 'center' } }, [
-    'Offline',
-    h(TooltipTrigger, {
-      content: `This disk is shared between workspaces, which is no longer supported. Click "migrate" to make copies for relevant workspaces.`
-    }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
+  h(TooltipTrigger, { content: `This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.` }, [
+    div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
   ]),
   h(Link, { onClick: () => setMigrateDisk(disk), style: { wordBreak: 'break-word' } },
     ['Migrate']
