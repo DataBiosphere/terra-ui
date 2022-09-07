@@ -25,7 +25,6 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -1434,33 +1433,30 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
-    h(MenuTrigger, {
-      closeOnClick: true,
-      side: 'bottom',
-      content: h(Fragment, [
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
-      ])
-    }, [
-      h(Link, { 'aria-label': 'Column menu' }, [
-        icon('cardMenuIcon', { size: 16 })
-      ])
+  const columnMenu = h(MenuTrigger, {
+    closeOnClick: true,
+    side: 'bottom',
+    content: h(Fragment, [
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+    ])
+  }, [
+    h(Link, { 'aria-label': 'Column menu' }, [
+      icon('cardMenuIcon', { size: 16 })
     ])
   ])
 
-  return h(Sortable, {
-    sort, field, onSort, columnMenu
-  }, [
-    children,
-    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
+  return h(Fragment, [
+    h(Sortable, {
+      sort, field, onSort
+    }, [
+      children,
+      div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
+    ]),
+    columnMenu
   ])
 }
-
-export const saveScroll = _.throttle(100, (initialX, initialY) => {
-  StateHistory.update({ initialX, initialY })
-})
 
 // Accepts two arrays of attribute names. Concatenates, uniquifies, and sorts those attribute names, returning
 // the resultant array. This is broken out into this helper method so as to easily control the criteria for uniqueness

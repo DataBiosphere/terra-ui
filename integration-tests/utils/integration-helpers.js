@@ -175,19 +175,16 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
-const overrideConfig = async (page, configToPassIn) => {
-  await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)
-  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
-}
-
-const enableDataCatalog = async (page, testUrl, token) => {
+const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
-
   await findText(page, 'Browse Data')
-
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, { token })
+  await enableDataCatalog(page)
+}
+
+const enableDataCatalog = async page => {
   await click(page, clickable({ textContains: 'datasets' }))
   await click(page, clickable({ textContains: 'New Catalog OFF' }))
   await waitForNoSpinners(page)
@@ -213,7 +210,6 @@ const viewWorkspaceDashboard = async (page, token, workspaceName) => {
 const performAnalysisTabSetup = async (page, token, testUrl, workspaceName) => {
   await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
   await viewWorkspaceDashboard(page, token, workspaceName)
   await clickNavChildAndLoad(page, 'analyses')
   await dismissNotifications(page)
@@ -223,9 +219,9 @@ module.exports = {
   clickNavChildAndLoad,
   createEntityInWorkspace,
   defaultTimeout,
+  navigateToDataCatalog,
   enableDataCatalog,
   testWorkspaceNamePrefix,
-  overrideConfig,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
   withBilling,

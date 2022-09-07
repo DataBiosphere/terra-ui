@@ -7,7 +7,7 @@ import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, ButtonPrimary, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -25,7 +25,6 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -36,7 +35,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModal } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -425,33 +424,6 @@ const Analyses = _.flow(
           div({ style: { marginLeft: '0.5rem' } }, ['Start'])
         ]),
         div({ style: { flex: 1 } }),
-        div({
-          style: {
-            display: 'flex', flexDirection: 'column', padding: '1rem', marginRight: '1rem', width: 275,
-            backgroundColor: colors.secondary(0.1), border: `1px solid ${colors.accent()}`, borderRadius: 3
-          }, hidden: false
-        }, [
-          div({ style: { maxWidth: 250 } }, [
-            span(['We\'d love to hear your thoughts. ']),
-            h(Link, {
-              href: 'https://www.surveymonkey.com/r/HBXP537', ...Utils.newTabLinkProps
-            }, [
-              'Submit feedback'
-            ])
-          ]),
-          h(ButtonPrimary, {
-            style: { marginTop: '.5rem', maxWidth: 200, alignSelf: 'center' },
-            onClick: () => {
-              Ajax().Metrics.captureEvent(Events.analysisDisableBeta, {
-                workspaceName: wsName,
-                workspaceNamespace: namespace
-              })
-              window.configOverridesStore.set({ isAnalysisTabVisible: false })
-              Nav.goToPath('workspace-notebooks', { namespace, name: wsName })
-            },
-            tooltip: 'Exit the analysis tab beta feature'
-          }, ['Revert layout'])
-        ]),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
           style: { marginRight: '0.75rem', width: 220 },

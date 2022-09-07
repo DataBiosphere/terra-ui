@@ -22,9 +22,6 @@
         },
         {
           "name": "analysis-context-bar"
-        },
-        {
-          "name": "run-notebook"
         }
       ]
     },
@@ -86,8 +83,8 @@
       ]
     },
     {
-      "name": "dsp-identiteam",
-      "id": "C03GMG4DUSE",
+      "name": "identiteam-alerts",
+      "id": "C03HV2AD20N",
       "tests": [
         {
           "name": "register-user"

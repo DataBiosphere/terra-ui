@@ -94,6 +94,7 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
         div([
           h(Select, {
             id,
+            menuPlacement: 'auto',
             isSearchable: false,
             value: currentCpu,
             onChange: option => onChange(_.find({ cpu: option.value }, machineTypeOptions)?.name || value),
@@ -108,6 +109,7 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
         div([
           h(Select, {
             id,
+            menuPlacement: 'auto',
             isSearchable: false,
             value: currentMemory,
             onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
@@ -175,7 +177,7 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false, shouldHideCloseButton = isAnalysisMode
+  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, shouldHideCloseButton = true
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
@@ -706,18 +708,17 @@ export const ComputeModalBase = ({
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
       /* eslint-disable indent */
-      // TODO: open to feedback and still thinking about this...
       // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
       // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
       //   user is using custom image
-      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection)
       //   use default image for selected tool
       // else
       //   use imageUrl derived from users current runtime
       /* eslint-disable indent */
       const getSelectedImage = () => {
         if (foundImage) {
-          if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+          if (!_.includes(foundImage, filteredNewLeoImages)) {
             return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
           } else {
             return imageUrl
@@ -861,7 +862,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: isAnalysisMode ? tool !== tools.RStudio.label : true })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== tools.RStudio.label })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -914,7 +915,7 @@ export const ComputeModalBase = ({
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 5rem 1fr 6rem 1fr 5rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
@@ -1107,7 +1108,7 @@ export const ComputeModalBase = ({
       isDataprocCluster(runtimeType) && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
         legend({ style: { padding: 0, ...computeStyles.label } }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-        div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem', marginTop: '0.75rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
               label({ htmlFor: id, style: computeStyles.label }, ['Workers']),
@@ -1163,7 +1164,7 @@ export const ComputeModalBase = ({
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(location))
+                options: getAvailableComputeRegions(location)
               })
             ])
           ])
@@ -1553,7 +1554,7 @@ export const ComputeModalBase = ({
         h(TitleBar, {
           id: titleId,
           style: { marginBottom: '0.5rem' },
-          title: isAnalysisMode ? `${tool} Cloud Environment` : 'Cloud Environment',
+          title: `${tool} Cloud Environment`,
           hideCloseButton: shouldHideCloseButton,
           onDismiss
         }),
@@ -1596,26 +1597,22 @@ export const ComputeModalBase = ({
                   h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
-                  'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
+                  'Compute profile: ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
                   span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
                   existingPersistentDisk ?
-                    h(Fragment, ['your existing ', renderDiskText()]) :
-                    h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
-                ]),
-                li({ style: { marginTop: '1rem' } }, [
-                  h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+                    h(Fragment, ['your existing ', renderDiskText(), '.']) :
+                    h(Fragment, ['a ', renderDiskText(), '.']),
+                  div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   p([
-                    'This cloud environment will be created in the region ',
+                    'Region: This cloud environment will be created in the region ',
                     strong([computeConfig.computeRegion.toLowerCase()]), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
-                    'Note that network egress charges are not accounted for in cost estimates. ',
-                    'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
-                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                      'documentation.',
-                      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-                    ])
+                    'Network egress charges are not accounted for in cost estimates. ',
+                    div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+                      'Learn more about Regionality.'
+                    ])])
                   ])
                 ])
               ])
@@ -1727,7 +1724,7 @@ export const ComputeModalBase = ({
             'Persistent disks store analysis data. ',
             h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
-          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 4.5rem', marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
               h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
                 renderPersistentDiskType(id)

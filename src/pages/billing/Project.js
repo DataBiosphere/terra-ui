@@ -474,7 +474,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   })
 
   const updateSpendConfiguration = _.flow(
-    reportErrorAndRethrow('Error updating workflow spend report configuration'),
+    reportErrorAndRethrow('Error updating spend report configuration'),
     Utils.withBusyState(setUpdating)
   )(() => Ajax(signal).Billing.updateSpendConfiguration({
     billingProjectName: billingProject.projectName,
@@ -644,7 +644,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
             }),
             div({ style: { marginTop: '1rem' } },
-              ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
+              ['Note: Changing the billing account for this billing project will clear the spend report configuration.'])
           ])])
         ]),
         showBillingRemovalModal && h(Modal, {
@@ -662,10 +662,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         ])
       ]),
       Auth.hasBillingScope() && isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
-          tooltip: 'Configure Workflow Spend Reporting',
+          tooltip: 'Configure Spend Reporting',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -677,7 +677,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           }
         }, [icon('edit', { size: 12 })]),
         showSpendReportConfigurationModal && h(Modal, {
-          title: 'Configure Workflow Spend Reporting',
+          title: 'Configure Spend Reporting',
           onDismiss: () => setShowSpendReportConfigurationModal(false),
           okButton: h(ButtonPrimary, {
             disabled: !selectedDatasetProjectName || !selectedDatasetName,
@@ -688,7 +688,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           }, ['Ok'])
         }, [
           h(IdContainer, [id => h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project Name']),
+            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project ID']),
             h(TextInput, {
               id,
               onChange: setSelectedDatasetProjectName
@@ -703,7 +703,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             div({ style: { marginTop: '1rem' } }, [
               ['See '],
               h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
-              [' for details on configuring workflow spend reporting for billing projects.']
+              [' for details on configuring spend reporting for billing projects.']
             ])
           ])])
         ])

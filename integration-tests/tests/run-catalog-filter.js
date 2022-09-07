@@ -1,8 +1,8 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText } = require('../utils/integration-utils')
-const { enableDataCatalog } = require('../utils/integration-helpers')
+const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText, gotoPage, waitForNoSpinners, signIntoTerra } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { enableDataCatalog } = require('../utils/integration-helpers')
 
 
 const getDatasetCount = async page => {
@@ -15,8 +15,16 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   const filterItem = 'acoustic neuroma'
   const secondFilterItem = 'adrenal cortex adenoma'
 
-  await enableDataCatalog(page, testUrl, token)
+  await gotoPage(page, testUrl)
+  await waitForNoSpinners(page)
+
   await setDatasetsMockValues(page)
+
+  await findText(page, 'Browse Data')
+  await click(page, clickable({ textContains: 'Browse Data' }))
+  await signIntoTerra(page, { token })
+  await enableDataCatalog(page)
+
   await findText(page, filterItem)
 
   const totalDatasetSize = await getDatasetCount(page)
@@ -96,7 +104,7 @@ const setDatasetsMockValues = async page => {
       {
         samples: {
           disease: [
-            'anxiety disorder'
+            'test'
           ]
         },
         'dct:title': 'Filler Item 2',
@@ -123,5 +131,5 @@ registerTest({
   name: 'run-catalog-filter',
   fn: testCatalogFilterFn,
   timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  targetEnvironments: ['local', 'dev', 'staging']
 })

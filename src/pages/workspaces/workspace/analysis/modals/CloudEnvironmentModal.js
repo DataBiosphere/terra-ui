@@ -50,7 +50,6 @@ export const CloudEnvironmentModal = ({
 
   const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
-    isAnalysisMode: true,
     workspace,
     tool,
     runtimes,
@@ -67,7 +66,8 @@ export const CloudEnvironmentModal = ({
     workspace,
     runtimes,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
@@ -76,7 +76,8 @@ export const CloudEnvironmentModal = ({
     apps,
     appDataDisks,
     onDismiss,
-    onSuccess
+    onSuccess,
+    onError: onDismiss
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
@@ -129,7 +130,7 @@ export const CloudEnvironmentModal = ({
       style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.3), ...style },
       onClick, disabled, ...props
     }, [
-      icon(shape, { size: 20 }),
+      icon(shape, { style: { marginBottom: '.25rem' }, size: 20 }),
       ...messageChildren
     ])
   }
@@ -169,8 +170,7 @@ export const CloudEnvironmentModal = ({
     shape: 'pause',
     toolLabel,
     disabled: true,
-    messageChildren: [span('Pause'),
-      span('Environment')],
+    messageChildren: [span('Pause')],
     tooltip: 'No Environment found',
     style: { borderColor: colors.dark(0.3) }
   })
@@ -193,8 +193,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           onClick: () => startApp(toolLabel),
           disabled: busy || !canCompute,
-          messageChildren: [span('Resume'),
-            span('Environment')],
+          messageChildren: [span('Resume')],
           tooltip: canCompute ? 'Resume Environment' : noCompute
         })
       case 'Running':
@@ -203,8 +202,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           onClick: () => stopApp(toolLabel),
           disabled: busy || !canCompute,
-          messageChildren: [span('Pause'),
-            span('Environment')],
+          messageChildren: [span('Pause')],
           tooltip: canCompute ? 'Pause Environment' : noCompute
         })
       case 'Starting':
@@ -221,7 +219,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span('Environment'), span(getComputeStatusForDisplay(status))],
+          messageChildren: [span(getComputeStatusForDisplay(status))],
           style: { color: colors.dark(0.7) }
         })
       case 'Error':
@@ -366,15 +364,14 @@ export const CloudEnvironmentModal = ({
             onClick: () => setViewMode(toolLabel)
           }, [
             icon('cog', { size: 20 }),
-            span('Environment'),
-            span('Settings')
+            span({ style: { marginTop: '.25rem' } }, ['Settings'])
           ]),
           // Status button with stop/start functionality
           renderStatusClickable(toolLabel),
           // Launch
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
-            span('Open')
+            span({ style: { marginTop: '.25rem' } }, ['Open'])
           ])
         ])
       ])

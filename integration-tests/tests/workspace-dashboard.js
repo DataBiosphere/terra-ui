@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { overrideConfig, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
+const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
   assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
 } = require('../utils/integration-utils')
@@ -102,10 +102,7 @@ const testGoogleWorkspace = _.flow(
   await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
   // Verify expected tabs are present.
-  await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], true)
-
-  // Verify Analyses tab not present (config override is not set)
-  await dashboard.assertTabs(['analyses'], false)
+  await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
 })
 
 registerTest({
@@ -160,7 +157,15 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       },
       {
         metadata: {
-          resourceType: 'AZURE_STORAGE_CONTAINER'
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'PRIVATE_ACCESS' }
+        },
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'private-sc-name' } }
+      },
+      {
+        metadata: {
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
         },
         resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
       }
@@ -175,10 +180,6 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     const workspaceSasTokenUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/(.*)/getSasToken`)
 
     window.ajaxOverridesStore.set([
-      {
-        filter: { url: /api\/workspaces\/saturn-integration-test-dev(.*)/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify([azureWorkspaceDetailsResult]), { status: 200 }))
-      },
       {
         filter: { url: tagsUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
@@ -218,7 +219,6 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Must load page before setting mock responses.
   await gotoPage(page, testUrl)
   await findText(page, 'View Workspaces')
-  await overrideConfig(page, { isAnalysisTabVisible: true })
   await setAzureAjaxMockValues(page, 'azure-workspace-ns', workspaceName, workspaceDescription)
 
   const dashboard = workspaceDashboardPage(page, token, workspaceName)

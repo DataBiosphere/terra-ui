@@ -4,15 +4,17 @@ import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonSecondary } from 'src/components/common'
-import { AddColumnModal, AddEntityModal, CreateEntitySetModal, entityAttributeText, EntityDeleter, ModalToolButton, MultipleEntityEditor, saveScroll } from 'src/components/data/data-utils'
+import { DataTableColumnProvenance } from 'src/components/data/data-table-provenance'
+import { AddColumnModal, AddEntityModal, CreateEntitySetModal, entityAttributeText, EntityDeleter, ModalToolButton, MultipleEntityEditor } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
+import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/components/notebook-utils'
 import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
@@ -26,12 +28,13 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { isDataTableProvenanceEnabled } from 'src/libs/config'
+import { useColumnProvenance } from 'src/libs/data-table-provenance'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -210,7 +213,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
+  entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, loadMetadata, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -225,6 +228,13 @@ const EntitiesContent = ({
   const [showToolSelector, setShowToolSelector] = useState(false)
   const [igvFiles, setIgvFiles] = useState(undefined)
   const [igvRefGenome, setIgvRefGenome] = useState('')
+  const {
+    columnProvenance,
+    loading: loadingColumnProvenance,
+    error: columnProvenanceError,
+    loadColumnProvenance
+  } = useColumnProvenance(workspace, entityKey)
+  const [showColumnProvenance, setShowColumnProvenance] = useState(undefined)
 
   const buildTSV = (columnSettings, entities) => {
     const sortedEntities = _.sortBy('name', entities)
@@ -366,7 +376,6 @@ const EntitiesContent = ({
   }
 
   // Render
-  const { initialX, initialY } = firstRender ? StateHistory.get() : {}
   const selectedKeys = _.keys(selectedEntities)
   const selectedLength = selectedKeys.length
 
@@ -374,9 +383,8 @@ const EntitiesContent = ({
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :
     h(Fragment, [
       h(DataTable, {
-        persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
+        persist: true, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
         entityType: entityKey, activeCrossTableTextFilter, entityMetadata, setEntityMetadata, googleProject, workspaceId: { namespace, name }, workspace,
-        onScroll: saveScroll, initialX, initialY,
         loadMetadata,
         snapshotName,
         selectionModel: {
@@ -403,7 +411,18 @@ const EntitiesContent = ({
           background: colors.light(isRadX() ? 0.3 : 1),
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
-        border: false
+        border: false,
+        extraColumnActions: isDataTableProvenanceEnabled() ?
+          columnName => [{
+            label: 'Show Provenance',
+            onClick: () => {
+              if (!(loadingColumnProvenance || columnProvenance)) {
+                loadColumnProvenance()
+              }
+              setShowColumnProvenance(columnName)
+            }
+          }] :
+          undefined
       }),
       addingEntity && h(AddEntityModal, {
         entityType: entityKey,
@@ -469,6 +488,24 @@ const EntitiesContent = ({
         workspace,
         selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
       }),
+      showColumnProvenance && h(Modal, {
+        title: 'Column Provenance',
+        showCancel: false,
+        onDismiss: () => setShowColumnProvenance(undefined)
+      }, [
+        Utils.cond(
+          [loadingColumnProvenance, () => p([
+            spinner({ size: 12, style: { marginRight: '1ch' } }),
+            'Loading provenance...'
+          ])],
+          [columnProvenanceError, () => p(['Error loading column provenance'])],
+          () => h(DataTableColumnProvenance, {
+            workspace,
+            column: showColumnProvenance,
+            provenance: columnProvenance[showColumnProvenance]
+          })
+        )
+      ]),
       h(ToolDrawer, {
         workspace,
         isOpen: showToolSelector,
