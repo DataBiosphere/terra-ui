@@ -370,6 +370,29 @@ export const truncateInteger = integer => {
 }
 
 /**
+ * Polls using a given function until the pollUntil function returns true.
+ * @param {() => { result: A, shouldContinue: boolean }} pollFn - The function to poll using
+ * @param {number} pollTime - How much time there should be in ms between calls of the pollFn
+ * @param {boolean} leading - Whether the function should wait {pollTime} ms before running for the first time
+
+ * @returns {A} - The response of pollFn
+ */
+export const poll = async (pollFn, pollTime, leading = true) => {
+  do {
+    leading || await delay(pollTime)
+    const r = await pollFn()
+    if (!r.shouldContinue) { return r.result }
+    leading = false
+  } while (true)
+}
+
+export const pollWithCancellation = (pollFn, pollTime, leading, signal) => {
+  poll(async () => {
+    return { result: !signal.aborted && await pollFn(), shouldContinue: !signal.aborted }
+  }, pollTime, leading)
+}
+
+/**
  * Convert a list of keys into an enum object.
  * @param {string[]} keys
  * @returns {Object}

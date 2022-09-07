@@ -22,6 +22,7 @@ import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
@@ -40,6 +41,39 @@ const styles = {
       ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
       paddingLeft: '3rem'
     }
+  }
+}
+
+const billingProjectTypes = {
+  azure: 'azure',
+  gcp: 'gcp'
+}
+
+const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
+  const createButton = (onClickCallback, type) => {
+    return h(ButtonOutline, {
+      'aria-label': 'Create new billing project',
+      onClick: () => !!onClickCallback && onClickCallback(type)
+    }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
+  }
+
+  if (!isAlphaAzureUser) {
+    return createButton(showCreateProjectModal, billingProjectTypes.gcp)
+  } else {
+    return h(MenuTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          'aria-haspopup': 'dialog',
+          onClick: () => showCreateProjectModal(billingProjectTypes.azure)
+        }, 'Azure Billing Project'),
+        h(MenuButton, {
+          'aria-haspopup': 'dialog',
+          onClick: () => showCreateProjectModal(billingProjectTypes.gcp)
+        }, 'GCP Billing Project')
+      ])
+    }, [createButton()])
   }
 }
 
@@ -120,8 +154,7 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
   ])
 }
 
-const billingProjectNameValidator = existing => ({
-  presence: { allowEmpty: false },
+export const billingProjectNameValidator = existing => ({
   length: { minimum: 6, maximum: 30 },
   format: {
     pattern: /(\w|-)+/,
@@ -133,11 +166,8 @@ const billingProjectNameValidator = existing => ({
   }
 })
 
-const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' } }, [
-  div([
-    'To get started, ',
-    h(Link, { onClick }, ['click here to create a Billing Project'])
-  ]),
+const noBillingMessage = div({ style: { fontSize: 20, margin: '4rem' } }, [
+  div(['To get started, use the Create button to create a Terra Billing Project']),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
@@ -165,7 +195,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
     Utils.withBusyState(setIsBusy)
   )(async () => {
     try {
-      await Ajax().Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
+      await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
       if (error.status === 409) {
@@ -183,14 +213,14 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   return h(Modal, {
     onDismiss,
     shouldCloseOnOverlayClick: false,
-    title: 'Create Billing Project',
+    title: 'Create Terra Billing Project',
     showCancel: !billingLoadedAndEmpty,
     showButtons: !!billingAccounts,
     okButton: billingPresent ?
       h(ButtonPrimary, {
         disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
         onClick: submit
-      }, ['Create Billing Project']) :
+      }, ['Create']) :
       h(ButtonPrimary, {
         onClick: onDismiss
       }, ['Ok'])
@@ -204,12 +234,13 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
     ]),
     billingPresent && h(Fragment, [
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Terra billing project']),
         h(ValidatedInput, {
           inputProps: {
             id,
             autoFocus: true,
             value: billingProjectName,
+            placeholder: 'Enter a name',
             onChange: v => {
               setBillingProjectName(v)
               setBillingProjectNameTouched(true)
@@ -225,7 +256,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
           h(Select, {
             id,
             isMulti: false,
-            placeholder: 'Select billing account',
+            placeholder: 'Select a billing account',
             value: chosenBillingAccount,
             onChange: ({ value }) => setChosenBillingAccount(value),
             options: _.map(account => {
@@ -263,12 +294,13 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
 export const BillingList = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
-  const [creatingBillingProject, setCreatingBillingProject] = useState(false)
+  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or billingProjectTypes values
   const [billingAccounts, setBillingAccounts] = useState({ })
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
   const [isAlphaSpendReportUser, setIsAlphaSpendReportUser] = useState(false)
+  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
 
   const signal = useCancellation()
   const interval = useRef()
@@ -281,6 +313,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   const loadAlphaSpendReportMember = reportErrorAndRethrow('Error loading spend report group membership')(async () => {
     setIsAlphaSpendReportUser(await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember())
+  })
+
+  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
+    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
   })
 
   const reloadBillingProject = _.flow(
@@ -316,12 +352,14 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
-  const showCreateProjectModal = async () => {
-    if (Auth.hasBillingScope()) {
-      setCreatingBillingProject(true)
+  const showCreateProjectModal = async type => {
+    if (type === billingProjectTypes.azure) {
+      setCreatingBillingProject(type)
+    } else if (Auth.hasBillingScope()) {
+      setCreatingBillingProject(type)
     } else {
       await authorizeAndLoadAccounts()
-      Auth.hasBillingScope() && setCreatingBillingProject(true)
+      Auth.hasBillingScope() && setCreatingBillingProject(type)
     }
   }
 
@@ -330,6 +368,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     loadProjects()
     tryAuthorizeAccounts().then(loadAccounts)
     loadAlphaSpendReportMember()
+    loadAlphaAzureMember()
   })
 
   useEffect(() => {
@@ -380,13 +419,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           }
         }, [
           h2({ style: { fontSize: 16 } }, 'Billing Projects'),
-          h(ButtonOutline, {
-            'aria-label': 'Create new billing project',
-            onClick: showCreateProjectModal
-          }, [
-            icon('plus', { size: 14, style: { color: colors.accent() } }),
-            div({ style: { marginLeft: '0.5rem' } }, ['Create'])
-          ])
+          h(CreateBillingProjectControl, { isAlphaAzureUser, showCreateProjectModal })
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
@@ -405,14 +438,22 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         ])
       ]),
-      creatingBillingProject && h(NewBillingProjectModal, {
+      creatingBillingProject === billingProjectTypes.gcp && h(NewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
-        onDismiss: () => setCreatingBillingProject(false),
+        onDismiss: () => setCreatingBillingProject(null),
         onSuccess: () => {
-          setCreatingBillingProject(false)
+          setCreatingBillingProject(null)
           loadProjects()
         }
+      }),
+      creatingBillingProject === billingProjectTypes.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
+        onDismiss: () => setCreatingBillingProject(null),
+        onSuccess: () => {
+          setCreatingBillingProject(null)
+          loadProjects()
+        },
+        billingProjectNameValidator
       }),
       div({
         style: {
@@ -447,7 +488,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             'Select a Billing Project'
           ])
         }],
-        [_.isEmpty(billingProjects), () => noBillingMessage(showCreateProjectModal)]
+        [_.isEmpty(billingProjects), () => noBillingMessage]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])

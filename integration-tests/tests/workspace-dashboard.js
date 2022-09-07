@@ -157,7 +157,15 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       },
       {
         metadata: {
-          resourceType: 'AZURE_STORAGE_CONTAINER'
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'PRIVATE_ACCESS' }
+        },
+        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'private-sc-name' } }
+      },
+      {
+        metadata: {
+          resourceType: 'AZURE_STORAGE_CONTAINER',
+          controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
         },
         resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
       }
@@ -172,10 +180,6 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     const workspaceSasTokenUrl = new RegExp(`api/workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/(.*)/getSasToken`)
 
     window.ajaxOverridesStore.set([
-      {
-        filter: { url: /api\/workspaces\/saturn-integration-test-dev(.*)/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify([azureWorkspaceDetailsResult]), { status: 200 }))
-      },
       {
         filter: { url: tagsUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
