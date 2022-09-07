@@ -43,8 +43,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/free-solid-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/react-fontawesome", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.1.15"],\
+            ["@testing-library/dom", "npm:8.17.1"],\
             ["@testing-library/jest-dom", "npm:5.16.4"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:12.1.5"],\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
@@ -4212,6 +4214,21 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["pretty-format", "npm:27.5.1"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:8.17.1", {\
+          "packageLocation": "./.yarn/cache/@testing-library-dom-npm-8.17.1-4b272de377-e4df091fcf.zip/node_modules/@testing-library/dom/",\
+          "packageDependencies": [\
+            ["@testing-library/dom", "npm:8.17.1"],\
+            ["@babel/code-frame", "npm:7.16.7"],\
+            ["@babel/runtime", "npm:7.18.6"],\
+            ["@types/aria-query", "npm:4.2.2"],\
+            ["aria-query", "npm:5.0.0"],\
+            ["chalk", "npm:4.1.2"],\
+            ["dom-accessibility-api", "npm:0.5.14"],\
+            ["lz-string", "npm:1.4.4"],\
+            ["pretty-format", "npm:27.5.1"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["@testing-library/jest-dom", [\
@@ -4255,6 +4272,28 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             "@types/react",\
             "react-dom",\
             "react"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@testing-library/user-event", [\
+        ["npm:14.4.3", {\
+          "packageLocation": "./.yarn/cache/@testing-library-user-event-npm-14.4.3-2d1a75355f-852c48ea6d.zip/node_modules/@testing-library/user-event/",\
+          "packageDependencies": [\
+            ["@testing-library/user-event", "npm:14.4.3"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3", {\
+          "packageLocation": "./.yarn/__virtual__/@testing-library-user-event-virtual-3c4cd93763/0/cache/@testing-library-user-event-npm-14.4.3-2d1a75355f-852c48ea6d.zip/node_modules/@testing-library/user-event/",\
+          "packageDependencies": [\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
+            ["@testing-library/dom", "npm:8.17.1"],\
+            ["@types/testing-library__dom", null]\
+          ],\
+          "packagePeers": [\
+            "@testing-library/dom",\
+            "@types/testing-library__dom"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -18784,8 +18823,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/free-solid-svg-icons", "npm:5.15.4"],\
             ["@fortawesome/react-fontawesome", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.1.15"],\
+            ["@testing-library/dom", "npm:8.17.1"],\
             ["@testing-library/jest-dom", "npm:5.16.4"],\
             ["@testing-library/react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:12.1.5"],\
+            ["@testing-library/user-event", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:14.4.3"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
