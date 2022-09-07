@@ -238,7 +238,7 @@ export const WorkspaceList = () => {
               ]),
               div({ style: { ...styles.tableCellContent } }, [
                 h(FirstParagraphMarkdownViewer, {
-                  style: { ...Style.noWrapEllipsis, margin: 0, color: !!description ? undefined : colors.dark(0.75), fontSize: '14px' }
+                  style: { ...Style.noWrapEllipsis, margin: 0, color: !!description ? undefined : colors.dark(0.75), fontSize: 14 }
                 }, [description?.toString() || 'No description added'])
               ])
             ])
