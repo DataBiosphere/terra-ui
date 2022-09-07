@@ -461,7 +461,11 @@ const NotificationSettingsTab = ({ setSaving }) => {
           setSaving,
           prefsData,
           label,
-          notificationKeys: [`notifications/SuccessfulSubmissionNotification/${label}`, `notifications/FailedSubmissionNotification/${label}`, `notifications/AbortedSubmissionNotification/${label}`]
+          notificationKeys: [
+            `notifications/SuccessfulSubmissionNotification/${label}`,
+            `notifications/FailedSubmissionNotification/${label}`,
+            `notifications/AbortedSubmissionNotification/${label}`
+          ]
         })
       })(workspaces)
     )
