@@ -181,10 +181,6 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
 
     window.ajaxOverridesStore.set([
       {
-        filter: { url: /api\/workspaces\/saturn-integration-test-dev(.*)/ },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify([azureWorkspaceDetailsResult]), { status: 200 }))
-      },
-      {
         filter: { url: tagsUrl },
         fn: () => () => Promise.resolve(new Response(JSON.stringify([]), { status: 200 }))
       },
