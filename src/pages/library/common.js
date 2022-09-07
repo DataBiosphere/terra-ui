@@ -451,7 +451,7 @@ export const SearchAndFilterComponent = ({
         h(DelayedAutoCompleteInput, {
           style: { borderRadius: 25, flex: '1 1 0' },
           inputIcon: 'search',
-          debounceMs: 25,
+          debounceMs: 250,
           openOnFocus: true,
           value: searchFilter,
           'aria-label': `Search ${searchType}`,
