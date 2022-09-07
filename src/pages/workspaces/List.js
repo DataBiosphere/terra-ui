@@ -8,6 +8,7 @@ import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOver
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
@@ -243,10 +244,10 @@ export const WorkspaceList = () => {
                   tooltipSide: 'right'
                 }, [name])
               ]),
-              div({ style: styles.tableCellContent }, [
-                span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
-                  description?.toString().split('\n')[0] || 'No description added'
-                ])
+              div({ style: { ...styles.tableCellContent } }, [
+                h(FirstParagraphMarkdownViewer, {
+                  style: { ...Style.noWrapEllipsis, margin: 0, color: !!description ? undefined : colors.dark(0.75), fontSize: 14 }
+                }, [description?.toString() || 'No description added'])
               ])
             ])
           },

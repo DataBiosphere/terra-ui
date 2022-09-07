@@ -77,7 +77,7 @@ const WorkspaceCard = ({ workspace }) => {
         created && div([Utils.makeStandardDate(created)])
       ]),
       h(FirstParagraphMarkdownViewer, {
-        style: { fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
+        style: { margin: 0, fontSize: '14px', lineHeight: '20px', height: 100, overflow: 'hidden' }
       }, [description?.toString()])
     ])
   ])
