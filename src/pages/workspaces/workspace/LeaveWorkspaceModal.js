@@ -17,7 +17,7 @@ const LeaveWorkspaceModal = ({ workspace: { workspace: { workspaceId } }, onDism
     try {
       setLeaving(true)
       await Ajax().Workspaces.leave(workspaceId)
-      Ajax().Metrics.captureEvent(Events.workspaceShare, { workspaceId })
+      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId })
       setLeaving(false)
       onDismiss()
       onSuccess()
