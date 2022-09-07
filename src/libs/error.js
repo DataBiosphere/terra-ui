@@ -63,3 +63,11 @@ export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => async
 export const withErrorReporting = _.curry((title, fn) => {
   return withErrorIgnoring(reportErrorAndRethrow(title)(fn))
 })
+
+
+/**
+ * Invoke the `callback` with any error thrown when evaluating the async `fn` with `...args`.
+ */
+export const onError = _.curry((callback, fn) => async (...args) => {
+  try { return await fn(...args) } catch (error) { await callback(error) }
+})
