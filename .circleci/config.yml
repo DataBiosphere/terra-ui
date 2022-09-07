@@ -314,10 +314,6 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - build
-      - integration-tests-alpha:
-          <<: *filter-dev-branch
-          requires:
-            - deploy-alpha
       - integration-tests-staging:
           <<: *filter-dev-branch
           requires:
