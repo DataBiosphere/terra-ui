@@ -2,7 +2,7 @@ import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
 import { marked } from 'marked'
 import { lazy, Suspense, useMemo } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 
 
@@ -25,8 +25,6 @@ const renderAndSanitizeMarkdown = (text, renderers = {}) => DOMPurify.sanitize(m
 }))
 
 /**
- * WARNING: Be very careful when using custom renderers because they may override marked's built-in
- * content sanitization.
  * @param {string} children - markdown content
  * @param {Object} renderers - element-specific renderers
  * @param {Object} props - properties for wrapper div
@@ -43,31 +41,35 @@ export const MarkdownViewer = ({ children, renderers, ...props }) => {
 
 export const FirstParagraphMarkdownViewer = ({ children, renderers, ...props }) => {
   let renderedFirstParagraph = false
-  return h(MarkdownViewer, {
+  const content = renderAndSanitizeMarkdown(children, {
+    // See https://marked.js.org/using_pro#renderer for list of renderer methods.
+    blockquote: () => '',
+    checkbox: () => '',
+    code: () => '',
+    heading: () => '',
+    hr: () => '',
+    html: () => '',
+    image: () => '',
+    list: () => '',
+    listitem: () => '',
+    paragraph: text => {
+      if (!renderedFirstParagraph) {
+        renderedFirstParagraph = true
+        return text
+      }
+      return ''
+    },
+    table: () => '',
+    tablerow: () => '',
+    tablecell: () => '',
+    ...renderers
+  })
+
+  return p({
+    className: 'markdown-body',
     ...props,
-    renderers: {
-      // See https://marked.js.org/using_pro#renderer for list of renderer methods.
-      blockquote: () => '',
-      checkbox: () => '',
-      code: () => '',
-      heading: () => '',
-      hr: () => '',
-      image: () => '',
-      list: () => '',
-      listitem: () => '',
-      paragraph: text => {
-        if (!renderedFirstParagraph) {
-          renderedFirstParagraph = true
-          return `<p>${text}</p>`
-        }
-        return ''
-      },
-      table: () => '',
-      tablerow: () => '',
-      tablecell: () => '',
-      ...renderers
-    }
-  }, [children])
+    dangerouslySetInnerHTML: { __html: content }
+  })
 }
 
 export const newWindowLinkRenderer = (href, title, text) => {
