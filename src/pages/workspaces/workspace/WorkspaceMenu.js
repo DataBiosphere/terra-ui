@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 // or `canShare, isAzureWorkspace, isLocked, and isOwner` to use previously fetched details.
 const WorkspaceMenu = ({
   iconSize, popupLocation,
-  callbacks: { onClone, onShare, onLock, onDelete },
+  callbacks: { onClone, onShare, onLock, onDelete, onLeave },
   workspaceInfo: { name, namespace, canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded }
 }) => {
   const navIconProps = {
@@ -20,8 +20,8 @@ const WorkspaceMenu = ({
   }
 
   const menuContent = !!namespace ?
-    h(DynamicWorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete, onLock }) :
-    h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded })
+    h(DynamicWorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete, onLock, onLeave }) :
+    h(WorkspaceMenuContent, { canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded })
 
   return h(MenuTrigger, {
     side: popupLocation,
@@ -36,14 +36,14 @@ const WorkspaceMenu = ({
   ])
 }
 
-const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock }) => {
+const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock, onLeave }) => {
   const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'azureContext', 'canShare', 'workspace.isLocked'])
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const isLocked = workspace?.workspace.isLocked
   const isAzureWorkspace = !!workspace?.azureContext
   return WorkspaceMenuContent({
-    canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded: !!workspace
+    canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded: !!workspace
   })
 }
 
@@ -53,11 +53,12 @@ export const tooltipText = {
   shareNoPermission: 'You have not been granted permission to share this workspace',
   deleteLocked: 'You cannot delete a locked workspace',
   deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
+  leavePublic: 'You may not leave a workspace that is public',
   lockNoPermission: 'You have not been granted permission to lock this workspace',
   unlockNoPermission: 'You have not been granted permission to unlock this workspace'
 }
 
-const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onDelete, workspaceLoaded }) => {
+const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, isPublic, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
     [workspaceLoaded && isAzureWorkspace, () => tooltipText.shareAzureUnsupported],
     [workspaceLoaded && !canShare, () => tooltipText.shareNoPermission],
@@ -88,6 +89,12 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
       tooltipSide: 'left',
       onClick: onLock
     }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
+    h(MenuButton, {
+      disabled: isPublic,
+      tooltip: workspaceLoaded && isPublic && tooltipText.leavePublic,
+      tooltipSide: 'left',
+      onClick: onLeave
+    }, [makeMenuIcon('arrowRight'), 'Leave']),
     h(MenuButton, {
       disabled: !workspaceLoaded || !isOwner || isLocked,
       tooltip: deleteTooltip,
