@@ -21,6 +21,7 @@ import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
@@ -378,6 +379,7 @@ const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData })
       withErrorReporting('Error saving preferences')
     )(async v => {
       await Ajax().User.profile.setPreferences(notificationKeysWithValue({ notificationKeys, value: v }))
+      Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys, enabled: v })
       await refreshTerraProfile()
     })
   })
