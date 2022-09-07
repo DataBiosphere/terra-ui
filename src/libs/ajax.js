@@ -158,6 +158,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 // are not transient and the request should not be retried.
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -546,10 +547,19 @@ const Billing = signal => ({
     return res.json()
   },
 
-  createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing/v2',
-      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
-    return res
+  createGCPProject: async (projectName, billingAccount) => {
+    return await fetchRawls('billing/v2',
+      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }])
+    )
+  },
+
+  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId) => {
+    return await fetchRawls('billing/v2',
+      _.mergeAll([authOpts(), jsonBody(
+        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId } }
+      ),
+      { signal, method: 'POST' }])
+    )
   },
 
   deleteProject: async projectName => {
@@ -628,6 +638,12 @@ const Billing = signal => ({
       await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
       return billing.removeProjectUser(projectName, _.difference(oldRoles, newRoles), email)
     }
+  },
+
+  listAzureManagedApplications: async subscriptionId => {
+    const response = await fetchBillingProfileManager(`azure/v1/managedApps?azureSubscriptionId=${subscriptionId}`,
+      _.merge(authOpts(), { signal }))
+    return response.json()
   }
 })
 
@@ -1138,7 +1154,7 @@ const AzureStorage = signal => ({
     } else {
       const container = _.find(
         {
-          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } },
           resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
         },
         data.resources

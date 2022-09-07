@@ -2,7 +2,7 @@ import { isToday } from 'date-fns'
 import { isAfter } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, PureComponent, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
@@ -15,7 +15,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { useOnMount } from 'src/libs/react-utils'
+import { useOnMount, usePrevious } from 'src/libs/react-utils'
 import { cloudProviders, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -122,35 +122,20 @@ const AppErrorNotification = ({ app }) => {
   ])
 }
 
-//TODO: refactor into functional component
-export default class RuntimeManager extends PureComponent {
-  static propTypes = {
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    runtimes: PropTypes.array,
-    persistentDisks: PropTypes.array,
-    canCompute: PropTypes.bool.isRequired,
-    refreshRuntimes: PropTypes.func.isRequired,
-    workspace: PropTypes.object,
-    apps: PropTypes.array,
-    appDataDisks: PropTypes.array
-  }
+const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
+  const prevRuntimes = usePrevious(runtimes)
+  const prevApps = usePrevious(apps)
 
-  render() {
-    return null
-  }
-
-  componentDidUpdate(prevProps) {
-    const { namespace, name, apps } = this.props
-    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevProps.runtimes))) || {}
-    const runtime = this.getCurrentRuntime() || {}
+  useEffect(() => {
+    const runtime = getCurrentRuntime(runtimes) || {}
+    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevRuntimes))) || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
-    const createdDate = new Date(runtime.createdDate)
-    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
+    const createdDate = new Date(runtime?.createdDate)
+    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime?.id}`) || {}
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
-    const prevGalaxyApp = getCurrentApp(tools.Galaxy.appType)(prevProps.apps)
+    const prevGalaxyApp = getCurrentApp(tools.Galaxy.appType)(prevApps)
 
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -199,10 +184,16 @@ export default class RuntimeManager extends PureComponent {
       })
       errorNotifiedApps.update(Utils.append(galaxyApp.appName))
     }
-  }
+  }, [runtimes, apps, namespace, name]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  getCurrentRuntime() {
-    const { runtimes } = this.props
-    return getCurrentRuntime(runtimes)
-  }
+  return null
 }
+
+RuntimeManager.propTypes = {
+  namespace: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  runtimes: PropTypes.array,
+  apps: PropTypes.array
+}
+
+export default RuntimeManager

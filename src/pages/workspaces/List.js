@@ -3,10 +3,12 @@ import _ from 'lodash/fp'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import Collapse from 'src/components/Collapse'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
@@ -23,7 +25,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getLocalPref } from 'src/libs/prefs'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -101,6 +103,9 @@ export const WorkspaceList = () => {
   //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
   const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
+  const persistenceId = `workspaces/list`
+  const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen))
+
   const { query } = Nav.useRoute()
   const filter = query.filter || ''
   // Using the EMPTY_LIST constant as a default value instead of creating a new empty array on
@@ -127,6 +132,10 @@ export const WorkspaceList = () => {
 
     loadFeatured()
   })
+
+  useEffect(() => {
+    setLocalPref(persistenceId, { recentlyViewedOpen })
+  }, [recentlyViewedOpen, persistenceId])
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
@@ -235,10 +244,10 @@ export const WorkspaceList = () => {
                   tooltipSide: 'right'
                 }, [name])
               ]),
-              div({ style: styles.tableCellContent }, [
-                span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
-                  description?.toString().split('\n')[0] || 'No description added'
-                ])
+              div({ style: { ...styles.tableCellContent } }, [
+                h(FirstParagraphMarkdownViewer, {
+                  style: { ...Style.noWrapEllipsis, margin: 0, color: !!description ? undefined : colors.dark(0.75), fontSize: 14 }
+                }, [description?.toString() || 'No description added'])
               ])
             ])
           },
@@ -356,17 +365,25 @@ export const WorkspaceList = () => {
           href: 'https://support.terra.bio/hc/en-us/articles/360024743371-Working-with-workspaces'
         }, ['Learn more about workspaces.'])
       ]),
-      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && div([
-        p({ style: { textTransform: 'uppercase' } }, 'Recently viewed'),
-        div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
-          _.map(({ workspaceId, timestamp }) => {
-            const workspace = getWorkspace(workspaceId)
-            return h(RecentlyViewedWorkspaceCard, {
-              workspace, loadingSubmissionStats, timestamp,
-              submissionStatus: workspaceSubmissionStatus(workspace)
-            })
-          }, recentlyViewed)
-        )
+      !_.isEmpty(workspaces) && !_.isEmpty(recentlyViewed) && h(Collapse, {
+        title: 'Recently Viewed',
+        initialOpenState: recentlyViewedOpen,
+        noTitleWrap: true,
+        onClick: () => setRecentlyViewedOpen(v => !v),
+        summaryStyle: { margin: '0.5rem 0' }
+      }, [
+        // Stop the click propagation here, otherwise using spacebar to click on a card will also collapse the Recently Viewed section
+        span({ onClick: e => e.stopPropagation() }, [
+          div({ style: { display: 'flex', flexWrap: 'wrap', paddingBottom: '1rem' } },
+            _.map(({ workspaceId, timestamp }) => {
+              const workspace = getWorkspace(workspaceId)
+              return h(RecentlyViewedWorkspaceCard, {
+                workspace, loadingSubmissionStats, timestamp,
+                submissionStatus: workspaceSubmissionStatus(workspace)
+              })
+            }, recentlyViewed)
+          )
+        ])
       ]),
       div({ style: { display: 'flex', margin: '1rem 0' } }, [
         div({ style: { ...styles.filter, flexGrow: 1.5 } }, [
