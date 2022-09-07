@@ -581,7 +581,7 @@ const PersonalInfoTab = ({ setSaving }) => {
 
         p('Check all that apply.'),
 
-        line([
+        div({ style: { marginBottom: '1rem', display: 'flex', justifyContent: 'normal' } }, [
           checkboxLine([
             researchAreaCheckbox('Cancer'),
             researchAreaCheckbox('Cardiovascular disease'),
