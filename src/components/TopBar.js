@@ -212,15 +212,15 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             h(DropDownSubItem, {
               href: Nav.getLink('library-datasets'),
               onClick: hideNav
-            }, ['Data']),
+            }, ['Datasets']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-showcase'),
               onClick: hideNav
-            }, ['Showcase']),
+            }, ['Featured Workspaces']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
               onClick: hideNav
-            }, ['Workflows'])
+            }, ['Code & Workflows'])
           ]),
           h(DropDownSection, {
             titleIcon: 'help',

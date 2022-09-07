@@ -32,9 +32,8 @@ const testFindWorkflowFn = _.flow(
     if (testUrl === 'http://localhost:3000') {
       await findElement(page, clickable({ textContains: 'Yes' }))
       const yesButtonHrefDetails = (await page.$x('//a[contains(text(), "Yes")]/@href'))[0]
-      const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
-        'https://bvdp-saturn-dev.appspot.com',
-        testUrl)
+      const href = await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)
+      const redirectURL = _.replace(/https:\/\/bvdp-saturn-(dev|staging).appspot.com/, testUrl, href)
       await gotoPage(page, redirectURL)
     } else {
       await click(page, clickable({ textContains: 'Yes' }))

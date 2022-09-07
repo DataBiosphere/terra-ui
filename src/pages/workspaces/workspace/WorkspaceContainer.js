@@ -136,11 +136,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      h(RuntimeManager, {
-        namespace, name, runtimes, persistentDisks, refreshRuntimes,
-        canCompute: !!(workspace?.canCompute || runtimes?.length),
-        apps, appDataDisks, workspace, refreshApps, location, locationType
-      })
+      h(RuntimeManager, { namespace, name, runtimes, apps })
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,

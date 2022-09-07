@@ -158,7 +158,7 @@ commands:
       - when:
           condition: << parameters.local >>
           steps:
-            - run: cp config/dev.json build/config.json
+            - run: cp config/staging.json build/config.json
             - run:
                 command: npx serve build -l 3000
                 background: true
@@ -265,7 +265,7 @@ jobs:
           env: "staging"
       - notify-qa:
           channel: "C7H40L71D" # dsde-qa-notify
-  integration-tests-branch-against-dev:
+  integration-tests-pr-staging:
     executor: puppeteer
     parallelism: 4
     steps:
@@ -290,7 +290,7 @@ workflows:
   build-deploy:
     jobs:
       - build
-      - integration-tests-branch-against-dev:
+      - integration-tests-pr-staging:
           <<: *filter-pr-branch
           requires:
             - build
@@ -314,10 +314,6 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - build
-      - integration-tests-alpha:
-          <<: *filter-dev-branch
-          requires:
-            - deploy-alpha
       - integration-tests-staging:
           <<: *filter-dev-branch
           requires:
@@ -325,10 +321,7 @@ workflows:
   nightly-integration-tests:
     triggers:
       - schedule:
+          <<: *filter-dev-branch
           cron: "0 13 * * *"
-          filters:
-            branches:
-              only: dev
     jobs:
       - integration-tests-alpha
-      - integration-tests-staging
