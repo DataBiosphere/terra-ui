@@ -316,6 +316,9 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ]
 }
 
+const sendSearchEvent = term => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { term })
+const debounceSearchEvent = _.debounce(5000, sendSearchEvent)
+
 export const SearchAndFilterComponent = ({
   fullList, sidebarSections, customSort, searchType,
   titleField = 'name', descField = 'description', idField = 'lowerName', children
@@ -402,8 +405,6 @@ export const SearchAndFilterComponent = ({
   }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
 
 
-  const sendSearchEvent = _.debounce(5000, term => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { term }))
-
   const onSearchChange = filter => {
     const newSearch = qs.stringify({
       ...query,
@@ -413,7 +414,7 @@ export const SearchAndFilterComponent = ({
     if (filter) {
       // This method is already debounced, but we need to further debounce the event logging to
       // prevent getting all the intermediate filter strings in the event logs.
-      sendSearchEvent(filter)
+      debounceSearchEvent(filter)
     }
 
     if (newSearch !== Nav.history.location.search) {
