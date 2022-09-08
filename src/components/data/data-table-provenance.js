@@ -67,7 +67,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
             submissionId: fileProvenance.submissionId,
             workflowId: fileProvenance.workflowId
           })
-        }, [fileProvenance.submissionId]),
+        }, [fileProvenance.workflowId]),
         ' (part of submission ',
         h(Link, {
           href: Nav.getLink('workspace-submission-details', {
@@ -85,7 +85,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
             submissionId: fileProvenance.submissionId,
             workflowId: fileProvenance.workflowId
           })
-        }, [fileProvenance.submissionId]),
+        }, [fileProvenance.workflowId]),
         ' (part of submission ',
         h(Link, {
           href: Nav.getLink('workspace-submission-details', {
