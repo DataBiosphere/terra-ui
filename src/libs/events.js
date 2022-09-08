@@ -76,6 +76,7 @@ const eventsList = {
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
   workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceLeave: 'workspace:leave',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
