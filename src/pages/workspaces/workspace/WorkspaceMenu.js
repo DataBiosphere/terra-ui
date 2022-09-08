@@ -89,6 +89,7 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
       onClick: onLock
     }, isLocked ? [makeMenuIcon('unlock'), 'Unlock'] : [makeMenuIcon('lock'), 'Lock']),
     h(MenuButton, {
+      disabled: !workspaceLoaded,
       onClick: onLeave
     }, [makeMenuIcon('arrowRight'), 'Leave']),
     h(MenuButton, {
