@@ -122,7 +122,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
 
 const MigratePersistentDisksBanner = ({ count }) => {
   const deadline = new Date('01 January 2023 00:00 UTC')
-  return count > 0 && div({
+  return div({
     style: {
       position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
       backgroundColor: colors.warning(0.15),
@@ -142,7 +142,7 @@ const MigratePersistentDisksBanner = ({ count }) => {
   ])
 }
 
-const MigratePersistentDiskCell = ({ disk, setMigrateDisk }) => div({
+const MigratePersistentDiskCell = ({ onClick }) => div({
   style: {
     display: 'flex', flex: 1, flexDirection: 'column', textAlign: 'center',
     height: '100%', margin: '-1rem', padding: '0.5rem 0 0 0',
@@ -152,7 +152,7 @@ const MigratePersistentDiskCell = ({ disk, setMigrateDisk }) => div({
   h(TooltipTrigger, { content: `This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.` }, [
     div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
   ]),
-  h(Link, { onClick: () => setMigrateDisk(disk), style: { wordBreak: 'break-word' } },
+  h(Link, { onClick, style: { wordBreak: 'break-word' } },
     ['Migrate']
   )
 ])
@@ -268,7 +268,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
 
 const Environments = () => {
   const signal = useCancellation()
-  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = _.flow(
+  const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
     _.update('workspaces',
       _.flow(
@@ -300,9 +300,8 @@ const Environments = () => {
     await refreshWorkspaces()
     const creator = getUser().email
 
-    const getWorkspace = (ws => (namespace, name) => _.get(`${namespace}.${name}`, ws))(
-      getWorkspaces()
-    )
+    const workspaces = getWorkspaces()
+    const getWorkspace = (namespace, name) => _.get(`${namespace}.${name}`, workspaces)
 
     const startTimeForLeoCallsEpochMs = Date.now()
     const [newRuntimes, newDisks, newApps] = await Promise.all([
@@ -361,7 +360,7 @@ const Environments = () => {
     await loadData()
   })
 
-  useOnMount(loadData)
+  useOnMount(() => { loadData() })
   usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
@@ -726,7 +725,7 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
-              return disk.requiresMigration ? h(MigratePersistentDiskCell, { disk, setMigrateDisk }, []) : disk.status
+              return disk.requiresMigration ? h(MigratePersistentDiskCell, { onClick: () => setMigrateDisk(disk) }, []) : disk.status
             }
           },
           {
@@ -834,9 +833,12 @@ const Environments = () => {
         deleteDiskId: setDeleteDiskId
       })
     ]),
-    h(MigratePersistentDisksBanner, { count: _.countBy('requiresMigration', disks).true }, []),
+    (() => {
+      const count = _.countBy('requiresMigration', disks).true
+      return count > 0 && h(MigratePersistentDisksBanner, { count }, [])
+    })(),
     contactUsActive.get() && h(SupportRequestWrapper),
-    (loadingWorkspaces || loading) && spinnerOverlay
+    loading && spinnerOverlay
   ])
 }
 

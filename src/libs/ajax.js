@@ -1754,8 +1754,8 @@ const Disks = signal => ({
   disk: (project, name) => {
     return {
       create: props => fetchLeo(`api/google/v1/disks/${project}/${name}`,
-        _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }, jsonBody(props)]))
-      },
+        _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }, jsonBody(props)])
+      ),
       delete: () => {
         return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
       },
