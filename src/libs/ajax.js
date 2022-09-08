@@ -712,9 +712,7 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  leave: async workspaceId => {
-    return await(fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })))
-  },
+  leave: workspaceId => fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })),
 
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
