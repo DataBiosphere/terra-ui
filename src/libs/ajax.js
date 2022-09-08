@@ -227,6 +227,7 @@ const User = signal => ({
         programLocationCity: 'N/A',
         programLocationState: 'N/A',
         programLocationCountry: 'N/A',
+        accountType: 'N/A',
         pi: 'N/A',
         nonProfitStatus: 'N/A'
       }

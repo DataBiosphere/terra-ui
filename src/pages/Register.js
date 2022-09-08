@@ -4,6 +4,7 @@ import { ButtonPrimary, ButtonSecondary, IdContainer } from 'src/components/comm
 import { centeredSpinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import planet from 'src/images/register-planet.svg'
+import { getAccountType } from 'src/libs/account-type'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -33,7 +34,8 @@ const Register = () => {
       await Ajax().User.profile.set({
         firstName: givenName,
         lastName: familyName,
-        contactEmail: email
+        contactEmail: email,
+        accountType: getAccountType(email)
       })
       authStore.update(state => ({ ...state, registrationStatus: userStatus.registeredWithoutTos }))
       await refreshTerraProfile()
