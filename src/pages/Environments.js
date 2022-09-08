@@ -180,7 +180,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
     await onSuccess()
   })
 
-  const DeleteDiskSelection = ({ ...props }) => {
+  const DeleteDiskSelection = props => {
     const onChange = choice => {
       setDeleteDisk(choice)
       if (choice) { setIsSelected({}) }
