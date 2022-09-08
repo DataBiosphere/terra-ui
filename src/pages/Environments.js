@@ -188,7 +188,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, co
 
     return div({ style: { ...props?.style, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
       h(LabeledCheckbox, { checked: deleteDisk, onChange }, []),
-      ['Delete this disk.']
+      span({ style: { paddingLeft: '0.5rem' } }, ['Delete this disk.'])
     ])
   }
 
