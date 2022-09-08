@@ -56,11 +56,15 @@ const billingProjectsPage = (testPage, testUrl) => {
     assertChartValue: async (number, workspaceName, category, cost) => {
       // This checks the accessible text for chart values.
       await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`)
+    },
+
+    showWorkspaceDetails: async () => {
+      await click(testPage, clickable({ text: 'expand workspace' }))
     }
   }
 }
 
-const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, erroredProjectVisible, spendCost, numExtraWorkspaces = 0) => {
+const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, erroredProjectVisible, spendCost, numExtraWorkspaces = 0) => {
   const spendReturnResult = {
     spendSummary: {
       cost: spendCost, credits: '2.50', currency: 'USD', endTime: '2022-03-04T00:00:00.000Z', startTime: '2022-02-02T00:00:00.000Z'
@@ -111,15 +115,20 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
 
   const projectListResult = _.compact([{
     projectName: ownedBillingProjectName,
-    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'GCP'
   },
   erroredProjectVisible && {
     projectName: erroredBillingProjectName,
-    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error'
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error', cloudPlatform: 'GCP'
   },
   {
     projectName: notOwnedBillingProjectName,
-    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready', cloudPlatform: 'GCP'
+  },
+  {
+    projectName: azureBillingProjectName,
+    managedAppCoordinates: { managedResourceGroupId: `${azureBillingProjectName}_mrg`, subscriptionId: 'subId', tenantId: 'tenantId' },
+    invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'AZURE'
   }])
 
   const ownedProjectMembersListResult = [{
@@ -139,11 +148,34 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
     email: 'testuser2@example.com', role: 'Owner'
   }]
 
+  const listWorkspacesResult = [
+    {
+      workspace: {
+        attributes: { description: '' }, authorizationDomain: [], bucketName: '', cloudPlatform: 'Azure', createdBy: 'cahrens@gmail.com',
+        createdDate: '2022-09-06T12:38:49.626Z', googleProject: '', isLocked: false, lastModified: '2022-09-06T12:38:49.643Z',
+        name: `${azureBillingProjectName}_ws`, namespace: azureBillingProjectName, workspaceId: '00bcd838-a08d-4984-88ab-5a8070fe3139',
+        workspaceType: 'mc', workspaceVersion: 'v2'
+      }, accessLevel: 'OWNER', public: false
+    },
+    {
+      workspace: {
+        attributes: { description: '' }, authorizationDomain: [], billingAccount: 'billingAccounts/fake-id', bucketName: 'fake-bucket',
+        cloudPlatform: 'Gcp', createdBy: 'cahrens@gmail.com',
+        createdDate: '2022-09-06T12:38:49.626Z', googleProject: `${ownedBillingProjectName}_project`, isLocked: false,
+        googleProjectNumber: '938723513660', lastModified: '2022-09-06T12:38:49.643Z',
+        name: `${ownedBillingProjectName}_ws`, namespace: ownedBillingProjectName, workflowCollectionName: 'collection-id',
+        workspaceId: 'fake-workspace-id',
+        workspaceType: 'rawls', workspaceVersion: 'v2'
+      }, accessLevel: 'PROJECT_OWNER', public: false
+    }
+  ]
+
   return await testPage.evaluate((spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
-    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName) => {
+    ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, listWorkspacesResult) => {
     const ownedMembersUrl = new RegExp(`api/billing/v2/${ownedBillingProjectName}/members`, 'g')
     const notOwnedMembersUrl = new RegExp(`api/billing/v2/${notOwnedBillingProjectName}/members`, 'g')
     const erroredBillingProjectUrl = new RegExp(`api/billing/v2/${erroredBillingProjectName}$`, 'g')
+    const azureMembersUrl = new RegExp(`api/billing/v2/${azureBillingProjectName}/members`, 'g')
 
     window.ajaxOverridesStore.set([
       {
@@ -167,16 +199,24 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: window.ajaxOverrideUtils.makeSuccess(notOwnedProjectMembersListResult)
       },
       {
+        filter: { url: azureMembersUrl },
+        fn: window.ajaxOverrideUtils.makeSuccess(ownedProjectMembersListResult)
+      },
+      {
         filter: { url: erroredBillingProjectUrl, method: 'DELETE' },
         fn: () => () => Promise.resolve(new Response({ status: 204 }))
       },
       {
         filter: { url: /api\/billing(.*)\/spendReport(.*)/ },
         fn: window.ajaxOverrideUtils.makeSuccess(spendReturnResult)
+      },
+      {
+        filter: { url: /api\/workspaces(.*)/ }, // TODO: tighten
+        fn: window.ajaxOverrideUtils.makeSuccess(listWorkspacesResult)
       }
     ])
   }, spendReturnResult, projectListResult, ownedProjectMembersListResult, notOwnedProjectMembersListResult,
-  ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName)
+  ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, listWorkspacesResult)
 }
 
 const setUpBillingTest = async (page, testUrl, token) => {
@@ -187,15 +227,17 @@ const setUpBillingTest = async (page, testUrl, token) => {
   const ownedBillingProjectName = 'OwnedBillingProject'
   const notOwnedBillingProjectName = 'NotOwnedBillingProject'
   const erroredBillingProjectName = 'ErroredBillingProject'
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110')
+  const azureBillingProjectName = 'AzureBillingProject'
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, true, '1110')
 
   const billingPage = billingProjectsPage(page, testUrl)
 
-  return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage }
+  return { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage }
 }
 
 const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage } =
+    await setUpBillingTest(page, testUrl, token)
 
   // Select spend report and verify cost for default date ranges
   await billingPage.visit()
@@ -214,9 +256,12 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   // Spot-check other 2 workspaces.
   await billingPage.assertChartValue(2, 'Second Most Expensive Workspace', 'Compute', '$90.00')
   await billingPage.assertChartValue(3, 'Third Most Expensive Workspace', 'Storage', '$0.00')
+  // Verify the spend report configuration option is present
+  await billingPage.assertText('View billing account')
 
   // Change the returned mock cost to mimic different date ranges.
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, true, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName,
+    azureBillingProjectName, true, '1110.17', 20)
   await billingPage.setSpendReportDays(90)
   await billingPage.assertText('Total spend$1,110.17')
   // Check that title updated to reflect truncation.
@@ -227,8 +272,15 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
 
-  //Check that the Spend report tab is not visible on this page
+  // Check that the Spend report tab is not visible on this page
   await billingPage.assertTextNotFound('Spend report')
+
+  // Select an Azure billing project and check that neither the Spend report tab nor the spend report configuration is visible
+  await billingPage.visit()
+  await billingPage.selectProject(azureBillingProjectName)
+  await billingPage.assertTextNotFound('Spend report')
+  // Verify the spend report configuration option is not present
+  await billingPage.assertTextNotFound('View billing account')
 })
 
 registerTest({
@@ -237,7 +289,7 @@ registerTest({
 })
 
 const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const { ownedBillingProjectName, notOwnedBillingProjectName, azureBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
 
   // Select a billing project that is owned by the user
   await billingPage.visit()
@@ -248,6 +300,8 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText('Name')
   await billingPage.assertText('Created By')
   await billingPage.assertText('Last Modified')
+  await billingPage.showWorkspaceDetails()
+  await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
   // Select a billing project that is not owned by the user
   await billingPage.visit()
@@ -258,6 +312,12 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.assertText('Name')
   await billingPage.assertText('Created By')
   await billingPage.assertText('Last Modified')
+
+  // Select Azure billing project
+  await billingPage.visit()
+  await billingPage.selectProject(azureBillingProjectName)
+  await billingPage.showWorkspaceDetails()
+  await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
 })
 
 registerTest({
@@ -305,7 +365,8 @@ registerTest({
 })
 
 const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }) => {
-  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const { ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName, billingPage } =
+    await setUpBillingTest(page, testUrl, token)
 
   await billingPage.visit()
 
@@ -323,7 +384,8 @@ const testDeleteBillingProjectFn = withUserToken(async ({ page, testUrl, token }
 
   // Reset the ajax values to NOT include the errored billing project before confirming the deletion
   // This is so we can test that the project list refreshes properly
-  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, false, '1110.17', 20)
+  await setAjaxMockValues(page, ownedBillingProjectName, notOwnedBillingProjectName, erroredBillingProjectName, azureBillingProjectName,
+    false, '1110.17', 20)
 
   // Confirm delete
   await billingPage.confirmDeleteBillingProject()
@@ -357,23 +419,23 @@ const testBillingProjectOneOwnerWarning = withUserToken(async ({ page, testUrl, 
         fn: window.ajaxOverrideUtils.makeSuccess([
           {
             projectName: ownedAndNoOtherUsersBillingProject,
-            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'GCP'
           },
           {
             projectName: ownedAndSharedBillingProject,
-            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'GCP'
           },
           {
             projectName: ownedWithMultipleOwnersBillingProject,
-            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready'
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Ready', cloudPlatform: 'GCP'
           },
           {
             projectName: usedWithOneOwnerBillingProject,
-            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready', cloudPlatform: 'GCP'
           },
           {
             projectName: usedWithMultipleOwnersBillingProject,
-            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready'
+            billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['User'], status: 'Ready', cloudPlatform: 'GCP'
           }
         ])
       },

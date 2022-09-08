@@ -20,6 +20,7 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
+import { cloudProviders } from 'src/libs/runtime-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -66,10 +67,11 @@ const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatus
 const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   const expandedInfoStyles = {
     row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
-    title: { fontWeight: 600, width: '20%', padding: '0.5rem 1rem 0 2rem', height: '1rem' },
-    details: { width: '20%', marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
+    title: { fontWeight: 600, padding: '0.5rem 1rem 0 2rem', height: '1rem' },
+    details: { flexGrow: 1, marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
     errorMessage: {
-      padding: '0.5rem', width: '55%', backgroundColor: colors.light(0.3),
+      flexGrow: 2,
+      padding: '0.5rem', backgroundColor: colors.light(0.3),
       border: `solid 2px ${colors.danger(0.3)}`, borderRadius: 5
     }
   }
@@ -81,11 +83,11 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   ])
 }
 
-const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
+const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject, billingAccountStatus, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -132,8 +134,9 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingAccount
       ]),
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
-          h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage })
+          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
+          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
+          billingProject.cloudPlatform === cloudProviders.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
         ])
       ])
     ])])
@@ -241,6 +244,197 @@ const OtherMessaging = ({ cost }) => {
   ])
 }
 
+const GcpBillingAccountControls = ({
+  authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal,
+  reloadBillingProject, setUpdating
+}) => {
+  const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false)
+  const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
+  const [selectedBilling, setSelectedBilling] = useState()
+  const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
+  const [selectedDatasetName, setSelectedDatasetName] = useState(null)
+
+  const signal = useCancellation()
+
+  // Helpers
+  const setBillingAccount = _.flow(
+    reportErrorAndRethrow('Error updating billing account'),
+    Utils.withBusyState(setUpdating)
+  )(newAccountName => {
+    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
+      oldName: billingProject.billingAccount,
+      newName: newAccountName,
+      billingProjectName: billingProject.projectName
+    })
+    return Ajax(signal).Billing.changeBillingAccount({
+      billingProjectName: billingProject.projectName,
+      newBillingAccountName: newAccountName
+    })
+  })
+
+  const removeBillingAccount = _.flow(
+    reportErrorAndRethrow('Error removing billing account'),
+    Utils.withBusyState(setUpdating)
+  )(() => {
+    Ajax().Metrics.captureEvent(Events.removeBillingAccount, {
+      billingProject: billingProject.projectName
+    })
+    return Ajax(signal).Billing.removeBillingAccount({
+      billingProjectName: billingProject.projectName
+    })
+  })
+
+  const updateSpendConfiguration = _.flow(
+    reportErrorAndRethrow('Error updating spend report configuration'),
+    Utils.withBusyState(setUpdating)
+  )(() => Ajax(signal).Billing.updateSpendConfiguration({
+    billingProjectName: billingProject.projectName,
+    datasetGoogleProject: selectedDatasetProjectName,
+    datasetName: selectedDatasetName
+  }))
+
+  // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
+  const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount))
+  const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined
+
+  const billingAccountDisplayText = Utils.cond(
+    [!billingProjectHasBillingAccount, () => 'No linked billing account'],
+    [!billingAccount, () => 'No access to linked billing account'],
+    () => billingAccount.displayName || billingAccount.accountName
+  )
+
+  return h(Fragment, [
+    Auth.hasBillingScope() &&
+    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+      span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
+      span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
+      isOwner && h(MenuTrigger, {
+        closeOnClick: true,
+        side: 'bottom',
+        style: { marginLeft: '0.5rem' },
+        content: h(Fragment, [
+          h(MenuButton, {
+            onClick: async () => {
+              if (Auth.hasBillingScope()) {
+                setShowBillingModal(true)
+              } else {
+                await authorizeAndLoadAccounts()
+                setShowBillingModal(Auth.hasBillingScope())
+              }
+            }
+          }, ['Change Billing Account']),
+          h(MenuButton, {
+            onClick: async () => {
+              if (Auth.hasBillingScope()) {
+                setShowBillingRemovalModal(true)
+              } else {
+                await authorizeAndLoadAccounts()
+                setShowBillingRemovalModal(Auth.hasBillingScope())
+              }
+            },
+            disabled: !billingProjectHasBillingAccount
+          }, ['Remove Billing Account'])
+        ])
+      }, [
+        h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
+          icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
+        ])
+      ]),
+      getShowBillingModal() && h(Modal, {
+        title: 'Change Billing Account',
+        onDismiss: () => setShowBillingModal(false),
+        okButton: h(ButtonPrimary, {
+          disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
+          onClick: () => {
+            setShowBillingModal(false)
+            setBillingAccount(selectedBilling).then(reloadBillingProject)
+          }
+        }, ['Ok'])
+      }, [
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
+          h(Select, {
+            id,
+            value: selectedBilling || billingProject.billingAccount,
+            isClearable: false,
+            options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+            onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
+          }),
+          div({ style: { marginTop: '1rem' } },
+            ['Note: Changing the billing account for this billing project will clear the spend report configuration.'])
+        ])])
+      ]),
+      showBillingRemovalModal && h(Modal, {
+        title: 'Remove Billing Account',
+        onDismiss: () => setShowBillingRemovalModal(false),
+        okButton: h(ButtonPrimary, {
+          onClick: () => {
+            setShowBillingRemovalModal(false)
+            removeBillingAccount(selectedBilling).then(reloadBillingProject)
+          }
+        }, ['Ok'])
+      }, [
+        div({ style: { marginTop: '1rem' } },
+          ['Are you sure you want to remove this billing project\'s billing account?'])
+      ])
+    ]),
+    Auth.hasBillingScope() && isOwner &&
+    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+      span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
+      span({ style: { flexShrink: 0 } }, 'Edit'),
+      h(Link, {
+        tooltip: 'Configure Spend Reporting',
+        style: { marginLeft: '0.5rem' },
+        onClick: async () => {
+          if (Auth.hasBillingScope()) {
+            setShowSpendReportConfigurationModal(true)
+          } else {
+            await authorizeAndLoadAccounts()
+            setShowSpendReportConfigurationModal(Auth.hasBillingScope())
+          }
+        }
+      }, [icon('edit', { size: 12 })]),
+      showSpendReportConfigurationModal && h(Modal, {
+        title: 'Configure Spend Reporting',
+        onDismiss: () => setShowSpendReportConfigurationModal(false),
+        okButton: h(ButtonPrimary, {
+          disabled: !selectedDatasetProjectName || !selectedDatasetName,
+          onClick: async () => {
+            setShowSpendReportConfigurationModal(false)
+            await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName)
+          }
+        }, ['Ok'])
+      }, [
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project ID']),
+          h(TextInput, {
+            id,
+            onChange: setSelectedDatasetProjectName
+          })
+        ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
+          h(TextInput, {
+            id,
+            onChange: setSelectedDatasetName
+          }),
+          div({ style: { marginTop: '1rem' } }, [
+            ['See '],
+            h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
+            [' for details on configuring spend reporting for billing projects.']
+          ])
+        ])])
+      ])
+    ]),
+    !Auth.hasBillingScope() &&
+    div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+      h(Link, {
+        onClick: authorizeAndLoadAccounts
+      }, ['View billing account'])
+    ])
+  ])
+}
+
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
@@ -254,11 +448,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
-  const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false)
-  const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
-  const [selectedBilling, setSelectedBilling] = useState()
-  const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
-  const [selectedDatasetName, setSelectedDatasetName] = useState(null)
   const [tab, setTab] = useState(query.tab || 'workspaces')
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
@@ -329,6 +518,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
+  const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
+
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, {
@@ -343,6 +534,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
               workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
+              billingProject,
               billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
               key: workspace.workspaceId,
               isExpanded,
@@ -433,7 +625,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner)), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner && isGcpProject)), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
@@ -444,43 +636,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       Nav.history.replace({ search: newSearch })
     }
   })
-
-  // Helpers
-  const setBillingAccount = _.flow(
-    reportErrorAndRethrow('Error updating billing account'),
-    Utils.withBusyState(setUpdating)
-  )(newAccountName => {
-    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
-      oldName: billingProject.billingAccount,
-      newName: newAccountName,
-      billingProjectName: billingProject.projectName
-    })
-    return Ajax(signal).Billing.changeBillingAccount({
-      billingProjectName: billingProject.projectName,
-      newBillingAccountName: newAccountName
-    })
-  })
-
-  const removeBillingAccount = _.flow(
-    reportErrorAndRethrow('Error removing billing account'),
-    Utils.withBusyState(setUpdating)
-  )(() => {
-    Ajax().Metrics.captureEvent(Events.removeBillingAccount, {
-      billingProject: billingProject.projectName
-    })
-    return Ajax(signal).Billing.removeBillingAccount({
-      billingProjectName: billingProject.projectName
-    })
-  })
-
-  const updateSpendConfiguration = _.flow(
-    reportErrorAndRethrow('Error updating spend report configuration'),
-    Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.updateSpendConfiguration({
-    billingProjectName: billingProject.projectName,
-    datasetGoogleProject: selectedDatasetProjectName,
-    datasetName: selectedDatasetName
-  }))
 
   const collectUserRoles = _.flow(
     _.groupBy('email'),
@@ -575,144 +730,10 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
     { ms: 5000 }
   )
 
-  // (CA-1586) For some reason the api sometimes returns string null, and sometimes returns no field, and sometimes returns null. This is just to be complete.
-  const billingProjectHasBillingAccount = !(billingProject.billingAccount === 'null' || _.isNil(billingProject.billingAccount))
-  const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined
-
-  const billingAccountDisplayText = Utils.cond(
-    [!billingProjectHasBillingAccount, () => 'No linked billing account'],
-    [!billingAccount, () => 'No access to linked billing account'],
-    () => billingAccount.displayName || billingAccount.accountName
-  )
-
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText),
-        isOwner && h(MenuTrigger, {
-          closeOnClick: true,
-          side: 'bottom',
-          style: { marginLeft: '0.5rem' },
-          content: h(Fragment, [
-            h(MenuButton, {
-              onClick: async () => {
-                if (Auth.hasBillingScope()) {
-                  setShowBillingModal(true)
-                } else {
-                  await authorizeAndLoadAccounts()
-                  setShowBillingModal(Auth.hasBillingScope())
-                }
-              }
-            }, ['Change Billing Account']),
-            h(MenuButton, {
-              onClick: async () => {
-                if (Auth.hasBillingScope()) {
-                  setShowBillingRemovalModal(true)
-                } else {
-                  await authorizeAndLoadAccounts()
-                  setShowBillingRemovalModal(Auth.hasBillingScope())
-                }
-              },
-              disabled: !billingProjectHasBillingAccount
-            }, ['Remove Billing Account'])
-          ])
-        }, [
-          h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
-            icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' })
-          ])
-        ]),
-        showBillingModal && h(Modal, {
-          title: 'Change Billing Account',
-          onDismiss: () => setShowBillingModal(false),
-          okButton: h(ButtonPrimary, {
-            disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
-            onClick: () => {
-              setShowBillingModal(false)
-              setBillingAccount(selectedBilling).then(reloadBillingProject)
-            }
-          }, ['Ok'])
-        }, [
-          h(IdContainer, [id => h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-            h(Select, {
-              id,
-              value: selectedBilling || billingProject.billingAccount,
-              isClearable: false,
-              options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-              onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
-            }),
-            div({ style: { marginTop: '1rem' } },
-              ['Note: Changing the billing account for this billing project will clear the spend report configuration.'])
-          ])])
-        ]),
-        showBillingRemovalModal && h(Modal, {
-          title: 'Remove Billing Account',
-          onDismiss: () => setShowBillingRemovalModal(false),
-          okButton: h(ButtonPrimary, {
-            onClick: () => {
-              setShowBillingRemovalModal(false)
-              removeBillingAccount(selectedBilling).then(reloadBillingProject)
-            }
-          }, ['Ok'])
-        }, [
-          div({ style: { marginTop: '1rem' } },
-            ['Are you sure you want to remove this billing project\'s billing account?'])
-        ])
-      ]),
-      Auth.hasBillingScope() && isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Spend Report Configuration:'),
-        span({ style: { flexShrink: 0 } }, 'Edit'),
-        h(Link, {
-          tooltip: 'Configure Spend Reporting',
-          style: { marginLeft: '0.5rem' },
-          onClick: async () => {
-            if (Auth.hasBillingScope()) {
-              setShowSpendReportConfigurationModal(true)
-            } else {
-              await authorizeAndLoadAccounts()
-              setShowSpendReportConfigurationModal(Auth.hasBillingScope())
-            }
-          }
-        }, [icon('edit', { size: 12 })]),
-        showSpendReportConfigurationModal && h(Modal, {
-          title: 'Configure Spend Reporting',
-          onDismiss: () => setShowSpendReportConfigurationModal(false),
-          okButton: h(ButtonPrimary, {
-            disabled: !selectedDatasetProjectName || !selectedDatasetName,
-            onClick: async () => {
-              setShowSpendReportConfigurationModal(false)
-              await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName)
-            }
-          }, ['Ok'])
-        }, [
-          h(IdContainer, [id => h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project ID']),
-            h(TextInput, {
-              id,
-              onChange: setSelectedDatasetProjectName
-            })
-          ])]),
-          h(IdContainer, [id => h(Fragment, [
-            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
-            h(TextInput, {
-              id,
-              onChange: setSelectedDatasetName
-            }),
-            div({ style: { marginTop: '1rem' } }, [
-              ['See '],
-              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
-              [' for details on configuring spend reporting for billing projects.']
-            ])
-          ])])
-        ])
-      ]),
-      !Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        h(Link, {
-          onClick: authorizeAndLoadAccounts
-        }, ['View billing account'])
-      ]),
+      isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
           display: 'flex',
