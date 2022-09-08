@@ -7,6 +7,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
+import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
 import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -16,13 +17,14 @@ import RenameTableModal from 'src/components/data/RenameTableModal'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
+import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -72,14 +74,14 @@ const SearchResultsPill = ({ filteredCount, searching }) => {
   searching ? [icon('loadingSpinner', { size: 13, color: 'white' })] : `${Utils.truncateInteger(filteredCount)}`)
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, filteredCount, crossTableSearchInProgress, activeCrossTableTextFilter, after, wrapperProps, ...props }) => {
   const isEntity = entityName !== undefined
 
   return h(Interactive, {
+    ...wrapperProps,
     style: { ...Style.navList.itemContainer(selected), backgroundColor: selected ? colors.dark(0.1) : 'white' },
     hover: Style.navList.itemHover(selected),
-    as: 'div',
-    role: 'listitem'
+    as: 'div'
   }, [
     h(Clickable, {
       style: { ...Style.navList.item(selected), flex: '1 1 auto', minWidth: 0, color: colors.accent(1.2), ...buttonStyle },
@@ -268,7 +270,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -280,6 +282,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const [loading, setLoading] = useState(false)
   const [entities, setEntities] = useState([])
   const [exporting, setExporting] = useState(false)
+  const [savingVersion, setSavingVersion] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -331,7 +334,12 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
-        }, 'Delete table')
+        }, 'Delete table'),
+        isDataTableVersioningEnabled() && h(Fragment, [
+          h(MenuDivider),
+          h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
+          h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
+        ])
       ])
     }, [
       h(Clickable, {
@@ -349,6 +357,15 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       selectedDataType: tableName,
       selectedEntities: entities,
       runningSubmissionsCount
+    }),
+    savingVersion && h(DataTableSaveVersionModal, {
+      workspace,
+      entityType: tableName,
+      onDismiss: () => setSavingVersion(false),
+      onSubmit: versionOpts => {
+        setSavingVersion(false)
+        onSaveVersion(versionOpts)
+      }
     }),
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
@@ -383,7 +400,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   ])
 }
 
-const workspaceDataTypes = Utils.enumify(['entities', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -407,6 +424,9 @@ const WorkspaceData = _.flow(
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
+  const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+
+  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion } = useDataTableVersions(workspace)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -589,30 +609,48 @@ const WorkspaceData = _.flow(
                   ['Loading...', icon('loadingSpinner', { size: 13, color: colors.primary() })] :
                   [`${_.sum(_.map(c => c.filteredCount, crossTableResultCounts))} results`]),
               _.map(([type, typeDetails]) => {
-                return h(DataTypeButton, {
-                  key: type,
-                  selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
-                  entityName: type,
-                  entityCount: typeDetails.count,
-                  filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
-                  activeCrossTableTextFilter,
-                  crossTableSearchInProgress,
-                  onClick: () => {
-                    setSelectedData({ type: workspaceDataTypes.entities, entityType: type })
-                    forceRefresh()
-                  },
-                  after: h(DataTableActions, {
-                    tableName: type,
-                    rowCount: typeDetails.count,
-                    entityMetadata,
-                    workspace,
-                    onRenameTable: () => loadMetadata(),
-                    onDeleteTable: tableName => {
-                      setSelectedData(undefined)
-                      setEntityMetadata(_.unset(tableName))
-                    }
+                const isShowingVersionHistory = !!showDataTableVersionHistory[type]
+                return div({ key: type, role: 'listitem' }, [
+                  h(DataTypeButton, {
+                    key: type,
+                    selected: selectedData?.type === workspaceDataTypes.entities && selectedData.entityType === type,
+                    entityName: type,
+                    entityCount: typeDetails.count,
+                    filteredCount: _.find({ typeName: type }, crossTableResultCounts)?.filteredCount,
+                    activeCrossTableTextFilter,
+                    crossTableSearchInProgress,
+                    onClick: () => {
+                      setSelectedData({ type: workspaceDataTypes.entities, entityType: type })
+                      forceRefresh()
+                    },
+                    after: h(DataTableActions, {
+                      tableName: type,
+                      rowCount: typeDetails.count,
+                      entityMetadata,
+                      workspace,
+                      onRenameTable: () => loadMetadata(),
+                      onDeleteTable: tableName => {
+                        setSelectedData(undefined)
+                        setEntityMetadata(_.unset(tableName))
+                      },
+                      isShowingVersionHistory,
+                      onSaveVersion: withErrorReporting('Error saving version', versionOpts => {
+                        setShowDataTableVersionHistory(_.set(type, true))
+                        return saveDataTableVersion(type, versionOpts)
+                      }),
+                      onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
+                        setShowDataTableVersionHistory(_.set(type, showVersionHistory))
+                        if (showVersionHistory) {
+                          loadDataTableVersions(type)
+                        }
+                      })
+                    })
+                  }),
+                  isShowingVersionHistory && h(DataTableVersions, {
+                    ...dataTableVersions[type],
+                    onClickVersion: version => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version })
                   })
-                })
+                ])
               }, sortedEntityPairs)
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
@@ -662,6 +700,7 @@ const WorkspaceData = _.flow(
                     _.map(([tableName, { count }]) => {
                       const canCompute = !!(workspace?.canCompute)
                       return h(DataTypeButton, {
+                        wrapperProps: { role: 'listitem' },
                         buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
                         tooltip: canCompute ?
                           tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
@@ -695,6 +734,7 @@ const WorkspaceData = _.flow(
               title: 'Reference Data'
             }, [_.map(type => h(DataTypeButton, {
               key: type,
+              wrapperProps: { role: 'listitem' },
               selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
               onClick: () => {
                 setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
@@ -744,6 +784,7 @@ const WorkspaceData = _.flow(
               title: 'Other Data'
             }, [
               h(DataTypeButton, {
+                wrapperProps: { role: 'listitem' },
                 selected: selectedData?.type === workspaceDataTypes.localVariables,
                 onClick: () => {
                   setSelectedData({ type: workspaceDataTypes.localVariables })
@@ -751,6 +792,7 @@ const WorkspaceData = _.flow(
                 }
               }, ['Workspace Data']),
               h(DataTypeButton, {
+                wrapperProps: { role: 'listitem' },
                 iconName: 'folder', iconSize: 18,
                 selected: selectedData?.type === workspaceDataTypes.bucketObjects,
                 onClick: () => {
@@ -785,7 +827,11 @@ const WorkspaceData = _.flow(
             extraMenuItems: h(Link, {
               href: `https://seqr.broadinstitute.org/workspace/${namespace}/${name}`,
               style: { padding: '0.5rem' }
-            }, [icon('pop-out'), ' Analyze in Seqr'])
+            }, [icon('pop-out'), ' Analyze in Seqr']),
+            noticeForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`) ?
+              'Files in this folder are managed via data table versioning.' :
+              null,
+            shouldDisableEditForPrefix: prefix => prefix.startsWith(`${dataTableVersionsPathRoot}/`)
           })],
           [workspaceDataTypes.snapshot, () => h(SnapshotContent, {
             key: refreshKey,
@@ -815,6 +861,14 @@ const WorkspaceData = _.flow(
             loadMetadata,
             deleteColumnUpdateMetadata,
             forceRefresh
+          })],
+          [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
+            workspace,
+            version: selectedData.version,
+            onDelete: withErrorReporting('Error deleting version', async () => {
+              await deleteDataTableVersion(selectedData.version)
+              setSelectedData(undefined)
+            })
           })]
         )
       ])

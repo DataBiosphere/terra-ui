@@ -1433,27 +1433,28 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
 }
 
 export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) => {
-  const columnMenu = span({ onClick: e => e.stopPropagation() }, [
-    h(MenuTrigger, {
-      closeOnClick: true,
-      side: 'bottom',
-      content: h(Fragment, [
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
-        h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
-      ])
-    }, [
-      h(Link, { 'aria-label': 'Column menu' }, [
-        icon('cardMenuIcon', { size: 16 })
-      ])
+  const columnMenu = h(MenuTrigger, {
+    closeOnClick: true,
+    side: 'bottom',
+    content: h(Fragment, [
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+    ])
+  }, [
+    h(Link, { 'aria-label': 'Column menu' }, [
+      icon('cardMenuIcon', { size: 16 })
     ])
   ])
 
-  return h(Sortable, {
-    sort, field, onSort, columnMenu
-  }, [
-    children,
-    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
+  return h(Fragment, [
+    h(Sortable, {
+      sort, field, onSort
+    }, [
+      children,
+      div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } })
+    ]),
+    columnMenu
   ])
 }
 

@@ -265,6 +265,8 @@ const BucketBrowser = (({
   allowEditingFolders = true,
   extraMenuItems,
   style, controlPanelStyle,
+  noticeForPrefix = _.constant(null),
+  shouldDisableEditForPrefix = _.constant(false),
   onUploadFiles = _.noop, onDeleteFiles = _.noop
 }) => {
   // Normalize base prefix to have a trailing slash.
@@ -310,6 +312,9 @@ const BucketBrowser = (({
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
   const canEditWorkspace = !editWorkspaceError
+
+  const editDisabledForPrefix = shouldDisableEditForPrefix(prefix)
+  const notice = noticeForPrefix(prefix)
 
   const numPrefixes = _.size(prefixes)
   const numObjects = _.size(objects)
@@ -365,23 +370,30 @@ const BucketBrowser = (({
         div({ style: { flex: '1 1 auto' } }),
 
         h(ButtonPrimary, {
-          disabled: !canEditWorkspace,
-          tooltip: editWorkspaceError,
+          disabled: !canEditWorkspace || editDisabledForPrefix,
+          tooltip: Utils.cond(
+            [!canEditWorkspace, () => editWorkspaceError],
+            [editDisabledForPrefix, () => 'Files cannot be uploaded to this folder']
+          ),
           style: { padding: '0.5rem', marginRight: '0.5rem' },
           onClick: openUploader
         }, [icon('upload-cloud', { style: { marginRight: '1ch' } }), ' Upload']),
 
         allowEditingFolders && h(Link, {
-          disabled: !canEditWorkspace,
-          tooltip: editWorkspaceError,
+          disabled: !canEditWorkspace || editDisabledForPrefix,
+          tooltip: Utils.cond(
+            [!canEditWorkspace, () => editWorkspaceError],
+            [editDisabledForPrefix, () => 'Folders cannot be added to this folder']
+          ),
           style: { padding: '0.5rem' },
           onClick: () => setCreatingNewFolder(true)
         }, [icon('folder'), ' New folder']),
 
         h(Link, {
-          disabled: !canEditWorkspace || _.isEmpty(selectedObjects),
+          disabled: !canEditWorkspace || editDisabledForPrefix || _.isEmpty(selectedObjects),
           tooltip: Utils.cond(
             [!canEditWorkspace, () => editWorkspaceError],
+            [editDisabledForPrefix, () => 'Files in this folder cannot be deleted'],
             [_.isEmpty(selectedObjects), () => 'Select files to delete'],
             () => 'Delete selected files'
           ),
@@ -391,6 +403,9 @@ const BucketBrowser = (({
 
         extraMenuItems
       ]),
+
+      notice && div({ style: { padding: '1rem', background: colors.accent(0.2) } }, [notice]),
+
       h(BucketBrowserTable, {
         bucketName,
         objects,

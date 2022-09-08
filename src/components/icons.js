@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Children, Fragment } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, img, span } from 'react-hyperscript-helpers'
 import DelayedRender from 'src/components/DelayedRender'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -48,9 +48,9 @@ export const icon = (shape, { size = 16, ...props } = {}) => {
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 }
 
-export const spinner = ({ message = 'Loading', ...props }) => h(Fragment, [
+export const spinner = ({ message = 'Loading', ...props } = {}) => h(Fragment, [
   icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props)),
-  h(DelayedRender, { delay: 150 }, [div({ className: 'sr-only', role: 'alert' }, [message])])
+  h(DelayedRender, { delay: 150 }, [span({ className: 'sr-only', role: 'alert' }, [message])])
 ])
 
 export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge({

@@ -158,6 +158,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 // are not transient and the request should not be retried.
 const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
@@ -546,10 +547,19 @@ const Billing = signal => ({
     return res.json()
   },
 
-  createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing/v2',
-      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
-    return res
+  createGCPProject: async (projectName, billingAccount) => {
+    return await fetchRawls('billing/v2',
+      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }])
+    )
+  },
+
+  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId) => {
+    return await fetchRawls('billing/v2',
+      _.mergeAll([authOpts(), jsonBody(
+        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId } }
+      ),
+      { signal, method: 'POST' }])
+    )
   },
 
   deleteProject: async projectName => {
@@ -628,6 +638,12 @@ const Billing = signal => ({
       await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
       return billing.removeProjectUser(projectName, _.difference(oldRoles, newRoles), email)
     }
+  },
+
+  listAzureManagedApplications: async subscriptionId => {
+    const response = await fetchBillingProfileManager(`azure/v1/managedApps?azureSubscriptionId=${subscriptionId}`,
+      _.merge(authOpts(), { signal }))
+    return response.json()
   }
 })
 
@@ -961,6 +977,8 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/entities/delete`, _.mergeAll([authOpts(), jsonBody(entities), { signal, method: 'POST' }]))
       },
 
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.text()),
+
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
           sourceWorkspace: { namespace, name },
@@ -1108,9 +1126,23 @@ const DataRepo = signal => ({
       details: async () => {
         const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+      exportSnapshot: async () => {
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
-  }
+  },
+  job: jobId => ({
+    details: async () => {
+      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }))
+      return res.json()
+    },
+    result: async () => {
+      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }))
+      return res.json()
+    }
+  })
 })
 
 const AzureStorage = signal => ({
@@ -1136,7 +1168,7 @@ const AzureStorage = signal => ({
     } else {
       const container = _.find(
         {
-          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER' },
+          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } },
           resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
         },
         data.resources
@@ -1243,6 +1275,13 @@ const Buckets = signal => ({
     )
   },
 
+  patch: async (googleProject, bucket, name, metadata) => {
+    return fetchBuckets(
+      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
+      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
+    )
+  },
+
   //TODO: this should be deprecated in favor of the smarter `analysis` set of functions
   notebook: (googleProject, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
@@ -1315,7 +1354,7 @@ const Buckets = signal => ({
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
     const doCopy = async (newName, newBucket, body) => {
-      fetchBuckets(
+      return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
         _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )

@@ -3,7 +3,11 @@ import { useEffect } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { useRoute } from 'src/libs/nav'
 
-
+/*
+ * NOTE: In order to show up in reports, new events MUST be marked as expected in the Mixpanel
+ * lexicon. See the Mixpanel guide in the terra-ui GitHub Wiki for more details:
+ *   https://github.com/DataBiosphere/terra-ui/wiki/Mixpanel
+ */
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
   appcuesEvent: 'appcues:event',
@@ -31,6 +35,7 @@ const eventsList = {
   catalogToggle: 'catalog:toggle',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
+  catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',

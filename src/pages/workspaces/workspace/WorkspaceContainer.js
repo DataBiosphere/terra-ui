@@ -93,7 +93,7 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete },
-        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner }
+        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ])
   ])
@@ -133,11 +133,7 @@ const WorkspaceContainer = ({
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      h(RuntimeManager, {
-        namespace, name, runtimes, persistentDisks, refreshRuntimes,
-        canCompute: !!(workspace?.canCompute || runtimes?.length),
-        apps, appDataDisks, workspace, refreshApps, location, locationType
-      })
+      h(RuntimeManager, { namespace, name, runtimes, apps })
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
@@ -374,6 +370,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     useOnMount(() => {
       if (!workspace) {
         refreshWorkspace()
+      } else {
+        loadBucketLocation(googleProject, workspace.workspace.bucketName)
       }
     })
 

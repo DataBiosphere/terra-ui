@@ -1,11 +1,11 @@
 const { checkbox, click, clickable, clickTableCell, findText, waitForNoSpinners } = require('../utils/integration-utils')
-const { enableDataCatalog } = require('../utils/integration-helpers')
+const { navigateToDataCatalog } = require('../utils/integration-helpers')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testRequestAccessFn = withUserToken(async ({ testUrl, page, token }) => {
-  await enableDataCatalog(page, testUrl, token)
+  await navigateToDataCatalog(page, testUrl, token)
   await click(page, checkbox({ text: 'Controlled', isDescendant: true }))
 
   // Request access from the browse & explore page

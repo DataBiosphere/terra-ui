@@ -1,6 +1,7 @@
 {
   "agoraUrlRoot": "https://agora.dsde-perf.broadinstitute.org",
   "bardRoot": "https://terra-bard-perf.appspot.com",
+  "billingProfileManagerUrlRoot": "https://bpm.dsde-perf.broadinstitute.org",
   "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://calhoun.dsde-perf.broadinstitute.org",
   "catalogUrlRoot": "https://catalog.dsde-perf.broadinstitute.org",
@@ -26,6 +27,7 @@
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
+  "alphaAzureGroup": "alpha-azure-feature-group",
   "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-perf.json",

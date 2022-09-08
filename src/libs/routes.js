@@ -36,6 +36,13 @@ import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
 
 
+/*
+ * NOTE: In order to show up in reports, new events[^1] MUST be marked as expected in the Mixpanel
+ * lexicon. See the Mixpanel guide in the terra-ui GitHub Wiki for more details:
+ *   https://github.com/DataBiosphere/terra-ui/wiki/Mixpanel
+ *
+ * [^1] including page:view:* events for new pages; see PageViewReporter
+ */
 const routes = _.flatten([
   TestLogin.navPaths,
   LandingPage.navPaths,
