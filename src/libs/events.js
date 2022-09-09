@@ -44,6 +44,7 @@ const eventsList = {
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
+  notificationToggle: 'notification:toggle',
   pageView: 'page:view',
   removeBillingAccount: 'billing:project:account:remove',
   userRegister: 'user:register',
