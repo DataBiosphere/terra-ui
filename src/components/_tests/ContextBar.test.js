@@ -39,17 +39,6 @@ jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
   }
 })
 
-
-// Mocking TooltipTrigger to avoid test environment issues with React Portal's requirement to use
-// DOM measure services which are not available in jest environment
-// jest.mock('src/components/TooltipTrigger', () => ({
-//   ...jest.requireActual('src/components/TooltipTrigger'),
-//   __esModule: true,
-//   default: jest.fn()
-// }))
-//TODO: Mock the measuring utility - we don't care WHERE Tooltip gets rendered
-//Write test that tries to hover
-//Click may also hover
 jest.mock('src/libs/ajax')
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
