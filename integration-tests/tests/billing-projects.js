@@ -151,20 +151,18 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
   const listWorkspacesResult = [
     {
       workspace: {
-        attributes: { description: '' }, authorizationDomain: [], bucketName: '', cloudPlatform: 'Azure', createdBy: 'cahrens@gmail.com',
+        cloudPlatform: 'Azure', attributes: { description: '' }, bucketName: '',
         createdDate: '2022-09-06T12:38:49.626Z', googleProject: '', isLocked: false, lastModified: '2022-09-06T12:38:49.643Z',
-        name: `${azureBillingProjectName}_ws`, namespace: azureBillingProjectName, workspaceId: '00bcd838-a08d-4984-88ab-5a8070fe3139',
+        name: `${azureBillingProjectName}_ws`, namespace: azureBillingProjectName, workspaceId: 'fake-workspace-id',
         workspaceType: 'mc', workspaceVersion: 'v2'
       }, accessLevel: 'OWNER', public: false
     },
     {
       workspace: {
-        attributes: { description: '' }, authorizationDomain: [], billingAccount: 'billingAccounts/fake-id', bucketName: 'fake-bucket',
-        cloudPlatform: 'Gcp', createdBy: 'cahrens@gmail.com',
+        cloudPlatform: 'Gcp', attributes: { description: '' }, billingAccount: 'billingAccounts/fake-id', bucketName: 'fake-bucket',
         createdDate: '2022-09-06T12:38:49.626Z', googleProject: `${ownedBillingProjectName}_project`, isLocked: false,
         googleProjectNumber: '938723513660', lastModified: '2022-09-06T12:38:49.643Z',
-        name: `${ownedBillingProjectName}_ws`, namespace: ownedBillingProjectName, workflowCollectionName: 'collection-id',
-        workspaceId: 'fake-workspace-id',
+        name: `${ownedBillingProjectName}_ws`, namespace: ownedBillingProjectName, workspaceId: 'fake-workspace-id',
         workspaceType: 'rawls', workspaceVersion: 'v2'
       }, accessLevel: 'PROJECT_OWNER', public: false
     }
@@ -211,7 +209,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: window.ajaxOverrideUtils.makeSuccess(spendReturnResult)
       },
       {
-        filter: { url: /api\/workspaces(.*)/ }, // TODO: tighten
+        filter: { url: /api\/workspaces?(.*)/ },
         fn: window.ajaxOverrideUtils.makeSuccess(listWorkspacesResult)
       }
     ])
@@ -279,7 +277,6 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName)
   await billingPage.assertTextNotFound('Spend report')
-  // Verify the spend report configuration option is not present
   await billingPage.assertTextNotFound('View billing account')
 })
 
@@ -291,31 +288,31 @@ registerTest({
 const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, azureBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
 
+  const verifyWorkspaceControls = async () => {
+    await billingPage.assertText('Workspaces')
+    await billingPage.assertText('Name')
+    await billingPage.assertText('Created By')
+    await billingPage.assertText('Last Modified')
+  }
+
   // Select a billing project that is owned by the user
   await billingPage.visit()
   await billingPage.selectProject(ownedBillingProjectName)
 
   // Check that the Workspaces tab is visible on this page
-  await billingPage.assertText('Workspaces')
-  await billingPage.assertText('Name')
-  await billingPage.assertText('Created By')
-  await billingPage.assertText('Last Modified')
+  await verifyWorkspaceControls()
   await billingPage.showWorkspaceDetails()
   await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
-  // Select a billing project that is not owned by the user
+  // Select a billing project that is not owned by the user and verify workspace tab is visible
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
+  await verifyWorkspaceControls()
 
-  // Check that the Workspaces tab is visible on this page
-  await billingPage.assertText('Workspaces')
-  await billingPage.assertText('Name')
-  await billingPage.assertText('Created By')
-  await billingPage.assertText('Last Modified')
-
-  // Select Azure billing project
+  // Select Azure billing project and verify workspace tab details
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName)
+  await verifyWorkspaceControls()
   await billingPage.showWorkspaceDetails()
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
 })

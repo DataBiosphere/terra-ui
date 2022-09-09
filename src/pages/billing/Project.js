@@ -70,8 +70,7 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
     title: { fontWeight: 600, padding: '0.5rem 1rem 0 2rem', height: '1rem' },
     details: { flexGrow: 1, marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
     errorMessage: {
-      flexGrow: 2,
-      padding: '0.5rem', backgroundColor: colors.light(0.3),
+      flexGrow: 2, padding: '0.5rem', backgroundColor: colors.light(0.3),
       border: `solid 2px ${colors.danger(0.3)}`, borderRadius: 5
     }
   }
