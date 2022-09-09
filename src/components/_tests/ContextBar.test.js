@@ -1,8 +1,16 @@
-import { render } from '@testing-library/react'
+import '@testing-library/jest-dom'
+
+import { fireEvent, render, screen } from '@testing-library/react'
+import { div, h } from 'react-hyperscript-helpers'
+import { tools } from 'src/components/notebook-utils'
+import { MenuTrigger } from 'src/components/PopupTrigger'
+import { Ajax } from 'src/libs/ajax'
+import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 
 import { ContextBar } from '../ContextBar'
 
 
+// Mocking for terminalLaunchLink using Nav.getLink
 jest.mock('src/libs/nav', () => {
   const originalModule = jest.requireActual('src/libs/nav')
 
@@ -11,6 +19,62 @@ jest.mock('src/libs/nav', () => {
     getPath: jest.fn(() => '/test/'),
     getLink: jest.fn(() => '/')
   }
+})
+
+// Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
+// DOM measure services which are not available in jest environment
+jest.mock('src/components/PopupTrigger', () => {
+  const originalModule = jest.requireActual('src/components/PopupTrigger')
+  return {
+    ...originalModule,
+    MenuTrigger: jest.fn()
+  }
+})
+
+jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal')
+  return {
+    ...originalModule,
+    CloudEnvironmentModal: jest.fn()
+  }
+})
+
+
+// Mocking TooltipTrigger to avoid test environment issues with React Portal's requirement to use
+// DOM measure services which are not available in jest environment
+// jest.mock('src/components/TooltipTrigger', () => ({
+//   ...jest.requireActual('src/components/TooltipTrigger'),
+//   __esModule: true,
+//   default: jest.fn()
+// }))
+//TODO: Mock the measuring utility - we don't care WHERE Tooltip gets rendered
+//Write test that tries to hover
+//Click may also hover
+jest.mock('src/libs/ajax')
+beforeEach(() => {
+  MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
+  CloudEnvironmentModal.mockImplementation(({ isOpen, filterForTool, onSuccess, onDismiss, ...props }) => {
+    return isOpen ? div([
+      'Cloud Environment Details',
+      div(filterForTool),
+      div({ label: 'Success Button', onClick: () => onSuccess() }, 'SuccessButton'),
+      div({ label: 'Success Button', onClick: () => onDismiss() }, 'DismissButton')
+    ]) : div([])
+  })
+  Ajax.mockImplementation(() => {
+    return {
+      Metrics: {
+        captureEvent: () => {}
+      },
+      Runtimes: {
+        runtime: () => {
+          return {
+            start: jest.fn()
+          }
+        }
+      }
+    }
+  })
 })
 
 //Note - These constants are copied from src/libs/runtime-utils.test.js
@@ -115,38 +179,225 @@ const jupyter1Disk = {
   }
 }
 
-describe('getTotalToolAndDiskCostDisplay', () => {
-  it('will get the total cost of all tools in the workspace.', () => {
-    // ARRANGE
-    const runtimes = [jupyter1]
-    const apps = [galaxyRunning]
-    const appDataDisks = [galaxyDisk]
-    const refreshRuntimes = () => ''
-    const location = 'US-CENTRAL1'
-    const locationType = ''
-    const refreshApps = () => ''
-    const workspace = {
-      workspace: {
-        namespace: 'namespace'
-      },
-      namespace: 'Broad Test Workspace'
+const rstudioRuntime = {
+  id: 76979,
+  workspaceId: null,
+  runtimeName: 'saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb',
+  googleProject: 'terra-dev-98897219',
+  cloudContext: {
+    cloudProvider: 'GCP',
+    cloudResource: 'terra-dev-98897219'
+  },
+  auditInfo: {
+    creator: 'ncl.hedwig@gmail.com',
+    createdDate: '2022-09-08T19:46:37.396597Z',
+    destroyedDate: null,
+    dateAccessed: '2022-09-08T19:47:21.206Z'
+  },
+  runtimeConfig: {
+    machineType: 'n1-standard-4',
+    persistentDiskId: 15774,
+    cloudService: 'GCE',
+    bootDiskSize: 120,
+    zone: 'us-central1-a',
+    gpuConfig: null
+  },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
+  status: 'Creating',
+  labels: {
+    saturnWorkspaceNamespace: 'general-dev-billing-account',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'ncl.hedwig@gmail.com',
+    clusterServiceAccount: 'pet-26534176105071279add1@terra-dev-98897219.iam.gserviceaccount.com',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb',
+    saturnWorkspaceName: 'N8s Space',
+    saturnVersion: '6',
+    tool: 'RStudio',
+    runtimeName: 'saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb',
+    cloudContext: 'Gcp/terra-dev-98897219',
+    googleProject: 'terra-dev-98897219'
+  },
+  patchInProgress: false
+}
 
+const contextBarProps = {
+  runtimes: [],
+  apps: [],
+  appDataDisks: [],
+  refreshRuntimes: () => '',
+  location: 'US-CENTRAL1',
+  locationType: '',
+  refreshApps: () => '',
+  workspace: {
+    workspace: {
+      namespace: 'namespace'
+    },
+    namespace: 'Broad Test Workspace'
+  }
+}
+
+describe('ContextBar - buttons', () => {
+  it('will render default icons', () => {
+    // Act
+    render(h(ContextBar, contextBarProps))
+
+    // Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+  })
+
+  it('will render Jupyter button with an enabled Terminal Button', () => {
+    // Arrange
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [jupyter1],
+      persistentDisks: [jupyter1Disk]
     }
-    const persistentDisks = [jupyter1Disk, galaxyDisk]
-    render(<ContextBar
-      runtimes={runtimes}
-      apps={apps}
-      appDataDisks={appDataDisks}
-      refreshRuntimes={refreshRuntimes}
-      location={location}
-      locationType={locationType}
-      refreshApps={refreshApps}
-      workspace={workspace}
-      persistentDisks={persistentDisks}
-    />)
 
-    // ACT
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
 
-    // ASSERT
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(screen.getByLabelText('Terminal button')).toBeEnabled()
+  })
+
+  it('will render a Galaxy and RStudio with a disabled Terminal Button', () => {
+    // Arrange
+    const rstudioGalaxyContextBarProps = {
+      ...contextBarProps,
+      runtimes: [rstudioRuntime],
+      apps: [galaxyRunning],
+      appDataDisks: [galaxyDisk],
+      persistentDisks: [jupyter1Disk]
+    }
+
+    // Act
+    render(h(ContextBar, rstudioGalaxyContextBarProps))
+
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
+    expect(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
+    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+  })
+})
+
+describe('ContextBar - actions', () => {
+  it('clicking environment configuration opens CloudEnvironmentModal', () => {
+    // Act
+    render(h(ContextBar, contextBarProps))
+    const envConf = screen.getByLabelText('Environment Configuration')
+    fireEvent.click(envConf)
+
+    // Assert
+    screen.getByText('Cloud Environment Details')
+  })
+  it('clicking Jupyter opens CloudEnvironmentModal with Jupyter as filter for tool.', () => {
+    // Arrange
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [jupyter1],
+      persistentDisks: [jupyter1Disk]
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
+
+    // Assert
+    screen.getByText('Cloud Environment Details')
+    screen.getByText(tools.Jupyter.label)
+  })
+  it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
+    // Arrange
+    const galaxyContextBarProps = {
+      ...contextBarProps,
+      apps: [galaxyRunning],
+      appDataDisks: [galaxyDisk]
+    }
+
+    // Act
+    render(h(ContextBar, galaxyContextBarProps))
+    fireEvent.click(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
+
+    // Assert
+    screen.getByText('Cloud Environment Details')
+    screen.getByText(tools.Galaxy.label)
+  })
+  it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
+    // Act
+    const rstudioContextBarProps = {
+      ...contextBarProps,
+      runtimes: [rstudioRuntime],
+      apps: [galaxyRunning],
+      appDataDisks: [galaxyDisk],
+      persistentDisks: [jupyter1Disk]
+    }
+
+    // Act
+    render(h(ContextBar, rstudioContextBarProps))
+    fireEvent.click(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
+
+    // Assert
+    screen.getByText('Cloud Environment Details')
+    screen.getByText(tools.RStudio.label)
+  })
+
+  it('clicking Terminal attempts to start current runtime', () => {
+    // Arrange
+    global.window = Object.create(window)
+    const url = 'http://dummy.com'
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: url
+      },
+      writable: true,
+      hash: '/'
+    })
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [{
+        ...jupyter1,
+        status: 'Stopped'
+      }],
+      persistentDisks: [jupyter1Disk]
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(screen.getByLabelText('Terminal button'))
+
+    // Assert
+    //TODO: Assert that start is called
+    // expect(Ajax().Runtimes.runtime().start).toBeCalled()
+  })
+  it('onSuccess will close modal', () => {
+    // Act
+    render(h(ContextBar, contextBarProps))
+    const envConf = screen.getByLabelText('Environment Configuration')
+    fireEvent.click(envConf)
+    screen.getByText('Cloud Environment Details')
+    fireEvent.click(screen.getByText('SuccessButton'))
+
+    // Assert
+    expect(screen.queryByText('Cloud Environment Details')).toBeFalsy()
+  })
+
+  it('onDismiss will close modal', () => {
+    // Act
+    render(h(ContextBar, contextBarProps))
+    const envConf = screen.getByLabelText('Environment Configuration')
+    fireEvent.click(envConf)
+    screen.getByText('Cloud Environment Details')
+    fireEvent.click(screen.getByText('DismissButton'))
+
+    // Assert
+    expect(screen.queryByText('Cloud Environment Details')).toBeFalsy()
   })
 })
