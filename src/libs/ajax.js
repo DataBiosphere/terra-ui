@@ -712,6 +712,8 @@ const Workspaces = signal => ({
     return res.json()
   },
 
+  leave: workspaceId => fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })),
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -1126,9 +1128,23 @@ const DataRepo = signal => ({
       details: async () => {
         const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }))
         return res.json()
+      },
+      exportSnapshot: async () => {
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}/export?validatePrimaryKeyUniqueness=false`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
-  }
+  },
+  job: jobId => ({
+    details: async () => {
+      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}`, _.merge(authOpts(), { signal }))
+      return res.json()
+    },
+    result: async () => {
+      const res = await fetchDataRepo(`repository/v1/jobs/${jobId}/result`, _.merge(authOpts(), { signal }))
+      return res.json()
+    }
+  })
 })
 
 const AzureStorage = signal => ({

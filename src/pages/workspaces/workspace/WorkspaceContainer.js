@@ -27,6 +27,7 @@ import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
@@ -61,7 +62,7 @@ const WorkspacePermissionNotice = ({ workspace }) => {
 
 const WorkspaceTabs = ({
   namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
+  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
@@ -72,6 +73,7 @@ const WorkspaceTabs = ({
   const onDelete = () => setDeletingWorkspace(true)
   const onLock = () => setShowLockWorkspaceModal(true)
   const onShare = () => setSharingWorkspace(true)
+  const onLeave = () => setLeavingWorkspace(true)
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
@@ -92,7 +94,7 @@ const WorkspaceTabs = ({
       workspace && h(WorkspacePermissionNotice, { workspace }),
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
-        callbacks: { onClone, onShare, onLock, onDelete },
+        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ])
@@ -108,6 +110,7 @@ const WorkspaceContainer = ({
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
+  const [leavingWorkspace, setLeavingWorkspace] = useState(false)
 
   // If googleProject is not undefined (server info not yet loaded)
   // and not the empty string, we know that we have a Google workspace.
@@ -137,7 +140,7 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
-      setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
+      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
@@ -163,6 +166,11 @@ const WorkspaceContainer = ({
       workspace,
       onDismiss: () => setShowLockWorkspaceModal(false),
       onSuccess: () => refreshWorkspace()
+    }),
+    leavingWorkspace && h(LeaveWorkspaceModal, {
+      workspace,
+      onDismiss: () => setLeavingWorkspace(false),
+      onSuccess: () => Nav.goToPath('workspaces')
     }),
     sharingWorkspace && h(ShareWorkspaceModal, {
       workspace,
