@@ -90,9 +90,6 @@ const AlertsIndicator = ({ style }) => {
   useEffect(() => {
     if (hasNewAlerts) {
       setAnimating(true)
-      setTimeout(() => {
-        setAnimating(false)
-      }, 1000)
     }
   }, [hasNewAlerts])
 
@@ -124,7 +121,8 @@ const AlertsIndicator = ({ style }) => {
         icon('bell', {
           size: 24,
           className: animating ? 'alert-indicator-ringing' : undefined,
-          style: { cursor: 'pointer' }
+          style: { cursor: 'pointer' },
+          onAnimationEnd: () => setAnimating(false)
         }),
         span({
           style: {
