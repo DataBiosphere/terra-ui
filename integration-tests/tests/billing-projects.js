@@ -4,6 +4,7 @@ const { assertTextNotFound, click, clickable, findText, gotoPage, noSpinnersAfte
 const { userEmail } = require('../utils/integration-config')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
+const { cloudProviders } = require('src/libs/runtime-utils')
 
 
 const billingProjectsPage = (testPage, testUrl) => {
@@ -28,11 +29,9 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ text: 'Owners' }))
     },
 
-    selectProject: async billingProjectName => {
-      await noSpinnersAfter(
-        testPage,
-        { action: () => click(testPage, clickable({ text: billingProjectName })) }
-      )
+    selectProject: async (billingProjectName, cloudPlatform = cloudProviders.gcp) => {
+      const text = cloudPlatform === cloudProviders.gcp ? `Google Cloud Platform${billingProjectName}` : `Microsoft Azure${billingProjectName}`
+      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text })) })
     },
 
     selectProjectMenu: async () => {
@@ -275,7 +274,7 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
 
   // Select an Azure billing project and check that neither the Spend report tab nor the spend report configuration is visible
   await billingPage.visit()
-  await billingPage.selectProject(azureBillingProjectName)
+  await billingPage.selectProject(azureBillingProjectName, cloudProviders.azure)
   await billingPage.assertTextNotFound('Spend report')
   await billingPage.assertTextNotFound('View billing account')
 })
@@ -311,7 +310,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
 
   // Select Azure billing project and verify workspace tab details
   await billingPage.visit()
-  await billingPage.selectProject(azureBillingProjectName)
+  await billingPage.selectProject(azureBillingProjectName, cloudProviders.azure)
   await verifyWorkspaceControls()
   await billingPage.showWorkspaceDetails()
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
