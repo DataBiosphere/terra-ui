@@ -1,19 +1,60 @@
+const fs = require('fs')
+const path = require('path')
+
 const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin')
 const _ = require('lodash/fp')
-const { addBabelPlugin, addWebpackPlugin } = require('customize-cra')
+const { addWebpackPlugin } = require('customize-cra')
+const { paths } = require('react-app-rewired')
+const { ESBuildMinifyPlugin } = require('esbuild-loader')
 
 
 module.exports = {
   webpack(config, env) {
+    const useTypeScript = fs.existsSync(paths.appTsConfig)
+
     return _.flow(
-      addBabelPlugin([
-        'prismjs', {
-          languages: ['bash', 'python'],
-          plugins: ['line-numbers'],
-          theme: 'default',
-          css: true
-        }
-      ]),
+      // Replace babel-loader with esbuild-loader
+      _.update(
+        [
+          'module',
+          'rules',
+          _.findIndex(rule => rule.oneOf, config.module.rules),
+          'oneOf'
+        ],
+        rules => _.set(
+          _.findLastIndex(
+            rule => rule.loader && rule.loader.includes(`${path.sep}babel-loader${path.sep}`),
+            rules
+          ),
+          {
+            test: /\.(js|mjs|jsx|ts|tsx)$/,
+            include: [paths.appSrc],
+            loader: require.resolve('esbuild-loader'),
+            options: {
+              loader: useTypeScript ? 'ts' : 'js',
+              target: 'es2015'
+            }
+          },
+          rules
+        )
+      ),
+      _.update(
+        ['optimization', 'minimizer'],
+        _.flow(
+          // Remove OptimizeCssAssetsWebpackPlugin
+          _.remove(minimizer => minimizer.constructor.name === 'OptimizeCssAssetsWebpackPlugin'),
+          // Replace TerserPlugin with ESBuildMinifyPlugin
+          _.map(minimizer => {
+            if (minimizer.constructor.name === 'TerserPlugin') {
+              return new ESBuildMinifyPlugin({
+                target: 'es2015',
+                css: true
+              })
+            }
+            return minimizer
+          })
+        )
+      ),
       addWebpackPlugin(new CspHtmlWebpackPlugin({
         // Per our security policy, 'script-src' cannot contain any of the options containing 'unsafe', e.g. 'unsafe-inline'
         'script-src': [
