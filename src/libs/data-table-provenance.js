@@ -101,7 +101,7 @@ const isOutput = (url, task) => _.some(
   task.outputs
 )
 
-const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => {
+export const getFileProvenance = async (workspace, fileUrl, { signal } = {}) => {
   const { workspace: { namespace, name, bucketName: workspaceBucket } } = workspace
 
   const [bucket, path] = parseGsUri(fileUrl)
