@@ -41,10 +41,6 @@ describe('FileProvenance', () => {
     ]
   ]
 
-  afterEach(() => {
-    jest.restoreAllMocks()
-  })
-
   _.forEach(([fileProvenance, expectedMessage]) => {
     it(`renders ${fileProvenance.type} provenance`, () => {
       useFileProvenance.mockReturnValue({ fileProvenance, error: null, loading: false })
