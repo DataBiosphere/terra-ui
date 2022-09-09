@@ -59,8 +59,8 @@ const billingProjectsPage = (testPage, testUrl) => {
       await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`)
     },
 
-    showWorkspaceDetails: async () => {
-      await click(testPage, clickable({ text: 'expand workspace' }))
+    showWorkspaceDetails: async name => {
+      await click(testPage, clickable({ text: `expand workspace ${name}` }))
     }
   }
 }
@@ -302,7 +302,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
 
   // Check that the Workspaces tab is visible on this page
   await verifyWorkspaceControls()
-  await billingPage.showWorkspaceDetails()
+  await billingPage.showWorkspaceDetails(`${ownedBillingProjectName}_ws`)
   await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
   // Select a billing project that is not owned by the user and verify workspace tab is visible
@@ -314,7 +314,7 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.visit()
   await billingPage.selectProject(azureBillingProjectName, AZURE)
   await verifyWorkspaceControls()
-  await billingPage.showWorkspaceDetails()
+  await billingPage.showWorkspaceDetails(`${azureBillingProjectName}_ws`)
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
 })
 

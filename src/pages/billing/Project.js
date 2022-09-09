@@ -114,7 +114,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
         ]),
         div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
           h(Link, {
-            'aria-label': 'expand workspace',
+            'aria-label': `expand workspace ${name}`,
             'aria-expanded': isExpanded,
             'aria-controls': isExpanded ? id : undefined,
             'aria-owns': isExpanded ? id : undefined,
