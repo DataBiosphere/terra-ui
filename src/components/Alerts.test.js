@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { fireEvent, getAllByTestId, getByText, render } from '@testing-library/react'
+import { fireEvent, getByText, render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import Alerts from 'src/components/Alerts'
@@ -54,10 +54,10 @@ describe('Alerts', () => {
   })
 
   it('renders popup with alerts', () => {
-    const { getByRole } = render(h(Alerts))
+    const { getByRole, getAllByTestId } = render(h(Alerts))
     fireEvent.click(getByRole('button'))
 
-    const alerts = getAllByTestId(document.getElementById('modal-root'), 'alert')
+    const alerts = getAllByTestId('alert')
     expect(alerts.length).toBe(testAlerts.length)
 
     _.forEach(([index, testAlert]) => {
@@ -78,5 +78,14 @@ describe('Alerts', () => {
 
       expect(screenReaderAlerts[index]).toHaveClass('sr-only')
     }, Utils.toIndexPairs(testAlerts))
+  })
+
+  it('renders message when there are no alerts', () => {
+    useServiceAlerts.mockReturnValue([])
+
+    const { getByRole } = render(h(Alerts))
+    fireEvent.click(getByRole('button'))
+
+    expect(getByRole('dialog')).toHaveTextContent('No system alerts at this time.')
   })
 })
