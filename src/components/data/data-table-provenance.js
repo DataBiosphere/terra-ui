@@ -52,6 +52,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
       [fileProvenanceTypes.maybeSubmission, () => span([
         'Unknown. This file may be associated with submission ',
         h(Link, {
+          'aria-label': 'possible parent submission',
           href: Nav.getLink('workspace-submission-details', {
             namespace, name,
             submissionId: fileProvenance.submissionId
@@ -62,6 +63,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
       [fileProvenanceTypes.workflowOutput, () => span([
         'This file is an output of workflow ',
         h(Link, {
+          'aria-label': 'parent workflow',
           href: Nav.getLink('workspace-workflow-dashboard', {
             namespace, name,
             submissionId: fileProvenance.submissionId,
@@ -70,6 +72,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
         }, [fileProvenance.workflowId]),
         ' (part of submission ',
         h(Link, {
+          'aria-label': 'parent submission',
           href: Nav.getLink('workspace-submission-details', {
             namespace, name,
             submissionId: fileProvenance.submissionId
@@ -80,6 +83,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
       [fileProvenanceTypes.workflowLog, () => span([
         'This file is a log from workflow ',
         h(Link, {
+          'aria-label': 'parent workflow',
           href: Nav.getLink('workspace-workflow-dashboard', {
             namespace, name,
             submissionId: fileProvenance.submissionId,
@@ -88,6 +92,7 @@ export const FileProvenance = ({ workspace, fileUrl }) => {
         }, [fileProvenance.workflowId]),
         ' (part of submission ',
         h(Link, {
+          'aria-label': 'parent submission',
           href: Nav.getLink('workspace-submission-details', {
             namespace, name,
             submissionId: fileProvenance.submissionId
