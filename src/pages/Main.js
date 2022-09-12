@@ -14,7 +14,6 @@ import FirecloudNotification from 'src/components/FirecloudNotification'
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor'
 import ImportStatus from 'src/components/ImportStatus'
 import { AuthenticatedCookieSetter } from 'src/components/runtime-common'
-import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { getOidcConfig } from 'src/libs/auth'
 import { PageViewReporter } from 'src/libs/events'
@@ -28,7 +27,6 @@ const Main = () => {
     h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),
-    h(ServiceAlerts),
     h(Favicon),
     h(IdleStatusMonitor),
     h(ErrorWrapper, [

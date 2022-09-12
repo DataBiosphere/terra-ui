@@ -712,6 +712,8 @@ const Workspaces = signal => ({
     return res.json()
   },
 
+  leave: workspaceId => fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })),
+
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -888,7 +890,9 @@ const Workspaces = signal => ({
                   excludeKey
                 }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
                 return res.json()
-              }
+              },
+
+              outputs: () => fetchRawls(`${submissionPath}/workflows/${workflowId}/outputs`, _.merge(authOpts(), { signal })).then(r => r.json())
             }
           }
         }

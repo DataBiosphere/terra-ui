@@ -2,36 +2,39 @@ import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, ShibbolethLink, spinnerOverlay,
-  UnlinkFenceAccount
+  ButtonPrimary, Checkbox, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
+  ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
+import { icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import allProviders from 'src/libs/providers'
-import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { memoWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
 const styles = {
   page: {
-    margin: '0 2rem 2rem',
-    width: 700
+    width: 1050
   },
   sectionTitle: {
     margin: '2rem 0 1rem',
@@ -39,7 +42,6 @@ const styles = {
   },
   header: {
     line: {
-      margin: '0 2rem',
       display: 'flex', alignItems: 'center'
     },
 
@@ -51,11 +53,11 @@ const styles = {
   },
   form: {
     line: {
-      display: 'flex', justifyContent: 'space-between',
+      display: 'flex', justifyContent: 'normal',
       margin: '2rem 0'
     },
     container: {
-      width: 320
+      width: 320, marginRight: '1rem'
     },
     title: {
       whiteSpace: 'nowrap', fontSize: 16,
@@ -355,22 +357,136 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
 
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
-const Profile = ({ queryParams }) => {
-  // State
+const ExternalIdentitiesTab = ({ queryParams }) => {
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+    h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
+    _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
+    !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
+  ])
+}
+
+const NotificationCheckbox = ({ notificationKeys, label, setSaving, prefsData }) => {
+  const notificationKeysWithValue = ({ notificationKeys, value }) => {
+    return _.fromPairs(_.map(notificationKey => [notificationKey, JSON.stringify(value)], notificationKeys))
+  }
+
+  return h(Checkbox, {
+    //Thurloe defaults all notifications to being on. So if the key is not present, then we also treat that as enabled
+    'aria-label': label,
+    checked: !_.isMatch(notificationKeysWithValue({ notificationKeys, value: false }), prefsData),
+    onChange: _.flow(
+      Utils.withBusyState(setSaving),
+      withErrorReporting('Error saving preferences')
+    )(async v => {
+      await Ajax().User.profile.setPreferences(notificationKeysWithValue({ notificationKeys, value: v }))
+      Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys, enabled: v })
+      await refreshTerraProfile()
+    })
+  })
+}
+
+const NotificationCardHeaders = memoWithName('NotificationCardHeaders', () => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', margin: '1.5rem 0 0.5rem 0', padding: '0 1rem' } }, [
+    div({ style: { flex: 1 } }, [
+      div({ style: { fontWeight: 600 } }, 'Name')
+    ]),
+    div({ style: { flex: 1 } }, [
+      div({ style: { fontWeight: 600 } }, 'Opt In')
+    ])
+  ])
+})
+
+const NotificationCard = memoWithName('NotificationCard', ({ label, notificationKeys, setSaving, prefsData }) => {
+  const notificationCardStyles = {
+    field: {
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', paddingRight: '1rem'
+    },
+    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' }
+  }
+
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
+    div({ style: notificationCardStyles.row }, [
+      div({ style: { ...notificationCardStyles.field, display: 'flex', alignItems: 'center' } }, label),
+      div({ style: notificationCardStyles.field }, [h(NotificationCheckbox, { notificationKeys, label, setSaving, prefsData })])
+    ])
+  ])
+})
+
+const NotificationSettingsTab = ({ setSaving }) => {
+  const { workspaces } = useWorkspaces()
+  const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile)
+
+
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+    div({ style: Style.cardList.toolbarContainer }, [
+      h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
+        'Account Notifications',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } },
+          'You may receive email notifications regarding certain events in Terra. You may globally opt in or out of receiving these emails.'
+        )
+      ])
+    ]),
+    h(NotificationCardHeaders),
+    div({ role: 'list', 'aria-label': 'notification settings for your account', style: { flexGrow: 1, width: '100%' } }, [
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Group Access Requested',
+        notificationKeys: ['notifications/GroupAccessRequestNotification']
+      }),
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Workspace Access Added',
+        notificationKeys: ['notifications/WorkspaceAddedNotification']
+      }),
+      h(NotificationCard, {
+        setSaving,
+        prefsData,
+        label: 'Workspace Access Removed',
+        notificationKeys: ['notifications/WorkspaceRemovedNotification']
+      })
+    ]),
+    div({ style: Style.cardList.toolbarContainer }, [
+      h2({ style: { ...Style.elements.sectionHeader, marginTop: '2rem', textTransform: 'uppercase' } }, [
+        'Submission Notifications',
+        h(InfoBox, { style: { marginLeft: '0.5rem' } },
+          'You may receive email notifications when a submission has succeeded, failed, or been aborted. You may opt in or out of receiving these emails for individual workspaces.'
+        )
+      ])
+    ]),
+    h(NotificationCardHeaders),
+    div({ role: 'list', 'aria-label': 'notification settings for workspaces', style: { flexGrow: 1, width: '100%' } },
+      _.map(workspace => {
+        const label = `${workspace.workspace.namespace}/${workspace.workspace.name}`
+        return h(NotificationCard, {
+          setSaving,
+          prefsData,
+          label,
+          notificationKeys: [
+            `notifications/SuccessfulSubmissionNotification/${label}`,
+            `notifications/FailedSubmissionNotification/${label}`,
+            `notifications/AbortedSubmissionNotification/${label}`
+          ]
+        })
+      })(workspaces)
+    )
+  ])
+}
+
+const PersonalInfoTab = ({ setSaving }) => {
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
-  const [saving, setSaving] = useState()
+  const { researchArea } = profileInfo
 
   const signal = useCancellation()
-
 
   // Helpers
   const assignValue = _.curry((key, value) => {
     setProfileInfo(_.set(key, value))
   })
-
   const line = children => div({ style: styles.form.line }, children)
-
+  const checkboxLine = children => div({ style: styles.form.container }, children)
   const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
     label({ htmlFor: id, style: styles.form.title }, [title]),
     required ?
@@ -390,71 +506,69 @@ const Profile = ({ queryParams }) => {
         placeholder
       })
   ])])
-
-  const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
+  const researchAreaCheckbox = title => div([
     h(LabeledCheckbox, {
-      checked: profileInfo[key] === 'true',
-      onChange: v => assignValue(key, v.toString())
+      checked: _.includes(title, researchArea),
+      onChange: v => {
+        const areasOfResearchList = _.isEmpty(researchArea) ? [] : _.split(',', researchArea)
+        const updatedAreasOfResearchList = v ? _.concat(areasOfResearchList, [title]) : _.without([title], areasOfResearchList)
+        assignValue('researchArea', _.join(',', updatedAreasOfResearchList))
+      }
     }, [span({ style: styles.form.checkboxLabel }, [title])])
   ])
-
-
   // Lifecycle
   useOnMount(() => {
     const loadProxyGroup = async () => {
       setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
     }
-
     loadProxyGroup()
   })
-
-
   // Render
   const { firstName, lastName } = profileInfo
   const required = { presence: { allowEmpty: false } }
   const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
 
-  return h(FooterWrapper, [
-    saving && spinnerOverlay,
-    h(TopBar, { title: 'User Profile' }),
-    div({ role: 'main', style: { flexGrow: 1 } }, [
-      !profileInfo ? centeredSpinner() : h(Fragment, [
-        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
-        div({ style: styles.header.line }, [
-          div({ style: { position: 'relative' } }, [
-            profilePic({ size: 48 }),
-            h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
-              'To change your profile image, visit your ',
-              h(Link, {
-                href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                ...Utils.newTabLinkProps
-              }, ['Google account page.'])
-            ])
-          ]),
-          div({ style: styles.header.nameLine }, [
-            `Hello again, ${firstName}`
-          ])
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+    div({ style: styles.header.line }, [
+      div({ style: { position: 'relative' } }, [
+        profilePic({ size: 48 }),
+        h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
+          'To change your profile image, visit your ',
+          h(Link, {
+            href: `https://myaccount.google.com?authuser=${getUser().email}`,
+            ...Utils.newTabLinkProps
+          }, ['Google account page.'])
+        ])
+      ]),
+      div({ style: styles.header.nameLine }, [
+        `Hello again, ${firstName}`
+      ])
+    ]),
+    div({ style: { display: 'flex' } }, [
+      div({ style: styles.page }, [
+        line([
+          textField('firstName', 'First Name', { required: true }),
+          textField('lastName', 'Last Name', { required: true })
         ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: styles.page }, [
-            line([
-              textField('firstName', 'First Name', { required: true }),
-              textField('lastName', 'Last Name', { required: true })
-            ]),
-            line([
-              textField('title', 'Title')
-            ]),
-            line([
-              div([
-                div({ style: styles.form.title }, ['Email']),
-                div({ style: { margin: '1rem' } }, [profileInfo.email])
-              ]),
-              textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
-            ]),
-            line([
-              textField('institute', 'Institution')
-            ]),
+        line([
+          textField('title', 'Title'),
+          textField('institute', 'Organization or Company') //keep this key as 'institute' to be backwards compatible with existing Thurloe KVs
+        ]),
+        line([
+          textField('programLocationCity', 'City'),
+          textField('programLocationState', 'State'),
+          textField('programLocationCountry', 'Country')
+        ]),
+        line([
+          div({ style: styles.form.container }, [
+            div({ style: styles.form.title }, ['Email']),
+            div({ style: { margin: '0.5rem', width: 320 } }, [profileInfo.email])
+          ]),
+          textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
+        ]),
 
+        line([
+          div({ style: styles.form.container }, [
             div({ style: styles.form.title }, [
               span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
               h(InfoBox, [
@@ -465,48 +579,84 @@ const Profile = ({ queryParams }) => {
                 }, ['user guide.'])
               ])
             ]),
-            div({ style: { margin: '1rem' } }, [proxyGroup]),
-
-            sectionTitle('Location'),
-
-            line([
-              textField('programLocationCity', 'City'),
-              textField('programLocationState', 'State')
-            ]),
-            line([
-              textField('programLocationCountry', 'Country')
-            ]),
-
-            sectionTitle('Account Notifications'),
-
-            checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
-            checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
-            checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
-
-            h(ButtonPrimary, {
-              style: { marginTop: '3rem' },
-              onClick: _.flow(
-                Utils.withBusyState(setSaving),
-                withErrorReporting('Error saving profile')
-              )(async () => {
-                const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((_v, k) => _.startsWith('notifications/', k), profileInfo)
-                await Promise.all([
-                  Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
-                  Ajax().User.profile.setPreferences(prefsData)
-                ])
-                await refreshTerraProfile()
-              }),
-              disabled: !!errors,
-              tooltip: !!errors && 'Please fill out all required fields'
-            }, ['Save Profile'])
-          ]),
-          div({ style: { margin: '0 2rem 0' } }, [
-            sectionTitle('External Identities'),
-            h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
-            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
-            !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
+            div({ style: { margin: '1rem' } }, proxyGroup ? proxyGroup : 'Loading...')
           ])
-        ])
+        ]),
+
+        sectionTitle('What is your area of research?'),
+
+        p('Check all that apply.'),
+
+        div({ style: { marginBottom: '1rem', display: 'flex', justifyContent: 'normal' } }, [
+          checkboxLine([
+            researchAreaCheckbox('Cancer'),
+            researchAreaCheckbox('Cardiovascular disease'),
+            researchAreaCheckbox('Epidemiology'),
+            researchAreaCheckbox('Epigenetics')
+          ]),
+          checkboxLine([
+            researchAreaCheckbox('Immunology'),
+            researchAreaCheckbox('Infectious disease and microbiome'),
+            researchAreaCheckbox('Medical and Population Genetics'),
+            researchAreaCheckbox('Psychiatric disease')
+          ]),
+          checkboxLine([
+            researchAreaCheckbox('Rare Disease'),
+            researchAreaCheckbox('Single Cell Genomics'),
+            researchAreaCheckbox('Agricultural')
+          ])
+        ]),
+
+        h(ButtonPrimary, {
+          onClick: _.flow(
+            Utils.withBusyState(setSaving),
+            withErrorReporting('Error saving profile')
+          )(async () => {
+            await Ajax().User.profile.set(_.pickBy(_.identity, profileInfo))
+            await refreshTerraProfile()
+          }),
+          disabled: !!errors,
+          tooltip: !!errors && 'Please fill out all required fields'
+        }, ['Save Profile'])
+      ])
+    ])
+  ])
+}
+
+const Profile = ({ queryParams }) => {
+  // State
+  const [saving, setSaving] = useState()
+
+  // Render
+  const { query } = Nav.useRoute()
+  const tab = query.tab || 'personalInfo'
+
+  const tabs = [
+    { key: 'personalInfo', title: 'Personal Information' },
+    { key: 'externalIdentities', title: 'External Identities' },
+    { key: 'notificationSettings', title: 'Notification Settings' }
+  ]
+
+  // Render
+  return h(FooterWrapper, [
+    saving && spinnerOverlay,
+    h(TopBar, { title: 'User Profile' }),
+    div({ style: { flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [sectionTitle('Profile')]),
+      h(SimpleTabBar, {
+        'aria-label': 'Profile tabs',
+        value: tab,
+        onChange: newTab => {
+          Nav.updateSearch({ ...query, tab: newTab })
+        },
+        tabs
+      }, [
+        Utils.switchCase(tab,
+          ['personalInfo', () => h(PersonalInfoTab, { setSaving })],
+          ['externalIdentities', () => h(ExternalIdentitiesTab, { queryParams })],
+          ['notificationSettings', () => h(NotificationSettingsTab, { setSaving })],
+          [Utils.DEFAULT, () => null]
+        )
       ])
     ])
   ])
