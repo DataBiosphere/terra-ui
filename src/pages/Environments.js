@@ -229,14 +229,15 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
             {
               field: 'selection',
               size: { basis: 24, grow: 0 },
-              headerRenderer: () => h(LabeledCheckbox, {
-                title: 'Select all',
-                checked: _.every(w => isWorkspaceSelected[w.workspaceId], workspaces),
-                onChange: selected => {
-                  setDeleteDisk(false)
-                  setIsWorkspaceSelected(_.reduce((state, w) => _.set(w.workspaceId, selected, state), {}, workspaces))
-                }
-              }),
+              headerRenderer: () => h(TooltipTrigger, { content: 'Select all' }, [
+                h(LabeledCheckbox, {
+                  checked: _.every(w => isWorkspaceSelected[w.workspaceId], workspaces),
+                  onChange: selected => {
+                    setDeleteDisk(false)
+                    setIsWorkspaceSelected(_.reduce((state, w) => _.set(w.workspaceId, selected, state), {}, workspaces))
+                  }
+                }, [])
+              ]),
               cellRenderer: ({ rowIndex }) => {
                 const workspaceId = workspaces[rowIndex].workspaceId
                 return h(LabeledCheckbox, {
