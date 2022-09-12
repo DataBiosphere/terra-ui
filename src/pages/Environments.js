@@ -127,7 +127,7 @@ const MigratePersistentDisksBanner = ({ count }) => {
       position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
       backgroundColor: colors.warning(0.15),
       border: '2px solid', borderRadius: '12px', borderColor: colors.warning(),
-      zIndex: 2 // Must be under 9000 to not draw over notifications
+      zIndex: 2 // Draw over top bar but behind contact support dialog
     }
   }, [
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
