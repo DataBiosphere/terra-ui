@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { initializeAuth, initializeClientId } from 'src/libs/auth'
+import { startPollingServiceAlerts } from 'src/libs/service-alerts-polling'
 import { initializeTCell } from 'src/libs/tcell'
 import Main from 'src/pages/Main'
 
@@ -21,4 +22,5 @@ initializeClientId().then(() => {
   ReactDOM.render(h(Main), appRoot)
   initializeAuth()
   initializeTCell()
+  startPollingServiceAlerts()
 })

@@ -3,6 +3,7 @@ import { Fragment, useRef, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
+import AlertsIndicator from 'src/components/Alerts'
 import { Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
@@ -394,7 +395,15 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             }, [title])
           ])
         ]),
-        children,
+        div({ style: { display: 'flex', flexGrow: 1 } }, [
+          children
+        ]),
+        h(AlertsIndicator, {
+          style: {
+            margin: '0 1rem 0 0.5rem',
+            color: isTerra() ? 'white' : colors.dark()
+          }
+        }),
         openFirecloudModal && h(PreferFirecloudModal, {
           onDismiss: () => setOpenFirecloudModal(false),
           authState

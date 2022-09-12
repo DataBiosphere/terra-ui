@@ -190,3 +190,24 @@ a {
 .reveal-on-focus:focus-within, .reveal-on-focus:focus {
   opacity: 1;
 }
+
+.alert-indicator-ringing {
+  animation-name: alert-indicator-ringing;
+  animation-timing-function: ease-in-out;
+  animation-duration: .5s;
+}
+
+@keyframes alert-indicator-ringing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  20%,
+  60% {
+    transform: rotate(6deg);
+  }
+  40%,
+  80% {
+    transform: rotate(-6deg);
+  }
+}
