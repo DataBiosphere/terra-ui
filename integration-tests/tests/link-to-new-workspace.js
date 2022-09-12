@@ -1,5 +1,5 @@
 const { linkDataToWorkspace, eitherThrow } = require('../utils/catalog-utils')
-const { click, clickable, fillIn, findText, noSpinnersAfter, select } = require('../utils/integration-utils')
+const { click, clickable, fillIn, findText, noSpinnersAfter, select, waitForNoSpinners } = require('../utils/integration-utils')
 const { testWorkspaceName } = require('../utils/integration-helpers')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -8,6 +8,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, testUrl, token }) => {
   await linkDataToWorkspace(page, testUrl, token)
   const newWorkspaceName = testWorkspaceName()
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Start with a new workspace' }))
   await fillIn(page, '//*[@placeholder="Enter a name"]', `${newWorkspaceName}`)
   await select(page, 'Billing project', `${billingProject}`)
@@ -46,6 +47,5 @@ const testLinkToNewWorkspaceFn = withUserToken(async ({ billingProject, page, te
 registerTest({
   name: 'link-to-new-workspace',
   fn: testLinkToNewWorkspaceFn,
-  timeout: 2 * 60 * 1000,
-  targetEnvironments: []
+  timeout: 2 * 60 * 1000
 })
