@@ -10,6 +10,8 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -115,7 +117,14 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   ])
 }
 
-const ProjectListItem = ({ project, project: { roles, status }, loadProjects, isActive }) => {
+const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, loadProjects, isActive }) => {
+  const cloudContextIcon =
+    div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+      Utils.switchCase(cloudPlatform,
+        ['GCP', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+        ['AZURE', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+    ])
+
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
@@ -124,7 +133,7 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
     }),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
-  }, [projectName])
+  }, [cloudContextIcon, projectName])
 
   const unselectableProject = ({ projectName, status, message }, isActive) => {
     const iconAndTooltip =
@@ -141,7 +150,7 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
-      projectName, iconAndTooltip
+      cloudContextIcon, projectName, iconAndTooltip
     ])
   }
 
@@ -295,7 +304,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
   const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or billingProjectTypes values
-  const [billingAccounts, setBillingAccounts] = useState({ })
+  const [billingAccounts, setBillingAccounts] = useState({})
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)

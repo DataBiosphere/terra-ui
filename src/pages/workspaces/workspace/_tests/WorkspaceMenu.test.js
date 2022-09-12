@@ -70,7 +70,7 @@ describe('WorkspaceMenu - undefined workspace', () => {
   })
 
   it.each([
-    'Clone', 'Share', 'Lock', 'Delete'
+    'Clone', 'Share', 'Lock', 'Leave', 'Delete'
   ])('renders menu item %s as disabled', menuText => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
@@ -102,6 +102,16 @@ describe('WorkspaceMenu - GCP workspace', () => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Clone')
+    // Assert
+    expect(menuItem).not.toHaveAttribute('disabled')
+  })
+
+  it('renders menu item Leave as enabled', () => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Leave')
     // Assert
     expect(menuItem).not.toHaveAttribute('disabled')
   })
@@ -243,6 +253,16 @@ describe('WorkspaceMenu - Azure workspace', () => {
     fireEvent.mouseOver(screen.getByText(menuText))
     // Assert
     expect(screen.queryByText(tooltipText)).not.toBeNull()
+  })
+
+  it('renders menu item Leave as enabled', () => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Leave')
+    // Assert
+    expect(menuItem).not.toHaveAttribute('disabled')
   })
 
   it.each([

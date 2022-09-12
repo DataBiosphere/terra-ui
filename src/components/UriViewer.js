@@ -5,6 +5,7 @@ import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ClipboardButton, Link } from 'src/components/common'
+import { FileProvenance } from 'src/components/data/data-table-provenance'
 import { getDownloadCommand, getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -12,6 +13,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
@@ -164,7 +166,9 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
 const UriViewer = _.flow(
   withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
-)(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
+)(({ workspace, uri, onDismiss, onRequesterPaysError }) => {
+  const { workspace: { googleProject } } = workspace
+
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [loadingError, setLoadingError] = useState()
@@ -263,6 +267,10 @@ const UriViewer = _.flow(
           updated && els.cell([
             els.label('Updated'),
             els.data(new Date(updated).toLocaleString())
+          ]),
+          isDataTableProvenanceEnabled() && els.cell([
+            els.label('Where did this file come from?'),
+            els.data([h(FileProvenance, { workspace, fileUrl: uri })])
           ])
         ]),
         div({ style: { fontSize: 10 } }, ['* Estimated. Download cost may be higher in China or Australia.'])
@@ -275,7 +283,7 @@ const UriViewer = _.flow(
   ])
 })
 
-export const UriViewerLink = ({ uri, googleProject }) => {
+export const UriViewerLink = ({ uri, workspace }) => {
   const [modalOpen, setModalOpen] = useState(false)
   return h(Fragment, [
     h(Link, {
@@ -288,7 +296,7 @@ export const UriViewerLink = ({ uri, googleProject }) => {
     }, [isGs(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
-      uri, googleProject
+      uri, workspace
     })
   ])
 }

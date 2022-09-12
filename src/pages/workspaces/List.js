@@ -31,6 +31,7 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -121,6 +122,7 @@ export const WorkspaceList = () => {
   const [deletingWorkspaceId, setDeletingWorkspaceId] = useState()
   const [lockingWorkspaceId, setLockingWorkspaceId] = useState()
   const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
+  const [leavingWorkspaceId, setLeavingWorkspaceId] = useState()
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
 
   const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
@@ -328,12 +330,13 @@ export const WorkspaceList = () => {
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onLock = () => setLockingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
+            const onLeave = () => setLeavingWorkspaceId(workspaceId)
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
                 h(WorkspaceMenu, {
                   iconSize: 20, popupLocation: 'left',
-                  callbacks: { onClone, onShare, onLock, onDelete },
+                  callbacks: { onClone, onShare, onLock, onDelete, onLeave },
                   workspaceInfo: { namespace, name }
                 })
               ])
@@ -483,6 +486,11 @@ export const WorkspaceList = () => {
       sharingWorkspaceId && h(ShareWorkspaceModal, {
         workspace: getWorkspace(sharingWorkspaceId),
         onDismiss: () => setSharingWorkspaceId(undefined)
+      }),
+      leavingWorkspaceId && h(LeaveWorkspaceModal, {
+        workspace: getWorkspace(leavingWorkspaceId),
+        onDismiss: () => setLeavingWorkspaceId(undefined),
+        onSuccess: refreshWorkspaces
       }),
       requestingAccessWorkspaceId && h(RequestAccessModal, {
         workspace: getWorkspace(requestingAccessWorkspaceId),
