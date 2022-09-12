@@ -1,8 +1,8 @@
 import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { div, h, h3, span } from 'react-hyperscript-helpers'
+import { ComponentProps, Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
+
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -23,15 +23,22 @@ import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
+import {
+  memoWithName,
+  useCancellation,
+  useGetter,
+  useOnMount,
+  usePollingEffect
+} from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
+import { div, h, h3, span } from 'src/libs/ts-hyperscript'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
-import Highcharts from "highcharts";
-import {UserRolesEntry} from "src/libs/state-history";
+import Highcharts from 'highcharts'
+import { UserRolesEntry } from 'src/libs/state-history'
 
 
 const workspaceLastModifiedWidth = 150
@@ -69,11 +76,16 @@ const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatus
   ])
 })
 
-const ExpandedInfoRow = ({ title, details, errorMessage }) => {
+interface ExpandedInfoRowProps {
+  title: string;
+  details: string;
+  errorMessage?: string;
+}
+const ExpandedInfoRow = ({ title, details, errorMessage }: ExpandedInfoRowProps) => {
   const expandedInfoStyles = {
     row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
     title: { fontWeight: 600, width: '20%', padding: '0.5rem 1rem 0 2rem', height: '1rem' },
-    details: { width: '20%', marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
+    details: { width: '20%', marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis } as React.CSSProperties,
     errorMessage: {
       padding: '0.5rem', width: '55%', backgroundColor: colors.light(0.3),
       border: `solid 2px ${colors.danger(0.3)}`, borderRadius: 5
@@ -81,7 +93,7 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   }
 
   return div({ style: expandedInfoStyles.row }, [
-    div({ style: expandedInfoStyles.title }, [title]),
+    div({ style: expandedInfoStyles.title, 'data-xyz': '7' }, [title]),
     div({ style: expandedInfoStyles.details }, [details]),
     errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage])
   ])
@@ -89,21 +101,21 @@ const ExpandedInfoRow = ({ title, details, errorMessage }) => {
 
 const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
-  const workspaceCardStyles = {
+  const workspaceCardStyles: Record<string, React.CSSProperties> = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
-    },
+    } as React.CSSProperties,
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
   }
 
-  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
-    h(IdContainer, [id => h(Fragment as any, [
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless as React.CSSProperties, padding: 0, flexDirection: 'column' } }, [
+    h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
         billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' } }, [
           h(Link, {
-            style: Style.noWrapEllipsis,
+            style: Style.noWrapEllipsis as React.CSSProperties,
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
@@ -152,9 +164,9 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
     div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
   ])
 
-  const maybeAddStatus = (status, count) => count > 0 ? div({ style: { marginRight: '2rem' } }, [
+  const maybeAddStatus = (status, count) => count > 0 && div({ style: { marginRight: '2rem' } }, [
     h(StatusAndCount, { status, count })
-  ]) : ''
+  ])
 
   return div({
     style: {
@@ -167,18 +179,18 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
       boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
     }
   }, [
-    div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+    div({ style: { padding: '1rem 0' } }, ['Your billing account is updating...']),
     div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
       maybeAddStatus('updating', updating),
       maybeAddStatus('done', done),
       maybeAddStatus('error', error)
     ]),
-    error > 0 ? div({ style: { padding: '1rem 0 0' } }, [
+    error > 0 && div({ style: { padding: '1rem 0 0' } }, [
       'Try again or ',
       h(Link, { onClick: () => contactUsActive.set(true) }, [
         'contact us regarding unresolved errors'
       ]), '.'
-    ]) : ""
+    ])
   ])
 }
 
@@ -212,7 +224,7 @@ export interface ProjectDetailProps {
 }
 
 const ProjectDetail: React.FC<ProjectDetailProps> = (
-    { authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }: ProjectDetailProps
+  { authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }: ProjectDetailProps
 ) => {
   // State
   const { query } = Nav.useRoute()
@@ -220,7 +232,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
-  const projectOwners = _.filter(({roles}) => _.includes(billingRoles.owner, roles), projectUsers)
+  const projectOwners = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers)
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState<any>(false)
@@ -237,7 +249,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
   const [projectCost, setProjectCost] = useState<any>(null)
   const [costPerWorkspace, setCostPerWorkspace] = useState(
-    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: (x) => x }
+    { workspaceNames: [], computeCosts: [], otherCosts: [], storageCosts: [], numWorkspaces: 0, costFormatter: x => x }
   )
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
@@ -285,7 +297,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
         formatter: function() {
           // Highcharts callbacks do funny business with this context
           const label = this as unknown as Highcharts.AxisLabelsFormatterContextObject
-          return costPerWorkspace.costFormatter(label.value) }, // eslint-disable-line object-shorthand
+          return costPerWorkspace.costFormatter(label.value)
+        },
         style: { fontSize: '12px' }
       },
       title: { enabled: false },
@@ -301,11 +314,15 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
     exporting: { buttons: { contextButton: { x: -15 } } }
   }
 
-  const CostCard = ({ title, amount, ...props }) => {
+  type CostCardProps = ComponentProps<'div'> & {
+    title: string;
+    amount: string;
+  }
+  const CostCard = ({ title, amount, ...props }: CostCardProps) => {
     return div({
       ...props,
       style: {
-        ...Style.elements.card.container,
+        ...Style.elements.card.container as React.CSSProperties,
         backgroundColor: 'white',
         padding: undefined,
         boxShadow: undefined,
@@ -313,7 +330,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
       }
     }, [
       div({ style: { flex: 'none', padding: '0.625rem 1.25rem' }, 'aria-live': projectCost !== null ? 'polite' : 'off', 'aria-atomic': true }, [
-        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, title),
+        h3({ style: { fontSize: 16, color: colors.accent(), margin: '0.25rem 0.0rem', fontWeight: 'normal' } }, [title]),
         div({ style: { fontSize: 32, height: 40, fontWeight: 'bold', gridRowStart: '2' } }, [amount])
       ])
     ])
@@ -324,7 +341,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
-    workspaces: h(Fragment as any, [
+    workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, {
         needsStatusColumn: billingAccountsOutOfDate,
         sort: workspaceSort,
@@ -346,7 +363,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
         )(workspacesInProject)
       )
     ]),
-    members: h(Fragment as any, [
+    members: h(Fragment, [
       isOwner && h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }, [
@@ -387,16 +404,16 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
                   setSpendReportLengthInDays(selectedDays)
                   setProjectCost(null)
                 }
-              })
+              } as any)
             ])])
           ])
         )(_.map(name => CostCard({ title: `Total ${name}`, amount: (projectCost === null ? '...' : projectCost[name]) }),
           ['spend', 'compute', 'storage', 'other'])
         )
       ),
-      costPerWorkspace.numWorkspaces > 0 ? div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
-        h(Suspense as any, { fallback: '' }, [h(LazyChart as any, { options: spendChartOptions })])
-      ]) : ''
+      costPerWorkspace.numWorkspaces > 0 && div({ style: { gridRowStart: 2, minWidth: 500 } }, [ // Set minWidth so chart will shrink on resize
+        h(Suspense, { fallback: '' }, [h(LazyChart, { options: spendChartOptions })])
+      ])
     ])
   }
 
@@ -472,7 +489,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
     reportErrorAndRethrow('Error removing member from billing project'),
     Utils.withBusyState(setUpdating)
   )(
-      _.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName])
+    _.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName])
   ) as (roles: any, email: any) => Promise<any>
 
   // Lifecycle
@@ -553,21 +570,21 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
   const billingAccount = billingProjectHasBillingAccount ? _.find({ accountName: billingProject.billingAccount }, billingAccounts) : undefined
 
   const billingAccountDisplayText: () => string =
-      (!billingProjectHasBillingAccount) ? () => 'No linked billing account' :
-          (!billingAccount) ? () => 'No access to linked billing account' :
-              () => billingAccount.displayName || billingAccount.accountName
+    (!billingProjectHasBillingAccount) ? () => 'No linked billing account' :
+      (!billingAccount) ? () => 'No access to linked billing account' :
+        () => billingAccount.displayName || billingAccount.accountName
 
-  return h(Fragment as any, [
+  return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      Auth.hasBillingScope() ? div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
-        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, billingAccountDisplayText()),
-        isOwner ? h(MenuTrigger, {
+      Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, ['Billing Account:']),
+        span({ style: { flexShrink: 0, marginRight: '0.5rem' } }, [billingAccountDisplayText()]),
+        isOwner && h(MenuTrigger, {
           closeOnClick: true,
           side: 'bottom',
           style: { marginLeft: '0.5rem' },
-          content: h(Fragment as any, [
+          content: h(Fragment, [
             h(MenuButton, {
               onClick: async () => {
                 if (Auth.hasBillingScope()) {
@@ -594,8 +611,8 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
           h(Link, { 'aria-label': 'Billing account menu', style: { display: 'flex', alignItems: 'center' } }, [
             icon('cardMenuIcon', { size: 16, 'aria-haspopup': 'menu' } as any)
           ])
-        ]) : '',
-        showBillingModal ? h(Modal, {
+        ]),
+        showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
           okButton: h(ButtonPrimary, {
@@ -606,7 +623,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
             }
           }, ['Ok'])
         }, [
-          h(IdContainer, [id => h(Fragment as any, [
+          h(IdContainer, [id => h(Fragment, [
             h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
             h(Select, {
               id,
@@ -614,12 +631,12 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
               isClearable: false,
               options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
-            }),
+            } as any),
             div({ style: { marginTop: '1rem' } },
               ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
           ])])
-        ]) : '',
-        showBillingRemovalModal ? h(Modal, {
+        ]),
+        showBillingRemovalModal && h(Modal, {
           title: 'Remove Billing Account',
           onDismiss: () => setShowBillingRemovalModal(false),
           okButton: h(ButtonPrimary, {
@@ -631,11 +648,11 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
         }, [
           div({ style: { marginTop: '1rem' } },
             ['Are you sure you want to remove this billing project\'s billing account?'])
-        ]) : ''
-      ]) : '',
+        ])
+      ]),
       Auth.hasBillingScope() && isOwner && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
-        span({ style: { flexShrink: 0 } }, 'Edit'),
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, ['Workflow Spend Report Configuration:']),
+        span({ style: { flexShrink: 0 } }, ['Edit']),
         h(Link, {
           tooltip: 'Configure Workflow Spend Reporting',
           style: { marginLeft: '0.5rem' },
@@ -648,7 +665,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
             }
           }
         }, [icon('edit', { size: 12 })]),
-        showSpendReportConfigurationModal ? h(Modal, {
+        showSpendReportConfigurationModal && h(Modal, {
           title: 'Configure Workflow Spend Reporting',
           onDismiss: () => setShowSpendReportConfigurationModal(false),
           okButton: h(ButtonPrimary, {
@@ -665,14 +682,14 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
             }
           }, ['Ok'])
         }, [
-          h(IdContainer, [id => h(Fragment as any, [
+          h(IdContainer, [id => h(Fragment, [
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project Name']),
             h(TextInput, {
               id,
               onChange: setSelectedDatasetProjectName
             })
           ])]),
-          h(IdContainer, [id => h(Fragment as any, [
+          h(IdContainer, [id => h(Fragment, [
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
             h(TextInput, {
               id,
@@ -684,7 +701,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
               ' for details on configuring workflow spend reporting for billing projects.'
             ])
           ])])
-        ]) : ''
+        ])
       ]),
       !Auth.hasBillingScope() && div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         h(Link, {
@@ -763,7 +780,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
         setEditingUser(false)
         reloadBillingProject().then(reloadBillingProjectUsers)
       }
-    }),
+    } as any),
     !!deletingUser && h(DeleteUserModal, {
       userEmail: deletingUser.email,
       onDismiss: () => setDeletingUser(false),
@@ -774,7 +791,7 @@ const ProjectDetail: React.FC<ProjectDetailProps> = (
           .then(reloadBillingProjectUsers)
       }
     }),
-    billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
+    billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) as any }),
     updating && absoluteSpinnerOverlay
   ])
 }

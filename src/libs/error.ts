@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { reloadAuthToken, signOut } from 'src/libs/auth'
 import { notify, sessionTimeoutProps } from 'src/libs/notifications'
-import { SafeCurry2 } from "src/libs/type-utils";
+import { SafeCurry2 } from 'src/libs/type-utils'
 
 
 export const reportError = async (title, obj) => {

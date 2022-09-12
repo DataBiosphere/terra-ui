@@ -181,7 +181,7 @@ export const ariaSort = (sort, field) => {
     return 'none'
   }
   // Otherwise this column is not sortable
-  return null
+  return undefined
 }
 
 const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns }) => div({

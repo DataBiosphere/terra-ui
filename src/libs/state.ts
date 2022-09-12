@@ -1,6 +1,6 @@
+import { Workspace } from 'src/libs/ajax'
 import { staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
-import { Workspace } from "src/libs/ajax";
 
 
 export const routeHandlersStore = Utils.atom([])

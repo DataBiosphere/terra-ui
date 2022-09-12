@@ -14,6 +14,7 @@ import * as StateHistory from "src/libs/state-history";
 import { render, screen } from "@testing-library/react";
 import { useWorkspaces } from "src/components/workspace-utils";
 import { notify } from "src/libs/notifications";
+import { h } from "src/libs/ts-hyperscript";
 
 const metricsListener = jest.fn()
 
@@ -148,14 +149,14 @@ describe('Billing Project Detail', () => {
     const watchReload = jest.fn();
 
     // ACT
-    render(<ProjectDetail
-      billingAccounts={{}}
-      billingProject={mockProjects[0]}
-      isOwner={true}
-      isAlphaSpendReportUser={true}
-      authorizeAndLoadAccounts={watchAuth}
-      reloadBillingProject={watchReload}
-    />)
+    render(h(ProjectDetail, {
+      billingAccounts: {},
+      billingProject: mockProjects[0],
+      isOwner: true,
+      isAlphaSpendReportUser: true,
+      authorizeAndLoadAccounts: watchAuth,
+      reloadBillingProject: watchReload
+    }))
 
     // ASSERT
     // wait for component to process various data calls, etc. (initialization)

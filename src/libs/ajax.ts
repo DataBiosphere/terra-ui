@@ -590,17 +590,17 @@ const Billing = signal => ({
   },
 
   createProject: async (projectName, billingAccount) => {
-    return ( await fetchRawls('billing/v2',
+    return (await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
     )
   },
 
   deleteProject: async projectName => {
     const route = `billing/v2/${projectName}`
-    return ( await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' })) )
+    return (await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' })))
   },
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }: ChangeBillingNameArgs) => {
-    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+    return (await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.mergeAll([
         authOpts(), { signal, method: 'PUT' },
         jsonBody({ billingAccount: newBillingAccountName })
@@ -609,13 +609,13 @@ const Billing = signal => ({
   },
 
   removeBillingAccount: async ({ billingProjectName }: RemoveBillingAcctArgs) => {
-    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+    return (await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
       _.merge(authOpts(), { signal, method: 'DELETE' }))
     )
   },
 
   updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }: UpdateSpendConfigurationArgs) => {
-    return ( await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
+    return (await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
       _.mergeAll([
         authOpts(), { signal, method: 'PUT' },
         jsonBody({ datasetGoogleProject, datasetName })
@@ -642,7 +642,7 @@ const Billing = signal => ({
 
   listProjectUsers: async (projectName: string): Promise<BillingProjectUser[]> => {
     const res = await fetchRawls(`billing/v2/${projectName}/members`, _.merge(authOpts(), { signal }))
-    const final = await res.json();
+    const final = await res.json()
     return final as BillingProjectUser[]
   },
 
@@ -1065,7 +1065,7 @@ const Workspaces = signal => ({
       importFlexibleEntitiesFileSynchronous: async (file, { deleteEmptyValues = false } = {}) => {
         const formData = new FormData()
         formData.set('entities', file)
-        return ( await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' })) )
+        return (await fetchOrchestration(`api/${root}/flexibleImportEntities?${qs.stringify({ deleteEmptyValues, async: false })}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' })))
       },
 
       importFlexibleEntitiesFileAsync: async (file, { deleteEmptyValues = false } = {}) => {

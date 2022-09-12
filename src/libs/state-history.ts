@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
+import { BillingProjectUserRole } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { v4 as uuid } from 'uuid'
-import { BillingProjectUserRole } from "src/libs/ajax";
 
 
 const getKey = () => {

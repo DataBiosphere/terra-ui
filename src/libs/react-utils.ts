@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import {AtomContract, delay} from 'src/libs/utils'
+import { AtomContract, delay } from 'src/libs/utils'
 
 
 /**

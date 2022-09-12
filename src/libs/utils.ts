@@ -4,7 +4,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { div, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
-import {SafeCurry2} from "src/libs/type-utils";
+import { SafeCurry2 } from 'src/libs/type-utils'
 
 
 export const subscribable = <A extends any[]>() => {
@@ -182,8 +182,8 @@ export const memoizeAsync = <F extends (...args: any[]) => any>(asyncFn: F, { ke
       }
     })
     return value
-  });
-  return wrappedFn as F;
+  })
+  return wrappedFn as F
 }
 
 export const delay = ms => {
@@ -399,7 +399,7 @@ export const formatBytes = bytes => {
   ]
   const found = lookup.find(([_p, d]) => bytes >= d)
   if (found) {
-    const [prefix, divisor] = found;
+    const [prefix, divisor] = found
     return `${(bytes / divisor).toPrecision(3)} ${prefix}iB`
   } else {
     return `${bytes} B`
