@@ -127,7 +127,7 @@ const MigratePersistentDisksBanner = ({ count }) => {
       position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
       backgroundColor: colors.warning(0.15),
       border: '2px solid', borderRadius: '12px', borderColor: colors.warning(),
-      zIndex: 8000 // Must be under 9000 to not draw over notifications
+      zIndex: 2 // Must be under 9000 to not draw over notifications
     }
   }, [
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
@@ -833,7 +833,8 @@ const Environments = () => {
             return Utils.canWrite(accessLevel) && _.isEmpty(disksByProject[googleProject])
           }),
           _.map('workspace'),
-          _.sortBy(({ name }) => _.lowerCase(name))
+          _.sortBy(({ name }) => _.lowerCase(name)),
+          _.constant([])
         )(workspaces),
         onDismiss: () => setMigrateDisk(undefined),
         onSuccess: () => {
