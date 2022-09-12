@@ -134,7 +134,7 @@ const ImportData = () => {
 
     await Utils.switchCase(format,
       ['PFB', async () => {
-        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb')
+        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(url, 'pfb', null)
         asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
         notifyDataImportProgress(jobId)
       }],
