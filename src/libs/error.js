@@ -32,9 +32,11 @@ export const withErrorIgnoring = withErrorHandling(() => {})
  * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
  * report the error to the user with `title` as a side effect.
  */
-export const reportErrorAndRethrow = title => withErrorHandling(error => {
-  reportError(title, error)
-  throw error
+export const reportErrorAndRethrow = _.curry((title, fn) => {
+  return _.flip(withErrorHandling)(fn, error => {
+    reportError(title, error)
+    throw error
+  })
 })
 
 /**
@@ -43,8 +45,8 @@ export const reportErrorAndRethrow = title => withErrorHandling(error => {
  *  preventing the modal itself from closing on error
  *  As such, we must ensure we call the dismiss function if an error occurs
  */
-export const withErrorReportingInModal = _.curry((title, onDismiss) => {
-  return withErrorHandling(error => {
+export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => {
+  return _.flip(withErrorHandling)(fn, error => {
     reportError(title, error)
     onDismiss()
     throw error
