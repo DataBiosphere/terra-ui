@@ -128,7 +128,7 @@ const WorkspaceContainer = ({
         href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
         style: {
           backgroundColor: colors.light(), borderRadius: 4,
-          marginRight: '1.5rem', marginLeft: '0.5rem', padding: '0.4rem 0.8rem',
+          margin: '0 0.5rem', padding: '0.4rem 0.8rem',
           display: 'flex', alignItems: 'center', flexShrink: 0
         },
         ...Utils.newTabLinkProps

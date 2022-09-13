@@ -63,9 +63,7 @@ const WorkflowDashboard = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   })
-)((props, _ref) => {
-  const { namespace, name, submissionId, workflowId, workspace, workspace: { workspace: { googleProject } } } = props
-
+)(({ namespace, name, submissionId, workflowId, workspace }, _ref) => {
   /*
    * State setup
    */
@@ -232,7 +230,7 @@ const WorkflowDashboard = _.flow(
         wdl && h(Collapse, {
           title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
         }, [h(WDLViewer, { wdl })]),
-        showLog && h(UriViewer, { googleProject, uri: workflowLog, onDismiss: () => setShowLog(false) })
+        showLog && h(UriViewer, { workspace, uri: workflowLog, onDismiss: () => setShowLog(false) })
       ])
     )
   ])
