@@ -59,9 +59,8 @@ const billingProjectsPage = (testPage, testUrl) => {
       await testPage.waitForXPath(`(//*[@role="img"])[contains(@aria-label,"${number}. Workspace ${workspaceName}, ${category}: ${cost}.")]`)
     },
 
-    showWorkspaceDetails: async name => {
-      await click(testPage, clickable({ text: `expand workspace ${name}` }))
-    }
+    showWorkspaceDetails: name =>
+      click(testPage, clickable({ text: `expand workspace ${name}` }))
   }
 }
 
