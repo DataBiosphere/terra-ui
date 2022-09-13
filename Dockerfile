@@ -1,7 +1,7 @@
 FROM node:18.10
 
 COPY . /terra-ui/
-RUN cd /terra-ui && yarn build
+RUN cd /terra-ui && yarn install --immutable-cache && yarn build
 
 FROM us.gcr.io/broad-dsp-gcr-public/base/nginx:stable-alpine
 COPY --from=0 /terra-ui/build /usr/share/nginx/html
