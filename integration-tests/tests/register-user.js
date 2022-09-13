@@ -11,7 +11,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration')
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
   await click(page, clickable({ textContains: 'Register' }))
-  await click(page, clickable({ textContains: 'Accept' }), { timeout: 60000 })
+  await click(page, clickable({ textContains: 'Accept' }), { timeout: 90000 })
   await findText(page, 'To get started, Create a New Workspace')
 })
 
