@@ -3,11 +3,9 @@ import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts'
 
 
 export const startPollingServiceAlerts = () => {
-  getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts), _.noop)
+  const loadServiceAlerts = () => getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts), _.noop)
 
-  const interval = setInterval(() => {
-    getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts), _.noop)
-  }, 60000)
-
+  loadServiceAlerts()
+  const interval = setInterval(loadServiceAlerts, 60000)
   return () => clearInterval(interval)
 }
