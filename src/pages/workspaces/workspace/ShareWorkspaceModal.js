@@ -35,7 +35,7 @@ const styles = {
   }
 }
 
-const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus, ...props }) => {
+const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...props }) => {
   const { accessLevel, canShare, canCompute } = value
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: 200 } }, [
@@ -60,7 +60,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus, ...pro
         ...props
       })
     ]),
-    div({ style: { marginLeft: '1rem' } }, [
+    !isAzureWorkspace && div({ style: { marginLeft: '1rem' } }, [
       div({ style: { marginBottom: '0.2rem' } }, [
         h(LabeledCheckbox, {
           disabled: disabled || accessLevel === 'OWNER',
@@ -102,6 +102,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     const POAccessLevel = 'PROJECT_OWNER'
     const disabled = accessLevel === POAccessLevel || email === getUser().email
     const isOld = _.find({ email }, originalAcl)
+    const isAzureWorkspace = !!workspace?.azureContext
 
     return div({
       role: 'listitem',
@@ -121,7 +122,8 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           value: aclItem,
           onChange: v => setAcl(_.set([index], v)),
           disabled,
-          maxAccessLevel: workspace.accessLevel
+          maxAccessLevel: workspace.accessLevel,
+          isAzureWorkspace
         })
       ]),
       !disabled && h(Link, {

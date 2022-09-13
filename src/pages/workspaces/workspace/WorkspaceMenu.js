@@ -59,7 +59,6 @@ export const tooltipText = {
 
 const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded }) => {
   const shareTooltip = Utils.cond(
-    [workspaceLoaded && isAzureWorkspace, () => tooltipText.shareAzureUnsupported],
     [workspaceLoaded && !canShare, () => tooltipText.shareNoPermission],
     [Utils.DEFAULT, () => '']
   )
@@ -77,7 +76,7 @@ const WorkspaceMenuContent = ({ canShare, isAzureWorkspace, isLocked, isOwner, o
       onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
-      disabled: !workspaceLoaded || !canShare || isAzureWorkspace,
+      disabled: !workspaceLoaded || !canShare,
       tooltip: shareTooltip,
       tooltipSide: 'left',
       onClick: onShare
