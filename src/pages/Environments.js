@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
@@ -10,14 +11,14 @@ import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import SupportRequestWrapper from 'src/components/SupportRequest'
-import { FlexTable, SimpleFlexTable, Sortable } from 'src/components/table'
+import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { onError, reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
@@ -43,7 +44,7 @@ const DeleteRuntimeModal = ({
   )(async () => {
     isGcpContext(cloudContext) ?
       await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await Ajax().Runtimes.runtimeV2(workspace.workspace.workspaceId, runtimeName).delete(deleteDisk)
+      await Ajax().Runtimes.runtimeV2(workspace.workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
@@ -133,7 +134,7 @@ const MigratePersistentDisksBanner = ({ count }) => {
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.warning(), marginRight: '0.25rem' } }),
       div([
-        strong([`You have ${Math.floor((deadline - Date.now()) / 86400000)} days to migrate ${count} shared persistent ${count > 1 ?
+        strong([`You have ${differenceInDays(deadline, Date.now())} days to migrate ${count} shared persistent ${count > 1 ?
           'disks' :
           'disk'}. `]),
         `Un-migrated disks will be DELETED after ${Utils.makeCompleteDate(deadline)}.`
@@ -165,33 +166,34 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
   const [deleteDisk, setDeleteDisk] = useState(false)
 
-  const copyDiskToWorkspace =
-    ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
-      // show an error for each failed copy operation
-      return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
-        () => Ajax().Disks.disk(googleProject, disk.name).create({
-          ..._.pick(['size', 'blockSize', 'zone'], disk),
-          diskType: disk.diskType.label,
-          labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
-          sourceDisk: _.pick(['googleProject', 'name'], disk)
-        })
-      )()
-    }
+  const copyDiskToWorkspace = ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
+    // show an error for each failed copy operation
+    return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
+      () => Ajax().Disks.disk(googleProject, disk.name).create({
+        ..._.pick(['size', 'blockSize', 'zone'], disk),
+        diskType: disk.diskType.label,
+        labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
+        sourceDisk: _.pick(['googleProject', 'name'], disk)
+      })
+    )()
+  }
 
   // dismiss the UI at most once on error
-  const migrateDisk = _.flow(onError(onDismiss), Utils.withBusyState(setMigrating))(async () => {
+  const migrateDisk = _.flow(withErrorHandling(onDismiss), Utils.withBusyState(setMigrating))(async () => {
     const destinations = _.filter(({ workspaceId }) => isWorkspaceSelected[workspaceId], workspaces)
     await Promise.all(_.map(copyDiskToWorkspace, destinations))
     await onSuccess()
   })
 
-  const renderDeleteDiskSelection = props => {
+  const space = { style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }
+
+  const renderDeleteDiskSelection = () => {
     const onChange = choice => {
       setDeleteDisk(choice)
       if (choice) { setIsWorkspaceSelected({}) }
     }
 
-    return div({ style: { ...props?.style, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+    return div({ style: { ...space, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
       h(LabeledCheckbox, { checked: deleteDisk, onChange }, []),
       span({ style: { paddingLeft: '0.5rem' } }, ['Delete this disk.'])
     ])
@@ -199,8 +201,6 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
 
   const costPerCopy = getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone))
   const numberOfCopies = _.flow(_.values, _.compact, _.size)(isWorkspaceSelected)
-
-  const space = { style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }
 
   return h(Modal, {
     title: `Migrate ${disk.name}`,
@@ -213,14 +213,14 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
       [span(space, 'Due to data security policies, persistent disks can no longer be shared between workspaces.')],
       _.isEmpty(workspaces) ? [
         strong(space, ['You own this disk but do not have access to any workspaces where it can be shared.']),
-        renderDeleteDiskSelection(space),
+        renderDeleteDiskSelection(),
         span(space, 'OR'),
         div([
           h(Link, { onClick: _.flow(onDismiss, onContactSupport) }, 'Contact Terra Support'),
           ' to have it transferred to another user.'
         ])
       ] : [
-        strong(space, ['Select workspaces where you what to use a copy of this disk.']),
+        strong(space, ['Select workspaces where you want to use a copy of this disk.']),
         h(FlexTable, {
           'aria-label': 'workspace-selection',
           width: 400, height: 250, headerHeight: 24, rowHeight: 24, variant: 'light',
@@ -251,7 +251,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
             },
             {
               field: 'workspace',
-              headerRenderer: () => strong(['Workspace name']),
+              headerRenderer: () => h(HeaderCell, {}, ['Workspace name']),
               cellRenderer: ({ rowIndex }) => {
                 const { authorizationDomain, name } = workspaces[rowIndex]
                 const authDomains = _.map('membersGroupName', authorizationDomain)?.join(', ')
@@ -260,13 +260,13 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
                   [authorizationDomain.length > 1, () => `${name} (Authorization Domains: ${authDomains})`],
                   [Utils.DEFAULT, () => name]
                 )
-                return div({ title: text, style: { ...Style.noWrapEllipsis } }, [text])
+                return h(TextCell, { title: text }, [text])
               }
             }
           ]
         }),
         span(space, ['OR']),
-        renderDeleteDiskSelection(space),
+        renderDeleteDiskSelection(),
         div({ style: { display: 'flex', flexDirection: 'column' } }, [
           strong(space, ['Cost']),
           `${Utils.formatUSD(costPerCopy)}/month per copy. (${Utils.formatUSD(costPerCopy * numberOfCopies)}/month total after migration)`
@@ -328,11 +328,11 @@ const Environments = () => {
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs })
 
     const cloudObjectNeedsMigration = (cloudContext, status, workspace) => status === 'Ready' &&
-      isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.workspace.googleProject
+      isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject
 
     const decorateLabeledCloudObjWithWorkspace = cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
-      const workspace = getWorkspace(saturnWorkspaceNamespace, saturnWorkspaceName)
+      const { workspace } = getWorkspace(saturnWorkspaceNamespace, saturnWorkspaceName) || {}
       const requiresMigration = cloudObjectNeedsMigration(cloudObject.cloudContext, cloudObject.status, workspace)
       return { ...cloudObject, workspace, requiresMigration }
     }
@@ -424,6 +424,8 @@ const Environments = () => {
   const disksByProject = _.groupBy('googleProject', disks)
   const appsByProject = _.groupBy('googleProject', apps)
 
+  const numDisksRequiringMigration = _.countBy('requiresMigration', disks).true
+
   // We start the first output string with an empty space because empty space would
   // not apply to the case where appType is not defined (e.g. Jupyter, RStudio).
   const forAppText = appType => !!appType ? ` for ${_.capitalize(appType)}` : ''
@@ -460,7 +462,7 @@ const Environments = () => {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
-        workspace && div([strong(['Workspace ID: ']), workspace.workspace.workspaceId]),
+        workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -554,7 +556,6 @@ const Environments = () => {
     return !!appType ? workspaceHasMultipleDisks(disks, appType) : _.remove(disk => getDiskAppType(disk) !== appType || disk.status === 'Deleting',
       disks).length > 1
   }
-
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments' }),
@@ -693,8 +694,8 @@ const Environments = () => {
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return !!workspace ?
                 h(Fragment, [
-                  h(Link, { href: Nav.getLink('workspace-dashboard', workspace.workspace), style: { wordBreak: 'break-word' } },
-                    [workspace.workspace.name]),
+                  h(Link, { href: Nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
+                    [workspace.name]),
                   diskStatus !== 'Deleting' && multipleDisks &&
                   h(TooltipTrigger, {
                     content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
@@ -714,7 +715,7 @@ const Environments = () => {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([strong(['Name: ']), name]),
                   div([strong(['Billing ID: ']), cloudContext.cloudResource]),
-                  workspace && div([strong(['Workspace ID: ']), workspace.workspace.workspaceId]),
+                  workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
                   runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
                   app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])
@@ -844,9 +845,7 @@ const Environments = () => {
         onDeleteDisk: () => setDeleteDiskId(migrateDisk.id)
       })
     ]),
-    (count => count > 0 && h(MigratePersistentDisksBanner, { count }, []))(
-      _.countBy('requiresMigration', disks).true
-    ),
+    numDisksRequiringMigration > 0 && h(MigratePersistentDisksBanner, { count: numDisksRequiringMigration }, []),
     contactUsActive.get() && h(SupportRequestWrapper),
     loading && spinnerOverlay
   ])
