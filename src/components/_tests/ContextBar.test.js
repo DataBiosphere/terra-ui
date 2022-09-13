@@ -39,8 +39,6 @@ jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
   }
 })
 
-jest.mock('src/libs/ajax')
-
 jest.mock('src/libs/config', () => {
   const originalModule = jest.requireActual('src/libs/config')
   return {
@@ -51,6 +49,8 @@ jest.mock('src/libs/config', () => {
   }
 })
 
+// Necessary to mock the AJAX module.
+jest.mock('src/libs/ajax')
 const mockRuntimesStartFn = jest.fn()
 const mockRuntime = jest.fn()
 
