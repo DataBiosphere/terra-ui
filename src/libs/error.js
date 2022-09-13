@@ -26,7 +26,7 @@ export const withErrorHandling = _.curry((callback, fn) => async (...args) => {
  * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
  * evaluation fails.
  */
-export const withErrorIgnoring = withErrorHandling(() => {})
+export const withErrorIgnoring = withErrorHandling(_.noop)
 
 /**
  * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
