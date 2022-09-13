@@ -422,25 +422,27 @@ const topMed = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const rareX = () => h(Participant, {
-  logo: { src: rareXLogo, alt: 'RareX logo' },
-  title: 'RARE-X Data Analysis Platform',
-  description: h(Fragment, [
-    h(Link, { href: 'https://rare-x.org', ...Utils.newTabLinkProps }, 'The RARE-X Data Analysis Platform'),
-    ` is a federated data repository of rare disease patient health data.
+const rareX = () => {
+  const linkToRareXPublicWorkspaces = `${Nav.getLink('workspaces')}/?tab=public&tagsFilter%5B%5D=rare-x`
+  return h(Participant, {
+    logo: { src: rareXLogo, alt: 'RareX logo' },
+    title: 'RARE-X Data Analysis Platform',
+    description: h(Fragment, [
+      h(Link, { href: 'https://rare-x.org', ...Utils.newTabLinkProps }, 'The RARE-X Data Analysis Platform'),
+      ` is a federated data repository of rare disease patient health data.
     Data on the RARE-X Data Analysis Platform is patient-owned and patient-consented
     for sharing with researchers worldwide. RARE-X operates in close partnership with
     rare disease communities around the globe.`
-  ]),
-  sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
-}, [
-  h(ButtonPrimary, {
-    'aria-label': 'Browse RareX data',
-    href: 'https://rare-x.org/xplore',
-    onClick: () => captureBrowseDataEvent('RARE-X'),
-    ...Utils.newTabLinkProps
-  }, ['Browse Data'])
-])
+    ]),
+    sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
+  }, [
+    h(ButtonPrimary, {
+      'aria-label': 'Browse RareX data',
+      href: linkToRareXPublicWorkspaces,
+      onClick: () => captureBrowseDataEvent('RARE-X')
+    }, ['Browse Data'])
+  ])
+}
 
 const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
@@ -456,7 +458,7 @@ const Datasets = () => {
     }),
     catalogShowing ? h(Browser) :
       div({ role: 'main', style: styles.content }, [
-      // Put datasets in alphabetical order
+        // Put datasets in alphabetical order
         thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
         hca(), nemo(), target(), tcga(), topMed(), rareX()
       ])
