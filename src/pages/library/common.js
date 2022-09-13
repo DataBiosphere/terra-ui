@@ -133,7 +133,6 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
     filterType === filterOptions.input && div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
       h(DelayedSearchInput, {
         style: { borderRadius: 25, borderColor: colors.dark(0.2), width: '100%', maxWidth: 575, height: '3rem', marginRight: 20 },
-        debounceMs: 25,
         value: filterSearchText,
         'aria-label': `Search for ${name} filter options`,
         placeholder: 'Search keyword',
@@ -317,6 +316,9 @@ const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   ]
 }
 
+const sendSearchEvent = term => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { term })
+const debounceSearchEvent = _.debounce(5000, sendSearchEvent)
+
 export const SearchAndFilterComponent = ({
   fullList, sidebarSections, customSort, searchType,
   titleField = 'name', descField = 'description', idField = 'lowerName', children
@@ -410,7 +412,9 @@ export const SearchAndFilterComponent = ({
     }, { addQueryPrefix: true })
 
     if (filter) {
-      Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { filter })
+      // This method is already debounced, but we need to further debounce the event logging to
+      // prevent getting all the intermediate filter strings in the event logs.
+      debounceSearchEvent(filter)
     }
 
     if (newSearch !== Nav.history.location.search) {
@@ -451,7 +455,6 @@ export const SearchAndFilterComponent = ({
         h(DelayedAutoCompleteInput, {
           style: { borderRadius: 25, flex: '1 1 0' },
           inputIcon: 'search',
-          debounceMs: 25,
           openOnFocus: true,
           value: searchFilter,
           'aria-label': `Search ${searchType}`,
