@@ -31,9 +31,9 @@ const billingProjectsPage = (testPage, testUrl) => {
       await click(testPage, clickable({ text: 'Owners' }))
     },
 
-    selectProject: async (billingProjectName, cloudPlatform = GCP) => {
+    selectProject: (billingProjectName, cloudPlatform = GCP) => {
       const text = cloudPlatform === GCP ? `Google Cloud Platform${billingProjectName}` : `Microsoft Azure${billingProjectName}`
-      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text })) })
+      return noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text })) })
     },
 
     selectProjectMenu: async () => {
