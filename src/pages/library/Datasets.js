@@ -457,7 +457,7 @@ const Datasets = () => {
       div({ role: 'main', style: styles.content }, [
         // Put datasets in alphabetical order
         thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
-        hca(), nemo(), target(), tcga(), topMed(), rareX()
+        hca(), nemo(), rareX(), target(), tcga(), topMed()
       ])
   ])
 }
