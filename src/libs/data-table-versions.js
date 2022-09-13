@@ -1,4 +1,4 @@
-import { format } from 'date-fns/fp'
+import { addMinutes, format } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
@@ -64,7 +64,10 @@ export const deleteDataTableVersion = async (workspace, version) => {
   await Ajax().Buckets.delete(googleProject, bucketName, objectName)
 }
 
-export const tableNameForRestore = version => `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', new Date(version.timestamp))}`
+export const tableNameForRestore = version => {
+  const timestamp = new Date(version.timestamp)
+  return `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', addMinutes(timestamp.getTimezoneOffset(), timestamp))}`
+}
 
 export const restoreDataTableVersion = async (workspace, version) => {
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace

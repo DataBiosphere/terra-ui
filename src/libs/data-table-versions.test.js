@@ -13,7 +13,7 @@ describe('tableNameForRestore', () => {
       entityType: 'thing',
       timestamp: 1663096364243,
       description: 'A version'
-    })).toBe('thing_2022-09-13_15-12-44')
+    })).toBe('thing_2022-09-13_19-12-44')
   })
 })
 
@@ -57,11 +57,11 @@ describe('restoreDataTableVersion', () => {
     const importedTsv = await importedFile.text()
 
     const entityTypeHeader = _.flow(_.split('\n'), _.first, _.split('\t'), _.first)(importedTsv)
-    expect(entityTypeHeader).toBe('entity:thing_2022-09-13_15-12-44_id')
+    expect(entityTypeHeader).toBe('entity:thing_2022-09-13_19-12-44_id')
   })
 
   it('returns restored table name', async () => {
     const { tableName } = await restoreDataTableVersion(workspace, version)
-    expect(tableName).toBe('thing_2022-09-13_15-12-44')
+    expect(tableName).toBe('thing_2022-09-13_19-12-44')
   })
 })
