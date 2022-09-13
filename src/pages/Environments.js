@@ -134,9 +134,10 @@ const MigratePersistentDisksBanner = ({ count }) => {
     div({ style: { display: 'flex', alignItems: 'center', margin: '0.75rem 1.5rem 0.75rem 1.5rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.warning(), marginRight: '0.25rem' } }),
       div([
-        strong([`You have ${differenceInDays(deadline, Date.now())} days to migrate ${count} shared persistent ${count > 1 ?
-          'disks' :
-          'disk'}. `]),
+        strong([
+          `You have ${differenceInDays(deadline, Date.now())} days to migrate ${count} shared persistent `,
+          `${count > 1 ? 'disks' : 'disk'}. `
+        ]),
         `Un-migrated disks will be DELETED after ${Utils.makeCompleteDate(deadline)}.`
       ])
     ])
@@ -153,9 +154,7 @@ const MigratePersistentDiskCell = ({ onClick }) => div({
   h(TooltipTrigger, { content: `This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.` }, [
     div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
   ]),
-  h(Link, { onClick, style: { wordBreak: 'break-word' } },
-    ['Migrate']
-  )
+  h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])
 ])
 
 const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, onContactSupport, onDeleteDisk }) => {
