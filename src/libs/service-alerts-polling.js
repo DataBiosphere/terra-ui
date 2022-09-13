@@ -1,14 +1,12 @@
+import _ from 'lodash/fp'
 import { getServiceAlerts, serviceAlertsStore } from 'src/libs/service-alerts'
 
 
 export const startPollingServiceAlerts = () => {
-  getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts))
+  getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts), _.noop)
 
   const interval = setInterval(() => {
-    try {
-      getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts))
-    } catch (error) {
-    }
+    getServiceAlerts().then(serviceAlerts => serviceAlertsStore.set(serviceAlerts), _.noop)
   }, 60000)
 
   return () => clearInterval(interval)
