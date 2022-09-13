@@ -40,6 +40,20 @@ jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 })
 
 jest.mock('src/libs/ajax')
+
+jest.mock('src/libs/config', () => {
+  const originalModule = jest.requireActual('src/libs/config')
+  return {
+    ...originalModule,
+    isCromwellAppVisible: () => {
+      return true
+    }
+  }
+})
+
+const mockRuntimesStartFn = jest.fn()
+const mockRuntime = jest.fn()
+
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
   CloudEnvironmentModal.mockImplementation(({ isOpen, filterForTool, onSuccess, onDismiss, ...props }) => {
@@ -50,20 +64,22 @@ beforeEach(() => {
       div({ label: 'Success Button', onClick: () => onDismiss() }, 'DismissButton')
     ]) : div([])
   })
+
   Ajax.mockImplementation(() => {
+    mockRuntime.mockReturnValue({ start: mockRuntimesStartFn })
     return {
       Metrics: {
         captureEvent: () => {}
       },
       Runtimes: {
-        runtime: () => {
-          return {
-            start: jest.fn()
-          }
-        }
+        runtime: mockRuntime
       }
     }
   })
+})
+
+afterEach(() => {
+  jest.clearAllMocks()
 })
 
 //Note - These constants are copied from src/libs/runtime-utils.test.js
@@ -80,6 +96,36 @@ const galaxyRunning = {
   labels: {},
   proxyUrls: { galaxy: 'https://leonardo-fiab.dsde-dev.broadinstitute.org/a-app-69200c2f-89c3-47db-874c-b770d8de737f/galaxy' },
   status: 'RUNNING'
+}
+
+const cromwellRunning = {
+  appName: 'terra-app-83f46705-524c-4fc8-xcyc-97fdvcfby14f',
+  appType: 'CROMWELL',
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-28T20:28:01.998494Z'
+  },
+  diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',
+  errors: [],
+  googleProject: 'terra-test-e4000484',
+  kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
+  labels: {},
+  proxyUrls: { 'cromwell-service': 'https://leonardo-fiab.dsde-dev.broadinstitute.org/fd0cfbb14f/cromwell-service/swagger/cromwell.yaml' },
+  status: 'RUNNING'
+}
+
+const cromwellDisk = {
+  auditInfo: {
+    creator: 'cahrens@gmail.com', createdDate: '2021-11-26T20:19:13.162484Z', destroyedDate: null, dateAccessed: '2021-11-29T20:19:14.114Z'
+  },
+  blockSize: 4096,
+  diskType: 'pd-standard',
+  googleProject: 'terra-test-e4000484',
+  id: 16,
+  labels: { saturnApplication: 'CROMWELL', saturnWorkspaceName: 'test-workspace' },
+  name: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
+  size: 500,
+  status: 'Ready',
+  zone: 'us-central1-a'
 }
 
 const galaxyDisk = {
@@ -137,6 +183,45 @@ const jupyter1 = {
     googleProject: 'terra-dev-cf677740'
   },
   patchInProgress: false
+}
+
+
+const azureRunning = {
+  auditInfo: {
+    createdDate: '2022-09-09T20:20:06.982538Z',
+    creator: 'ncl.hedwig@gmail.com',
+    dateAccessed: '2022-09-09T20:20:08.185Z',
+    destroyedDate: null
+  },
+  cloudContext: {
+    cloudProvider: 'AZURE',
+    cloudResource: 'fad90753-2022-4456-9b0a-c7e5b934e408/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-workspace-20220412104730'
+  },
+  googleProject: 'fad90753-2022-4456-9b0a-c7e5b934e408/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-workspace-20220412104730',
+  id: 76996,
+  labels: {
+    cloudContext: 'Azure/fad90753-2022-4456-9b0a-c7e5b934e408/3efc5bdf-be0e-44e7-b1d7-c08931e3c16c/mrg-terra-workspace-20220412104730',
+    clusterName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
+    clusterServiceAccount: 'ncl.hedwig@gmail.com',
+    creator: 'ncl.hedwig@gmail.com',
+    runtimeName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
+    saturnAutoCreated: 'true',
+    saturnVersion: '6',
+    saturnWorkspaceName: 'isAzure',
+    saturnWorkspaceNamespace: 'alpha-azure-billing-project-20220407',
+    tool: 'Azure'
+  },
+  patchInProgress: false,
+  proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
+  runtimeConfig: {
+    cloudService: 'AZURE_VM',
+    machineType: 'Standard_DS1_v2',
+    persistentDiskId: 15778,
+    region: 'eastus',
+    runtimeName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
+    status: 'Running',
+    workspaceId: '2a77dcb5-882c-46b9-a3bc-5d251aff14d0'
+  }
 }
 
 const jupyter1Disk = {
@@ -255,7 +340,7 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByLabelText('Terminal button')).toBeEnabled()
   })
 
-  it('will render a Galaxy and RStudio with a disabled Terminal Button', () => {
+  it('will render Galaxy and RStudio buttons with a disabled Terminal Button', () => {
     // Arrange
     const rstudioGalaxyContextBarProps = {
       ...contextBarProps,
@@ -274,6 +359,62 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
     expect(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
     expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+  })
+
+  it('will render a Cromwell button with a disabled Terminal Button', () => {
+    // Arrange
+    const rstudioGalaxyContextBarProps = {
+      ...contextBarProps,
+      apps: [cromwellRunning],
+      appDataDisks: [cromwellDisk]
+    }
+
+    // Act
+    render(h(ContextBar, rstudioGalaxyContextBarProps))
+
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(screen.getByLabelText(new RegExp(/Cromwell Environment/i)))
+  })
+
+  it('will render Azure Environment button', () => {
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [azureRunning],
+      persistentDisks: []
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText(new RegExp(/Azure Environment/i)))
+    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+  })
+
+  it('will render Azure Environment button', () => {
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [
+        {
+          ...jupyter1,
+          status: 'error'
+        }
+      ],
+      persistentDisks: []
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
   })
 })
 
@@ -338,7 +479,7 @@ describe('ContextBar - actions', () => {
     screen.getByText(tools.RStudio.label)
   })
 
-  it('clicking Terminal attempts to start current runtime', () => {
+  it('clicking Terminal will attempt to start currently stopped runtime', () => {
     // Arrange
     global.window = Object.create(window)
     const url = 'http://dummy.com'
@@ -363,9 +504,37 @@ describe('ContextBar - actions', () => {
     fireEvent.click(screen.getByLabelText('Terminal button'))
 
     // Assert
-    //TODO: Assert that start is called
-    // expect(Ajax().Runtimes.runtime().start).toBeCalled()
+    expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter1.googleProject, jupyter1.runtimeName)
+    expect(mockRuntimesStartFn).toBeCalledTimes(1)
   })
+
+  it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
+    // Arrange
+    global.window = Object.create(window)
+    const url = 'http://dummy.com'
+    Object.defineProperty(window, 'location', {
+      value: {
+        href: url
+      },
+      writable: true,
+      hash: '/'
+    })
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [
+        jupyter1
+      ],
+      persistentDisks: [jupyter1Disk]
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(screen.getByLabelText('Terminal button'))
+
+    // Assert
+    expect(mockRuntimesStartFn).toBeCalledTimes(0)
+  })
+
   it('onSuccess will close modal', () => {
     // Act
     render(h(ContextBar, contextBarProps))
