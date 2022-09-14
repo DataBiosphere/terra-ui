@@ -51,7 +51,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace,
           accessLevel: o.value,
           ...Utils.switchCase(o.value,
             ['READER', () => ({ canCompute: false, canShare: false })],
-            ['WRITER', () => ({ canCompute: true, canShare: false })],
+            ['WRITER', () => ({ canCompute: !isAzureWorkspace, canShare: false })],
             ['OWNER', () => ({ canCompute: true, canShare: true })]
           )
         }),
@@ -102,7 +102,6 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     const POAccessLevel = 'PROJECT_OWNER'
     const disabled = accessLevel === POAccessLevel || email === getUser().email
     const isOld = _.find({ email }, originalAcl)
-    const isAzureWorkspace = !!workspace?.azureContext
 
     return div({
       role: 'listitem',
@@ -123,7 +122,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           onChange: v => setAcl(_.set([index], v)),
           disabled,
           maxAccessLevel: workspace.accessLevel,
-          isAzureWorkspace
+          isAzureWorkspace: !!workspace?.azureContext
         })
       ]),
       !disabled && h(Link, {
