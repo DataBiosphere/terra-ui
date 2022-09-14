@@ -1,5 +1,6 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
+import * as Utils from 'src/libs/utils'
 
 
 export const workflowNameValidation = () => {
@@ -53,4 +54,11 @@ export const downloadIO = (io, filename) => {
 
   const blob = new Blob([JSON.stringify(prepIO(io))], { type: 'application/json' })
   FileSaver.saveAs(blob, `${filename}.json`)
+}
+
+export const downloadWorkflows = (headers, rows, filename) => {
+  const rowsAsText = _.map(row => _.map(x => _.isObject(x) ? JSON.stringify(x) : x, _.values(row)), rows)
+
+  const blob = new Blob([Utils.makeTSV([headers, ...rowsAsText])], { type: 'text/tab-separated-values' })
+  FileSaver.saveAs(blob, `${filename}.tsv`)
 }
