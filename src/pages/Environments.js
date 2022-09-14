@@ -9,7 +9,6 @@ import Modal from 'src/components/Modal'
 import { getToolFromRuntime, isPauseSupported, tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
-import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import SupportRequestWrapper from 'src/components/SupportRequest'
 import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -31,6 +30,7 @@ import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 
 
 const DeleteRuntimeModal = ({
