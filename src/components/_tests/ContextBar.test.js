@@ -396,7 +396,7 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
   })
 
-  it('will render Azure Environment button', () => {
+  it('will render button with error status', () => {
     const jupyterContextBarProps = {
       ...contextBarProps,
       runtimes: [
@@ -415,6 +415,7 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByText('Rate:'))
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(screen.findByText(/Error $/))
   })
 })
 
