@@ -57,8 +57,8 @@ export const downloadIO = (io, filename) => {
 }
 
 export const downloadWorkflows = (headers, rows, filename) => {
-  const rowsAsText = _.map(row => _.map(x => _.isObject(x) ? JSON.stringify(x) : x, _.values(row)), rows)
+  const rowsStringified = _.map(row => _.map(v => _.isObject(v) ? JSON.stringify(v) : v, _.values(row)), rows)
 
-  const blob = new Blob([Utils.makeTSV([headers, ...rowsAsText])], { type: 'text/tab-separated-values' })
+  const blob = new Blob([Utils.makeTSV([headers, ...rowsStringified])], { type: 'text/tab-separated-values' })
   FileSaver.saveAs(blob, `${filename}.tsv`)
 }
