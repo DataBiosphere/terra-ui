@@ -25,8 +25,8 @@ import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
+import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import validate from 'validate.js'
 
 
