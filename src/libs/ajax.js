@@ -1524,7 +1524,7 @@ const Buckets = signal => ({
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: textContents,
+            signal, method: 'POST', body: JSON.stringify(textContents),
             headers: { 'Content-Type': mimeType }
           })
         )
