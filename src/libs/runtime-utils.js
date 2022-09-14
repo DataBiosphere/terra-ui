@@ -498,3 +498,6 @@ export const getIsRuntimeBusy = runtime => {
 
 export const cloudProviders = { azure: { label: 'AZURE' }, gcp: { label: 'GCP' } }
 
+export const isGcpContext = ({ cloudProvider }) => cloudProvider === cloudProviders.gcp.label
+export const isAzureContext = ({ cloudProvider }) => cloudProvider === cloudProviders.azure.label
+

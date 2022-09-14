@@ -226,12 +226,18 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
       const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
 
+      // v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
+      // associated with runtimes and disks will not match the workspace googleProject. These
+      // should be hidden from the user.
+      const isV1Artifact = ({ googleProject = undefined }) => googleProject && googleProject !== workspace.workspace.googleProject
+
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
+      const [newDisks, newRuntimes] = !!workspace ? _.map(_.remove(isV1Artifact), await Promise.all([
         Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
-      ]) : [[], []]
+      ])) : [[], []]
+
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))

@@ -1726,9 +1726,14 @@ export const ComputeModalBase = ({
           ]),
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
-              h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
-                renderPersistentDiskType(id)
-              ]) : renderPersistentDiskType(id),
+              h(TooltipTrigger, {
+                content: [
+                  'You already have a persistent disk in this workspace. ',
+                  'Disk type can only be configured at creation time. ',
+                  'Please delete the existing disk before selecting a new type.'
+                ],
+                side: 'bottom'
+              }, [renderPersistentDiskType(id)]) : renderPersistentDiskType(id),
             h(div, [
               label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [
