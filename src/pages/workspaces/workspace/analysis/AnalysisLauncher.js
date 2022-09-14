@@ -6,7 +6,6 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
-import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import {
@@ -29,6 +28,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
