@@ -77,6 +77,7 @@
     "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.4.3",
     "babel-plugin-prismjs": "^2.1.0",
+    "blob-polyfill": "^7.0.20220408",
     "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",
     "eslint-plugin-lodash-fp": "^2.2.0-a1",
