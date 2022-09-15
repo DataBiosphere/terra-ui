@@ -38,7 +38,7 @@ const styles = {
 const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace, autoFocus, ...props }) => {
   const { accessLevel, canShare, canCompute } = value
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
-    div({ style: { width: 200 } }, [
+    div({ style: { width: isAzureWorkspace ? 425 : 200 } }, [
       h(Select, {
         autoFocus,
         isSearchable: false,
