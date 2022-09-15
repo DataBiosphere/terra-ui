@@ -2,11 +2,12 @@ import _ from 'lodash/fp'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import covidHero from 'src/images/covid-hero.jpg'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
+import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { setLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
@@ -79,22 +80,6 @@ const LandingPage = () => {
     isTerra() && div({
       style: {
         ...styles.callToActionBanner,
-        backgroundColor: '#191a1c', // This fallback color was extracted from the left edge of the background image
-        backgroundImage: `url(${covidHero})`,
-        width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`
-      }
-    }, [
-      h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['Data & Tools for COVID-19/SARS CoV2 analysis']),
-      h(Clickable, {
-        href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-        style: { textDecoration: 'underline' },
-        ...Utils.newTabLinkProps
-      }, ['See this article']),
-      ' for a summary of available resources.'
-    ]),
-    div({
-      style: {
-        ...styles.callToActionBanner,
         backgroundColor: colors.primary(),
         backgroundImage: `url(${terraHero})`,
         display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
@@ -109,6 +94,7 @@ const LandingPage = () => {
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
         onClick: () => {
+          Ajax().Metrics.captureEvent(`${Events.catalogView}:landingPageBanner`)
           setLocalPref('catalog-toggle', true)
           Nav.goToPath('library-datasets')
         }
