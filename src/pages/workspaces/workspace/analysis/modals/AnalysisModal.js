@@ -2,15 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Select, WarningTitle } from 'src/components/common'
-import { CromwellModalBase } from 'src/components/CromwellModal'
 import Dropzone from 'src/components/Dropzone'
-import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import {
-  analysisNameInput, analysisNameValidator, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
-  toolExtensionDisplay, tools
-} from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
@@ -22,11 +16,17 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
-import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
+import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
+import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
+import {
+  analysisNameInput, analysisNameValidator, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
+  toolExtensionDisplay, tools
+} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 

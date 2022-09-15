@@ -20,13 +20,13 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
-import { cloudProviders } from 'src/libs/runtime-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const workspaceLastModifiedWidth = 150

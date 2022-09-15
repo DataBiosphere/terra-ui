@@ -3,14 +3,14 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { tools } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
-import { computeStyles, getCurrentApp, getCurrentAppDataDisk } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { computeStyles, getCurrentApp, getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const defaultDataDiskSize = 500 // GB

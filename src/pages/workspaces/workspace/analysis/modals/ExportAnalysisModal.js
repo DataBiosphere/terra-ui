@@ -5,10 +5,6 @@ import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
-import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
-} from 'src/components/notebook-utils'
-import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
@@ -16,6 +12,10 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import {
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
+} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import validate from 'validate.js'
 
 

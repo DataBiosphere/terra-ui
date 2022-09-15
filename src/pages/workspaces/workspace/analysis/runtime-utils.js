@@ -2,13 +2,13 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { allAppTypes, tools } from 'src/components/notebook-utils'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { allAppTypes, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
 
 export const computeStyles = {

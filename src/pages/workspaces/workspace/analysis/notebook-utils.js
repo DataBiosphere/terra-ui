@@ -5,7 +5,6 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -14,6 +13,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import validate from 'validate.js'
 
 

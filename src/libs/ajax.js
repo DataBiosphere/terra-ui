@@ -1,17 +1,18 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { getExtension, getFileName, tools } from 'src/components/notebook-utils'
-import { version } from 'src/data/machines'
+import { Apps } from 'src/libs/ajax/Apps'
+import { Disks } from 'src/libs/ajax/Disks'
+import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { pdTypes } from 'src/libs/runtime-utils'
 import {
   ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { v4 as uuid } from 'uuid'
 
 
@@ -28,9 +29,9 @@ window.ajaxOverrideUtils = {
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
 
-const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
-const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
+export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
+export const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
+export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
@@ -162,7 +163,7 @@ const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingPr
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
-const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
+export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
 const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
@@ -1648,253 +1649,6 @@ const Submissions = signal => ({
   cromwellVersion: async () => {
     const res = await fetchOk(`${getConfig().rawlsUrlRoot}/version/executionEngine`, { signal })
     return res.json()
-  }
-})
-
-
-const Runtimes = signal => ({
-  list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  invalidateCookie: () => {
-    return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
-  },
-
-  setCookie: () => {
-    return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
-  },
-
-  runtime: (project, name) => {
-    const root = `api/google/v1/runtimes/${project}/${name}`
-
-    return {
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      },
-      create: options => {
-        const body = _.merge(options, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: getConfig().googleClientId,
-          userJupyterExtensionConfig: {
-            nbExtensions: {
-              'saturn-iframe-extension':
-                `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
-            },
-            labExtensions: {},
-            serverExtensions: {},
-            combinedExtensions: {}
-          },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile'],
-          enableWelder: true
-        })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      update: options => {
-        const body = { ...options, allowStop: true }
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
-      },
-
-      start: () => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      stop: () => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      delete: deleteDisk => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      }
-    }
-  },
-
-  azureProxy: proxyUrl => {
-    return {
-      setAzureCookie: () => {
-        return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
-      },
-
-      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
-        return fetchOk(`${proxyUrl}/welder/storageLinks`,
-          _.mergeAll([authOpts(), jsonBody({
-            localBaseDirectory,
-            localSafeModeBaseDirectory,
-            cloudStorageDirectory,
-            pattern
-          }), { signal, method: 'POST' }]))
-      }
-    }
-  },
-
-  listV2: async (labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  listV2WithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
-    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
-
-    return {
-
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      },
-
-      create: options => {
-        const body = _.merge(options, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version }
-        })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      delete: (deleteDisk = true) => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      }
-    }
-  },
-
-  fileSyncing: (project, name) => {
-    const root = `proxy/${project}/${name}`
-
-    return {
-      oldLocalize: files => {
-        return fetchLeo(`notebooks/${project}/${name}/api/localize`, // this is the old root url
-          _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
-      },
-
-      localize: entries => {
-        const body = { action: 'localize', entries }
-        return fetchLeo(`${root}/welder/objects`,
-          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-      },
-
-      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
-        return fetchLeo(`${root}/welder/storageLinks`,
-          _.mergeAll([authOpts(), jsonBody({
-            localBaseDirectory,
-            localSafeModeBaseDirectory,
-            cloudStorageDirectory,
-            pattern
-          }), { signal, method: 'POST' }]))
-      },
-
-      lock: async localPath => {
-        try {
-          await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
-          return true
-        } catch (error) {
-          if (error.status === 409) {
-            return false
-          } else {
-            throw error
-          }
-        }
-      }
-    }
-  }
-})
-
-const Apps = signal => ({
-  list: async (project, labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-  listWithoutProject: async labels => {
-    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify(labels)}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-  app: (project, name) => {
-    const root = `api/google/v1/apps/${project}/${name}`
-    return {
-      delete: deleteDisk => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      },
-      create: ({ kubernetesRuntimeConfig, diskName, diskSize, diskType, appType, namespace, bucketName, workspaceName }) => {
-        const body = {
-          labels: {
-            saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: workspaceName
-          },
-          kubernetesRuntimeConfig,
-          diskConfig: {
-            name: diskName,
-            size: diskSize,
-            diskType,
-            labels: {
-              saturnApplication: appType,
-              saturnWorkspaceNamespace: namespace,
-              saturnWorkspaceName: workspaceName
-            }
-          },
-          customEnvironmentVariables: {
-            WORKSPACE_NAME: workspaceName,
-            WORKSPACE_NAMESPACE: namespace,
-            WORKSPACE_BUCKET: `gs://${bucketName}`,
-            GOOGLE_PROJECT: project
-          },
-          appType
-        }
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-      pause: () => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-      resume: () => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      }
-    }
-  }
-})
-
-
-const Disks = signal => ({
-  list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  disk: (project, name) => {
-    return {
-      create: props => fetchLeo(`api/google/v1/disks/${project}/${name}`,
-        _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }, jsonBody(props)])
-      ),
-      delete: () => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
-      },
-      update: size => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
-      },
-      details: async () => {
-        const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        return res.json().then(val => _.set('diskType', pdTypes.fromString(val.diskType), val))
-      }
-    }
   }
 })
 

@@ -16,7 +16,6 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/components/notebook-utils'
 import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
@@ -37,6 +36,7 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
 
 const getDataset = dataExplorerUrl => {

@@ -10,11 +10,7 @@ import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
@@ -28,13 +24,17 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import {
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
+} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
