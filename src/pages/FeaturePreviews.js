@@ -29,7 +29,7 @@ export const FeaturePreviews = () => {
     [error, () => p({ style: { margin: 0 } }, ['Unable to load feature previews.'])],
     [_.size(featurePreviews) === 0, () => p({ style: { margin: 0 } }, ['No feature previews available at this time.'])],
     () => h(Fragment, [
-      p(['These features are experimental and may change without notice.']),
+      p(['These features are proof-of-concept and may change without notice.']),
       h(SimpleFlexTable, {
         'aria-label': 'Features',
         rowCount: featurePreviews.length,
