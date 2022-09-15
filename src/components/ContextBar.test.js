@@ -395,7 +395,6 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByLabelText('Terminal button')).toBeEnabled()
     expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
     expect(screen.getByText(/Creating \$.*\/hr/))
-    expect(screen.getByText(/Disk \$.*\/hr/))
   })
 
   it('will render Galaxy and RStudio buttons with a disabled Terminal Button', () => {
