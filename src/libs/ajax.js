@@ -2,10 +2,11 @@ import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import {
-  appIdentifier, authOpts, fetchAgora, fetchBard, fetchBillingProfileManager, fetchBond, fetchBuckets, fetchCatalog, fetchDataRepo, fetchDockstore,
+  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBard, fetchBillingProfileManager, fetchBond, fetchCatalog,
+  fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWorkspaceManager, jsonBody
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWorkspaceManager, jsonBody, withRetryOnError, withUrlPrefix
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { Disks } from 'src/libs/ajax/Disks'
@@ -14,7 +15,7 @@ import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { authStore, userStatus } from 'src/libs/state'
+import { authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { v4 as uuid } from 'uuid'
@@ -62,6 +63,59 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
+
+//TODO: this is a weird util method that calls an api... should be refactored so its not a circular utility
+export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
+  return canCompute || _.some(
+    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
+    await Ajax().Billing.listProjects()
+  )
+}
+
+/*
+ * Detects errors due to requester pays buckets, and adds the current workspace's billing
+ * project if the user has access, retrying the request once if necessary.
+ */
+const withRequesterPays = wrappedFetch => (url, ...args) => {
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
+  const workspace = workspaceStore.get()
+
+  const getUserProject = async () => {
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
+    }
+    return requesterPaysProjectStore.get()
+  }
+
+  const tryRequest = async () => {
+    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
+    try {
+      const userProject = (knownRequesterPays && await getUserProject()) || undefined
+      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      return res
+    } catch (error) {
+      if (knownRequesterPays === false) {
+        throw error
+      } else {
+        const newResponse = await checkRequesterPaysError(error)
+        if (newResponse.requesterPaysError && !knownRequesterPays) {
+          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
+          if (await getUserProject()) {
+            return tryRequest()
+          }
+        }
+        throw newResponse
+      }
+    }
+  }
+  return tryRequest()
+}
+
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 const User = signal => ({
   getStatus: async () => {
