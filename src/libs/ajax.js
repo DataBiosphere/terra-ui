@@ -1,7 +1,12 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { appIdentifier, authOpts, fetchOk, jsonBody, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import {
+  appIdentifier, authOpts, fetchAgora, fetchBard, fetchBillingProfileManager, fetchBond, fetchBuckets, fetchCatalog, fetchDataRepo, fetchDockstore,
+  fetchDrsHub,
+  fetchEcm, fetchGoogleForms,
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWorkspaceManager, jsonBody
+} from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { Disks } from 'src/libs/ajax/Disks'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -9,7 +14,7 @@ import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
+import { authStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { v4 as uuid } from 'uuid'
@@ -27,108 +32,6 @@ window.ajaxOverrideUtils = {
   }),
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
-
-const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
-  const timeout = 5000
-  const somePointInTheFuture = Date.now() + timeout
-  const maxDelayIncrement = 1500
-  const minDelay = 500
-
-  while (Date.now() < somePointInTheFuture) {
-    const until = Math.random() * maxDelayIncrement + minDelay
-    try {
-      return await Utils.withDelay(until, wrappedFetch)(...args)
-    } catch (error) {
-      if (shouldNotRetryFn(error)) {
-        throw error
-      }
-      // ignore error will retry
-    }
-  }
-  return wrappedFetch(...args)
-})
-
-const withAppIdentifier = wrappedFetch => (url, options) => {
-  return wrappedFetch(url, _.merge(options, appIdentifier))
-}
-
-const checkRequesterPaysError = async response => {
-  if (response.status === 400) {
-    const data = await response.text()
-    const requesterPaysError = _.includes('requester pays', data)
-    return Object.assign(new Response(new Blob([data]), response), { requesterPaysError })
-  } else {
-    return Object.assign(response, { requesterPaysError: false })
-  }
-}
-
-export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
-  return canCompute || _.some(
-    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
-    await Ajax().Billing.listProjects()
-  )
-}
-
-/*
- * Detects errors due to requester pays buckets, and adds the current workspace's billing
- * project if the user has access, retrying the request once if necessary.
- */
-const withRequesterPays = wrappedFetch => (url, ...args) => {
-  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const workspace = workspaceStore.get()
-
-  const getUserProject = async () => {
-    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
-      requesterPaysProjectStore.set(workspace.workspace.googleProject)
-    }
-    return requesterPaysProjectStore.get()
-  }
-
-  const tryRequest = async () => {
-    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
-    try {
-      const userProject = (knownRequesterPays && await getUserProject()) || undefined
-      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
-      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
-      return res
-    } catch (error) {
-      if (knownRequesterPays === false) {
-        throw error
-      } else {
-        const newResponse = await checkRequesterPaysError(error)
-        if (newResponse.requesterPaysError && !knownRequesterPays) {
-          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
-          if (await getUserProject()) {
-            return tryRequest()
-          }
-        }
-        throw newResponse
-      }
-    }
-  }
-  return tryRequest()
-}
-
-const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
-// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
-// are not transient and the request should not be retried.
-const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
-const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
-const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
-const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
-const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
-const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
-const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
-const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchOk)
-const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
-const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
-const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
@@ -485,7 +388,6 @@ const Groups = signal => ({
   }
 })
 
-
 const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
@@ -641,7 +543,6 @@ const CromIAM = signal => ({
     return res.json()
   }
 })
-
 
 const Workspaces = signal => ({
   list: async fields => {
@@ -1079,7 +980,6 @@ const Catalog = signal => ({
   }
 })
 
-
 const DataRepo = signal => ({
   snapshot: snapshotId => {
     return {
@@ -1500,7 +1400,6 @@ const Buckets = signal => ({
   }
 })
 
-
 const FirecloudBucket = signal => ({
   getServiceAlerts: async () => {
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/alerts.json`, { signal })
@@ -1527,7 +1426,6 @@ const FirecloudBucket = signal => ({
     return res.json()
   }
 })
-
 
 const Methods = signal => ({
   list: async params => {
@@ -1593,7 +1491,6 @@ const Methods = signal => ({
     }
   }
 })
-
 
 const Submissions = signal => ({
   queueStatus: async () => {
