@@ -5,10 +5,29 @@ import { div, h } from 'react-hyperscript-helpers'
 import { tools } from 'src/components/notebook-utils'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/libs/runtime-utils'
+import * as Utils from 'src/libs/utils'
+import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 
-import { ContextBar } from '../ContextBar'
 
+const GALAXY_COMPUTE_COST = 10
+const GALAXY_DISK_COST = 1
+const RUNTIME_COST = 0.1
+const PERSISTENT_DISK_COST = 0.01
+
+jest.mock('src/libs/runtime-utils', () => {
+  const originalModule = jest.requireActual('src/libs/runtime-utils')
+
+  return {
+    ...originalModule,
+    getGalaxyComputeCost: jest.fn(),
+    getGalaxyDiskCost: jest.fn(),
+    getPersistentDiskCostHourly: jest.fn(),
+    getRuntimeCost: jest.fn(),
+    runtimeConfigCost: jest.fn()
+  }
+})
 
 // Mocking for terminalLaunchLink using Nav.getLink
 jest.mock('src/libs/nav', () => {
@@ -75,6 +94,22 @@ beforeEach(() => {
         runtime: mockRuntime
       }
     }
+  })
+
+  getGalaxyComputeCost.mockImplementation(() => {
+    return GALAXY_COMPUTE_COST
+  })
+  getGalaxyDiskCost.mockImplementation(() => {
+    return GALAXY_DISK_COST
+  })
+  getRuntimeCost.mockImplementation(() => {
+    return RUNTIME_COST
+  })
+  getPersistentDiskCostHourly.mockImplementation(() => {
+    return PERSISTENT_DISK_COST
+  })
+  runtimeConfigCost.mockImplementation(() => {
+    return RUNTIME_COST + PERSISTENT_DISK_COST
   })
 })
 
@@ -143,7 +178,7 @@ const galaxyDisk = {
   zone: 'us-central1-a'
 }
 
-const jupyter1 = {
+const jupyter = {
   id: 75239,
   workspaceId: null,
   runtimeName: 'saturn-eae9168f-9b99-4910-945e-dbab66e04d91',
@@ -160,7 +195,7 @@ const jupyter1 = {
   },
   runtimeConfig: {
     machineType: 'n1-standard-1',
-    persistentDiskId: 14692,
+    persistentDiskId: 15778,
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
@@ -224,8 +259,8 @@ const azureRunning = {
   }
 }
 
-const jupyter1Disk = {
-  id: 14692,
+const runtimeDisk = {
+  id: 15778,
   googleProject: 'terra-dev-cf677740',
   cloudContext: {
     cloudProvider: 'GCP',
@@ -270,14 +305,14 @@ const rstudioRuntime = {
   },
   runtimeConfig: {
     machineType: 'n1-standard-4',
-    persistentDiskId: 15774,
+    persistentDiskId: 15778,
     cloudService: 'GCE',
     bootDiskSize: 120,
     zone: 'us-central1-a',
     gpuConfig: null
   },
   proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/terra-dev-98897219/saturn-48afb74a-15b1-4aad-8b23-d039cf8253fb/rstudio',
-  status: 'Creating',
+  status: 'Running',
   labels: {
     saturnWorkspaceNamespace: 'general-dev-billing-account',
     'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
@@ -326,8 +361,8 @@ describe('ContextBar - buttons', () => {
     // Arrange
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [jupyter1],
-      persistentDisks: [jupyter1Disk]
+      runtimes: [jupyter],
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
@@ -338,16 +373,39 @@ describe('ContextBar - buttons', () => {
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
     expect(screen.getByLabelText('Terminal button')).toBeEnabled()
+    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
+    expect(screen.getByText(/Running \$.*\/hr/))
+  })
+
+  it('will render Jupyter in Creating status', () => {
+    // Arrange
+    const jupyterContextBarProps = {
+      ...contextBarProps,
+      runtimes: [{ ...jupyter, status: 'Creating' }],
+      persistentDisks: [runtimeDisk]
+    }
+
+    // Act
+    render(h(ContextBar, jupyterContextBarProps))
+
+    //Assert
+    expect(screen.getByText('Rate:'))
+    expect(screen.getByLabelText('Environment Configuration'))
+    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(screen.getByLabelText('Terminal button')).toBeEnabled()
+    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
+    expect(screen.getByText(/Creating \$.*\/hr/))
+    expect(screen.getByText(/Disk \$.*\/hr/))
   })
 
   it('will render Galaxy and RStudio buttons with a disabled Terminal Button', () => {
     // Arrange
     const rstudioGalaxyContextBarProps = {
       ...contextBarProps,
-      runtimes: [rstudioRuntime],
+      runtimes: [{ ...rstudioRuntime, status: 'Creating' }],
       apps: [galaxyRunning],
       appDataDisks: [galaxyDisk],
-      persistentDisks: [jupyter1Disk]
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
@@ -355,10 +413,14 @@ describe('ContextBar - buttons', () => {
 
     //Assert
     expect(screen.getByText('Rate:'))
+    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + GALAXY_COMPUTE_COST + GALAXY_DISK_COST + PERSISTENT_DISK_COST)))
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
     expect(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
     expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(screen.getByText(/Running \$.*\/hr/))
+    expect(screen.getByText(/Creating \$.*\/hr/))
+    expect(screen.getByText(/Disk \$.*\/hr/))
   })
 
   it('will render a Cromwell button with a disabled Terminal Button', () => {
@@ -374,6 +436,7 @@ describe('ContextBar - buttons', () => {
 
     //Assert
     expect(screen.getByText('Rate:'))
+    expect(screen.getByText('$0.00'))
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
     expect(screen.getByLabelText(new RegExp(/Cromwell Environment/i)))
@@ -391,6 +454,7 @@ describe('ContextBar - buttons', () => {
 
     //Assert
     expect(screen.getByText('Rate:'))
+    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST)))
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText(new RegExp(/Azure Environment/i)))
     expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
@@ -401,8 +465,8 @@ describe('ContextBar - buttons', () => {
       ...contextBarProps,
       runtimes: [
         {
-          ...jupyter1,
-          status: 'error'
+          ...jupyter,
+          status: 'Error'
         }
       ],
       persistentDisks: []
@@ -413,9 +477,10 @@ describe('ContextBar - buttons', () => {
 
     //Assert
     expect(screen.getByText('Rate:'))
+    expect(screen.getByText(`${Utils.formatUSD(RUNTIME_COST)}`))
     expect(screen.getByLabelText('Environment Configuration'))
     expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(screen.findByText(/Error $/))
+    expect(screen.getByText(/Error \$0.00\/hr/))
   })
 })
 
@@ -433,8 +498,8 @@ describe('ContextBar - actions', () => {
     // Arrange
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [jupyter1],
-      persistentDisks: [jupyter1Disk]
+      runtimes: [jupyter],
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
@@ -468,7 +533,7 @@ describe('ContextBar - actions', () => {
       runtimes: [rstudioRuntime],
       apps: [galaxyRunning],
       appDataDisks: [galaxyDisk],
-      persistentDisks: [jupyter1Disk]
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
@@ -494,10 +559,10 @@ describe('ContextBar - actions', () => {
     const jupyterContextBarProps = {
       ...contextBarProps,
       runtimes: [{
-        ...jupyter1,
+        ...jupyter,
         status: 'Stopped'
       }],
-      persistentDisks: [jupyter1Disk]
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
@@ -505,7 +570,7 @@ describe('ContextBar - actions', () => {
     fireEvent.click(screen.getByLabelText('Terminal button'))
 
     // Assert
-    expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter1.googleProject, jupyter1.runtimeName)
+    expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter.googleProject, jupyter.runtimeName)
     expect(mockRuntimesStartFn).toBeCalledTimes(1)
   })
 
@@ -523,9 +588,9 @@ describe('ContextBar - actions', () => {
     const jupyterContextBarProps = {
       ...contextBarProps,
       runtimes: [
-        jupyter1
+        jupyter
       ],
-      persistentDisks: [jupyter1Disk]
+      persistentDisks: [runtimeDisk]
     }
 
     // Act
