@@ -171,7 +171,7 @@ export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) 
     title: `Restore version`,
     okButton: h(ButtonPrimary, { onClick: () => onConfirm() }, ['Restore'])
   }, [
-    'This version will be restored to a a new data table: ',
+    'This version will be restored to a new data table: ',
     span({ style: { fontWeight: 600 } }, [tableNameForRestore(version)])
   ])
 }
