@@ -10,9 +10,9 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
-import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 export const StatusMessage = ({ hideSpinner, children }) => {
