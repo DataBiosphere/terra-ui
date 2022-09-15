@@ -76,13 +76,13 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
-    isRadX() && popoutItem({
-      link: 'https://www.hhs.gov/vulnerability-disclosure-policy/index.html',
-      displayName: 'HHS Vulnerability Disclosure'
-    }),
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
       displayName: 'Security'
+    }),
+    isRadX() && popoutItem({
+      link: 'https://www.hhs.gov/vulnerability-disclosure-policy/index.html',
+      displayName: 'HHS Vulnerability Disclosure'
     }),
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us',
