@@ -25,7 +25,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -426,7 +426,7 @@ const WorkspaceData = _.flow(
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
 
-  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion } = useDataTableVersions(workspace)
+  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, restoreDataTableVersion } = useDataTableVersions(workspace)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -865,9 +865,16 @@ const WorkspaceData = _.flow(
           [workspaceDataTypes.entitiesVersion, () => h(DataTableVersion, {
             workspace,
             version: selectedData.version,
-            onDelete: withErrorReporting('Error deleting version', async () => {
+            onDelete: reportErrorAndRethrow('Error deleting version', async () => {
               await deleteDataTableVersion(selectedData.version)
               setSelectedData(undefined)
+            }),
+            onRestore: reportErrorAndRethrow('Error restoring version', async () => {
+              const { tableName, ready } = await restoreDataTableVersion(selectedData.version)
+              await loadMetadata()
+              if (ready) {
+                setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
+              }
             })
           })]
         )
