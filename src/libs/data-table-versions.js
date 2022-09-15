@@ -1,10 +1,12 @@
+import { addMinutes, format } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { parseGsUri } from 'src/components/data/data-utils'
+import { notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
+import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -62,6 +64,36 @@ export const deleteDataTableVersion = async (workspace, version) => {
   await Ajax().Buckets.delete(googleProject, bucketName, objectName)
 }
 
+export const tableNameForRestore = version => {
+  const timestamp = new Date(version.timestamp)
+  return `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', addMinutes(timestamp.getTimezoneOffset(), timestamp))}`
+}
+
+export const restoreDataTableVersion = async (workspace, version) => {
+  const { workspace: { namespace, name, googleProject, bucketName } } = workspace
+
+  const [, objectName] = parseGsUri(version.url)
+  const content = await Ajax().Buckets.getObjectPreview(googleProject, bucketName, objectName, true).then(r => r.text())
+
+  const tableName = tableNameForRestore(version)
+  const file = new File(
+    [_.replace(/^entity:\S+/, `entity:${tableName}_id`, content)],
+    _.last(_.split('/', objectName)),
+    { type: 'text/tab-separated-values' }
+  )
+
+  const filesize = file?.size || Number.MAX_SAFE_INTEGER
+  if (filesize < 524288) { // 512k
+    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues: false })
+    return { tableName, ready: true }
+  } else {
+    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileAsync(file, { deleteEmptyValues: false })
+    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+    notifyDataImportProgress(jobId)
+    return { tableName, ready: false }
+  }
+}
+
 export const useDataTableVersions = workspace => {
   const signal = useCancellation()
   // { [entityType: string]: { loading: boolean, error: boolean, versions: Version[], savingNewVersion: boolean }
@@ -99,6 +131,10 @@ export const useDataTableVersions = workspace => {
     deleteDataTableVersion: async version => {
       await deleteDataTableVersion(workspace, version)
       setDataTableVersions(_.update([version.entityType, 'versions'], _.remove({ timestamp: version.timestamp })))
+    },
+
+    restoreDataTableVersion: version => {
+      return restoreDataTableVersion(workspace, version)
     }
   }
 }

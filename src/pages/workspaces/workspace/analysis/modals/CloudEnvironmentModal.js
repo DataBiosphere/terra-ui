@@ -147,6 +147,7 @@ export const CloudEnvironmentModal = ({
     }
   }
 
+  //TODO: add azure start
   // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
   const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)

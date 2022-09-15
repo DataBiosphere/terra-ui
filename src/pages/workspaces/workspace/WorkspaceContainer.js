@@ -20,7 +20,9 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
+import {
+  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isAzureContext, mapToPdTypes
+} from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -229,7 +231,8 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
       // associated with runtimes and disks will not match the workspace googleProject. These
       // should be hidden from the user.
-      const isV1Artifact = ({ googleProject = undefined }) => googleProject && googleProject !== workspace.workspace.googleProject
+      const isV1Artifact = ({ googleProject = undefined, cloudContext }) => isAzureContext(cloudContext) ? false :
+        googleProject && googleProject !== workspace.workspace.googleProject
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime

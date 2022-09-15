@@ -4164,6 +4164,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"blob-polyfill@npm:^7.0.20220408":
+  version: 7.0.20220408
+  resolution: "blob-polyfill@npm:7.0.20220408"
+  checksum: bbd062e904d851b0e0a733265150d0c189a575f80a98256515d265e265ada6f92a787d43fedaa791c00910c174131f9d7168e8c158e3334c965d045358c177da
+  languageName: node
+  linkType: hard
+
 "bluebird@npm:^3.5.5":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
@@ -13968,6 +13975,7 @@ resolve@^2.0.0-next.3:
     animate.css: ^4.1.1
     array-move: ^4.0.0
     babel-plugin-prismjs: ^2.1.0
+    blob-polyfill: ^7.0.20220408
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     csp-html-webpack-plugin: ^5.1.0
