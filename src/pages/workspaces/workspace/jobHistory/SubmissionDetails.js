@@ -96,7 +96,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
           options: Utils.workflowStatuses
         })
       ]),
-      h(Link, { onClick: () => downloadWorkflows(_.keys(_.head(filteredWorkflows)), filteredWorkflows, submissionId) }, ['Download TSV'])
+      h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV'])
     ]),
     // 48px is based on the default row height of FlexTable
     div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * tableRowHeight}px` } }, [
