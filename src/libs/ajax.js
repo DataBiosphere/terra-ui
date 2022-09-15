@@ -1,6 +1,7 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { appIdentifier, authOpts, fetchOk, jsonBody, withUrlPrefix } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { Disks } from 'src/libs/ajax/Disks'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -8,9 +9,7 @@ import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import {
-  ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
-} from 'src/libs/state'
+import { authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { v4 as uuid } from 'uuid'
@@ -27,33 +26,6 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   }),
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
-}
-
-export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
-export const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
-export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-
-// Allows use of ajaxOverrideStore to stub responses for testing
-const withInstrumentation = wrappedFetch => (...args) => {
-  return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => {
-      const [url, { method = 'GET' } = {}] = args
-      return _.isFunction(filter) ? filter(...args) : url.match(filter.url) && (!filter.method || filter.method === method)
-    }, ajaxOverridesStore.get()))
-  )(wrappedFetch)(...args)
-}
-
-// Ignores cancellation error when request is cancelled
-const withCancellation = wrappedFetch => async (...args) => {
-  try {
-    return await wrappedFetch(...args)
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return Utils.abandonedPromise()
-    } else {
-      throw error
-    }
-  }
 }
 
 const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
@@ -74,20 +46,6 @@ const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...a
     }
   }
   return wrappedFetch(...args)
-})
-
-// Converts non-200 responses to exceptions
-const withErrorRejection = wrappedFetch => async (...args) => {
-  const res = await wrappedFetch(...args)
-  if (res.ok) {
-    return res
-  } else {
-    throw res
-  }
-}
-
-const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
-  return wrappedFetch(prefix + path, ...args)
 })
 
 const withAppIdentifier = wrappedFetch => (url, options) => {
@@ -151,8 +109,6 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   return tryRequest()
 }
 
-export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
-
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
@@ -163,7 +119,6 @@ const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingPr
 const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
-export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
 const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)

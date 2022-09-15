@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax'
+import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-common'
 
 
 export const Apps = signal => ({
