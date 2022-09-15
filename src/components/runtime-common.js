@@ -112,7 +112,7 @@ export const PeriodicAzureCookieSetter = ({ proxyUrl }) => {
   const signal = useCancellation()
   usePollingEffect(
     withErrorIgnoring(async () => {
-      await Ajax(signal).Runtimes.setAzureCookie(proxyUrl)
+      await Ajax(signal).Runtimes.azureProxy(proxyUrl).setAzureCookie()
       azureCookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }

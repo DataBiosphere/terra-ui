@@ -6,7 +6,7 @@ import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/commo
 import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
 } from 'src/components/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
@@ -36,16 +36,25 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
 
   const findAnalysis = async v => {
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
-    const selectedAnalyses = await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName)
+
+    const selectedAnalyses = !!tempChosenWorkspace.googleProject ?
+      await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName) :
+      await Ajax(signal).AzureStorage.listNotebooks(tempChosenWorkspace.workspaceId)
     setExistingNames(_.map(({ name }) => getDisplayName(name), selectedAnalyses))
   }
 
   const copy = Utils.withBusyState(setCopying, async () => {
     try {
-      await Ajax()
-        .Buckets
-        .analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, printName, toolLabel)
-        .copy(newName, selectedWorkspace.workspace.bucketName)
+      if (!!workspace.workspace.googleProject) {
+        await Ajax()
+          .Buckets
+          .analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, printName, toolLabel)
+          .copy(newName, selectedWorkspace.workspace.bucketName)
+      } else {
+        await Ajax(signal).AzureStorage
+          .blob(workspace.workspace.workspaceId, printName)
+          .copy(stripExtension(newName), selectedWorkspace.workspace.workspaceId)
+      }
       setCopied(true)
       Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
     } catch (error) {
