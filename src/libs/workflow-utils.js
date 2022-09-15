@@ -64,6 +64,16 @@ export const downloadWorkflows = (rows, filename) => {
     _.map(row => _.map(v => _.isObject(v) ? JSON.stringify(v) : v, _.values(row)))
   )(rows)
 
-  const blob = new Blob([Utils.makeTSV([headers, ...stringifiedRows])], { type: 'text/tab-separated-values' })
+  const rowsAndHeaders = [headers, ...stringifiedRows]
+
+  //Shifts the workflowId column to the first column in the TSV
+  const workflowIdIndex = _.indexOf('workflowId', headers)
+  const reorderedTSVContents = _.map(row => [
+    ..._.slice(workflowIdIndex, workflowIdIndex + 1, row), // the workflowId column itself
+    ..._.slice(0, workflowIdIndex, row), // the columns originally before the workflowId col
+    ..._.slice(workflowIdIndex + 1, _.size(row), row) // the columns originally after the workflowId col
+  ], rowsAndHeaders)
+
+  const blob = new Blob([Utils.makeTSV(reorderedTSVContents)], { type: 'text/tab-separated-values' })
   FileSaver.saveAs(blob, `${filename}.tsv`)
 }
