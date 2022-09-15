@@ -6,6 +6,7 @@ import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePrevi
 import { FeaturePreviews } from 'src/pages/FeaturePreviews'
 
 
+jest.mock('src/libs/ajax')
 jest.mock('src/libs/feature-previews')
 
 

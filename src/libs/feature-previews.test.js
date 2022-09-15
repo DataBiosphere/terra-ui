@@ -1,5 +1,6 @@
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import { getAvailableFeaturePreviews, isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 
@@ -43,8 +44,18 @@ describe('isFeaturePreviewEnabled', () => {
 
 describe('toggleFeaturePreview', () => {
   it('sets local preference', () => {
+    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: jest.fn() } }))
+
     toggleFeaturePreview('test-feature', false)
     expect(setLocalPref).toHaveBeenCalledWith('feature-preview/test-feature', false)
+  })
+
+  it('captures metrics', () => {
+    const captureEvent = jest.fn()
+    Ajax.mockImplementation(() => ({ Metrics: { captureEvent } }))
+
+    toggleFeaturePreview('test-feature', true)
+    expect(captureEvent).toHaveBeenCalledWith(Events.featurePreviewToggle, { enabled: true })
   })
 })
 

@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import featurePreviewsConfig from 'src/libs/feature-previews-config'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -14,6 +15,7 @@ export const isFeaturePreviewEnabled = id => !!getLocalPref(featurePreviewPrefer
 
 export const toggleFeaturePreview = (id, enabled) => {
   setLocalPref(featurePreviewPreferenceKey(id), enabled)
+  Ajax().Metrics.captureEvent(Events.featurePreviewToggle, { enabled })
 }
 
 const getGroups = async ({ signal } = {}) => {
