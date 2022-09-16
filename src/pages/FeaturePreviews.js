@@ -68,17 +68,15 @@ export const FeaturePreviews = () => {
   )
 }
 
-const FeaturePreviewsPage = () => {
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Feature Preview' }),
-    h(PageBox, { role: 'main' }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-        'Feature Preview'
-      ]),
-      h(FeaturePreviews)
-    ])
+const FeaturePreviewsPage = () => h(FooterWrapper, [
+  h(TopBar, { title: 'Feature Preview' }),
+  h(PageBox, { role: 'main' }, [
+    h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+      'Feature Preview'
+    ]),
+    h(FeaturePreviews)
   ])
-}
+])
 
 export const navPaths = [
   {
