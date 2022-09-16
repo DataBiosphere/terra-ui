@@ -27,7 +27,7 @@ export const FeaturePreviews = () => {
   return Utils.cond(
     [loading, () => spinnerOverlay],
     [error, () => p({ style: { margin: 0 } }, ['Unable to load feature previews.'])],
-    [_.size(featurePreviews) === 0, () => p({ style: { margin: 0 } }, ['No feature previews available at this time.'])],
+    [_.isEmpty(featurePreviews), () => p({ style: { margin: 0 } }, ['No feature previews available at this time.'])],
     () => h(Fragment, [
       p(['These features are proof-of-concept and may change without notice.']),
       h(SimpleFlexTable, {
