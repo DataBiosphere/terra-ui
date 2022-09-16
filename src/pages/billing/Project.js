@@ -764,7 +764,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       } else {
         setErrorMessage(await (error instanceof Response ? error.text() : error))
       }
-    }).finally(() => setUpdating(true))
+    }).finally(() => setUpdating(false))
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
