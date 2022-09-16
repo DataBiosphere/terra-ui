@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -13,12 +14,14 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { reloadAuthToken, signOut } from 'src/libs/auth'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -457,6 +460,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   )
   const [updatingProjectCost, setUpdatingProjectCost] = useState(false)
   const [spendReportLengthInDays, setSpendReportLengthInDays] = useState(30)
+  const [errorMessage, setErrorMessage] = useState()
 
   const signal = useCancellation()
 
@@ -519,6 +523,14 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
 
+  const json = Utils.maybeParseJSON(errorMessage)
+  const jsonFrame = {
+    padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
+    whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
+    fontFamily: 'Menlo, monospace',
+    maxHeight: 400
+  }
+
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, {
@@ -568,6 +580,34 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
+      !!errorMessage && div({
+        style: {
+          backgroundColor: colors.danger(0.15), borderRadius: '4px',
+          boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
+          padding: '1rem', margin: '1rem 0 0'
+        }
+      }, [
+        div({ style: { display: 'flex' } },
+          [
+            div({ style: { margin: '0.3rem' } }, [
+              icon('error-standard', {
+                'aria-hidden': false, 'aria-label': 'error notification', size: 30,
+                style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
+              })
+            ]),
+            Utils.cond(
+              [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
+                [
+                  div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' } },
+                    json.message.charAt(0).toUpperCase() + json.message.slice(1)),
+                  h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
+                    [
+                      div({ style: jsonFrame }, [JSON.stringify(json, null, 2)])
+                    ])
+                ])],
+              () => div({ style: { display: 'flex', alignItems: 'center' } }, errorMessage.toString()))
+          ])
+      ]),
       div(
         {
           style: {
@@ -663,7 +703,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   // Update cost data only if report date range changes, or if spend report tab was selected.
   useEffect(() => {
     const maybeLoadProjectCost = _.flow(
-      reportErrorAndRethrow('Unable to retrieve spend report data'),
       Utils.withBusyState(setUpdating)
     )(async () => {
       if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
@@ -717,7 +756,16 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         setUpdatingProjectCost(false)
       }
     })
-    maybeLoadProjectCost()
+    maybeLoadProjectCost().catch(async error => {
+      if (error instanceof Response && error.status === 401) {
+        if (!await reloadAuthToken()) {
+          notify('info', 'Session timed out', sessionTimeoutProps)
+          signOut()
+        }
+      } else {
+        setErrorMessage(await (error instanceof Response ? error.text() : error))
+      }
+    })
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
