@@ -94,7 +94,7 @@ const LandingPage = () => {
       h(ButtonOutline, {
         style: { marginLeft: '2rem', padding: '1.5rem 1rem', textTransform: 'none' },
         onClick: () => {
-          Ajax().Metrics.captureEvent(`${Events.catalogView}:landingPageBanner`)
+          Ajax().Metrics.captureEvent(Events.catalogLandingPageBanner)
           setLocalPref('catalog-toggle', true)
           Nav.goToPath('library-datasets')
         }
