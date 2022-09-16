@@ -107,7 +107,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-switch", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.0.0"],\
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.3.3"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.2"],\
-            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:9.22.3"],\
+            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A."],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["uuid", "npm:8.3.2"],\
@@ -17057,17 +17057,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["react-virtualized", [\
-        ["npm:9.22.3", {\
-          "packageLocation": "./.yarn/cache/react-virtualized-npm-9.22.3-0fff3cbf64-5e3b566592.zip/node_modules/react-virtualized/",\
+        ["patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A.", {\
+          "packageLocation": "./.yarn/cache/react-virtualized-patch-404abb876c-4cacce423b.zip/node_modules/react-virtualized/",\
           "packageDependencies": [\
-            ["react-virtualized", "npm:9.22.3"]\
+            ["react-virtualized", "patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A."]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:9.22.3", {\
-          "packageLocation": "./.yarn/__virtual__/react-virtualized-virtual-c5e8aa8be9/0/cache/react-virtualized-npm-9.22.3-0fff3cbf64-5e3b566592.zip/node_modules/react-virtualized/",\
+        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A.", {\
+          "packageLocation": "./.yarn/__virtual__/react-virtualized-virtual-af1bdf0ed8/0/cache/react-virtualized-patch-404abb876c-4cacce423b.zip/node_modules/react-virtualized/",\
           "packageDependencies": [\
-            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:9.22.3"],\
+            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A."],\
             ["@babel/runtime", "npm:7.18.6"],\
             ["@types/react", null],\
             ["@types/react-dom", null],\
@@ -18897,7 +18897,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["react-switch", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:6.0.0"],\
             ["react-textarea-autosize", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:8.3.3"],\
             ["react-transition-group", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.2"],\
-            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:9.22.3"],\
+            ["react-virtualized", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#patch:react-virtualized@npm%3A9.22.3#./.yarn/patches/react-virtualized-9.22.3.patch::version=9.22.3&hash=5210c2&locator=terra-ui%40workspace%3A."],\
             ["source-map-explorer", "npm:2.5.2"],\
             ["svgo", "npm:1.3.2"],\
             ["uuid", "npm:8.3.2"],\
