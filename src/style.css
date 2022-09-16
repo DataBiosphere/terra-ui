@@ -1,8 +1,8 @@
-@import "fonts/Montserrat.css";
-@import "~github-markdown-css/github-markdown.css";
-@import "~animate.css/animate.css";
-@import "~easymde/dist/easymde.min.css";
-@import "~react-notifications-component/dist/theme.css";
+@import "./fonts/Montserrat.css";
+@import "github-markdown-css/github-markdown.css";
+@import "animate.css/animate.css";
+@import "easymde/dist/easymde.min.css";
+@import "react-notifications-component/dist/theme.css";
 
 /* This adds some low-level css resets based on the browserslist in package.json, see https://create-react-app.dev/docs/adding-css-reset */
 @import-normalize;

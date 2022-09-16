@@ -116,7 +116,7 @@ export const updateSearch = params => {
 export const PathHashInserter = () => {
   useOnMount(() => {
     const loc = window.location
-    const desiredPath = `${process.env.PUBLIC_URL}/`
+    const desiredPath = import.meta.env.BASE_URL
     if (loc.pathname !== desiredPath) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
       window.history.replaceState({}, '', desiredPath)
