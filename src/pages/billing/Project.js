@@ -702,9 +702,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
   // Update cost data only if report date range changes, or if spend report tab was selected.
   useEffect(() => {
-    const maybeLoadProjectCost = _.flow(
-      Utils.withBusyState(setUpdating)
-    )(async () => {
+    const maybeLoadProjectCost = async () => {
+      setUpdating(true)
       if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
         setUpdatingProjectCost(true)
         const endDate = new Date().toISOString().slice(0, 10)
@@ -755,7 +754,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         setCostPerWorkspace(costPerWorkspace)
         setUpdatingProjectCost(false)
       }
-    })
+    }
     maybeLoadProjectCost().catch(async error => {
       if (error instanceof Response && error.status === 401) {
         if (!await reloadAuthToken()) {
@@ -765,7 +764,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       } else {
         setErrorMessage(await (error instanceof Response ? error.text() : error))
       }
-    })
+    }).finally(() => setUpdating(true))
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
