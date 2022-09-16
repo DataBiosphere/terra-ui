@@ -1,19 +1,14 @@
-import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
+import { parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts'
-import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax } from 'src/libs/ajax'
 import { fetchOk } from 'src/libs/ajax/ajax-common'
-import { getEnabledBrand } from 'src/libs/brand-utils'
 import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
-import * as Nav from 'src/libs/nav'
-import { clearMatchingNotifications, clearNotification, muteNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
@@ -361,58 +356,6 @@ authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
   }
 }))
 
-export const updateNihLinkExpirationNotification = status => {
-  // Clear any old notifications
-  clearMatchingNotifications(`nih-link-expiration/`)
-
-  const now = Date.now()
-  // Orchestration API returns NIH link expiration time in seconds since epoch
-  const dateOfExpiration = status && new Date(status.linkExpireTime * 1000)
-  const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-1, dateOfExpiration)
-  if (shouldNotify) {
-    const hasExpired = now >= dateOfExpiration
-
-    // Previously, muting notifications for an expiring NIH account link would store the expiration time of
-    // the link for which notifications were muted. Now, these notifications are muted using muteNotification
-    // from libs/notifications. This is kept to avoid showing notifications that were muted using the old method.
-    // Once enough time has passed for NIH account links to expire and users to re-link them, this can be removed
-    // with less disruption.
-    const muteNotificationPreferenceKey = `mute-nih-notification/${hasExpired ? 'nih-link-expired' : 'nih-link-expires-soon'}`
-    const mutedNotificationExpirationTime = getLocalPref(muteNotificationPreferenceKey)
-    if (mutedNotificationExpirationTime && mutedNotificationExpirationTime === dateOfExpiration.getTime()) {
-      return
-    }
-
-    // Separate notifications for expired and expiring. If a user mutes the notification that a link will
-    // expire soon, then we still want to notify them once the link has actually expired.
-    // The link expiration time is included in the notification ID so that a muting notifications only
-    // applies to the current instance of the link. If an account is re-linked, notifications should
-    // be shown again when that link is expiring.
-    const notificationId = `nih-link-expiration/${dateOfExpiration.getTime()}/${hasExpired ? 'expired' : 'expiring'}`
-
-    notify('info', `Your access to NIH Controlled Access workspaces and data ${hasExpired ? 'has expired' : 'will expire soon'}.`, {
-      id: notificationId,
-      message: h(Fragment, [
-        'To regain access, ',
-        h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
-        ` your eRA Commons / NIH account (${status.linkedNihUsername}) with ${getEnabledBrand().name}.`
-      ]),
-      action: {
-        label: 'Do not remind me again',
-        callback: () => {
-          muteNotification(notificationId)
-        }
-      }
-    })
-  }
-}
-
-authStore.subscribe((state, oldState) => {
-  if (state.nihStatus !== oldState.nihStatus) {
-    updateNihLinkExpirationNotification(state.nihStatus)
-  }
-})
-
 authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
   if (becameRegistered(oldState, state)) {
     await Promise.all(_.map(async ({ key }) => {
@@ -421,61 +364,6 @@ authStore.subscribe(withErrorReporting('Error loading Framework Services account
     }, allProviders))
   }
 }))
-
-export const updateFenceLinkExpirationNotification = (provider, status) => {
-  const { key, name } = provider
-
-  // Clear any old notifications
-  clearMatchingNotifications(`fence-link-expiration/${key}/`)
-
-  const now = Date.now()
-  // Bond API returns link time as an ISO formatted string.
-  const dateOfExpiration = status && addDays(provider.expiresAfter, parseJSON(status.issued_at))
-  const shouldNotify = Boolean(dateOfExpiration) && now >= addDays(-5, dateOfExpiration)
-
-  if (shouldNotify) {
-    const hasExpired = now >= dateOfExpiration
-
-    // Separate notifications for expired and expiring. If a user mutes the notification that a link will
-    // expire soon, then we still want to notify them once the link has actually expired.
-    // The link expiration time is included in the notification ID so that a muting notifications only
-    // applies to the current instance of the link. If an account is re-linked, notifications should
-    // be shown again when that link is expiring.
-    const notificationId = `fence-link-expiration/${key}/${dateOfExpiration.getTime()}/${hasExpired ? 'expired' : 'expiring'}`
-
-    const expireStatus = hasExpired ?
-      'has expired' :
-      `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`
-
-    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
-    notify('info', div([
-      `Your access to ${name} ${expireStatus}. Log in to `,
-      h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
-      ' your access or ',
-      h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
-      ' your account.'
-    ]), {
-      id: notificationId,
-      action: {
-        label: 'Do not remind me again',
-        callback: () => {
-          muteNotification(notificationId)
-        }
-      }
-    })
-  }
-}
-
-authStore.subscribe((state, oldState) => {
-  _.forEach(provider => {
-    const { key } = provider
-    const status = state.fenceStatus[key]
-    const oldStatus = oldState.fenceStatus[key]
-    if (status !== oldStatus) {
-      updateFenceLinkExpirationNotification(provider, status)
-    }
-  }, allProviders)
-})
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
