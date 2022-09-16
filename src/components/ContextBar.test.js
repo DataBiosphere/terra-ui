@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render } from '@testing-library/react'
 import { div, h } from 'react-hyperscript-helpers'
 import { tools } from 'src/components/notebook-utils'
 import { MenuTrigger } from 'src/components/PopupTrigger'
@@ -349,12 +349,12 @@ const contextBarProps = {
 describe('ContextBar - buttons', () => {
   it('will render default icons', () => {
     // Act
-    render(h(ContextBar, contextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, contextBarProps))
 
     // Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByText('Rate:'))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
   })
 
   it('will render Jupyter button with an enabled Terminal Button', () => {
@@ -366,15 +366,15 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(screen.getByLabelText('Terminal button')).toBeEnabled()
-    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
-    expect(screen.getByText(/Running \$.*\/hr/))
+    expect(getByText('Rate:'))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(getByLabelText('Terminal button')).toBeEnabled()
+    expect(getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
+    expect(getByText(/Running \$.*\/hr/))
   })
 
   it('will render Jupyter in Creating status', () => {
@@ -386,15 +386,15 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(screen.getByLabelText('Terminal button')).toBeEnabled()
-    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
-    expect(screen.getByText(/Creating \$.*\/hr/))
+    expect(getByText('Rate:'))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(getByLabelText('Terminal button')).toBeEnabled()
+    expect(getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
+    expect(getByText(/Creating \$.*\/hr/))
   })
 
   it('will render Galaxy and RStudio buttons with a disabled Terminal Button', () => {
@@ -408,18 +408,18 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST + GALAXY_COMPUTE_COST + GALAXY_DISK_COST + PERSISTENT_DISK_COST)))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
-    expect(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
-    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
-    expect(screen.getByText(/Running \$.*\/hr/))
-    expect(screen.getByText(/Creating \$.*\/hr/))
-    expect(screen.getByText(/Disk \$.*\/hr/))
+    expect(getByText('Rate:'))
+    expect(getByText(Utils.formatUSD(RUNTIME_COST + GALAXY_COMPUTE_COST + GALAXY_DISK_COST + PERSISTENT_DISK_COST)))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText(new RegExp(/RStudio Environment/i)))
+    expect(getByLabelText(new RegExp(/Galaxy Environment/i)))
+    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByText(/Running \$.*\/hr/))
+    expect(getByText(/Creating \$.*\/hr/))
+    expect(getByText(/Disk \$.*\/hr/))
   })
 
   it('will render a Cromwell button with a disabled Terminal Button', () => {
@@ -431,14 +431,14 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByText('$0.00'))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
-    expect(screen.getByLabelText(new RegExp(/Cromwell Environment/i)))
+    expect(getByText('Rate:'))
+    expect(getByText('$0.00'))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
   it('will render Azure Environment button', () => {
@@ -449,14 +449,14 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByText(Utils.formatUSD(RUNTIME_COST)))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText(new RegExp(/Azure Environment/i)))
-    expect(screen.getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByText('Rate:'))
+    expect(getByText(Utils.formatUSD(RUNTIME_COST)))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText(new RegExp(/Azure Environment/i)))
+    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
   })
 
   it('will render button with error status', () => {
@@ -472,26 +472,27 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
-    expect(screen.getByText('Rate:'))
-    expect(screen.getByText(`${Utils.formatUSD(RUNTIME_COST)}`))
-    expect(screen.getByLabelText('Environment Configuration'))
-    expect(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(screen.getByText(/Error \$0.00\/hr/))
+    expect(getByText('Rate:'))
+    expect(getByText(`${Utils.formatUSD(RUNTIME_COST)}`))
+    expect(getByLabelText('Environment Configuration'))
+    expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
+    expect(getByText(/Error \$0.00\/hr/))
   })
 })
 
 describe('ContextBar - actions', () => {
   it('clicking environment configuration opens CloudEnvironmentModal', () => {
     // Act
-    render(h(ContextBar, contextBarProps))
-    const envConf = screen.getByLabelText('Environment Configuration')
+    const { getByText, getByLabelText } = render(h(ContextBar, contextBarProps))
+
+    const envConf = getByLabelText('Environment Configuration')
     fireEvent.click(envConf)
 
     // Assert
-    screen.getByText('Cloud Environment Details')
+    expect(getByText('Cloud Environment Details'))
   })
   it('clicking Jupyter opens CloudEnvironmentModal with Jupyter as filter for tool.', () => {
     // Arrange
@@ -502,12 +503,12 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(screen.getByLabelText(new RegExp(/Jupyter Environment/i)))
+    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(getByLabelText(new RegExp(/Jupyter Environment/i)))
 
     // Assert
-    screen.getByText('Cloud Environment Details')
-    screen.getByText(tools.Jupyter.label)
+    getByText('Cloud Environment Details')
+    getByText(tools.Jupyter.label)
   })
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
     // Arrange
@@ -518,12 +519,12 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    render(h(ContextBar, galaxyContextBarProps))
-    fireEvent.click(screen.getByLabelText(new RegExp(/Galaxy Environment/i)))
+    const { getByLabelText, getByText } = render(h(ContextBar, galaxyContextBarProps))
+    fireEvent.click(getByLabelText(new RegExp(/Galaxy Environment/i)))
 
     // Assert
-    screen.getByText('Cloud Environment Details')
-    screen.getByText(tools.Galaxy.label)
+    getByText('Cloud Environment Details')
+    getByText(tools.Galaxy.label)
   })
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
     // Act
@@ -536,12 +537,12 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    render(h(ContextBar, rstudioContextBarProps))
-    fireEvent.click(screen.getByLabelText(new RegExp(/RStudio Environment/i)))
+    const { getByText, getByLabelText } = render(h(ContextBar, rstudioContextBarProps))
+    fireEvent.click(getByLabelText(new RegExp(/RStudio Environment/i)))
 
     // Assert
-    screen.getByText('Cloud Environment Details')
-    screen.getByText(tools.RStudio.label)
+    getByText('Cloud Environment Details')
+    getByText(tools.RStudio.label)
   })
 
   it('clicking Terminal will attempt to start currently stopped runtime', () => {
@@ -565,8 +566,8 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(screen.getByLabelText('Terminal button'))
+    const { getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(getByLabelText('Terminal button'))
 
     // Assert
     expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter.googleProject, jupyter.runtimeName)
@@ -593,8 +594,8 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(screen.getByLabelText('Terminal button'))
+    const { getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(getByLabelText('Terminal button'))
 
     // Assert
     expect(mockRuntimesStartFn).toBeCalledTimes(0)
@@ -602,25 +603,23 @@ describe('ContextBar - actions', () => {
 
   it('onSuccess will close modal', () => {
     // Act
-    render(h(ContextBar, contextBarProps))
-    const envConf = screen.getByLabelText('Environment Configuration')
+    const { getByText, getByLabelText, queryByText } = render(h(ContextBar, contextBarProps))
+    const envConf = getByLabelText('Environment Configuration')
     fireEvent.click(envConf)
-    screen.getByText('Cloud Environment Details')
-    fireEvent.click(screen.getByText('SuccessButton'))
+    fireEvent.click(getByText('SuccessButton'))
 
     // Assert
-    expect(screen.queryByText('Cloud Environment Details')).toBeFalsy()
+    expect(queryByText('Cloud Environment Details')).toBeFalsy()
   })
 
   it('onDismiss will close modal', () => {
     // Act
-    render(h(ContextBar, contextBarProps))
-    const envConf = screen.getByLabelText('Environment Configuration')
+    const { getByText, getByLabelText, queryByText } = render(h(ContextBar, contextBarProps))
+    const envConf = getByLabelText('Environment Configuration')
     fireEvent.click(envConf)
-    screen.getByText('Cloud Environment Details')
-    fireEvent.click(screen.getByText('DismissButton'))
+    fireEvent.click(getByText('DismissButton'))
 
     // Assert
-    expect(screen.queryByText('Cloud Environment Details')).toBeFalsy()
+    expect(queryByText('Cloud Environment Details')).toBeFalsy()
   })
 })
