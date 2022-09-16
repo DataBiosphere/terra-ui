@@ -36,13 +36,17 @@ class InMemoryStorage {
   }
 }
 
-export const getStorage = storageType => {
-  if (!_.includes(storageType, ['local', 'session'])) {
-    throw new Error(`Unknown storage type: ${storageType}`)
-  }
-
+export const getLocalStorage = () => {
   try {
-    return window[`${storageType}Storage`]
+    return window.localStorage
+  } catch (error) {
+    return new InMemoryStorage()
+  }
+}
+
+export const getSessionStorage = () => {
+  try {
+    return window.sessionStorage
   } catch (error) {
     return new InMemoryStorage()
   }
@@ -68,8 +72,7 @@ const forceSetItem = (storage, key, value) => {
   }
 }
 
-export const getStatic = (storageType, key) => {
-  const storage = getStorage(storageType)
+export const getStatic = (storage, key) => {
   return maybeParseJSON(storage.getItem(key))
 }
 
@@ -82,12 +85,11 @@ export const getStatic = (storageType, key) => {
  *
  * See also `staticStorageSlot`, which can be passed to the `useStore` hook function.
  *
- * @param storage either one of : `local` or `session`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key.
  */
-export const setStatic = (storageType, key, value) => {
-  const storage = getStorage(storageType)
+export const setStatic = (storage, key, value) => {
   if (value === undefined) {
     storage.removeItem(key)
   } else {
@@ -95,8 +97,7 @@ export const setStatic = (storageType, key, value) => {
   }
 }
 
-export const listenStatic = (storageType, key, fn) => {
-  const storage = getStorage(storageType)
+export const listenStatic = (storage, key, fn) => {
   window.addEventListener('storage', e => {
     if (e.storageArea === storage && e.key === key) {
       fn(maybeParseJSON(e.newValue))
@@ -104,8 +105,7 @@ export const listenStatic = (storageType, key, fn) => {
   })
 }
 
-export const getDynamic = (storageType, key) => {
-  const storage = getStorage(storageType)
+export const getDynamic = (storage, key) => {
   const storageKey = `dynamic-storage/${key}`
   const data = maybeParseJSON(storage.getItem(storageKey))
   return data?.value
@@ -117,13 +117,12 @@ export const getDynamic = (storageType, key) => {
  * Dynamic storage will be automatically deleted in the case of space overflow, deleting oldest stored
  * data first. If your storage usage is not transient, instead use `setStatic`.
  *
- * @param storage either one of: `local` or `session`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value. Note that it will be prefixed by a value to allow separating
  * static from dynamic storage.
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key
  */
-export const setDynamic = (storageType, key, value) => {
-  const storage = getStorage(storageType)
+export const setDynamic = (storage, key, value) => {
   const storageKey = `dynamic-storage/${key}`
   if (value === undefined) {
     storage.removeItem(storageKey)
@@ -132,8 +131,7 @@ export const setDynamic = (storageType, key, value) => {
   }
 }
 
-export const listenDynamic = (storageType, key, fn) => {
-  const storage = getStorage(storageType)
+export const listenDynamic = (storage, key, fn) => {
   const storageKey = `dynamic-storage/${key}`
   window.addEventListener('storage', e => {
     if (e.storageArea === storage && e.key === storageKey) {
@@ -150,17 +148,17 @@ export const listenDynamic = (storageType, key, fn) => {
  * automatically be deleted in the case of space overflow. If the data you are using
  * is transient, consider using `setDynamic` instead.
  *
- * @param storage either one of: `local` or `session`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value
  * @returns stateful object that manages the given storage location
  */
-export const staticStorageSlot = (storageType, key) => {
+export const staticStorageSlot = (storage, key) => {
   const { subscribe, next } = subscribable()
-  const get = () => getStatic(storageType, key)
+  const get = () => getStatic(storage, key)
   const set = newValue => {
-    setStatic(storageType, key, newValue)
+    setStatic(storage, key, newValue)
     next(newValue)
   }
-  listenStatic(storageType, key, next)
+  listenStatic(storage, key, next)
   return { subscribe, get, set, update: fn => set(fn(get())) }
 }

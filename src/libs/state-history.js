@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { getDynamic, setDynamic } from 'src/libs/browser-storage'
+import { getDynamic, getSessionStorage, setDynamic } from 'src/libs/browser-storage'
 import { v4 as uuid } from 'uuid'
 
 
@@ -16,14 +16,14 @@ const getKey = () => {
 
 
 export const get = () => {
-  const data = getDynamic('session', getKey())
+  const data = getDynamic(getSessionStorage(), getKey())
   return _.isPlainObject(data) ? data : {}
 }
 
 export const set = newState => {
-  return setDynamic('session', getKey(), newState)
+  return setDynamic(getSessionStorage(), getKey(), newState)
 }
 
 export const update = newState => { set({ ...get(), ...newState }) }
 
-export const clearCurrent = () => setDynamic('session', getKey(), undefined)
+export const clearCurrent = () => setDynamic(getSessionStorage(), getKey(), undefined)

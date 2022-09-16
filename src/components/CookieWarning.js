@@ -5,7 +5,7 @@ import { Transition } from 'react-transition-group'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
-import { getStorage } from 'src/libs/browser-storage'
+import { getSessionStorage } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useStore } from 'src/libs/react-utils'
@@ -60,7 +60,7 @@ const CookieWarning = () => {
 
     cookieReadyStore.reset()
     azureCookieReadyStore.reset()
-    getStorage('session').clear()
+    getSessionStorage().clear()
   }
 
   return h(Transition, {

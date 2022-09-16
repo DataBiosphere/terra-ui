@@ -8,7 +8,7 @@ import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax } from 'src/libs/ajax'
 import { fetchOk } from 'src/libs/ajax/ajax-common'
 import { getEnabledBrand } from 'src/libs/brand-utils'
-import { getStorage } from 'src/libs/browser-storage'
+import { getLocalStorage, getSessionStorage } from 'src/libs/browser-storage'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { captureAppcuesEvent } from 'src/libs/events'
@@ -40,8 +40,8 @@ export const getOidcConfig = () => {
     prompt: 'consent login',
     scope: 'openid email profile',
     loadUserInfo: isGoogleAuthority(),
-    stateStore: new WebStorageStateStore({ store: getStorage('local') }),
-    userStore: new WebStorageStateStore({ store: getStorage('local') }),
+    stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
+    userStore: new WebStorageStateStore({ store: getLocalStorage() }),
     automaticSilentRenew: true,
     includeIdTokenInSilentRenew: true,
     extraQueryParams: { access_type: 'offline' }
@@ -60,7 +60,7 @@ export const signOut = () => {
   // TODO: invalidate runtime cookies https://broadworkbench.atlassian.net/browse/IA-3498
   cookieReadyStore.reset()
   azureCookieReadyStore.reset()
-  getStorage('session').clear()
+  getSessionStorage().clear()
   const auth = getAuthInstance()
   revokeTokens()
     .finally(() => auth.removeUser())
