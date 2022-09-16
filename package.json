@@ -110,6 +110,9 @@
     "jest-axe": "^6.0.0",
     "jest-fail-on-console": "^3.1.1",
     "lint-staged": "^13.0.3",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-normalize": "^10.0.1",
+    "postcss-preset-env": "^7.8.2",
     "prettier": "^2.8.8",
     "react-app-rewired": "^2.2.1",
     "source-map-explorer": "^2.5.2",
@@ -156,5 +159,22 @@
   "jest": {
     "clearMocks": true,
     "resetMocks": false
+  },
+  "lint-staged": {
+    "**/*.{js,ts}": [
+      "yarn eslint --max-warnings=0"
+    ]
+  },
+  "postcss": {
+    "plugins": {
+      "postcss-flexbugs-fixes": {},
+      "postcss-preset-env": {
+        "autoprefixer": {
+          "flexbox": "no-2009"
+        },
+        "stage": 3
+      },
+      "postcss-normalize": {}
+    }
   }
 }
