@@ -1,19 +1,10 @@
 const CspHtmlWebpackPlugin = require('csp-html-webpack-plugin');
 const _ = require('lodash/fp');
-const { addBabelPlugin, addWebpackPlugin } = require('customize-cra');
+const { addWebpackPlugin } = require('customize-cra');
 
 module.exports = {
   webpack(config, env) {
     return _.flow(
-      addBabelPlugin([
-        'prismjs',
-        {
-          languages: ['bash', 'python'],
-          plugins: ['line-numbers'],
-          theme: 'default',
-          css: true,
-        },
-      ]),
       addWebpackPlugin(
         new CspHtmlWebpackPlugin(
           {
