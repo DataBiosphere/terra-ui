@@ -587,7 +587,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           padding: '1rem', margin: '1rem 0 0'
         }
       }, [
-        div({ style: { display: 'flex' } },
+        div({ style: { display: 'flex' }, role: 'alert' },
           [
             div({ style: { margin: '0.3rem' } }, [
               icon('error-standard', {
