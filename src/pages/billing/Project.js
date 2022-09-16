@@ -523,13 +523,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
 
-  const json = Utils.maybeParseJSON(errorMessage)
-  const jsonFrame = {
-    padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
-    whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
-    fontFamily: 'Menlo, monospace',
-    maxHeight: 400
-  }
+  const error = Utils.maybeParseJSON(errorMessage)
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -599,10 +593,17 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
               [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
                 [
                   div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' } },
-                    json.message.charAt(0).toUpperCase() + json.message.slice(1)),
+                    error.message.charAt(0).toUpperCase() + error.message.slice(1)),
                   h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
                     [
-                      div({ style: jsonFrame }, [JSON.stringify(json, null, 2)])
+                      div({
+                        style: {
+                          padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
+                          whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
+                          fontFamily: 'Menlo, monospace',
+                          maxHeight: 400
+                        }
+                      }, [JSON.stringify(error, null, 2)])
                     ])
                 ])],
               () => div({ style: { display: 'flex', alignItems: 'center' } }, errorMessage.toString()))
