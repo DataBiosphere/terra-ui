@@ -17,7 +17,10 @@ export const FeaturePreviews = () => {
   // from local preferences. However, changing a local preference won't re-render this component and its checkboxes.
   // Thus, we also need to store this in component state and keep in sync with local preferences.
   const getFeaturePreviewState = useCallback(() => {
-    return _.flow(_.map(({ id }) => [id, isFeaturePreviewEnabled(id)]), _.fromPairs)(featurePreviews)
+    return _.flow(
+      _.map(({ id }) => [id, isFeaturePreviewEnabled(id)]),
+      _.fromPairs
+    )(featurePreviews)
   }, [featurePreviews])
 
   // Map of feature preview ID => enabled boolean
