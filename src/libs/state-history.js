@@ -16,14 +16,14 @@ const getKey = () => {
 
 
 export const get = () => {
-  const data = getDynamic(sessionStorage, getKey())
+  const data = getDynamic('session', getKey())
   return _.isPlainObject(data) ? data : {}
 }
 
 export const set = newState => {
-  return setDynamic(sessionStorage, getKey(), newState)
+  return setDynamic('session', getKey(), newState)
 }
 
 export const update = newState => { set({ ...get(), ...newState }) }
 
-export const clearCurrent = () => setDynamic(sessionStorage, getKey(), undefined)
+export const clearCurrent = () => setDynamic('session', getKey(), undefined)

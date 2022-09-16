@@ -132,7 +132,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(runtime?.createdDate)
-    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime?.id}`) || {}
+    const dateNotified = getDynamic('session', `notifiedOutdatedRuntime${runtime?.id}`) || {}
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
     const prevGalaxyApp = getCurrentApp(tools.Galaxy.appType)(prevApps)
@@ -153,7 +153,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
         }, 'Open RStudio')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
-      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
+      setDynamic('session', `notifiedOutdatedRuntime${runtime.id}`, Date.now())
       notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
           p(['Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.']),
@@ -161,7 +161,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
-      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
+      setDynamic('session', `notifiedOutdatedRuntime${runtime.id}`, Date.now())
       notify('warn', 'Outdated Cloud Environment', {
         message: 'Your cloud environment is over two months old. Please consider deleting and recreating your cloud environment in order to access the latest features and security updates.'
       })
