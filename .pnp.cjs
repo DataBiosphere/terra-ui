@@ -59,7 +59,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@vitejs/plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.0"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
-            ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
@@ -7111,28 +7110,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [\
             "@babel/core",\
             "@types/babel__core"\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["babel-plugin-prismjs", [\
-        ["npm:2.1.0", {\
-          "packageLocation": "./.yarn/cache/babel-plugin-prismjs-npm-2.1.0-487daf4f78-8bc59ca46b.zip/node_modules/babel-plugin-prismjs/",\
-          "packageDependencies": [\
-            ["babel-plugin-prismjs", "npm:2.1.0"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0", {\
-          "packageLocation": "./.yarn/__virtual__/babel-plugin-prismjs-virtual-12d1a0393d/0/cache/babel-plugin-prismjs-npm-2.1.0-487daf4f78-8bc59ca46b.zip/node_modules/babel-plugin-prismjs/",\
-          "packageDependencies": [\
-            ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
-            ["@types/prismjs", null],\
-            ["prismjs", "npm:1.27.0"]\
-          ],\
-          "packagePeers": [\
-            "@types/prismjs",\
-            "prismjs"\
           ],\
           "linkType": "HARD"\
         }]\
@@ -20765,7 +20742,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@vitejs/plugin-react", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.0"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
-            ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["check-dts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:0.7.1"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
