@@ -1,0 +1,10 @@
+See https://github.com/bvaughn/react-virtualized/issues/1632
+
+--- a/dist/es/WindowScroller/utils/onScroll.js
++++ b/dist/es/WindowScroller/utils/onScroll.js
+@@ -71,4 +71,3 @@ export function unregisterScrollListener(component, element) {
+     }
+   }
+ }
+-import { bpfrpt_proptype_WindowScroller } from "../WindowScroller.js";
+\ No newline at end of file
