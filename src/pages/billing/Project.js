@@ -581,7 +581,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
           padding: '1rem', margin: '1rem 0 0'
         }
       }, [
-        div({ style: { display: 'flex' }, role: 'alert' },
+        div({ style: { display: 'flex' } },
           [
             div({ style: { margin: '0.3rem' } }, [
               icon('error-standard', {
@@ -592,7 +592,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
             Utils.cond(
               [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
                 [
-                  div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' } },
+                  div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
                     error.message.charAt(0).toUpperCase() + error.message.slice(1)),
                   h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
                     [
@@ -606,7 +606,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
                       }, [JSON.stringify(error, null, 2)])
                     ])
                 ])],
-              () => div({ style: { display: 'flex', alignItems: 'center' } }, errorMessage.toString()))
+              () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
           ])
       ]),
       div(
