@@ -53,8 +53,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
-            ["csp-html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
-            ["customize-cra", "npm:1.0.0"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
             ["dompurify", "npm:2.3.3"],\
@@ -89,7 +87,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.10.3"],\
             ["react", "npm:17.0.2"],\
-            ["react-app-rewired", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.1"],\
             ["react-collapse", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
@@ -7710,36 +7707,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["cheerio", [\
-        ["npm:1.0.0-rc.10", {\
-          "packageLocation": "./.yarn/cache/cheerio-npm-1.0.0-rc.10-7461d63143-ace2f9c580.zip/node_modules/cheerio/",\
-          "packageDependencies": [\
-            ["cheerio", "npm:1.0.0-rc.10"],\
-            ["cheerio-select", "npm:1.5.0"],\
-            ["dom-serializer", "npm:1.3.2"],\
-            ["domhandler", "npm:4.2.0"],\
-            ["htmlparser2", "npm:6.1.0"],\
-            ["parse5", "npm:6.0.1"],\
-            ["parse5-htmlparser2-tree-adapter", "npm:6.0.1"],\
-            ["tslib", "npm:2.3.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["cheerio-select", [\
-        ["npm:1.5.0", {\
-          "packageLocation": "./.yarn/cache/cheerio-select-npm-1.5.0-e3f0416bf1-d4506d8b9a.zip/node_modules/cheerio-select/",\
-          "packageDependencies": [\
-            ["cheerio-select", "npm:1.5.0"],\
-            ["css-select", "npm:4.1.3"],\
-            ["css-what", "npm:5.1.0"],\
-            ["domelementtype", "npm:2.2.0"],\
-            ["domhandler", "npm:4.2.0"],\
-            ["domutils", "npm:2.8.0"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["chokidar", [\
         ["npm:3.5.3", {\
           "packageLocation": "./.yarn/cache/chokidar-npm-3.5.3-c5f9b0a56a-b49fcde401.zip/node_modules/chokidar/",\
@@ -8331,34 +8298,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["csp-html-webpack-plugin", [\
-        ["npm:5.1.0", {\
-          "packageLocation": "./.yarn/cache/csp-html-webpack-plugin-npm-5.1.0-40d465e733-d4279f801d.zip/node_modules/csp-html-webpack-plugin/",\
-          "packageDependencies": [\
-            ["csp-html-webpack-plugin", "npm:5.1.0"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0", {\
-          "packageLocation": "./.yarn/__virtual__/csp-html-webpack-plugin-virtual-b5007cf657/0/cache/csp-html-webpack-plugin-npm-5.1.0-40d465e733-d4279f801d.zip/node_modules/csp-html-webpack-plugin/",\
-          "packageDependencies": [\
-            ["csp-html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
-            ["@types/html-webpack-plugin", null],\
-            ["@types/webpack", null],\
-            ["cheerio", "npm:1.0.0-rc.10"],\
-            ["html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.5.0"],\
-            ["lodash", "npm:4.17.21"],\
-            ["webpack", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.70.0"]\
-          ],\
-          "packagePeers": [\
-            "@types/html-webpack-plugin",\
-            "@types/webpack",\
-            "html-webpack-plugin",\
-            "webpack"\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["css", [\
         ["npm:3.0.0", {\
           "packageLocation": "./.yarn/cache/css-npm-3.0.0-ef426b63b3-4273ac816d.zip/node_modules/css/",\
@@ -8820,16 +8759,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/csstype-npm-3.0.8-99cf1f37ff-5939a00385.zip/node_modules/csstype/",\
           "packageDependencies": [\
             ["csstype", "npm:3.0.8"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
-      ["customize-cra", [\
-        ["npm:1.0.0", {\
-          "packageLocation": "./.yarn/cache/customize-cra-npm-1.0.0-61884f8944-b38c48a607.zip/node_modules/customize-cra/",\
-          "packageDependencies": [\
-            ["customize-cra", "npm:1.0.0"],\
-            ["lodash.flow", "npm:3.5.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -15358,16 +15287,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["parse5-htmlparser2-tree-adapter", [\
-        ["npm:6.0.1", {\
-          "packageLocation": "./.yarn/cache/parse5-htmlparser2-tree-adapter-npm-6.0.1-60b4888f75-1848378b35.zip/node_modules/parse5-htmlparser2-tree-adapter/",\
-          "packageDependencies": [\
-            ["parse5-htmlparser2-tree-adapter", "npm:6.0.1"],\
-            ["parse5", "npm:6.0.1"]\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["parseurl", [\
         ["npm:1.3.3", {\
           "packageLocation": "./.yarn/cache/parseurl-npm-1.3.3-1542397e00-407cee8e0a.zip/node_modules/parseurl/",\
@@ -18233,29 +18152,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
-      ["react-app-rewired", [\
-        ["npm:2.2.1", {\
-          "packageLocation": "./.yarn/cache/react-app-rewired-npm-2.2.1-372a52d640-0b330c2b46.zip/node_modules/react-app-rewired/",\
-          "packageDependencies": [\
-            ["react-app-rewired", "npm:2.2.1"]\
-          ],\
-          "linkType": "SOFT"\
-        }],\
-        ["virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.1", {\
-          "packageLocation": "./.yarn/__virtual__/react-app-rewired-virtual-edd4222830/0/cache/react-app-rewired-npm-2.2.1-372a52d640-0b330c2b46.zip/node_modules/react-app-rewired/",\
-          "packageDependencies": [\
-            ["react-app-rewired", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.1"],\
-            ["@types/react-scripts", null],\
-            ["react-scripts", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.0.0"],\
-            ["semver", "npm:5.7.1"]\
-          ],\
-          "packagePeers": [\
-            "@types/react-scripts",\
-            "react-scripts"\
-          ],\
-          "linkType": "HARD"\
-        }]\
-      ]],\
       ["react-base16-styling", [\
         ["npm:0.6.0", {\
           "packageLocation": "./.yarn/cache/react-base16-styling-npm-0.6.0-4a325c7d7b-00a12dddaf.zip/node_modules/react-base16-styling/",\
@@ -19665,13 +19561,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["semver", [\
-        ["npm:5.7.1", {\
-          "packageLocation": "./.yarn/cache/semver-npm-5.7.1-40bcea106b-57fd0acfd0.zip/node_modules/semver/",\
-          "packageDependencies": [\
-            ["semver", "npm:5.7.1"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:6.3.0", {\
           "packageLocation": "./.yarn/cache/semver-npm-6.3.0-b3eace8bfd-1b26ecf6db.zip/node_modules/semver/",\
           "packageDependencies": [\
@@ -20799,8 +20688,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["blob-polyfill", "npm:7.0.20220408"],\
             ["clipboard-polyfill", "npm:3.0.3"],\
             ["color", "npm:4.0.1"],\
-            ["csp-html-webpack-plugin", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
-            ["customize-cra", "npm:1.0.0"],\
             ["date-fns", "npm:2.24.0"],\
             ["debounce-promise", "npm:3.1.2"],\
             ["dompurify", "npm:2.3.3"],\
@@ -20835,7 +20722,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prop-types", "npm:15.8.1"],\
             ["qs", "npm:6.10.3"],\
             ["react", "npm:17.0.2"],\
-            ["react-app-rewired", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.2.1"],\
             ["react-collapse", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:5.1.0"],\
             ["react-dom", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:17.0.2"],\
             ["react-draggable", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:4.4.4"],\
