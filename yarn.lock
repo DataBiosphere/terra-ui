@@ -4389,15 +4389,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"babel-plugin-prismjs@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "babel-plugin-prismjs@npm:2.1.0"
-  peerDependencies:
-    prismjs: ^1.18.0
-  checksum: 8bc59ca46b493cb255ec914e26a0dd39c1aaee881e3701d6726db40152d4a176a96ac1438f80b0d705b188bee4106538de809bc79dff9774400da3d8331affce
-  languageName: node
-  linkType: hard
-
 "babel-plugin-transform-react-remove-prop-types@npm:^0.4.24":
   version: 0.4.24
   resolution: "babel-plugin-transform-react-remove-prop-types@npm:0.4.24"
@@ -14963,7 +14954,6 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.59.1
     animate.css: ^4.1.1
     array-move: ^4.0.0
-    babel-plugin-prismjs: ^2.1.0
     blob-polyfill: ^7.0.20220408
     check-dts: ^0.7.1
     clipboard-polyfill: ^3.0.3
