@@ -327,10 +327,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             div({ style: { color: 'white', fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
-                href: `https://github.com/DataBiosphere/terra-ui/commits/${import.meta.env.VITE_APP_VERSION}`,
+                href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.VITE_APP_VERSION}`,
                 ...Utils.newTabLinkProps,
                 style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-              }, [new Date(parseInt(import.meta.env.VITE_APP_BUILD_TIMESTAMP, 10)).toLocaleString()])
+              }, [new Date(parseInt(process.env.VITE_APP_BUILD_TIMESTAMP, 10)).toLocaleString()])
             ])
           ])
         ])

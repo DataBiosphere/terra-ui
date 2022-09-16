@@ -7,7 +7,7 @@ import * as Utils from 'src/libs/utils'
 
 const faviconPath = Utils.cond(
   [isBioDataCatalyst(), () => bioDataCatalystFavicon],
-  () => `${import.meta.env.BASE_URL}favicon.png`
+  () => '/favicon.png'
 )
 
 const Favicon = () => {
