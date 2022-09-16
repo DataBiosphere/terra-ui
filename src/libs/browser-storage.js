@@ -36,21 +36,21 @@ class InMemoryStorage {
   }
 }
 
-export const getLocalStorage = () => {
+export const getLocalStorage = _.once(() => {
   try {
     return window.localStorage
   } catch (error) {
     return new InMemoryStorage()
   }
-}
+})
 
-export const getSessionStorage = () => {
+export const getSessionStorage = _.once(() => {
   try {
     return window.sessionStorage
   } catch (error) {
     return new InMemoryStorage()
   }
-}
+})
 
 const forceSetItem = (storage, key, value) => {
   while (true) {
