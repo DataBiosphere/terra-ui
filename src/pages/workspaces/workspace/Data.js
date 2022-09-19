@@ -225,13 +225,16 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
   ])
 }
 
-const NoDataPlaceholder = ({ children }) => div({
+const NoDataPlaceholder = ({ message, buttonText, onAdd }) => div({
   style: {
     display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
     padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
     backgroundColor: 'white'
   }
-}, children)
+}, [
+  message,
+  h(Link, { style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])
+])
 
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   const minWidth = 280
@@ -601,10 +604,11 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
-              !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && _.isEmpty(sortedEntityPairs) && h(NoDataPlaceholder, [
-                'No tables have been uploaded.',
-                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setUploadingFile(true) }, ['Upload TSV'])
-              ]),
+              !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && _.isEmpty(sortedEntityPairs) && h(NoDataPlaceholder, {
+                message: 'No tables have been uploaded.',
+                buttonText: 'Upload TSV',
+                onAdd: () => setUploadingFile(true)
+              }),
               !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
@@ -745,10 +749,11 @@ const WorkspaceData = _.flow(
             h(DataTypeSection, {
               title: 'Reference Data'
             }, [
-              _.isEmpty(referenceData) && h(NoDataPlaceholder, [
-                'No references have been added.',
-                h(Link, { style: { marginTop: '0.5rem' }, onClick: () => setImportingReference(true) }, ['Add reference data'])
-              ]),
+              _.isEmpty(referenceData) && h(NoDataPlaceholder, {
+                message: 'No references have been added.',
+                buttonText: 'Add reference data',
+                onAdd: () => setImportingReference(true)
+              }),
               _.map(type => h(DataTypeButton, {
                 key: type,
                 wrapperProps: { role: 'listitem' },
