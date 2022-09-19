@@ -440,6 +440,44 @@ const GcpBillingAccountControls = ({
   ])
 }
 
+const ErrorAlert = ({ error, errorMessage }) => {
+  return div({
+    style: {
+      backgroundColor: colors.danger(0.15), borderRadius: '4px',
+      boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
+      padding: '1rem', margin: '1rem 0 0'
+    }
+  }, [
+    div({ style: { display: 'flex' } },
+      [
+        div({ style: { margin: '0.3rem' } }, [
+          icon('error-standard', {
+            'aria-hidden': false, 'aria-label': 'error notification', size: 30,
+            style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
+          })
+        ]),
+        Utils.cond(
+          [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
+            [
+              div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
+                error.message.charAt(0).toUpperCase() + error.message.slice(1)),
+              h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
+                [
+                  div({
+                    style: {
+                      padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
+                      whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
+                      fontFamily: 'Menlo, monospace',
+                      maxHeight: 400
+                    }
+                  }, [JSON.stringify(error, null, 2)])
+                ])
+            ])],
+          () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
+      ])
+  ])
+}
+
 const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
@@ -527,43 +565,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
 
   const error = Utils.maybeParseJSON(errorMessage)
-  const ErrorAlert = ({ error }) => {
-    return div({
-      style: {
-        backgroundColor: colors.danger(0.15), borderRadius: '4px',
-        boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
-        padding: '1rem', margin: '1rem 0 0'
-      }
-    }, [
-      div({ style: { display: 'flex' } },
-        [
-          div({ style: { margin: '0.3rem' } }, [
-            icon('error-standard', {
-              'aria-hidden': false, 'aria-label': 'error notification', size: 30,
-              style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
-            })
-          ]),
-          Utils.cond(
-            [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
-              [
-                div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
-                  error.message.charAt(0).toUpperCase() + error.message.slice(1)),
-                h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
-                  [
-                    div({
-                      style: {
-                        padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
-                        whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
-                        fontFamily: 'Menlo, monospace',
-                        maxHeight: 400
-                      }
-                    }, [JSON.stringify(error, null, 2)])
-                  ])
-              ])],
-            () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
-        ])
-    ])
-  }
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -614,7 +615,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && h(ErrorAlert, { error }),
+      !!errorMessage && h(ErrorAlert, { error, errorMessage }),
       div(
         {
           style: {
