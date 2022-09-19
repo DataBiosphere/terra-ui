@@ -23,10 +23,11 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -346,7 +347,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Delete table'),
-        isDataTableVersioningEnabled() && h(Fragment, [
+        isFeaturePreviewEnabled('data-table-versioning') && h(Fragment, [
           h(MenuDivider),
           h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
           h(MenuButton, {

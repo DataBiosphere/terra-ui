@@ -27,10 +27,10 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
@@ -412,7 +412,7 @@ const EntitiesContent = ({
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
         border: false,
-        extraColumnActions: isDataTableProvenanceEnabled() ?
+        extraColumnActions: isFeaturePreviewEnabled('data-table-provenance') ?
           columnName => [{
             label: 'Show Provenance',
             onClick: () => {
