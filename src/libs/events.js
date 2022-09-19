@@ -39,6 +39,10 @@ const eventsList = {
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
+  dataTableVersioningViewVersionHistory: 'dataTable:versioning:viewVersionHistory',
+  dataTableVersioningSaveVersion: 'dataTable:versioning:saveVersion',
+  dataTableVersioningRestoreVersion: 'dataTable:versioning:restoreVersion',
+  dataTableVersioningDeleteVersion: 'dataTable:versioning:deleteVersion',
   // Note: "external" refers to the common Job Manager deployment, not a Job Manager bundled in CromwellApp
   jobManagerOpenExternal: 'job-manager:open-external',
   notebookLaunch: 'notebook:launch',

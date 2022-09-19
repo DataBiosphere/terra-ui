@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
 import { asyncImportJobStore } from 'src/libs/state'
@@ -13,6 +14,11 @@ import * as Utils from 'src/libs/utils'
 export const dataTableVersionsPathRoot = '.data-table-versions'
 
 export const saveDataTableVersion = async (workspace, entityType, { description = null } = {}) => {
+  Ajax().Metrics.captureEvent(Events.dataTableVersioningSaveVersion, {
+    ...extractWorkspaceDetails(workspace.workspace),
+    tableName: entityType
+  })
+
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
 
   const timestamp = (new Date()).getTime()
@@ -58,6 +64,11 @@ export const listDataTableVersions = async (workspace, entityType, { signal } = 
 }
 
 export const deleteDataTableVersion = async (workspace, version) => {
+  Ajax().Metrics.captureEvent(Events.dataTableVersioningDeleteVersion, {
+    ...extractWorkspaceDetails(workspace.workspace),
+    tableName: version.entityType
+  })
+
   const { workspace: { googleProject, bucketName } } = workspace
 
   const [, objectName] = parseGsUri(version.url)
@@ -70,6 +81,11 @@ export const tableNameForRestore = version => {
 }
 
 export const restoreDataTableVersion = async (workspace, version) => {
+  Ajax().Metrics.captureEvent(Events.dataTableVersioningRestoreVersion, {
+    ...extractWorkspaceDetails(workspace.workspace),
+    tableName: version.entityType
+  })
+
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
 
   const [, objectName] = parseGsUri(version.url)

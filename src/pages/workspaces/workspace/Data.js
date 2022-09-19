@@ -338,7 +338,17 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
         isDataTableVersioningEnabled() && h(Fragment, [
           h(MenuDivider),
           h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
-          h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
+          h(MenuButton, {
+            onClick: () => {
+              onToggleVersionHistory(!isShowingVersionHistory)
+              if (!isShowingVersionHistory) {
+                Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
+                  ...extractWorkspaceDetails(workspace.workspace),
+                  tableName
+                })
+              }
+            }
+          }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
         ])
       ])
     }, [
