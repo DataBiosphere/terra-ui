@@ -89,7 +89,8 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`,
+      paddingRight: '1rem'
     },
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -137,8 +138,10 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
-          billingProject.cloudPlatform === cloudProviders.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
+          billingProject.cloudPlatform === cloudProviders.gcp.label &&
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
+          billingProject.cloudPlatform === cloudProviders.azure.label &&
+          h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
         ])
       ])
     ])])
@@ -524,6 +527,43 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
 
   const error = Utils.maybeParseJSON(errorMessage)
+  const ErrorAlert = ({ error }) => {
+    return div({
+      style: {
+        backgroundColor: colors.danger(0.15), borderRadius: '4px',
+        boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
+        padding: '1rem', margin: '1rem 0 0'
+      }
+    }, [
+      div({ style: { display: 'flex' } },
+        [
+          div({ style: { margin: '0.3rem' } }, [
+            icon('error-standard', {
+              'aria-hidden': false, 'aria-label': 'error notification', size: 30,
+              style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
+            })
+          ]),
+          Utils.cond(
+            [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
+              [
+                div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
+                  error.message.charAt(0).toUpperCase() + error.message.slice(1)),
+                h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
+                  [
+                    div({
+                      style: {
+                        padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
+                        whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
+                        fontFamily: 'Menlo, monospace',
+                        maxHeight: 400
+                      }
+                    }, [JSON.stringify(error, null, 2)])
+                  ])
+              ])],
+            () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
+        ])
+    ])
+  }
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -574,41 +614,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && div({
-        style: {
-          backgroundColor: colors.danger(0.15), borderRadius: '4px',
-          boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)', display: 'flex',
-          padding: '1rem', margin: '1rem 0 0'
-        }
-      }, [
-        div({ style: { display: 'flex' } },
-          [
-            div({ style: { margin: '0.3rem' } }, [
-              icon('error-standard', {
-                'aria-hidden': false, 'aria-label': 'error notification', size: 30,
-                style: { color: colors.danger(), flexShrink: 0, marginRight: '0.3rem' }
-              })
-            ]),
-            Utils.cond(
-              [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
-                [
-                  div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
-                    error.message.charAt(0).toUpperCase() + error.message.slice(1)),
-                  h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
-                    [
-                      div({
-                        style: {
-                          padding: '0.5rem', marginTop: '0.5rem', backgroundColor: colors.light(),
-                          whiteSpace: 'pre-wrap', overflow: 'auto', overflowWrap: 'break-word',
-                          fontFamily: 'Menlo, monospace',
-                          maxHeight: 400
-                        }
-                      }, [JSON.stringify(error, null, 2)])
-                    ])
-                ])],
-              () => div({ style: { display: 'flex', alignItems: 'center' }, role: 'alert' }, errorMessage.toString()))
-          ])
-      ]),
+      !!errorMessage && h(ErrorAlert, { error }),
       div(
         {
           style: {
@@ -703,59 +709,59 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
   // Update cost data only if report date range changes, or if spend report tab was selected.
   useEffect(() => {
-    const maybeLoadProjectCost = async () => {
-      if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
-        setUpdatingProjectCost(true)
-        const endDate = new Date().toISOString().slice(0, 10)
-        const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
-        const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
-        const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
-        const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
-        console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
-        const getCategoryCosts = (categorySpendData, asFloat) => {
-          const costDict = {}
-          _.forEach(type => {
-            const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
-            costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
-          }, ['Compute', 'Storage', 'Other'])
-          return costDict
-        }
-        const costDict = getCategoryCosts(categoryDetails.spendData, false)
-        const totalCosts = {
-          spend: costFormatter.format(spend.spendSummary.cost),
-          compute: costDict.Compute,
-          storage: costDict.Storage,
-          other: costDict.Other
-        }
+    const maybeLoadProjectCost =
+      Utils.withBusyState(setUpdating, async () => {
+        if (!updatingProjectCost && projectCost === null && tab === spendReportKey) {
+          setUpdatingProjectCost(true)
+          const endDate = new Date().toISOString().slice(0, 10)
+          const startDate = subDays(spendReportLengthInDays, new Date()).toISOString().slice(0, 10)
+          const spend = await Ajax(signal).Billing.getSpendReport({ billingProjectName: billingProject.projectName, startDate, endDate })
+          const costFormatter = new Intl.NumberFormat(navigator.language, { style: 'currency', currency: spend.spendSummary.currency })
+          const categoryDetails = _.find(details => details.aggregationKey === 'Category')(spend.spendDetails)
+          console.assert(categoryDetails !== undefined, 'Spend report details do not include aggregation by Category')
+          const getCategoryCosts = (categorySpendData, asFloat) => {
+            const costDict = {}
+            _.forEach(type => {
+              const costAsString = _.find(['category', type])(categorySpendData)?.cost ?? 0
+              costDict[type] = asFloat ? parseFloat(costAsString) : costFormatter.format(costAsString)
+            }, ['Compute', 'Storage', 'Other'])
+            return costDict
+          }
+          const costDict = getCategoryCosts(categoryDetails.spendData, false)
+          const totalCosts = {
+            spend: costFormatter.format(spend.spendSummary.cost),
+            compute: costDict.Compute,
+            storage: costDict.Storage,
+            other: costDict.Other
+          }
 
-        setProjectCost(totalCosts)
+          setProjectCost(totalCosts)
 
-        const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
-        console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
-        // Get the most expensive workspaces, sorted from most to least expensive.
-        const mostExpensiveWorkspaces = _.flow(
-          _.sortBy(({ cost }) => { return parseFloat(cost) }),
-          _.reverse,
-          _.slice(0, maxWorkspacesInChart)
-        )(workspaceDetails?.spendData)
-        // Pull out names and costs.
-        const costPerWorkspace = {
-          workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+          const workspaceDetails = _.find(details => details.aggregationKey === 'Workspace')(spend.spendDetails)
+          console.assert(workspaceDetails !== undefined, 'Spend report details do not include aggregation by Workspace')
+          // Get the most expensive workspaces, sorted from most to least expensive.
+          const mostExpensiveWorkspaces = _.flow(
+            _.sortBy(({ cost }) => { return parseFloat(cost) }),
+            _.reverse,
+            _.slice(0, maxWorkspacesInChart)
+          )(workspaceDetails?.spendData)
+          // Pull out names and costs.
+          const costPerWorkspace = {
+            workspaceNames: [], computeCosts: [], storageCosts: [], otherCosts: [], costFormatter, numWorkspaces: workspaceDetails?.spendData.length
+          }
+          _.forEach(workspaceCostData => {
+            costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
+            const categoryDetails = workspaceCostData.subAggregation
+            console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
+            const costDict = getCategoryCosts(categoryDetails.spendData, true)
+            costPerWorkspace.computeCosts.push(costDict.Compute)
+            costPerWorkspace.storageCosts.push(costDict.Storage)
+            costPerWorkspace.otherCosts.push(costDict.Other)
+          })(mostExpensiveWorkspaces)
+          setCostPerWorkspace(costPerWorkspace)
+          setUpdatingProjectCost(false)
         }
-        _.forEach(workspaceCostData => {
-          costPerWorkspace.workspaceNames.push(workspaceCostData.workspace.name)
-          const categoryDetails = workspaceCostData.subAggregation
-          console.assert(categoryDetails.key !== 'Category', 'Workspace spend report details do not include sub-aggregation by Category')
-          const costDict = getCategoryCosts(categoryDetails.spendData, true)
-          costPerWorkspace.computeCosts.push(costDict.Compute)
-          costPerWorkspace.storageCosts.push(costDict.Storage)
-          costPerWorkspace.otherCosts.push(costDict.Other)
-        })(mostExpensiveWorkspaces)
-        setCostPerWorkspace(costPerWorkspace)
-        setUpdatingProjectCost(false)
-      }
-    }
-    Utils.withBusyState(setUpdating)
+      })
     maybeLoadProjectCost().catch(async error => {
       if (error instanceof Response && error.status === 401) {
         if (!await reloadAuthToken()) {
@@ -779,8 +785,12 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
-      isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } },
+        [billingProject.projectName]),
+      isGcpProject && h(GcpBillingAccountControls, {
+        authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject,
+        setUpdating
+      }),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
           display: 'flex',
@@ -794,9 +804,11 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } }),
         span(isOwner ? [
           'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. ',
-          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps }, [
-            'More information about managing shared billing projects.'
-          ])
+          h(Link,
+            { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps },
+            [
+              'More information about managing shared billing projects.'
+            ])
         ] : [
           'This shared billing project has only one owner. Consider requesting ',
           h(Link, { mailto: projectOwners[0].email }, [projectOwners[0].email]),
