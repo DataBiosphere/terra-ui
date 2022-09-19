@@ -225,6 +225,17 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
   ])
 }
 
+const NoDataPlaceholder = ({ message, buttonText, onAdd }) => div({
+  style: {
+    display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+    padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
+    backgroundColor: 'white'
+  }
+}, [
+  message,
+  h(Link, { style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])
+])
+
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   const minWidth = 280
   const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
@@ -603,6 +614,11 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && _.isEmpty(sortedEntityPairs) && h(NoDataPlaceholder, {
+                message: 'No tables have been uploaded.',
+                buttonText: 'Upload TSV',
+                onAdd: () => setUploadingFile(true)
+              }),
               !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
@@ -742,25 +758,31 @@ const WorkspaceData = _.flow(
             ]),
             h(DataTypeSection, {
               title: 'Reference Data'
-            }, [_.map(type => h(DataTypeButton, {
-              key: type,
-              wrapperProps: { role: 'listitem' },
-              selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
-              onClick: () => {
-                setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
-                refreshWorkspace()
-              },
-              after: h(Link, {
-                style: { flex: 0 },
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-                onClick: e => {
-                  e.stopPropagation()
-                  setDeletingReference(type)
-                }
-              }, [icon('minus-circle', { size: 16 })])
-            }, [type]), _.keys(referenceData)
-            )]),
+            }, [
+              _.isEmpty(referenceData) && h(NoDataPlaceholder, {
+                message: 'No references have been added.',
+                buttonText: 'Add reference data',
+                onAdd: () => setImportingReference(true)
+              }),
+              _.map(type => h(DataTypeButton, {
+                key: type,
+                wrapperProps: { role: 'listitem' },
+                selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
+                onClick: () => {
+                  setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
+                  refreshWorkspace()
+                },
+                after: h(Link, {
+                  style: { flex: 0 },
+                  disabled: !!Utils.editWorkspaceError(workspace),
+                  tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+                  onClick: e => {
+                    e.stopPropagation()
+                    setDeletingReference(type)
+                  }
+                }, [icon('minus-circle', { size: 16 })])
+              }, [type]), _.keys(referenceData))
+            ]),
             importingReference && h(ReferenceDataImporter, {
               onDismiss: () => setImportingReference(false),
               onSuccess: () => {
