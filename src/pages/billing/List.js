@@ -131,7 +131,7 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
     'aria-current': isActive ? 'location' : false
   }, [cloudContextIcon, projectName])
 
-  const unselectableProject = ({ projectName, status, message }, isActive) => {
+  const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
     const iconAndTooltip =
       status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
@@ -142,7 +142,7 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
           ]),
           //Currently, only billing projects that failed to create can have actions performed on them.
           //If that changes in the future, this should be moved elsewhere
-          h(BillingProjectActions, { project, loadProjects })
+          isOwner && h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
@@ -151,11 +151,12 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
   }
 
   const viewerRoles = _.intersection(roles, _.values(billingRoles))
+  const isOwner = _.includes(billingRoles.owner, roles)
 
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject(project, isActive) :
-      unselectableProject(project, isActive)
+      unselectableProject(project, isActive, isOwner)
   ])
 }
 
@@ -328,9 +329,12 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing project'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
-    // evaluate first to error if project doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.getProject(selectedName)
     const index = _.findIndex({ projectName }, billingProjects)
+    // Workaround until getProject has the correct cloudPlatform, WOR-518
+    const cloudPlatform = billingProjects[index].cloudPlatform
+    // fetch the project to error if it doesn't exist/user can't access
+    const project = await Ajax(signal).Billing.getProject(selectedName)
+    project.cloudPlatform = cloudPlatform
     setBillingProjects(_.set([index], project))
   })
 
