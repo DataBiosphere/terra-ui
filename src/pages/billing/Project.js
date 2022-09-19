@@ -89,8 +89,7 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`,
-      paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1.20rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
     row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -138,10 +137,8 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          billingProject.cloudPlatform === cloudProviders.gcp.label &&
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
-          billingProject.cloudPlatform === cloudProviders.azure.label &&
-          h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
+          billingProject.cloudPlatform === cloudProviders.gcp.label && h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage }),
+          billingProject.cloudPlatform === cloudProviders.azure.label && h(ExpandedInfoRow, { title: 'Resource Group ID', details: billingProject.managedAppCoordinates.managedResourceGroupId })
         ])
       ])
     ])])
@@ -440,7 +437,8 @@ const GcpBillingAccountControls = ({
   ])
 }
 
-const ErrorAlert = ({ error, errorMessage }) => {
+const ErrorAlert = ({ errorMessage }) => {
+  const error = Utils.maybeParseJSON(errorMessage)
   return div({
     style: {
       backgroundColor: colors.danger(0.15), borderRadius: '4px',
@@ -564,8 +562,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const isGcpProject = billingProject.cloudPlatform === cloudProviders.gcp.label
 
-  const error = Utils.maybeParseJSON(errorMessage)
-
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, {
@@ -615,7 +611,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       ])
     ]),
     [spendReportKey]: div({ style: { display: 'grid', rowGap: '0.5rem' } }, [
-      !!errorMessage && h(ErrorAlert, { error, errorMessage }),
+      !!errorMessage && h(ErrorAlert, { errorMessage }),
       div(
         {
           style: {
@@ -786,12 +782,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } },
-        [billingProject.projectName]),
-      isGcpProject && h(GcpBillingAccountControls, {
-        authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject,
-        setUpdating
-      }),
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
+      isGcpProject && h(GcpBillingAccountControls, { authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, getShowBillingModal, setShowBillingModal, reloadBillingProject, setUpdating }),
       _.size(projectUsers) > 1 && _.size(projectOwners) === 1 && div({
         style: {
           display: 'flex',
@@ -805,11 +797,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         icon('warning-standard', { style: { color: colors.warning(), marginRight: '1ch' } }),
         span(isOwner ? [
           'You are the only owner of this shared billing project. Consider adding another owner to ensure someone is able to manage the billing project in case you lose access to your account. ',
-          h(Link,
-            { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps },
-            [
-              'More information about managing shared billing projects.'
-            ])
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047235151-Best-practices-for-managing-shared-funding#h_01EFCZSY6K1CEEBJDH7BCG8RBK', ...Utils.newTabLinkProps }, [
+            'More information about managing shared billing projects.'
+          ])
         ] : [
           'This shared billing project has only one owner. Consider requesting ',
           h(Link, { mailto: projectOwners[0].email }, [projectOwners[0].email]),
