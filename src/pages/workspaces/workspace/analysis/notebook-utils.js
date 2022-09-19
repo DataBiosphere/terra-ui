@@ -5,7 +5,6 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -14,14 +13,15 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import validate from 'validate.js'
 
 
 export const notebookLockHash = (bucketName, email) => Utils.sha256(`${bucketName}:${email}`)
 
-export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
+export const findPotentialNotebookLockers = async ({ canShare, namespace, workspaceName, bucketName }) => {
   if (canShare) {
-    const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
+    const { acl } = await Ajax().Workspaces.workspace(namespace, workspaceName).getAcl()
     const potentialLockers = _.flow(
       _.toPairs,
       _.map(([email, data]) => ({ email, ...data })),
@@ -74,12 +74,12 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 // The label here matches the leonardo `tool` label for runtimes
 export const tools = {
   RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
-  Jupyter: { label: 'Jupyter', ext: ['ipynb'], imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
+  Jupyter: { label: 'Jupyter', ext: ['ipynb'], isNotebook: true, imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
-  Azure: { label: 'Azure', isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false }
+  Azure: { label: 'Azure', isNotebook: true, ext: ['ipynb'], isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false, defaultExt: 'ipynb' }
 }
 
 export const toolExtensionDisplay = {
@@ -92,7 +92,8 @@ export const toolExtensionDisplay = {
 
 export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
   [tools.RStudio.label, () => '.+(\\.R|\\.Rmd)$'],
-  [tools.Jupyter.label, () => '.*\\.ipynb']
+  [tools.Jupyter.label, () => '.*\\.ipynb'],
+  [tools.Azure.label, () => '.*\\.ipynb']
 )
 
 export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultExt}`
@@ -103,7 +104,12 @@ export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.filter(tool => !!tool.isAzureCompatible === !!isAzureWorkspace)
 )([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
-const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
+export const toolToExtensionMap = _.flow(
+  _.filter('ext'),
+  _.map(tool => ({ [tool.label]: tool.ext })),
+  _.reduce(_.merge, {})
+)(tools)
+
 const extensionToToolMap = (() => {
   const extMap = {}
   _.forEach(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
@@ -215,7 +221,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
   ])
 }
 
-export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, wsName, googleProject, namespace, bucketName, onDismiss, onSuccess }) => {
+export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, workspaceName, googleProject, workspaceId, namespace, bucketName, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState('')
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
@@ -224,7 +230,9 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   useOnMount(() => {
     const loadNames = async () => {
-      const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
+      const existingAnalyses = !!googleProject ?
+        await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName) :
+        await Ajax(signal).AzureStorage.listNotebooks(workspaceId)
       const existingNames = _.map(({ name }) => getFileName(name), existingAnalyses)
       setExistingNames(existingNames)
     }
@@ -246,21 +254,31 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
       onClick: async () => {
         setProcessing(true)
         try {
-          await (destroyOld ?
-            Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
-            Ajax().Buckets.analysis(googleProject, bucketName, getFileName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, !destroyOld)
-          )
+          const rename = !!googleProject ?
+            () => Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
+            () => Ajax().AzureStorage.blob(workspaceId, printName).rename(newName)
+
+          const duplicate = !!googleProject ?
+            () => Ajax().Buckets.analysis(googleProject, bucketName, getFileName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, true) :
+            () => Ajax().AzureStorage.blob(workspaceId, printName).copy(newName)
+
+          if (destroyOld) {
+            await rename()
+          } else {
+            await duplicate()
+          }
+
           onSuccess()
           if (fromLauncher) {
             Nav.goToPath(analysisLauncherTabName, {
-              namespace, name: wsName, analysisName: `${newName}.${getExtension(printName)}`, toolLabel
+              namespace, name: workspaceName, analysisName: `${newName}.${getExtension(printName)}`, toolLabel
             })
           }
           if (destroyOld) {
             Ajax().Metrics.captureEvent(Events.notebookRename, {
               oldName: printName,
               newName,
-              workspaceName: wsName,
+              workspaceName,
               workspaceNamespace: namespace
             })
           } else {
@@ -268,9 +286,9 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
               oldName: printName,
               newName,
               fromWorkspaceNamespace: namespace,
-              fromWorkspaceName: wsName,
+              fromWorkspaceName: workspaceName,
               toWorkspaceNamespace: namespace,
-              toWorkspaceName: wsName
+              toWorkspaceName: workspaceName
             })
           }
         } catch (error) {

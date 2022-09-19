@@ -15,10 +15,10 @@ import {
 import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import { useOnMount } from 'src/libs/react-utils'
+import * as Utils from 'src/libs/utils'
 import {
   computeStyles, getCurrentRuntime, getIsRuntimeBusy
-} from 'src/libs/runtime-utils'
-import * as Utils from 'src/libs/utils'
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const titleId = 'azure-compute-modal-title'

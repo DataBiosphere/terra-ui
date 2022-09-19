@@ -8,10 +8,8 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { getToolForImage, getToolFromRuntime, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
-import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
@@ -23,6 +21,10 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
@@ -30,9 +32,7 @@ import {
   getCurrentPersistentDisk,
   getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
-} from 'src/libs/runtime-utils'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -1726,9 +1726,14 @@ export const ComputeModalBase = ({
           ]),
           div({ style: { ...gridStyle, gridGap: '1rem', gridTemplateColumns: '15rem 5.5rem', marginTop: '0.75rem' } }, [
             diskExists ?
-              h(TooltipTrigger, { content: ['Disk type can only be selected at creation time.'], side: 'bottom' }, [
-                renderPersistentDiskType(id)
-              ]) : renderPersistentDiskType(id),
+              h(TooltipTrigger, {
+                content: [
+                  'You already have a persistent disk in this workspace. ',
+                  'Disk type can only be configured at creation time. ',
+                  'Please delete the existing disk before selecting a new type.'
+                ],
+                side: 'bottom'
+              }, [renderPersistentDiskType(id)]) : renderPersistentDiskType(id),
             h(div, [
               label({ htmlFor: id, style: computeStyles.label }, ['Disk Size (GB)']),
               div({ style: { marginTop: '0.5rem' } }, [

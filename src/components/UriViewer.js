@@ -13,8 +13,8 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -268,7 +268,7 @@ const UriViewer = _.flow(
             els.label('Updated'),
             els.data(new Date(updated).toLocaleString())
           ]),
-          isDataTableProvenanceEnabled() && els.cell([
+          isFeaturePreviewEnabled('data-table-provenance') && els.cell([
             els.label('Where did this file come from?'),
             els.data([h(FileProvenance, { workspace, fileUrl: uri })])
           ])

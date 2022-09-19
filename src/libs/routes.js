@@ -3,6 +3,7 @@ import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Projects from 'src/pages/billing/List'
 import * as Environments from 'src/pages/Environments'
+import * as FeaturePreviews from 'src/pages/FeaturePreviews'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as HoF from 'src/pages/HoF'
@@ -24,9 +25,9 @@ import * as Upload from 'src/pages/Upload'
 import * as WorkflowsList from 'src/pages/workflows/List'
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
-import * as Analysis from 'src/pages/workspaces/workspace/Analyses'
+import * as Analysis from 'src/pages/workspaces/workspace/analysis/Analyses'
 import * as AnalysisLauncher from 'src/pages/workspaces/workspace/analysis/AnalysisLauncher'
-import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
+import * as AppLauncher from 'src/pages/workspaces/workspace/analysis/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
@@ -76,6 +77,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
+  FeaturePreviews.navPaths,
   NotFound.navPaths // must be last
 ])
 
