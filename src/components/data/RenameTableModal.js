@@ -31,17 +31,31 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
   const handleTableRename = async ({ oldName, newName }) => {
     await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
+  }
 
-    // Move column settings to new table
+  const handleColumnSettingsRename = async ({ oldName, newName, renameSetTable }) => {
+    // Move column settings to new table(s)
     const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
+    const oldSetTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: `${oldName}_set` })
     const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+    const newSetTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: `${newName}_set` })
     const allColumnSettings = await getAllSavedColumnSettings()
     const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
+    const setTableColumnSettings = _.get(oldSetTableColumnSettingsKey, allColumnSettings)
     if (tableColumnSettings) {
-      await updateAllSavedColumnSettings(_.flow(
-        _.set(newTableColumnSettingsKey, tableColumnSettings),
-        _.unset(oldTableColumnSettingsKey)
-      )(allColumnSettings))
+      if (renameSetTable) {
+        await updateAllSavedColumnSettings(_.flow(
+          _.set(newTableColumnSettingsKey, tableColumnSettings),
+          _.set(newSetTableColumnSettingsKey, setTableColumnSettings),
+          _.unset(oldTableColumnSettingsKey),
+          _.unset(oldSetTableColumnSettingsKey)
+        )(allColumnSettings))
+      } else {
+        await updateAllSavedColumnSettings(_.flow(
+          _.set(newTableColumnSettingsKey, tableColumnSettings),
+          _.unset(oldTableColumnSettingsKey)
+        )(allColumnSettings))
+      }
     }
   }
 
@@ -56,6 +70,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
       )(async () => {
         await handleTableRename({ oldName: selectedDataType, newName })
         if (renameSetTable) await handleTableRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
+        await handleColumnSettingsRename({ oldName: selectedDataType, newName, renameSetTable })
         onUpdateSuccess()
       })
     }, ['Rename'])
