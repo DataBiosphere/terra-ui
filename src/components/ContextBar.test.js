@@ -2,13 +2,13 @@ import '@testing-library/jest-dom'
 
 import { fireEvent, render } from '@testing-library/react'
 import { div, h } from 'react-hyperscript-helpers'
-import { tools } from 'src/components/notebook-utils'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
-import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -16,8 +16,8 @@ const GALAXY_DISK_COST = 1
 const RUNTIME_COST = 0.1
 const PERSISTENT_DISK_COST = 0.01
 
-jest.mock('src/libs/runtime-utils', () => {
-  const originalModule = jest.requireActual('src/libs/runtime-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/runtime-utils', () => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/runtime-utils')
 
   return {
     ...originalModule,
@@ -139,7 +139,7 @@ const cromwellRunning = {
   auditInfo: {
     creator: 'cahrens@gmail.com', createdDate: '2021-11-28T20:28:01.998494Z', destroyedDate: null, dateAccessed: '2021-11-28T20:28:01.998494Z'
   },
-  diskName: 'saturn-pd-693a9707-634d-4134-bb3a-xyz73cd5a8ce',
+  diskName: 'saturn-pd-026594ac-d829-423d-a8df-55fe36f5b4e8',
   errors: [],
   googleProject: 'terra-test-e4000484',
   kubernetesRuntimeConfig: { numNodes: 1, machineType: 'n1-highmem-8', autoscalingEnabled: false },
