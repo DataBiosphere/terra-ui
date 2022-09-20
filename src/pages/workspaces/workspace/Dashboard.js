@@ -208,7 +208,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [{ storageContainerName, storageLocation, sasUrl }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
+  const [{ storageContainerName, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -300,8 +300,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { storageContainerName, location, sasUrl } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerName, storageLocation: location, sasUrl })
+    const { storageContainerName, location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerName, storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -426,10 +426,10 @@ const WorkspaceDashboard = _.flow(
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
-          h(TooltipCell, [!!sasUrl ? sasUrl : 'Loading']),
+          h(TooltipCell, [!!url ? url : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
-            text: sasUrl, style: { marginLeft: '0.25rem' }
+            text: url, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),

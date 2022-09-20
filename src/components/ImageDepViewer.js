@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
 import { Select } from 'src/components/common'
-import { fetchOk } from 'src/libs/ajax'
+import { fetchOk } from 'src/libs/ajax/ajax-common'
 import { withErrorReporting } from 'src/libs/error'
 
 

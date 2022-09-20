@@ -27,6 +27,7 @@ import * as Utils from 'src/libs/utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -46,11 +47,6 @@ const styles = {
   }
 }
 
-const billingProjectTypes = {
-  azure: 'azure',
-  gcp: 'gcp'
-}
-
 const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
@@ -60,7 +56,7 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
   }
 
   if (!isAlphaAzureUser) {
-    return createButton(showCreateProjectModal, billingProjectTypes.gcp)
+    return createButton(showCreateProjectModal, cloudProviders.gcp)
   } else {
     return h(MenuTrigger, {
       side: 'bottom',
@@ -68,11 +64,11 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
       content: h(Fragment, [
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(billingProjectTypes.azure)
+          onClick: () => showCreateProjectModal(cloudProviders.azure)
         }, 'Azure Billing Project'),
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(billingProjectTypes.gcp)
+          onClick: () => showCreateProjectModal(cloudProviders.gcp)
         }, 'GCP Billing Project')
       ])
     }, [createButton()])
@@ -121,8 +117,8 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
   const cloudContextIcon =
     div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
       Utils.switchCase(cloudPlatform,
-        ['GCP', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
-        ['AZURE', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
     ])
 
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
@@ -303,7 +299,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
 export const BillingList = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
-  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or billingProjectTypes values
+  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or cloudProvider values
   const [billingAccounts, setBillingAccounts] = useState({})
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
@@ -362,7 +358,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
   const showCreateProjectModal = async type => {
-    if (type === billingProjectTypes.azure) {
+    if (type === cloudProviders.azure) {
       setCreatingBillingProject(type)
     } else if (Auth.hasBillingScope()) {
       setCreatingBillingProject(type)
@@ -447,7 +443,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         ])
       ]),
-      creatingBillingProject === billingProjectTypes.gcp && h(NewBillingProjectModal, {
+      creatingBillingProject === cloudProviders.gcp && h(NewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
@@ -456,7 +452,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      creatingBillingProject === billingProjectTypes.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: () => {
           setCreatingBillingProject(null)

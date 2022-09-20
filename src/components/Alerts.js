@@ -5,6 +5,7 @@ import { Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import PopupTrigger from 'src/components/PopupTrigger'
 import colors from 'src/libs/colors'
+import { useLinkExpirationAlerts } from 'src/libs/link-expiration-alerts'
 import { usePrevious } from 'src/libs/react-utils'
 import { useServiceAlerts } from 'src/libs/service-alerts'
 import * as Utils from 'src/libs/utils'
@@ -80,7 +81,10 @@ const AlertsIndicator = ({ style }) => {
   const [open, setOpen] = useState(false)
   const [animating, setAnimating] = useState(false)
 
-  const alerts = useServiceAlerts()
+  const alerts = [
+    ...useServiceAlerts(),
+    ...useLinkExpirationAlerts()
+  ]
 
   const previousAlertIds = usePrevious(_.map('id', alerts))
   const hasNewAlerts = _.size(_.difference(_.map('id', alerts), previousAlertIds)) > 0

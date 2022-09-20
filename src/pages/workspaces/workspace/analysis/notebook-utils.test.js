@@ -1,4 +1,4 @@
-import { allAppTypes, isToolAnApp, tools } from 'src/components/notebook-utils'
+import { allAppTypes, isToolAnApp, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
 
 describe('getAllAppTypes and isToolAnApp', () => {

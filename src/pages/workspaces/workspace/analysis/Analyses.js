@@ -3,7 +3,6 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, img, span } from 'react-hyperscript-helpers'
-import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
@@ -11,11 +10,7 @@ import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/components/runtime-common'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
@@ -29,13 +24,17 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { AzureComputeModal } from 'src/pages/workspaces/workspace/analysis/AzureComputeModal'
+import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import {
+  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
+} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -76,7 +75,7 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
 }
 
 const AnalysisCard = ({
-  currentRuntime, namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite,
+  currentRuntime, namespace, name, lastModified, metadata, application, workspaceName, onRename, onCopy, onDelete, onExport, canWrite,
   currentUserHash, potentialLockers
 }) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
@@ -84,7 +83,7 @@ const AnalysisCard = ({
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: wsName, analysisName: getFileName(name) })
+  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName: getFileName(name) })
   const toolLabel = getToolFromFileExtension(name)
 
   const currentRuntimeTool = getToolFromRuntime(currentRuntime)
@@ -232,7 +231,7 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
+  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { workspaceId, googleProject, bucketName } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
   onRequesterPaysError
 }, _ref) => {
@@ -244,7 +243,6 @@ const Analyses = _.flow(
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  const [azureCreating, setAzureCreating] = useState(false)
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
@@ -260,34 +258,39 @@ const Analyses = _.flow(
     return getFileName(name)
   }, analyses)
 
-  //TODO: defined load function for azure
-  const refreshAnalyses = !!googleProject ? _.flow(
-    withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error loading analyses'),
-    Utils.withBusyState(setBusy)
-  )(async () => {
+  const loadGoogleAnalyses = async () => {
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
-    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: rAnalysis.updated }), rAnalyses)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: new Date(notebook.updated).getTime() }), notebooks)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
-  }) : () => setAnalyses([])
+  }
+
+  const loadAzureAnalyses = async () => {
+    const analyses = await Ajax(signal).AzureStorage.listNotebooks(workspaceId)
+    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
+  }
+
+  const refreshAnalyses = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
+    withErrorReporting('Error loading analyses'),
+    Utils.withBusyState(setBusy)
+  )(!!googleProject ? loadGoogleAnalyses : loadAzureAnalyses)
 
   const getActiveFileTransfers = _.flow(
     withErrorReporting('Error loading file transfer status for notebooks in the workspace.'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, wsName).listActiveFileTransfers()
+    const fileTransfers = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).listActiveFileTransfers()
     setActiveFileTransfers(!_.isEmpty(fileTransfers))
   })
 
-  //TODO: define update function for azure
-  const uploadFiles = !!googleProject ? _.flow(
+  const uploadFiles = _.flow(
     withErrorReporting('Error uploading files'),
     Utils.withBusyState(setBusy)
   )(async files => {
@@ -301,7 +304,9 @@ const Analyses = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents)
+        return !!googleProject ?
+          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents) :
+          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(contents)
       }, files))
       refreshAnalyses()
     } catch (error) {
@@ -311,7 +316,7 @@ const Analyses = _.flow(
         reportError('Error creating analysis', error)
       }
     }
-  }) : () => {}
+  })
 
   // Lifecycle
   useOnMount(_.flow(
@@ -319,8 +324,8 @@ const Analyses = _.flow(
     Utils.withBusyState(setBusy)
   )(async () => {
     const [currentUserHash, potentialLockers] = !!googleProject ?
-      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })]) :
-      await Promise.all([Promise.resolve(undefined), Promise.resolve(undefined)])
+      await Promise.all([notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, workspaceName, bucketName })]) :
+      await Promise.all([Promise.resolve(undefined), Promise.resolve([])])
 
     setCurrentUserHash(currentUserHash)
     setPotentialLockers(potentialLockers)
@@ -366,7 +371,7 @@ const Analyses = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
-        currentRuntime, name, lastModified, metadata, application, namespace, wsName, canWrite, currentUserHash, potentialLockers,
+        currentRuntime, name, lastModified, metadata, application, namespace, workspaceName, canWrite, currentUserHash, potentialLockers,
         onRename: () => setRenamingAnalysisName(name),
         onCopy: () => setCopyingAnalysisName(name),
         onExport: () => setExportingAnalysisName(name),
@@ -400,10 +405,9 @@ const Analyses = _.flow(
   }
 
   // Render
-  //TODO: enable dropzone for azure when we support file upload
   return h(Dropzone, {
     accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
-    disabled: !Utils.canWrite(accessLevel) || !googleProject,
+    disabled: !Utils.canWrite(accessLevel),
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
@@ -415,8 +419,7 @@ const Analyses = _.flow(
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonOutline, {
           style: { marginLeft: '1.5rem' },
-          //TODO: azure should eventually leverage create modal
-          onClick: () => !!googleProject ? setCreating(true) : setAzureCreating(true),
+          onClick: () => setCreating(true),
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
@@ -461,23 +464,10 @@ const Analyses = _.flow(
             await refreshApps()
           }
         }),
-        h(AzureComputeModal, {
-          workspace,
-          runtimes,
-          isOpen: azureCreating,
-          onDismiss: async () => {
-            setAzureCreating(false)
-            await refreshRuntimes()
-          },
-          onSuccess: async () => {
-            setAzureCreating(false)
-            await refreshRuntimes()
-          }
-        }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getToolFromFileExtension(renamingAnalysisName), googleProject,
-          namespace, wsName, bucketName, destroyOld: true,
+          toolLabel: getToolFromFileExtension(renamingAnalysisName), googleProject, workspaceId,
+          namespace, workspaceName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
           onSuccess: () => {
             setRenamingAnalysisName(undefined)
@@ -486,8 +476,8 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getToolFromFileExtension(copyingAnalysisName), googleProject,
-          namespace, wsName, bucketName, destroyOld: false,
+          toolLabel: getToolFromFileExtension(copyingAnalysisName), googleProject, workspaceId,
+          namespace, workspaceName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
           onSuccess: () => {
             setCopyingAnalysisName(undefined)
@@ -509,12 +499,16 @@ const Analyses = _.flow(
             withErrorReporting('Error deleting analysis.')
           )(async () => {
             setDeletingAnalysisName(undefined)
-            await Ajax().Buckets.analysis(
-              googleProject,
-              bucketName,
-              getFileName(deletingAnalysisName),
-              getToolFromFileExtension(deletingAnalysisName)
-            ).delete()
+            if (!!googleProject) {
+              await Ajax().Buckets.analysis(
+                googleProject,
+                bucketName,
+                getFileName(deletingAnalysisName),
+                getToolFromFileExtension(deletingAnalysisName)
+              ).delete()
+            } else {
+              await Ajax(signal).AzureStorage.blob(workspaceId, getFileName(deletingAnalysisName)).delete()
+            }
             refreshAnalyses()
           }),
           onDismiss: () => setDeletingAnalysisName(undefined)

@@ -5,8 +5,6 @@ import { ButtonOutline, ButtonPrimary, ButtonSecondary, IdContainer, Link, Selec
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { tools } from 'src/components/notebook-utils'
-import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/machines'
@@ -15,12 +13,14 @@ import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
-} from 'src/libs/runtime-utils'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const defaultDataDisk = { size: 500, diskType: pdTypes.standard }

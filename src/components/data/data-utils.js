@@ -12,7 +12,7 @@ import { icon } from 'src/components/icons'
 import { AutocompleteTextInput, NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
-import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -1439,7 +1439,10 @@ export const HeaderOptions = ({ sort, field, onSort, extraActions, children }) =
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+      !_.isEmpty(extraActions) && h(Fragment, [
+        h(MenuDivider),
+        _.map(({ label, disabled, tooltip, onClick }) => h(MenuButton, { key: label, disabled, tooltip, onClick }, [label]), extraActions)
+      ])
     ])
   }, [
     h(Link, { 'aria-label': 'Column menu' }, [
