@@ -12,5 +12,3 @@ export const getConfig = () => {
  * Flags for hidden features
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
-export const isDataTableProvenanceEnabled = () => getConfig().isDataTableProvenanceEnabled
-export const isDataTableVersioningEnabled = () => getConfig().isDataTableVersioningEnabled
