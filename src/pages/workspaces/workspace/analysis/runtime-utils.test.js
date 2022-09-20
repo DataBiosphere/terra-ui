@@ -1,7 +1,7 @@
-import { tools } from 'src/components/notebook-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
-} from 'src/libs/runtime-utils'
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 jest.mock('src/data/machines', () => {

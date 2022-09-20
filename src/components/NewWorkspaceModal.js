@@ -16,8 +16,8 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 

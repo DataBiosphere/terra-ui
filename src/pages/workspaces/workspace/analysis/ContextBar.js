@@ -4,9 +4,8 @@ import { br, div, h, img, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
-import { getAppType, tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
-import { appLauncherTabName } from 'src/components/runtime-common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
@@ -16,12 +15,12 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-
-import TooltipTrigger from './TooltipTrigger'
+import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const contextBarStyles = {
