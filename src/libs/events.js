@@ -33,6 +33,7 @@ const eventsList = {
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
+  catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
   catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
