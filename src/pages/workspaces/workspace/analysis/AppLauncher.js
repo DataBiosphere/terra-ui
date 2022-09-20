@@ -45,7 +45,6 @@ const ApplicationLauncher = _.flow(
   // Jupyter is always launched with a specific file, which is localized
   // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
   const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label)
-  const [azureStorage, setAzureStorage] = useState()
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -168,17 +167,8 @@ const ApplicationLauncher = _.flow(
       const localBaseDirectory = ``
       const localSafeModeBaseDirectory = ``
 
-
-      const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-        const { storageContainerName } = await Ajax(signal).AzureStorage.details(workspaceId)
-        setAzureStorage(storageContainerName)
-      })
-
-      if (azureContext) {
-        await loadAzureStorage()
-      }
-
-      const cloudStorageDirectory = azureContext ? `${azureStorage}/analyses` : `gs://${bucketName}/notebooks`
+      const { storageContainerName: azureStorageContainer } = await Ajax(signal).AzureStorage.details(workspaceId)
+      const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
 
       //TODO: fix this when relay is working https://broadworkbench.atlassian.net/browse/IA-3700
       !!googleProject ?
@@ -195,7 +185,7 @@ const ApplicationLauncher = _.flow(
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
-      setShouldSetupWelder(true)
+      setShouldSetupWelder(false)
     }
 
     const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {

@@ -35,6 +35,7 @@ window.ajaxOverrideUtils = {
 }
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
+const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -1146,7 +1147,7 @@ const AzureStorage = signal => ({
 
     const getBlobUrl = async (workspaceId, blobName) => {
       const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
-      const encodedBlobName = encodeURIComponent(blobName)
+      const encodedBlobName = encodeAzureAnalysisName(blobName)
 
       const azureStorageUrl = _.flow(
         _.split('?'),
