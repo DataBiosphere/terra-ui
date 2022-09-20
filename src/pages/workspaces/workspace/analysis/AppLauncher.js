@@ -167,7 +167,8 @@ const ApplicationLauncher = _.flow(
       const localBaseDirectory = ``
       const localSafeModeBaseDirectory = ``
 
-      const { storageContainerName: azureStorageContainer } = await Ajax(signal).AzureStorage.details(workspaceId)
+
+      const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
 
       //TODO: fix this when relay is working https://broadworkbench.atlassian.net/browse/IA-3700
