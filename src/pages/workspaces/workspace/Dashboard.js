@@ -217,7 +217,7 @@ export const WorkspaceNotifications = ({ workspace }) => {
           await refreshTerraProfile()
           Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys: submissionNotificationKeys, enabled: value })
         })
-      }, [span({ style: { marginLeft: '1ch' } }, ['Submission notifications'])]),
+      }, [span({ style: { marginLeft: '1ch' } }, ['Receive submission notifications'])]),
       h(InfoBox, { style: { marginLeft: '1ch' } }, [
         'Receive email notifications when a submission in this workspace has succeeded, failed, or been aborted.'
       ]),

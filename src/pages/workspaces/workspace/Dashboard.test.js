@@ -43,7 +43,7 @@ describe('WorkspaceNotifications', () => {
     authStore.set({ profile })
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }))
-    const submissionNotificationsCheckbox = getByLabelText('Submission notifications')
+    const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications')
     expect(submissionNotificationsCheckbox.getAttribute('aria-checked')).toBe(`${expectedState}`)
   })
 
@@ -72,7 +72,7 @@ describe('WorkspaceNotifications', () => {
     })
 
     const { getByLabelText } = render(h(WorkspaceNotifications, { workspace: testWorkspace }))
-    const submissionNotificationsCheckbox = getByLabelText('Submission notifications')
+    const submissionNotificationsCheckbox = getByLabelText('Receive submission notifications')
 
     await act(() => user.click(submissionNotificationsCheckbox))
     expect(setPreferences).toHaveBeenCalledWith({
