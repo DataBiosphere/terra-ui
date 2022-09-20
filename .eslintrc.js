@@ -2,6 +2,15 @@
 module.exports = {
   'plugins': ['lodash-fp', 'simple-import-sort'],
   'extends': 'react-app',
+  'settings': {
+    'import/resolver': {
+      'eslint-import-resolver-custom-alias': {
+        'alias': {
+          'src': './src'
+        }
+      }
+    }
+  },
   'rules': {
     // Best Practices
     'no-multi-spaces': 'warn',
@@ -100,8 +109,10 @@ module.exports = {
 
     'simple-import-sort/imports': 'warn',
 
+    'import/named': 'warn',
     'import/newline-after-import': ['warn', { 'count': 2 }],
     'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
+    'import/no-unresolved': 'warn',
 
     'no-debugger': 'warn'
   },
