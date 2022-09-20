@@ -12302,12 +12302,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hyperscript-helpers@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "react-hyperscript-helpers@npm:1.2.0"
+"react-hyperscript-helpers@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "react-hyperscript-helpers@npm:2.0.0"
   peerDependencies:
     react: ">=0.13.0"
-  checksum: 8f56055ece9da56e7950298dce31212792cfb04b70d43b182d49155cff2d6752be2e225894f732cfbbbe4a9522b75401be0f092399823ca1859b66ef1fa228d2
+  checksum: 1950554f41254e1b1cd1ae7e52ce37ad472db3e8396ede21531b91177688a5326dcb88d4cd0bad1484f7978833d14a43bce04928fa4e79a3ec2f3be0d8b5eb1a
   languageName: node
   linkType: hard
 
@@ -14252,7 +14252,7 @@ resolve@^2.0.0-next.3:
     react-dropzone: ^11.4.0
     react-favicon: ^0.0.23
     react-focus-lock: ^2.5.2
-    react-hyperscript-helpers: ^1.2.0
+    react-hyperscript-helpers: ^2.0.0
     react-json-view: ^1.21.3
     react-modal: ^3.14.3
     react-notifications-component: ^3.1.0

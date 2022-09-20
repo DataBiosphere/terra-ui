@@ -42,7 +42,7 @@
     "react-dropzone": "^11.4.0",
     "react-favicon": "^0.0.23",
     "react-focus-lock": "^2.5.2",
-    "react-hyperscript-helpers": "^1.2.0",
+    "react-hyperscript-helpers": "^2.0.0",
     "react-json-view": "^1.21.3",
     "react-modal": "^3.14.3",
     "react-notifications-component": "^3.1.0",
