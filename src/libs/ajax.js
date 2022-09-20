@@ -1033,8 +1033,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importJob: async (url, filetype, tdrSyncPermissions) => {
-        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, tdrSyncPermissions }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype, options) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }]))
         return res.json()
       },
 

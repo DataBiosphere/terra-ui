@@ -143,7 +143,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['tdrexport', async () => {
-        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(tdrmanifest, 'tdrexport', tdrSyncPermissions === 'true')
+        const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importJob(tdrmanifest, 'tdrexport', { tdrSyncPermissions: tdrSyncPermissions === 'true' })
         asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
         notifyDataImportProgress(jobId)
       }],
