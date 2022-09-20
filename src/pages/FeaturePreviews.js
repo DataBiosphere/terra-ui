@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { Checkbox, PageBox, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { SimpleFlexTable } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
@@ -58,10 +58,15 @@ export const FeaturePreviews = () => {
             field: 'description',
             headerRenderer: () => 'Description',
             cellRenderer: ({ rowIndex }) => {
-              const { title, description } = featurePreviews[rowIndex]
+              const { title, description, documentationUrl, feedbackUrl } = featurePreviews[rowIndex]
               return div([
                 p({ style: { fontWeight: 600, margin: '0.5rem 0 0.5rem' } }, [title]),
-                p({ style: { margin: '0.5rem 0' } }, [description])
+                p({ style: { margin: '0.5rem 0' } }, [description]),
+                !!(documentationUrl || feedbackUrl) && p({ style: { margin: '0.5rem 0' } }, [
+                  documentationUrl && h(Link, { ...Utils.newTabLinkProps, href: documentationUrl }, ['Documentation']),
+                  !!(documentationUrl && feedbackUrl) && ' | ',
+                  feedbackUrl && h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, ['Submit feedback'])
+                ])
               ])
             }
           }
