@@ -458,7 +458,7 @@ const ErrorAlert = ({ errorMessage }) => {
           [_.isString(errorMessage), () => div({ style: { display: 'flex', flexDirection: 'column', justifyContent: 'center' } },
             [
               div({ style: { fontWeight: 'bold', marginLeft: '0.2rem' }, role: 'alert' },
-                error.message.charAt(0).toUpperCase() + error.message.slice(1)),
+                _.upperFirst(error.message)),
               h(Collapse, { title: 'Full Error Detail', style: { marginTop: '0.5rem' } },
                 [
                   div({
