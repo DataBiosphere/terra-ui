@@ -330,11 +330,15 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
     const index = _.findIndex({ projectName }, billingProjects)
-    // Workaround until getProject has the correct cloudPlatform, WOR-518
+    // Workaround until getProject has the correct cloudPlatform and managed app coordinates populated, WOR-518
     const cloudPlatform = billingProjects[index].cloudPlatform
+    const managedAppCoordinates = billingProjects[index].managedAppCoordinates
     // fetch the project to error if it doesn't exist/user can't access
     const project = await Ajax(signal).Billing.getProject(selectedName)
     project.cloudPlatform = cloudPlatform
+    if (!!managedAppCoordinates) {
+      project.managedAppCoordinates = managedAppCoordinates
+    }
     setBillingProjects(_.set([index], project))
   })
 
