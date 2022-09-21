@@ -1052,6 +1052,7 @@ export const ComputeModalBase = ({
                     value: runtimeType,
                     onChange: ({ value }) => {
                       setRuntimeType(value)
+                      updateComputeConfig('masterMachineType', getDefaultMachineType(isDataproc(value), getToolFromRuntime(value)))
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [
