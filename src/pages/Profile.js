@@ -244,7 +244,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setIsLinking)
     )(async () => {
-      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl)
+      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl, state)
       authStore.update(_.set(['fenceStatus', key], status))
     })
 
