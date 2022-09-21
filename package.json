@@ -69,6 +69,7 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
     "test": "react-app-rewired test",
+    "check-rhh-types": "check-dts types/react-hyperscript-helpers.*.ts",
     "postinstall": "husky install"
   },
   "devDependencies": {
@@ -83,6 +84,7 @@
     "@types/react-dom": "^18.0.6",
     "babel-plugin-prismjs": "^2.1.0",
     "blob-polyfill": "^7.0.20220408",
+    "check-dts": "^0.6.7",
     "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",
     "eslint-import-resolver-custom-alias": "^1.3.0",
