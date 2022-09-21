@@ -15,7 +15,7 @@ export const isFeaturePreviewEnabled = id => !!getLocalPref(featurePreviewPrefer
 
 export const toggleFeaturePreview = (id, enabled) => {
   setLocalPref(featurePreviewPreferenceKey(id), enabled)
-  Ajax().Metrics.captureEvent(Events.featurePreviewToggle, { enabled })
+  Ajax().Metrics.captureEvent(Events.featurePreviewToggle, { featureId: id, enabled })
 }
 
 const getGroups = async ({ signal } = {}) => {
