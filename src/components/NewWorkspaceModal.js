@@ -47,15 +47,15 @@ const constraints = {
   }
 }
 
-const getCloudContextTitle = cloudPlatform => {
+const getCloudPlatformTitle = cloudPlatform => {
   return Utils.switchCase(cloudPlatform,
     [cloudProviders.gcp.label, () => cloudProviders.gcp.iconTitle],
     [cloudProviders.azure.label, () => cloudProviders.azure.iconTitle]
   )
 }
 
-const cloudContextIcon = ({ cloudPlatform }) => {
-  const props = { title: getCloudContextTitle(cloudPlatform), role: 'img' }
+const cloudPlatformIcon = ({ cloudPlatform }) => {
+  const props = { title: getCloudPlatformTitle(cloudPlatform), role: 'img' }
 
   return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     Utils.switchCase(cloudPlatform,
@@ -248,12 +248,12 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 10 }) },
           options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
-            'aria-label': `${getCloudContextTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+            'aria-label': `${getCloudPlatformTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
               content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(cloudContextIcon, { cloudPlatform, key: projectName }), projectName]
+              [h(cloudPlatformIcon, { cloudPlatform, key: projectName }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount
