@@ -24,7 +24,7 @@ import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { downloadIO, ioTask, ioVariable } from 'src/libs/workflow-utils'
+import { downloadIO, downloadWorkflows, ioTask, ioVariable } from 'src/libs/workflow-utils'
 import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -84,7 +84,7 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
         onChange: setTextFilter,
         value: textFilter
       }),
-      div({ style: { flexBasis: 350 } }, [
+      div({ style: { marginRight: '2rem', flexBasis: 350 } }, [
         h(Select, {
           isClearable: true,
           isMulti: true,
@@ -95,7 +95,8 @@ const SubmissionWorkflowsTable = ({ workspace, submission }) => {
           onChange: data => setStatusFilter(_.map('value', data)),
           options: Utils.workflowStatuses
         })
-      ])
+      ]),
+      h(Link, { onClick: () => downloadWorkflows(filteredWorkflows, submissionId) }, ['Download TSV'])
     ]),
     // 48px is based on the default row height of FlexTable
     div({ style: { flex: `1 0 ${(1 + _.min([filteredWorkflows.length, 5.5])) * tableRowHeight}px` } }, [

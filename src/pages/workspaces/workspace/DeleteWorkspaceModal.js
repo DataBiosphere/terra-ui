@@ -12,8 +12,8 @@ import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
+import { isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
 const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName, googleProject } }, onDismiss, onSuccess }) => {

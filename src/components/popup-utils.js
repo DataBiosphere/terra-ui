@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 export const useDynamicPosition = selectors => {
   const pickValues = _.pick(['top', 'bottom', 'left', 'right', 'width', 'height'])
   const [dimensions, setDimensions] = useState(_.map(({ viewport }) => {
-    return viewport ? { width: 0, height: 0 } : pickValues(new DOMRect())
+    return viewport ? { width: 0, height: 0 } : { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 }
   }, selectors))
   const getDimensions = useGetter(dimensions)
   const animation = useRef()

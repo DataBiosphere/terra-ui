@@ -10,6 +10,8 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -25,6 +27,7 @@ import * as Utils from 'src/libs/utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -44,11 +47,6 @@ const styles = {
   }
 }
 
-const billingProjectTypes = {
-  azure: 'azure',
-  gcp: 'gcp'
-}
-
 const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
@@ -58,7 +56,7 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
   }
 
   if (!isAlphaAzureUser) {
-    return createButton(showCreateProjectModal, billingProjectTypes.gcp)
+    return createButton(showCreateProjectModal, cloudProviders.gcp)
   } else {
     return h(MenuTrigger, {
       side: 'bottom',
@@ -66,11 +64,11 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
       content: h(Fragment, [
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(billingProjectTypes.azure)
+          onClick: () => showCreateProjectModal(cloudProviders.azure)
         }, 'Azure Billing Project'),
         h(MenuButton, {
           'aria-haspopup': 'dialog',
-          onClick: () => showCreateProjectModal(billingProjectTypes.gcp)
+          onClick: () => showCreateProjectModal(cloudProviders.gcp)
         }, 'GCP Billing Project')
       ])
     }, [createButton()])
@@ -115,7 +113,14 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   ])
 }
 
-const ProjectListItem = ({ project, project: { roles, status }, loadProjects, isActive }) => {
+const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, loadProjects, isActive }) => {
+  const cloudContextIcon =
+    div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+      Utils.switchCase(cloudPlatform,
+        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
+        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+    ])
+
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
@@ -124,9 +129,9 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
     }),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
-  }, [projectName])
+  }, [cloudContextIcon, projectName])
 
-  const unselectableProject = ({ projectName, status, message }, isActive) => {
+  const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
     const iconAndTooltip =
       status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
@@ -137,20 +142,21 @@ const ProjectListItem = ({ project, project: { roles, status }, loadProjects, is
           ]),
           //Currently, only billing projects that failed to create can have actions performed on them.
           //If that changes in the future, this should be moved elsewhere
-          h(BillingProjectActions, { project, loadProjects })
+          isOwner && h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
-      projectName, iconAndTooltip
+      cloudContextIcon, projectName, iconAndTooltip
     ])
   }
 
   const viewerRoles = _.intersection(roles, _.values(billingRoles))
+  const isOwner = _.includes(billingRoles.owner, roles)
 
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject(project, isActive) :
-      unselectableProject(project, isActive)
+      unselectableProject(project, isActive, isOwner)
   ])
 }
 
@@ -294,8 +300,8 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
 export const BillingList = ({ queryParams: { selectedName } }) => {
   // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
-  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or billingProjectTypes values
-  const [billingAccounts, setBillingAccounts] = useState({ })
+  const [creatingBillingProject, setCreatingBillingProject] = useState(null) // null or cloudProvider values
+  const [billingAccounts, setBillingAccounts] = useState({})
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
@@ -323,9 +329,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing project'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
-    // evaluate first to error if project doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.getProject(selectedName)
     const index = _.findIndex({ projectName }, billingProjects)
+    // Workaround until getProject has the correct cloudPlatform and managed app coordinates populated, WOR-518
+    const cloudPlatform = billingProjects[index].cloudPlatform
+    const managedAppCoordinates = billingProjects[index].managedAppCoordinates
+    // fetch the project to error if it doesn't exist/user can't access
+    const project = await Ajax(signal).Billing.getProject(selectedName)
+    project.cloudPlatform = cloudPlatform
+    if (!!managedAppCoordinates) {
+      project.managedAppCoordinates = managedAppCoordinates
+    }
     setBillingProjects(_.set([index], project))
   })
 
@@ -353,7 +366,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const authorizeAndLoadAccounts = () => authorizeAccounts().then(loadAccounts)
 
   const showCreateProjectModal = async type => {
-    if (type === billingProjectTypes.azure) {
+    if (type === cloudProviders.azure) {
       setCreatingBillingProject(type)
     } else if (Auth.hasBillingScope()) {
       setCreatingBillingProject(type)
@@ -438,7 +451,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         ])
       ]),
-      creatingBillingProject === billingProjectTypes.gcp && h(NewBillingProjectModal, {
+      creatingBillingProject === cloudProviders.gcp && h(NewBillingProjectModal, {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
@@ -447,7 +460,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      creatingBillingProject === billingProjectTypes.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: () => {
           setCreatingBillingProject(null)

@@ -3,14 +3,10 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
-import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { tools } from 'src/components/notebook-utils'
 import { locationTypes } from 'src/components/region-common'
-import { analysisTabName } from 'src/components/runtime-common'
-import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
@@ -22,11 +18,18 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import {
+  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isAzureContext, mapToPdTypes
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
+import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
@@ -61,7 +64,7 @@ const WorkspacePermissionNotice = ({ workspace }) => {
 
 const WorkspaceTabs = ({
   namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal
+  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
@@ -72,6 +75,7 @@ const WorkspaceTabs = ({
   const onDelete = () => setDeletingWorkspace(true)
   const onLock = () => setShowLockWorkspaceModal(true)
   const onShare = () => setSharingWorkspace(true)
+  const onLeave = () => setLeavingWorkspace(true)
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
@@ -92,7 +96,7 @@ const WorkspaceTabs = ({
       workspace && h(WorkspacePermissionNotice, { workspace }),
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
-        callbacks: { onClone, onShare, onLock, onDelete },
+        callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ])
@@ -108,6 +112,7 @@ const WorkspaceContainer = ({
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const [showLockWorkspaceModal, setShowLockWorkspaceModal] = useState(false)
+  const [leavingWorkspace, setLeavingWorkspace] = useState(false)
 
   // If googleProject is not undefined (server info not yet loaded)
   // and not the empty string, we know that we have a Google workspace.
@@ -125,7 +130,7 @@ const WorkspaceContainer = ({
         href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
         style: {
           backgroundColor: colors.light(), borderRadius: 4,
-          marginRight: '1.5rem', marginLeft: '0.5rem', padding: '0.4rem 0.8rem',
+          margin: '0 0.5rem', padding: '0.4rem 0.8rem',
           display: 'flex', alignItems: 'center', flexShrink: 0
         },
         ...Utils.newTabLinkProps
@@ -137,7 +142,7 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
-      setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
+      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
@@ -163,6 +168,11 @@ const WorkspaceContainer = ({
       workspace,
       onDismiss: () => setShowLockWorkspaceModal(false),
       onSuccess: () => refreshWorkspace()
+    }),
+    leavingWorkspace && h(LeaveWorkspaceModal, {
+      workspace,
+      onDismiss: () => setLeavingWorkspace(false),
+      onSuccess: () => Nav.goToPath('workspaces')
     }),
     sharingWorkspace && h(ShareWorkspaceModal, {
       workspace,
@@ -218,12 +228,19 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
       const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
 
+      // v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
+      // associated with runtimes and disks will not match the workspace googleProject. These
+      // should be hidden from the user.
+      const isV1Artifact = ({ googleProject = undefined, cloudContext }) => isAzureContext(cloudContext) ? false :
+        googleProject && googleProject !== workspace.workspace.googleProject
+
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
+      const [newDisks, newRuntimes] = !!workspace ? _.map(_.remove(isV1Artifact), await Promise.all([
         Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
-      ]) : [[], []]
+      ])) : [[], []]
+
       setRuntimes(newRuntimes)
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))

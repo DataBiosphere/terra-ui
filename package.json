@@ -76,16 +76,24 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^28.1.8",
+    "@types/lodash": "^4.14.184",
+    "@types/node": "^18.7.16",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.6",
     "babel-plugin-prismjs": "^2.1.0",
+    "blob-polyfill": "^7.0.20220408",
     "csp-html-webpack-plugin": "^5.1.0",
     "customize-cra": "^1.0.0",
+    "eslint-import-resolver-custom-alias": "^1.3.0",
     "eslint-plugin-lodash-fp": "^2.2.0-a1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "husky": "^7.0.2",
     "lint-staged": "^13.0.3",
     "react-app-rewired": "^2.2.1",
     "source-map-explorer": "^2.5.2",
-    "svgo": "^1.3.2"
+    "svgo": "^1.3.2",
+    "typescript": "^4.8.3"
   },
   "browserslist": [
     ">0.2%",
@@ -114,7 +122,7 @@
       "built": false
     }
   },
-  "packageManager": "yarn@3.2.2",
+  "packageManager": "yarn@3.2.3",
   "workspaces": [
     "integration-tests"
   ],

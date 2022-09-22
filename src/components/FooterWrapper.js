@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { isBioDataCatalyst } from 'src/libs/brand-utils'
+import { isBioDataCatalyst, isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -79,6 +79,10 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture',
       displayName: 'Security'
+    }),
+    isRadX() && popoutItem({
+      link: 'https://www.hhs.gov/vulnerability-disclosure-policy/index.html',
+      displayName: 'HHS Vulnerability Disclosure'
     }),
     popoutItem({
       link: 'https://support.terra.bio/hc/en-us',

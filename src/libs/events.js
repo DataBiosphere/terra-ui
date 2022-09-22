@@ -33,16 +33,24 @@ const eventsList = {
   catalogFilter: 'catalog:filter',
   catalogRequestAccess: 'catalog:requestAccess',
   catalogToggle: 'catalog:toggle',
+  catalogLandingPageBanner: 'catalog:landingPageBanner',
   catalogView: 'catalog:view',
   catalogWorkspaceLink: 'catalog:workspaceLink',
+  catalogWorkspaceLinkExportFinished: 'catalog:workspaceLink:completed',
   datasetLibraryBrowseData: 'library:browseData',
   dataTableSaveColumnSettings: 'dataTable:saveColumnSettings',
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
+  dataTableVersioningViewVersionHistory: 'dataTable:versioning:viewVersionHistory',
+  dataTableVersioningSaveVersion: 'dataTable:versioning:saveVersion',
+  dataTableVersioningRestoreVersion: 'dataTable:versioning:restoreVersion',
+  dataTableVersioningDeleteVersion: 'dataTable:versioning:deleteVersion',
+  featurePreviewToggle: 'featurePreview:toggle',
   // Note: "external" refers to the common Job Manager deployment, not a Job Manager bundled in CromwellApp
   jobManagerOpenExternal: 'job-manager:open-external',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
+  notificationToggle: 'notification:toggle',
   pageView: 'page:view',
   removeBillingAccount: 'billing:project:account:remove',
   userRegister: 'user:register',
@@ -75,11 +83,13 @@ const eventsList = {
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
   workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceLeave: 'workspace:leave',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
-  workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
+  workspaceSnapshotContentsView: 'workspace:snapshot:contents:view',
+  workspaceStar: 'workspace:star'
 }
 
 export const extractWorkspaceDetails = workspaceObject => {

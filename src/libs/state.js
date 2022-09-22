@@ -1,4 +1,4 @@
-import { staticStorageSlot } from 'src/libs/browser-storage'
+import { getLocalStorage, getSessionStorage, staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
 
 
@@ -27,10 +27,10 @@ export const userStatus = {
 export const cookieReadyStore = Utils.atom(false)
 export const azureCookieReadyStore = Utils.atom(false)
 
-export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
+export const lastActiveTimeStore = staticStorageSlot(getLocalStorage(), 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
 
-export const toggleStateAtom = staticStorageSlot(sessionStorage, 'toggleState')
+export const toggleStateAtom = staticStorageSlot(getSessionStorage(), 'toggleState')
 toggleStateAtom.update(v => v || { notebooksTab: true })
 
 export const notificationStore = Utils.atom([])
@@ -78,5 +78,5 @@ window.ajaxOverridesStore = ajaxOverridesStore
  * Modifies config settings for testing purposes.
  * Can be set to an object which will be merged with the loaded config object.
  */
-export const configOverridesStore = staticStorageSlot(sessionStorage, 'config-overrides')
+export const configOverridesStore = staticStorageSlot(getSessionStorage(), 'config-overrides')
 window.configOverridesStore = configOverridesStore

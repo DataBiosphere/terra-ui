@@ -390,6 +390,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updati
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
+    Ajax().Metrics.captureEvent(Events.workspaceStar, { workspaceId, starred: star })
     setStars(updatedWorkspaceIds)
   })
 

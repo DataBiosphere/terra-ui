@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, h1, li, ol, p } from 'react-hyperscript-helpers'
+import { div, h, h1, li, ol, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common'
 import { parseGsUri } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
@@ -8,6 +8,7 @@ import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { tableNameForRestore } from 'src/libs/data-table-versions'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -45,11 +46,12 @@ const DownloadVersionButton = ({ url }) => {
   ])
 }
 
-export const DataTableVersion = ({ version, onDelete }) => {
+export const DataTableVersion = ({ version, onDelete, onRestore }) => {
   const { entityType, timestamp, description } = version
 
+  const [showRestoreConfirmation, setShowRestoreConfirmation] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
-  const [deleting, setDeleting] = useState(false)
+  const [busy, setBusy] = useState(false)
 
   return div({ style: { padding: '1rem' } }, [
     h1({
@@ -67,28 +69,49 @@ export const DataTableVersion = ({ version, onDelete }) => {
     ]),
     div({ style: { marginBottom: '1rem' } }, [
       h(ButtonPrimary, {
+        disabled: busy,
+        onClick: () => setShowRestoreConfirmation(true)
+      }, ['Restore'])
+    ]),
+    div({ style: { marginBottom: '1rem' } }, [
+      h(ButtonPrimary, {
         danger: true,
-        disabled: deleting,
+        disabled: busy,
         onClick: () => setShowDeleteConfirmation(true)
       }, ['Delete'])
     ]),
+    showRestoreConfirmation && h(DataTableRestoreVersionModal, {
+      version,
+      onConfirm: async () => {
+        setShowRestoreConfirmation(false)
+        setBusy(true)
+        try {
+          await onRestore()
+        } catch (err) {
+          setBusy(false)
+        }
+      },
+      onDismiss: () => {
+        setShowRestoreConfirmation(false)
+      }
+    }),
     showDeleteConfirmation && h(DeleteConfirmationModal, {
       objectType: 'version',
       objectName: Utils.makeCompleteDate(timestamp),
       onConfirm: async () => {
         setShowDeleteConfirmation(false)
         try {
-          setDeleting(true)
+          setBusy(true)
           await onDelete()
         } catch (err) {
-          setDeleting(false)
+          setBusy(false)
         }
       },
       onDismiss: () => {
         setShowDeleteConfirmation(false)
       }
     }),
-    deleting && spinnerOverlay
+    busy && spinnerOverlay
   ])
 }
 
@@ -139,5 +162,16 @@ export const DataTableSaveVersionModal = ({ entityType, onDismiss, onSubmit }) =
         onChange: setDescription
       })
     ])])
+  ])
+}
+
+export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) => {
+  return h(Modal, {
+    onDismiss,
+    title: `Restore version`,
+    okButton: h(ButtonPrimary, { onClick: () => onConfirm() }, ['Restore'])
+  }, [
+    'This version will be restored to a new data table: ',
+    span({ style: { fontWeight: 600 } }, [tableNameForRestore(version)])
   ])
 }

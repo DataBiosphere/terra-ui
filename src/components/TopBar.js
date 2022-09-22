@@ -3,10 +3,12 @@ import { Fragment, useRef, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
+import AlertsIndicator from 'src/components/Alerts'
 import { Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
-import { icon, profilePic } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import ProfilePicture from 'src/components/ProfilePicture'
 import { SkipNavLink, SkipNavTarget } from 'src/components/skipNavLink'
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
@@ -157,7 +159,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           isSignedIn ?
             h(DropDownSection, {
               title: h(Fragment, [
-                profilePic({ size: 32, style: { marginRight: 12, flex: 'none' } }),
+                h(ProfilePicture, { size: 32, style: { marginRight: 12, flex: 'none' } }),
                 div({ style: { ...Style.noWrapEllipsis } }, [`${firstName} ${lastName}`])
               ]),
               onClick: () => setOpenUserMenu(!openUserMenu),
@@ -394,7 +396,15 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
             }, [title])
           ])
         ]),
-        children,
+        div({ style: { display: 'flex', flexGrow: 1 } }, [
+          children
+        ]),
+        h(AlertsIndicator, {
+          style: {
+            margin: '0 1rem 0 0.5rem',
+            color: isTerra() ? 'white' : colors.dark()
+          }
+        }),
         openFirecloudModal && h(PreferFirecloudModal, {
           onDismiss: () => setOpenFirecloudModal(false),
           authState
