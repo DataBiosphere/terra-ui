@@ -47,12 +47,27 @@ const constraints = {
   }
 }
 
+const getCloudContextTitle = cloudPlatform => {
+  return Utils.switchCase(cloudPlatform,
+    [cloudProviders.gcp.label, () => cloudProviders.gcp.iconTitle],
+    [cloudProviders.azure.label, () => cloudProviders.azure.iconTitle]
+  )
+}
+
 const cloudContextIcon = ({ cloudPlatform }) => {
+  const props = { title: getCloudContextTitle(cloudPlatform), role: 'img' }
+
   return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     Utils.switchCase(cloudPlatform,
-      [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
-      [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
+      [cloudProviders.gcp.label, () => h(CloudGcpLogo, props)],
+      [cloudProviders.azure.label, () => h(CloudAzureLogo, props)])
   ])
+}
+
+const invalidBillingAccountMsg = 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'
+
+const ariaInvalidBillingAccountMsg = invalidBillingAccount => {
+  return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : ''
 }
 
 const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
@@ -179,6 +194,17 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const sourceLocationType = getLocationType(sourceWorkspaceLocation)
   const destLocationType = getLocationType(bucketLocation)
 
+  const onFocusAria = ({ focused, isDisabled }) => {
+    return `You are currently focused on ${isDisabled ? 'disabled ' : ''}option ${focused['aria-label']}.`
+  }
+
+  const onChangeAria = ({ value }) => {
+    if (!value) {
+      return ''
+    }
+    return `Option ${value['aria-label']} selected.`
+  }
+
   return Utils.cond(
     [loading || billingProjects === undefined, () => spinnerOverlay],
     [hasBillingProjects, () => h(Modal, {
@@ -221,16 +247,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           isClearable: false,
           placeholder: 'Select a billing project',
           value: namespace,
+          ariaLiveMessages: ({ onFocus: onFocusAria, onChange: onChangeAria }),
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 10 }) },
           options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
+            'aria-label': `${getCloudContextTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
-              content: invalidBillingAccount &&
-                'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
-              side: 'left'
+              content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(cloudContextIcon, { cloudPlatform }), projectName]
+              [h(cloudContextIcon, { cloudPlatform, key: projectName }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount
