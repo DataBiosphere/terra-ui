@@ -478,8 +478,8 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             loadingSubmissionStats
           }),
           !!googleProject ?
-            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5, height: 16 } }) :
-            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5, height: 16 } })
+            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5 } }) :
+            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5 } })
         ])
       ])
     ])
