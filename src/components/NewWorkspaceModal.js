@@ -134,9 +134,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.gcp.label &&
-    Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject,
-      cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
