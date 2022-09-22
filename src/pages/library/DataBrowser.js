@@ -109,7 +109,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { project, requestAccessUrl, dataModality, access } = datum
+        const { project, requestAccessURL, dataModality, access } = datum
 
         return {
           name: h(Link,
@@ -131,9 +131,9 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.cond(
-                [!!requestAccessUrl && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  href: requestAccessUrl
+                  href: requestAccessURL, target: '_blank'
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
                 [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
