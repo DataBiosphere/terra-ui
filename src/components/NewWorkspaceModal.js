@@ -199,10 +199,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   }
 
   const onChangeAria = ({ value }) => {
-    if (!value) {
-      return ''
-    }
-    return `Option ${value['aria-label']} selected.`
+    return !value ? '' : `Option ${value['aria-label']} selected.`
   }
 
   return Utils.cond(
