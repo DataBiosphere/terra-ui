@@ -8,6 +8,8 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -17,7 +19,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -43,6 +45,14 @@ const constraints = {
   namespace: {
     presence: true
   }
+}
+
+const cloudContextIcon = ({ cloudPlatform }) => {
+  return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+    Utils.switchCase(cloudPlatform,
+      [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
+      [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
+  ])
 }
 
 const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
@@ -124,7 +134,9 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.gcp.label &&
+    Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject,
+      cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
@@ -140,15 +152,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    // Azure billing projects have `managedAppCoordinates` defined.
-    return !!project?.managedAppCoordinates
+    return project?.cloudPlatform === cloudProviders.azure.label
   }
 
   const isBillingProjectApplicable = project => {
     // Only support cloning a workspace to the same cloud environment.
     return Utils.cond(
-      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
-      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
+      [!!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.azure.label, () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.gcp.label, () => !isAzureBillingProject(project)],
       [Utils.DEFAULT, () => true]
     )
   }
@@ -213,13 +224,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
-          styles: { option: provided => ({ ...provided, padding: 0 }) },
-          options: _.map(({ projectName, invalidBillingAccount }) => ({
+          styles: { option: provided => ({ ...provided, padding: 10 }) },
+          options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
             label: h(TooltipTrigger, {
-              content: invalidBillingAccount && 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
+              content: invalidBillingAccount &&
+                'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
               side: 'left'
-            }, [div({ style: { padding: 10 } }, [projectName])]
-            ),
+            },
+            [div({ style: { display: 'flex', alignItems: 'center' } },
+              [h(cloudContextIcon, { cloudPlatform }), projectName]
+            )]),
             value: projectName,
             isDisabled: invalidBillingAccount
           }), _.sortBy('projectName', _.uniq(billingProjects)))

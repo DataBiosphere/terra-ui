@@ -24,6 +24,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -477,8 +478,8 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             loadingSubmissionStats
           }),
           !!googleProject ?
-            h(CloudGcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
-            h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
+            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5, height: 16 } }) :
+            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5, height: 16 } })
         ])
       ])
     ])
