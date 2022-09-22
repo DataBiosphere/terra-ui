@@ -158,8 +158,8 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const isBillingProjectApplicable = project => {
     // Only support cloning a workspace to the same cloud environment.
     return Utils.cond(
-      [!!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.azure.label, () => isAzureBillingProject(project)],
-      [!!cloneWorkspace && cloneWorkspace.cloudPlatform === cloudProviders.gcp.label, () => !isAzureBillingProject(project)],
+      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
       [Utils.DEFAULT, () => true]
     )
   }
