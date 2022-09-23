@@ -27,12 +27,12 @@ The following environment variables are parsed by the tests:
   - Or both of:
     - `GCP_PROJECT`: GCP project containing the above secrets in Secret Manager, i.e. `terra-bueller`
     - `GOOGLE_APPLICATION_CREDENTIALS`: key file for Google App Engine default service account for `GCP_PROJECT`
-- `ENVIRONMENT`: Terra UI instance to test. Options: `local`, `dev`, `alpha`, `perf`, `staging`
-  * _Default `local`_, which sets:
+- `ENVIRONMENT`: Terra UI instance to test. Options: `dev`, `alpha`, `perf`, `staging`
+  * _Default `dev`_, which sets:
     - `BILLING_PROJECT`: used for workspace creation.
       * _Default `saturn-integration-test-dev`_
     - `TEST_URL`: URL for the ui.
-      * _Default `localhost:3000`_
+      * _Default `https://bvdp-saturn-dev.appspot.com`_
     - `WORKFLOW_NAME`: workflow/method used for tests. Expects published config named `[name]-configured`.
       * _Default `echo_to_file`_
 - `LYLE_URL`: URL for the service account allocator.
@@ -54,9 +54,9 @@ Optionally, additional useful options are:
 
 ```sh
 HEADLESS=false \
-ENVIRONMENT=[local|dev|alpha|perf|staging] \
+ENVIRONMENT=[dev|alpha|perf|staging] \
 ```
-By default, the tests will run headless against Terra UI running on your local machine.
+By default, the tests will run against dev.
 
 #### Debugging
 

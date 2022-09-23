@@ -149,8 +149,8 @@ commands:
         default: false
       env:
         type: enum
-        enum: [ local, staging, alpha ]
-        default: local
+        enum: [ staging, alpha ]
+        default: staging
       log_dir:
         type: string
         default: "/tmp"
@@ -184,6 +184,9 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TESTS_TO_RUN=$(yarn run jest --listTests | sed "s|$(pwd)/||" | circleci tests split --split-by=timings)
+            <<# parameters.local >>
+            TEST_URL=http://localhost:3000
+            <</ parameters.local >>
             yarn test $TESTS_TO_RUN --maxWorkers=2
       - store_test_results:
           path: << parameters.log_dir >>/<< parameters.env >>/test-results/junit
@@ -280,7 +283,7 @@ jobs:
     steps:
       - integration-tests:
           local: true
-          env: local
+          env: staging
   integration-tests-alpha:
     executor: puppeteer
     parallelism: 1 # No way to prevent multiple Slack messages otherwise

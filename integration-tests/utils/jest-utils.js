@@ -9,7 +9,7 @@ const { mkdirSync, existsSync, createWriteStream } = require('fs')
 
 const {
   BILLING_PROJECT: billingProject,
-  ENVIRONMENT: environment = 'local',
+  ENVIRONMENT: environment = 'dev',
   SNAPSHOT_COLUMN_NAME: snapshotColumnName,
   SNAPSHOT_ID: snapshotId,
   SNAPSHOT_TABLE_NAME: snapshotTableName,
