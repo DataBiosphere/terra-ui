@@ -436,7 +436,7 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
     style: {
       padding: '1rem',
       borderBottom: `1px solid ${colors.accent()}`,
-      background: colors.accent(0.2),
+      background: '#fff',
       textAlign: 'center'
     }
   }, [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])])
