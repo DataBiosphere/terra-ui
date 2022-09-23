@@ -6,9 +6,7 @@ import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { tools } from 'src/components/notebook-utils'
 import { locationTypes } from 'src/components/region-common'
-import { analysisTabName } from 'src/components/runtime-common'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
@@ -20,11 +18,15 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, mapToPdTypes } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
+import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import {
+  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isAzureContext, mapToPdTypes
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
@@ -229,7 +231,8 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
       // associated with runtimes and disks will not match the workspace googleProject. These
       // should be hidden from the user.
-      const isV1Artifact = ({ googleProject = undefined }) => googleProject && googleProject !== workspace.workspace.googleProject
+      const isV1Artifact = ({ googleProject = undefined, cloudContext }) => isAzureContext(cloudContext) ? false :
+        googleProject && googleProject !== workspace.workspace.googleProject
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime

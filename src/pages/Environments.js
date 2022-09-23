@@ -6,9 +6,7 @@ import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { getToolFromRuntime, isPauseSupported, tools } from 'src/components/notebook-utils'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
-import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import SupportRequestWrapper from 'src/components/SupportRequest'
 import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -21,20 +19,22 @@ import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorR
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
-import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
-  workspaceHasMultipleDisks
-} from 'src/libs/runtime-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import {
+  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
+  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
+  workspaceHasMultipleDisks
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 
 
 const DeleteRuntimeModal = ({
-  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspace }, onDismiss, onSuccess
+  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
@@ -44,7 +44,7 @@ const DeleteRuntimeModal = ({
   )(async () => {
     isGcpContext(cloudContext) ?
       await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await Ajax().Runtimes.runtimeV2(workspace.workspaceId, runtimeName).delete(deleteDisk)
+      await Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
@@ -456,12 +456,12 @@ const Environments = () => {
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
   }
 
-  const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspace) => {
+  const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspaceId) => {
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
-        workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
+        workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -469,9 +469,9 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject, auditInfo: { creator }, workspace } = app
+    const { appName, diskName, googleProject, auditInfo: { creator }, workspaceId } = app
     const disk = _.find({ name: diskName }, disks)
-    return getDetailsPopup(appName, googleProject, disk, creator, workspace?.workspaceId)
+    return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {

@@ -4,7 +4,7 @@ import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, ClipboardButton, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -17,11 +17,12 @@ import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspac
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
+import { bucketBrowserUrl, refreshTerraProfile } from 'src/libs/auth'
 import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -185,6 +186,46 @@ const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace 
   return h(TooltipCell, [flag, ' ', regionDescription])
 })
 
+export const WorkspaceNotifications = ({ workspace }) => {
+  const { workspace: { namespace, name } } = workspace
+
+  const [saving, setSaving] = useState(false)
+
+  const notificationsPreferences = _.pickBy((_v, k) => _.startsWith('notifications/', k), authStore.get().profile)
+
+  const submissionNotificationKeys = [
+    `notifications/SuccessfulSubmissionNotification/${namespace}/${name}`,
+    `notifications/FailedSubmissionNotification/${namespace}/${name}`,
+    `notifications/AbortedSubmissionNotification/${namespace}/${name}`
+  ]
+
+  const submissionNotificationsEnabled = !_.isMatch(
+    _.fromPairs(_.map(k => [k, 'false'], submissionNotificationKeys)),
+    notificationsPreferences
+  )
+
+  return div({ style: { margin: '0.5rem' } }, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      h(LabeledCheckbox, {
+        checked: submissionNotificationsEnabled,
+        disabled: saving,
+        onChange: _.flow(
+          Utils.withBusyState(setSaving),
+          withErrorReporting('Error saving preferences')
+        )(async value => {
+          await Ajax().User.profile.setPreferences(_.fromPairs(_.map(k => [k, JSON.stringify(value)], submissionNotificationKeys)))
+          await refreshTerraProfile()
+          Ajax().Metrics.captureEvent(Events.notificationToggle, { notificationKeys: submissionNotificationKeys, enabled: value })
+        })
+      }, [span({ style: { marginLeft: '1ch' } }, ['Receive submission notifications'])]),
+      h(InfoBox, { style: { marginLeft: '1ch' } }, [
+        'Receive email notifications when a submission in this workspace has succeeded, failed, or been aborted.'
+      ]),
+      saving && spinner({ size: 12, style: { marginLeft: '1ch' } })
+    ])
+  ])
+}
+
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
@@ -208,7 +249,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [{ storageContainerName, storageLocation, sasUrl }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined })
+  const [{ storageContainerName, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -251,10 +292,11 @@ const WorkspaceDashboard = _.flow(
   const [ownersPanelOpen, setOwnersPanelOpen] = useState(() => getLocalPref(persistenceId)?.ownersPanelOpen || false)
   const [authDomainPanelOpen, setAuthDomainPanelOpen] = useState(() => getLocalPref(persistenceId)?.authDomainPanelOpen || false)
   const [tagsPanelOpen, setTagsPanelOpen] = useState(() => getLocalPref(persistenceId)?.tagsPanelOpen || false)
+  const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(() => getLocalPref(persistenceId)?.notificationsPanelOpen || false)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen })
-  }, [workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen]) // eslint-disable-line react-hooks/exhaustive-deps
+    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
+  }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
 
   useEffect(() => {
     return () => {
@@ -300,8 +342,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { storageContainerName, location, sasUrl } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerName, storageLocation: location, sasUrl })
+    const { storageContainerName, location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerName, storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -426,10 +468,10 @@ const WorkspaceDashboard = _.flow(
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
-          h(TooltipCell, [!!sasUrl ? sasUrl : 'Loading']),
+          h(TooltipCell, [!!url ? url : 'Loading']),
           h(ClipboardButton, {
             'aria-label': 'Copy SAS URL to clipboard',
-            text: sasUrl, style: { marginLeft: '0.25rem' }
+            text: url, style: { marginLeft: '0.25rem' }
           })
         ])
       ]),
@@ -582,6 +624,13 @@ const WorkspaceDashboard = _.flow(
             !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
           ])
         ])
+      ]),
+      h(RightBoxSection, {
+        title: 'Notifications',
+        initialOpenState: notificationsPanelOpen,
+        onClick: () => setNotificationsPanelOpen(!notificationsPanelOpen)
+      }, [
+        h(WorkspaceNotifications, { workspace })
       ])
     ])
   ])

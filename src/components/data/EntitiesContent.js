@@ -16,7 +16,6 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/components/notebook-utils'
 import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
@@ -28,15 +27,16 @@ import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { isDataTableProvenanceEnabled } from 'src/libs/config'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
 
 const getDataset = dataExplorerUrl => {
@@ -412,7 +412,7 @@ const EntitiesContent = ({
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
         border: false,
-        extraColumnActions: isDataTableProvenanceEnabled() ?
+        extraColumnActions: isFeaturePreviewEnabled('data-table-provenance') ?
           columnName => [{
             label: 'Show Provenance',
             onClick: () => {

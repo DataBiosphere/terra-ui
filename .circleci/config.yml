@@ -1,5 +1,14 @@
 version: 2.1
 
+parameters:
+  workflow_to_run:
+    type: enum
+    enum:
+      - build-deploy
+      - integration-tests-staging
+      - integration-tests-alpha
+    default: build-deploy
+
 orbs:
   slack: circleci/slack@3.4.2
 
@@ -288,6 +297,8 @@ jobs:
 workflows:
   version: 2
   build-deploy:
+    when:
+      equal: [build-deploy, << pipeline.parameters.workflow_to_run >>]
     jobs:
       - build
       - integration-tests-pr-staging:
@@ -318,6 +329,16 @@ workflows:
           <<: *filter-dev-branch
           requires:
             - deploy-staging
+  integration-tests-staging:
+    when:
+      equal: [integration-tests-staging, << pipeline.parameters.workflow_to_run >>]
+    jobs:
+      - integration-tests-staging
+  integration-tests-alpha:
+    when:
+      equal: [integration-tests-alpha, << pipeline.parameters.workflow_to_run >>]
+    jobs:
+      - integration-tests-alpha
   nightly-integration-tests:
     triggers:
       - schedule:

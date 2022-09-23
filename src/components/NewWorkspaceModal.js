@@ -8,6 +8,8 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
+import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -16,8 +18,8 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
-import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -43,6 +45,29 @@ const constraints = {
   namespace: {
     presence: true
   }
+}
+
+const getCloudPlatformTitle = cloudPlatform => {
+  return Utils.switchCase(cloudPlatform,
+    [cloudProviders.gcp.label, () => cloudProviders.gcp.iconTitle],
+    [cloudProviders.azure.label, () => cloudProviders.azure.iconTitle]
+  )
+}
+
+const cloudPlatformIcon = ({ cloudPlatform }) => {
+  const props = { title: getCloudPlatformTitle(cloudPlatform), role: 'img' }
+
+  return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+    Utils.switchCase(cloudPlatform,
+      [cloudProviders.gcp.label, () => h(CloudGcpLogo, props)],
+      [cloudProviders.azure.label, () => h(CloudAzureLogo, props)])
+  ])
+}
+
+const invalidBillingAccountMsg = 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'
+
+const ariaInvalidBillingAccountMsg = invalidBillingAccount => {
+  return invalidBillingAccount ? ` with warning "${invalidBillingAccountMsg}"` : ''
 }
 
 const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
@@ -140,8 +165,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    // Azure billing projects have `managedAppCoordinates` defined.
-    return !!project?.managedAppCoordinates
+    return project?.cloudPlatform === cloudProviders.azure.label
   }
 
   const isBillingProjectApplicable = project => {
@@ -169,6 +193,14 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
 
   const sourceLocationType = getLocationType(sourceWorkspaceLocation)
   const destLocationType = getLocationType(bucketLocation)
+
+  const onFocusAria = ({ focused, isDisabled }) => {
+    return `${isDisabled ? 'Disabled option ' : 'Option '}${focused['aria-label']}, focused.`
+  }
+
+  const onChangeAria = ({ value }) => {
+    return !value ? '' : `Option ${value['aria-label']} selected.`
+  }
 
   return Utils.cond(
     [loading || billingProjects === undefined, () => spinnerOverlay],
@@ -212,14 +244,17 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           isClearable: false,
           placeholder: 'Select a billing project',
           value: namespace,
+          ariaLiveMessages: ({ onFocus: onFocusAria, onChange: onChangeAria }),
           onChange: ({ value }) => setNamespace(value),
-          styles: { option: provided => ({ ...provided, padding: 0 }) },
-          options: _.map(({ projectName, invalidBillingAccount }) => ({
+          styles: { option: provided => ({ ...provided, padding: 10 }) },
+          options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
+            'aria-label': `${getCloudPlatformTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
-              content: invalidBillingAccount && 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
-              side: 'left'
-            }, [div({ style: { padding: 10 } }, [projectName])]
-            ),
+              content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
+            },
+            [div({ style: { display: 'flex', alignItems: 'center' } },
+              [h(cloudPlatformIcon, { cloudPlatform, key: projectName }), projectName]
+            )]),
             value: projectName,
             isDisabled: invalidBillingAccount
           }), _.sortBy('projectName', _.uniq(billingProjects)))

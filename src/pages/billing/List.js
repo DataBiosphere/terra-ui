@@ -21,13 +21,13 @@ import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { cloudProviders } from 'src/libs/runtime-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -117,8 +117,8 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
   const cloudContextIcon =
     div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
       Utils.switchCase(cloudPlatform,
-        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
-        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
+        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
     ])
 
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
@@ -131,7 +131,7 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
     'aria-current': isActive ? 'location' : false
   }, [cloudContextIcon, projectName])
 
-  const unselectableProject = ({ projectName, status, message }, isActive) => {
+  const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
     const iconAndTooltip =
       status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
@@ -142,7 +142,7 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
           ]),
           //Currently, only billing projects that failed to create can have actions performed on them.
           //If that changes in the future, this should be moved elsewhere
-          h(BillingProjectActions, { project, loadProjects })
+          isOwner && h(BillingProjectActions, { project, loadProjects })
         ]) : undefined
 
     return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
@@ -151,11 +151,12 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
   }
 
   const viewerRoles = _.intersection(roles, _.values(billingRoles))
+  const isOwner = _.includes(billingRoles.owner, roles)
 
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
       selectableProject(project, isActive) :
-      unselectableProject(project, isActive)
+      unselectableProject(project, isActive, isOwner)
   ])
 }
 
@@ -328,9 +329,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing project'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
-    // evaluate first to error if project doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.getProject(selectedName)
     const index = _.findIndex({ projectName }, billingProjects)
+    // Workaround until getProject has the correct cloudPlatform and managed app coordinates populated, WOR-518
+    const cloudPlatform = billingProjects[index].cloudPlatform
+    const managedAppCoordinates = billingProjects[index].managedAppCoordinates
+    // fetch the project to error if it doesn't exist/user can't access
+    const project = await Ajax(signal).Billing.getProject(selectedName)
+    project.cloudPlatform = cloudPlatform
+    if (!!managedAppCoordinates) {
+      project.managedAppCoordinates = managedAppCoordinates
+    }
     setBillingProjects(_.set([index], project))
   })
 

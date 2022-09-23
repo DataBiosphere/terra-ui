@@ -8,6 +8,50 @@ import { maybeParseJSON, subscribable } from 'src/libs/utils'
  * values might be deleted in case of space overflow. For critical data, use the 'static' version.
  */
 
+class InMemoryStorage {
+  storage = Object.create(null)
+
+  get length() {
+    return _.size(this.storage)
+  }
+
+  key(index) {
+    return Object.keys(this.storage)[index] || null
+  }
+
+  getItem(key) {
+    return _.has(key, this.storage) ? _.get(key, this.storage) : null
+  }
+
+  setItem(key, value) {
+    this.storage[key] = value
+  }
+
+  removeItem(key) {
+    delete this.storage[key]
+  }
+
+  clear() {
+    this.storage = Object.create(null)
+  }
+}
+
+export const getLocalStorage = _.once(() => {
+  try {
+    return window.localStorage
+  } catch (error) {
+    return new InMemoryStorage()
+  }
+})
+
+export const getSessionStorage = _.once(() => {
+  try {
+    return window.sessionStorage
+  } catch (error) {
+    return new InMemoryStorage()
+  }
+})
+
 const forceSetItem = (storage, key, value) => {
   while (true) {
     try {
@@ -41,7 +85,7 @@ export const getStatic = (storage, key) => {
  *
  * See also `staticStorageSlot`, which can be passed to the `useStore` hook function.
  *
- * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key.
  */
@@ -73,7 +117,7 @@ export const getDynamic = (storage, key) => {
  * Dynamic storage will be automatically deleted in the case of space overflow, deleting oldest stored
  * data first. If your storage usage is not transient, instead use `setStatic`.
  *
- * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value. Note that it will be prefixed by a value to allow separating
  * static from dynamic storage.
  * @param value the new JSON-serializable value to be stored, or `undefined` to remove the key
@@ -104,7 +148,7 @@ export const listenDynamic = (storage, key, fn) => {
  * automatically be deleted in the case of space overflow. If the data you are using
  * is transient, consider using `setDynamic` instead.
  *
- * @param storage either one of these `window` properties: `localStorage` or `sessionStorage`
+ * @param storage an object implementing the Storage interface
  * @param key the key for storing the value
  * @returns stateful object that manages the given storage location
  */

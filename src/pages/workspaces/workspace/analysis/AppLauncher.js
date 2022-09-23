@@ -4,16 +4,15 @@ import { div, h, iframe, p, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, spinnerOverlay } from 'src/components/common'
 import Modal from 'src/components/Modal'
-import { getExtension, getPatternFromTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
-import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
-import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { getExtension, getPatternFromTool, getToolFromRuntime, notebookLockHash, stripExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -26,7 +25,7 @@ const ApplicationLauncher = _.flow(
   }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
 )(({
   name: workspaceName, sparkInterface, analysesData: { runtimes, refreshRuntimes },
-  application, workspace: { azureContext, workspace: { googleProject, bucketName } }
+  application, workspace: { azureContext, workspace: { workspaceId, googleProject, bucketName } }
 }, _ref) => {
   const [busy, setBusy] = useState(false)
   const [outdatedAnalyses, setOutdatedAnalyses] = useState()
@@ -41,12 +40,11 @@ const ApplicationLauncher = _.flow(
   const interval = useRef()
   const { user: { email } } = useStore(authStore)
 
-  // We've already init Welder if app is Jupyter
-  // This sets up welder for .rmd files, which is slightly different from Jupyter
+  // We've already init Welder if app is Jupyter in google
+  // This sets up welder for RStudio and Jupyter Lab Apps
   // Jupyter is always launched with a specific file, which is localized
-  // RStudio is launched in a general sense, and all files are localized.
-  // This line ensures storageLinks are setup whenever RSTudio is launched
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label)
+  // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -167,19 +165,26 @@ const ApplicationLauncher = _.flow(
       withErrorReporting('Error setting up analysis file syncing')
     )(async () => {
       const localBaseDirectory = ``
-      const localSafeModeBaseDirectory = ``
-      const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
-      await Ajax()
-        .Runtimes
-        .fileSyncing(googleProject, runtime.runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(tools.RStudio.label))
+      const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
+      const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
+
+      //TODO: fix this when relay is working https://broadworkbench.atlassian.net/browse/IA-3700
+      !!googleProject ?
+        await Ajax()
+          .Runtimes
+          .fileSyncing(googleProject, runtime.runtimeName)
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
+        await Ajax()
+          .Runtimes
+          .azureProxy(runtime.proxyUrl)
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime)))
     })
 
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
-      setShouldSetupWelder(true)
+      setShouldSetupWelder(false)
     }
 
     const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
@@ -205,10 +210,7 @@ const ApplicationLauncher = _.flow(
 
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
-      runtime,
-      onRuntimeStartedRunning: () => {
-        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: application })
-      }
+      runtime
     }),
     h(RuntimeKicker, { runtime, refreshRuntimes }),
     // We cannot attach the periodic cookie setter until we have a running runtime for azure, because the relay is not guaranteed to be ready until then
