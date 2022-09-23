@@ -195,7 +195,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
   const destLocationType = getLocationType(bucketLocation)
 
   const onFocusAria = ({ focused, isDisabled }) => {
-    return `You are currently focused on ${isDisabled ? 'disabled ' : ''}option ${focused['aria-label']}.`
+    return `${isDisabled ? 'Disabled option ' : 'Option '}${focused['aria-label']}, focused.`
   }
 
   const onChangeAria = ({ value }) => {
