@@ -327,7 +327,7 @@ const Environments = () => {
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs })
 
     const cloudObjectNeedsMigration = (cloudContext, status, workspace) => status === 'Ready' &&
-      isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject
+      isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject && workspace?.workspaceVersion === 'v2'
 
     const decorateLabeledCloudObjWithWorkspace = cloudObject => {
       const { labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = cloudObject
