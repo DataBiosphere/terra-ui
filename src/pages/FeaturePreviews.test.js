@@ -17,12 +17,14 @@ describe('FeaturePreviews', () => {
         {
           id: 'feature1',
           title: 'Feature #1',
-          description: 'A new feature'
+          description: 'A new feature',
+          documentationUrl: 'https://example.com/feature-1-docs'
         },
         {
           id: 'feature2',
           title: 'Feature #2',
-          description: 'Another new feature'
+          description: 'Another new feature',
+          feedbackUrl: 'mailto:feature2-feedback@example.com'
         }
       ]
     })
@@ -60,5 +62,19 @@ describe('FeaturePreviews', () => {
 
     fireEvent.click(checkboxes[0])
     expect(toggleFeaturePreview).toHaveBeenCalledWith('feature1', false)
+  })
+
+  it('should render documentation link if provided', () => {
+    const { getAllByText } = render(h(FeaturePreviews))
+    const docLinks = getAllByText('Documentation')
+    expect(docLinks.length).toBe(1)
+    expect(docLinks[0].getAttribute('href')).toBe('https://example.com/feature-1-docs')
+  })
+
+  it('should render feedback link if provided', () => {
+    const { getAllByText } = render(h(FeaturePreviews))
+    const feedbackLinks = getAllByText('Submit feedback')
+    expect(feedbackLinks.length).toBe(1)
+    expect(feedbackLinks[0].getAttribute('href')).toBe('mailto:feature2-feedback@example.com')
   })
 })

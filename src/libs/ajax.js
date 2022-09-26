@@ -35,6 +35,7 @@ window.ajaxOverrideUtils = {
 }
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
+const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -292,14 +293,15 @@ const User = signal => ({
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
-  linkFenceAccount: async (provider, authCode, redirectUri) => {
+  linkFenceAccount: async (provider, authCode, redirectUri, state) => {
     const queryParams = {
       oauthcode: authCode,
-      redirect_uri: redirectUri
+      redirect_uri: redirectUri,
+      state
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
@@ -1146,7 +1148,7 @@ const AzureStorage = signal => ({
 
     const getBlobUrl = async (workspaceId, blobName) => {
       const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
-      const encodedBlobName = encodeURIComponent(blobName)
+      const encodedBlobName = encodeAzureAnalysisName(blobName)
 
       const azureStorageUrl = _.flow(
         _.split('?'),
