@@ -9,21 +9,21 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 
 
-const LeaveWorkspaceModal = ({ workspace: { workspace: { workspaceId } }, onDismiss, onSuccess }) => {
+const LeaveWorkspaceModal = ({ displayName, samResourceType, samResourceId, onDismiss, onSuccess }) => {
   const [leaving, setLeaving] = useState(false)
-  const helpText = 'Leave Workspace'
+  const helpText = `Leave ${displayName}`
 
-  const leaveWorkspace = async () => {
+  const leaveResource = async () => {
     try {
       setLeaving(true)
-      await Ajax().Workspaces.leave(workspaceId)
-      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId })
+      await Ajax().Resources.leave(samResourceType, samResourceId)
+//      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId }) TODO: refactor to generic case
       setLeaving(false)
       onDismiss()
       onSuccess()
     } catch (error) {
       const { message } = await error.json()
-      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId, errorMessage: message })
+//      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId, errorMessage: message })
       reportError(message)
       setLeaving(false)
       onDismiss()
@@ -38,11 +38,10 @@ const LeaveWorkspaceModal = ({ workspace: { workspace: { workspaceId } }, onDism
     styles: { modal: { background: colors.warning(0.1) } },
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: leaveWorkspace
+      onClick: leaveResource
     }, helpText)
   }, [
-    div(['Are you sure you want to leave this workspace? ',
-      'You will also lose access to the data associated with this workspace.']),
+    div([`Are you sure you want to leave this ${displayName}? `]),
     leaving && spinnerOverlay
   ])
 }

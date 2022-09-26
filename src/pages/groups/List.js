@@ -18,6 +18,8 @@ import { memoWithName, useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import GroupMenu from 'src/pages/groups/GroupMenu'
+import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import { validate } from 'validate.js'
 
 
@@ -107,7 +109,7 @@ const GroupCardHeaders = memoWithName('GroupCardHeaders', ({ sort, onSort }) => 
   ])
 })
 
-const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
+const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete, onLeave }) => {
   const isAdmin = !!_.includes('admin', role)
 
   return div({
@@ -130,13 +132,11 @@ const GroupCard = memoWithName('GroupCard', ({ group: { groupName, groupEmail, r
     ]),
     div({ role: 'cell' }, [isAdmin ? 'Admin' : 'Member']),
     div({ role: 'cell', style: { display: 'flex', alignItems: 'center' } }, [
-      isAdmin && h(Link, {
-        'aria-label': `Delete group ${groupName}`,
-        onClick: onDelete,
-        style: { margin: '-1rem', padding: '1rem' }
-      }, [
-        icon('trash', { size: 17 })
-      ])
+      h(GroupMenu, {
+        iconSize: 20, popupLocation: 'left',
+        groupName, isAdmin,
+        callbacks: { onDelete, onLeave }
+      })
     ])
   ])
 })
@@ -169,6 +169,7 @@ const GroupList = () => {
   const [groups, setGroups] = useState(() => StateHistory.get().groups || null)
   const [creatingNewGroup, setCreatingNewGroup] = useState(false)
   const [deletingGroup, setDeletingGroup] = useState(false)
+  const [leavingGroupName, setLeavingGroupName] = useState(undefined)
   const [updating, setUpdating] = useState(false)
   const [busy, setBusy] = useState(false)
   const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
@@ -240,7 +241,8 @@ const GroupList = () => {
                 _.map(group => {
                   return h(GroupCard, {
                     group, key: `${group.groupName}`,
-                    onDelete: () => setDeletingGroup(group)
+                    onDelete: () => setDeletingGroup(group),
+                    onLeave: () => setLeavingGroupName(group.groupName)
                   })
                 }, _.orderBy([sort.field], [sort.direction], filteredGroups))
               ])
@@ -266,6 +268,13 @@ const GroupList = () => {
           refresh()
         }),
         onDismiss: () => setDeletingGroup(false)
+      }),
+      leavingGroupName && h(LeaveWorkspaceModal, {
+        samResourceId: leavingGroupName,
+        samResourceType: 'managed-group',
+        displayName: 'group',
+        onDismiss: () => setLeavingGroupName(undefined),
+        onSuccess: refresh()
       }),
       updating && spinnerOverlay
     ])

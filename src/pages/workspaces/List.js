@@ -488,7 +488,9 @@ export const WorkspaceList = () => {
         onDismiss: () => setSharingWorkspaceId(undefined)
       }),
       leavingWorkspaceId && h(LeaveWorkspaceModal, {
-        workspace: getWorkspace(leavingWorkspaceId),
+        samResourceId: leavingWorkspaceId,
+        samResourceType: 'workspace',
+        displayName: 'workspace',
         onDismiss: () => setLeavingWorkspaceId(undefined),
         onSuccess: refreshWorkspaces
       }),

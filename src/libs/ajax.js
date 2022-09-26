@@ -443,6 +443,10 @@ const Groups = signal => ({
   }
 })
 
+const Resources = () => ({
+  leave: (samResourceType, samResourceId) => fetchSam(`api/resources/v2/${samResourceType}/${samResourceId}/leave`, _.merge(authOpts(), { method: 'DELETE' }))
+})
+
 const Billing = signal => ({
   listProjects: async () => {
     const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
@@ -623,8 +627,6 @@ const Workspaces = signal => ({
     const res = await fetchRawls(`workspaces/tags?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
-
-  leave: workspaceId => fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })),
 
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
@@ -1661,6 +1663,7 @@ export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
+    Resources: Resources(),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),
