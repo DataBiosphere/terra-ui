@@ -43,7 +43,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
     const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
     const setTableColumnSettings = _.get(oldSetTableColumnSettingsKey, allColumnSettings)
     if (tableColumnSettings) {
-      if (renameSetTable) {
+      if (renameSetTable && setTableColumnSettings) {
         await updateAllSavedColumnSettings(_.flow(
           _.set(newTableColumnSettingsKey, tableColumnSettings),
           _.set(newSetTableColumnSettingsKey, setTableColumnSettings),
