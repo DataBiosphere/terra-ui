@@ -946,8 +946,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importJob: async (url, filetype) => {
-        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype, options) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }]))
         return res.json()
       },
 
