@@ -2,7 +2,7 @@ import { differenceFromNowInSeconds } from 'src/libs/utils'
 
 
 beforeAll(() => {
-  jest.useFakeTimers().setSystemTime(new Date(2022, 4, 1, 12, 30, 7, 999))
+  jest.useFakeTimers()
 })
 
 afterAll(() => {
