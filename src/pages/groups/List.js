@@ -169,7 +169,7 @@ const GroupList = () => {
   const [groups, setGroups] = useState(() => StateHistory.get().groups || null)
   const [creatingNewGroup, setCreatingNewGroup] = useState(false)
   const [deletingGroup, setDeletingGroup] = useState(false)
-  const [leavingGroupName, setLeavingGroupName] = useState(undefined)
+  const [leavingGroup, setLeavingGroup] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [busy, setBusy] = useState(false)
   const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
@@ -242,7 +242,7 @@ const GroupList = () => {
                   return h(GroupCard, {
                     group, key: `${group.groupName}`,
                     onDelete: () => setDeletingGroup(group),
-                    onLeave: () => setLeavingGroupName(group.groupName)
+                    onLeave: () => setLeavingGroup(group)
                   })
                 }, _.orderBy([sort.field], [sort.direction], filteredGroups))
               ])
@@ -269,12 +269,15 @@ const GroupList = () => {
         }),
         onDismiss: () => setDeletingGroup(false)
       }),
-      leavingGroupName && h(LeaveWorkspaceModal, {
-        samResourceId: leavingGroupName,
+      leavingGroup && h(LeaveWorkspaceModal, {
+        samResourceId: leavingGroup.groupName,
         samResourceType: 'managed-group',
         displayName: 'group',
-        onDismiss: () => setLeavingGroupName(undefined),
-        onSuccess: refresh()
+        onDismiss: () => setLeavingGroup(false),
+        onSuccess: () => {
+          setLeavingGroup(false)
+          refresh()
+        }
       }),
       updating && spinnerOverlay
     ])
