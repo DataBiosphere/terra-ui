@@ -8,6 +8,7 @@ import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOver
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -31,7 +32,6 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
-import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -487,7 +487,7 @@ export const WorkspaceList = () => {
         workspace: getWorkspace(sharingWorkspaceId),
         onDismiss: () => setSharingWorkspaceId(undefined)
       }),
-      leavingWorkspaceId && h(LeaveWorkspaceModal, {
+      leavingWorkspaceId && h(LeaveResourceModal, {
         samResourceId: leavingWorkspaceId,
         samResourceType: 'workspace',
         displayName: 'workspace',

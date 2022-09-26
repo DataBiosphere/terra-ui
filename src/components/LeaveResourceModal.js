@@ -9,7 +9,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 
 
-const LeaveWorkspaceModal = ({ displayName, samResourceType, samResourceId, onDismiss, onSuccess }) => {
+const LeaveResourceModal = ({ displayName, samResourceType, samResourceId, onDismiss, onSuccess }) => {
   const [leaving, setLeaving] = useState(false)
   const helpText = `Leave ${displayName}`
 
@@ -17,13 +17,13 @@ const LeaveWorkspaceModal = ({ displayName, samResourceType, samResourceId, onDi
     try {
       setLeaving(true)
       await Ajax().Resources.leave(samResourceType, samResourceId)
-//      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId }) TODO: refactor to generic case
+      Ajax().Metrics.captureEvent(Events.resourceLeave, { samResourceType, samResourceId })
       setLeaving(false)
       onDismiss()
       onSuccess()
     } catch (error) {
       const { message } = await error.json()
-//      Ajax().Metrics.captureEvent(Events.workspaceLeave, { workspaceId, errorMessage: message })
+      Ajax().Metrics.captureEvent(Events.resourceLeave, { samResourceType, samResourceId, errorMessage: message })
       reportError(message)
       setLeaving(false)
       onDismiss()
@@ -46,4 +46,4 @@ const LeaveWorkspaceModal = ({ displayName, samResourceType, samResourceId, onDi
   ])
 }
 
-export default LeaveWorkspaceModal
+export default LeaveResourceModal

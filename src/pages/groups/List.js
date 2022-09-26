@@ -6,6 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
+import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import Modal from 'src/components/Modal'
 import { ariaSort } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
@@ -19,7 +20,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import GroupMenu from 'src/pages/groups/GroupMenu'
-import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import { validate } from 'validate.js'
 
 
@@ -269,7 +269,7 @@ const GroupList = () => {
         }),
         onDismiss: () => setDeletingGroup(false)
       }),
-      leavingGroup && h(LeaveWorkspaceModal, {
+      leavingGroup && h(LeaveResourceModal, {
         samResourceId: leavingGroup.groupName,
         samResourceType: 'managed-group',
         displayName: 'group',
