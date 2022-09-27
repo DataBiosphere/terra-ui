@@ -74,11 +74,10 @@ export const Runtimes = signal => ({
         return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
-      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+      setStorageLinks: (localBaseDirectory, cloudStorageDirectory, pattern) => {
         return fetchOk(`${proxyUrl}/welder/storageLinks`,
           _.mergeAll([authOpts(), jsonBody({
             localBaseDirectory,
-            localSafeModeBaseDirectory,
             cloudStorageDirectory,
             pattern
           }), { signal, method: 'POST' }]))

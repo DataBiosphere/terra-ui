@@ -6,7 +6,7 @@ const ProfilePicture = ({ size, style, ...props } = {}) => {
   // Note Azure logins don't currently have an imageUrl, so don't render anything.
   // See TOAZ-147 to support this in the future.
   const imageUrl = getUser().imageUrl
-  return imageUrl && img({
+  return !!imageUrl && img({
     alt: 'Google profile image',
     src: imageUrl,
     height: size, width: size,

@@ -55,7 +55,7 @@ describe('toggleFeaturePreview', () => {
     Ajax.mockImplementation(() => ({ Metrics: { captureEvent } }))
 
     toggleFeaturePreview('test-feature', true)
-    expect(captureEvent).toHaveBeenCalledWith(Events.featurePreviewToggle, { enabled: true })
+    expect(captureEvent).toHaveBeenCalledWith(Events.featurePreviewToggle, { featureId: 'test-feature', enabled: true })
   })
 })
 

@@ -293,14 +293,15 @@ const User = signal => ({
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
-  linkFenceAccount: async (provider, authCode, redirectUri) => {
+  linkFenceAccount: async (provider, authCode, redirectUri, state) => {
     const queryParams = {
       oauthcode: authCode,
-      redirect_uri: redirectUri
+      redirect_uri: redirectUri,
+      state
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
@@ -947,8 +948,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importJob: async (url, filetype) => {
-        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype, options) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }]))
         return res.json()
       },
 
