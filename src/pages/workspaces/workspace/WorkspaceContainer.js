@@ -1,4 +1,3 @@
-import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
@@ -21,6 +20,7 @@ import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
+import { differenceFromNowInSeconds } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
@@ -364,7 +364,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           saToken(googleProject)
         }
 
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseJSON(createdDate)) < 60)) {
+        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceFromNowInSeconds(createdDate) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
