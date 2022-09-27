@@ -170,7 +170,9 @@ const WorkspaceContainer = ({
       onSuccess: () => refreshWorkspace()
     }),
     leavingWorkspace && h(LeaveResourceModal, {
-      workspace,
+      samResourceId: workspace.workspace.workspaceId,
+      samResourceType: 'workspace',
+      displayName: 'workspace',
       onDismiss: () => setLeavingWorkspace(false),
       onSuccess: () => Nav.goToPath('workspaces')
     }),
