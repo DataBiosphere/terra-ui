@@ -69,7 +69,7 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
     "test": "react-app-rewired test",
-    "check-rhh-types": "check-dts types/react-hyperscript-helpers.*.ts",
+    "check-rhh-types": "check-dts types/react-hyperscript-helpers/react-hyperscript-helpers.*.ts",
     "postinstall": "husky install"
   },
   "devDependencies": {
