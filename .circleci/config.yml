@@ -286,13 +286,13 @@ jobs:
           env: staging
   integration-tests-alpha:
     executor: puppeteer
-    parallelism: 1 # No way to prevent multiple Slack messages otherwise
+    parallelism: 1
     steps:
       - integration-tests:
           env: alpha
   integration-tests-staging:
     executor: puppeteer
-    parallelism: 1 # No way to prevent multiple Slack messages otherwise
+    parallelism: 1
     steps:
       - integration-tests:
           env: staging
