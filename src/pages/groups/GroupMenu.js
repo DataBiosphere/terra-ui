@@ -36,6 +36,8 @@ const GroupMenuContent = ({ isAdmin, onLeave, onDelete }) => {
     }, [makeMenuIcon('arrowRight'), 'Leave']),
     h(MenuButton, {
       disabled: !isAdmin,
+      tooltip: !isAdmin && 'You must be an admin of this group',
+      tooltipSide: 'left',
       onClick: onDelete
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
