@@ -274,10 +274,7 @@ const GroupList = () => {
         samResourceType: 'managed-group',
         displayName: 'group',
         onDismiss: () => setLeavingGroup(false),
-        onSuccess: () => {
-          setLeavingGroup(false)
-          refresh()
-        }
+        onSuccess: () => refresh()
       }),
       updating && spinnerOverlay
     ])
