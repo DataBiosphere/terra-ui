@@ -10,6 +10,7 @@ import {
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { Disks } from 'src/libs/ajax/Disks'
+import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -442,10 +443,6 @@ const Groups = signal => ({
       }
     }
   }
-})
-
-const Resources = () => ({
-  leave: (samResourceType, samResourceId) => fetchSam(`api/resources/v2/${samResourceType}/${samResourceId}/leave`, _.merge(authOpts(), { method: 'DELETE' }))
 })
 
 const Billing = signal => ({
