@@ -6,7 +6,7 @@ const _ = require('lodash/fp')
 
 
 async function getHrefFromClickable(page, selector) {
-  return await (await (await page.waitForXPath(
+  return (await (await page.waitForXPath(
     clickable(selector),
     _.defaults({ visible: true })
   )).getProperty('href')).jsonValue()
