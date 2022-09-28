@@ -109,7 +109,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { project, dataModality, access } = datum
+        const { project, requestAccessURL, dataModality, access } = datum
 
         return {
           name: h(Link,
@@ -130,8 +130,12 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
           lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
-              Utils.switchCase(access,
-                [datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+              Utils.cond(
+                [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                  href: requestAccessURL, target: '_blank'
+                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+                [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                   style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                   onClick: () => {
                     setRequestDatasetAccessList([datum])
@@ -141,7 +145,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
                     })
                   }
                 }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-                [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
