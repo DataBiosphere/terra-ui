@@ -1,5 +1,5 @@
 import { isToday, isYesterday } from 'date-fns'
-import { differenceInCalendarMonths } from 'date-fns/fp'
+import { differenceInCalendarMonths, differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { div, span } from 'react-hyperscript-helpers'
@@ -65,6 +65,13 @@ export const makeCompleteDate = dateString => completeDateFormat.format(new Date
 
 export const makeCompleteDateParts = dateString => {
   return _.map(part => part.format(new Date(dateString)), completeDateFormatParts)
+}
+
+/**
+ * Returns difference in seconds between current time and supplied JSON formatted date (which is assumed to be older).
+ */
+export const differenceFromNowInSeconds = jsonDateString => {
+  return differenceInSeconds(parseJSON(jsonDateString), Date.now())
 }
 
 const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
