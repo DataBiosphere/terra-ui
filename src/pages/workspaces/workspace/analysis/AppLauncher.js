@@ -45,7 +45,6 @@ const ApplicationLauncher = _.flow(
   // Jupyter is always launched with a specific file, which is localized
   // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
   const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label)
-  const [azureStorage, setAzureStorage] = useState()
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -166,36 +165,26 @@ const ApplicationLauncher = _.flow(
       withErrorReporting('Error setting up analysis file syncing')
     )(async () => {
       const localBaseDirectory = ``
-      const localSafeModeBaseDirectory = ``
 
-
-      const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-        const { storageContainerName } = await Ajax(signal).AzureStorage.details(workspaceId)
-        setAzureStorage(storageContainerName)
-      })
-
-      if (azureContext) {
-        await loadAzureStorage()
-      }
-
-      const cloudStorageDirectory = azureContext ? `${azureStorage}/analyses` : `gs://${bucketName}/notebooks`
+      const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
+      const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
 
       //TODO: fix this when relay is working https://broadworkbench.atlassian.net/browse/IA-3700
       !!googleProject ?
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)
-          .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime)))
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime)))
     })
 
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
-      setShouldSetupWelder(true)
+      setShouldSetupWelder(false)
     }
 
     const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {

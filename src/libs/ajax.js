@@ -1,24 +1,23 @@
-import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import {
-  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBard, fetchBillingProfileManager, fetchBond, fetchCatalog,
+  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBillingProfileManager, fetchBond, fetchCatalog,
   fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWorkspaceManager, jsonBody, withRetryOnError, withUrlPrefix
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody, withRetryOnError, withUrlPrefix
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
+import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Disks } from 'src/libs/ajax/Disks'
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
+import { Metrics } from 'src/libs/ajax/Metrics'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
-import { ensureAuthSettled, getUser } from 'src/libs/auth'
+import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
-import { authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
+import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { v4 as uuid } from 'uuid'
 
 
 window.ajaxOverrideUtils = {
@@ -33,8 +32,6 @@ window.ajaxOverrideUtils = {
   }),
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
-
-const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -292,14 +289,15 @@ const User = signal => ({
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
-  linkFenceAccount: async (provider, authCode, redirectUri) => {
+  linkFenceAccount: async (provider, authCode, redirectUri, state) => {
     const queryParams = {
       oauthcode: authCode,
-      redirect_uri: redirectUri
+      redirect_uri: redirectUri,
+      state
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
@@ -944,8 +942,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importJob: async (url, filetype) => {
-        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype, options) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -1057,401 +1055,6 @@ const DataRepo = signal => ({
       return res.json()
     }
   })
-})
-
-const AzureStorage = signal => ({
-  sasToken: async (workspaceId, containerId) => {
-    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
-      _.merge(authOpts(), { signal, method: 'POST' }))
-
-    return tokenResponse.json()
-  },
-
-  details: async (workspaceId = {}) => {
-    const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
-      _.merge(authOpts(), { signal })
-    )
-    const data = await res.json()
-    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
-
-    if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
-      return {
-        location: undefined,
-        storageContainerName: undefined,
-        sas: { url: undefined, token: undefined }
-      }
-    } else {
-      const container = _.find(
-        {
-          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } },
-          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
-        },
-        data.resources
-      )
-      const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
-
-      return {
-        location: storageAccount.resourceAttributes.azureStorage.region,
-        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
-        sas
-      }
-    }
-  },
-
-  listFiles: async (workspaceId, suffixFilter = '') => {
-    if (!workspaceId) {
-      return []
-    }
-
-    const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
-    const azureContainerUrl = _.flow(
-      _.split('?'),
-      _.head,
-      Utils.append(`?restype=container&comp=list&${token}`),
-      _.join('')
-    )(url)
-
-    const res = await fetchOk(azureContainerUrl)
-    const text = await res.text()
-    const xml = new window.DOMParser().parseFromString(text, 'text/xml')
-    const blobs = _.map(
-      blob => ({
-        name: _.head(blob.getElementsByTagName('Name')).textContent,
-        lastModified: new Date(
-          _.head(blob.getElementsByTagName('Last-Modified')).textContent
-        ).getTime()
-      }),
-      xml.getElementsByTagName('Blob')
-    )
-
-    const filteredBlobs = _.filter(blob => _.endsWith(suffixFilter, blob.name), blobs)
-    return filteredBlobs
-  },
-
-  listNotebooks: async workspaceId => {
-    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
-    return _.map(notebook => ({ ...notebook, application: tools.Jupyter.label }), notebooks)
-  },
-
-  blob: (workspaceId, blobName) => {
-    const calhounPath = 'api/convert'
-
-    const getObject = async () => {
-      const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
-
-      const res = await fetchOk(azureStorageUrl)
-      const text = await res.text()
-      return text
-    }
-
-    const getBlobUrl = async (workspaceId, blobName) => {
-      const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
-      const encodedBlobName = encodeURIComponent(blobName)
-
-      const azureStorageUrl = _.flow(
-        _.split('?'),
-        _.head,
-        Utils.append(`/${encodedBlobName}?&${token}`),
-        _.join('')
-      )(url)
-
-      return azureStorageUrl
-    }
-
-    // https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob#request
-    const copy = async (destBlob, destWorkspaceId = workspaceId) => {
-      const destStorageUrl = await getBlobUrl(destWorkspaceId, `${destBlob}.${getExtension(blobName)}`)
-      const srcStorageUrl = await getBlobUrl(workspaceId, blobName)
-
-      return fetchOk(destStorageUrl, { method: 'PUT', headers: { 'x-ms-copy-source': srcStorageUrl } })
-    }
-
-    const doDelete = async () => {
-      const storageUrl = await getBlobUrl(workspaceId, blobName)
-
-      return fetchOk(storageUrl, { method: 'DELETE' })
-    }
-
-    return {
-      get: getObject,
-
-      preview: async () => {
-        const textFileContents = await getObject()
-        return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
-        ).then(res => res.text())
-      },
-
-      create: async textContents => {
-        const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
-
-        return fetchOk(azureStorageUrl, {
-          method: 'PUT', body: JSON.stringify(textContents),
-          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': _.size(textContents) }
-        })
-      },
-
-      copy,
-
-      rename: async destBlob => {
-        await copy(destBlob)
-        return doDelete()
-      },
-
-      delete: doDelete
-    }
-  }
-})
-
-const Buckets = signal => ({
-  getObject: async (googleProject, bucket, object, params = {}) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
-      _.merge(authOpts(await saToken(googleProject)), { signal })
-    ).then(
-      res => res.json()
-    )
-  },
-
-  getObjectPreview: async (googleProject, bucket, object, previewFull = false) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
-      _.mergeAll([
-        authOpts(await saToken(googleProject)),
-        { signal },
-        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
-      ])
-    )
-  },
-
-  listNotebooks: async (googleProject, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(googleProject)), { signal })
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
-  },
-
-  listAnalyses: async (googleProject, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(googleProject)), { signal })
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
-  },
-
-  list: async (googleProject, bucket, prefix, options = {}) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
-      _.merge(authOpts(await saToken(googleProject)), { signal })
-    )
-    return res.json()
-  },
-
-  /**
-   * Recursively returns all objects in the specified bucket, iterating through all pages until
-   * results have been exhausted and all objects have been collected.
-   *
-   * @param googleProject
-   * @param bucket Name of the bucket in which to look for objects.
-   * @param {Object} options to pass into the GCS API. Accepted options are:
-   *    prefix: Filter results to include only objects whose names begin with this prefix.
-   *    pageToken: A previously-returned page token representing part of the larger set of results to view.
-   *    delimiter: Returns results in a directory-like mode, with / being a common value for the delimiter.
-   * @returns {Promise<*>}
-   * See https://cloud.google.com/storage/docs/json_api/v1/objects/list for additional documentation for underlying GCS API
-   */
-  listAll: async (googleProject, bucket, { prefix = null, pageToken = null, delimiter = null } = {}) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter, pageToken })}`,
-      _.merge(authOpts(await saToken(googleProject)), { signal })
-    )
-    const body = await res.json()
-    const items = body.items || []
-    const prefixes = body.prefixes || []
-
-    // Get the next page recursively if there is one
-    if (body.nextPageToken) {
-      const next = await Buckets(signal).listAll(googleProject, bucket, { prefix, pageToken: body.nextPageToken, delimiter })
-      return { items: _.concat(items, next.items), prefixes: _.concat(prefixes, next.prefixes) }
-    }
-    return { items, prefixes }
-  },
-
-  delete: async (googleProject, bucket, name) => {
-    return fetchBuckets(
-      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
-    )
-  },
-
-  upload: async (googleProject, bucket, prefix, file) => {
-    return fetchBuckets(
-      `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
-      _.merge(authOpts(await saToken(googleProject)), {
-        signal, method: 'POST', body: file,
-        headers: { 'Content-Type': file.type, 'Content-Length': file.size }
-      })
-    )
-  },
-
-  patch: async (googleProject, bucket, name, metadata) => {
-    return fetchBuckets(
-      `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(metadata), { signal, method: 'PATCH' }])
-    )
-  },
-
-  //TODO: this should be deprecated in favor of the smarter `analysis` set of functions
-  notebook: (googleProject, bucket, name) => {
-    const bucketUrl = `storage/v1/b/${bucket}/o`
-
-    const copy = async (newName, newBucket, clearMetadata) => {
-      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
-      return fetchBuckets(
-        `${bucketUrl}/${encodeAnalysisName(name)}/copyTo/b/${newBucket}/o/${encodeAnalysisName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-      )
-    }
-    const doDelete = async () => {
-      return fetchBuckets(
-        `${bucketUrl}/${encodeAnalysisName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
-      )
-    }
-
-    const getObject = async () => {
-      const res = await fetchBuckets(
-        `${bucketUrl}/${encodeAnalysisName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
-      )
-      return await res.json()
-    }
-
-    return {
-      preview: async () => {
-        const nb = await fetchBuckets(
-          `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
-          _.merge(authOpts(await saToken(googleProject)), { signal })
-        ).then(res => res.text())
-        return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
-      },
-
-      copy,
-
-      create: async contents => {
-        return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${encodeAnalysisName(name)}`,
-          _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: JSON.stringify(contents),
-            headers: { 'Content-Type': 'application/x-ipynb+json' }
-          })
-        )
-      },
-
-      delete: doDelete,
-
-      getObject,
-
-      rename: async newName => {
-        await copy(newName, bucket, false)
-        return doDelete()
-      }
-    }
-  },
-
-  //TODO: this should take a type `file`, instead of (name, toolLabel), and then we can remove `toolLabel` param
-  analysis: (googleProject, bucket, name, toolLabel) => {
-    const bucketUrl = `storage/v1/b/${bucket}/o`
-
-    const calhounPath = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'api/convert'], [tools.RStudio.label, () => 'api/convert/rmd'])
-
-    const mimeType = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
-
-    const encodeFileName = name => encodeAnalysisName(getFileName(name))
-
-    const doCopy = async (newName, newBucket, body) => {
-      return fetchBuckets(
-        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
-      )
-    }
-
-    const copy = (newName, newBucket, clearMetadata) => {
-      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
-      return doCopy(newName, newBucket, body)
-    }
-
-    const copyWithMetadata = (newName, newBucket, copyMetadata) => {
-      const body = { metadata: copyMetadata }
-      return doCopy(newName, newBucket, body)
-    }
-
-    const updateMetadata = async (fileName, newMetadata) => {
-      const body = { metadata: newMetadata }
-      return fetchBuckets(
-        `${bucketUrl}/${encodeFileName(fileName)}`,
-        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'PATCH' }])
-      )
-    }
-
-    const doDelete = async () => {
-      return fetchBuckets(
-        `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
-      )
-    }
-
-
-    const getObject = async () => {
-      const res = await fetchBuckets(
-        `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
-      )
-      return await res.json()
-    }
-
-    return {
-      preview: async () => {
-        const nb = await fetchBuckets(
-          `${bucketUrl}/${encodeFileName(name)}?alt=media`,
-          _.merge(authOpts(await saToken(googleProject)), { signal })
-        ).then(res => res.text())
-        return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
-          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
-        ).then(res => res.text())
-      },
-
-      copy,
-
-      copyWithMetadata,
-
-      create: async textContents => {
-        return fetchBuckets(
-          `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
-          _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: JSON.stringify(textContents),
-            headers: { 'Content-Type': mimeType }
-          })
-        )
-      },
-
-      delete: doDelete,
-
-      getObject,
-
-      rename: async newName => {
-        await copy(`${newName}.${getExtension(name)}`, bucket, false)
-        return doDelete()
-      },
-
-      updateMetadata
-    }
-  }
 })
 
 const FirecloudBucket = signal => ({
@@ -1608,41 +1211,6 @@ const Duos = signal => ({
   }
 })
 
-const Metrics = signal => ({
-  captureEvent: withErrorIgnoring(async (event, details = {}) => {
-    await ensureAuthSettled()
-    const { isSignedIn, registrationStatus } = authStore.get() // NOTE: This is intentionally read after ensureAuthSettled
-    const isRegistered = isSignedIn && registrationStatus === userStatus.registeredWithTos
-    if (!isRegistered) {
-      authStore.update(_.update('anonymousId', id => {
-        return id || uuid()
-      }))
-    }
-    const body = {
-      event,
-      properties: {
-        ...details,
-        distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
-        appId: 'Saturn',
-        hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name,
-        ...getDefaultProperties()
-      }
-    }
-
-    return fetchBard('api/event', _.mergeAll([isRegistered ? authOpts() : undefined, jsonBody(body), { signal, method: 'POST' }]))
-  }),
-
-  syncProfile: withErrorIgnoring(() => {
-    return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
-  }),
-
-  identify: withErrorIgnoring(anonId => {
-    const body = { anonId }
-    return fetchBard('api/identify', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-  })
-})
-
 const OAuth2 = signal => ({
   getConfiguration: async () => {
     const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
@@ -1665,7 +1233,7 @@ export const Ajax = signal => {
     Catalog: Catalog(signal),
     DataRepo: DataRepo(signal),
     AzureStorage: AzureStorage(signal),
-    Buckets: Buckets(signal),
+    Buckets: GoogleStorage(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
     Runtimes: Runtimes(signal),

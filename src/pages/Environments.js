@@ -34,7 +34,7 @@ import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace
 
 
 const DeleteRuntimeModal = ({
-  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspace }, onDismiss, onSuccess
+  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
@@ -44,7 +44,7 @@ const DeleteRuntimeModal = ({
   )(async () => {
     isGcpContext(cloudContext) ?
       await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await Ajax().Runtimes.runtimeV2(workspace.workspaceId, runtimeName).delete(deleteDisk)
+      await Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
@@ -456,12 +456,12 @@ const Environments = () => {
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
   }
 
-  const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspace) => {
+  const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspaceId) => {
     return h(PopupTrigger, {
       content: div({ style: { padding: '0.5rem' } }, [
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
-        workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
+        workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
         !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
@@ -469,9 +469,9 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject, auditInfo: { creator }, workspace } = app
+    const { appName, diskName, googleProject, auditInfo: { creator }, workspaceId } = app
     const disk = _.find({ name: diskName }, disks)
-    return getDetailsPopup(appName, googleProject, disk, creator, workspace?.workspaceId)
+    return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
