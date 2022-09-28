@@ -539,66 +539,66 @@ describe('getDisplayList', () => {
 
 describe('getCostDisplayForTool', () => {
   it('will get compute cost and compute status for Galaxy app', () => {
-    // ARRANGE
+    // Arrange
     const expectedResult = `Running $0.53/hr`
     const app = galaxyRunning
     const currentRuntime = undefined
     const currentRuntimeTool = undefined
     const toolLabel = tools.Galaxy.label
 
-    // ACT
+    // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will get compute cost and compute status for a running Jupyter runtime', () => {
-    // ARRANGE
+    // Arrange
     const expectedResult = `Running $0.06/hr`
     const app = undefined
     const currentRuntime = jupyter1
     const currentRuntimeTool = tools.Jupyter.label
     const toolLabel = tools.Jupyter.label
 
-    // ACT
+    // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will get compute cost and compute status for a stopped Jupyter runtime', () => {
-    // ARRANGE
+    // Arrange
     const expectedResult = `Paused $0.01/hr`
     const app = undefined
     const currentRuntime = { ...jupyter1, status: 'Stopped' }
     const currentRuntimeTool = tools.Jupyter.label
     const toolLabel = tools.Jupyter.label
 
-    // ACT
+    // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will return blank because current runtime is not equal to currentRuntimeTool', () => {
-    // ARRANGE
+    // Arrange
     const expectedResult = ``
     const app = undefined
     const currentRuntime = jupyter1
     const currentRuntimeTool = tools.RStudio.label
     const toolLabel = tools.Jupyter.label
 
-    // ACT
+    // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
 })
 
 describe('getCostDisplayForDisk', () => {
   it('will get the disk cost for a Galaxy AppDataDisk', () => {
-    // ARRANGE
+    // Arrange
     const app = galaxyRunning
     const appDataDisks = [galaxyDisk]
     const computeRegion = 'US-CENTRAL1'
@@ -608,14 +608,14 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = tools.Galaxy.label
     const expectedResult = 'Disk $0.04/hr'
 
-    // ACT
+    // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will get the disk cost for a Jupyter Persistent Disk', () => {
-    // ARRANGE
+    // Arrange
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
@@ -625,14 +625,14 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = tools.Jupyter.label
     const expectedResult = 'Disk < $0.01/hr'
 
-    // ACT
+    // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will return empty string because when there is no app or runtime to get cost information from.', () => {
-    // ARRANGE
+    // Arrange
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
@@ -642,14 +642,14 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = ''
     const expectedResult = ''
 
-    // ACT
+    // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will return empty string because toolLabel and currentRuntimeTool are not equal.', () => {
-    // ARRANGE
+    // Arrange
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
@@ -659,14 +659,14 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = tools.RStudio.label
     const expectedResult = ''
 
-    // ACT
+    // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
   it('will return blank string because cost is 0 due to deleting disk.', () => {
-    // ARRANGE
+    // Arrange
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
@@ -676,10 +676,10 @@ describe('getCostDisplayForDisk', () => {
     const toolLabel = tools.Jupyter.label
     const expectedResult = ''
 
-    // ACT
+    // Act
     const result = getCostDisplayForDisk(app, appDataDisks, computeRegion, currentRuntimeTool, persistentDisks, runtimes, toolLabel)
 
-    // ASSERT
+    // Assert
     expect(result).toBe(expectedResult)
   })
 })
