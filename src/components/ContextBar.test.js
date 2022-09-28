@@ -16,59 +16,41 @@ const GALAXY_DISK_COST = 1
 const RUNTIME_COST = 0.1
 const PERSISTENT_DISK_COST = 0.01
 
-jest.mock('src/pages/workspaces/workspace/analysis/runtime-utils', () => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/runtime-utils')
-
-  return {
-    ...originalModule,
-    getGalaxyComputeCost: jest.fn(),
-    getGalaxyDiskCost: jest.fn(),
-    getPersistentDiskCostHourly: jest.fn(),
-    getRuntimeCost: jest.fn(),
-    runtimeConfigCost: jest.fn()
-  }
-})
+jest.mock('src/pages/workspaces/workspace/analysis/runtime-utils', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/runtime-utils'),
+  getGalaxyComputeCost: jest.fn(),
+  getGalaxyDiskCost: jest.fn(),
+  getPersistentDiskCostHourly: jest.fn(),
+  getRuntimeCost: jest.fn(),
+  runtimeConfigCost: jest.fn()
+}))
 
 // Mocking for terminalLaunchLink using Nav.getLink
-jest.mock('src/libs/nav', () => {
-  const originalModule = jest.requireActual('src/libs/nav')
-
-  return {
-    ...originalModule,
-    getPath: jest.fn(() => '/test/'),
-    getLink: jest.fn(() => '/')
-  }
-})
+jest.mock('src/libs/nav', () => ({
+  ...jest.requireActual('src/libs/nav'),
+  getPath: jest.fn(() => '/test/'),
+  getLink: jest.fn(() => '/')
+}))
 
 // Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
 // DOM measure services which are not available in jest environment
-jest.mock('src/components/PopupTrigger', () => {
-  const originalModule = jest.requireActual('src/components/PopupTrigger')
-  return {
-    ...originalModule,
-    MenuTrigger: jest.fn()
-  }
-})
+jest.mock('src/components/PopupTrigger', () => ({
+  ...jest.requireActual('src/components/PopupTrigger'),
+  MenuTrigger: jest.fn()
+}))
 
-jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal')
-  return {
-    ...originalModule,
-    CloudEnvironmentModal: jest.fn()
-  }
-})
+jest.mock('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal', () => ({
+  ...jest.requireActual('src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'),
+  CloudEnvironmentModal: jest.fn()
+}))
 
-jest.mock('src/libs/config', () => {
-  const originalModule = jest.requireActual('src/libs/config')
-  return {
-    ...originalModule,
-    isCromwellAppVisible: () => {
-      return true
-    }
+jest.mock('src/libs/config', () => ({
+  ...jest.requireActual('src/libs/config'),
+  isCromwellAppVisible: () => {
+    return true
   }
-})
+}))
 
-// Necessary to mock the AJAX module.
 jest.mock('src/libs/ajax')
 const mockRuntimesStartFn = jest.fn()
 const mockRuntime = jest.fn()
@@ -494,6 +476,7 @@ describe('ContextBar - actions', () => {
     // Assert
     expect(getByText('Cloud Environment Details'))
   })
+
   it('clicking Jupyter opens CloudEnvironmentModal with Jupyter as filter for tool.', () => {
     // Arrange
     const jupyterContextBarProps = {
@@ -510,6 +493,7 @@ describe('ContextBar - actions', () => {
     getByText('Cloud Environment Details')
     getByText(tools.Jupyter.label)
   })
+
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
     // Arrange
     const galaxyContextBarProps = {
@@ -526,6 +510,7 @@ describe('ContextBar - actions', () => {
     getByText('Cloud Environment Details')
     getByText(tools.Galaxy.label)
   })
+
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
     // Act
     const rstudioContextBarProps = {
@@ -598,7 +583,7 @@ describe('ContextBar - actions', () => {
     fireEvent.click(getByLabelText('Terminal button'))
 
     // Assert
-    expect(mockRuntimesStartFn).toBeCalledTimes(0)
+    expect(mockRuntimesStartFn).not.toHaveBeenCalled()
   })
 
   it('onSuccess will close modal', () => {
