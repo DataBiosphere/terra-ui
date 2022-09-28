@@ -435,10 +435,11 @@ const rareX = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
 }, [
   h(ButtonPrimary, {
-    'aria-label': 'Browse RareX data',
+    'aria-label': 'Request access to RareX data',
+    tooltip: 'View access request form',
     href: `${Nav.getLink('workspaces')}/?tab=public&tagsFilter%5B%5D=rare-x`,
     onClick: () => captureBrowseDataEvent('RARE-X')
-  }, ['Browse Data'])
+  }, ['Request Access'])
 ])
 
 const Datasets = () => {
