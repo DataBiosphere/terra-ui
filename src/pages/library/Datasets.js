@@ -437,7 +437,7 @@ const rareX = () => h(Participant, {
   h(ButtonPrimary, {
     'aria-label': 'Request access to RareX data',
     tooltip: 'View access request form',
-    href: `${Nav.getLink('workspaces')}/?tab=public&tagsFilter%5B%5D=rare-x`,
+    href: 'https://docs.google.com/forms/d/e/1FAIpQLScpqfZIXW53IJOiYz2RhASJzm7lZBYAjzkjJ67qFDERUpuDAQ/viewform',
     onClick: () => captureBrowseDataEvent('RARE-X')
   }, ['Request Access'])
 ])
