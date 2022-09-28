@@ -284,6 +284,8 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
 const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+
+  const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
@@ -349,8 +351,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
         }, 'Delete table'),
         isFeaturePreviewEnabled('data-table-versioning') && h(Fragment, [
           h(MenuDivider),
-          h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
           h(MenuButton, {
+            disabled: isSet,
+            tooltip: isSet && `Set tables are versioned with the table they reference. To version this table, save a version of the ${tableName.replace(/(_set)+/, '')} table.`,
+            onClick: () => setSavingVersion(true)
+          }, ['Save version']),
+          h(MenuButton, {
+            disabled: isSet,
+            tooltip: isSet && `Set tables are versioned with the table they reference. See the version history of the ${tableName.replace(/(_set)+/, '')} table.`,
             onClick: () => {
               onToggleVersionHistory(!isShowingVersionHistory)
               if (!isShowingVersionHistory) {
