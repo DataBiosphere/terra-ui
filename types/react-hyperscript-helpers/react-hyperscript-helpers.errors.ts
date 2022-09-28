@@ -20,7 +20,7 @@ interface TestComponentProps {
 const TestComponent = (props: TestComponentProps) => div()
 
 // Missing required prop
-// TODO: THROWS error
+// TODO: This is currently valid, but preferably would error since it is missing a required prop (stringProp).
 h(TestComponent)
 // THROWS Argument of type '{ optionalNumberProp: number; }' is not assignable to parameter of type 'TestComponentProps'.
 h(TestComponent, { optionalNumberProp: 1 })
