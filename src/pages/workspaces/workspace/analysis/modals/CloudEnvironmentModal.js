@@ -2,12 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
 import { Clickable, spinnerOverlay } from 'src/components/common'
-import { CromwellModalBase } from 'src/components/CromwellModal'
-import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } from 'src/components/notebook-utils'
-import { appLauncherTabName } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
@@ -19,15 +15,19 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
-import {
-  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
-  getCurrentApp, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
-  isCurrentGalaxyDiskDetaching
-} from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
+import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
+import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
+import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import {
+  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
+  getCurrentApp, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
+  isCurrentGalaxyDiskDetaching
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 
 
@@ -147,6 +147,7 @@ export const CloudEnvironmentModal = ({
     }
   }
 
+  //TODO: add azure start
   // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
   const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)

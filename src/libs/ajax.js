@@ -1,17 +1,23 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { getExtension, getFileName, tools } from 'src/components/notebook-utils'
-import { version } from 'src/data/machines'
+import {
+  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBard, fetchBillingProfileManager, fetchBond, fetchCatalog,
+  fetchDataRepo, fetchDockstore,
+  fetchDrsHub,
+  fetchEcm, fetchGoogleForms,
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWorkspaceManager, jsonBody, withRetryOnError, withUrlPrefix
+} from 'src/libs/ajax/ajax-common'
+import { Apps } from 'src/libs/ajax/Apps'
+import { Disks } from 'src/libs/ajax/Disks'
+import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { pdTypes } from 'src/libs/runtime-utils'
-import {
-  ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore
-} from 'src/libs/state'
+import { authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, userStatus, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { v4 as uuid } from 'uuid'
 
 
@@ -28,81 +34,38 @@ window.ajaxOverrideUtils = {
   makeSuccess: body => _wrappedFetch => () => Promise.resolve(new Response(JSON.stringify(body), { status: 200 }))
 }
 
-const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
-const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
-const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
+const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
+const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
-// Allows use of ajaxOverrideStore to stub responses for testing
-const withInstrumentation = wrappedFetch => (...args) => {
-  return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => {
-      const [url, { method = 'GET' } = {}] = args
-      return _.isFunction(filter) ? filter(...args) : url.match(filter.url) && (!filter.method || filter.method === method)
-    }, ajaxOverridesStore.get()))
-  )(wrappedFetch)(...args)
-}
+// %23 = '#', %2F = '/'
+const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
 
-// Ignores cancellation error when request is cancelled
-const withCancellation = wrappedFetch => async (...args) => {
-  try {
-    return await wrappedFetch(...args)
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'AbortError') {
-      return Utils.abandonedPromise()
-    } else {
-      throw error
-    }
-  }
-}
+/**
+ * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
+ * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
+ */
+const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
+  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+  const res = await fetchSam(
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
+    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
+  )
+  return res.json()
+}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
-const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => async (...args) => {
-  const timeout = 5000
-  const somePointInTheFuture = Date.now() + timeout
-  const maxDelayIncrement = 1500
-  const minDelay = 500
+export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
 
-  while (Date.now() < somePointInTheFuture) {
-    const until = Math.random() * maxDelayIncrement + minDelay
-    try {
-      return await Utils.withDelay(until, wrappedFetch)(...args)
-    } catch (error) {
-      if (shouldNotRetryFn(error)) {
-        throw error
-      }
-      // ignore error will retry
-    }
-  }
-  return wrappedFetch(...args)
-})
+const getFirstTimeStamp = Utils.memoizeAsync(async token => {
+  const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
+  return res.json()
+}, { keyFn: (...args) => JSON.stringify(args) })
 
-// Converts non-200 responses to exceptions
-const withErrorRejection = wrappedFetch => async (...args) => {
-  const res = await wrappedFetch(...args)
-  if (res.ok) {
-    return res
-  } else {
-    throw res
-  }
-}
+const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
+  const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
+  return res.json()
+}, { keyFn: (...args) => JSON.stringify(args) })
 
-const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
-  return wrappedFetch(prefix + path, ...args)
-})
-
-const withAppIdentifier = wrappedFetch => (url, options) => {
-  return wrappedFetch(url, _.merge(options, appIdentifier))
-}
-
-const checkRequesterPaysError = async response => {
-  if (response.status === 400) {
-    const data = await response.text()
-    const requesterPaysError = _.includes('requester pays', data)
-    return Object.assign(new Response(new Blob([data]), response), { requesterPaysError })
-  } else {
-    return Object.assign(response, { requesterPaysError: false })
-  }
-}
-
+//TODO: this is a weird util method that calls an api... should be refactored so its not a circular utility
 export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
   return canCompute || _.some(
     ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
@@ -150,59 +113,10 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   return tryRequest()
 }
 
-export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
-
-const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
 // are not transient and the request should not be retried.
-const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
-const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
-const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
-const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
-const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
-const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
-const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
-const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
-const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchOk)
-const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
-const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
-const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
-
-const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
-
-// %23 = '#', %2F = '/'
-const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
-
-/**
- * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
- * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
- */
-const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
-  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-  const res = await fetchSam(
-    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
-    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
-  )
-  return res.json()
-}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
-
-export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
-
-const getFirstTimeStamp = Utils.memoizeAsync(async token => {
-  const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
-  return res.json()
-}, { keyFn: (...args) => JSON.stringify(args) })
-
-const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
-  const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
-  return res.json()
-}, { keyFn: (...args) => JSON.stringify(args) })
+export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 const User = signal => ({
   getStatus: async () => {
@@ -379,14 +293,15 @@ const User = signal => ({
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
-    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, { signal })
+    const res = await fetchBond(`api/link/v1/${provider}/authorization-url?${qs.stringify(queryParams, { indices: false })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
-  linkFenceAccount: async (provider, authCode, redirectUri) => {
+  linkFenceAccount: async (provider, authCode, redirectUri, state) => {
     const queryParams = {
       oauthcode: authCode,
-      redirect_uri: redirectUri
+      redirect_uri: redirectUri,
+      state
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
@@ -528,7 +443,6 @@ const Groups = signal => ({
     }
   }
 })
-
 
 const Billing = signal => ({
   listProjects: async () => {
@@ -685,7 +599,6 @@ const CromIAM = signal => ({
     return res.json()
   }
 })
-
 
 const Workspaces = signal => ({
   list: async fields => {
@@ -1033,8 +946,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importJob: async (url, filetype) => {
-        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype }), { signal, method: 'POST' }]))
+      importJob: async (url, filetype, options) => {
+        const res = await fetchOrchestration(`api/${root}/importJob`, _.mergeAll([authOpts(), jsonBody({ url, filetype, options }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -1123,7 +1036,6 @@ const Catalog = signal => ({
   }
 })
 
-
 const DataRepo = signal => ({
   snapshot: snapshotId => {
     return {
@@ -1163,11 +1075,12 @@ const AzureStorage = signal => ({
     )
     const data = await res.json()
     const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+
     if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
       return {
-        location: 'Unknown',
-        storageContainerName: 'None',
-        sasUrl: 'None'
+        location: undefined,
+        storageContainerName: undefined,
+        sas: { url: undefined, token: undefined }
       }
     } else {
       const container = _.find(
@@ -1178,11 +1091,116 @@ const AzureStorage = signal => ({
         data.resources
       )
       const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
+
       return {
         location: storageAccount.resourceAttributes.azureStorage.region,
         storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
-        sasUrl: sas.url
+        sas
       }
+    }
+  },
+
+  listFiles: async (workspaceId, suffixFilter = '') => {
+    if (!workspaceId) {
+      return []
+    }
+
+    const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+    const azureContainerUrl = _.flow(
+      _.split('?'),
+      _.head,
+      Utils.append(`?restype=container&comp=list&${token}`),
+      _.join('')
+    )(url)
+
+    const res = await fetchOk(azureContainerUrl)
+    const text = await res.text()
+    const xml = new window.DOMParser().parseFromString(text, 'text/xml')
+    const blobs = _.map(
+      blob => ({
+        name: _.head(blob.getElementsByTagName('Name')).textContent,
+        lastModified: new Date(
+          _.head(blob.getElementsByTagName('Last-Modified')).textContent
+        ).getTime()
+      }),
+      xml.getElementsByTagName('Blob')
+    )
+
+    const filteredBlobs = _.filter(blob => _.endsWith(suffixFilter, blob.name), blobs)
+    return filteredBlobs
+  },
+
+  listNotebooks: async workspaceId => {
+    const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
+    return _.map(notebook => ({ ...notebook, application: tools.Jupyter.label }), notebooks)
+  },
+
+  blob: (workspaceId, blobName) => {
+    const calhounPath = 'api/convert'
+
+    const getObject = async () => {
+      const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+      const res = await fetchOk(azureStorageUrl)
+      const text = await res.text()
+      return text
+    }
+
+    const getBlobUrl = async (workspaceId, blobName) => {
+      const { sas: { url, token } } = await AzureStorage(signal).details(workspaceId)
+      const encodedBlobName = encodeAzureAnalysisName(blobName)
+
+      const azureStorageUrl = _.flow(
+        _.split('?'),
+        _.head,
+        Utils.append(`/${encodedBlobName}?&${token}`),
+        _.join('')
+      )(url)
+
+      return azureStorageUrl
+    }
+
+    // https://docs.microsoft.com/en-us/rest/api/storageservices/copy-blob#request
+    const copy = async (destBlob, destWorkspaceId = workspaceId) => {
+      const destStorageUrl = await getBlobUrl(destWorkspaceId, `${destBlob}.${getExtension(blobName)}`)
+      const srcStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+      return fetchOk(destStorageUrl, { method: 'PUT', headers: { 'x-ms-copy-source': srcStorageUrl } })
+    }
+
+    const doDelete = async () => {
+      const storageUrl = await getBlobUrl(workspaceId, blobName)
+
+      return fetchOk(storageUrl, { method: 'DELETE' })
+    }
+
+    return {
+      get: getObject,
+
+      preview: async () => {
+        const textFileContents = await getObject()
+        return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: textFileContents }])
+        ).then(res => res.text())
+      },
+
+      create: async textContents => {
+        const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+        return fetchOk(azureStorageUrl, {
+          method: 'PUT', body: JSON.stringify(textContents),
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': _.size(textContents) }
+        })
+      },
+
+      copy,
+
+      rename: async destBlob => {
+        await copy(destBlob)
+        return doDelete()
+      },
+
+      delete: doDelete
     }
   }
 })
@@ -1346,6 +1364,7 @@ const Buckets = signal => ({
     }
   },
 
+  //TODO: this should take a type `file`, instead of (name, toolLabel), and then we can remove `toolLabel` param
   analysis: (googleProject, bucket, name, toolLabel) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
@@ -1389,6 +1408,7 @@ const Buckets = signal => ({
       )
     }
 
+
     const getObject = async () => {
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
@@ -1416,7 +1436,7 @@ const Buckets = signal => ({
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: textContents,
+            signal, method: 'POST', body: JSON.stringify(textContents),
             headers: { 'Content-Type': mimeType }
           })
         )
@@ -1435,7 +1455,6 @@ const Buckets = signal => ({
     }
   }
 })
-
 
 const FirecloudBucket = signal => ({
   getServiceAlerts: async () => {
@@ -1463,7 +1482,6 @@ const FirecloudBucket = signal => ({
     return res.json()
   }
 })
-
 
 const Methods = signal => ({
   list: async params => {
@@ -1530,7 +1548,6 @@ const Methods = signal => ({
   }
 })
 
-
 const Submissions = signal => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
@@ -1540,239 +1557,6 @@ const Submissions = signal => ({
   cromwellVersion: async () => {
     const res = await fetchOk(`${getConfig().rawlsUrlRoot}/version/executionEngine`, { signal })
     return res.json()
-  }
-})
-
-
-const Runtimes = signal => ({
-  list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  invalidateCookie: () => {
-    return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
-  },
-
-  setAzureCookie: proxyUrl => {
-    return fetchOk(`${proxyUrl}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
-  },
-
-  setCookie: () => {
-    return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
-  },
-
-  runtime: (project, name) => {
-    const root = `api/google/v1/runtimes/${project}/${name}`
-
-    return {
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      },
-      create: options => {
-        const body = _.merge(options, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version },
-          defaultClientId: getConfig().googleClientId,
-          userJupyterExtensionConfig: {
-            nbExtensions: {
-              'saturn-iframe-extension':
-                `${window.location.hostname === 'localhost' ? getConfig().devUrlRoot : window.location.origin}/jupyter-iframe-extension.js`
-            },
-            labExtensions: {},
-            serverExtensions: {},
-            combinedExtensions: {}
-          },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile'],
-          enableWelder: true
-        })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      update: options => {
-        const body = { ...options, allowStop: true }
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
-      },
-
-      start: () => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      stop: () => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      delete: deleteDisk => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      }
-    }
-  },
-
-  listV2: async (labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  listV2WithWorkspace: async (workspaceId, labels = {}) => {
-    const res = await fetchLeo(`api/v2/runtimes/${workspaceId}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  runtimeV2: (workspaceId, name, cloudProvider = 'azure') => {
-    const root = `api/v2/runtimes/${workspaceId}/${cloudProvider}/${name}`
-
-    return {
-
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      },
-
-      create: options => {
-        const body = _.merge(options, {
-          labels: { saturnAutoCreated: 'true', saturnVersion: version }
-        })
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-
-      delete: (deleteDisk = true) => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      }
-    }
-  },
-
-  fileSyncing: (project, name) => {
-    const root = `proxy/${project}/${name}`
-
-    return {
-      oldLocalize: files => {
-        return fetchLeo(`notebooks/${project}/${name}/api/localize`, // this is the old root url
-          _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
-      },
-
-      localize: entries => {
-        const body = { action: 'localize', entries }
-        return fetchLeo(`${root}/welder/objects`,
-          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-      },
-
-      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
-        return fetchLeo(`${root}/welder/storageLinks`,
-          _.mergeAll([authOpts(), jsonBody({
-            localBaseDirectory,
-            localSafeModeBaseDirectory,
-            cloudStorageDirectory,
-            pattern
-          }), { signal, method: 'POST' }]))
-      },
-
-      lock: async localPath => {
-        try {
-          await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
-          return true
-        } catch (error) {
-          if (error.status === 409) {
-            return false
-          } else {
-            throw error
-          }
-        }
-      }
-    }
-  }
-})
-
-const Apps = signal => ({
-  list: async (project, labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-  listWithoutProject: async labels => {
-    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify(labels)}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-  app: (project, name) => {
-    const root = `api/google/v1/apps/${project}/${name}`
-    return {
-      delete: deleteDisk => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
-          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
-      },
-      create: ({ kubernetesRuntimeConfig, diskName, diskSize, diskType, appType, namespace, bucketName, workspaceName }) => {
-        const body = {
-          labels: {
-            saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: workspaceName
-          },
-          kubernetesRuntimeConfig,
-          diskConfig: {
-            name: diskName,
-            size: diskSize,
-            diskType,
-            labels: {
-              saturnApplication: appType,
-              saturnWorkspaceNamespace: namespace,
-              saturnWorkspaceName: workspaceName
-            }
-          },
-          customEnvironmentVariables: {
-            WORKSPACE_NAME: workspaceName,
-            WORKSPACE_NAMESPACE: namespace,
-            WORKSPACE_BUCKET: `gs://${bucketName}`,
-            GOOGLE_PROJECT: project
-          },
-          appType
-        }
-        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
-      },
-      pause: () => {
-        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-      resume: () => {
-        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
-      },
-      details: async () => {
-        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
-        return res.json()
-      }
-    }
-  }
-})
-
-
-const Disks = signal => ({
-  list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
-      _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-  },
-
-  disk: (project, name) => {
-    return {
-      create: props => fetchLeo(`api/google/v1/disks/${project}/${name}`,
-        _.mergeAll([authOpts(), appIdentifier, { signal, method: 'POST' }, jsonBody(props)])
-      ),
-      delete: () => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
-      },
-      update: size => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
-      },
-      details: async () => {
-        const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
-        return res.json().then(val => _.set('diskType', pdTypes.fromString(val.diskType), val))
-      }
-    }
   }
 })
 

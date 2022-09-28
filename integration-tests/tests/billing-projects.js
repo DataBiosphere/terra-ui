@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, findText, gotoPage, noSpinnersAfter, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { assertTextNotFound, click, clickable, findText, gotoPage, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
 const { userEmail } = require('../utils/integration-config')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -33,7 +33,7 @@ const billingProjectsPage = (testPage, testUrl) => {
 
     selectProject: (billingProjectName, cloudPlatform = GCP) => {
       const text = cloudPlatform === GCP ? `Google Cloud Platform${billingProjectName}` : `Microsoft Azure${billingProjectName}`
-      return noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text })) })
+      return click(testPage, clickable({ text }))
     },
 
     selectProjectMenu: async () => {

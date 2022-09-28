@@ -36,6 +36,7 @@ describe('restoreDataTableVersion', () => {
 
     Ajax.mockImplementation(() => ({
       Buckets: { getObjectPreview },
+      Metrics: { captureEvent: jest.fn() },
       Workspaces: { workspace: () => ({ importFlexibleEntitiesFileSynchronous }) }
     }))
   })

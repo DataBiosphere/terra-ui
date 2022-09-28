@@ -1,5 +1,6 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
+import * as Utils from 'src/libs/utils'
 
 
 export const workflowNameValidation = () => {
@@ -53,4 +54,26 @@ export const downloadIO = (io, filename) => {
 
   const blob = new Blob([JSON.stringify(prepIO(io))], { type: 'application/json' })
   FileSaver.saveAs(blob, `${filename}.json`)
+}
+
+export const downloadWorkflows = (rows, filename) => {
+  const headers = _.keys(_.head(rows))
+
+  const stringifiedRows = _.flow(
+    _.sortBy('workflowEntity'),
+    _.map(row => _.map(v => _.isObject(v) ? JSON.stringify(v) : v, _.values(row)))
+  )(rows)
+
+  const rowsAndHeaders = [headers, ...stringifiedRows]
+
+  //Shifts the workflowId column to the first column in the TSV
+  const workflowIdIndex = _.indexOf('workflowId', headers)
+  const reorderedTSVContents = _.map(row => [
+    ..._.slice(workflowIdIndex, workflowIdIndex + 1, row), // the workflowId column itself
+    ..._.slice(0, workflowIdIndex, row), // the columns originally before the workflowId col
+    ..._.slice(workflowIdIndex + 1, _.size(row), row) // the columns originally after the workflowId col
+  ], rowsAndHeaders)
+
+  const blob = new Blob([Utils.makeTSV(reorderedTSVContents)], { type: 'text/tab-separated-values' })
+  FileSaver.saveAs(blob, `${filename}.tsv`)
 }

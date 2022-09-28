@@ -9,10 +9,11 @@ import {
   ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, profilePic, spinner } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import ProfilePicture from 'src/components/ProfilePicture'
 import { SimpleTabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -243,7 +244,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
       withErrorReporting('Error linking NIH account'),
       Utils.withBusyState(setIsLinking)
     )(async () => {
-      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl)
+      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl, state)
       authStore.update(_.set(['fenceStatus', key], status))
     })
 
@@ -531,7 +532,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
     div({ style: styles.header.line }, [
       div({ style: { position: 'relative' } }, [
-        profilePic({ size: 48 }),
+        h(ProfilePicture, { size: 48 }),
         h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
           'To change your profile image, visit your ',
           h(Link, {

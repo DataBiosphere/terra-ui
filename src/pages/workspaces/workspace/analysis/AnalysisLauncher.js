@@ -8,14 +8,7 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import {
-  analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
-  StatusMessage
-} from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -25,11 +18,18 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import {
+  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
+} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import {
+  analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
+  StatusMessage
+} from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -58,7 +58,10 @@ const AnalysisLauncher = _.flow(
     const status = getConvertedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
-    const toolLabel = getToolFromFileExtension(analysisName)
+    //note that here, the file tool is either Jupyter or RStudio, and cannot be azure (as .ipynb extensions are used for azure as well)
+    //hence, currentRuntimeTool is not always currentFileToolLabel
+    const currentFileToolLabel = getToolFromFileExtension(analysisName)
+    const currentRuntimeTool = getToolFromRuntime(runtime)
     const iframeStyles = { height: '100%', width: '100%' }
 
     useOnMount(() => {
@@ -68,22 +71,22 @@ const AnalysisLauncher = _.flow(
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
-          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
-            h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
-              { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
+          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeTool === 'Jupyter') ?
+            h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
+              { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
-                readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
+                styles: iframeStyles, queryParams, runtime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
+                readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute)
               }),
-              h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
+              h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace })
             ])
         ]),
         mode && h(RuntimeKicker, { runtime, refreshRuntimes }),
-        mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
+        mode && h(RuntimeStatusMonitor, { runtime }),
         h(ComputeModal, {
           isOpen: createOpen,
-          tool: toolLabel,
+          tool: currentFileToolLabel,
           shouldHideCloseButton: false,
           workspace,
           runtimes,
@@ -111,7 +114,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
 
   useOnMount(() => {
     const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
-      const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, wsName: name, bucketName })
+      const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, workspaceName: name, bucketName })
       const currentLocker = potentialLockers[lockedBy]
       setLockedByEmail(currentLocker)
     })
@@ -207,10 +210,10 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-
+// This component is responsible for generating the preview/open header bar above the iframe content
 const PreviewHeader = ({
-  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen, refreshRuntimes,
-  workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
+  workspace: { canShare, workspace: { namespace, name, bucketName, googleProject, workspaceId } }
 }) => {
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
@@ -222,7 +225,7 @@ const PreviewHeader = ({
   const [exportingAnalysis, setExportingAnalysis] = useState(false)
   const [copyingAnalysis, setCopyingAnalysis] = useState(false)
   const runtimeStatus = getConvertedRuntimeStatus(runtime)
-  const welderEnabled = runtime && !runtime.labels.welderInstallFailed
+  const welderEnabled = runtime && !runtime.labels?.welderInstallFailed
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
 
@@ -231,7 +234,7 @@ const PreviewHeader = ({
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
-      .analysis(googleProject, bucketName, getFileName(analysisName), toolLabel)
+      .analysis(googleProject, bucketName, getFileName(analysisName), currentFileToolLabel)
       .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -242,18 +245,34 @@ const PreviewHeader = ({
     }
   })
 
-  const startAndRefresh = async (refreshRuntimes, promise) => {
+  const startAndRefresh = async (refreshRuntimes, runtime) => {
     try {
-      await promise
+      if (!!googleProject) {
+        await Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start()
+      } else {
+        //TODO start for azure
+      }
       await refreshRuntimes(true)
     } catch (error) {
       reportError('Cloud Environment Error', error)
     }
   }
 
-  useOnMount(() => { checkIfLocked() })
+  useOnMount(() => {
+    if (!!googleProject) {
+      checkIfLocked()
+    }
+  })
 
   const openMenuIcon = [makeMenuIcon('rocket'), 'Open']
+
+  const createNewRuntimeOpenButton = h(HeaderButton, {
+    onClick: () => setCreateOpen(true)
+  },
+  openMenuIcon)
+
+  const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
+
 
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
@@ -264,30 +283,36 @@ const PreviewHeader = ({
       [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [
         makeMenuIcon('export'), 'Copy to another workspace'
       ])],
-      // Top level decision on whether user should be prompted to create a runtime
-      [!runtime || currentRuntimeTool !== toolLabel,
+      [!runtime, () => createNewRuntimeOpenButton],
+      [runtimeStatus === 'Stopped', () => h(HeaderButton, {
+        onClick: () => startAndRefresh(refreshRuntimes, runtime)
+      }, openMenuIcon)],
+      [currentRuntimeTool === tools.Azure.label && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
         () => h(HeaderButton, {
-          onClick: () => setCreateOpen(true)
-        },
-        openMenuIcon)],
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: currentRuntimeTool, application: currentRuntimeTool, workspaceName: name, namespace })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
+          }
+        }, openMenuIcon)],
+      // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
+      [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
       // Then open can be clicked again
-      [toolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', 'Stopped', null]),
+      [currentFileToolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', null]),
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
               Ajax().Metrics.captureEvent(Events.analysisLaunch,
                 { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
-            } else if (runtimeStatus === 'Stopped') {
-              startAndRefresh(refreshRuntimes, Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start())
             }
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well
-      [(toolLabel === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
+      [(currentRuntimeTool === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -295,7 +320,7 @@ const PreviewHeader = ({
           [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
             makeMenuIcon('lock'), 'Open (In use)'
           ])],
-          () => h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
+          () => editModeButton
         ),
         h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
@@ -323,10 +348,9 @@ const PreviewHeader = ({
     ]),
     // Status specific messaging which is not specific to an app
     Utils.cond(
-      [_.includes(runtimeStatus, usableStatuses), () => {
-        console.assert(false, `${runtimeStatus} | Expected cloud environment to NOT be one of: [${usableStatuses}]`)
-        return null
-      }],
+      [_.includes(runtimeStatus, usableStatuses), () => h(StatusMessage, { hideSpinner: true }, [
+        'Cloud environment is ready.'
+      ])],
       [runtimeStatus === 'Creating', () => h(StatusMessage, [
         'Creating cloud environment. You can navigate away and return in 3-5 minutes.'
       ])],
@@ -377,7 +401,7 @@ const PreviewHeader = ({
       printName: getFileName(analysisName),
       toolLabel: getToolFromFileExtension(analysisName),
       fromLauncher: true,
-      wsName: name, googleProject, namespace, bucketName, destroyOld: false,
+      workspaceName: name, googleProject, workspaceId, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingAnalysis(false),
       onSuccess: () => setCopyingAnalysis(false)
     }),
@@ -397,7 +421,8 @@ const PreviewHeader = ({
   ])
 }
 
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, styles }) => {
+// This component is responsible for rendering the html preview of the analysis file
+const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { workspaceId, googleProject, bucketName } }, onRequesterPaysError, styles }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -408,7 +433,10 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing analysis')
   )(async () => {
-    setPreview(await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview())
+    const previewHtml = !!googleProject ?
+      await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview() :
+      await Ajax(signal).AzureStorage.blob(workspaceId, analysisName).preview()
+    setPreview(previewHtml)
   })
   useOnMount(() => {
     loadPreview()
@@ -432,7 +460,8 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
   ])
 }
 
-// TODO: this ensures that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
+// This is the purely functional component
+// It is in charge of ensuring that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 // See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   useOnMount(() => {

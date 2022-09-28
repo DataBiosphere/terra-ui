@@ -8,10 +8,8 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { getToolForImage, getToolFromRuntime, tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
-import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
@@ -23,6 +21,10 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
+import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
@@ -30,9 +32,7 @@ import {
   getCurrentPersistentDisk,
   getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
-} from 'src/libs/runtime-utils'
-import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -1052,6 +1052,7 @@ export const ComputeModalBase = ({
                     value: runtimeType,
                     onChange: ({ value }) => {
                       setRuntimeType(value)
+                      updateComputeConfig('masterMachineType', getDefaultMachineType(isDataproc(value), getToolFromRuntime(value)))
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [

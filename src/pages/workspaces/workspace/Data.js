@@ -23,10 +23,11 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDataTableVersioningEnabled } from 'src/libs/config'
+import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -225,6 +226,17 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
   ])
 }
 
+const NoDataPlaceholder = ({ message, buttonText, onAdd }) => div({
+  style: {
+    display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+    padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
+    backgroundColor: 'white'
+  }
+}, [
+  message,
+  h(Link, { style: { marginTop: '0.5rem' }, onClick: onAdd }, [buttonText])
+])
+
 const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   const minWidth = 280
   const getMaxWidth = useCallback(() => _.clamp(minWidth, 1200, window.innerWidth - 200), [])
@@ -335,10 +347,20 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Delete table'),
-        isDataTableVersioningEnabled() && h(Fragment, [
+        isFeaturePreviewEnabled('data-table-versioning') && h(Fragment, [
           h(MenuDivider),
           h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
-          h(MenuButton, { onClick: () => onToggleVersionHistory(!isShowingVersionHistory) }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
+          h(MenuButton, {
+            onClick: () => {
+              onToggleVersionHistory(!isShowingVersionHistory)
+              if (!isShowingVersionHistory) {
+                Ajax().Metrics.captureEvent(Events.dataTableVersioningViewVersionHistory, {
+                  ...extractWorkspaceDetails(workspace.workspace),
+                  tableName
+                })
+              }
+            }
+          }, [`${isShowingVersionHistory ? 'Hide' : 'Show'} version history`])
         ])
       ])
     }, [
@@ -398,6 +420,26 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       })
     })
   ])
+}
+
+const DataTableFeaturePreviewFeedbackBanner = () => {
+  const isDataTableProvenanceEnabled = isFeaturePreviewEnabled('data-table-provenance')
+  const isDataTableVersioningEnabled = isFeaturePreviewEnabled('data-table-versioning')
+
+  const label = _.join(' and ', _.compact([
+    isDataTableVersioningEnabled && 'versioning',
+    isDataTableProvenanceEnabled && 'provenance'
+  ]))
+  const feedbackUrl = `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(`Feedback on data table ${label}`)}`
+
+  return (isDataTableProvenanceEnabled || isDataTableVersioningEnabled) && div({
+    style: {
+      padding: '1rem',
+      borderBottom: `1px solid ${colors.accent()}`,
+      background: '#fff',
+      textAlign: 'center'
+    }
+  }, [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])])
 }
 
 const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
@@ -593,6 +635,11 @@ const WorkspaceData = _.flow(
               retryFunction: loadEntityMetadata
             }, [
               _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
+              !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && _.isEmpty(sortedEntityPairs) && h(NoDataPlaceholder, {
+                message: 'No tables have been uploaded.',
+                buttonText: 'Upload TSV',
+                onAdd: () => setUploadingFile(true)
+              }),
               !_.isEmpty(sortedEntityPairs) && div({ style: { margin: '1rem' } }, [
                 h(ConfirmedSearchInput, {
                   'aria-label': 'Search all tables',
@@ -732,25 +779,31 @@ const WorkspaceData = _.flow(
             ]),
             h(DataTypeSection, {
               title: 'Reference Data'
-            }, [_.map(type => h(DataTypeButton, {
-              key: type,
-              wrapperProps: { role: 'listitem' },
-              selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
-              onClick: () => {
-                setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
-                refreshWorkspace()
-              },
-              after: h(Link, {
-                style: { flex: 0 },
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-                onClick: e => {
-                  e.stopPropagation()
-                  setDeletingReference(type)
-                }
-              }, [icon('minus-circle', { size: 16 })])
-            }, [type]), _.keys(referenceData)
-            )]),
+            }, [
+              _.isEmpty(referenceData) && h(NoDataPlaceholder, {
+                message: 'No references have been added.',
+                buttonText: 'Add reference data',
+                onAdd: () => setImportingReference(true)
+              }),
+              _.map(type => h(DataTypeButton, {
+                key: type,
+                wrapperProps: { role: 'listitem' },
+                selected: selectedData?.type === workspaceDataTypes.referenceData && selectedData.reference === type,
+                onClick: () => {
+                  setSelectedData({ type: workspaceDataTypes.referenceData, reference: type })
+                  refreshWorkspace()
+                },
+                after: h(Link, {
+                  style: { flex: 0 },
+                  disabled: !!Utils.editWorkspaceError(workspace),
+                  tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+                  onClick: e => {
+                    e.stopPropagation()
+                    setDeletingReference(type)
+                  }
+                }, [icon('minus-circle', { size: 16 })])
+              }, [type]), _.keys(referenceData))
+            ]),
             importingReference && h(ReferenceDataImporter, {
               onDismiss: () => setImportingReference(false),
               onSuccess: () => {
@@ -806,6 +859,7 @@ const WorkspaceData = _.flow(
       ]),
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
+        _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
         Utils.switchCase(selectedData?.type,
           [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
           [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {

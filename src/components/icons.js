@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import { Children, Fragment } from 'react'
-import { div, h, img, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import DelayedRender from 'src/components/DelayedRender'
-import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
 
@@ -63,20 +62,6 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge
     right: `calc(50% - ${size / 2}px)`
   }
 }, props))
-
-export const profilePic = ({ size, style, ...props } = {}) => {
-  // Note Azure logins don't currently have an imageUrl, so don't render anything.
-  // See TOAZ-147 to support this in the future.
-  const imageUrl = getUser().imageUrl
-  return imageUrl && img({
-    alt: 'Google profile image',
-    src: imageUrl,
-    height: size, width: size,
-    style: { borderRadius: '100%', ...style },
-    referrerPolicy: 'no-referrer',
-    ...props
-  })
-}
 
 export const wdlIcon = ({ style = {}, ...props } = {}) => div({
   style: {

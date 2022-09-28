@@ -31,7 +31,7 @@ const displayEntities = (entities, runningSubmissionsCount, showType) => {
   return _.map(([i, entity]) => div({
     style: {
       borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-      padding: '0.6rem 1.25rem', margin: '0 -1.25rem',
+      padding: '0.6rem 1.25rem',
       ...Style.noWrapEllipsis
     }
   }, showType ? `${entity.entityName} (${entity.entityType})` : entity),
@@ -138,12 +138,16 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
         content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
       h(FormLabel, ['Entries selected']),
-      ...Utils.cond(
-        [!!additionalDeletions.length, () => displayEntities(additionalDeletions, runningSubmissionsCount, true)],
-        [!!hardConflicts.length, () => displayEntities(hardConflicts, runningSubmissionsCount, true)],
-        [!!softConflicts.length, () => displayEntities(softConflicts, runningSubmissionsCount, true)],
-        () => displayEntities(selectedEntities, runningSubmissionsCount, false)
-      ),
+      // Size the scroll container to cut off the last row to hint that there's more content to be scrolled into view
+      // Row height calculation is font size * line height + padding + border
+      div({ style: { maxHeight: 'calc((1em * 1.15 + 1.2rem + 1px) * 10.5)', overflowY: 'auto', margin: '0 -1.25rem' } }, [
+        ...Utils.cond(
+          [!!additionalDeletions.length, () => displayEntities(additionalDeletions, runningSubmissionsCount, true)],
+          [!!hardConflicts.length, () => displayEntities(hardConflicts, runningSubmissionsCount, true)],
+          [!!softConflicts.length, () => displayEntities(softConflicts, runningSubmissionsCount, true)],
+          () => displayEntities(selectedEntities, runningSubmissionsCount, false)
+        )
+      ]),
       div({
         style: { ...Style.warningStyle, textAlign: 'right', marginTop: !!hardConflicts.length ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
