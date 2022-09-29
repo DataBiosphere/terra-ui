@@ -436,7 +436,7 @@ const rareX = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     'aria-label': 'Request access to RareX data',
-    tooltip: 'View workspace with details',
+    tooltip: 'View details on data and request access',
     href: 'https://rare-x.terra.bio/#workspaces/Rare-x-Terra-Billing/RARE-X',
     onClick: () => captureBrowseDataEvent('RARE-X')
   }, ['Browse Data'])
