@@ -95,8 +95,8 @@
       ]
     },
     {
-      "name": "dsp-analysis-journeys",
-      "id": "C02T8G2FJCQ",
+      "name": "dsp-analysis-journeys-alerts",
+      "id": "C031KGQUVB4",
       "tests": [
         {
           "name": "import-cohort-data"
