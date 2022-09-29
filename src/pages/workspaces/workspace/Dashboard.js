@@ -557,7 +557,7 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      _.some(isV1Artifact(workspace?.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
+      _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
         initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
