@@ -1,12 +1,4 @@
 module.exports = {
-  local: {
-    billingProject: 'saturn-integration-test-stage',
-    snapshotColumnName: 'VCF_File_Name',
-    snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
-    snapshotTableName: 'vcf_file',
-    testUrl: 'http://localhost:3000',
-    workflowName: 'echo_to_file'
-  },
   dev: {
     billingProject: 'saturn-integration-test-dev',
     snapshotColumnName: 'name',

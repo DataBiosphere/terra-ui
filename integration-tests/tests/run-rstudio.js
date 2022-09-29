@@ -72,5 +72,5 @@ registerTest({
   name: 'run-rstudio',
   fn: testRunRStudioFn,
   timeout: 20 * 60 * 1000,
-  targetEnvironments: ['local', 'dev']
+  targetEnvironments: ['dev', 'staging']
 })
