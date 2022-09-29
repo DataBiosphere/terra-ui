@@ -128,15 +128,20 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
 }
 
 const UnboundDiskNotification = () => {
-  return div({ style: Style.dashboard.rightBoxContainer }, [
-    div({ style: { padding: '0.5rem' } }, [
-      strong(['Persistent disks can no longer be shared between workspaces. ']),
-      h(Link, { href: Nav.getLink('environments'), style: { wordBreak: 'break-word' } }, [
-        'Click here'
-      ]),
-      ' to review your shared disks and choose where each should go.'
+  return div({
+    style: {
+      ...Style.dashboard.rightBoxContainer,
+      padding: '1rem',
+      border: '1px solid',
+      borderColor: colors.accent()
+    }
+  }, [
+    strong(['Persistent disks can no longer be shared between workspaces. ']),
+    h(Link, { href: Nav.getLink('environments'), style: { wordBreak: 'break-word' } }, [
+      'Review your shared disks and choose where each should go'
     ]),
-    div({ style: { padding: '0.5rem', paddingTop: '1rem' } }, [
+    '.',
+    div({ style: { paddingTop: '1rem' } }, [
       'On December 31st 2022, all un-migrated shared disks will be deleted.'
     ])
   ])
