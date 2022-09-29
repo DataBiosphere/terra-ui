@@ -79,6 +79,12 @@
         },
         {
           "name": "link-to-new-workspace"
+        },
+        {
+          "name": "import-cohort-data"
+        },
+        {
+          "name": "request-access"
         }
       ]
     },
@@ -102,7 +108,7 @@
           "name": "import-cohort-data"
         },
         {
-          "name": "request-access"
+          "name": "run-workflow-on-snapshot"
         }
       ]
     }
