@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, h1, li, ol, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, DeleteConfirmationModal, IdContainer, spinnerOverlay } from 'src/components/common'
+import { div, fieldset, h, h1, legend, li, ol, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, DeleteConfirmationModal, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { parseGsUri } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -145,13 +145,24 @@ export const DataTableVersions = ({ loading, error, versions, savingNewVersion, 
   ])
 }
 
-export const DataTableSaveVersionModal = ({ entityType, onDismiss, onSubmit }) => {
+export const DataTableSaveVersionModal = ({ entityType, allEntityTypes, onDismiss, onSubmit }) => {
+  const relatedSetTables = _.flow(
+    _.filter(t => (new RegExp(`^${entityType}(_set)+$`)).test(t)),
+    _.sortBy(_.identity)
+  )(allEntityTypes)
+
   const [description, setDescription] = useState('')
+  const [selectedSetTables, setSelectedSetTables] = useState(_.fromPairs(_.map(table => [table, false], relatedSetTables)))
 
   return h(Modal, {
     onDismiss,
     title: `Save version of ${entityType}`,
-    okButton: h(ButtonPrimary, { onClick: () => onSubmit({ description }) }, ['Save'])
+    okButton: h(ButtonPrimary, {
+      onClick: () => onSubmit({
+        description,
+        includedSetEntityTypes: _.keys(_.pickBy(_.identity, selectedSetTables))
+      })
+    }, ['Save'])
   }, [
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id }, ['Description']),
@@ -161,7 +172,22 @@ export const DataTableSaveVersionModal = ({ entityType, onDismiss, onSubmit }) =
         value: description,
         onChange: setDescription
       })
-    ])])
+    ])]),
+    _.size(relatedSetTables) > 0 && fieldset({ style: { border: 'none', margin: '1rem 0 0', padding: 0 } }, [
+      legend({ style: { marginBottom: '0.25rem', fontSize: '16px', fontWeight: 600 } }, ['Include set tables?']),
+      _.map(
+        table => div({
+          key: table,
+          style: { marginBottom: '0.25rem' }
+        }, [
+          h(LabeledCheckbox, {
+            checked: selectedSetTables[table],
+            onChange: value => setSelectedSetTables(_.set(table, value))
+          }, [table])
+        ]),
+        relatedSetTables
+      )
+    ])
   ])
 }
 

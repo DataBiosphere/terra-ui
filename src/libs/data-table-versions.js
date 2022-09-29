@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils'
 
 export const dataTableVersionsPathRoot = '.data-table-versions'
 
-export const saveDataTableVersion = async (workspace, entityType, { description = null } = {}) => {
+export const saveDataTableVersion = async (workspace, entityType, { description = null, includedSetEntityTypes = [] } = {}) => {
   Ajax().Metrics.captureEvent(Events.dataTableVersioningSaveVersion, {
     ...extractWorkspaceDetails(workspace.workspace),
     tableName: entityType
@@ -131,10 +131,10 @@ export const useDataTableVersions = workspace => {
       }
     },
 
-    saveDataTableVersion: async (entityType, { description = null } = {}) => {
+    saveDataTableVersion: async (entityType, options = {}) => {
       setDataTableVersions(_.update(entityType, _.set('savingNewVersion', true)))
       try {
-        const newVersion = await saveDataTableVersion(workspace, entityType, { description })
+        const newVersion = await saveDataTableVersion(workspace, entityType, options)
         notify('success', `Saved version of ${entityType}`, { timeout: 3000 })
         setDataTableVersions(_.update([entityType, 'versions'],
           _.flow(_.defaultTo([]), Utils.append(newVersion), _.sortBy(version => -version.timestamp))

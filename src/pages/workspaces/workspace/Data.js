@@ -391,6 +391,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     savingVersion && h(DataTableSaveVersionModal, {
       workspace,
       entityType: tableName,
+      allEntityTypes: _.keys(entityMetadata),
       onDismiss: () => setSavingVersion(false),
       onSubmit: versionOpts => {
         setSavingVersion(false)
