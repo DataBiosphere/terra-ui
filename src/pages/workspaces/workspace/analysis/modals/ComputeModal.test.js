@@ -803,6 +803,7 @@ describe('ComputeModal', () => {
 
     // Assert
     expect(screen.getByText('About persistent disk')).toBeInTheDocument()
+    expect(screen.getByText('Your persistent disk is mounted in the directory', { exact: false })).toBeInTheDocument()
   })
 
   it('should render whats installed on this environment', async () => {
