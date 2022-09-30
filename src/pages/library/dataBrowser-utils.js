@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
@@ -110,16 +111,18 @@ export const useDataCatalog = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const dataCatalog = useStore(dataCatalogStore)
+  const consortiumsToInclude = getEnabledBrand().catalogConsortiumsToInclude
 
   const refresh = _.flow(
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
     const datasets = await Ajax(signal).Catalog.getDatasets()
+    const filteredDatasets = _.filter(dataset => consortiumsToInclude === undefined || _.intersection(consortiumsToInclude, dataset.consortiums).length > 0, datasets.result || [])
     const normList = _.map(dataset => {
       const normalizedDataset = normalizeDataset(dataset)
       return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
-    }, datasets.result || [])
+    }, filteredDatasets)
 
     dataCatalogStore.set(normList)
   })
