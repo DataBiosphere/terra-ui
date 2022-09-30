@@ -529,13 +529,15 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchema = async () => {
-    try {
-      setWdsSchema(false)
-      setWdsSchemaError(false)
-      const wdsSchema = isFeaturePreviewEnabled('workspace-data-service') && await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
-      setWdsSchema(wdsSchema)
-    } catch (error) {
-      setWdsSchemaError(error)
+    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
+      try {
+        setWdsSchema(false)
+        setWdsSchemaError(false)
+        const wdsSchema = await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
+        setWdsSchema(wdsSchema)
+      } catch (error) {
+        setWdsSchemaError(error)
+      }
     }
   }
 
