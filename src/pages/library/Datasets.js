@@ -436,10 +436,10 @@ const rareX = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     'aria-label': 'Request access to RareX data',
-    tooltip: 'View access request form',
-    href: 'https://docs.google.com/forms/d/e/1FAIpQLScpqfZIXW53IJOiYz2RhASJzm7lZBYAjzkjJ67qFDERUpuDAQ/viewform',
+    tooltip: 'View details on data and request access',
+    href: 'https://rare-x.terra.bio/#workspaces/Rare-x-Terra-Billing/RARE-X',
     onClick: () => captureBrowseDataEvent('RARE-X')
-  }, ['Request Access'])
+  }, ['Browse Data'])
 ])
 
 const Datasets = () => {
