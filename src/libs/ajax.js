@@ -5,7 +5,7 @@ import {
   fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody, withRetryOnError, withUrlPrefix
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWDS, jsonBody, withRetryOnError, withUrlPrefix
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
@@ -1224,6 +1224,14 @@ const Surveys = signal => ({
   })
 })
 
+const WorkspaceDataService = signal => ({
+  getSchema: async instanceId => {
+    const res = await fetchWDS(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 export const Ajax = signal => {
   return {
     User: User(signal),
@@ -1246,7 +1254,8 @@ export const Ajax = signal => {
     CromIAM: CromIAM(signal),
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
-    Surveys: Surveys(signal)
+    Surveys: Surveys(signal),
+    WorkspaceDataService: WorkspaceDataService(signal)
   }
 }
 

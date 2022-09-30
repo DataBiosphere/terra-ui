@@ -457,11 +457,13 @@ const WorkspaceData = _.flow(
   const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
   const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
+  const [wdsSchema, setWdsSchema] = useState(() => StateHistory.get().wdsSchema)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
+  const [wdsSchemaError, setWdsSchemaError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
@@ -511,7 +513,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -523,6 +525,17 @@ const WorkspaceData = _.flow(
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
       setSnapshotDetails(_.set([snapshotName, 'error'], true))
+    }
+  }
+
+  const loadWdsSchema = async () => {
+    try {
+      setWdsSchema(false)
+      setWdsSchemaError(false)
+      const wdsSchema = isFeaturePreviewEnabled('workspace-data-service') && await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
+      setWdsSchema(wdsSchema)
+    } catch (error) {
+      setWdsSchemaError(error)
     }
   }
 
@@ -709,7 +722,10 @@ const WorkspaceData = _.flow(
                   padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
                   backgroundColor: 'white'
                 }
-              }, ['Coming soon.']),
+              }, [
+                wdsSchema && `WDS instance is running. Instance ID: ${workspaceId}`,
+                wdsSchemaError && `WDS is unavailable: '${wdsSchemaError}'`
+              ]),
               div({}, '')
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
