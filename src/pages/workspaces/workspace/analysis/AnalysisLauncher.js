@@ -20,11 +20,10 @@ import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { findPotentialNotebookLockers, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getFileName, getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
@@ -32,6 +31,11 @@ import {
 import {
   getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import {
+  getPatternFromTool,
+  getToolFromFileExtension,
+  getToolFromRuntime, tools
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -396,7 +400,8 @@ const PreviewHeader = ({
       printName: getFileName(analysisName),
       toolLabel: getToolFromFileExtension(analysisName),
       fromLauncher: true,
-      workspaceName: name, googleProject, workspaceId, namespace, bucketName, destroyOld: false,
+      workspace: { name, googleProject, workspaceId, namespace, bucketName },
+      destroyOld: false,
       onDismiss: () => setCopyingAnalysis(false),
       onSuccess: () => setCopyingAnalysis(false)
     }),

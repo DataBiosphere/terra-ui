@@ -23,7 +23,6 @@ import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
@@ -31,6 +30,7 @@ import {
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const DeleteRuntimeModal = ({

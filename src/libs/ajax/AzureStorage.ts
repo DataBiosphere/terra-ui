@@ -2,10 +2,24 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import {
+  AbsolutePath,
+  AnalysisFile,
+  FileMetadata,
+  getDisplayName,
+  getExtension, getFileName
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { toolLabelTypes, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { cloudProviderTypes } from 'src/pages/workspaces/workspace/workspace-utils'
 
 
-const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
+interface AzureFileRaw {
+  name: string,
+  lastModified: string,
+  metadata?: FileMetadata
+}
+
+const encodeAzureAnalysisName = (name: string): string => encodeURIComponent(`analyses/${name}`)
 
 export const AzureStorage = signal => ({
   sasToken: async (workspaceId, containerId) => {
@@ -46,7 +60,7 @@ export const AzureStorage = signal => ({
     }
   },
 
-  listFiles: async (workspaceId, suffixFilter = '') => {
+  listFiles: async (workspaceId: string, suffixFilter: string = ''): Promise<AzureFileRaw[]> => {
     if (!workspaceId) {
       return []
     }
@@ -64,21 +78,27 @@ export const AzureStorage = signal => ({
     const xml = new window.DOMParser().parseFromString(text, 'text/xml')
     const blobs = _.map(
       blob => ({
-        name: _.head(blob.getElementsByTagName('Name')).textContent,
-        lastModified: new Date(
-          _.head(blob.getElementsByTagName('Last-Modified')).textContent
-        ).getTime()
+        name: _.head(blob.getElementsByTagName('Name'))?.textContent,
+        lastModified: _.head(blob.getElementsByTagName('Last-Modified'))?.textContent
       }),
       xml.getElementsByTagName('Blob')
-    )
+    ) as AzureFileRaw[]
 
     const filteredBlobs = _.filter(blob => _.endsWith(suffixFilter, blob.name), blobs)
     return filteredBlobs
   },
 
-  listNotebooks: async workspaceId => {
+  listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
     const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
-    return _.map(notebook => ({ ...notebook, application: tools.Jupyter.label }), notebooks)
+    return _.map(notebook => ({
+      lastModified: new Date(notebook.lastModified).getTime(),
+      name: notebook.name as AbsolutePath,
+      ext: getExtension(notebook.name),
+      displayName: getDisplayName(notebook.name),
+      fileName: getFileName(notebook.name),
+      tool: toolLabelTypes[tools.Jupyter.label],
+      cloudProvider: cloudProviderTypes.AZURE
+    }), notebooks)
   },
 
   blob: (workspaceId, blobName) => {
@@ -150,3 +170,5 @@ export const AzureStorage = signal => ({
     }
   }
 })
+
+export type AzureStorageContract = ReturnType<typeof AzureStorage>

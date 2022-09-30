@@ -89,7 +89,9 @@ export const hasAccessLevel = _.curry((required, current) => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
 })
 
-export const canWrite = hasAccessLevel('WRITER')
+// TODO: canWrite defers from other curried definitions here since a ts file relies on it, and ts does not play well with curry
+// we may want to add typing to this or change the syntax if we find a way for ts to play nicer with curry
+export const canWrite = accessLevel => hasAccessLevel('WRITER')(accessLevel)
 export const canRead = hasAccessLevel('READER')
 export const isOwner = hasAccessLevel('OWNER')
 

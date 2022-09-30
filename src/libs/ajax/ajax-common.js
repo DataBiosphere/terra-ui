@@ -79,7 +79,6 @@ const withErrorRejection = wrappedFetch => async (...args) => {
   }
 }
 
-
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 export const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)

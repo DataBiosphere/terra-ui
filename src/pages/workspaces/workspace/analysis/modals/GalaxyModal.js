@@ -15,12 +15,12 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const defaultDataDisk = { size: 500, diskType: pdTypes.standard }

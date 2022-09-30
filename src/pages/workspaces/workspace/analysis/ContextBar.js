@@ -29,9 +29,9 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const contextBarStyles = {
@@ -110,7 +110,7 @@ export const ContextBar = ({
 
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
-    const cromwellApp = !tools.Cromwell.isAppHidden && getCurrentApp(tools.Cromwell.appType)(apps)
+    const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(tools.Cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(tools.Galaxy.label, galaxyApp.status)] : []),

@@ -9,8 +9,8 @@ import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { computeStyles, getCurrentApp, getCurrentAppDataDisk } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const defaultDataDiskSize = 500 // GB

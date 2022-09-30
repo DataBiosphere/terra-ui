@@ -1,11 +1,30 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchBuckets, saToken } from 'src/libs/ajax'
-import { authOpts, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
+import { saToken } from 'src/libs/ajax'
+import { authOpts, fetchOk, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import { withRequesterPays } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import {
+  AbsolutePath,
+  AnalysisFile,
+  FileMetadata,
+  getDisplayName,
+  getExtension,
+  getFileName
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import {
+  getToolFromFileExtension,
+  runtimeTools,
+  ToolLabel,
+  tools
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { cloudProviderTypes } from 'src/pages/workspaces/workspace/workspace-utils'
 
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
@@ -47,7 +66,35 @@ export type GCSListObjectsResponse = {
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
+interface GoogleFileRaw {
+  name: string,
+  updated: string,
+  metadata: FileMetadata
+}
+
+interface GoogleStorageListRaw {
+  items: GoogleFileRaw[]
+}
+
 export const GoogleStorage = (signal?: AbortSignal) => ({
+  checkBucketLocation: async (googleProject, bucket) => {
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+
+    return res.json()
+  },
+
+  checkBucketAccess: async (googleProject, bucket, accessLevel) => {
+    // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+    if (!Utils.canWrite(accessLevel)) {
+      return false
+    }
+
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+    return res.json()
+  },
+
   getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -72,16 +119,32 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), items)
   },
 
-  listAnalyses: async (googleProject, name) => {
+  listAnalyses: async (googleProject: string, name: string): Promise<AnalysisFile[]> => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
-    const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
+
+    const { items } = await res.json() as GoogleStorageListRaw
+    const internalFiles = _.flow(
+      _.map(({ name, updated, metadata }) => {
+        const path = name as AbsolutePath
+        return {
+          name: path,
+          ext: getExtension(name),
+          displayName: getDisplayName(name),
+          fileName: getFileName(name),
+          tool: getToolFromFileExtension(getExtension(name)) as ToolLabel,
+          lastModified: new Date(updated).getTime(),
+          cloudProvider: cloudProviderTypes.GCP,
+          metadata
+        }
+      }),
+      _.filter(({ ext }) => (_.includes(ext, runtimeTools.Jupyter.ext) || _.includes(ext, runtimeTools.RStudio.ext))))(items)
+    return internalFiles
   },
 
   list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {
