@@ -5,9 +5,21 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
-
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import {
+  AbsolutePath,
+  AnalysisFile,
+  AnalysisFileMetadata,
+  getDisplayName,
+  getExtension,
+  getFileName
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import {
+  getToolFromFileExtension,
+  runtimeTools,
+  ToolLabel,
+  toolLabels
+} from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -73,6 +85,9 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
 
 export const saToken = (googleProject: string): Promise<string> => getServiceAccountToken(googleProject, getUser().token)
 
+// Add types to this via the `|` operator, i.e. `export type GCSMetadata = AnalysisFileMetadata | myMetadataType`
+export type GCSMetadata = { [key: string]: string }
+
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
   bucket: string
@@ -91,6 +106,8 @@ export type GCSItem = {
   timeCreated: string
   timeStorageClassUpdated: string
   updated: string
+  // Rather than have this be typed as a rather unhelpful set of (key: value) pairs, add your type to `GCSMetadata` and then use a predicate at the usage site
+  metadata?: GCSMetadata
 }
 
 export type GCSListObjectsOptions = {
@@ -159,13 +176,30 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     return _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), items)
   },
 
-  listAnalyses: async (googleProject, name) => {
+  listAnalyses: async (googleProject: string, name: string): Promise<AnalysisFile[]> => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
-    const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), runtimeTools.Jupyter.ext) || _.includes(getExtension(name), runtimeTools.RStudio.ext)), items)
+
+    const { items } = await res.json() as GCSListObjectsResponse
+    const internalFiles = _.flow(
+      _.map(({ name, updated, metadata }) => {
+        const path = name as AbsolutePath
+        return {
+          name: path,
+          ext: getExtension(name),
+          displayName: getDisplayName(name),
+          fileName: getFileName(name),
+          tool: getToolFromFileExtension(getExtension(name)) as ToolLabel,
+          lastModified: new Date(updated).getTime(),
+          cloudProvider: cloudProviderTypes.GCP,
+          metadata
+        }
+      }),
+      _.filter(({ ext }) => (_.includes(ext, runtimeTools.Jupyter.ext) || _.includes(ext, runtimeTools.RStudio.ext)))
+    )(items)
+    return internalFiles
   },
 
   list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {
@@ -291,7 +325,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
   },
 
   //TODO: this should take a type `file`, instead of (name, toolLabel), and then we can remove `toolLabel` param
-  analysis: (googleProject, bucket, name, toolLabel) => {
+  analysis: (googleProject: string, bucket: string, name: string, toolLabel: ToolLabel) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
@@ -309,17 +343,17 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       )
     }
 
-    const copy = (newName, newBucket, clearMetadata) => {
+    const copy = (newName: string, newBucket: string, clearMetadata: boolean): Promise<void> => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return doCopy(newName, newBucket, body)
     }
 
-    const copyWithMetadata = (newName, newBucket, copyMetadata) => {
+    const copyWithMetadata = (newName: string, newBucket: string, copyMetadata: AnalysisFileMetadata): Promise<void> => {
       const body = { metadata: copyMetadata }
       return doCopy(newName, newBucket, body)
     }
 
-    const updateMetadata = async (fileName, newMetadata) => {
+    const updateMetadata = async (fileName: string, newMetadata: AnalysisFileMetadata): Promise<void> => {
       const body = { metadata: newMetadata }
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(fileName)}`,
@@ -335,7 +369,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     }
 
 
-    const getObject = async () => {
+    const getObject = async (): Promise<any> => {
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
         _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
@@ -344,7 +378,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     }
 
     return {
-      preview: async () => {
+      preview: async (): Promise<string> => {
         const nb = await fetchBuckets(
           `${bucketUrl}/${encodeFileName(name)}?alt=media`,
           _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -372,7 +406,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
 
       getObject,
 
-      rename: async newName => {
+      rename: async (newName: string): Promise<void> => {
         await copy(`${newName}.${getExtension(name)}`, bucket, false)
         return doDelete()
       },
