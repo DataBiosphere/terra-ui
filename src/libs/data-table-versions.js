@@ -1,7 +1,8 @@
 import { addMinutes, format } from 'date-fns/fp'
+import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
+import { entityAttributeText, notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -12,6 +13,48 @@ import * as Utils from 'src/libs/utils'
 
 
 export const dataTableVersionsPathRoot = '.data-table-versions'
+
+const getTsvs = async (workspace, entityMetadata, entityType) => {
+  const { workspace: { namespace, name } } = workspace
+  const entities = await Ajax().Workspaces.workspace(namespace, name).getEntities(entityType)
+  const { attributeNames } = entityMetadata[entityType]
+  const isSet = entityType.endsWith('_set')
+
+  if (isSet) {
+    const setMemberType = entityType.slice(0, -4)
+
+    const entityTsv = Utils.makeTSV([
+      [`entity:${entityType}_id`, ..._.without([`${setMemberType}s`], attributeNames)],
+      ..._.map(
+        ({ name, attributes }) => [name, ..._.map(attribute => entityAttributeText(attributes[attribute], true), _.without([`${setMemberType}s`], attributeNames))],
+        entities
+      )
+    ])
+
+    const membershipTsv = Utils.makeTSV([
+      [`membership:${entityType}_id`, setMemberType],
+      ..._.flatMap(
+        ({ attributes, name }) => _.map(({ entityName }) => [name, entityName], attributes[`${setMemberType}s`].items),
+        entities
+      )
+    ])
+
+    return [
+      { name: `${entityType}.tsv`, content: entityTsv },
+      { name: `${entityType}.membership.tsv`, content: membershipTsv }
+    ]
+  } else {
+    const entityTsv = Utils.makeTSV([
+      [`entity:${entityType}_id`, ...attributeNames],
+      ..._.map(
+        ({ name, attributes }) => [name, ..._.map(attribute => entityAttributeText(attributes[attribute], true), attributeNames)],
+        entities
+      )
+    ])
+
+    return [{ name: `${entityType}.tsv`, content: entityTsv }]
+  }
+}
 
 export const saveDataTableVersion = async (workspace, entityType, { description = null, includedSetEntityTypes = [] } = {}) => {
   Ajax().Metrics.captureEvent(Events.dataTableVersioningSaveVersion, {
@@ -24,21 +67,33 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
   const timestamp = (new Date()).getTime()
   const versionName = `${entityType}.v${timestamp}`
 
-  const tsvContent = await Ajax().Workspaces.workspace(namespace, name).getEntitiesTsv(entityType)
+  const entityMetadata = await Ajax().Workspaces.workspace(namespace, name).entityMetadata()
+  const tsvs = _.flatten(await Promise.all(_.map(type => getTsvs(workspace, entityMetadata, type), [entityType, ...includedSetEntityTypes])))
 
-  const tsvFile = new File([tsvContent], versionName, { type: 'text/tab-separated-values' })
+  const zip = new JSZip()
+  _.forEach(({ name, content }) => { zip.file(name, content) }, tsvs)
+  const zipContent = await zip.generateAsync({ type: 'blob' })
+
+  const tsvFile = new File([zipContent], `${versionName}.zip`, { type: 'application/zip' })
   await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, tsvFile)
 
-  const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}`
+  const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}.zip`
   const createdBy = getUser().email
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
-    metadata: { createdBy, entityType, timestamp, description }
+    metadata: {
+      createdBy,
+      entityType,
+      includedSetEntityTypes: _.join(',', includedSetEntityTypes),
+      timestamp,
+      description
+    }
   })
 
   return {
     url: `gs://${bucketName}/${objectName}`,
     createdBy,
     entityType,
+    includedSetEntityTypes,
     timestamp,
     description
   }
@@ -51,11 +106,12 @@ export const listDataTableVersions = async (workspace, entityType, { signal } = 
   const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix })
 
   return _.flow(
-    _.filter(item => item.metadata?.entityType && item.metadata?.timestamp),
+    _.filter(item => item.name.endsWith('.zip') && item.metadata?.entityType && item.metadata?.timestamp),
     _.map(item => ({
       url: `gs://${item.bucket}/${item.name}`,
       createdBy: item.metadata.createdBy,
       entityType,
+      includedSetEntityTypes: _.compact(_.split(',', item.metadata.includedSetEntityTypes)),
       timestamp: parseInt(item.metadata.timestamp),
       description: item.metadata.description
     })),

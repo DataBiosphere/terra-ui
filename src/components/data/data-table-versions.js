@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, fieldset, h, h1, legend, li, ol, p, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, h1, legend, li, ol, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, DeleteConfirmationModal, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
 import { parseGsUri } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
@@ -42,12 +42,12 @@ const DownloadVersionButton = ({ url }) => {
     tooltip: !!error && 'Error generating download URL'
   }, [
     loading && icon('loadingSpinner', { size: 12, style: { marginRight: '1ch' } }),
-    'Download TSV'
+    'Download'
   ])
 }
 
 export const DataTableVersion = ({ version, onDelete, onRestore }) => {
-  const { entityType, timestamp, description } = version
+  const { entityType, includedSetEntityTypes, timestamp, description } = version
 
   const [showRestoreConfirmation, setShowRestoreConfirmation] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
@@ -62,6 +62,12 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
     }, [
       `${entityType} (${Utils.makeCompleteDate(timestamp)})`
     ]),
+    _.size(includedSetEntityTypes) > 0 && h(IdContainer, [id => h(Fragment, [
+      p({ id }, ['Included set tables:']),
+      ul({ 'aria-labelledby': id, style: { margin: 0 } }, [
+        _.map(type => li({ key: type }, [type]), includedSetEntityTypes)
+      ])
+    ])]),
     version.createdBy && p([`Created by: ${version.createdBy}`]),
     p([description || 'No description']),
     div({ style: { marginBottom: '1rem' } }, [
@@ -195,7 +201,7 @@ export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) 
   return h(Modal, {
     onDismiss,
     title: `Restore version`,
-    okButton: h(ButtonPrimary, { onClick: () => onConfirm() }, ['Restore'])
+    okButton: h(ButtonPrimary, { 'data-testid': 'confirm-restore', onClick: () => onConfirm() }, ['Restore'])
   }, [
     'This version will be restored to a new data table: ',
     span({ style: { fontWeight: 600 } }, [tableNameForRestore(version)])
