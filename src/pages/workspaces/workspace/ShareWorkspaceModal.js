@@ -122,7 +122,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           onChange: v => setAcl(_.set([index], v)),
           disabled,
           maxAccessLevel: workspace.accessLevel,
-          isAzureWorkspace: !!workspace?.azureContext
+          isAzureWorkspace: !!workspace.azureContext
         })
       ]),
       !disabled && h(Link, {
