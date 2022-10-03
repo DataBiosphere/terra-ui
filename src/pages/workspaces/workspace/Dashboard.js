@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { dd, div, dl, dt, h, h3, i, span } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
@@ -31,7 +31,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { isV1Artifact, wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
@@ -123,6 +123,26 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
         afterTitle,
         onClick
       }, [children])
+    ])
+  ])
+}
+
+const UnboundDiskNotification = () => {
+  return div({
+    style: {
+      ...Style.dashboard.rightBoxContainer,
+      padding: '1rem',
+      border: '1px solid',
+      borderColor: colors.accent()
+    }
+  }, [
+    strong(['Persistent disks can no longer be shared between workspaces. ']),
+    h(Link, { href: Nav.getLink('environments'), style: { wordBreak: 'break-word' } }, [
+      'Review your shared disks and choose where each should go'
+    ]),
+    '.',
+    div({ style: { paddingTop: '1rem' } }, [
+      'On December 31st 2022, all un-migrated shared disks will be deleted.'
     ])
   ])
 }
@@ -235,6 +255,7 @@ const WorkspaceDashboard = _.flow(
 )(({
   namespace, name,
   refreshWorkspace,
+  analysesData,
   workspace, workspace: {
     accessLevel,
     azureContext,
@@ -536,6 +557,7 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
+      _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
         initialOpenState: workspaceInfoPanelOpen !== undefined ? workspaceInfoPanelOpen : true,
