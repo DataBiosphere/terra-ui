@@ -1,6 +1,9 @@
+import { addDays, subDays } from 'date-fns'
+import { getGoogleRuntime } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
-  getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting, getDiskAppType, workspaceHasMultipleApps, workspaceHasMultipleDisks
+  getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting,
+  getCurrentRuntime, getDiskAppType, runtimeStatuses, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
 
@@ -495,7 +498,48 @@ describe('getDiskAppType', () => {
   })
 })
 
-describe('getCurrentPersistentDisk', () => {
+describe('getCurrentRuntime', () => {
+  it('returns undefined if no runtimes exist', () => {
+    expect(getCurrentRuntime([])).toBeUndefined()
+  })
+  it('returns a runtime if 1 exists', () => {
+    const runtime1 = getGoogleRuntime()
+    expect(getCurrentRuntime([runtime1])).toStrictEqual(runtime1)
+  })
+  it('returns no runtimes if only deleting runtimes exists', () => {
+    const runtime1 = getGoogleRuntime({ status: runtimeStatuses.deleting.label })
+    const runtime2 = getGoogleRuntime({ status: runtimeStatuses.deleting.label })
+    expect(getCurrentRuntime([runtime1, runtime2])).toBeUndefined()
+  })
+  it('returns the most recent runtime in a list', () => {
+    //chronologically, runtime1 is the middle, runtime2 the most recent, and runtime3 the oldest
+    //getCurrentRuntime should return the most recent
+    const runtime1 = getGoogleRuntime()
+    const runtime2WithSameDate = getGoogleRuntime()
+    const runtime3WithSameDate = getGoogleRuntime()
+
+    const runtime2 = {
+      ...runtime2WithSameDate,
+      auditInfo: {
+        ...runtime1.auditInfo,
+        createdDate: addDays(new Date(runtime1.auditInfo.createdDate), 3).toString()
+      }
+    }
+
+    const runtime3 = {
+      ...runtime3WithSameDate,
+      auditInfo: {
+        ...runtime1.auditInfo,
+        createdDate: subDays(new Date(runtime1.auditInfo.createdDate), 3).toString()
+      }
+    }
+
+    expect(getCurrentRuntime([runtime1, runtime2, runtime3])).toStrictEqual(runtime2)
+  })
+})
+
+
+describe('getCurrentAppDataDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
     expect(getCurrentAppDataDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
   })
