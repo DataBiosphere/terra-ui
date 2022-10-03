@@ -38,6 +38,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
+            ["@axe-core/react", "npm:4.4.5"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
@@ -156,6 +157,40 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [\
             "@types/ajv",\
             "ajv"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@axe-core/puppeteer", [\
+        ["npm:4.4.5", {\
+          "packageLocation": "./.yarn/cache/@axe-core-puppeteer-npm-4.4.5-35e9d98813-7b7f3cf736.zip/node_modules/@axe-core/puppeteer/",\
+          "packageDependencies": [\
+            ["@axe-core/puppeteer", "npm:4.4.5"]\
+          ],\
+          "linkType": "SOFT"\
+        }],\
+        ["virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5", {\
+          "packageLocation": "./.yarn/__virtual__/@axe-core-puppeteer-virtual-54df1a5096/0/cache/@axe-core-puppeteer-npm-4.4.5-35e9d98813-7b7f3cf736.zip/node_modules/@axe-core/puppeteer/",\
+          "packageDependencies": [\
+            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5"],\
+            ["@types/puppeteer", null],\
+            ["axe-core", "npm:4.4.3"],\
+            ["puppeteer", "npm:13.5.1"]\
+          ],\
+          "packagePeers": [\
+            "@types/puppeteer",\
+            "puppeteer"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@axe-core/react", [\
+        ["npm:4.4.5", {\
+          "packageLocation": "./.yarn/cache/@axe-core-react-npm-4.4.5-f096f4dbc4-8a10b84c85.zip/node_modules/@axe-core/react/",\
+          "packageDependencies": [\
+            ["@axe-core/react", "npm:4.4.5"],\
+            ["axe-core", "npm:4.4.3"],\
+            ["requestidlecallback", "npm:0.3.0"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6014,6 +6049,13 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/axe-core-npm-4.4.1-95b0d6a519-ad14c5b710.zip/node_modules/axe-core/",\
           "packageDependencies": [\
             ["axe-core", "npm:4.4.1"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:4.4.3", {\
+          "packageLocation": "./.yarn/cache/axe-core-npm-4.4.3-6a07ed8cf6-c3ea000d9a.zip/node_modules/axe-core/",\
+          "packageDependencies": [\
+            ["axe-core", "npm:4.4.3"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -17547,6 +17589,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["requestidlecallback", [\
+        ["npm:0.3.0", {\
+          "packageLocation": "./.yarn/cache/requestidlecallback-npm-0.3.0-040e372761-2405aef711.zip/node_modules/requestidlecallback/",\
+          "packageDependencies": [\
+            ["requestidlecallback", "npm:0.3.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["require-directory", [\
         ["npm:2.1.1", {\
           "packageLocation": "./.yarn/cache/require-directory-npm-2.1.1-8608aee50b-fb47e70bf0.zip/node_modules/require-directory/",\
@@ -19092,6 +19143,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./integration-tests/",\
           "packageDependencies": [\
             ["terra-integration-tests", "workspace:integration-tests"],\
+            ["@axe-core/puppeteer", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:4.4.5"],\
             ["@google-cloud/secret-manager", "npm:4.0.0"],\
             ["date-fns", "npm:2.24.0"],\
             ["google-auth-library", "npm:7.14.1"],\
@@ -19115,6 +19167,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["terra-ui", "workspace:."],\
+            ["@axe-core/react", "npm:4.4.5"],\
             ["@databiosphere/bard-client", "npm:0.1.0"],\
             ["@fortawesome/fontawesome-svg-core", "npm:1.2.36"],\
             ["@fortawesome/free-regular-svg-icons", "npm:5.15.4"],\
