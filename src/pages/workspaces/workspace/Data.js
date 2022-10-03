@@ -14,6 +14,7 @@ import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
+import WDSContent from 'src/components/data/WDSContent'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
@@ -442,7 +443,7 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
   }, [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])])
 }
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds'])
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -726,12 +727,16 @@ const WorkspaceData = _.flow(
                   return div({ key: typeDef.name, role: 'listitem' }, [
                     h(DataTypeButton, {
                       key: typeDef.name,
-                      selected: false,
+                      selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
                       entityName: typeDef.name,
                       entityCount: typeDef.count,
                       filteredCount: typeDef.count,
                       activeCrossTableTextFilter: false,
-                      crossTableSearchInProgress: false
+                      crossTableSearchInProgress: false,
+                      onClick: () => {
+                        setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name })
+                        forceRefresh()
+                      }
                     })
                   ])
                 }, wdsSchema)
@@ -967,6 +972,13 @@ const WorkspaceData = _.flow(
                 setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
               }
             })
+          })],
+          [workspaceDataTypes.wds, () => h(WDSContent, {
+            key: refreshKey,
+            workspaceUUID: workspaceId,
+            workspace,
+            recordType: selectedData.entityType,
+            wdsSchema
           })]
         )
       ])

@@ -64,7 +64,8 @@ const DataTable = props => {
     deleteColumnUpdateMetadata,
     controlPanelStyle,
     border = true,
-    extraColumnActions
+    extraColumnActions,
+    loadRowDataStrategy
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -132,7 +133,7 @@ const DataTable = props => {
   const signal = useCancellation()
 
   // Helpers
-  const loadData = !!entityMetadata && _.flow(
+  const entityServiceLoadRowData = !!entityMetadata && _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
@@ -158,6 +159,31 @@ const DataTable = props => {
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
   })
+
+  const WDSLoadRowData = !!entityMetadata && _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error loading entities')
+  )(async () => {
+    // TODO: translate WDS response payload to Entity Service payload
+    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).WorkspaceDataService
+      .getRecords(workspace.workspace.workspaceId, entityType, {})
+    // Find all the unique attribute names contained in the current page of results.
+    const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
+    // Add any attribute names from the current page of results to those found in metadata.
+    // This allows for stale metadata (e.g. the metadata cache is out of date).
+    // For the time being, the uniqueness check MUST be case-insensitive (e.g. { sensitivity: 'accent' })
+    // in order to prevent case-divergent columns from being displayed, as that would expose some other bugs.
+    const attrNamesFromMetadata = entityMetadata[entityType]?.attributeNames
+    const newAttrsForThisType = concatenateAttributeNames(attrNamesFromMetadata, attrNamesFromResults)
+    if (!_.isEqual(newAttrsForThisType, attrNamesFromMetadata)) {
+      setEntityMetadata(_.set([entityType, 'attributeNames'], newAttrsForThisType))
+    }
+    setEntities(results)
+    setFilteredCount(filteredCount)
+    setTotalRowCount(unfilteredCount)
+  })
+
+  const loadData = loadRowDataStrategy === 'wds' ? WDSLoadRowData : entityServiceLoadRowData
 
   const getAllEntities = async () => {
     const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter, filterOperator })
@@ -243,7 +269,7 @@ const DataTable = props => {
 
 
   // Render
-  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
+  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType]?.attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
@@ -364,7 +390,7 @@ const DataTable = props => {
                     }
                   }, [
                     h(HeaderOptions, { sort, field: 'name', onSort: setSort },
-                      [h(HeaderCell, [entityMetadata[entityType].idName])])
+                      [h(HeaderCell, [entityMetadata[entityType]?.idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]

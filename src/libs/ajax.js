@@ -1227,6 +1227,11 @@ const WorkspaceDataService = signal => ({
   getSchema: async instanceId => {
     const res = await fetchWDS(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }))
     return res.json()
+  },
+  getRecords: async (instanceId, recordType, parameters) => {
+    const res = await fetchWDS(`${instanceId}/search/v0.2/${recordType}`,
+      _.mergeAll([authOpts(), jsonBody(parameters), { method: 'POST' }]))
+    return res.json()
   }
 })
 
