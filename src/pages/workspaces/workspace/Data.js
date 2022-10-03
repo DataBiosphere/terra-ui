@@ -700,6 +700,18 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
+              title: 'WDS'
+            }, [
+              div({
+                style: {
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                  padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
+                  backgroundColor: 'white'
+                }
+              }, ['Coming soon.']),
+              div({}, '')
+            ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
               title: 'Snapshots',
               error: snapshotMetadataError,

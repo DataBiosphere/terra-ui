@@ -1,4 +1,3 @@
-import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
@@ -21,11 +20,12 @@ import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } f
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isAzureContext, mapToPdTypes
+  defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -102,6 +102,13 @@ const WorkspaceTabs = ({
     ])
   ])
 }
+
+// v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
+// associated with runtimes on GCP will not match the workspace googleProject. These
+// should be hidden from the user.
+export const isV1Artifact = _.curry((workspace, { googleProject, cloudContext }) => {
+  return isGcpContext(cloudContext) && googleProject !== workspace.googleProject
+})
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true,
@@ -228,20 +235,14 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
       const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
 
-      // v2 workspaces may have been migrated from v1 workspaces, in which case the googleProject
-      // associated with runtimes and disks will not match the workspace googleProject. These
-      // should be hidden from the user.
-      const isV1Artifact = ({ googleProject = undefined, cloudContext }) => isAzureContext(cloudContext) ? false :
-        googleProject && googleProject !== workspace.workspace.googleProject
-
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
-      const [newDisks, newRuntimes] = !!workspace ? _.map(_.remove(isV1Artifact), await Promise.all([
+      const [newDisks, newRuntimes] = !!workspace ? await Promise.all([
         Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
-      ])) : [[], []]
+      ]) : [[], []]
 
-      setRuntimes(newRuntimes)
+      setRuntimes(_.remove(isV1Artifact(workspace?.workspace), newRuntimes))
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
 
@@ -362,7 +363,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           saToken(googleProject)
         }
 
-        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseJSON(createdDate)) < 60)) {
+        if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceFromNowInSeconds(createdDate) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
