@@ -64,7 +64,7 @@ export const saveDataTableVersion = async (workspace, entityType, { description 
 
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
 
-  const timestamp = (new Date()).getTime()
+  const timestamp = Date.now()
   const versionName = `${entityType}.v${timestamp}`
 
   const entityMetadata = await Ajax().Workspaces.workspace(namespace, name).entityMetadata()
