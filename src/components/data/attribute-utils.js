@@ -25,7 +25,11 @@ export const convertAttributeValue = (attributeValue, newType, referenceEntityTy
   }
 
   const { type, isList } = getAttributeType(attributeValue)
-  if (type === newType) {
+
+  const isNoop = type === 'reference' ?
+    newType === 'reference' && referenceEntityType === attributeValue.entityType :
+    newType === type
+  if (isNoop) {
     return attributeValue
   }
 

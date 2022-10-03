@@ -12,6 +12,7 @@ import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Disks } from 'src/libs/ajax/Disks'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
+import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -621,8 +622,6 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  leave: workspaceId => fetchSam(`api/resources/v2/workspace/${workspaceId}/leave`, _.merge(authOpts(), { method: 'DELETE' })),
-
   workspace: (namespace, name) => {
     const root = `workspaces/${namespace}/${name}`
     const mcPath = `${root}/methodconfigs`
@@ -1228,6 +1227,7 @@ export const Ajax = signal => {
   return {
     User: User(signal),
     Groups: Groups(signal),
+    Resources: Resources(),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
     Catalog: Catalog(signal),

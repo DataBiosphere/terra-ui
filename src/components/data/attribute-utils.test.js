@@ -71,6 +71,10 @@ describe('convertAttributeValue', () => {
     expect(() => convertAttributeValue('thing_one', 'reference')).toThrowError()
   })
 
+  it('changes referenced entity type', () => {
+    expect(convertAttributeValue({ entityType: 'thing', entityName: 'thing_one' }, 'reference', 'other_thing')).toEqual({ entityType: 'other_thing', entityName: 'thing_one' })
+  })
+
   it('converts each value of lists', () => {
     expect(convertAttributeValue({ items: ['42', 'value'], itemsType: 'AttributeValue' }, 'number')).toEqual({ items: [42, 0], itemsType: 'AttributeValue' })
 

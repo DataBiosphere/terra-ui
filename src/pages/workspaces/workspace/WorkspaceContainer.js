@@ -4,6 +4,7 @@ import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
+import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
@@ -29,7 +30,6 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
-import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 import WorkspaceMenu from 'src/pages/workspaces/workspace/WorkspaceMenu'
@@ -176,8 +176,10 @@ const WorkspaceContainer = ({
       onDismiss: () => setShowLockWorkspaceModal(false),
       onSuccess: () => refreshWorkspace()
     }),
-    leavingWorkspace && h(LeaveWorkspaceModal, {
-      workspace,
+    leavingWorkspace && h(LeaveResourceModal, {
+      samResourceId: workspace.workspace.workspaceId,
+      samResourceType: 'workspace',
+      displayName: 'workspace',
       onDismiss: () => setLeavingWorkspace(false),
       onSuccess: () => Nav.goToPath('workspaces')
     }),
