@@ -164,9 +164,20 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    // TODO: translate WDS response payload to Entity Service payload
-    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).WorkspaceDataService
+    const wdsPage = await Ajax(signal).WorkspaceDataService
       .getRecords(workspace.workspace.workspaceId, entityType, {})
+
+    // translate WDS response payload to Entity Service payload
+    const filteredCount = wdsPage.totalRecords
+    const unfilteredCount = wdsPage.totalRecords
+    const results = _.map(rec => {
+      return {
+        entityType,
+        attributes: rec.attributes,
+        name: rec.id
+      }
+    }, wdsPage.records)
+
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
     // Add any attribute names from the current page of results to those found in metadata.
