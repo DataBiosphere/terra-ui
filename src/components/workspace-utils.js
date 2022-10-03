@@ -139,11 +139,9 @@ export const SnapshotInfo = ({
         setSnapshotLoadError(undefined)
       } catch (e) {
         try {
-          if (e.status === 403) {
-            setSnapshotLoadError('You do not have access to this snapshot.')
-          } else {
+          e.status === 403 ?
+            setSnapshotLoadError('You do not have access to this snapshot.') :
             setSnapshotLoadError(`Unexpected error contacting Terra Data Repo: ${await e.json()}`)
-          }
         } catch (inner) {
           setSnapshotLoadError(`Unknown error contacting Terra Data Repo: ${JSON.stringify(e)}`)
         }
@@ -165,7 +163,8 @@ export const SnapshotInfo = ({
   })
 
   const tdrErrorDisplay = () => div({ style: { paddingLeft: '1rem' } }, [
-    div({ style: Style.dashboard.header }, ['Error']), snapshotLoadError
+    div({ style: Style.dashboard.header }, ['Error']),
+    snapshotLoadError
   ])
 
   const tdrDetails = () => !snapshotLoadError && div({ style: { paddingLeft: '1rem' } }, [
