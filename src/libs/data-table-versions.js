@@ -145,25 +145,56 @@ export const restoreDataTableVersion = async (workspace, version) => {
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
 
   const [, objectName] = parseGsUri(version.url)
-  const content = await Ajax().Buckets.getObjectPreview(googleProject, bucketName, objectName, true).then(r => r.text())
+  const zipData = await Ajax().Buckets.getObjectPreview(googleProject, bucketName, objectName, true).then(r => r.blob())
 
-  const tableName = tableNameForRestore(version)
-  const file = new File(
-    [_.replace(/^entity:\S+/, `entity:${tableName}_id`, content)],
-    _.last(_.split('/', objectName)),
+  const zip = await JSZip.loadAsync(zipData)
+
+  const restoredTableName = tableNameForRestore(version)
+  const tableFile = new File(
+    [_.replace(
+      /^entity:\S+/, `entity:${restoredTableName}_id`,
+      await zip.file(`${version.entityType}.tsv`).async('text')
+    )],
+    `${restoredTableName}.tsv`,
     { type: 'text/tab-separated-values' }
   )
 
-  const filesize = file?.size || Number.MAX_SAFE_INTEGER
-  if (filesize < 524288) { // 512k
-    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues: false })
-    return { tableName, ready: true }
-  } else {
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileAsync(file, { deleteEmptyValues: false })
+  const tableFileSize = tableFile?.size || Number.MAX_SAFE_INTEGER
+  if (tableFileSize >= 524288 && _.size(version.includedSetEntityTypes) === 0) {
+    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileAsync(tableFile, { deleteEmptyValues: false })
     asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
     notifyDataImportProgress(jobId)
-    return { tableName, ready: false }
+    return { tableName: restoredTableName, ready: false }
   }
+
+  await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(tableFile, { deleteEmptyValues: false })
+
+  for (const setTableName of _.sortBy(_.identity, version.includedSetEntityTypes)) {
+    const restoredSetTableName = _.replace(version.entityType, restoredTableName, setTableName)
+    const restoredSetTableMemberType = restoredSetTableName.slice(0, -4)
+
+    const setTableFile = new File(
+      [_.replace(
+        /^entity:\S+/, `entity:${restoredSetTableName}_id`,
+        await zip.file(`${setTableName}.tsv`).async('text')
+      )],
+      `${restoredSetTableName}.tsv`,
+      { type: 'text/tab-separated-values' }
+    )
+    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(setTableFile, { deleteEmptyValues: false })
+
+    const setMembershipFile = new File(
+      [_.replace(
+        /^membership:.*/, `membership:${restoredSetTableName}_id\t${restoredSetTableMemberType}`,
+        await zip.file(`${setTableName}.membership.tsv`).async('text')
+      )],
+      `${restoredSetTableName}.membership.tsv`,
+      { type: 'text/tab-separated-values' }
+    )
+    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(setMembershipFile, { deleteEmptyValues: false })
+  }
+
+  return { tableName: restoredTableName, ready: true }
 }
 
 export const useDataTableVersions = workspace => {
