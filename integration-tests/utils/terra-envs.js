@@ -15,11 +15,6 @@ module.exports = {
     testUrl: 'https://bvdp-saturn-alpha.appspot.com',
     workflowName: 'echo_to_file'
   },
-  perf: {
-    billingProject: 'saturn-integration-test-perf',
-    testUrl: 'https://bvdp-saturn-perf.appspot.com',
-    workflowName: 'echo_to_file'
-  },
   staging: {
     billingProject: 'saturn-integration-test-stage',
     snapshotColumnName: 'VCF_File_Name',

@@ -95,7 +95,7 @@ commands:
         default: "SA_KEY_JSON"
       env:
         type: enum
-        enum: [dev, staging, alpha, perf]
+        enum: [dev, staging, alpha]
         default: dev
       pr:
         type: boolean
@@ -264,12 +264,6 @@ jobs:
           env: "alpha"
       - notify-qa:
           channel: "C7H40L71D" # dsde-qa-notify
-  deploy-perf:
-    executor: gcloud
-    steps:
-      - deploy-env:
-          sa_key_var: "PERF_SA_KEY_JSON"
-          env: "perf"
   deploy-staging:
     executor: gcloud
     steps:
@@ -318,10 +312,6 @@ workflows:
           requires:
             - build
       - deploy-alpha:
-          <<: *filter-dev-branch
-          requires:
-            - build
-      - deploy-perf:
           <<: *filter-dev-branch
           requires:
             - build
