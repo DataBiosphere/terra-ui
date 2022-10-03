@@ -283,7 +283,7 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-// Status note: undefined means still loading, null means no runtime
+// Status note: undefined means still loading and no runtime
 export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
