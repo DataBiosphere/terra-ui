@@ -1,26 +1,42 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
-import { allSavedColumnSettingsEntityTypeKey, useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
+import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
+import { warningBoxStyle } from 'src/components/data/data-utils'
+import { allSavedColumnSettingsEntityTypeKey } from 'src/components/data/SavedColumnSettings'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
-const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selectedDataType, entityMetadata }) => {
+const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSettings, updateAllSavedColumnSettings, setTableExists, setTableNames, namespace, name, selectedDataType }) => {
   // State
   const [newName, setNewName] = useState('')
   const [renaming, setRenaming] = useState(false)
+  const [renameSetTables, setRenameSetTables] = useState(false)
 
-  const {
-    getAllSavedColumnSettings,
-    updateAllSavedColumnSettings
-  } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: selectedDataType, entityMetadata })
+  const handleTableRename = async ({ oldName, newName }) => {
+    await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
+    await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
+
+    // Move column settings to new table
+    const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
+    const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+    const allColumnSettings = await getAllSavedColumnSettings()
+    const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
+    if (tableColumnSettings) {
+      await updateAllSavedColumnSettings(_.flow(
+        _.set(newTableColumnSettingsKey, tableColumnSettings),
+        _.unset(oldTableColumnSettingsKey)
+      )(allColumnSettings))
+    }
+  }
 
   return h(Modal, {
     onDismiss,
@@ -31,19 +47,12 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         withErrorReporting('Error renaming data table.'),
         Utils.withBusyState(setRenaming)
       )(async () => {
-        await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName: selectedDataType, newName })
-        await Ajax().Workspaces.workspace(namespace, name).renameEntityType(selectedDataType, newName)
+        await handleTableRename({ oldName: selectedDataType, newName })
 
-        // Move column settings to new table
-        const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: selectedDataType })
-        const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
-        const allColumnSettings = await getAllSavedColumnSettings()
-        const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
-        if (tableColumnSettings) {
-          await updateAllSavedColumnSettings(_.flow(
-            _.set(newTableColumnSettingsKey, tableColumnSettings),
-            _.unset(oldTableColumnSettingsKey)
-          )(allColumnSettings))
+        if (renameSetTables) {
+          await Promise.all(
+            _.map(async x => await handleTableRename({ oldName: x, newName: x.replace(selectedDataType, newName) }), setTableNames)
+          )
         }
 
         onUpdateSuccess()
@@ -62,6 +71,34 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         }
       }
     }),
+    setTableExists && div({
+      style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
+    }, [
+      div({ style: { display: 'flex' } }, [
+        icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+        'The table that you are renaming may have associated set tables. You may choose to also rename the set tables:'
+      ]),
+      div({ role: 'radiogroup', 'aria-label': 'the table that you are renaming may have associated set tables. you may choose to also rename the set tables.' }, [
+        div({ style: { paddingTop: '0.5rem' } }, [
+          h(RadioButton, {
+            text: `Do not rename set tables (default)`,
+            name: 'rename-set-tables',
+            checked: !renameSetTables,
+            onChange: () => setRenameSetTables(false),
+            labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+          })
+        ]),
+        div({ style: { paddingTop: '0.5rem' } }, [
+          h(RadioButton, {
+            text: `Rename set tables`,
+            name: 'rename-set-tables',
+            checked: renameSetTables,
+            onChange: () => setRenameSetTables(true),
+            labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
+          })
+        ])
+      ])
+    ]),
     renaming && spinnerOverlay
   ])])])
 }
