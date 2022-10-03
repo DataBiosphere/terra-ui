@@ -25,7 +25,7 @@ export const GoogleStorage = signal => ({
         { signal },
         previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
       ])
-    )
+    ).then(res => res.json())
   },
 
   listNotebooks: async (googleProject, name) => {
