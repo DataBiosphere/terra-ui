@@ -718,17 +718,24 @@ const WorkspaceData = _.flow(
             isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
               title: 'WDS'
             }, [
-              div({
-                style: {
-                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                  padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
-                  backgroundColor: 'white'
-                }
-              }, [
-                wdsSchema && `WDS instance is running. Instance ID: ${workspaceId}`,
-                wdsSchemaError && `WDS is unavailable: '${wdsSchemaError}'`
-              ]),
-              div({}, '')
+              [
+                wdsSchemaError && h(NoDataPlaceholder, {
+                  message: 'WDS is unavailable.'
+                }),
+                wdsSchema && _.map(typeDef => {
+                  return div({ key: typeDef.name, role: 'listitem' }, [
+                    h(DataTypeButton, {
+                      key: typeDef.name,
+                      selected: false,
+                      entityName: typeDef.name,
+                      entityCount: typeDef.count,
+                      filteredCount: typeDef.count,
+                      activeCrossTableTextFilter: false,
+                      crossTableSearchInProgress: false
+                    })
+                  ])
+                }, wdsSchema)
+              ]
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
               title: 'Snapshots',
