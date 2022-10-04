@@ -21,7 +21,7 @@ import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
 import { Ajax } from 'src/libs/ajax'
-import { getEnabledBrand } from 'src/libs/brand-utils'
+import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
@@ -442,11 +442,11 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const Datasets = () => {
+export const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
-    h(DataBrowserPreviewToggler, {
+    !isRadX() && h(DataBrowserPreviewToggler, {
       onChange: value => {
         setCatalogShowing(value)
         Ajax().Metrics.captureEvent(Events.catalogToggle, { enabled: value })
@@ -454,7 +454,7 @@ const Datasets = () => {
       },
       catalogShowing
     }),
-    catalogShowing ? h(Browser) :
+    isRadX() || catalogShowing ? h(Browser) :
       div({ role: 'main', style: styles.content }, [
         // Put datasets in alphabetical order
         thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
