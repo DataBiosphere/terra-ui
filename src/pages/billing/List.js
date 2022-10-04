@@ -177,8 +177,8 @@ const noBillingMessage = div({ style: { fontSize: 20, margin: '4rem' } }, [
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
-      href: `https://support.terra.bio/hc/en-us/articles/360026182251`
-    }, [`What is a billing project?`])
+      href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
+    }, ['What is a billing project?'])
   ])
 ])
 
@@ -232,9 +232,9 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
       }, ['Ok'])
   }, [
     billingLoadedAndEmpty && h(Fragment, [
-      `You don't have access to any billing accounts.  `,
+      'You don\'t have access to any billing accounts.  ',
       h(Link, {
-        href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
+        href: 'https://support.terra.bio/hc/en-us/articles/360026182251',
         ...Utils.newTabLinkProps
       }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
     ]),
@@ -287,7 +287,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
           h(Link, { onClick: loadAccounts }, ['click here']), ' to refresh your billing accounts.']),
         div({ style: { marginTop: '0.5rem' } }, [
           h(Link, {
-            href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
+            href: 'https://support.terra.bio/hc/en-us/articles/360026182251',
             ...Utils.newTabLinkProps
           }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
         ])
@@ -403,7 +403,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   // Render
-  const breadcrumbs = `Billing > Billing Project`
+  const breadcrumbs = 'Billing > Billing Project'
   const billingProjectListWidth = 330
   const [projectsOwned, projectsShared] = _.partition(
     ({ roles }) => _.includes(billingRoles.owner, roles),

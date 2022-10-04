@@ -158,8 +158,8 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, 
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
-      href: `https://support.terra.bio/hc/en-us/articles/360026775691`
-    }, [`How do I use groups to manage authorization?`])
+      href: 'https://support.terra.bio/hc/en-us/articles/360026775691'
+    }, ['How do I use groups to manage authorization?'])
   ])
 ])
 

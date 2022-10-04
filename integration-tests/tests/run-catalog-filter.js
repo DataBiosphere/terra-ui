@@ -50,7 +50,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, checkbox({ text: secondFilterItem, isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
   if (datasetSizeAfterFilter2 === 0) {
-    throw new Error(`Filters should be ORed between the same facet category in the table'`)
+    throw new Error('Filters should be ORed between the same facet category in the table\'')
   }
 
   // Testing clearing filters
@@ -118,7 +118,7 @@ const setDatasetsMockValues = async page => {
   return await page.evaluate(datasetsResult => {
     window.ajaxOverridesStore.set([
       {
-        filter: { url: new RegExp(`/api/v1/datasets(.*)`, 'g') },
+        filter: { url: new RegExp('/api/v1/datasets(.*)', 'g') },
         fn: () => () => {
           return Promise.resolve(new Response(JSON.stringify(datasetsResult), { status: 200 }))
         }

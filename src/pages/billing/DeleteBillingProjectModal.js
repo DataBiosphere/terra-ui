@@ -8,7 +8,7 @@ const DeleteBillingProjectModal = ({ projectName, deleting, ...props }) => {
     objectType: 'billing project',
     objectName: projectName
   }, [
-    div([`Are you sure you want to delete the billing project `, b({ style: { wordBreak: 'break-word' } }, [projectName]), '?']),
+    div(['Are you sure you want to delete the billing project ', b({ style: { wordBreak: 'break-word' } }, [projectName]), '?']),
     div({ style: { marginTop: '1rem' } }, [
       'The billing project cannot be restored.'
     ]),

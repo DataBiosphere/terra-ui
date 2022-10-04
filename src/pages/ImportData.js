@@ -63,7 +63,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   const [color, iconKey, children] = Utils.switchCase(status,
     ['fulfilled', () => [colors.primary(), 'success-standard', h(Fragment, [strong(['Success: ']), 'Snapshot successfully imported'])]],
     ['rejected', () => [colors.danger(), 'warning-standard', h(Fragment, [strong(['Error: ']), message])]],
-    [Utils.DEFAULT, () => [colors.primary(), `success-standard`]]
+    [Utils.DEFAULT, () => [colors.primary(), 'success-standard']]
   )
 
   return h(Fragment, [

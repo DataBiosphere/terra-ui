@@ -63,22 +63,22 @@ const sparkInterfaces = {
   yarn: {
     label: 'yarn',
     displayName: 'YARN Resource Manager',
-    synopsis: `YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.`
+    synopsis: 'YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.'
   },
   appHistory: {
     label: 'apphistory',
     displayName: 'YARN Application Timeline',
-    synopsis: `YARN Application Timeline provides information about current and historic applications executed on the cluster.`
+    synopsis: 'YARN Application Timeline provides information about current and historic applications executed on the cluster.'
   },
   sparkHistory: {
     label: 'sparkhistory',
     displayName: 'Spark History Server',
-    synopsis: `Spark History Server provides information about completed Spark applications on the cluster.`
+    synopsis: 'Spark History Server provides information about completed Spark applications on the cluster.'
   },
   jobHistory: {
     label: 'jobhistory',
     displayName: 'MapReduce History Server',
-    synopsis: `MapReduce History Server displays information about completed MapReduce applications on a cluster.`
+    synopsis: 'MapReduce History Server displays information about completed MapReduce applications on a cluster.'
   }
 }
 // Enums -- end

@@ -201,7 +201,7 @@ const User = signal => ({
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
   createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed, clinicalUser }) => {
     return fetchOk(
-      `https://support.terra.bio/api/v2/requests.json`,
+      'https://support.terra.bio/api/v2/requests.json',
       _.merge({ signal, method: 'POST' }, jsonBody({
         request: {
           requester: { name, email },
@@ -1090,7 +1090,7 @@ const Methods = signal => ({
   },
 
   definitions: async () => {
-    const res = await fetchAgora(`methods/definitions`, _.merge(authOpts(), { signal }))
+    const res = await fetchAgora('methods/definitions', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -1212,7 +1212,7 @@ const Duos = signal => ({
 
 const OAuth2 = signal => ({
   getConfiguration: async () => {
-    const res = await fetchOrchestration(`/oauth2/configuration`, _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration('/oauth2/configuration', _.merge(authOpts(), { signal }))
     return res.json()
   }
 })

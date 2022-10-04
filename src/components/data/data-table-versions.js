@@ -168,7 +168,7 @@ export const DataTableSaveVersionModal = ({ entityType, onDismiss, onSubmit }) =
 export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) => {
   return h(Modal, {
     onDismiss,
-    title: `Restore version`,
+    title: 'Restore version',
     okButton: h(ButtonPrimary, { onClick: () => onConfirm() }, ['Restore'])
   }, [
     'This version will be restored to a new data table: ',

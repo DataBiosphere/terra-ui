@@ -94,7 +94,7 @@ const PreviewContent = ({ metadata, metadata: { bucket, name }, googleProject })
         )
       ])],
       [isImage(metadata), () => els.label('Image is too large to preview')],
-      () => els.label(`File can't be previewed.`)
+      () => els.label('File can\'t be previewed.')
     )
   ])
 }

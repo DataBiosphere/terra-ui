@@ -34,7 +34,7 @@ export const brands = {
     signInName: 'AnVIL',
     queryName: 'anvil',
     welcomeHeader: 'Welcome to AnVIL',
-    description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
+    description: 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'anvil.terra.bio',
     docLinks: [
       {

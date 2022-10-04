@@ -922,6 +922,6 @@ export const navPaths = [
     name: 'upload',
     path: '/upload',
     component: UploadData,
-    title: `Upload`
+    title: 'Upload'
   }
 ]

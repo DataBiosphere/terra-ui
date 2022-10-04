@@ -206,7 +206,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
     titleFirst: true,
     initialOpenState: true,
     summaryStyle: {
-      padding: `1.125rem 1.5rem`,
+      padding: '1.125rem 1.5rem',
       borderBottom: `0.5px solid ${colors.dark(0.2)}`,
       backgroundColor: colors.light(0.4),
       fontSize: 16
