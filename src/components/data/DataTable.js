@@ -165,7 +165,12 @@ const DataTable = props => {
     withErrorReporting('Error loading entities')
   )(async () => {
     const wdsPage = await Ajax(signal).WorkspaceDataService
-      .getRecords(workspace.workspace.workspaceId, entityType, {})
+      .getRecords(workspace.workspace.workspaceId, entityType,
+        {
+          offset: (pageNumber - 1) * itemsPerPage,
+          limit: itemsPerPage,
+          sort: sort.direction
+        })
 
     // translate WDS response payload to Entity Service payload
     const filteredCount = wdsPage.totalRecords
