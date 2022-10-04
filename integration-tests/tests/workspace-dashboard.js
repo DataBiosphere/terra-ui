@@ -142,8 +142,8 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     accessLevel: 'READER',
     owners: ['dummy@email.comm'],
     workspace: workspaceInfo,
-    canShare: true,
-    canCompute: true
+    canShare: false,
+    canCompute: false
   }
 
   const azureWorkspaceResourcesResult = {
