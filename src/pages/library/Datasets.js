@@ -442,7 +442,7 @@ const rareX = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const Datasets = () => {
+export const Datasets = () => {
   const [catalogShowing, setCatalogShowing] = useState(!!getLocalPref('catalog-toggle'))
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
