@@ -26,7 +26,9 @@ import {
   analysisNameInput, analysisNameValidator, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
   toolExtensionDisplay, tools
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import {
+  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -48,6 +50,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentTool = currentToolObj?.label
 
     const currentRuntime = getCurrentRuntime(runtimes)
+    const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
@@ -105,8 +108,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       location,
       workspace,
       tool: currentTool,
-      runtimes,
-      persistentDisks,
+      currentRuntime,
+      currentDisk,
       onDismiss,
       onError,
       onSuccess

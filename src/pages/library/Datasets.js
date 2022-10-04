@@ -435,10 +435,10 @@ const rareX = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of June 2022' }, [span('Participants: > 700')])
 }, [
   h(ButtonPrimary, {
-    'aria-label': 'Browse RareX data',
-    href: 'https://rare-x.org/xplore',
-    onClick: () => captureBrowseDataEvent('RARE-X'),
-    ...Utils.newTabLinkProps
+    'aria-label': 'Request access to RareX data',
+    tooltip: 'View details on data and request access',
+    href: 'https://rare-x.terra.bio/#workspaces/Rare-x-Terra-Billing/RARE-X',
+    onClick: () => captureBrowseDataEvent('RARE-X')
   }, ['Browse Data'])
 ])
 
@@ -456,9 +456,9 @@ export const Datasets = () => {
     }),
     isRadX() || catalogShowing ? h(Browser) :
       div({ role: 'main', style: styles.content }, [
-      // Put datasets in alphabetical order
+        // Put datasets in alphabetical order
         thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), gp2(),
-        hca(), nemo(), target(), tcga(), topMed(), rareX()
+        hca(), nemo(), rareX(), target(), tcga(), topMed()
       ])
   ])
 }

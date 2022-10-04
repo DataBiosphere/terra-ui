@@ -131,5 +131,5 @@ registerTest({
   name: 'run-catalog-filter',
   fn: testCatalogFilterFn,
   timeout: 2 * 60 * 1000,
-  targetEnvironments: ['local', 'dev', 'staging']
+  targetEnvironments: ['dev', 'staging']
 })
