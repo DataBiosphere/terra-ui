@@ -175,16 +175,12 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
-const navigateToLibrary = async (page, testUrl, token) => {
+const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
   await findText(page, 'Browse Data')
   await click(page, clickable({ textContains: 'Browse Data' }))
   await signIntoTerra(page, { token })
-}
-
-const navigateToDataCatalog = async (page, testUrl, token) => {
-  await navigateToLibrary(page, testUrl, token)
   await enableDataCatalog(page)
 }
 
@@ -224,7 +220,6 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   navigateToDataCatalog,
-  navigateToLibrary,
   enableDataCatalog,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
