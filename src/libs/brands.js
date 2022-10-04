@@ -188,7 +188,7 @@ export const brands = {
       color: radXLogo,
       white: radXLogoWhite
     },
-    catalogConsortiumsToInclude: ['RADx-UP', 'RADx-DHP', 'RADx-Rad', 'RADx-Tech']
+    catalogConsortiumsToInclude: ['RADx-UP', 'RADx-DHT', 'RADx-Rad', 'RADx-Tech']
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
