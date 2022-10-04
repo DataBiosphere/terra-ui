@@ -81,7 +81,6 @@ describe('WorkspaceMenu - undefined workspace', () => {
 
   it.each([
     { menuText: 'Clone', tooltipText: tooltipText.cloneAzureUnsupported },
-    { menuText: 'Share', tooltipText: tooltipText.shareAzureUnsupported },
     { menuText: 'Share', tooltipText: tooltipText.shareNoPermission },
     { menuText: 'Delete', tooltipText: tooltipText.deleteLocked },
     { menuText: 'Delete', tooltipText: tooltipText.deleteNoPermission },

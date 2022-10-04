@@ -49,7 +49,6 @@ const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDele
 
 export const tooltipText = {
   cloneAzureUnsupported: 'Cloning is not currently supported on Azure Workspaces',
-  shareAzureUnsupported: 'Sharing is not currently supported on Azure Workspaces',
   shareNoPermission: 'You have not been granted permission to share this workspace',
   deleteLocked: 'You cannot delete a locked workspace',
   deleteNoPermission: 'You must be an owner of this workspace or the underlying billing project',
