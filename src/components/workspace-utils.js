@@ -24,6 +24,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
 
@@ -138,9 +139,11 @@ export const SnapshotInfo = ({
         setSnapshotLoadError(undefined)
       } catch (e) {
         try {
-          setSnapshotLoadError(await e.json())
+          e.status === 403 ?
+            setSnapshotLoadError('You do not have access to this snapshot. Please review your data access.') :
+            setSnapshotLoadError(`Unexpected error contacting Terra Data Repo: ${await e.json()}`)
         } catch (inner) {
-          setSnapshotLoadError('unknown error')
+          setSnapshotLoadError(`Unknown error contacting Terra Data Repo: ${JSON.stringify(e)}`)
         }
         setSelectedSnapshotInfo({})
       }
@@ -161,7 +164,7 @@ export const SnapshotInfo = ({
 
   const tdrErrorDisplay = () => div({ style: { paddingLeft: '1rem' } }, [
     div({ style: Style.dashboard.header }, ['Error']),
-    `Details of this snapshot could not be loaded due to a problem calling Terra Data Repo: ${JSON.stringify(snapshotLoadError)}`
+    snapshotLoadError
   ])
 
   const tdrDetails = () => !snapshotLoadError && div({ style: { paddingLeft: '1rem' } }, [
@@ -477,8 +480,8 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             loadingSubmissionStats
           }),
           !!googleProject ?
-            h(CloudGcpLogo, { title: 'Google Cloud', role: 'img', style: { marginLeft: 5, height: 16 } }) :
-            h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 5, height: 16 } })
+            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5 } }) :
+            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5 } })
         ])
       ])
     ])

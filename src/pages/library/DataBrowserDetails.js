@@ -113,7 +113,7 @@ const MainContent = ({ dataObj }) => {
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
-  const { access } = dataObj
+  const { access, requestAccessURL } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
@@ -155,8 +155,12 @@ export const SidebarComponent = ({ dataObj, id }) => {
         div([
           h3(['Access type']),
           div([
-            Utils.switchCase(access,
-              [datasetAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
+            Utils.cond(
+              [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                href: requestAccessURL, target: '_blank'
+              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+              [access === datasetAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
                 style: { fontSize: 16, textTransform: 'none', height: 'unset' },
                 onClick: () => {
                   setShowRequestAccessModal(true)
@@ -169,7 +173,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
                 'Request Access'
               ])],
-              [datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
+              [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
                 icon('unlock', { size: 18, style: { marginRight: 10 } }),
                 'Pending Access'
               ])],

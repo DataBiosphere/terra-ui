@@ -283,8 +283,8 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-// Status note: undefined means still loading, null means no runtime
-export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
+// Status note: undefined means still loading and no runtime
+export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
   _.filter({ appType }),
@@ -359,6 +359,8 @@ export const getCurrentAppDataDisk = (appType, apps, appDataDisks, workspaceName
  * @param {persistentDisk[]} persistentDisks List of persistent disks.
  * @returns persistentDisk attached to the currentRuntime.
  */
+//TODO: can this just take current runtime>runtimes?
+// what is the significance of of the filter on ` !_.includes(id, attachedIds)`?
 export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
   const currentRuntime = getCurrentRuntime(runtimes)
   const id = currentRuntime?.runtimeConfig.persistentDiskId
@@ -496,8 +498,27 @@ export const getIsRuntimeBusy = runtime => {
   return creating || updating || reconfiguring || stopping || starting
 }
 
-export const cloudProviders = { azure: { label: 'AZURE' }, gcp: { label: 'GCP' } }
+// NOTE: the label property is being compared to Ajax response values, so the label cannot be changed without
+// impacting code.
+export const cloudProviders = {
+  azure: { label: 'AZURE', iconTitle: 'Microsoft Azure' },
+  gcp: { label: 'GCP', iconTitle: 'Google Cloud Platform' }
+}
 
 export const isGcpContext = ({ cloudProvider }) => cloudProvider === cloudProviders.gcp.label
 export const isAzureContext = ({ cloudProvider }) => cloudProvider === cloudProviders.azure.label
+
+//TODO: fields isAppStatus? LeoLabel? isRuntimeStatus?
+export const runtimeStatuses = {
+  running: { label: 'Running', leoLabel: 'Running', canChangeCompute: true },
+  deleted: { label: 'Deleted', leoLabel: 'Deleted' },
+  deleting: { label: 'Deleting', leoLabel: 'Deleting' },
+  creating: { label: 'Creating', leoLabel: 'Creating' },
+  updating: { label: 'Updating', leoLabel: 'Updating' },
+  starting: { label: 'Starting', leoLabel: 'Starting' },
+  stopping: { label: 'Stopping', leoLabel: 'Stopping' },
+  stopped: { label: 'Stopped', leoLabel: 'Stopped', canChangeCompute: true },
+  error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true }
+}
+
 

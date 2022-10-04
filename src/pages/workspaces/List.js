@@ -8,6 +8,7 @@ import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOver
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import { FirstParagraphMarkdownViewer } from 'src/components/markdown'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -30,8 +31,8 @@ import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
-import LeaveWorkspaceModal from 'src/pages/workspaces/workspace/LeaveWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -311,9 +312,9 @@ export const WorkspaceList = () => {
             const { workspace: { cloudPlatform } } = sortedWorkspaces[rowIndex]
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                Utils.switchCase(cloudPlatform,
-                  ['Gcp', () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
-                  ['Azure', () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+                Utils.switchCase(_.toUpper(cloudPlatform),
+                  [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
+                  [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
               ])
             ])
           },
@@ -487,8 +488,10 @@ export const WorkspaceList = () => {
         workspace: getWorkspace(sharingWorkspaceId),
         onDismiss: () => setSharingWorkspaceId(undefined)
       }),
-      leavingWorkspaceId && h(LeaveWorkspaceModal, {
-        workspace: getWorkspace(leavingWorkspaceId),
+      leavingWorkspaceId && h(LeaveResourceModal, {
+        samResourceId: leavingWorkspaceId,
+        samResourceType: 'workspace',
+        displayName: 'workspace',
         onDismiss: () => setLeavingWorkspaceId(undefined),
         onSuccess: refreshWorkspaces
       }),

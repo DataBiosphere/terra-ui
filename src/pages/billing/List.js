@@ -117,8 +117,8 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
   const cloudContextIcon =
     div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
       Utils.switchCase(cloudPlatform,
-        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: 'Google Cloud Platform', role: 'img' })],
-        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: 'Microsoft Azure', role: 'img' })])
+        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
+        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
     ])
 
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {

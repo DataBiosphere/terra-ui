@@ -422,6 +422,26 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   ])
 }
 
+const DataTableFeaturePreviewFeedbackBanner = () => {
+  const isDataTableProvenanceEnabled = isFeaturePreviewEnabled('data-table-provenance')
+  const isDataTableVersioningEnabled = isFeaturePreviewEnabled('data-table-versioning')
+
+  const label = _.join(' and ', _.compact([
+    isDataTableVersioningEnabled && 'versioning',
+    isDataTableProvenanceEnabled && 'provenance'
+  ]))
+  const feedbackUrl = `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent(`Feedback on data table ${label}`)}`
+
+  return (isDataTableProvenanceEnabled || isDataTableVersioningEnabled) && div({
+    style: {
+      padding: '1rem',
+      borderBottom: `1px solid ${colors.accent()}`,
+      background: '#fff',
+      textAlign: 'center'
+    }
+  }, [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])])
+}
+
 const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
 
 const WorkspaceData = _.flow(
@@ -680,6 +700,18 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
+              title: 'WDS'
+            }, [
+              div({
+                style: {
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+                  padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
+                  backgroundColor: 'white'
+                }
+              }, ['Coming soon.']),
+              div({}, '')
+            ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
               title: 'Snapshots',
               error: snapshotMetadataError,
@@ -839,6 +871,7 @@ const WorkspaceData = _.flow(
       ]),
       h(SidebarSeparator, { sidebarWidth, setSidebarWidth }),
       div({ style: styles.tableViewPanel }, [
+        _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
         Utils.switchCase(selectedData?.type,
           [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
           [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {

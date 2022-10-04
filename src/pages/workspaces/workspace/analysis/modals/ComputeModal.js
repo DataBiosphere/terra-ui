@@ -29,8 +29,7 @@ import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
   defaultDataprocWorkerDiskSize, defaultGceBootDiskSize, defaultGcePersistentDiskSize, defaultGpuType, defaultLocation,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType, displayNameForGpuType, findMachineType, getAutopauseThreshold,
-  getCurrentPersistentDisk,
-  getCurrentRuntime, getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
+  getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
@@ -177,13 +176,13 @@ const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelecte
 // Auxiliary functions -- end
 
 export const ComputeModalBase = ({
-  onDismiss, onError, onSuccess, runtimes, persistentDisks, tool, workspace, location, shouldHideCloseButton = true
+  onDismiss, onError, onSuccess, currentRuntime, currentDisk, tool, workspace, location, shouldHideCloseButton = true
 }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
-  const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(() => getCurrentPersistentDisk(runtimes, persistentDisks))
+  const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(currentRuntime)
+  const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(currentDisk)
   const [viewMode, setViewMode] = useState(undefined)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
   const [upgradeDiskSelected, setUpgradeDiskSelected] = useState(false)
@@ -254,7 +253,7 @@ export const ComputeModalBase = ({
     const shouldDeletePersistentDisk = existingPersistentDisk && !canUpdatePersistentDisk()
     const shouldUpdateRuntime = canUpdateRuntime() && !_.isEqual(desiredRuntime, existingRuntime)
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
-    const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
+    const shouldCreateRuntime = !canUpdateRuntime() && !!desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
     const desiredTool = getToolFromRuntime(desiredRuntime)
 
@@ -687,19 +686,17 @@ export const ComputeModalBase = ({
       Utils.withBusyState(setLoading)
     )(async () => {
       const { googleProject } = getWorkspaceObject()
-      const currentRuntime = getCurrentRuntime(runtimes)
-      const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
       })
+
       const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
-          .then(res => res.json()),
-        currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
+          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true),
+        currentDisk ? Ajax().Disks.disk(currentDisk.googleProject, currentDisk.name).details() : null
       ])
 
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
@@ -821,6 +818,7 @@ export const ComputeModalBase = ({
 
     const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+
     return Utils.cond([
         canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
@@ -1606,15 +1604,13 @@ export const ComputeModalBase = ({
                   div([h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent Disks.'])])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
-                  p([
-                    'Region: This cloud environment will be created in the region ',
-                    strong([computeConfig.computeRegion.toLowerCase()]), '. ',
-                    'Copying data from a bucket in a different region may incur network egress charges. ',
-                    'Network egress charges are not accounted for in cost estimates. ',
-                    div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
-                      'Learn more about Regionality.'
-                    ])])
-                  ])
+                  'Region: This cloud environment will be created in the region ',
+                  strong([computeConfig.computeRegion.toLowerCase()]), '. ',
+                  'Copying data from a bucket in a different region may incur network egress charges. ',
+                  'Network egress charges are not accounted for in cost estimates. ',
+                  div([h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+                    'Learn more about Regionality.'
+                  ])])
                 ])
               ])
             ]),

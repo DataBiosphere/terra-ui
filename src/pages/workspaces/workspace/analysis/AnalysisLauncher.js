@@ -29,7 +29,9 @@ import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
 } from 'src/pages/workspaces/workspace/analysis/runtime-common'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import {
+  getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
+} from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -53,15 +55,16 @@ const AnalysisLauncher = _.flow(
     analysesData: { runtimes, refreshRuntimes, persistentDisks, location }
   }, _ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    const runtime = getCurrentRuntime(runtimes)
-    const { runtimeName, labels } = runtime || {}
-    const status = getConvertedRuntimeStatus(runtime)
+    const currentRuntime = getCurrentRuntime(runtimes)
+    const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
+    const { runtimeName, labels } = currentRuntime || {}
+    const status = getConvertedRuntimeStatus(currentRuntime)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
     //note that here, the file tool is either Jupyter or RStudio, and cannot be azure (as .ipynb extensions are used for azure as well)
     //hence, currentRuntimeTool is not always currentFileToolLabel
     const currentFileToolLabel = getToolFromFileExtension(analysisName)
-    const currentRuntimeTool = getToolFromRuntime(runtime)
+    const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const iframeStyles = { height: '100%', width: '100%' }
 
     useOnMount(() => {
@@ -73,24 +76,24 @@ const AnalysisLauncher = _.flow(
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeTool === 'Jupyter') ?
             h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
-              { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
+              { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
+                styles: iframeStyles, queryParams, runtime: currentRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute)
               }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel: currentFileToolLabel, workspace })
             ])
         ]),
-        mode && h(RuntimeKicker, { runtime, refreshRuntimes }),
-        mode && h(RuntimeStatusMonitor, { runtime }),
+        mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
+        mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
         h(ComputeModal, {
           isOpen: createOpen,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,
           workspace,
-          runtimes,
-          persistentDisks,
+          currentRuntime,
+          currentDisk,
           location,
           onDismiss: () => {
             chooseMode(undefined)
