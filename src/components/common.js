@@ -92,8 +92,8 @@ export const Clickable = forwardRefWithName('Clickable',
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
-    style: { // Note: 0.72 is the min to meet ANDI's contrast requirement
-      color: disabled ? colors.disabled(0.5) : baseColor(variant === 'light' ? 0.3 : 1),
+    style: {
+      color: disabled ? colors.disabled() : baseColor(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
       fontWeight: 500, display: 'inline'
     },
