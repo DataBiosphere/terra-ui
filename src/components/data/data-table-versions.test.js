@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { DataTableSaveVersionModal, DataTableVersion } from 'src/components/data/data-table-versions'
@@ -48,9 +47,7 @@ describe('DataTableSaveVersionModal', () => {
     expect(setTableCheckboxes[1].getAttribute('aria-checked')).toBe('false')
   })
 
-  it('calls onSubmit with entered description and selected set tables', async () => {
-    const user = userEvent.setup()
-
+  it('calls onSubmit with entered description and selected set tables', () => {
     const onSubmit = jest.fn()
 
     const { getAllByRole, getByLabelText, getByText } = render(h(DataTableSaveVersionModal, {
@@ -61,13 +58,13 @@ describe('DataTableSaveVersionModal', () => {
     }))
 
     const descriptionInput = getByLabelText('Description')
-    await user.type(descriptionInput, 'this is a version')
+    fireEvent.change(descriptionInput, { target: { value: 'this is a version' } })
 
     const setTableCheckboxes = getAllByRole('checkbox')
-    await user.click(setTableCheckboxes[0])
+    fireEvent.click(setTableCheckboxes[0])
 
     const saveButton = getByText('Save')
-    await user.click(saveButton)
+    fireEvent.click(saveButton)
 
     expect(onSubmit).toHaveBeenCalledWith({
       description: 'this is a version',
