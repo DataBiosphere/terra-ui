@@ -62,6 +62,7 @@ const DataTable = props => {
     persist, refreshKey,
     snapshotName,
     deleteColumnUpdateMetadata,
+    enableSearch = true,
     controlPanelStyle,
     border = true,
     extraColumnActions,
@@ -293,7 +294,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        h(MenuTrigger, {
+        enableSearch && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },
@@ -325,7 +326,7 @@ const DataTable = props => {
         }, [h(ButtonSecondary, {
           style: { margin: '0rem 1.5rem' }
         }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
-        !snapshotName && div({ style: { width: 300 } }, [
+        enableSearch && !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',
