@@ -277,7 +277,7 @@ const DataTable = props => {
 
 
   // Render
-  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType]?.attributeNames)
+  const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
   const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
@@ -398,7 +398,7 @@ const DataTable = props => {
                     }
                   }, [
                     h(HeaderOptions, { sort, field: 'name', onSort: setSort },
-                      [h(HeaderCell, [entityMetadata[entityType]?.idName])])
+                      [h(HeaderCell, [entityMetadata[entityType].idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
