@@ -138,7 +138,7 @@ export const DataTableVersions = ({ loading, error, versions, savingNewVersion, 
           spinner({ size: 16, style: { marginRight: '1ch' } }),
           'Saving new version'
         ]),
-        ol({ 'aria-labelledby': id, style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
+        ol({ 'aria-labelledby': id, style: { margin: savingNewVersion ? '0.5rem 0 0 ' : 0, padding: 0, listStyleType: 'none' } }, [
           _.map(([index, version]) => {
             return li({ key: version.url, style: { marginBottom: index < versions.length - 1 ? '0.5rem' : 0 } }, [
               h(ButtonSecondary, { style: { height: 'auto' }, onClick: () => onClickVersion(version) }, [Utils.makeCompleteDate(version.timestamp)]),
