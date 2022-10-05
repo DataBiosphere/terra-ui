@@ -91,7 +91,6 @@ const DropDownSubItem = ({ children, ...props }) => {
     }, props), [children])
   ])
 }
-
 const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   return div({
     role: 'group'
@@ -283,7 +282,12 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: 'https://support.terra.bio/hc/en-us/sections/4414878945819',
               onClick: hideNav,
               ...Utils.newTabLinkProps
-            }, ['Release Notes'])
+            }, ['Release Notes']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/categories/4408258992795',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Service Notifications'])
           ]),
           isTerra() && h(NavSection, {
             href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
