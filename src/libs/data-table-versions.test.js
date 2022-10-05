@@ -86,13 +86,18 @@ describe('saveDataTableVersion', () => {
   }
 
   let getEntityMetadata
-  let getEntities
+  let paginatedEntitiesOfType
   let uploadObject
   let patchObject
 
   beforeEach(() => {
     getEntityMetadata = jest.fn().mockReturnValue(Promise.resolve(entityMetadata))
-    getEntities = jest.fn().mockImplementation(entityType => Promise.resolve(entities[entityType] || null))
+    paginatedEntitiesOfType = jest.fn().mockImplementation(entityType => Promise.resolve({
+      resultMetadata: {
+        filterePageCount: 1
+      },
+      results: entities[entityType] || []
+    }))
     uploadObject = jest.fn()
     patchObject = jest.fn()
 
@@ -107,7 +112,7 @@ describe('saveDataTableVersion', () => {
       Workspaces: {
         workspace: () => ({
           entityMetadata: getEntityMetadata,
-          getEntities
+          paginatedEntitiesOfType
         })
       }
     }))
@@ -119,13 +124,13 @@ describe('saveDataTableVersion', () => {
 
   it('downloads entities', async () => {
     await saveDataTableVersion(workspace, 'thing', {})
-    expect(getEntities).toHaveBeenCalledWith('thing')
+    expect(paginatedEntitiesOfType).toHaveBeenCalledWith('thing', expect.objectContaining({ page: 1 }))
   })
 
   it('downloads related sets', async () => {
     await saveDataTableVersion(workspace, 'thing', { includedSetEntityTypes: ['thing_set'] })
-    expect(getEntities).toHaveBeenCalledWith('thing')
-    expect(getEntities).toHaveBeenCalledWith('thing_set')
+    expect(paginatedEntitiesOfType).toHaveBeenCalledWith('thing', expect.objectContaining({ page: 1 }))
+    expect(paginatedEntitiesOfType).toHaveBeenCalledWith('thing_set', expect.objectContaining({ page: 1 }))
   })
 
   it('uploads zip file of data', async () => {

@@ -14,9 +14,25 @@ import * as Utils from 'src/libs/utils'
 
 export const dataTableVersionsPathRoot = '.data-table-versions'
 
-const getTsvs = async (workspace, entityMetadata, entityType) => {
+const getAllEntities = async (workspace, entityType) => {
   const { workspace: { namespace, name } } = workspace
-  const entities = await Ajax().Workspaces.workspace(namespace, name).getEntities(entityType)
+
+  const pageSize = 100_000
+  const firstPageResponse = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, { page: 1, pageSize })
+
+  let entities = firstPageResponse.results
+  const numPages = firstPageResponse.resultMetadata.filteredPageCount
+
+  for (let page = 2; page <= numPages; page += 1) {
+    const pageResponse = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, { page, pageSize })
+    entities = _.concat(entities, pageResponse.results)
+  }
+
+  return entities
+}
+
+const getTsvs = async (workspace, entityMetadata, entityType) => {
+  const entities = await getAllEntities(workspace, entityType)
   const { attributeNames } = entityMetadata[entityType]
   const isSet = entityType.endsWith('_set')
 
