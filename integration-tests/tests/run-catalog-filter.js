@@ -50,7 +50,7 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   await click(page, checkbox({ text: secondFilterItem, isDescendant: true }))
   const datasetSizeAfterFilter2 = await getDatasetCount(page)
   if (datasetSizeAfterFilter2 === 0) {
-    throw new Error('Filters should be ORed between the same facet category in the table\'')
+    throw new Error('Filters should be ORed between the same facet category in the table')
   }
 
   // Testing clearing filters
