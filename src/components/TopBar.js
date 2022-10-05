@@ -91,6 +91,7 @@ const DropDownSubItem = ({ children, ...props }) => {
     }, props), [children])
   ])
 }
+
 const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   return div({
     role: 'group'
