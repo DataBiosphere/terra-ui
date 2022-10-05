@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import h from 'react-hyperscript-helpers'
+import { h } from 'react-hyperscript-helpers'
 import DataTable from 'src/components/data/DataTable'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
