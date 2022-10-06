@@ -18,7 +18,7 @@ const baseColors = {
   light: '#e9ecef', // Used as header background color, lightened for background of cells, panels, etc.
   dark: '#333f52', // Used as text color, menu background (lightened), selected background (lightened)
   grey: '#808080',
-  disabled: '#b6b7b8' //Used for disabled components at a 0.5 opacity.
+  disabled: '#b6b7b8'
 }
 
 const colorPalette = Utils.cond(
