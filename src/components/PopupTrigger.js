@@ -144,6 +144,7 @@ export const MenuTrigger = ({ children, content, popupProps = {}, ...props }) =>
     content: h(VerticalNavigation, [content]),
     popupProps: {
       role: 'menu',
+      'aria-modal': undefined,
       'aria-orientation': 'vertical',
       ...popupProps
     },
