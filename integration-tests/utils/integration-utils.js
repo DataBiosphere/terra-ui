@@ -1,3 +1,4 @@
+const { AxePuppeteer } = require('@axe-core/puppeteer')
 const _ = require('lodash/fp')
 const { mkdirSync, writeFileSync } = require('fs')
 const { resolve } = require('path')
@@ -438,6 +439,13 @@ const gotoPage = async (page, url) => {
   await waitForNoSpinners(page)
 }
 
+const verifyAccessibility = async page => {
+  const results = await new AxePuppeteer(page).withTags(['wcag2a', 'wcag2aa']).analyze()
+  if (results.violations.length > 0) {
+    throw new Error(`Accessibility issues found:\n${JSON.stringify(results.violations, null, 2)}`)
+  }
+}
+
 module.exports = {
   assertNavChildNotFound,
   assertTextNotFound,
@@ -478,5 +486,6 @@ module.exports = {
   maybeSaveScreenshot,
   gotoPage,
   savePageContent,
-  findButtonInDialogByAriaLabel
+  findButtonInDialogByAriaLabel,
+  verifyAccessibility
 }

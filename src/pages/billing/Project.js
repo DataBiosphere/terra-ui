@@ -48,17 +48,17 @@ const getBillingAccountIcon = status => {
 }
 
 const WorkspaceCardHeaders = memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
     needsStatusColumn && div({ style: { width: billingAccountIconSize } }, [
       div({ className: 'sr-only' }, ['Status'])
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: needsStatusColumn ? '1rem' : '2rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: needsStatusColumn ? '1rem' : '2rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'createdBy' })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
     ]),
     div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
@@ -95,11 +95,11 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
   }
 
-  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
+  return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
         billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' } }, [
+        div({ role: 'rowheader', style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
@@ -111,8 +111,8 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
             }
           }, [name])
         ]),
-        div({ style: workspaceCardStyles.field }, [createdBy]),
-        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
+        div({ role: 'cell', style: workspaceCardStyles.field }, [createdBy]),
+        div({ role: 'cell', style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
           Utils.makeStandardDate(lastModified)
         ]),
         div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
@@ -564,26 +564,28 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      h(WorkspaceCardHeaders, {
-        needsStatusColumn: billingAccountsOutOfDate,
-        sort: workspaceSort,
-        onSort: setWorkspaceSort
-      }),
-      div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } }, [
-        _.flow(
-          _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-          _.map(workspace => {
-            const isExpanded = expandedWorkspaceName === workspace.name
-            return h(WorkspaceCard, {
-              workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
-              billingProject,
-              billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
-              key: workspace.workspaceId,
-              isExpanded,
-              onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+      div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
+        h(WorkspaceCardHeaders, {
+          needsStatusColumn: billingAccountsOutOfDate,
+          sort: workspaceSort,
+          onSort: setWorkspaceSort
+        }),
+        div({}, [
+          _.flow(
+            _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+            _.map(workspace => {
+              const isExpanded = expandedWorkspaceName === workspace.name
+              return h(WorkspaceCard, {
+                workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
+                billingProject,
+                billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
+                key: workspace.workspaceId,
+                isExpanded,
+                onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+              })
             })
-          })
-        )(workspacesInProject)
+          )(workspacesInProject)
+        ])
       ])
     ]),
     members: h(Fragment, [

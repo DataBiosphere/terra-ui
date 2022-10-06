@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
+  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter, verifyAccessibility
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -103,6 +103,9 @@ const testGoogleWorkspace = _.flow(
 
   // Verify expected tabs are present.
   await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
+
+  // Check accessibility.
+  await verifyAccessibility(page)
 })
 
 registerTest({
@@ -248,8 +251,11 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Verify tabs that currently depend on Google project ID are not present.
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], false)
 
-  // Verify Analyses tab is present (config override is set)
+  // Verify Analyses tab is present.
   await dashboard.assertTabs(['analyses'], true)
+
+  // Check accessibility.
+  await verifyAccessibility(page)
 })
 
 registerTest({

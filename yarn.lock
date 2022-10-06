@@ -27,6 +27,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@axe-core/puppeteer@npm:^4.4.5":
+  version: 4.4.5
+  resolution: "@axe-core/puppeteer@npm:4.4.5"
+  dependencies:
+    axe-core: ^4.4.3
+  peerDependencies:
+    puppeteer: ">=1.10.0 <= 16"
+  checksum: 7b7f3cf736abcaec442711563904cb768b61ac605e947769103ae7ce1a1be0ed0ff1cf3cad515dc9c88573fc115a06c3b400fdc8ba7c67e647bc3cede3cdabbb
+  languageName: node
+  linkType: hard
+
+"@axe-core/react@npm:^4.4.5":
+  version: 4.4.5
+  resolution: "@axe-core/react@npm:4.4.5"
+  dependencies:
+    axe-core: ^4.4.1
+    requestidlecallback: ^0.3.0
+  checksum: 8a10b84c8587d119d463674a122bcc960ffb9611f7ecebfc41b85c23cf8f42648a358795394ec97254d3a5412dff9f998b9a8139efddce1719a7743f588b558d
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0, @babel/code-frame@npm:^7.10.4, @babel/code-frame@npm:^7.12.13, @babel/code-frame@npm:^7.16.0, @babel/code-frame@npm:^7.16.7, @babel/code-frame@npm:^7.8.3":
   version: 7.16.7
   resolution: "@babel/code-frame@npm:7.16.7"
@@ -3976,6 +3997,13 @@ __metadata:
   version: 4.4.1
   resolution: "axe-core@npm:4.4.1"
   checksum: ad14c5b71059dc3d24ef2519b8cd96e98b4a572379396201ce449d1c4262181821d6ca9550df65b22371faf06d28bbe94d391fe5675f2a08e6550f7b5da8416d
+  languageName: node
+  linkType: hard
+
+"axe-core@npm:^4.4.1, axe-core@npm:^4.4.3":
+  version: 4.4.3
+  resolution: "axe-core@npm:4.4.3"
+  checksum: c3ea000d9ace3ba0bc747c8feafc24b0de62a0f7d93021d0f77b19c73fca15341843510f6170da563d51535d6cfb7a46c5fc0ea36170549dbb44b170208450a2
   languageName: node
   linkType: hard
 
@@ -12807,6 +12835,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"requestidlecallback@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "requestidlecallback@npm:0.3.0"
+  checksum: 2405aef711b516e326ff18849b24ad2c0e623d2b60397bdc7919fa40d8575fce0a16a563a53f94ec89d255325a99e5deee952e6024584a5179cbbabb4469f0e8
+  languageName: node
+  linkType: hard
+
 "require-directory@npm:^2.1.1":
   version: 2.1.1
   resolution: "require-directory@npm:2.1.1"
@@ -14212,6 +14247,7 @@ resolve@^2.0.0-next.3:
   version: 0.0.0-use.local
   resolution: "terra-integration-tests@workspace:integration-tests"
   dependencies:
+    "@axe-core/puppeteer": ^4.4.5
     "@google-cloud/secret-manager": ^4.0.0
     date-fns: ^2.24.0
     google-auth-library: ^7.9.2
@@ -14233,6 +14269,7 @@ resolve@^2.0.0-next.3:
   version: 0.0.0-use.local
   resolution: "terra-ui@workspace:."
   dependencies:
+    "@axe-core/react": ^4.4.5
     "@databiosphere/bard-client": ^0.1.0
     "@fortawesome/fontawesome-svg-core": ^1.2.36
     "@fortawesome/free-regular-svg-icons": ^5.15.4
