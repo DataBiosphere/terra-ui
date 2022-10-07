@@ -81,6 +81,7 @@ const normalizeDataset = dataset => {
 
   return {
     ...dataset,
+    // TODO: Consortium should show all consortiums, not just the first
     project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], dataset),
     lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
@@ -107,22 +108,28 @@ const extractTags = dataset => {
   }
 }
 
+export const filterAndNormalizeDatasets = datasets => {
+  const consortiumsToInclude = getEnabledBrand().catalogConsortiumsToInclude
+  const filteredDatasets = _.filter(dataset => consortiumsToInclude === undefined ||
+      _.intersection(consortiumsToInclude, _.map(dataCollection => dataCollection && dataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])).length > 0,
+  datasets.result || [])
+  return _.map(dataset => {
+    const normalizedDataset = normalizeDataset(dataset)
+    return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
+  }, filteredDatasets)
+}
+
 export const useDataCatalog = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const dataCatalog = useStore(dataCatalogStore)
-  const consortiumsToInclude = getEnabledBrand().catalogConsortiumsToInclude
 
   const refresh = _.flow(
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
     const datasets = await Ajax(signal).Catalog.getDatasets()
-    const filteredDatasets = _.filter(dataset => consortiumsToInclude === undefined || _.intersection(consortiumsToInclude, dataset.consortiums).length > 0, datasets.result || [])
-    const normList = _.map(dataset => {
-      const normalizedDataset = normalizeDataset(dataset)
-      return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
-    }, filteredDatasets)
+    const normList = filterAndNormalizeDatasets(datasets)
 
     dataCatalogStore.set(normList)
   })
