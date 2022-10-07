@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render } from '@testing-library/react'
+import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -523,7 +524,7 @@ describe('ContextBar - actions', () => {
     getByText(tools.RStudio.label)
   })
 
-  it('clicking Terminal will attempt to start currently stopped runtime', () => {
+  it('clicking Terminal will attempt to start currently stopped runtime', async () => {
     // Arrange
     const mockRuntimesStartFn = jest.fn()
     const mockRuntimeWrapper = jest.fn(() => ({
@@ -559,8 +560,11 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(getByTestId('terminal-button-id'))
+    await act(async () => {
+      const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
+      await fireEvent.click(getByTestId('terminal-button-id'))
+    })
+
 
     // Assert
     expect(mockRuntimeWrapper).toHaveBeenCalledWith(expect.objectContaining({
