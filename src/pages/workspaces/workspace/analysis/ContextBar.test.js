@@ -523,7 +523,7 @@ describe('ContextBar - actions', () => {
     getByText(tools.RStudio.label)
   })
 
-  it('clicking Terminal will attempt to start currently stopped runtime', async () => {
+  it('clicking Terminal will attempt to start currently stopped runtime', () => {
     // Arrange
     const mockRuntimesStartFn = jest.fn()
     const mockRuntimeWrapper = jest.fn(() => ({
@@ -571,7 +571,7 @@ describe('ContextBar - actions', () => {
     expect(mockRuntimesStartFn).toHaveBeenCalled()
   })
 
-  it('clicking Terminal will not attempt to start an already running Jupyter notebook', async () => {
+  it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
     // Arrange
     const mockRuntimesStartFn = jest.fn()
     const mockRuntimeWrapper = jest.fn(() => ({
