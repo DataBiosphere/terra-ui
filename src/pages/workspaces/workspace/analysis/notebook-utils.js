@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -57,9 +57,9 @@ export const extensionAnalysisNameValidator = () => ({
   presence: { allowEmpty: false },
   format:
     {
-      pattern: /.*(.ipynb|.Rmd|.R)$/i,
+      pattern: /.*(.ipynb|.Rmd|.R)$/,
       message: h(Fragment, [
-        div('Please add file extension: ".ipynb" ".Rmd" or ".R"')
+        div(['Please add file extension: ', span({ style: { textTransform: 'none' } }, '".ipynb" ".Rmd" or ".R"')])
       ])
     }
 })
