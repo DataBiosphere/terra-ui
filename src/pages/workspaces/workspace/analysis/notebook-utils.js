@@ -39,17 +39,29 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, worksp
 
 export const analysisNameValidator = existing => ({
   presence: { allowEmpty: false },
-  format: {
-    pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
-    message: h(Fragment, [
-      div('Name can\'t contain these characters:'),
-      div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
-    ])
-  },
+  format:
+    {
+      pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
+      message: h(Fragment, [
+        div('Name can\'t contain these characters:'),
+        div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
+      ])
+    },
   exclusion: {
     within: existing,
     message: 'already exists'
   }
+})
+
+export const extensionAnalysisNameValidator = () => ({
+  presence: { allowEmpty: false },
+  format:
+    {
+      pattern: /.*(.ipynb|.Rmd|.R)$/i,
+      message: h(Fragment, [
+        div('Please add file extension: ".ipynb" ".Rmd" or ".R"')
+      ])
+    }
 })
 
 // removes all paths up to and including the last slash
@@ -171,6 +183,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       notebookName: analysisNameValidator(existingNames),
       notebookKernel: { presence: { allowEmpty: false } }
     },
+    { notebookName: extensionAnalysisNameValidator(existingNames) },
     { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
   )
 
@@ -242,6 +255,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const errors = validate(
     { newName },
     { newName: analysisNameValidator(existingNames) },
+    { newName: extensionAnalysisNameValidator(existingNames) },
     { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
   )
 

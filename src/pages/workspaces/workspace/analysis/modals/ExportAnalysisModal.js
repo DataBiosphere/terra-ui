@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
+  analysisNameInput, analysisNameValidator, extensionAnalysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import validate from 'validate.js'
@@ -62,16 +62,23 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
     }
   })
 
-
+  const newNameSecondValidation = newName
   // Render
   const errors = validate(
-    { selectedWorkspaceId, newName },
+    { selectedWorkspaceId, newName, newNameSecondValidation },
     {
       selectedWorkspaceId: { presence: true },
-      newName: analysisNameValidator(existingNames)
+      newName: analysisNameValidator(existingNames),
+      newNameSecondValidation: extensionAnalysisNameValidator()
     },
-    { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
+    {
+      prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v))
+    }
   )
+
+  if (errors?.newNameSecondValidation) {
+    errors.newName = [].concat(errors.newName, errors.newNameSecondValidation)
+  }
 
   return h(Modal, {
     title: 'Copy to Workspace',
