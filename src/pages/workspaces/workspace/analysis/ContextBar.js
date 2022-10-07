@@ -13,6 +13,7 @@ import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -53,11 +54,6 @@ export const ContextBar = ({
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
-
-  const startCurrentRuntime = () => {
-    const { googleProject, runtimeName } = currentRuntime
-    Ajax().Runtimes.runtime(googleProject, runtimeName).start()
-  }
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
@@ -201,13 +197,13 @@ export const ContextBar = ({
           tooltipSide: 'left',
           disabled: !isTerminalEnabled,
           href: terminalLaunchLink,
-          onClick: () => {
-            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+          onClick: withErrorReporting('Error starting runtime', async () => {
+            await Ajax().Metrics.captureEvent(Events.analysisLaunch,
               { origin: 'contextBar', source: 'terminal', application: 'terminal', workspaceName, namespace })
-            if (window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped') {
-              startCurrentRuntime()
+            if (currentRuntime?.status === 'Stopped') {
+              await Ajax().Runtimes.runtimeWrapper(currentRuntime).start()
             }
-          },
+          }),
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched from here for Google Jupyter environments.' : 'Terminal',
           tooltipDelay: 100,
           useTooltipAsLabel: false,
