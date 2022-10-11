@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -39,29 +39,17 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, worksp
 
 export const analysisNameValidator = existing => ({
   presence: { allowEmpty: false },
-  format:
-    {
-      pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
-      message: h(Fragment, [
-        div('Name can\'t contain these characters:'),
-        div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
-      ])
-    },
+  format: {
+    pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
+    message: h(Fragment, [
+      div('Name can\'t contain these characters:'),
+      div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
+    ])
+  },
   exclusion: {
     within: existing,
     message: 'already exists'
   }
-})
-
-export const extensionAnalysisNameValidator = () => ({
-  presence: { allowEmpty: false },
-  format:
-    {
-      pattern: /.*(.ipynb|.Rmd|.R)$/,
-      message: h(Fragment, [
-        div(['Please add file extension: ', span({ style: { textTransform: 'none' } }, '".ipynb" ".Rmd" or ".R"')])
-      ])
-    }
 })
 
 // removes all paths up to and including the last slash
@@ -183,7 +171,6 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
       notebookName: analysisNameValidator(existingNames),
       notebookKernel: { presence: { allowEmpty: false } }
     },
-    { notebookName: extensionAnalysisNameValidator(existingNames) },
     { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
   )
 
@@ -255,7 +242,6 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
   const errors = validate(
     { newName },
     { newName: analysisNameValidator(existingNames) },
-    { newName: extensionAnalysisNameValidator(existingNames) },
     { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
   )
 
