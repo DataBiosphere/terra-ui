@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
-import { allSavedColumnSettingsEntityTypeKey, useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
+import { allSavedColumnSettingsEntityTypeKey } from 'src/components/data/SavedColumnSettings'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -15,47 +15,34 @@ import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
-const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selectedDataType, entityMetadata }) => {
+const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSettings, updateAllSavedColumnSettings, setTableExists, setTableNames, namespace, name, selectedDataType }) => {
   // State
   const [newName, setNewName] = useState('')
   const [renaming, setRenaming] = useState(false)
-  const [renameSetTable, setRenameSetTable] = useState(false)
-
-  const setTableExists = _.includes(`${selectedDataType}_set`, _.keys(entityMetadata))
-
-  const {
-    getAllSavedColumnSettings,
-    updateAllSavedColumnSettings
-  } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: selectedDataType, entityMetadata })
+  const [renameSetTables, setRenameSetTables] = useState(false)
 
   const handleTableRename = async ({ oldName, newName }) => {
     await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
   }
 
-  const handleColumnSettingsRename = async ({ oldName, newName, renameSetTable }) => {
-    // Move column settings to new table(s)
-    const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
-    const oldSetTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: `${oldName}_set` })
-    const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
-    const newSetTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: `${newName}_set` })
-    const allColumnSettings = await getAllSavedColumnSettings()
-    const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
-    const setTableColumnSettings = _.get(oldSetTableColumnSettingsKey, allColumnSettings)
-    if (tableColumnSettings) {
-      if (renameSetTable && setTableColumnSettings) {
-        await updateAllSavedColumnSettings(_.flow(
-          _.set(newTableColumnSettingsKey, tableColumnSettings),
-          _.set(newSetTableColumnSettingsKey, setTableColumnSettings),
-          _.unset(oldTableColumnSettingsKey),
-          _.unset(oldSetTableColumnSettingsKey)
-        )(allColumnSettings))
-      } else {
-        await updateAllSavedColumnSettings(_.flow(
-          _.set(newTableColumnSettingsKey, tableColumnSettings),
-          _.unset(oldTableColumnSettingsKey)
-        )(allColumnSettings))
-      }
+  const moveTableColumnSettings = async tableNames => {
+    let allColumnSettings = await getAllSavedColumnSettings()
+
+    const updatedSettings = _.map(({ oldName, newName }) => {
+      const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
+      const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+      const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
+
+      allColumnSettings = tableColumnSettings ? _.flow(
+        _.set(newTableColumnSettingsKey, tableColumnSettings),
+        _.unset(oldTableColumnSettingsKey)
+      )(allColumnSettings) : allColumnSettings
+      return allColumnSettings
+    })(tableNames)
+
+    if (updatedSettings) {
+      await updateAllSavedColumnSettings(allColumnSettings)
     }
   }
 
@@ -69,8 +56,16 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
         Utils.withBusyState(setRenaming)
       )(async () => {
         await handleTableRename({ oldName: selectedDataType, newName })
-        if (renameSetTable) await handleTableRename({ oldName: `${selectedDataType}_set`, newName: `${newName}_set` })
-        await handleColumnSettingsRename({ oldName: selectedDataType, newName, renameSetTable })
+
+        if (renameSetTables) {
+          // The table renames need to happen in sequence. Renaming them in parallel risks running into
+          // a deadlock in the Rawls DB because of row-level locking that occurs during rename.
+          for (const tableName of setTableNames) {
+            await handleTableRename({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) })
+          }
+          await moveTableColumnSettings([{ oldName: selectedDataType, newName }, ..._.map(tableName => ({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }), setTableNames)])
+        } else await moveTableColumnSettings([{ oldName: selectedDataType, newName }])
+
         onUpdateSuccess()
       })
     }, ['Rename'])
@@ -99,8 +94,8 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
           h(RadioButton, {
             text: `Do not rename ${selectedDataType}_set table (default)`,
             name: 'rename-set-table',
-            checked: !renameSetTable,
-            onChange: () => setRenameSetTable(false),
+            checked: !renameSetTables,
+            onChange: () => setRenameSetTables(false),
             labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
           })
         ]),
@@ -108,8 +103,8 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, namespace, name, selecte
           h(RadioButton, {
             text: `Rename ${selectedDataType}_set table`,
             name: 'rename-set-table',
-            checked: renameSetTable,
-            onChange: () => setRenameSetTable(true),
+            checked: renameSetTables,
+            onChange: () => setRenameSetTables(true),
             labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
           })
         ])
