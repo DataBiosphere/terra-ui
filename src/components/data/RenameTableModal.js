@@ -87,13 +87,13 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
     }, [
       div({ style: { display: 'flex' } }, [
         icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-        'The table that you are renaming may have an associated set table. You may choose to also rename the set table:'
+        `The table that you are renaming appears to have the following set table(s): ${setTableNames.join(', ')}. You may choose to also rename these set tables:`
       ]),
-      div({ role: 'radiogroup', 'aria-label': 'the table that you are renaming may have an associated set table. you may choose to also rename the set table.' }, [
+      div({ role: 'radiogroup', 'aria-label': `the table that you are renaming appears to have the following set tables: ${setTableNames.join(', ')}. you may choose to also rename these set tables.` }, [
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
-            text: `Do not rename ${selectedDataType}_set table (default)`,
-            name: 'rename-set-table',
+            text: 'Do not rename set tables (default)',
+            name: 'rename-set-tables',
             checked: !renameSetTables,
             onChange: () => setRenameSetTables(false),
             labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
@@ -101,8 +101,8 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
         ]),
         div({ style: { paddingTop: '0.5rem' } }, [
           h(RadioButton, {
-            text: `Rename ${selectedDataType}_set table`,
-            name: 'rename-set-table',
+            text: 'Rename set tables',
+            name: 'rename-set-tables',
             checked: renameSetTables,
             onChange: () => setRenameSetTables(true),
             labelStyle: { padding: '0.5rem', fontWeight: 'normal' }
