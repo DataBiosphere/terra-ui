@@ -77,7 +77,7 @@ const defaultAjaxImpl = {
       details: jest.fn()
     })
   },
-  Buckets: { getObjectPreview: () => Promise.resolve(imageDocs) },
+  Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
     disk: () => ({
       details: jest.fn()
