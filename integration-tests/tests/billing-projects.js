@@ -1,6 +1,8 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { assertTextNotFound, click, clickable, findText, gotoPage, select, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const {
+  assertTextNotFound, click, clickable, findText, gotoPage, select, signIntoTerra, waitForNoSpinners, verifyAccessibility
+} = require('../utils/integration-utils')
 const { userEmail } = require('../utils/integration-config')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -265,6 +267,9 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.assertText('Top 10 Spending Workspaces')
   await billingPage.assertChartValue(10, 'Extra Inexpensive Workspace', 'Compute', '$0.01')
 
+  // Check accessibility of spend report page.
+  await verifyAccessibility(page)
+
   // Select a billing project that is not owned by the user
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
@@ -277,6 +282,9 @@ const testBillingSpendReportFn = withUserToken(async ({ page, testUrl, token }) 
   await billingPage.selectProject(azureBillingProjectName, AZURE)
   await billingPage.assertTextNotFound('Spend report')
   await billingPage.assertTextNotFound('View billing account')
+
+  // Check accessibility of initial view.
+  await verifyAccessibility(page)
 })
 
 registerTest({
@@ -303,6 +311,9 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await billingPage.showWorkspaceDetails(`${ownedBillingProjectName}_ws`)
   await billingPage.assertText(`Google Project${ownedBillingProjectName}_project`)
 
+  // Check accessibility of workspaces view (GCP).
+  await verifyAccessibility(page)
+
   // Select a billing project that is not owned by the user and verify workspace tab is visible
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
@@ -314,6 +325,9 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   await verifyWorkspaceControls()
   await billingPage.showWorkspaceDetails(`${azureBillingProjectName}_ws`)
   await billingPage.assertText(`Resource Group ID${azureBillingProjectName}_mrg`)
+
+  // Check accessibility of workspaces view (Azure).
+  await verifyAccessibility(page)
 })
 
 registerTest({
@@ -339,6 +353,9 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   await billingPage.assertText('testuser1@example.com')
   await billingPage.assertText('testuser3@example.com')
 
+  // Check accessibility of users view (as owner).
+  await verifyAccessibility(page)
+
   // Select a billing project that is not owned by the user
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
@@ -353,6 +370,9 @@ const testBillingMembersFn = withUserToken(async ({ page, testUrl, token }) => {
   // The test user has the User role, so they should see members with the Owner role, but not with the User role
   await billingPage.assertText('testuser1@example.com')
   await billingPage.assertTextNotFound('testuser3@example.com')
+
+  // Check accessibility of users view (as non-owner).
+  await verifyAccessibility(page)
 })
 
 registerTest({
