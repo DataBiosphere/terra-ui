@@ -79,7 +79,7 @@ export const tools = {
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
   Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
-  Azure: { label: 'Azure', isNotebook: true, ext: ['ipynb'], isAzureCompatible: true, isPauseUnsupported: true, isLaunchUnsupported: false, defaultExt: 'ipynb' }
+  Azure: { label: 'Azure', isNotebook: true, ext: ['ipynb'], isAzureCompatible: true, isLaunchUnsupported: false, defaultExt: 'ipynb' }
 }
 
 export const toolExtensionDisplay = {

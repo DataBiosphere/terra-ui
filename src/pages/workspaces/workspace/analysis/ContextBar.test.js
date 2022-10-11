@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render } from '@testing-library/react'
+import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -52,8 +53,6 @@ jest.mock('src/libs/config', () => ({
 }))
 
 jest.mock('src/libs/ajax')
-const mockRuntimesStartFn = jest.fn()
-const mockRuntime = jest.fn()
 
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
@@ -66,17 +65,12 @@ beforeEach(() => {
     ]) : div([])
   })
 
-  Ajax.mockImplementation(() => {
-    mockRuntime.mockReturnValue({ start: mockRuntimesStartFn })
-    return {
-      Metrics: {
-        captureEvent: () => {}
-      },
-      Runtimes: {
-        runtime: mockRuntime
-      }
+  Ajax.mockImplementation(() => ({
+    Metrics: {
+      captureEvent: () => {}
     }
   })
+  )
 
   getGalaxyComputeCost.mockImplementation(() => {
     return GALAXY_COMPUTE_COST
@@ -331,12 +325,12 @@ const contextBarProps = {
 describe('ContextBar - buttons', () => {
   it('will render default icons', () => {
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, contextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, contextBarProps))
 
     // Assert
     expect(getByText('Rate:'))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
   })
 
   it('will render Jupyter button with an enabled Terminal Button', () => {
@@ -348,13 +342,13 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(getByLabelText('Terminal button')).toBeEnabled()
+    expect(getByTestId('terminal-button-id')).toBeEnabled()
     expect(getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
     expect(getByText(/Running \$.*\/hr/))
   })
@@ -368,13 +362,13 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/Jupyter Environment/i)))
-    expect(getByLabelText('Terminal button')).toBeEnabled()
+    expect(getByTestId('terminal-button-id')).toBeEnabled()
     expect(getByText(Utils.formatUSD(RUNTIME_COST + PERSISTENT_DISK_COST)))
     expect(getByText(/Creating \$.*\/hr/))
   })
@@ -390,7 +384,7 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
@@ -398,7 +392,7 @@ describe('ContextBar - buttons', () => {
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/RStudio Environment/i)))
     expect(getByLabelText(new RegExp(/Galaxy Environment/i)))
-    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
     expect(getByText(/Running \$.*\/hr/))
     expect(getByText(/Creating \$.*\/hr/))
     expect(getByText(/Disk \$.*\/hr/))
@@ -413,13 +407,13 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, rstudioGalaxyContextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, rstudioGalaxyContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByText('$0.00'))
     expect(getByLabelText('Environment Configuration'))
-    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
     expect(getByLabelText(new RegExp(/Cromwell Environment/i)))
   })
 
@@ -431,14 +425,14 @@ describe('ContextBar - buttons', () => {
     }
 
     // Act
-    const { getByText, getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
+    const { getByText, getByLabelText, getByTestId } = render(h(ContextBar, jupyterContextBarProps))
 
     //Assert
     expect(getByText('Rate:'))
     expect(getByText(Utils.formatUSD(RUNTIME_COST)))
     expect(getByLabelText('Environment Configuration'))
     expect(getByLabelText(new RegExp(/Azure Environment/i)))
-    expect(getByLabelText('Terminal button')).toHaveAttribute('disabled')
+    expect(getByTestId('terminal-button-id')).toHaveAttribute('disabled')
   })
 
   it('will render button with error status', () => {
@@ -530,8 +524,22 @@ describe('ContextBar - actions', () => {
     getByText(tools.RStudio.label)
   })
 
-  it('clicking Terminal will attempt to start currently stopped runtime', () => {
+  it('clicking Terminal will attempt to start currently stopped runtime', async () => {
     // Arrange
+    const mockRuntimesStartFn = jest.fn()
+    const mockRuntimeWrapper = jest.fn(() => ({
+      start: mockRuntimesStartFn
+    }))
+    Ajax.mockImplementation(() => ({
+      Runtimes: {
+        runtimeWrapper: mockRuntimeWrapper
+      },
+      Metrics: {
+        captureEvent: jest.fn()
+      }
+    })
+    )
+
     global.window = Object.create(window)
     const url = 'http://dummy.com'
     Object.defineProperty(window, 'location', {
@@ -541,26 +549,48 @@ describe('ContextBar - actions', () => {
       writable: true,
       hash: '/'
     })
+    const runtime = {
+      ...jupyter,
+      status: 'Stopped'
+    }
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [{
-        ...jupyter,
-        status: 'Stopped'
-      }],
+      runtimes: [runtime],
       persistentDisks: [runtimeDisk]
     }
 
     // Act
-    const { getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(getByLabelText('Terminal button'))
+    await act(async () => {
+      const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
+      await fireEvent.click(getByTestId('terminal-button-id'))
+    })
+
 
     // Assert
-    expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter.googleProject, jupyter.runtimeName)
-    expect(mockRuntimesStartFn).toBeCalledTimes(1)
+    expect(mockRuntimeWrapper).toHaveBeenCalledWith(expect.objectContaining({
+      status: runtime.status,
+      googleProject: runtime.googleProject,
+      runtimeName: runtime.runtimeName
+    }))
+    expect(mockRuntimesStartFn).toHaveBeenCalled()
   })
 
   it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
     // Arrange
+    const mockRuntimesStartFn = jest.fn()
+    const mockRuntimeWrapper = jest.fn(() => ({
+      start: mockRuntimesStartFn
+    }))
+    Ajax.mockImplementation(() => ({
+      Runtimes: {
+        runtimeWrapper: mockRuntimeWrapper
+      },
+      Metrics: {
+        captureEvent: jest.fn()
+      }
+    })
+    )
+
     global.window = Object.create(window)
     const url = 'http://dummy.com'
     Object.defineProperty(window, 'location', {
@@ -579,10 +609,11 @@ describe('ContextBar - actions', () => {
     }
 
     // Act
-    const { getByLabelText } = render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(getByLabelText('Terminal button'))
+    const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
+    fireEvent.click(getByTestId('terminal-button-id'))
 
     // Assert
+    expect(mockRuntimeWrapper).not.toHaveBeenCalled()
     expect(mockRuntimesStartFn).not.toHaveBeenCalled()
   })
 

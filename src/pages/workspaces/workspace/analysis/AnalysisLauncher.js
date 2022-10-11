@@ -12,7 +12,7 @@ import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigg
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -248,18 +248,10 @@ const PreviewHeader = ({
     }
   })
 
-  const startAndRefresh = async (refreshRuntimes, runtime) => {
-    try {
-      if (!!googleProject) {
-        await Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start()
-      } else {
-        //TODO start for azure
-      }
-      await refreshRuntimes(true)
-    } catch (error) {
-      reportError('Cloud Environment Error', error)
-    }
-  }
+  const startAndRefresh = withErrorReporting('Error starting compute', async (refreshRuntimes, runtime) => {
+    await Ajax().Runtimes.runtimeWrapper(runtime).start()
+    await refreshRuntimes(true)
+  })
 
   useOnMount(() => {
     if (!!googleProject) {

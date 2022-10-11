@@ -81,7 +81,6 @@ describe('WorkspaceMenu - undefined workspace', () => {
 
   it.each([
     { menuText: 'Clone', tooltipText: tooltipText.cloneAzureUnsupported },
-    { menuText: 'Share', tooltipText: tooltipText.shareAzureUnsupported },
     { menuText: 'Share', tooltipText: tooltipText.shareNoPermission },
     { menuText: 'Delete', tooltipText: tooltipText.deleteLocked },
     { menuText: 'Delete', tooltipText: tooltipText.deleteNoPermission },
@@ -234,25 +233,20 @@ describe('WorkspaceMenu - Azure workspace', () => {
     })
   })
 
-  it.each([
-    'Clone', 'Share'
-  ])('renders menu item %s as disabled', menuText => {
+  it('renders menu item Clone as disabled', () => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    const menuItem = screen.getByText(menuText)
+    const menuItem = screen.getByText('Clone')
     // Assert
     expect(menuItem).toHaveAttribute('disabled')
   })
 
-  it.each([
-    { menuText: 'Clone', tooltipText: tooltipText.cloneAzureUnsupported },
-    { menuText: 'Share', tooltipText: tooltipText.shareAzureUnsupported }
-  ])('renders $menuText menu item tooltip "$tooltipText"', ({ menuText, tooltipText }) => {
+  it('renders Clone menu item tooltip', () => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
-    fireEvent.mouseOver(screen.getByText(menuText))
+    fireEvent.mouseOver(screen.getByText('Clone'))
     // Assert
-    expect(screen.queryByText(tooltipText)).not.toBeNull()
+    expect(screen.queryByText(tooltipText.cloneAzureUnsupported)).not.toBeNull()
   })
 
   it('renders menu item Leave as enabled', () => {
@@ -263,6 +257,39 @@ describe('WorkspaceMenu - Azure workspace', () => {
     const menuItem = screen.getByText('Leave')
     // Assert
     expect(menuItem).not.toHaveAttribute('disabled')
+  })
+
+  it.each([
+    true, false
+  ])('enables/disables Share menu item based on canShare: %s', canShare => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Share')
+    // Assert
+    if (canShare) {
+      expect(menuItem).not.toHaveAttribute('disabled')
+    } else {
+      expect(menuItem).toHaveAttribute('disabled')
+    }
+  })
+
+  it.each([
+    true, false
+  ])('renders Share tooltip based on canShare: %s', canShare => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
+    // Act
+    render(h(WorkspaceMenu, workspaceMenuProps))
+    const menuItem = screen.getByText('Share')
+    fireEvent.mouseOver(menuItem)
+    // Assert
+    if (canShare) {
+      expect(screen.queryByText(tooltipText.shareNoPermission)).toBeNull()
+    } else {
+      expect(screen.queryByText(tooltipText.shareNoPermission)).not.toBeNull()
+    }
   })
 
   it.each([
