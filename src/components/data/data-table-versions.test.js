@@ -117,10 +117,10 @@ describe('DataTableVersion', () => {
     const onRestore = jest.fn()
     const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onRestore }))
 
-    const restoreButton = getByText('Restore')
+    const restoreButton = getByText('Import')
     fireEvent.click(restoreButton)
 
-    expect(getByText(/This version will be restored to a new data table/)).toBeTruthy()
+    expect(getByText(/This version will be imported to a new data table/)).toBeTruthy()
 
     const confirmRestoreButton = getByTestId('confirm-restore')
     fireEvent.click(confirmRestoreButton)

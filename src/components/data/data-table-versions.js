@@ -40,7 +40,7 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
       h(ButtonPrimary, {
         disabled: busy,
         onClick: () => setShowRestoreConfirmation(true)
-      }, ['Restore'])
+      }, ['Import'])
     ]),
     div({ style: { marginBottom: '1rem' } }, [
       h(ButtonPrimary, {
@@ -163,10 +163,10 @@ export const DataTableSaveVersionModal = ({ entityType, allEntityTypes, onDismis
 export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) => {
   return h(Modal, {
     onDismiss,
-    title: `Restore version`,
-    okButton: h(ButtonPrimary, { 'data-testid': 'confirm-restore', onClick: () => onConfirm() }, ['Restore'])
+    title: 'Import version',
+    okButton: h(ButtonPrimary, { 'data-testid': 'confirm-restore', onClick: () => onConfirm() }, ['Import'])
   }, [
-    'This version will be restored to a new data table: ',
+    'This version will be imported to a new data table: ',
     span({ style: { fontWeight: 600 } }, [tableNameForRestore(version)])
   ])
 }
