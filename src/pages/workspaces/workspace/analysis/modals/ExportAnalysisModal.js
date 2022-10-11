@@ -60,15 +60,14 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
     }
   })
 
+  // Render
   const errors = validate(
     { selectedWorkspaceId, newName },
     {
       selectedWorkspaceId: { presence: true },
       newName: analysisNameValidator(existingNames)
     },
-    {
-      prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v))
-    }
+    { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
   )
 
   return h(Modal, {
