@@ -1,50 +1,16 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, fieldset, h, h1, legend, li, ol, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, DeleteConfirmationModal, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
-import { parseGsUri } from 'src/components/data/data-utils'
-import { icon, spinner } from 'src/components/icons'
+import { spinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { tableNameForRestore } from 'src/libs/data-table-versions'
 import { FormLabel } from 'src/libs/forms'
-import { useCancellation } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-
-const DownloadVersionButton = ({ url }) => {
-  const signal = useCancellation()
-  const [downloadUrl, setDownloadUrl] = useState()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    const loadUrl = Utils.withBusyState(setLoading, async () => {
-      try {
-        setDownloadUrl(null)
-        setError(false)
-        const [bucket, object] = parseGsUri(url)
-        const { url: signedUrl } = await Ajax(signal).DrsUriResolver.getSignedUrl({ bucket, object })
-        setDownloadUrl(signedUrl)
-      } catch (error) {
-        setError(true)
-      }
-    })
-    loadUrl()
-  }, [signal, url])
-
-  return h(ButtonPrimary, {
-    disabled: !downloadUrl,
-    href: downloadUrl,
-    tooltip: !!error && 'Error generating download URL'
-  }, [
-    loading && icon('loadingSpinner', { size: 12, style: { marginRight: '1ch' } }),
-    'Download'
-  ])
-}
 
 export const DataTableVersion = ({ version, onDelete, onRestore }) => {
   const { entityType, includedSetEntityTypes, timestamp, description } = version
@@ -70,9 +36,6 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
     ])]),
     version.createdBy && p([`Created by: ${version.createdBy}`]),
     p([description || 'No description']),
-    div({ style: { marginBottom: '1rem' } }, [
-      h(DownloadVersionButton, { url: version.url })
-    ]),
     div({ style: { marginBottom: '1rem' } }, [
       h(ButtonPrimary, {
         disabled: busy,

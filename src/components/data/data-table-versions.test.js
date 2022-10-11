@@ -113,11 +113,6 @@ describe('DataTableVersion', () => {
     })
   })
 
-  it('renders download link', () => {
-    const { getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onRestore: jest.fn() }))
-    expect(getByText('Download')).toBeTruthy()
-  })
-
   it('renders restore button and confirms restore', () => {
     const onRestore = jest.fn()
     const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onRestore }))
