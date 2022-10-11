@@ -113,14 +113,14 @@ export const DataTableVersions = ({ loading, error, versions, savingNewVersion, 
   ])
 }
 
-export const DataTableSaveVersionModal = ({ entityType, allEntityTypes, onDismiss, onSubmit }) => {
+export const DataTableSaveVersionModal = ({ entityType, allEntityTypes, includeSetsByDefault = false, onDismiss, onSubmit }) => {
   const relatedSetTables = _.flow(
     _.filter(t => (new RegExp(`^${entityType}(_set)+$`)).test(t)),
     _.sortBy(_.identity)
   )(allEntityTypes)
 
   const [description, setDescription] = useState('')
-  const [selectedSetTables, setSelectedSetTables] = useState(_.fromPairs(_.map(table => [table, false], relatedSetTables)))
+  const [selectedSetTables, setSelectedSetTables] = useState(_.fromPairs(_.map(table => [table, includeSetsByDefault], relatedSetTables)))
 
   return h(Modal, {
     onDismiss,

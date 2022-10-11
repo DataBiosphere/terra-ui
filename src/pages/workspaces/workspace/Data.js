@@ -351,11 +351,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
         }, 'Delete table'),
         isFeaturePreviewEnabled('data-table-versioning') && h(Fragment, [
           h(MenuDivider),
-          h(MenuButton, {
-            disabled: isSet,
-            tooltip: isSet && `Set tables are versioned with the table they reference. To version this table, save a version of the ${tableName.replace(/(_set)+/, '')} table.`,
-            onClick: () => setSavingVersion(true)
-          }, ['Save version']),
+          h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
           h(MenuButton, {
             disabled: isSet,
             tooltip: isSet && `Set tables are versioned with the table they reference. See the version history of the ${tableName.replace(/(_set)+/, '')} table.`,
@@ -390,8 +386,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     }),
     savingVersion && h(DataTableSaveVersionModal, {
       workspace,
-      entityType: tableName,
+      entityType: isSet ? _.replace(/(_set)+$/, '', tableName) : tableName,
       allEntityTypes: _.keys(entityMetadata),
+      includeSetsByDefault: isSet,
       onDismiss: () => setSavingVersion(false),
       onSubmit: versionOpts => {
         setSavingVersion(false)
