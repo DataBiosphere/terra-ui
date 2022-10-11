@@ -353,8 +353,6 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           h(MenuDivider),
           h(MenuButton, { onClick: () => setSavingVersion(true) }, ['Save version']),
           h(MenuButton, {
-            disabled: isSet,
-            tooltip: isSet && `Set tables are versioned with the table they reference. See the version history of the ${tableName.replace(/(_set)+/, '')} table.`,
             onClick: () => {
               onToggleVersionHistory(!isShowingVersionHistory)
               if (!isShowingVersionHistory) {
@@ -694,13 +692,23 @@ const WorkspaceData = _.flow(
                       onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
                         setShowDataTableVersionHistory(_.set(type, showVersionHistory))
                         if (showVersionHistory) {
-                          loadDataTableVersions(type)
+                          loadDataTableVersions(type.endsWith('_set') ? _.replace(/(_set)+$/, '', type) : type)
                         }
                       })
                     })
                   }),
                   isShowingVersionHistory && h(DataTableVersions, {
-                    ...dataTableVersions[type],
+                    ...Utils.cond(
+                      [type.endsWith('_set'), () => {
+                        const referencedType = _.replace(/(_set)+$/, '', type)
+                        return _.update(
+                          'versions',
+                          _.filter(version => _.includes(type, version.includedSetEntityTypes)),
+                          dataTableVersions[referencedType]
+                        )
+                      }],
+                      () => dataTableVersions[type]
+                    ),
                     onClickVersion: version => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version })
                   })
                 ])
