@@ -287,7 +287,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
   const setTableExists = _.includes(`${tableName}_set`, _.keys(entityMetadata))
-  const setTableNames = _.filter(v => v.match(/(.*)(_set+)/), _.keys(entityMetadata))
+  const setTableNames = _.filter(v => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata))
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
 

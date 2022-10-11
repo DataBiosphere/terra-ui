@@ -24,18 +24,45 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
   const handleTableRename = async ({ oldName, newName }) => {
     await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
+  }
 
-    // Move column settings to new table
-    const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
-    const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
-    const allColumnSettings = await getAllSavedColumnSettings()
-    const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
-    if (tableColumnSettings) {
-      await updateAllSavedColumnSettings(_.flow(
+  const moveTableColumnSettings = async tableNames => {
+    let allColumnSettings = await getAllSavedColumnSettings()
+    const updatedSettings = _.map(({ oldName, newName }) => {
+      console.log(oldName)
+      console.log(newName)
+      const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
+      const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+      const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
+
+      console.log(tableColumnSettings)
+
+      allColumnSettings = tableColumnSettings ? _.flow(
         _.set(newTableColumnSettingsKey, tableColumnSettings),
         _.unset(oldTableColumnSettingsKey)
-      )(allColumnSettings))
+      )(allColumnSettings) : allColumnSettings
+    })(tableNames)
+
+    console.log(updatedSettings)
+
+    if (updatedSettings) {
+      await updateAllSavedColumnSettings(updatedSettings)
     }
+
+//    // Move column settings to new table
+//    console.log(oldName)
+//    console.log(newName)
+//    const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
+//    const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
+//    const allColumnSettings = await getAllSavedColumnSettings()
+//    const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
+//    if (tableColumnSettings) {
+//      await updateAllSavedColumnSettings(_.flow(
+//        _.set(newTableColumnSettingsKey, tableColumnSettings),
+//        _.unset(oldTableColumnSettingsKey)
+//      )(allColumnSettings))
+//      console.log("column settings found")
+//    } else console.log("no column settings found")
   }
 
   return h(Modal, {
@@ -50,10 +77,15 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
         await handleTableRename({ oldName: selectedDataType, newName })
 
         if (renameSetTables) {
-          await Promise.all(
-            _.map(async x => await handleTableRename({ oldName: x, newName: x.replace(selectedDataType, newName) }), setTableNames)
-          )
-        }
+          // The table renames need to happen in sequence. Renaming them in parallel risks running into
+          // a deadlock in the Rawls DB because of row-level locking that occurs during rename.
+          for (const tableName of setTableNames) {
+            await handleTableRename({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) })
+          }
+//          _.map(entityName => ({ entityName, entityType: selectedEntityType }), selectedEntityNames)
+          await moveTableColumnSettings(_.map(tableName => ({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }), setTableNames))
+//          await moveTableColumnSettings(_.map(tableName => { [{ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }] })(setTableNames))
+        } else await moveTableColumnSettings([{ oldName: selectedDataType, newName }])
 
         onUpdateSuccess()
       })
