@@ -47,11 +47,13 @@ describe('Datasets', () => {
 
   it('only shows RadX datasets when in RadX', () => {
     getEnabledBrand.mockReturnValue(brands.radX)
-    expect(filterAndNormalizeDatasets({
+    const displayedDatasets = filterAndNormalizeDatasets({
       result: [
         { 'dct:title': 'radx-up', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'RADx-UP' }] }, { 'dct:title': 'not-radx' }
       ]
-    }).length).toBe(1)
+    })
+    expect(displayedDatasets.length).toBe(1)
+    expect(displayedDatasets[0]['dct:title']).toBe('radx-up')
   })
 
   it('shows all datasets in terra', () => {

@@ -108,11 +108,11 @@ const extractTags = dataset => {
   }
 }
 
-export const filterAndNormalizeDatasets = datasets => {
-  const consortiumsToInclude = getEnabledBrand().catalogConsortiumsToInclude
-  const filteredDatasets = _.filter(dataset => consortiumsToInclude === undefined ||
-      _.intersection(consortiumsToInclude, _.map(dataCollection => dataCollection && dataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])).length > 0,
-  datasets.result || [])
+export const filterAndNormalizeDatasets = (datasets, dataCollectionsToInclude) => {
+  const filteredDatasets = _.filter(dataCollectionsToInclude ?
+    dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
+    _.constant(true),
+  datasets)
   return _.map(dataset => {
     const normalizedDataset = normalizeDataset(dataset)
     return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
@@ -128,8 +128,9 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const datasets = await Ajax(signal).Catalog.getDatasets()
-    const normList = filterAndNormalizeDatasets(datasets)
+    const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
+    const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
+    const normList = filterAndNormalizeDatasets(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })
