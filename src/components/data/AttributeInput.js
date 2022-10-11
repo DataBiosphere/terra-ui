@@ -38,7 +38,6 @@ export const AttributeTypeInput = ({ label: labelText = 'Type', value, onChange,
         span({ style: { display: 'inline-block', whiteSpace: 'nowrap' } }, [
           h(RadioButton, {
             text: label || _.startCase(typeOption),
-            name: 'edit-type',
             checked: type === typeOption,
             onChange: () => {
               const newType = { type: typeOption }

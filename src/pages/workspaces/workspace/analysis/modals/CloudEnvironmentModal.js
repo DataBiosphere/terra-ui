@@ -25,7 +25,7 @@ import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } f
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
-  getCurrentApp, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
+  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
@@ -43,6 +43,7 @@ export const CloudEnvironmentModal = ({
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
   const cookieReady = useStore(cookieReadyStore)
+  const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
@@ -52,8 +53,8 @@ export const CloudEnvironmentModal = ({
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     workspace,
     tool,
-    runtimes,
-    persistentDisks,
+    currentRuntime,
+    currentDisk,
     location,
     onDismiss,
     onSuccess,
@@ -154,17 +155,15 @@ export const CloudEnvironmentModal = ({
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(cloudContext.cloudResource, appName).resume())
   }], [Utils.DEFAULT, () => {
-    const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel,
-      Ajax().Runtimes.runtime(googleProject, runtimeName).start())
+      Ajax().Runtimes.runtimeWrapper(currentRuntime).start())
   }])
 
   const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext.cloudResource, appName).pause())
   }], [Utils.DEFAULT, () => {
-    const { googleProject, runtimeName } = currentRuntime
-    executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
+    executeAndRefresh(toolLabel, Ajax().Runtimes.runtimeWrapper(currentRuntime).stop())
   }])
 
   const defaultIcon = toolLabel => isPauseSupported(toolLabel) && h(RuntimeIcon, {
