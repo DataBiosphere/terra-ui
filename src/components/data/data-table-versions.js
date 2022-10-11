@@ -36,16 +36,15 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
     ])]),
     version.createdBy && p([`Created by: ${version.createdBy}`]),
     p([description || 'No description']),
-    div({ style: { marginBottom: '1rem' } }, [
+    div({ style: { display: 'flex', marginBottom: '1rem' } }, [
       h(ButtonPrimary, {
         disabled: busy,
         onClick: () => setShowRestoreConfirmation(true)
-      }, ['Import'])
-    ]),
-    div({ style: { marginBottom: '1rem' } }, [
+      }, ['Import']),
       h(ButtonPrimary, {
         danger: true,
         disabled: busy,
+        style: { marginLeft: '1rem' },
         onClick: () => setShowDeleteConfirmation(true)
       }, ['Delete'])
     ]),
