@@ -945,11 +945,9 @@ const WorkspaceData = _.flow(
               setSelectedData(undefined)
             }),
             onRestore: reportErrorAndRethrow('Error restoring version', async () => {
-              const { tableName, ready } = await restoreDataTableVersion(selectedData.version)
+              const { tableName } = await restoreDataTableVersion(selectedData.version)
               await loadMetadata()
-              if (ready) {
-                setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
-              }
+              setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })]
         )

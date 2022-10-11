@@ -2,13 +2,12 @@ import { addMinutes, format } from 'date-fns/fp'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { entityAttributeText, notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
+import { parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
-import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -31,67 +30,30 @@ const getAllEntities = async (workspace, entityType) => {
   return entities
 }
 
-const getTsvs = async (workspace, entityMetadata, entityType) => {
-  const entities = await getAllEntities(workspace, entityType)
-  const { attributeNames } = entityMetadata[entityType]
-  const isSet = entityType.endsWith('_set')
-
-  if (isSet) {
-    const setMemberType = entityType.slice(0, -4)
-
-    const entityTsv = Utils.makeTSV([
-      [`entity:${entityType}_id`, ..._.without([`${setMemberType}s`], attributeNames)],
-      ..._.map(
-        ({ name, attributes }) => [name, ..._.map(attribute => entityAttributeText(attributes[attribute], true), _.without([`${setMemberType}s`], attributeNames))],
-        entities
-      )
-    ])
-
-    const membershipTsv = Utils.makeTSV([
-      [`membership:${entityType}_id`, setMemberType],
-      ..._.flatMap(
-        ({ attributes, name }) => _.map(({ entityName }) => [name, entityName], attributes[`${setMemberType}s`].items),
-        entities
-      )
-    ])
-
-    return [
-      { name: `${entityType}.tsv`, content: entityTsv },
-      { name: `${entityType}.membership.tsv`, content: membershipTsv }
-    ]
-  } else {
-    const entityTsv = Utils.makeTSV([
-      [`entity:${entityType}_id`, ...attributeNames],
-      ..._.map(
-        ({ name, attributes }) => [name, ..._.map(attribute => entityAttributeText(attributes[attribute], true), attributeNames)],
-        entities
-      )
-    ])
-
-    return [{ name: `${entityType}.tsv`, content: entityTsv }]
-  }
-}
-
 export const saveDataTableVersion = async (workspace, entityType, { description = null, includedSetEntityTypes = [] } = {}) => {
   Ajax().Metrics.captureEvent(Events.dataTableVersioningSaveVersion, {
     ...extractWorkspaceDetails(workspace.workspace),
     tableName: entityType
   })
 
-  const { workspace: { namespace, name, googleProject, bucketName } } = workspace
+  const { workspace: { googleProject, bucketName } } = workspace
 
   const timestamp = Date.now()
   const versionName = `${entityType}.v${timestamp}`
 
-  const entityMetadata = await Ajax().Workspaces.workspace(namespace, name).entityMetadata()
-  const tsvs = _.flatten(await Promise.all(_.map(type => getTsvs(workspace, entityMetadata, type), [entityType, ...includedSetEntityTypes])))
+  const allEntities = await Promise.all(
+    _.map(
+      async type => ({ type, entities: await getAllEntities(workspace, type) }),
+      [entityType, ...includedSetEntityTypes]
+    )
+  )
 
   const zip = new JSZip()
-  _.forEach(({ name, content }) => { zip.file(name, content) }, tsvs)
+  _.forEach(({ type, entities }) => { zip.file(`json/${type}.json`, JSON.stringify(entities)) }, allEntities)
   const zipContent = await zip.generateAsync({ type: 'blob' })
 
-  const tsvFile = new File([zipContent], `${versionName}.zip`, { type: 'application/zip' })
-  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, tsvFile)
+  const zipFile = new File([zipContent], `${versionName}.zip`, { type: 'application/zip' })
+  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, zipFile)
 
   const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}.zip`
   const createdBy = getUser().email
@@ -166,51 +128,39 @@ export const restoreDataTableVersion = async (workspace, version) => {
   const zip = await JSZip.loadAsync(zipData)
 
   const restoredTableName = tableNameForRestore(version)
-  const tableFile = new File(
-    [_.replace(
-      /^entity:\S+/, `entity:${restoredTableName}_id`,
-      await zip.file(`${version.entityType}.tsv`).async('text')
-    )],
-    `${restoredTableName}.tsv`,
-    { type: 'text/tab-separated-values' }
-  )
+  const entities = JSON.parse(await zip.file(`json/${version.entityType}.json`).async('text'))
+  const entityUpdates = _.map(({ name, attributes }) => ({
+    entityType: restoredTableName,
+    name,
+    operations: Object.entries(attributes).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
+  }), entities)
 
-  const tableFileSize = tableFile?.size || Number.MAX_SAFE_INTEGER
-  if (tableFileSize >= 524288 && _.size(version.includedSetEntityTypes) === 0) {
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileAsync(tableFile, { deleteEmptyValues: false })
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-    notifyDataImportProgress(jobId)
-    return { tableName: restoredTableName, ready: false }
-  }
-
-  await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(tableFile, { deleteEmptyValues: false })
+  await Ajax().Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
 
   for (const setTableName of _.sortBy(_.identity, version.includedSetEntityTypes)) {
+    const originalSetTableMemberType = setTableName.slice(0, -4)
+
     const restoredSetTableName = _.replace(version.entityType, restoredTableName, setTableName)
     const restoredSetTableMemberType = restoredSetTableName.slice(0, -4)
 
-    const setTableFile = new File(
-      [_.replace(
-        /^entity:\S+/, `entity:${restoredSetTableName}_id`,
-        await zip.file(`${setTableName}.tsv`).async('text')
-      )],
-      `${restoredSetTableName}.tsv`,
-      { type: 'text/tab-separated-values' }
-    )
-    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(setTableFile, { deleteEmptyValues: false })
+    const setTableEntities = JSON.parse(await zip.file(`json/${setTableName}.json`).async('text'))
+    const setTableEntityUpdates = _.map(({ name, attributes }) => ({
+      entityType: restoredSetTableName,
+      name,
+      operations: Object.entries({
+        ...attributes,
+        [`${originalSetTableMemberType}s`]: _.update(
+          'items',
+          _.map(_.set('entityType', restoredSetTableMemberType)),
+          attributes[`${originalSetTableMemberType}s`]
+        )
+      }).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
+    }), setTableEntities)
 
-    const setMembershipFile = new File(
-      [_.replace(
-        /^membership:.*/, `membership:${restoredSetTableName}_id\t${restoredSetTableMemberType}`,
-        await zip.file(`${setTableName}.membership.tsv`).async('text')
-      )],
-      `${restoredSetTableName}.membership.tsv`,
-      { type: 'text/tab-separated-values' }
-    )
-    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(setMembershipFile, { deleteEmptyValues: false })
+    await Ajax().Workspaces.workspace(namespace, name).upsertEntities(setTableEntityUpdates)
   }
 
-  return { tableName: restoredTableName, ready: true }
+  return { tableName: restoredTableName }
 }
 
 export const useDataTableVersions = workspace => {

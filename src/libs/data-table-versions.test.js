@@ -1,5 +1,4 @@
 import JSZip from 'jszip'
-import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { restoreDataTableVersion, saveDataTableVersion, tableNameForRestore } from 'src/libs/data-table-versions'
@@ -151,26 +150,57 @@ describe('saveDataTableVersion', () => {
       expect(file.name).toBe('thing.v1664838597117.zip')
     })
 
-    it('contains TSV export of table', async () => {
+    it('contains JSON export of table', async () => {
       const zip = await JSZip.loadAsync(file)
-      expect(await zip.file('thing.tsv').async('text')).toBe(
-        'entity:thing_id\tattribute_one\tattribute_two\n' +
-    	  'thing_one\ta\t1\n' +
-    	  'thing_two\tb\t2\n' +
-    	  'thing_three\tc\t3\n'
+      expect(await zip.file('json/thing.json').async('text')).toBe(
+        JSON.stringify([
+          {
+            name: 'thing_one',
+            entityType: 'thing',
+            attributes: {
+              attribute_one: 'a',
+              attribute_two: 1
+            }
+          },
+          {
+            name: 'thing_two',
+            entityType: 'thing',
+            attributes: {
+              attribute_one: 'b',
+              attribute_two: 2
+            }
+          },
+          {
+            name: 'thing_three',
+            entityType: 'thing',
+            attributes: {
+              attribute_one: 'c',
+              attribute_two: 3
+            }
+          }
+        ])
       )
     })
 
-    it('contains TSV export of set tables', async () => {
+    it('contains JSON export of set tables', async () => {
       const zip = await JSZip.loadAsync(file)
-      expect(await zip.file('thing_set.tsv').async('text')).toBe(
-        'entity:thing_set_id\tattribute_one\n' +
-    	  'some_things\ta\n'
-      )
-      expect(await zip.file('thing_set.membership.tsv').async('text')).toBe(
-        'membership:thing_set_id\tthing\n' +
-    	  'some_things\tthing_one\n' +
-        'some_things\tthing_two\n'
+      expect(await zip.file('json/thing_set.json').async('text')).toBe(
+        JSON.stringify([
+          {
+            name: 'some_things',
+            entityType: 'thing_set',
+            attributes: {
+              attribute_one: 'a',
+              things: {
+                itemsType: 'EntityReference',
+                items: [
+                  { entityType: 'thing', entityName: 'thing_one' },
+                  { entityType: 'thing', entityName: 'thing_two' }
+                ]
+              }
+            }
+          }
+        ])
       )
     })
   })
@@ -211,35 +241,65 @@ describe('restoreDataTableVersion', () => {
 
   const versionFile = new JSZip()
   versionFile.file(
-    'thing.tsv',
-    'entity:thing_id\tattribute_one\tattribute_two\n' +
-    'thing_one\ta\t1\n' +
-    'thing_two\tb\t2\n' +
-    'thing_three\tc\t3\n'
+    'json/thing.json',
+    JSON.stringify([
+      {
+        name: 'thing_one',
+        entityType: 'thing',
+        attributes: {
+          attribute_one: 'a',
+          attribute_two: 1
+        }
+      },
+      {
+        name: 'thing_two',
+        entityType: 'thing',
+        attributes: {
+          attribute_one: 'b',
+          attribute_two: 2
+        }
+      },
+      {
+        name: 'thing_three',
+        entityType: 'thing',
+        attributes: {
+          attribute_one: 'c',
+          attribute_two: 3
+        }
+      }
+    ])
   )
   versionFile.file(
-    'thing_set.tsv',
-    'entity:thing_set_id\tattribute_one\n' +
-    'some_things\ta\n'
-  )
-  versionFile.file(
-    'thing_set.membership.tsv',
-    'membership:thing_set_id\tthing\n' +
-    'some_things\tthing_one\n' +
-    'some_things\tthing_two\n'
+    'json/thing_set.json',
+    JSON.stringify([
+      {
+        name: 'some_things',
+        entityType: 'thing_set',
+        attributes: {
+          attribute_one: 'a',
+          things: {
+            itemsType: 'EntityReference',
+            items: [
+              { entityType: 'thing', entityName: 'thing_one' },
+              { entityType: 'thing', entityName: 'thing_two' }
+            ]
+          }
+        }
+      }
+    ])
   )
 
   let getObjectPreview
-  let importFlexibleEntitiesFileSynchronous
+  let upsertEntities
 
   beforeEach(() => {
     getObjectPreview = jest.fn().mockReturnValue(Promise.resolve({ blob: () => versionFile.generateAsync({ type: 'blob' }) }))
-    importFlexibleEntitiesFileSynchronous = jest.fn().mockReturnValue(Promise.resolve({}))
+    upsertEntities = jest.fn().mockReturnValue(Promise.resolve({}))
 
     Ajax.mockImplementation(() => ({
       Buckets: { getObjectPreview },
       Metrics: { captureEvent: jest.fn() },
-      Workspaces: { workspace: () => ({ importFlexibleEntitiesFileSynchronous }) }
+      Workspaces: { workspace: () => ({ upsertEntities }) }
     }))
   })
 
@@ -250,27 +310,38 @@ describe('restoreDataTableVersion', () => {
 
   it('imports table and set tables', async () => {
     await restoreDataTableVersion(workspace, version)
-    expect(importFlexibleEntitiesFileSynchronous).toHaveBeenCalledTimes(3)
+    expect(upsertEntities).toHaveBeenCalledTimes(2)
   })
 
   it('rewrites entity type', async () => {
     await restoreDataTableVersion(workspace, version)
 
-    const getHeaders = async callIndex => {
-      const file = importFlexibleEntitiesFileSynchronous.mock.calls[callIndex][0]
-      const tsv = await file.text()
-      const headers = _.flow(_.split('\n'), _.first, _.split('\t'))(tsv)
-      return headers
-    }
+    const entities = upsertEntities.mock.calls[0][0]
+    expect(entities[0].entityType).toBe('thing_2022-09-13_19-12-44')
 
-    const tableHeaders = await getHeaders(0)
-    expect(tableHeaders[0]).toBe('entity:thing_2022-09-13_19-12-44_id')
+    const setEntities = upsertEntities.mock.calls[1][0]
+    expect(setEntities[0].entityType).toBe('thing_2022-09-13_19-12-44_set')
 
-    const setTableHeaders = await getHeaders(1)
-    expect(setTableHeaders[0]).toBe('entity:thing_2022-09-13_19-12-44_set_id')
-
-    const setMembershipTableHeaders = await getHeaders(2)
-    expect(setMembershipTableHeaders).toEqual(['membership:thing_2022-09-13_19-12-44_set_id', 'thing_2022-09-13_19-12-44'])
+    const setEntityOperations = setEntities[0].operations
+    expect(setEntityOperations).toEqual(expect.arrayContaining([
+      {
+        op: 'AddUpdateAttribute',
+        attributeName: 'things',
+        addUpdateAttribute: {
+          itemsType: 'EntityReference',
+          items: [
+            {
+              entityType: 'thing_2022-09-13_19-12-44',
+              entityName: 'thing_one'
+            },
+            {
+              entityType: 'thing_2022-09-13_19-12-44',
+              entityName: 'thing_two'
+            }
+          ]
+        }
+      }
+    ]))
   })
 
   it('returns restored table name', async () => {
