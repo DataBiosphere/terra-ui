@@ -29,48 +29,21 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
   const moveTableColumnSettings = async tableNames => {
     let allColumnSettings = await getAllSavedColumnSettings()
 
-    console.log(tableNames)
-
-//    const updatedSettings2 = for (const { oldName, newName } of setTableNames) {
-//            console.log(oldName)
-//            console.log(newName)
-//    }
-
     const updatedSettings = _.map(({ oldName, newName }) => {
-      console.log(oldName)
-      console.log(newName)
       const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
       const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
       const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
-
-      console.log(tableColumnSettings)
 
       allColumnSettings = tableColumnSettings ? _.flow(
         _.set(newTableColumnSettingsKey, tableColumnSettings),
         _.unset(oldTableColumnSettingsKey)
       )(allColumnSettings) : allColumnSettings
+      return allColumnSettings
     })(tableNames)
 
-    console.log(updatedSettings)
-
     if (updatedSettings) {
-      await updateAllSavedColumnSettings(updatedSettings)
+      await updateAllSavedColumnSettings(allColumnSettings)
     }
-
-//    // Move column settings to new table
-//    console.log(oldName)
-//    console.log(newName)
-//    const oldTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: oldName })
-//    const newTableColumnSettingsKey = allSavedColumnSettingsEntityTypeKey({ entityType: newName })
-//    const allColumnSettings = await getAllSavedColumnSettings()
-//    const tableColumnSettings = _.get(oldTableColumnSettingsKey, allColumnSettings)
-//    if (tableColumnSettings) {
-//      await updateAllSavedColumnSettings(_.flow(
-//        _.set(newTableColumnSettingsKey, tableColumnSettings),
-//        _.unset(oldTableColumnSettingsKey)
-//      )(allColumnSettings))
-//      console.log("column settings found")
-//    } else console.log("no column settings found")
   }
 
   return h(Modal, {
