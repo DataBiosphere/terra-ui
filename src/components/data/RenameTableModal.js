@@ -28,6 +28,14 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
 
   const moveTableColumnSettings = async tableNames => {
     let allColumnSettings = await getAllSavedColumnSettings()
+
+    console.log(tableNames)
+
+//    const updatedSettings2 = for (const { oldName, newName } of setTableNames) {
+//            console.log(oldName)
+//            console.log(newName)
+//    }
+
     const updatedSettings = _.map(({ oldName, newName }) => {
       console.log(oldName)
       console.log(newName)
@@ -82,9 +90,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
           for (const tableName of setTableNames) {
             await handleTableRename({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) })
           }
-//          _.map(entityName => ({ entityName, entityType: selectedEntityType }), selectedEntityNames)
-          await moveTableColumnSettings(_.map(tableName => ({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }), setTableNames))
-//          await moveTableColumnSettings(_.map(tableName => { [{ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }] })(setTableNames))
+          await moveTableColumnSettings([{ oldName: selectedDataType, newName }, ..._.map(tableName => ({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }), setTableNames)])
         } else await moveTableColumnSettings([{ oldName: selectedDataType, newName }])
 
         onUpdateSuccess()
