@@ -198,12 +198,12 @@ export const brands = {
     hostName: 'rare-x.terra.bio',
     docLinks: [
       {
-        link: 'https://rare-x.org/DataAnalysisPlatform-Documentation',
-        text: 'Find RARE-X Data Analysis Platform documentation, tutorials and Jupyter notebook examples'
+        link: 'https://docs.google.com/forms/d/e/1FAIpQLScpqfZIXW53IJOiYz2RhASJzm7lZBYAjzkjJ67qFDERUpuDAQ/viewform',
+        text: 'Request access to the RARE-X data set within Terra'
       },
       {
         link: 'https://rare-x.org/researchers/',
-        text: 'Learn more about the RARE-X Data Analysis Platform'
+        text: 'Learn more about the data available from RARE-X'
       },
       {
         link: 'https://support.terra.bio/hc/en-us',
