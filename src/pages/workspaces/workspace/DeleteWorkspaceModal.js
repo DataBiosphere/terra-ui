@@ -80,12 +80,12 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const deleteWorkspace = async () => {
     try {
       setDeleting(true)
-      await Ajax().Workspaces.workspace(namespace, name).delete()
       if (isGoogleWorkspace) {
         await Promise.all(
           _.map(async app => await Ajax().Apps.app(app.cloudContext.cloudResource, app.appName).delete(), deletableApps)
         )
       }
+      await Ajax().Workspaces.workspace(namespace, name).delete()
       onDismiss()
       onSuccess()
     } catch (error) {
