@@ -151,7 +151,7 @@ const MigratePersistentDiskCell = ({ onClick }) => div({
     backgroundColor: colors.danger(0.15), color: colors.danger()
   }
 }, [
-  h(TooltipTrigger, { content: `This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.` }, [
+  h(TooltipTrigger, { content: 'This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.' }, [
     div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
   ]),
   h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])

@@ -228,13 +228,13 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
       return !app ?
         nonStatusSpecificMessage :
         Utils.switchCase(app.status,
-          ['STOPPED', () => `The cloud compute is paused.`],
+          ['STOPPED', () => 'The cloud compute is paused.'],
           ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
           ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
           ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
           ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
           ['RUNNING', () => nonStatusSpecificMessage],
-          ['ERROR', () => `An error has occurred on your cloud environment.`]
+          ['ERROR', () => 'An error has occurred on your cloud environment.']
         )
     }
 

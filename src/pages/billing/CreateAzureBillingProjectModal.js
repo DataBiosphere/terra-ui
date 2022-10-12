@@ -75,8 +75,8 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
 
   const subscriptionIdError = Utils.cond(
     [subscriptionIdTouched && !isValidSubscriptionId, () => Utils.summarizeErrors(subscriptionIdErrors?.subscriptionId)],
-    [errorFetchingManagedApps, () => `Unable to retrieve Managed Applications for that subscription`],
-    [errorFetchingManagedApps === false && managedApps.length === 0, () => `No Terra Managed Applications exist for that subscription`],
+    [errorFetchingManagedApps, () => 'Unable to retrieve Managed Applications for that subscription'],
+    [errorFetchingManagedApps === false && managedApps.length === 0, () => 'No Terra Managed Applications exist for that subscription'],
     [Utils.DEFAULT, () => undefined]
   )
 

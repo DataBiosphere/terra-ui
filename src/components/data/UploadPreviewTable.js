@@ -204,7 +204,7 @@ const UploadDataTable = props => {
           ({ width, height }) => {
             return h(GridTable, {
               ref: table,
-              'aria-label': `metadata preview table`,
+              'aria-label': 'metadata preview table',
               width, height,
               rowCount: sortedRows.length,
               noContentMessage: `No ${entityType}s to display.`,

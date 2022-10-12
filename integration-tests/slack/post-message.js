@@ -7,7 +7,7 @@ const apiUrl = 'https://slack.com/api'
 
 const postMessage = async ({ channel = defaultChannel, token = defaultToken, blocks }) => {
   if (!channel) {
-    throw new Error(`**  ERROR: Missing Slack channel. Failed to post message to Slack.`)
+    throw new Error('**  ERROR: Missing Slack channel. Failed to post message to Slack.')
   } else if (!token) {
     throw new Error(`**  ERROR: Missing token. Failed to post message to Slack channel ${channel}.`)
   }

@@ -32,7 +32,7 @@ export const FailuresViewer = ({ failures }) => {
 
 export const FailuresModal = ({ callFqn, index, attempt, failures, onDismiss }) => {
   return h(Modal, {
-    title: `Messages`,
+    title: 'Messages',
     onDismiss,
     showButtons: false,
     showX: true,

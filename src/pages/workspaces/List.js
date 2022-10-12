@@ -105,7 +105,7 @@ export const WorkspaceList = () => {
   //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
   const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
-  const persistenceId = `workspaces/list`
+  const persistenceId = 'workspaces/list'
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen))
 
   const { query } = Nav.useRoute()

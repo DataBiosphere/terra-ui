@@ -283,7 +283,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           content: Utils.cond(
             [!currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => 'Allow Terra Support to view this workspace'],
             [!currentTerraSupportAccessLevel && newTerraSupportAccessLevel, () => `Saving will grant Terra Support ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`],
-            [currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => `Saving will remove Terra Support's access to this workspace`],
+            [currentTerraSupportAccessLevel && !newTerraSupportAccessLevel, () => 'Saving will remove Terra Support\'s access to this workspace'],
             [currentTerraSupportAccessLevel !== newTerraSupportAccessLevel, () => `Saving will change Terra Support's level of access to this workspace from ${_.toLower(currentTerraSupportAccessLevel)} to ${_.toLower(newTerraSupportAccessLevel)}`],
             [currentTerraSupportAccessLevel === newTerraSupportAccessLevel, () => `Terra Support has ${_.toLower(newTerraSupportAccessLevel)} access to this workspace`]
           )

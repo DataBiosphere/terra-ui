@@ -279,8 +279,8 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
       ...Utils.newTabLinkProps,
-      href: `https://support.terra.bio/hc/en-us/sections/360004147011`
-    }, [`What's a workflow?`])
+      href: 'https://support.terra.bio/hc/en-us/sections/360004147011'
+    }, ['What\'s a workflow?'])
   ])
 ])
 

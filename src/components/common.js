@@ -520,7 +520,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink =
             ' ',
             h(Link, {
               style: { textDecoration: 'underline' },
-              href: `https://support.terra.bio/hc/en-us`,
+              href: 'https://support.terra.bio/hc/en-us',
               ...Utils.newTabLinkProps
             }, ['Learn more about Terra.'])
           ]) : null

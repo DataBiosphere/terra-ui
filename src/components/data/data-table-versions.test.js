@@ -75,7 +75,7 @@ describe('DataTableSaveVersionModal', () => {
 
 describe('DataTableVersion', () => {
   const testVersion = {
-    url: `gs://workspace-bucket/.data-table-versions/sample/sample.1664568527960.zip`,
+    url: 'gs://workspace-bucket/.data-table-versions/sample/sample.1664568527960.zip',
     createdBy: 'user@example.com',
     entityType: 'sample',
     includedSetEntityTypes: ['sample_set'],
