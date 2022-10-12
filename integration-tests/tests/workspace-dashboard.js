@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter
+  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter, verifyAccessibility
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -103,6 +103,9 @@ const testGoogleWorkspace = _.flow(
 
   // Verify expected tabs are present.
   await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
+
+  // Check accessibility.
+  await verifyAccessibility(page)
 })
 
 registerTest({
@@ -142,8 +145,8 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     accessLevel: 'READER',
     owners: ['dummy@email.comm'],
     workspace: workspaceInfo,
-    canShare: true,
-    canCompute: true
+    canShare: false,
+    canCompute: false
   }
 
   const azureWorkspaceResourcesResult = {
@@ -240,16 +243,19 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   // Verify workspace tooltips on Workspace menu items (all will be disabled due to Azure workspace + READER permissions).
   await dashboard.assertWorkspaceMenuItems([
     { label: 'Clone', tooltip: 'Cloning is not currently supported on Azure Workspaces' },
-    { label: 'Share', tooltip: 'Sharing is not currently supported on Azure Workspaces' },
+    { label: 'Share', tooltip: 'You have not been granted permission to share this workspace' },
     { label: 'Lock', tooltip: 'You have not been granted permission to lock this workspace' },
-    { label: 'Delete', tooltip: 'You have not been granted permission to lock this workspace' }
+    { label: 'Delete', tooltip: 'You must be an owner of this workspace or the underlying billing project' }
   ])
 
   // Verify tabs that currently depend on Google project ID are not present.
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], false)
 
-  // Verify Analyses tab is present (config override is set)
+  // Verify Analyses tab is present.
   await dashboard.assertTabs(['analyses'], true)
+
+  // Check accessibility.
+  await verifyAccessibility(page)
 })
 
 registerTest({

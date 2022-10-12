@@ -154,7 +154,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
       style: {
         flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
         padding: '1rem',
-        background: colors.light(),
+        background: colors.light(0.5),
         borderBottom: `1px solid ${colors.grey(0.4)}`
       }
     }, [

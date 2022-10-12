@@ -408,7 +408,7 @@ const EntitiesContent = ({
         ]),
         deleteColumnUpdateMetadata,
         controlPanelStyle: {
-          background: colors.light(isRadX() ? 0.3 : 1),
+          background: colors.light(isRadX() ? 0.3 : 0.5),
           borderBottom: `1px solid ${colors.grey(0.4)}`
         },
         border: false,

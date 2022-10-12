@@ -155,17 +155,15 @@ export const CloudEnvironmentModal = ({
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(cloudContext.cloudResource, appName).resume())
   }], [Utils.DEFAULT, () => {
-    const { googleProject, runtimeName } = currentRuntime
     executeAndRefresh(toolLabel,
-      Ajax().Runtimes.runtime(googleProject, runtimeName).start())
+      Ajax().Runtimes.runtimeWrapper(currentRuntime).start())
   }])
 
   const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext.cloudResource, appName).pause())
   }], [Utils.DEFAULT, () => {
-    const { googleProject, runtimeName } = currentRuntime
-    executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
+    executeAndRefresh(toolLabel, Ajax().Runtimes.runtimeWrapper(currentRuntime).stop())
   }])
 
   const defaultIcon = toolLabel => isPauseSupported(toolLabel) && h(RuntimeIcon, {

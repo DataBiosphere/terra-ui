@@ -364,7 +364,7 @@ const Environments = () => {
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
-      Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
+      Ajax().Runtimes.runtimeWrapper(compute).stop() :
       Ajax().Apps.app(compute.googleProject, compute.appName).pause())
     await wrappedPauseCompute()
     await loadData()

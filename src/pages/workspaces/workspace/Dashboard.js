@@ -288,15 +288,14 @@ const WorkspaceDashboard = _.flow(
     loadConsent()
     loadWsTags()
 
+    // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
+    if (Utils.isOwner(accessLevel) && _.size(owners) === 1) {
+      loadAcl()
+    }
+
     if (!azureContext) {
       loadStorageCost()
       loadBucketSize()
-
-      // If the current user is the only owner of the workspace, load the ACL to check if the workspace is shared.
-      // Azure workspaces do not yet support can-share, so only doing this for Google workspaces.
-      if (Utils.isOwner(accessLevel) && _.size(owners) === 1) {
-        loadAcl()
-      }
     } else {
       loadAzureStorage()
 
