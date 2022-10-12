@@ -286,7 +286,6 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
-  const setTableExists = _.includes(`${tableName}_set`, _.keys(entityMetadata))
   const setTableNames = _.filter(v => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata))
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
@@ -402,7 +401,6 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onUpdateSuccess: onRenameTable,
       getAllSavedColumnSettings,
       updateAllSavedColumnSettings,
-      setTableExists,
       setTableNames,
       namespace, name,
       selectedDataType: tableName,

@@ -15,7 +15,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
-const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSettings, updateAllSavedColumnSettings, setTableExists, setTableNames, namespace, name, selectedDataType }) => {
+const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSettings, updateAllSavedColumnSettings, setTableNames, namespace, name, selectedDataType }) => {
   // State
   const [newName, setNewName] = useState('')
   const [renaming, setRenaming] = useState(false)
@@ -84,7 +84,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
         }
       }
     }),
-    setTableExists && div({
+    !_.isEmpty(setTableNames) && div({
       style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
     }, [
       div({ style: { display: 'flex' } }, [
