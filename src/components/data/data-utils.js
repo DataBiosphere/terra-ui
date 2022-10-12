@@ -64,6 +64,8 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
 
 const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
+export const getRootTypeForSetTable = tableName => _.replace(/(_set)+$/, '', tableName)
+
 export const entityAttributeText = (attributeValue, machineReadable) => {
   const { type, isList } = getAttributeType(attributeValue)
 
