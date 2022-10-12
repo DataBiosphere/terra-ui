@@ -54,7 +54,7 @@ module.exports = {
     'operator-linebreak': ['warn', 'after'],
     'padded-blocks': ['warn', 'never'],
     'quote-props': ['warn', 'as-needed'],
-    'quotes': ['warn', 'single'],
+    'quotes': ['warn', 'single', { 'avoidEscape': true }],
     'semi': ['warn', 'never'],
     'space-before-blocks': 'warn',
     'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
