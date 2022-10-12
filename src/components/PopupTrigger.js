@@ -113,7 +113,7 @@ export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) 
 }
 
 export const makeMenuIcon = (iconName, props) => {
-  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
+  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.3rem' } }, props))
 }
 
 export const MenuButton = forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {

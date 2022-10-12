@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render } from '@testing-library/react'
+import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -52,8 +53,6 @@ jest.mock('src/libs/config', () => ({
 }))
 
 jest.mock('src/libs/ajax')
-const mockRuntimesStartFn = jest.fn()
-const mockRuntime = jest.fn()
 
 beforeEach(() => {
   MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
@@ -66,17 +65,12 @@ beforeEach(() => {
     ]) : div([])
   })
 
-  Ajax.mockImplementation(() => {
-    mockRuntime.mockReturnValue({ start: mockRuntimesStartFn })
-    return {
-      Metrics: {
-        captureEvent: () => {}
-      },
-      Runtimes: {
-        runtime: mockRuntime
-      }
+  Ajax.mockImplementation(() => ({
+    Metrics: {
+      captureEvent: () => {}
     }
   })
+  )
 
   getGalaxyComputeCost.mockImplementation(() => {
     return GALAXY_COMPUTE_COST
@@ -530,8 +524,22 @@ describe('ContextBar - actions', () => {
     getByText(tools.RStudio.label)
   })
 
-  it('clicking Terminal will attempt to start currently stopped runtime', () => {
+  it('clicking Terminal will attempt to start currently stopped runtime', async () => {
     // Arrange
+    const mockRuntimesStartFn = jest.fn()
+    const mockRuntimeWrapper = jest.fn(() => ({
+      start: mockRuntimesStartFn
+    }))
+    Ajax.mockImplementation(() => ({
+      Runtimes: {
+        runtimeWrapper: mockRuntimeWrapper
+      },
+      Metrics: {
+        captureEvent: jest.fn()
+      }
+    })
+    )
+
     global.window = Object.create(window)
     const url = 'http://dummy.com'
     Object.defineProperty(window, 'location', {
@@ -541,26 +549,48 @@ describe('ContextBar - actions', () => {
       writable: true,
       hash: '/'
     })
+    const runtime = {
+      ...jupyter,
+      status: 'Stopped'
+    }
     const jupyterContextBarProps = {
       ...contextBarProps,
-      runtimes: [{
-        ...jupyter,
-        status: 'Stopped'
-      }],
+      runtimes: [runtime],
       persistentDisks: [runtimeDisk]
     }
 
     // Act
-    const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
-    fireEvent.click(getByTestId('terminal-button-id'))
+    await act(async () => {
+      const { getByTestId } = render(h(ContextBar, jupyterContextBarProps))
+      await fireEvent.click(getByTestId('terminal-button-id'))
+    })
+
 
     // Assert
-    expect(Ajax().Runtimes.runtime).toBeCalledWith(jupyter.googleProject, jupyter.runtimeName)
-    expect(mockRuntimesStartFn).toBeCalledTimes(1)
+    expect(mockRuntimeWrapper).toHaveBeenCalledWith(expect.objectContaining({
+      status: runtime.status,
+      googleProject: runtime.googleProject,
+      runtimeName: runtime.runtimeName
+    }))
+    expect(mockRuntimesStartFn).toHaveBeenCalled()
   })
 
   it('clicking Terminal will not attempt to start an already running Jupyter notebook', () => {
     // Arrange
+    const mockRuntimesStartFn = jest.fn()
+    const mockRuntimeWrapper = jest.fn(() => ({
+      start: mockRuntimesStartFn
+    }))
+    Ajax.mockImplementation(() => ({
+      Runtimes: {
+        runtimeWrapper: mockRuntimeWrapper
+      },
+      Metrics: {
+        captureEvent: jest.fn()
+      }
+    })
+    )
+
     global.window = Object.create(window)
     const url = 'http://dummy.com'
     Object.defineProperty(window, 'location', {
@@ -583,6 +613,7 @@ describe('ContextBar - actions', () => {
     fireEvent.click(getByTestId('terminal-button-id'))
 
     // Assert
+    expect(mockRuntimeWrapper).not.toHaveBeenCalled()
     expect(mockRuntimesStartFn).not.toHaveBeenCalled()
   })
 
