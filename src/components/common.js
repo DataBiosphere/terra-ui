@@ -581,6 +581,7 @@ export const DeleteConfirmationModal = ({
     ]),
     onDismiss,
     okButton: h(ButtonPrimary, {
+      'data-testid': 'confirm-delete',
       onClick: onConfirm,
       disabled: !isConfirmed,
       tooltip: isConfirmed ? undefined : 'You must type the confirmation message'

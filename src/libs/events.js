@@ -42,7 +42,7 @@ const eventsList = {
   dataTableLoadColumnSettings: 'dataTable:loadColumnSettings',
   dataTableVersioningViewVersionHistory: 'dataTable:versioning:viewVersionHistory',
   dataTableVersioningSaveVersion: 'dataTable:versioning:saveVersion',
-  dataTableVersioningRestoreVersion: 'dataTable:versioning:restoreVersion',
+  dataTableVersioningImportVersion: 'dataTable:versioning:importVersion',
   dataTableVersioningDeleteVersion: 'dataTable:versioning:deleteVersion',
   featurePreviewToggle: 'featurePreview:toggle',
   // Note: "external" refers to the common Job Manager deployment, not a Job Manager bundled in CromwellApp

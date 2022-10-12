@@ -2,9 +2,19 @@ import '@testing-library/jest-dom'
 
 import { render } from '@testing-library/react'
 import _ from 'lodash/fp'
-import { entityAttributeText, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
+import { entityAttributeText, getRootTypeForSetTable, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'
 import * as Utils from 'src/libs/utils'
 
+
+describe('getRootTypeForSetTable', () => {
+  it('gets member type for set tables', () => {
+    expect(getRootTypeForSetTable('sample_set')).toBe('sample')
+  })
+
+  it('gets member type for nested set tables', () => {
+    expect(getRootTypeForSetTable('sample_set_set')).toBe('sample')
+  })
+})
 
 describe('entityAttributeText', () => {
   describe('basic data types', () => {
