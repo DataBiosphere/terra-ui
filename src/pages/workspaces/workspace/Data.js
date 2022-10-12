@@ -141,7 +141,7 @@ const ReferenceDataContent = ({ workspace, referenceKey }) => {
       style: {
         display: 'flex', justifyContent: 'flex-end',
         padding: '1rem',
-        background: colors.light(),
+        background: colors.light(0.5),
         borderBottom: `1px solid ${colors.grey(0.4)}`
       }
     }, [
@@ -887,7 +887,7 @@ const WorkspaceData = _.flow(
             style: { flex: '1 1 auto' },
             controlPanelStyle: {
               padding: '1rem',
-              background: colors.light()
+              background: colors.light(0.5)
             },
             workspace,
             extraMenuItems: h(Link, {
