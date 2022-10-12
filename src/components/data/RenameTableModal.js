@@ -64,7 +64,9 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
             await handleTableRename({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) })
           }
           await moveTableColumnSettings([{ oldName: selectedDataType, newName }, ..._.map(tableName => ({ oldName: tableName, newName: tableName.replace(selectedDataType, newName) }), setTableNames)])
-        } else await moveTableColumnSettings([{ oldName: selectedDataType, newName }])
+        } else {
+          await moveTableColumnSettings([{ oldName: selectedDataType, newName }])
+        }
 
         onUpdateSuccess()
       })
