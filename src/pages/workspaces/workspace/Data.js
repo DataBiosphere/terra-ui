@@ -8,7 +8,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
-import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
+import { EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
@@ -384,7 +384,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     }),
     savingVersion && h(DataTableSaveVersionModal, {
       workspace,
-      entityType: isSet ? _.replace(/(_set)+$/, '', tableName) : tableName,
+      entityType: isSet ? getRootTypeForSetTable(tableName) : tableName,
       allEntityTypes: _.keys(entityMetadata),
       includeSetsByDefault: isSet,
       onDismiss: () => setSavingVersion(false),
@@ -692,7 +692,7 @@ const WorkspaceData = _.flow(
                       onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
                         setShowDataTableVersionHistory(_.set(type, showVersionHistory))
                         if (showVersionHistory) {
-                          loadDataTableVersions(type.endsWith('_set') ? _.replace(/(_set)+$/, '', type) : type)
+                          loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type)
                         }
                       })
                     })
@@ -700,7 +700,7 @@ const WorkspaceData = _.flow(
                   isShowingVersionHistory && h(DataTableVersions, {
                     ...Utils.cond(
                       [type.endsWith('_set'), () => {
-                        const referencedType = _.replace(/(_set)+$/, '', type)
+                        const referencedType = getRootTypeForSetTable(type)
                         return _.update(
                           'versions',
                           _.filter(version => _.includes(type, version.includedSetEntityTypes)),
