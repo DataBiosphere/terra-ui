@@ -14,6 +14,7 @@ import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
+import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
@@ -287,6 +288,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
 
   const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
+  const setTableNames = _.filter(v => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata))
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
 
@@ -299,6 +301,11 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const [savingVersion, setSavingVersion] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const {
+    getAllSavedColumnSettings,
+    updateAllSavedColumnSettings
+  } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: tableName, entityMetadata })
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -396,6 +403,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
       onUpdateSuccess: onRenameTable,
+      getAllSavedColumnSettings,
+      updateAllSavedColumnSettings,
+      setTableNames,
       namespace, name,
       selectedDataType: tableName,
       entityMetadata
