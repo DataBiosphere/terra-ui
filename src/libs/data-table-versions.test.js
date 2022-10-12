@@ -91,11 +91,11 @@ describe('saveDataTableVersion', () => {
 
   beforeEach(() => {
     getEntityMetadata = jest.fn().mockReturnValue(Promise.resolve(entityMetadata))
-    paginatedEntitiesOfType = jest.fn().mockImplementation(entityType => Promise.resolve({
+    paginatedEntitiesOfType = jest.fn().mockImplementation((entityType, { page }) => Promise.resolve({
       resultMetadata: {
-        filterePageCount: 1
+        filteredPageCount: Math.ceil((entities[entityType] || []).length / 2)
       },
-      results: entities[entityType] || []
+      results: (entities[entityType] || []).slice(2 * (page - 1), 2 * page)
     }))
     uploadObject = jest.fn()
     patchObject = jest.fn()
