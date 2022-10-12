@@ -87,7 +87,7 @@ describe('DataTableVersion', () => {
     let renderResult
 
     beforeEach(() => {
-      renderResult = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onRestore: jest.fn() }))
+      renderResult = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onImport: jest.fn() }))
     })
 
     it('renders entity type and timestamp', () => {
@@ -113,24 +113,24 @@ describe('DataTableVersion', () => {
     })
   })
 
-  it('renders restore button and confirms restore', () => {
-    const onRestore = jest.fn()
-    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onRestore }))
+  it('renders import button and confirms import', () => {
+    const onImport = jest.fn()
+    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete: jest.fn(), onImport }))
 
-    const restoreButton = getByText('Import')
-    fireEvent.click(restoreButton)
+    const importButton = getByText('Import')
+    fireEvent.click(importButton)
 
     expect(getByText(/This version will be imported to a new data table/)).toBeTruthy()
 
-    const confirmRestoreButton = getByTestId('confirm-restore')
-    fireEvent.click(confirmRestoreButton)
+    const confirmImportButton = getByTestId('confirm-import')
+    fireEvent.click(confirmImportButton)
 
-    expect(onRestore).toHaveBeenCalled()
+    expect(onImport).toHaveBeenCalled()
   })
 
   it('renders delete button and confirms delete', () => {
     const onDelete = jest.fn()
-    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete, onRestore: jest.fn() }))
+    const { getByTestId, getByText } = render(h(DataTableVersion, { version: testVersion, onDelete, onImport: jest.fn() }))
 
     const deleteButton = getByText('Delete')
     fireEvent.click(deleteButton)

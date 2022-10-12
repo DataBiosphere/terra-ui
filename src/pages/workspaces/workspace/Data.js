@@ -472,7 +472,7 @@ const WorkspaceData = _.flow(
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
 
-  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, restoreDataTableVersion } = useDataTableVersions(workspace)
+  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -949,8 +949,8 @@ const WorkspaceData = _.flow(
               await deleteDataTableVersion(selectedData.version)
               setSelectedData(undefined)
             }),
-            onRestore: reportErrorAndRethrow('Error restoring version', async () => {
-              const { tableName } = await restoreDataTableVersion(selectedData.version)
+            onImport: reportErrorAndRethrow('Error importing version', async () => {
+              const { tableName } = await importDataTableVersion(selectedData.version)
               await loadMetadata()
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })

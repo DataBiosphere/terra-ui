@@ -109,13 +109,13 @@ export const deleteDataTableVersion = async (workspace, version) => {
   await Ajax().Buckets.delete(googleProject, bucketName, objectName)
 }
 
-export const tableNameForRestore = version => {
+export const tableNameForImport = version => {
   const timestamp = new Date(version.timestamp)
   return `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', addMinutes(timestamp.getTimezoneOffset(), timestamp))}`
 }
 
-export const restoreDataTableVersion = async (workspace, version) => {
-  Ajax().Metrics.captureEvent(Events.dataTableVersioningRestoreVersion, {
+export const importDataTableVersion = async (workspace, version) => {
+  Ajax().Metrics.captureEvent(Events.dataTableVersioningImportVersion, {
     ...extractWorkspaceDetails(workspace.workspace),
     tableName: version.entityType
   })
@@ -127,10 +127,10 @@ export const restoreDataTableVersion = async (workspace, version) => {
 
   const zip = await JSZip.loadAsync(zipData)
 
-  const restoredTableName = tableNameForRestore(version)
+  const importedTableName = tableNameForImport(version)
   const entities = JSON.parse(await zip.file(`json/${version.entityType}.json`).async('text'))
   const entityUpdates = _.map(({ name, attributes }) => ({
-    entityType: restoredTableName,
+    entityType: importedTableName,
     name,
     operations: Object.entries(attributes).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
   }), entities)
@@ -140,18 +140,18 @@ export const restoreDataTableVersion = async (workspace, version) => {
   for (const setTableName of _.sortBy(_.identity, version.includedSetEntityTypes)) {
     const originalSetTableMemberType = setTableName.slice(0, -4)
 
-    const restoredSetTableName = _.replace(version.entityType, restoredTableName, setTableName)
-    const restoredSetTableMemberType = restoredSetTableName.slice(0, -4)
+    const importedSetTableName = _.replace(version.entityType, importedTableName, setTableName)
+    const importedSetTableMemberType = importedSetTableName.slice(0, -4)
 
     const setTableEntities = JSON.parse(await zip.file(`json/${setTableName}.json`).async('text'))
     const setTableEntityUpdates = _.map(({ name, attributes }) => ({
-      entityType: restoredSetTableName,
+      entityType: importedSetTableName,
       name,
       operations: Object.entries({
         ...attributes,
         [`${originalSetTableMemberType}s`]: _.update(
           'items',
-          _.map(_.set('entityType', restoredSetTableMemberType)),
+          _.map(_.set('entityType', importedSetTableMemberType)),
           attributes[`${originalSetTableMemberType}s`]
         )
       }).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
@@ -160,7 +160,7 @@ export const restoreDataTableVersion = async (workspace, version) => {
     await Ajax().Workspaces.workspace(namespace, name).upsertEntities(setTableEntityUpdates)
   }
 
-  return { tableName: restoredTableName }
+  return { tableName: importedTableName }
 }
 
 export const useDataTableVersions = workspace => {
@@ -202,8 +202,8 @@ export const useDataTableVersions = workspace => {
       setDataTableVersions(_.update([version.entityType, 'versions'], _.remove({ timestamp: version.timestamp })))
     },
 
-    restoreDataTableVersion: version => {
-      return restoreDataTableVersion(workspace, version)
+    importDataTableVersion: version => {
+      return importDataTableVersion(workspace, version)
     }
   }
 }

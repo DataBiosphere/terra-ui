@@ -6,16 +6,16 @@ import { spinner } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
-import { tableNameForRestore } from 'src/libs/data-table-versions'
+import { tableNameForImport } from 'src/libs/data-table-versions'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const DataTableVersion = ({ version, onDelete, onRestore }) => {
+export const DataTableVersion = ({ version, onDelete, onImport }) => {
   const { entityType, includedSetEntityTypes, timestamp, description } = version
 
-  const [showRestoreConfirmation, setShowRestoreConfirmation] = useState(false)
+  const [showImportConfirmation, setShowImportConfirmation] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -39,7 +39,7 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
     div({ style: { display: 'flex', marginBottom: '1rem' } }, [
       h(ButtonPrimary, {
         disabled: busy,
-        onClick: () => setShowRestoreConfirmation(true)
+        onClick: () => setShowImportConfirmation(true)
       }, ['Import']),
       h(ButtonPrimary, {
         danger: true,
@@ -48,19 +48,19 @@ export const DataTableVersion = ({ version, onDelete, onRestore }) => {
         onClick: () => setShowDeleteConfirmation(true)
       }, ['Delete'])
     ]),
-    showRestoreConfirmation && h(DataTableRestoreVersionModal, {
+    showImportConfirmation && h(DataTableImportVersionModal, {
       version,
       onConfirm: async () => {
-        setShowRestoreConfirmation(false)
+        setShowImportConfirmation(false)
         setBusy(true)
         try {
-          await onRestore()
+          await onImport()
         } catch (err) {
           setBusy(false)
         }
       },
       onDismiss: () => {
-        setShowRestoreConfirmation(false)
+        setShowImportConfirmation(false)
       }
     }),
     showDeleteConfirmation && h(DeleteConfirmationModal, {
@@ -159,13 +159,13 @@ export const DataTableSaveVersionModal = ({ entityType, allEntityTypes, includeS
   ])
 }
 
-export const DataTableRestoreVersionModal = ({ version, onDismiss, onConfirm }) => {
+export const DataTableImportVersionModal = ({ version, onDismiss, onConfirm }) => {
   return h(Modal, {
     onDismiss,
     title: 'Import version',
-    okButton: h(ButtonPrimary, { 'data-testid': 'confirm-restore', onClick: () => onConfirm() }, ['Import'])
+    okButton: h(ButtonPrimary, { 'data-testid': 'confirm-import', onClick: () => onConfirm() }, ['Import'])
   }, [
     'This version will be imported to a new data table: ',
-    span({ style: { fontWeight: 600 } }, [tableNameForRestore(version)])
+    span({ style: { fontWeight: 600 } }, [tableNameForImport(version)])
   ])
 }

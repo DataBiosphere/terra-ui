@@ -1,7 +1,7 @@
 import JSZip from 'jszip'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { restoreDataTableVersion, saveDataTableVersion, tableNameForRestore } from 'src/libs/data-table-versions'
+import { importDataTableVersion, saveDataTableVersion, tableNameForImport } from 'src/libs/data-table-versions'
 
 
 jest.mock('src/libs/ajax')
@@ -11,9 +11,9 @@ jest.mock('src/libs/auth', () => ({
   getUser: jest.fn()
 }))
 
-describe('tableNameForRestore', () => {
-  it('names restored table with version timestamp', () => {
-    expect(tableNameForRestore({
+describe('tableNameForImport', () => {
+  it('names imported table with version timestamp', () => {
+    expect(tableNameForImport({
       url: 'gs://workspace-bucket/.data-table-versions/thing/thing.v1663096364243',
       createdBy: 'user@example.com',
       entityType: 'thing',
@@ -228,7 +228,7 @@ describe('saveDataTableVersion', () => {
   })
 })
 
-describe('restoreDataTableVersion', () => {
+describe('importDataTableVersion', () => {
   const workspace = { workspace: { namespace: 'test', name: 'test', googleProject: 'test-project', bucketName: 'test-bucket' } }
   const version = {
     url: 'gs://workspace-bucket/.data-table-versions/thing/thing.v1663096364243.zip',
@@ -304,17 +304,17 @@ describe('restoreDataTableVersion', () => {
   })
 
   it('downloads version from GCS', async () => {
-    await restoreDataTableVersion(workspace, version)
+    await importDataTableVersion(workspace, version)
     expect(getObjectPreview).toHaveBeenCalledWith('test-project', 'test-bucket', '.data-table-versions/thing/thing.v1663096364243.zip', true)
   })
 
   it('imports table and set tables', async () => {
-    await restoreDataTableVersion(workspace, version)
+    await importDataTableVersion(workspace, version)
     expect(upsertEntities).toHaveBeenCalledTimes(2)
   })
 
   it('rewrites entity type', async () => {
-    await restoreDataTableVersion(workspace, version)
+    await importDataTableVersion(workspace, version)
 
     const entities = upsertEntities.mock.calls[0][0]
     expect(entities[0].entityType).toBe('thing_2022-09-13_19-12-44')
@@ -344,8 +344,8 @@ describe('restoreDataTableVersion', () => {
     ]))
   })
 
-  it('returns restored table name', async () => {
-    const { tableName } = await restoreDataTableVersion(workspace, version)
+  it('returns imported table name', async () => {
+    const { tableName } = await importDataTableVersion(workspace, version)
     expect(tableName).toBe('thing_2022-09-13_19-12-44')
   })
 })
