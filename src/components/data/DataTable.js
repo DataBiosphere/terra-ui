@@ -150,11 +150,13 @@ const DataTable = props => {
   const wdsRowDataAjax = async () => {
     const wdsPage = await Ajax(signal).WorkspaceDataService
       .getRecords(workspace.workspace.workspaceId, entityType,
-        {
+        _.merge({
           offset: (pageNumber - 1) * itemsPerPage,
           limit: itemsPerPage,
           sort: sort.direction
-        })
+        },
+        sort.field === 'name' ? {} : { sortAttribute: sort.field }
+        ))
 
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords

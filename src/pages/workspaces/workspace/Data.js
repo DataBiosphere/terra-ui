@@ -283,8 +283,11 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
-  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+const DataTableActions = ({
+  workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory,
+  enableTSV = true, enableExport = true, enableRename = true, enableDelete = true, dataProvider = workspaceDataTypes.entities
+}) => {
+  const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
@@ -299,6 +302,17 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  const deleteFunction = dataProvider === workspaceDataTypes.entities ? async () => {
+    await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+    Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+      ...extractWorkspaceDetails(workspace.workspace)
+    })
+  } : async () => {
+    await Ajax().WorkspaceDataService.deleteTable(workspaceId, tableName)
+    // TODO: create new mixpanel metric for WDS delete data table
+  }
+
+
   return h(Fragment, [
     h(MenuTrigger, {
       side: 'bottom',
@@ -312,7 +326,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        h(MenuButton, {
+        enableTSV && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
@@ -326,7 +340,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             })
           }
         }, 'Download TSV'),
-        h(MenuButton, {
+        enableExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
             withErrorReporting('Error loading entities.')
@@ -336,14 +350,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             setExporting(true)
           })
         }, 'Export to workspace'),
-        h(MenuButton, {
+        enableRename && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-        h(MenuButton, {
+        enableDelete && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
@@ -403,10 +417,12 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onDismiss: () => setDeleting(false),
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
-          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-            ...extractWorkspaceDetails(workspace.workspace)
-          })
+          await deleteFunction()
+          // await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          // Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+          //   ...extractWorkspaceDetails(workspace.workspace)
+          // })
+          setDeleting(false)
           onDeleteTable(tableName)
         } catch (error) {
           setDeleting(false)
@@ -736,7 +752,27 @@ const WorkspaceData = _.flow(
                       onClick: () => {
                         setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name })
                         forceRefresh()
-                      }
+                      },
+                      after: h(DataTableActions, {
+                        dataProvider: workspaceDataTypes.wds,
+                        tableName: typeDef.name,
+                        rowCount: typeDef.count,
+                        entityMetadata,
+                        workspace,
+                        enableDelete: true,
+                        enableRename: false,
+                        enableExport: false,
+                        enableTSV: false,
+                        onRenameTable: undefined,
+                        onDeleteTable: tableName => {
+                          setSelectedData(undefined)
+                          setWdsSchema(_.remove(typeDef => typeDef.name === tableName, wdsSchema))
+                          forceRefresh() // TODO: this probably isn't correct
+                        },
+                        isShowingVersionHistory: false,
+                        onSaveVersion: undefined,
+                        onToggleVersionHistory: undefined
+                      })
                     })
                   ])
                 }, wdsSchema)

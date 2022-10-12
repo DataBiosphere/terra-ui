@@ -1230,9 +1230,15 @@ const WorkspaceDataService = signal => ({
   },
   getRecords: async (instanceId, recordType, parameters) => {
     const res = await fetchWDS(`${instanceId}/search/v0.2/${recordType}`,
-      _.mergeAll([authOpts(), jsonBody(parameters), { method: 'POST' }]))
+      _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }]))
     return res.json()
+  },
+  deleteTable: async (instanceId, recordType) => {
+    const res = await fetchWDS(`${instanceId}/types/v0.2/${recordType}`,
+      _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
+    return res
   }
+
 })
 
 
