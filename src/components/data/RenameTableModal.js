@@ -22,7 +22,7 @@ const RenameTableModal = ({ onDismiss, onUpdateSuccess, getAllSavedColumnSetting
   const [renameSetTables, setRenameSetTables] = useState(false)
 
   const handleTableRename = async ({ oldName, newName }) => {
-    await Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
+    Ajax().Metrics.captureEvent(Events.workspaceDataRenameTable, { oldName, newName })
     await Ajax().Workspaces.workspace(namespace, name).renameEntityType(oldName, newName)
   }
 
