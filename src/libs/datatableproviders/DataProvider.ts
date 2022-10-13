@@ -64,6 +64,9 @@ export type GetPage = (workspaceId: string, entityType: string, pageNumber: numb
 // eslint-disable-next-line no-unused-vars
 export type GetMetadata = (workspaceId: string, namespace: string, name: string) => Promise<EntityMetadata>
 
+// eslint-disable-next-line no-unused-vars
+export type DeleteTable = (workspaceId: string, namespace: string, name: string, entityType: string) => Promise<any>
+
 export interface DataProviderFeatures {
     enableTsvDownload: boolean,
     enableTypeDeletion: boolean,
@@ -76,9 +79,10 @@ export interface DataProviderFeatures {
 export interface DataProvider {
     features: DataProviderFeatures,
     getPage: GetPage,
+    // TODO: getMetadata is unused?
     // getMetadata: GetMetadata
+    deleteTable: DeleteTable
     // todos:
-    // deleteType: function, see also enableTypeDeletion
     // downloadTsv: function, see also enableTsvDownload
     // updateAttribute: function, see also boolean
 }

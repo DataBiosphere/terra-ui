@@ -304,16 +304,13 @@ const DataTableActions = ({
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  const deleteFunction = dataProvider === workspaceDataTypes.entities ? async () => {
-    await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+  const deleteFunction = async () => {
+    await dataProvider.deleteTable(workspaceId, namespace, name, tableName)
+    // TODO: add WDS vs. Entity Service property to the mixpanel event
     Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
       ...extractWorkspaceDetails(workspace.workspace)
     })
-  } : async () => {
-    await Ajax().WorkspaceDataService.deleteTable(workspaceId, tableName)
-    // TODO: create new mixpanel metric for WDS delete data table
   }
-
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -420,10 +417,6 @@ const DataTableActions = ({
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
           await deleteFunction()
-          // await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
-          // Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-          //   ...extractWorkspaceDetails(workspace.workspace)
-          // })
           setDeleting(false)
           onDeleteTable(tableName)
         } catch (error) {

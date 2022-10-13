@@ -2,7 +2,7 @@
 import { ValueKeyIteratee } from 'lodash'
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataProvider, DataProviderFeatures, EntityQuerySortDirection, GetMetadata, GetPage } from 'src/libs/datatableproviders/DataProvider'
+import { DataProvider, DataProviderFeatures, DeleteTable, EntityQuerySortDirection, GetMetadata, GetPage } from 'src/libs/datatableproviders/DataProvider'
 
 
 export class EntityServiceDataProvider implements DataProvider {
@@ -29,5 +29,9 @@ export class EntityServiceDataProvider implements DataProvider {
 
   getMetadata: GetMetadata = async (_workspaceId: string, namespace: string, name: string) => {
     return await Ajax().Workspaces.workspace(namespace, name).entityMetadata()
+  }
+
+  deleteTable: DeleteTable = async (_workspaceId: string, namespace: string, name: string, entityType: string) => {
+    return await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(entityType)
   }
 }
