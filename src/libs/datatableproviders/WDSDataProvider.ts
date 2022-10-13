@@ -26,7 +26,8 @@ export class WDSDataProvider implements DataProvider {
   }
 
   getPage: GetPage = async (workspaceId: string, entityType: string, pageNumber: number,
-    itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection) => {
+    itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection,
+    _namespace: string, _name: string, _snapshotName: string, _googleProject: string, _activeTextFilter: string, _filterOperator: string) => {
     const wdsPage = await Ajax().WorkspaceDataService
       .getRecords(workspaceId, entityType,
         _.merge({
@@ -66,7 +67,7 @@ export class WDSDataProvider implements DataProvider {
     }
   }
 
-  getMetadata: GetMetadata = async (workspaceId: string) => {
+  getMetadata: GetMetadata = async (workspaceId: string, _namespace: string, _name: string) => {
     const wdsSchema: RecordTypeSchema[] = await Ajax().WorkspaceDataService.getSchema(workspaceId)
     const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
     return _.mapValues(typeDef => {

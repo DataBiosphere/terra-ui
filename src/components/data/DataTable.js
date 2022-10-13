@@ -132,40 +132,14 @@ const DataTable = props => {
   const table = useRef()
   const signal = useCancellation()
 
-  // branching for Entity Service (Rawls) vs. WDS
-
-  const features = !!dataProvider ? dataProvider.features : {
-    enableTsvDownload: true,
-    enableTypeDeletion: true,
-    enableTypeRenaming: true,
-    enableExport: true,
-    enablePointCorrection: true,
-    enableFiltering: true
-  }
-
-  // Ajax call for Entity Service; returns its response unchanged
-  const entityServiceRowDataAjax = async () => {
-    return await Ajax(signal).Workspaces.workspace(namespace, name)
-      .paginatedEntitiesOfType(entityType, _.pickBy(_.trim, {
-        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
-        ...(!!snapshotName ?
-          { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter, filterOperator })
-      }))
-  }
-
-  const rowDataAjax = !!dataProvider ?
-    () => dataProvider.getPage(workspace.workspace.workspaceId, entityType, pageNumber,
-      itemsPerPage, sort.field, sort.direction) :
-    entityServiceRowDataAjax
-
   // Helpers
-
   const loadData = !!entityMetadata && _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await rowDataAjax()
+    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(workspace.workspace.workspaceId,
+      entityType, pageNumber, itemsPerPage, sort.field, sort.direction, namespace, name, snapshotName,
+      googleProject, activeTextFilter, filterOperator)
 
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
@@ -283,7 +257,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        features.enableFiltering && h(MenuTrigger, {
+        dataProvider.features.enableFiltering && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },
@@ -315,7 +289,7 @@ const DataTable = props => {
         }, [h(ButtonSecondary, {
           style: { margin: '0rem 1.5rem' }
         }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
-        features.enableFiltering && !snapshotName && div({ style: { width: 300 } }, [
+        dataProvider.features.enableFiltering && !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',

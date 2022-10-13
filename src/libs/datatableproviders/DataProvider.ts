@@ -58,9 +58,11 @@ export interface EntityQueryResponse {
 // eslint-disable-next-line no-unused-vars
 export type GetPage = (workspaceId: string, entityType: string, pageNumber: number,
     // eslint-disable-next-line no-unused-vars
-    itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection) => Promise<EntityQueryResponse> // TODO: what other arguments are needed?
+    itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection,
+    // eslint-disable-next-line no-unused-vars
+    namespace: string, name: string, snapshotName: string, googleProject: string, activeTextFilter: string, filterOperator: string) => Promise<EntityQueryResponse>
 // eslint-disable-next-line no-unused-vars
-export type GetMetadata = (workspaceId: string) => Promise<EntityMetadata>// TODO: what other arguments are needed?
+export type GetMetadata = (workspaceId: string, namespace: string, name: string) => Promise<EntityMetadata>
 
 export interface DataProviderFeatures {
     enableTsvDownload: boolean,
@@ -74,7 +76,7 @@ export interface DataProviderFeatures {
 export interface DataProvider {
     features: DataProviderFeatures,
     getPage: GetPage,
-    getMetadata: GetMetadata
+    // getMetadata: GetMetadata
     // todos:
     // deleteType: function, see also enableTypeDeletion
     // downloadTsv: function, see also enableTsvDownload
