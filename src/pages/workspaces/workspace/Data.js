@@ -26,6 +26,8 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
+import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
+import { WDSDataProvider } from 'src/libs/datatableproviders/WDSDataProvider'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
@@ -285,7 +287,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
 const DataTableActions = ({
   workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory,
-  enableTSV = true, enableExport = true, enableRename = true, enableDelete = true, dataProvider = workspaceDataTypes.entities
+  dataProvider
 }) => {
   const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
@@ -326,7 +328,7 @@ const DataTableActions = ({
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        enableTSV && h(MenuButton, {
+        dataProvider.features.enableTsvDownload && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
@@ -340,7 +342,7 @@ const DataTableActions = ({
             })
           }
         }, 'Download TSV'),
-        enableExport && h(MenuButton, {
+        dataProvider.features.enableExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
             withErrorReporting('Error loading entities.')
@@ -350,14 +352,14 @@ const DataTableActions = ({
             setExporting(true)
           })
         }, 'Export to workspace'),
-        enableRename && h(MenuButton, {
+        dataProvider.features.enableTypeRenaming && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-        enableDelete && h(MenuButton, {
+        dataProvider.features.enableTypeDeletion && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
@@ -491,6 +493,9 @@ const WorkspaceData = _.flow(
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
+
+  const entityServiceDataProvider = new EntityServiceDataProvider()
+  const wdsDataProvider = new WDSDataProvider()
 
   const loadEntityMetadata = async () => {
     try {
@@ -703,6 +708,7 @@ const WorkspaceData = _.flow(
                       forceRefresh()
                     },
                     after: h(DataTableActions, {
+                      dataProvider: entityServiceDataProvider,
                       tableName: type,
                       rowCount: typeDetails.count,
                       entityMetadata,
@@ -754,15 +760,11 @@ const WorkspaceData = _.flow(
                         forceRefresh()
                       },
                       after: h(DataTableActions, {
-                        dataProvider: workspaceDataTypes.wds,
+                        dataProvider: wdsDataProvider,
                         tableName: typeDef.name,
                         rowCount: typeDef.count,
                         entityMetadata,
                         workspace,
-                        enableDelete: true,
-                        enableRename: false,
-                        enableExport: false,
-                        enableTSV: false,
                         onRenameTable: undefined,
                         onDeleteTable: tableName => {
                           setSelectedData(undefined)
