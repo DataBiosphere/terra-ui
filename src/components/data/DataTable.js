@@ -62,11 +62,10 @@ const DataTable = props => {
     persist, refreshKey,
     snapshotName,
     deleteColumnUpdateMetadata,
-    enableSearch = true,
     controlPanelStyle,
     border = true,
     extraColumnActions,
-    loadRowDataStrategy
+    dataProvider
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -133,7 +132,16 @@ const DataTable = props => {
   const table = useRef()
   const signal = useCancellation()
 
-  // Helpers
+  // branching for Entity Service (Rawls) vs. WDS
+
+  const features = !!dataProvider ? dataProvider.features : {
+    enableTsvDownload: true,
+    enableTypeDeletion: true,
+    enableTypeRenaming: true,
+    enableExport: true,
+    enablePointCorrection: true,
+    enableFiltering: true
+  }
 
   // Ajax call for Entity Service; returns its response unchanged
   const entityServiceRowDataAjax = async () => {
@@ -146,33 +154,12 @@ const DataTable = props => {
       }))
   }
 
-  // Ajax call for WDS, which maps its response payload into the Entity Service format
-  const wdsRowDataAjax = async () => {
-    const wdsPage = await Ajax(signal).WorkspaceDataService
-      .getRecords(workspace.workspace.workspaceId, entityType,
-        _.merge({
-          offset: (pageNumber - 1) * itemsPerPage,
-          limit: itemsPerPage,
-          sort: sort.direction
-        },
-        sort.field === 'name' ? {} : { sortAttribute: sort.field }
-        ))
+  const rowDataAjax = !!dataProvider ?
+    () => dataProvider.getPage(workspace.workspace.workspaceId, entityType, pageNumber,
+      itemsPerPage, sort.field, sort.direction) :
+    entityServiceRowDataAjax
 
-    // translate WDS to Entity Service
-    const filteredCount = wdsPage.totalRecords
-    const unfilteredCount = wdsPage.totalRecords
-    const results = _.map(rec => {
-      return {
-        entityType,
-        attributes: rec.attributes,
-        name: rec.id
-      }
-    }, wdsPage.records)
-
-    return { results, resultMetadata: { filteredCount, unfilteredCount } }
-  }
-
-  const rowDataAjax = loadRowDataStrategy === 'wds' ? wdsRowDataAjax : entityServiceRowDataAjax
+  // Helpers
 
   const loadData = !!entityMetadata && _.flow(
     Utils.withBusyState(setLoading),
@@ -296,7 +283,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        enableSearch && h(MenuTrigger, {
+        features.enableFiltering && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },
@@ -328,7 +315,7 @@ const DataTable = props => {
         }, [h(ButtonSecondary, {
           style: { margin: '0rem 1.5rem' }
         }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
-        enableSearch && !snapshotName && div({ style: { width: 300 } }, [
+        features.enableFiltering && !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',

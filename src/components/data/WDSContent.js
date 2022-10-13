@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import DataTable from 'src/components/data/DataTable'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { WDSDataProvider } from 'src/libs/datatableproviders/WDSDataProvider'
 
 // This was copied from EntitiesContent, then I deleted lots and lots of stuff
 
@@ -32,9 +33,11 @@ const WDSContent = ({
 
   const entityMetadata = asEntityMetadata(wdsSchema)
 
+  const dataProvider = new WDSDataProvider()
 
   return h(Fragment, [
     h(DataTable, {
+      dataProvider,
       persist: true,
       refreshKey,
       editable: false,
@@ -43,7 +46,6 @@ const WDSContent = ({
       entityMetadata,
       setEntityMetadata: () => entityMetadata,
       loadMetadata: () => entityMetadata,
-      loadRowDataStrategy: 'wds',
       googleProject,
       workspaceId: { namespace, name },
       workspace,
