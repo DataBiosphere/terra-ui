@@ -1,5 +1,3 @@
-
-
 // define metadata structures
 interface EntityTypeMetadata {
     attributeNames: string[],
@@ -52,7 +50,7 @@ export interface EntityQueryResponse {
     resultMetadata: EntityQueryResultMetadata
     results: Entity[]
 }
-// TODO: pass signal argument?
+// TODO: pass signal argument for ajax cancellation?
 // TODO: I want to define these function signatures, including arguments, so any implementing classes must respect them.
 // but, including arguments here leads to unused-vars warnings. Is that expected?
 // eslint-disable-next-line no-unused-vars

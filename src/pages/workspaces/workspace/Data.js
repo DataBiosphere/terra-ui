@@ -285,10 +285,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({
-  workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory,
-  dataProvider
-}) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
   const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
   const isSetOfSets = tableName.endsWith('_set_set')
 
@@ -303,14 +300,6 @@ const DataTableActions = ({
   const [savingVersion, setSavingVersion] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
-
-  const deleteFunction = async () => {
-    await dataProvider.deleteTable(workspaceId, namespace, name, tableName)
-    // TODO: add WDS vs. Entity Service property to the mixpanel event
-    Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-      ...extractWorkspaceDetails(workspace.workspace)
-    })
-  }
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -416,7 +405,11 @@ const DataTableActions = ({
       onDismiss: () => setDeleting(false),
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
-          await deleteFunction()
+          await dataProvider.deleteTable(workspaceId, namespace, name, tableName)
+          // TODO: add WDS vs. Entity Service property to the mixpanel event
+          Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
+            ...extractWorkspaceDetails(workspace.workspace)
+          })
           setDeleting(false)
           onDeleteTable(tableName)
         } catch (error) {
