@@ -35,6 +35,7 @@ import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/Su
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
+import * as WorkspaceFiles from 'src/pages/workspaces/workspace/WorkspaceFiles'
 
 
 /*
@@ -78,6 +79,7 @@ const routes = _.flatten([
   WorkflowDetails.navPaths,
   Upload.navPaths,
   FeaturePreviews.navPaths,
+  WorkspaceFiles.navPaths,
   NotFound.navPaths // must be last
 ])
 

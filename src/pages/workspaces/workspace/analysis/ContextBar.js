@@ -218,7 +218,16 @@ export const ContextBar = ({
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
-        }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])])
+        }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]),
+        h(Clickable, {
+          style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
+          hover: contextBarStyles.hover,
+          'data-testid': 'workspace-files-link',
+          tooltipSide: 'left',
+          href: Nav.getLink('workspace-files', { namespace, name: workspaceName }),
+          tooltipDelay: 100,
+          useTooltipAsLabel: false
+        }, [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])])
       ])
     ])
   ])
