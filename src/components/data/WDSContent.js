@@ -6,8 +6,6 @@ import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { WDSDataProvider } from 'src/libs/datatableproviders/WDSDataProvider'
 
-// This was copied from EntitiesContent, then I deleted lots and lots of stuff
-
 // map the WDS schema response payload to the Entity Service metadata response
 const asEntityMetadata = wdsSchema => _.mapValues(typeDef => {
   return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
@@ -26,13 +24,10 @@ const WDSContent = ({
   // State
   const [refreshKey] = useState(0)
 
-  // const [selectedEntities, setSelectedEntities] = useState({})
-  // const [refreshKey, setRefreshKey] = useState(0)
+  // TODO: something in state management, setEntityMetadata, and/or loadMetadata need to change; reloading the page causes errors
 
   // Render
-
   const entityMetadata = asEntityMetadata(wdsSchema)
-
   const dataProvider = new WDSDataProvider()
 
   return h(Fragment, [

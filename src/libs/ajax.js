@@ -1241,7 +1241,6 @@ const WorkspaceDataService = signal => ({
 
 })
 
-
 export const Ajax = signal => {
   return {
     User: User(signal),
