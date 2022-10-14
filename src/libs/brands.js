@@ -220,7 +220,7 @@ export const brands = {
     name: 'Terra',
     signInName: 'Terra',
     queryName: 'terra',
-    welcomeHeader: 'Welcome to Terra Community Workbench',
+    welcomeHeader: 'Welcome to Terra',
     description: 'Terra is a cloud-native platform for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'app.terra.bio',
     docLinks: [
