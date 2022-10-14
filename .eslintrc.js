@@ -7,7 +7,8 @@ module.exports = {
       'eslint-import-resolver-custom-alias': {
         'alias': {
           'src': './src'
-        }
+        },
+        'extensions': ['.js', '.ts']
       }
     }
   },

@@ -26,6 +26,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
+import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
@@ -283,8 +284,8 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
-  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
+  const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
 
   const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
@@ -320,7 +321,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        h(MenuButton, {
+        dataProvider.features.enableTsvDownload && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
@@ -334,7 +335,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             })
           }
         }, 'Download TSV'),
-        h(MenuButton, {
+        dataProvider.features.enableExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
             withErrorReporting('Error loading entities.')
@@ -344,14 +345,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             setExporting(true)
           })
         }, 'Export to workspace'),
-        h(MenuButton, {
+        dataProvider.features.enableTypeRenaming && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-        h(MenuButton, {
+        dataProvider.features.enableTypeDeletion && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
@@ -416,10 +417,11 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onDismiss: () => setDeleting(false),
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          await dataProvider.deleteTable(signal, workspaceId, namespace, name, tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace)
           })
+          setDeleting(false)
           onDeleteTable(tableName)
         } catch (error) {
           setDeleting(false)
@@ -486,6 +488,8 @@ const WorkspaceData = _.flow(
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
+
+  const entityServiceDataProvider = new EntityServiceDataProvider()
 
   const loadEntityMetadata = async () => {
     try {
@@ -685,6 +689,7 @@ const WorkspaceData = _.flow(
                       forceRefresh()
                     },
                     after: h(DataTableActions, {
+                      dataProvider: entityServiceDataProvider,
                       tableName: type,
                       rowCount: typeDetails.count,
                       entityMetadata,
