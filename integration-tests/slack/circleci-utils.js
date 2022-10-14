@@ -11,7 +11,7 @@ const { parse } = require('path')
  */
 const fetchJobArtifacts = async ({ buildNum = process.env.CIRCLE_BUILD_NUM } = {}) => {
   if (!buildNum) {
-    throw new Error(`**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.`)
+    throw new Error('**  ERROR: Missing CircleCI build number. Failed to fetch CircleCI job artifacts.')
   }
 
   // For more arguments and details of the response, see: https://circleci.com/docs/api/v2/index.html#operation/getJobArtifacts

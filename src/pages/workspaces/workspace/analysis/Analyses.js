@@ -93,19 +93,19 @@ const AnalysisCard = ({
   const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: 'playground' })}`
 
   const analysisMenu = h(MenuTrigger, {
-    'aria-label': `Analysis menu`,
+    'aria-label': 'Analysis menu',
     side: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        'aria-label': `Preview`,
+        'aria-label': 'Preview',
         href: analysisLink,
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
       ...(toolLabel === tools.Jupyter.label ? [
         h(MenuButton, {
-          'aria-label': `Edit`,
+          'aria-label': 'Edit',
           href: analysisEditLink,
           disabled: locked || !canWrite || currentRuntimeTool === tools.RStudio.label,
           tooltip: Utils.cond([!canWrite, () => noWrite],
@@ -113,14 +113,14 @@ const AnalysisCard = ({
           tooltipSide: 'left'
         }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
-          'aria-label': `Playground`,
+          'aria-label': 'Playground',
           href: analysisPlaygroundLink,
           tooltip: canWrite && 'Open in playground mode',
           tooltipSide: 'left'
         }, [makeMenuIcon('chalkboard'), 'Playground'])
       ] : [
         h(MenuButton, {
-          'aria-label': `Launch`,
+          'aria-label': 'Launch',
           href: rstudioLaunchLink,
           disabled: !canWrite || currentRuntimeTool === tools.Jupyter.label,
           tooltip: Utils.cond([!canWrite, () => noWrite],
@@ -129,18 +129,18 @@ const AnalysisCard = ({
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
       h(MenuButton, {
-        'aria-label': `Copy`,
+        'aria-label': 'Copy',
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onCopy()
       }, [makeMenuIcon('copy'), 'Make a copy']),
       h(MenuButton, {
-        'aria-label': `Export`,
+        'aria-label': 'Export',
         onClick: () => onExport()
       }, [makeMenuIcon('export'), 'Copy to another workspace']),
       h(MenuButton, {
-        'aria-label': `Copy`,
+        'aria-label': 'Copy',
         onClick: async () => {
           try {
             await clipboard.writeText(`${window.location.host}/${analysisLink}`)
@@ -151,14 +151,14 @@ const AnalysisCard = ({
         }
       }, [makeMenuIcon('copy-to-clipboard'), 'Copy analysis URL to clipboard']),
       h(MenuButton, {
-        'aria-label': `Rename`,
+        'aria-label': 'Rename',
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onRename()
       }, [makeMenuIcon('renameIcon'), 'Rename']),
       h(MenuButton, {
-        'aria-label': `Delete`,
+        'aria-label': 'Delete',
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
@@ -348,7 +348,7 @@ const Analyses = _.flow(
     ])
     ),
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
-      `Click the button above to create an analysis.`
+      'Click the button above to create an analysis.'
     ])
   ])
 

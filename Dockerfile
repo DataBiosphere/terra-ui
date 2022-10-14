@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:18.10
 
 COPY . /terra-ui/
 RUN cd /terra-ui && yarn build

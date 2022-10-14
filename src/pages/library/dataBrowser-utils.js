@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
@@ -80,6 +81,7 @@ const normalizeDataset = dataset => {
 
   return {
     ...dataset,
+    // TODO: Consortium should show all consortiums, not just the first
     project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], dataset),
     lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
@@ -106,6 +108,17 @@ const extractTags = dataset => {
   }
 }
 
+export const filterAndNormalizeDatasets = (datasets, dataCollectionsToInclude) => {
+  const filteredDatasets = _.filter(dataCollectionsToInclude ?
+    dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
+    _.constant(true),
+  datasets)
+  return _.map(dataset => {
+    const normalizedDataset = normalizeDataset(dataset)
+    return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
+  }, filteredDatasets)
+}
+
 export const useDataCatalog = () => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
@@ -115,11 +128,9 @@ export const useDataCatalog = () => {
     withErrorReporting('Error loading data catalog'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const datasets = await Ajax(signal).Catalog.getDatasets()
-    const normList = _.map(dataset => {
-      const normalizedDataset = normalizeDataset(dataset)
-      return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
-    }, datasets.result || [])
+    const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
+    const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
+    const normList = filterAndNormalizeDatasets(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })

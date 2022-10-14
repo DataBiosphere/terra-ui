@@ -1,44 +1,77 @@
 import { addMinutes, format } from 'date-fns/fp'
+import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { notifyDataImportProgress, parseGsUri } from 'src/components/data/data-utils'
+import { parseGsUri } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { notify } from 'src/libs/notifications'
 import { useCancellation } from 'src/libs/react-utils'
-import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 export const dataTableVersionsPathRoot = '.data-table-versions'
 
-export const saveDataTableVersion = async (workspace, entityType, { description = null } = {}) => {
+const getAllEntities = async (workspace, entityType) => {
+  const { workspace: { namespace, name } } = workspace
+
+  const pageSize = 100_000
+  const firstPageResponse = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, { page: 1, pageSize })
+
+  let entities = firstPageResponse.results
+  const numPages = firstPageResponse.resultMetadata.filteredPageCount
+
+  for (let page = 2; page <= numPages; page += 1) {
+    const pageResponse = await Ajax().Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, { page, pageSize })
+    entities = _.concat(entities, pageResponse.results)
+  }
+
+  return entities
+}
+
+export const saveDataTableVersion = async (workspace, entityType, { description = null, includedSetEntityTypes = [] } = {}) => {
   Ajax().Metrics.captureEvent(Events.dataTableVersioningSaveVersion, {
     ...extractWorkspaceDetails(workspace.workspace),
     tableName: entityType
   })
 
-  const { workspace: { namespace, name, googleProject, bucketName } } = workspace
+  const { workspace: { googleProject, bucketName } } = workspace
 
-  const timestamp = (new Date()).getTime()
+  const timestamp = Date.now()
   const versionName = `${entityType}.v${timestamp}`
 
-  const tsvContent = await Ajax().Workspaces.workspace(namespace, name).getEntitiesTsv(entityType)
+  const allEntities = await Promise.all(
+    _.map(
+      async type => ({ type, entities: await getAllEntities(workspace, type) }),
+      [entityType, ...includedSetEntityTypes]
+    )
+  )
 
-  const tsvFile = new File([tsvContent], versionName, { type: 'text/tab-separated-values' })
-  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, tsvFile)
+  const zip = new JSZip()
+  _.forEach(({ type, entities }) => { zip.file(`json/${type}.json`, JSON.stringify(entities)) }, allEntities)
+  const zipContent = await zip.generateAsync({ type: 'blob' })
 
-  const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}`
+  const zipFile = new File([zipContent], `${versionName}.zip`, { type: 'application/zip' })
+  await Ajax().Buckets.upload(googleProject, bucketName, `${dataTableVersionsPathRoot}/${entityType}/`, zipFile)
+
+  const objectName = `${dataTableVersionsPathRoot}/${entityType}/${versionName}.zip`
   const createdBy = getUser().email
   await Ajax().Buckets.patch(googleProject, bucketName, objectName, {
-    metadata: { createdBy, entityType, timestamp, description }
+    metadata: {
+      createdBy,
+      entityType,
+      includedSetEntityTypes: _.join(',', includedSetEntityTypes),
+      timestamp,
+      description
+    }
   })
 
   return {
     url: `gs://${bucketName}/${objectName}`,
     createdBy,
     entityType,
+    includedSetEntityTypes,
     timestamp,
     description
   }
@@ -51,11 +84,12 @@ export const listDataTableVersions = async (workspace, entityType, { signal } = 
   const { items } = await Ajax(signal).Buckets.listAll(googleProject, bucketName, { prefix })
 
   return _.flow(
-    _.filter(item => item.metadata?.entityType && item.metadata?.timestamp),
+    _.filter(item => item.name.endsWith('.zip') && item.metadata?.entityType && item.metadata?.timestamp),
     _.map(item => ({
       url: `gs://${item.bucket}/${item.name}`,
       createdBy: item.metadata.createdBy,
       entityType,
+      includedSetEntityTypes: _.compact(_.split(',', item.metadata.includedSetEntityTypes)),
       timestamp: parseInt(item.metadata.timestamp),
       description: item.metadata.description
     })),
@@ -75,13 +109,13 @@ export const deleteDataTableVersion = async (workspace, version) => {
   await Ajax().Buckets.delete(googleProject, bucketName, objectName)
 }
 
-export const tableNameForRestore = version => {
+export const tableNameForImport = version => {
   const timestamp = new Date(version.timestamp)
   return `${version.entityType}_${format('yyyy-MM-dd_HH-mm-ss', addMinutes(timestamp.getTimezoneOffset(), timestamp))}`
 }
 
-export const restoreDataTableVersion = async (workspace, version) => {
-  Ajax().Metrics.captureEvent(Events.dataTableVersioningRestoreVersion, {
+export const importDataTableVersion = async (workspace, version) => {
+  Ajax().Metrics.captureEvent(Events.dataTableVersioningImportVersion, {
     ...extractWorkspaceDetails(workspace.workspace),
     tableName: version.entityType
   })
@@ -89,25 +123,44 @@ export const restoreDataTableVersion = async (workspace, version) => {
   const { workspace: { namespace, name, googleProject, bucketName } } = workspace
 
   const [, objectName] = parseGsUri(version.url)
-  const content = await Ajax().Buckets.getObjectPreview(googleProject, bucketName, objectName, true).then(r => r.text())
+  const zipData = await Ajax().Buckets.getObjectPreview(googleProject, bucketName, objectName, true).then(r => r.blob())
 
-  const tableName = tableNameForRestore(version)
-  const file = new File(
-    [_.replace(/^entity:\S+/, `entity:${tableName}_id`, content)],
-    _.last(_.split('/', objectName)),
-    { type: 'text/tab-separated-values' }
-  )
+  const zip = await JSZip.loadAsync(zipData)
 
-  const filesize = file?.size || Number.MAX_SAFE_INTEGER
-  if (filesize < 524288) { // 512k
-    await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues: false })
-    return { tableName, ready: true }
-  } else {
-    const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importFlexibleEntitiesFileAsync(file, { deleteEmptyValues: false })
-    asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-    notifyDataImportProgress(jobId)
-    return { tableName, ready: false }
+  const importedTableName = tableNameForImport(version)
+  const entities = JSON.parse(await zip.file(`json/${version.entityType}.json`).async('text'))
+  const entityUpdates = _.map(({ name, attributes }) => ({
+    entityType: importedTableName,
+    name,
+    operations: Object.entries(attributes).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
+  }), entities)
+
+  await Ajax().Workspaces.workspace(namespace, name).upsertEntities(entityUpdates)
+
+  for (const setTableName of _.sortBy(_.identity, version.includedSetEntityTypes)) {
+    const originalSetTableMemberType = setTableName.slice(0, -4)
+
+    const importedSetTableName = _.replace(version.entityType, importedTableName, setTableName)
+    const importedSetTableMemberType = importedSetTableName.slice(0, -4)
+
+    const setTableEntities = JSON.parse(await zip.file(`json/${setTableName}.json`).async('text'))
+    const setTableEntityUpdates = _.map(({ name, attributes }) => ({
+      entityType: importedSetTableName,
+      name,
+      operations: Object.entries({
+        ...attributes,
+        [`${originalSetTableMemberType}s`]: _.update(
+          'items',
+          _.map(_.set('entityType', importedSetTableMemberType)),
+          attributes[`${originalSetTableMemberType}s`]
+        )
+      }).map(([k, v]) => ({ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }))
+    }), setTableEntities)
+
+    await Ajax().Workspaces.workspace(namespace, name).upsertEntities(setTableEntityUpdates)
   }
+
+  return { tableName: importedTableName }
 }
 
 export const useDataTableVersions = workspace => {
@@ -131,10 +184,10 @@ export const useDataTableVersions = workspace => {
       }
     },
 
-    saveDataTableVersion: async (entityType, { description = null } = {}) => {
+    saveDataTableVersion: async (entityType, options = {}) => {
       setDataTableVersions(_.update(entityType, _.set('savingNewVersion', true)))
       try {
-        const newVersion = await saveDataTableVersion(workspace, entityType, { description })
+        const newVersion = await saveDataTableVersion(workspace, entityType, options)
         notify('success', `Saved version of ${entityType}`, { timeout: 3000 })
         setDataTableVersions(_.update([entityType, 'versions'],
           _.flow(_.defaultTo([]), Utils.append(newVersion), _.sortBy(version => -version.timestamp))
@@ -149,8 +202,8 @@ export const useDataTableVersions = workspace => {
       setDataTableVersions(_.update([version.entityType, 'versions'], _.remove({ timestamp: version.timestamp })))
     },
 
-    restoreDataTableVersion: version => {
-      return restoreDataTableVersion(workspace, version)
+    importDataTableVersion: version => {
+      return importDataTableVersion(workspace, version)
     }
   }
 }

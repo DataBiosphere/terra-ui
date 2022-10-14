@@ -584,7 +584,7 @@ describe('getDisplayList', () => {
 describe('getCostDisplayForTool', () => {
   it('will get compute cost and compute status for Galaxy app', () => {
     // Arrange
-    const expectedResult = `Running $0.53/hr`
+    const expectedResult = 'Running $0.53/hr'
     const app = galaxyRunning
     const currentRuntime = undefined
     const currentRuntimeTool = undefined
@@ -598,7 +598,7 @@ describe('getCostDisplayForTool', () => {
   })
   it('will get compute cost and compute status for a running Jupyter runtime', () => {
     // Arrange
-    const expectedResult = `Running $0.06/hr`
+    const expectedResult = 'Running $0.06/hr'
     const app = undefined
     const currentRuntime = jupyter1
     const currentRuntimeTool = tools.Jupyter.label
@@ -612,7 +612,7 @@ describe('getCostDisplayForTool', () => {
   })
   it('will get compute cost and compute status for a stopped Jupyter runtime', () => {
     // Arrange
-    const expectedResult = `Paused $0.01/hr`
+    const expectedResult = 'Paused $0.01/hr'
     const app = undefined
     const currentRuntime = { ...jupyter1, status: 'Stopped' }
     const currentRuntimeTool = tools.Jupyter.label
@@ -626,7 +626,7 @@ describe('getCostDisplayForTool', () => {
   })
   it('will return blank because current runtime is not equal to currentRuntimeTool', () => {
     // Arrange
-    const expectedResult = ``
+    const expectedResult = ''
     const app = undefined
     const currentRuntime = jupyter1
     const currentRuntimeTool = tools.RStudio.label

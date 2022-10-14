@@ -572,7 +572,7 @@ const WorkflowView = _.flow(
       [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
       [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
       [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
-      [type === processSnapshotTable, () => `process entire snapshot table`]
+      [type === processSnapshotTable, () => 'process entire snapshot table']
     )
   }
 
@@ -919,7 +919,7 @@ const WorkflowView = _.flow(
                 div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [icon('listAlt')]),
                 `Tables / ${rootEntityType}`
               ]),
-              `Fill in the attributes below to add or update columns in your data table`
+              'Fill in the attributes below to add or update columns in your data table'
             ])
           ])
         ])

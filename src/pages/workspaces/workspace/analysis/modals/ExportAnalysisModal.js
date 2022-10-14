@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import { useCancellation } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import {
-  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, stripExtension
+  analysisNameInput, analysisNameValidator, getAnalysisFileExtension, getDisplayName, getExtension, stripExtension
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName, analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import validate from 'validate.js'
@@ -25,9 +25,8 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
   const [error, setError] = useState(undefined)
   const [copying, setCopying] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [newName, setNewName] = useState(printName)
+  const [newName, setNewName] = useState(stripExtension(printName))
   const [existingNames, setExistingNames] = useState(undefined)
-
   const signal = useCancellation()
   const { workspaces } = useWorkspaces()
 
@@ -36,7 +35,6 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
 
   const findAnalysis = async v => {
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
-
     const selectedAnalyses = !!tempChosenWorkspace.googleProject ?
       await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName) :
       await Ajax(signal).AzureStorage.listNotebooks(tempChosenWorkspace.workspaceId)
@@ -49,7 +47,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
         await Ajax()
           .Buckets
           .analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, printName, toolLabel)
-          .copy(newName, selectedWorkspace.workspace.bucketName)
+          .copy(`${newName}.${getExtension(printName)}`, selectedWorkspace.workspace.bucketName)
       } else {
         await Ajax(signal).AzureStorage
           .blob(workspace.workspace.workspaceId, printName)
@@ -61,7 +59,6 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
       setError(await error.text())
     }
   })
-
 
   // Render
   const errors = validate(

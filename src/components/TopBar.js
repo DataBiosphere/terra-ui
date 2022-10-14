@@ -386,7 +386,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               }
             })
           ]) :
-          div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
+          div({ style: { width: 'calc(1rem + 1rem + 1rem + 2px + 36px)' } }), // padding (l+r) + margin (l+r) + icon size
         a({
           style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
           href: href || Nav.getLink('root')

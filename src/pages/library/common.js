@@ -253,7 +253,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
     _.size(labels) > numLabelsToRender && h(Link, {
       style: { display: 'block', textAlign: 'center' },
       onClick: () => { setShowAll(!showAll) }
-    }, [`See more`]),
+    }, ['See more']),
     showAll && h(FilterModal, { name, labels, setShowAll, onTagFilter, listDataByTag, lowerSelectedTags, filteredData })
   ])
 }

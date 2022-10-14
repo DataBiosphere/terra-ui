@@ -151,7 +151,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
 
 const amppd = () => h(Participant, {
   logo: { src: amppdLogo, alt: 'AMP-PD logo', height: '100%' },
-  title: `AMP Parkinson's Disease`,
+  title: 'AMP Parkinson\'s Disease',
   shortDescription: `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
   Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
   identify...`,
@@ -164,24 +164,24 @@ const amppd = () => h(Participant, {
     p(['Includes data from the following studies:']),
     div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
       div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• Parkinson's Disease Biomarkers Program (PDBP)`]),
+        div({ style: { width: 410 } }, ['• Parkinson\'s Disease Biomarkers Program (PDBP)']),
         div(['• BioFIND'])
       ]),
       div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• Parkinson's Progression Markers Initiative (PPMI)`]),
+        div({ style: { width: 410 } }, ['• Parkinson\'s Progression Markers Initiative (PPMI)']),
         div(['• Harvard Biomarkers Study (HBS)'])
       ]),
       div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• Lewy Body Dementia Study (LBD)`]),
+        div({ style: { width: 410 } }, ['• Lewy Body Dementia Study (LBD)']),
         div(['• LRRK2 Cohort Consortium (LCC)'])
       ]),
       div({ style: { display: 'flex' } }, [
-        div({ style: { width: 410 } }, [`• STEADY-PD3 Study`]),
+        div({ style: { width: 410 } }, ['• STEADY-PD3 Study']),
         div(['• SURE-PD3 Study'])
       ])
     ]),
     p([
-      `Global Parkinson's Genetics Program (GP2) data is accessible through an approved single AMP PD-GP2 DUA, `,
+      'Global Parkinson\'s Genetics Program (GP2) data is accessible through an approved single AMP PD-GP2 DUA, ',
       h(Link, { href: 'https://www.amp-pd.org/form/update-amp-pd-application', ...Utils.newTabLinkProps }, ['here.'])
     ])
   ]),
@@ -196,8 +196,8 @@ const amppd = () => h(Participant, {
 ])
 
 const baseline = () => h(Participant, {
-  logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
-  title: `Baseline Health Study`,
+  logo: { src: baselineLogo, alt: 'Project Baseline logo', height: '55%' },
+  title: 'Baseline Health Study',
   description: h(Fragment, [
     h(Link, { href: 'https://www.projectbaseline.com/study/project-baseline/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
     ` is a longitudinal study that will collect broad phenotypic health data
@@ -247,10 +247,10 @@ const cmg = () => h(Participant, {
 ])
 
 const encode = () => h(Participant, {
-  logo: { src: encodeLogo, alt: `ENCODE Project logo` },
-  title: `ENCODE Project`,
+  logo: { src: encodeLogo, alt: 'ENCODE Project logo' },
+  title: 'ENCODE Project',
   description: h(Fragment, [
-    `The `, b('Enc'), `yclopedia `, b('O'), `f `, b('D'), `NA `, b('E'), `lements (ENCODE)
+    'The ', b('Enc'), 'yclopedia ', b('O'), 'f ', b('D'), 'NA ', b('E'), `lements (ENCODE)
     project aims to delineate all functional elements encoded in the human genome. To this end, ENCODE has
     systematically mapped regions of transcription, transcription factor association, chromatin structure
     and histone modification.`
@@ -286,12 +286,12 @@ const framingham = () => h(Participant, {
   logo: { src: framinghamLogo, alt: 'Framingham Heart Study logo', height: '70%' },
   title: 'Framingham Heart Study Teaching Dataset',
   description: h(Fragment, [
-    `Since 1948, the `,
+    'Since 1948, the ',
     h(Link, { href: 'https://www.framinghamheartstudy.org/', ...Utils.newTabLinkProps }, 'Framingham Heart Study'),
     ` has been committed to identifying the common factors or characteristics that contribute to cardiovascular disease,
     over three generations of participants. This is a `,
     h(Link, { href: 'https://biolincc.nhlbi.nih.gov/teaching/', ...Utils.newTabLinkProps }, 'teaching dataset'),
-    ` and may not be used for publication purposes.`
+    ' and may not be used for publication purposes.'
   ]),
   sizeText: 'Participants: 4,400'
 }, [
@@ -306,7 +306,7 @@ const framingham = () => h(Participant, {
 const gp2 = () => h(Participant, {
   logo: { src: gp2Logo, alt: 'GP2 logo', height: '40%' },
   modalLogoHeight: 100,
-  title: `GP2`,
+  title: 'GP2',
   shortDescription: `The Global Parkinson's Genetics Program (GP2) aims to transform our understanding
     of the genetic basis of Parkinson’s disease (PD) across diverse populations, including those
     underserved in biomedical...`,

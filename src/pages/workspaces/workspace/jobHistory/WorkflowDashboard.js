@@ -128,7 +128,7 @@ const WorkflowDashboard = _.flow(
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     Utils.cond(
       [workflow === undefined, () => h(Fragment, [
-        div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Fetching workflow metadata...`]),
+        div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, ['Fetching workflow metadata...']),
         centeredSpinner()
       ])],
       [metadataArchiveStatus === 'ArchivedAndDeleted', () => h(Fragment, [

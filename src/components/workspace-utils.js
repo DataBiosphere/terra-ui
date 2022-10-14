@@ -288,7 +288,7 @@ export const SnapshotInfo = ({
             reportError('Error deleting snapshot', e)
           }
         },
-        title: `Delete Snapshot`
+        title: 'Delete Snapshot'
       }, [
         p([
           'Do you want to remove the snapshot ',
@@ -499,8 +499,8 @@ export const NoWorkspacesMessage = ({ onClick }) => {
     div({ style: { marginTop: '1rem', fontSize: 16 } }, [
       h(Link, {
         ...Utils.newTabLinkProps,
-        href: `https://support.terra.bio/hc/en-us/articles/360024743371`
-      }, [`What's a workspace?`])
+        href: 'https://support.terra.bio/hc/en-us/articles/360024743371'
+      }, ['What\'s a workspace?'])
     ])
   ])
 }

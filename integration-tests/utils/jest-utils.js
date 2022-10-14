@@ -122,7 +122,7 @@ const flakeShaker = ({ fn, name }) => {
       logOutputStream.write(v.replace(/\u001b\[.*?m/g, ''))
     }
 
-    consoleOutputStream.write(`Running tests: 0%`)
+    consoleOutputStream.write('Running tests: 0%')
     const logTestStatus = logTestState(consoleOutputStream, logOutputStream, testRuns)
 
     await cluster.task(async ({ page, data }) => {

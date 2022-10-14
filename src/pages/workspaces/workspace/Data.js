@@ -8,12 +8,13 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
-import { EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
+import { EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
+import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import WDSContent from 'src/components/data/WDSContent'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
@@ -209,7 +210,7 @@ const DataTypeSection = ({ title, error, retryFunction, children }) => {
     titleFirst: true,
     initialOpenState: true,
     summaryStyle: {
-      padding: `1.125rem 1.5rem`,
+      padding: '1.125rem 1.5rem',
       borderBottom: `0.5px solid ${colors.dark(0.2)}`,
       backgroundColor: colors.light(0.4),
       fontSize: 16
@@ -287,7 +288,10 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 
 const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
   const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+
+  const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
+  const setTableNames = _.filter(v => v.match(`${tableName}(_set)+$`), _.keys(entityMetadata))
 
   const editWorkspaceErrorMessage = Utils.editWorkspaceError(workspace)
 
@@ -300,6 +304,11 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
   const [savingVersion, setSavingVersion] = useState(false)
   const [renaming, setRenaming] = useState(false)
   const [deleting, setDeleting] = useState(false)
+
+  const {
+    getAllSavedColumnSettings,
+    updateAllSavedColumnSettings
+  } = useSavedColumnSettings({ workspaceId: { namespace, name }, entityType: tableName, entityMetadata })
 
   return h(Fragment, [
     h(MenuTrigger, {
@@ -385,7 +394,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     }),
     savingVersion && h(DataTableSaveVersionModal, {
       workspace,
-      entityType: tableName,
+      entityType: isSet ? getRootTypeForSetTable(tableName) : tableName,
+      allEntityTypes: _.keys(entityMetadata),
+      includeSetsByDefault: isSet,
       onDismiss: () => setSavingVersion(false),
       onSubmit: versionOpts => {
         setSavingVersion(false)
@@ -395,6 +406,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
     renaming && h(RenameTableModal, {
       onDismiss: () => setRenaming(false),
       onUpdateSuccess: onRenameTable,
+      getAllSavedColumnSettings,
+      updateAllSavedColumnSettings,
+      setTableNames,
       namespace, name,
       selectedDataType: tableName,
       entityMetadata
@@ -475,7 +489,7 @@ const WorkspaceData = _.flow(
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
 
-  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, restoreDataTableVersion } = useDataTableVersions(workspace)
+  const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
@@ -712,13 +726,23 @@ const WorkspaceData = _.flow(
                       onToggleVersionHistory: withErrorReporting('Error loading version history', showVersionHistory => {
                         setShowDataTableVersionHistory(_.set(type, showVersionHistory))
                         if (showVersionHistory) {
-                          loadDataTableVersions(type)
+                          loadDataTableVersions(type.endsWith('_set') ? getRootTypeForSetTable(type) : type)
                         }
                       })
                     })
                   }),
                   isShowingVersionHistory && h(DataTableVersions, {
-                    ...dataTableVersions[type],
+                    ...Utils.cond(
+                      [type.endsWith('_set'), () => {
+                        const referencedType = getRootTypeForSetTable(type)
+                        return _.update(
+                          'versions',
+                          _.filter(version => _.includes(type, version.includedSetEntityTypes)),
+                          dataTableVersions[referencedType]
+                        )
+                      }],
+                      () => dataTableVersions[type]
+                    ),
                     onClickVersion: version => setSelectedData({ type: workspaceDataTypes.entitiesVersion, version })
                   })
                 ])
@@ -989,12 +1013,10 @@ const WorkspaceData = _.flow(
               await deleteDataTableVersion(selectedData.version)
               setSelectedData(undefined)
             }),
-            onRestore: reportErrorAndRethrow('Error restoring version', async () => {
-              const { tableName, ready } = await restoreDataTableVersion(selectedData.version)
+            onImport: reportErrorAndRethrow('Error importing version', async () => {
+              const { tableName } = await importDataTableVersion(selectedData.version)
               await loadMetadata()
-              if (ready) {
-                setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
-              }
+              setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
           [workspaceDataTypes.wds, () => h(WDSContent, {
