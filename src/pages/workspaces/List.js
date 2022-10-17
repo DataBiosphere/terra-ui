@@ -95,7 +95,7 @@ const workspaceSubmissionStatus = workspace => {
 }
 
 // [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
-const anyPersistentDiskRequiresMigration = (workspaces, disks) => {
+const somePersistentDiskRequiresMigration = (workspaces, disks) => {
   // construct map of namespace -> (map of name -> workspace) from list of workspace
   const workspacesByNsAndName = _.flow(
     _.map('workspace'),
@@ -103,7 +103,7 @@ const anyPersistentDiskRequiresMigration = (workspaces, disks) => {
     _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
   )(workspaces)
 
-  return _.flip(_.some)(disks, ({ googleProject, labels }) => {
+  return workspaces && _.flip(_.some)(disks, ({ googleProject, labels }) => {
     return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
   })
 }
@@ -529,7 +529,7 @@ export const WorkspaceList = () => {
         onDismiss: () => setRequestingAccessWorkspaceId(undefined)
       }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
-      !loadingWorkspaces && anyPersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
+      somePersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
         style: {
           position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
           zIndex: 2 // Draw over top bar but behind contact support dialog
