@@ -382,6 +382,12 @@ export const WorkspaceList = () => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+      somePersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
+        style: {
+          position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
+          zIndex: 2 // Draw over top bar but behind contact support dialog
+        }
+      }),
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(Link, {
@@ -528,13 +534,7 @@ export const WorkspaceList = () => {
         workspace: getWorkspace(requestingAccessWorkspaceId),
         onDismiss: () => setRequestingAccessWorkspaceId(undefined)
       }),
-      loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay),
-      somePersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
-        style: {
-          position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
-          zIndex: 2 // Draw over top bar but behind contact support dialog
-        }
-      })
+      loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
     ])
   ])
 }
