@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen } from '@testing-library/react'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { axe } from 'jest-axe'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
@@ -10,8 +10,6 @@ import { useWorkspaceDetails } from 'src/components/workspace-utils'
 import * as Utils from 'src/libs/utils'
 import WorkspaceMenu, { tooltipText } from 'src/pages/workspaces/workspace/WorkspaceMenu'
 
-
-expect.extend(toHaveNoViolations)
 
 jest.mock('src/components/workspace-utils', () => {
   const originalModule = jest.requireActual('src/components/workspace-utils')

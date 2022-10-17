@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { axe } from 'jest-axe'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
@@ -24,8 +24,6 @@ jest.mock('src/components/Modal', () => {
   }
 })
 jest.mock('src/libs/ajax')
-
-expect.extend(toHaveNoViolations)
 
 describe('CreateAzureBillingProjectModal', () => {
   let modalComponent

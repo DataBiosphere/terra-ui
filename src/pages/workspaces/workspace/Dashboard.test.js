@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { axe, toHaveNoViolations } from 'jest-axe'
+import { axe } from 'jest-axe'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
@@ -11,8 +11,6 @@ import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard
 
 
 jest.mock('src/libs/ajax')
-
-expect.extend(toHaveNoViolations)
 
 describe('WorkspaceNotifications', () => {
   const testWorkspace = { workspace: { namespace: 'test', name: 'test' } }
