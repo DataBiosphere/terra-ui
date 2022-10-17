@@ -24,14 +24,14 @@ import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
-import { topBarHeight } from 'src/libs/style'
 import * as Style from 'src/libs/style'
+import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification } from 'src/pages/workspaces/workspace/Dashboard'
@@ -94,6 +94,7 @@ const workspaceSubmissionStatus = workspace => {
   )
 }
 
+// [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
 const anyPersistentDiskRequiresMigration = (workspaces, disks) => {
   // construct map of namespace -> (map of name -> workspace) from list of workspace
   const workspacesByNsAndName = _.flow(
@@ -144,21 +145,22 @@ export const WorkspaceList = () => {
 
   const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
 
+  // [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
   const [gcpPersistentDisks, setGcpPersistentDisks] = useState()
 
   useOnMount(() => {
-    const loadFeatured = async () => {
+    const loadFeatured = withErrorIgnoring(async () => {
       setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces())
-    }
+    })
 
-    const loadPersistentDisks = async () => {
+    const loadPersistentDisks = withErrorIgnoring(async () => {
       setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
         await Ajax().Disks.list({
           creator: getUser().email,
           includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
         })
       ))
-    }
+    })
 
     loadFeatured()
     loadPersistentDisks()
