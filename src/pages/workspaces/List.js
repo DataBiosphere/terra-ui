@@ -95,14 +95,15 @@ const workspaceSubmissionStatus = workspace => {
 }
 
 const anyPersistentDiskRequiresMigration = (workspaces, disks) => {
-  const workspacesByNamespace = _.flow(
+  // construct map of namespace -> (map of name -> workspace) from list of workspace
+  const workspacesByNsAndName = _.flow(
     _.map('workspace'),
     _.groupBy('namespace'),
-    _.mapValues(_.flowRight(_.mapValues(_.head), _.groupBy('name')))
+    _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
   )(workspaces)
 
   return _.flip(_.some)(disks, ({ googleProject, labels }) => {
-    return workspacesByNamespace[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
+    return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
   })
 }
 
