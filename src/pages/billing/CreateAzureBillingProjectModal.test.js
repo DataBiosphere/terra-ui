@@ -47,7 +47,7 @@ describe('CreateAzureBillingProjectModal', () => {
   const noManagedApps = 'No Terra Managed Applications exist for that subscription'
   const managedAppCallFailed = 'Unable to retrieve Managed Applications for that subscription'
   const getSubscriptionInput = () => screen.getByLabelText('Azure subscription *')
-  const getManagedAppInput = () => screen.getByLabelText('Managed application *')
+  const getManagedAppInput = () => screen.getByLabelText('Unassigned managed application *')
   const getCreateButton = () => screen.getByText('Create')
 
   const verifyDisabled = item => expect(item).toHaveAttribute('disabled')
@@ -123,7 +123,7 @@ describe('CreateAzureBillingProjectModal', () => {
     })
 
     // Assert
-    expect(listAzureManagedApplications).toHaveBeenCalledWith(subscriptionId)
+    expect(listAzureManagedApplications).toHaveBeenCalledWith(subscriptionId, false)
     await screen.findByText(noManagedApps)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
     verifyDisabled(getManagedAppInput())
