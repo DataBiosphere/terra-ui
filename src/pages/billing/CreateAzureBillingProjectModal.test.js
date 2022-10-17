@@ -162,8 +162,8 @@ describe('CreateAzureBillingProjectModal', () => {
           listAzureManagedApplications: () => Promise.resolve(
             {
               managedApps: [
-                { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1' },
-                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg }
+                { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1', assigned: true },
+                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg, assigned: true }
               ]
             }
           ),
@@ -214,7 +214,7 @@ describe('CreateAzureBillingProjectModal', () => {
           listAzureManagedApplications: () => Promise.resolve(
             {
               managedApps: [
-                { applicationDeploymentName: appName, tenantId: 'fakeTenant', subscriptionId: 'fakeSub', managedResourceGroupId: 'fakeMrg' }
+                { applicationDeploymentName: appName, tenantId: 'fakeTenant', subscriptionId: 'fakeSub', managedResourceGroupId: 'fakeMrg', assigned: true }
               ]
             }
           ),

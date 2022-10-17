@@ -551,8 +551,9 @@ const Billing = signal => ({
     }
   },
 
-  listAzureManagedApplications: async subscriptionId => {
-    const response = await fetchBillingProfileManager(`azure/v1/managedApps?azureSubscriptionId=${subscriptionId}`,
+  listAzureManagedApplications: async (subscriptionId, includeAssignedApplications) => {
+    const response = await fetchBillingProfileManager(
+      `azure/v1/managedApps?azureSubscriptionId=${subscriptionId}&includeAssignedApplications=${includeAssignedApplications}`,
       _.merge(authOpts(), { signal }))
     return response.json()
   }

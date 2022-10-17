@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
@@ -56,7 +57,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       const fetchManagedApps = Utils.withBusyState(setIsBusy,
         async () => {
           try {
-            const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId)
+            const managedApps = await Ajax(signal).Billing.listAzureManagedApplications(subscriptionId, false)
             setManagedApps(managedApps.managedApps)
             setErrorFetchingManagedApps(false)
           } catch (obj) {
@@ -125,7 +126,13 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Managed application']),
+        h(FormLabel, { htmlFor: id, required: true }, [
+          'Unassigned managed application',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'A managed application instance can only be assigned to a single Terra billing ',
+            'project. Only unassigned managed applications are included in the list below.'
+          ])
+        ]),
         div({ style: { fontSize: 14 } }, [
           h(Select, {
             id,
