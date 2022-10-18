@@ -744,14 +744,17 @@ export const ComputeModalBase = ({
         [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       )
 
+      const diskSize = Utils.cond([!!runtimeConfig?.diskSize, () => runtimeConfig.diskSize],
+        [!!runtimeConfig?.masterDiskSize, () => runtimeConfig.masterDiskSize],
+        [isDataproc(newRuntimeType), () => defaultDataprocMasterDiskSize],
+        [Utils.DEFAULT, () => defaultGceBootDiskSize])
+
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
         selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-        masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
-          defaultDataprocMasterDiskSize :
-          defaultGceBootDiskSize,
+        masterDiskSize: diskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
         componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || isDataprocCluster(newRuntimeType),
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
