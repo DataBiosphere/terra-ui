@@ -49,11 +49,11 @@ export interface EntityQueryResponse {
   results: Entity[]
 }
 
-export type GetPage = (_signal: any, _workspaceId: string, _entityType: string, _pageNumber: number,
+export type GetPage = (_signal: AbortSignal, _workspaceId: string, _entityType: string, _pageNumber: number,
   _itemsPerPage: number, _sortField: string, _sortDirection: EntityQuerySortDirection,
   _namespace: string, _name: string, _snapshotName: string, _googleProject: string, _activeTextFilter: string, _filterOperator: string) => Promise<EntityQueryResponse>
 
-export type GetMetadata = (_signal: any, _workspaceId: string, _namespace: string, _name: string) => Promise<EntityMetadata>
+export type GetMetadata = (_signal: AbortSignal, _workspaceId: string, _namespace: string, _name: string) => Promise<EntityMetadata>
 
 export type DeleteTable = (_workspaceId: string, _namespace: string, _name: string, _entityType: string) => Promise<any>
 

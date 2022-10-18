@@ -15,7 +15,7 @@ export class EntityServiceDataProvider implements DataProvider {
     enableFiltering: true
   }
 
-  getPage: GetPage = async (signal: any, _workspaceId: string, entityType: string, pageNumber: number,
+  getPage: GetPage = async (signal: AbortSignal, _workspaceId: string, entityType: string, pageNumber: number,
     itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection,
     namespace: string, name: string, snapshotName: string, googleProject: string, activeTextFilter: string, filterOperator: string) => {
     return await Ajax(signal).Workspaces.workspace(namespace, name)
@@ -27,7 +27,7 @@ export class EntityServiceDataProvider implements DataProvider {
       }))
   }
 
-  getMetadata: GetMetadata = async (signal: any, _workspaceId: string, namespace: string, name: string) => {
+  getMetadata: GetMetadata = async (signal: AbortSignal, _workspaceId: string, namespace: string, name: string) => {
     return await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
   }
 
