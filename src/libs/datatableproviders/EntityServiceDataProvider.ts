@@ -6,6 +6,15 @@ import { DataProvider, DataProviderFeatures, DeleteTable, EntityQuerySortDirecti
 
 
 export class EntityServiceDataProvider implements DataProvider {
+  constructor(namespace: string, name: string) {
+    this.namespace = namespace
+    this.name = name
+  }
+
+  namespace: string
+
+  name: string
+
   features: DataProviderFeatures = {
     supportsTsvDownload: true,
     supportsTypeDeletion: true,
@@ -27,11 +36,11 @@ export class EntityServiceDataProvider implements DataProvider {
       }))
   }
 
-  getMetadata: GetMetadata = async (signal: AbortSignal, _workspaceId: string, namespace: string, name: string) => {
-    return await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
+  getMetadata: GetMetadata = async (signal: AbortSignal) => {
+    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
   }
 
-  deleteTable: DeleteTable = async (_workspaceId: string, namespace: string, name: string, entityType: string) => {
-    return await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(entityType)
+  deleteTable: DeleteTable = async (entityType: string) => {
+    return await Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 }

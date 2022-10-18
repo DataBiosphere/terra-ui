@@ -489,7 +489,7 @@ const WorkspaceData = _.flow(
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
 
-  const entityServiceDataProvider = new EntityServiceDataProvider()
+  const entityServiceDataProvider = new EntityServiceDataProvider(namespace, name)
 
   const loadEntityMetadata = async () => {
     try {

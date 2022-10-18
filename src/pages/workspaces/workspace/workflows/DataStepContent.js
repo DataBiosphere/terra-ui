@@ -101,7 +101,7 @@ const DataStepContent = ({
         }
       }, [
         h(DataTable, {
-          dataProvider: new EntityServiceDataProvider(),
+          dataProvider: new EntityServiceDataProvider(namespace, name),
           key: type.description,
           childrenBefore: ({ showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({ style: Style.elements.sectionHeader }, [
