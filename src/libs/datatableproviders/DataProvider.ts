@@ -45,7 +45,7 @@ interface Entity {
 
 export interface EntityQueryResponse {
   parameters: EntityQuery,
-  resultMetadata: EntityQueryResultMetadata
+  resultMetadata: EntityQueryResultMetadata,
   results: Entity[]
 }
 
