@@ -747,7 +747,7 @@ export const ComputeModalBase = ({
       const diskSize = Utils.cond([!!runtimeConfig?.diskSize, () => runtimeConfig.diskSize],
         [!!runtimeConfig?.masterDiskSize, () => runtimeConfig.masterDiskSize],
         [isDataproc(newRuntimeType), () => defaultDataprocMasterDiskSize],
-        [Utils.DEFAULT, () => defaultGceBootDiskSize])
+        () => defaultGceBootDiskSize)
 
       setRuntimeType(newRuntimeType)
       setComputeConfig({

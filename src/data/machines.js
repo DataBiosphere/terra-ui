@@ -26,8 +26,8 @@ export const machineTypes = [
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4 }
 ]
 
-// returns true if current machine type is smaller than candidate
-export const isMachineTypeSmaller = (current, candidate) => _.find({ name: current }, machineTypes).cpu < _.find({ name: candidate }, machineTypes).cpu
+// returns true if machineTypeA machine type is smaller than machineTypeB
+export const isMachineTypeSmaller = (machineTypeA, machineTypeB) => _.find({ name: machineTypeA }, machineTypes).cpu < _.find({ name: machineTypeB }, machineTypes).cpu
 
 // As of June 21, 2021:
 // GPUs are only supported with general-purpose N1 or accelerator-optimized A2 machine types.

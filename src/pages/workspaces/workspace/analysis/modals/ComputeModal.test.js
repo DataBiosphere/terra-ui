@@ -427,7 +427,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    screen.findByText('Downtime required')
+    await screen.findByText('Downtime required')
 
     // Act
     await act(async () => {
@@ -629,8 +629,10 @@ describe('ComputeModal', () => {
     verifyDisabled(screen.getByLabelText('Workers'))
     verifyDisabled(screen.getByLabelText('Location'))
 
-    screen.getByDisplayValue(150)
-    screen.getByDisplayValue(151)
+    const inputs = screen.getAllByLabelText('Disk size (GB)')
+    expect(inputs.length).toBe(2)
+    expect(inputs[1]).toHaveDisplayValue(150)
+    expect(inputs[0]).toHaveDisplayValue(151)
 
     screen.getByText(machine2.cpu)
     screen.getByText(machine2.memory)
