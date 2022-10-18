@@ -55,7 +55,7 @@ export type GetPage = (_signal: AbortSignal, _workspaceId: string, _entityType: 
 
 export type GetMetadata = (_signal: AbortSignal, _workspaceId: string, _namespace: string, _name: string) => Promise<EntityMetadata>
 
-export type DeleteTable = (_workspaceId: string, _namespace: string, _name: string, _entityType: string) => Promise<any>
+export type DeleteTable = (_workspaceId: string, _namespace: string, _name: string, _entityType: string) => Promise<void>
 
 export interface DataProviderFeatures {
   enableTsvDownload: boolean,
