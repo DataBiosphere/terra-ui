@@ -58,12 +58,12 @@ export type GetMetadata = (_signal: AbortSignal, _workspaceId: string, _namespac
 export type DeleteTable = (_workspaceId: string, _namespace: string, _name: string, _entityType: string) => Promise<void>
 
 export interface DataProviderFeatures {
-  enableTsvDownload: boolean,
-  enableTypeDeletion: boolean,
-  enableTypeRenaming: boolean,
-  enableExport: boolean,
-  enablePointCorrection: boolean,
-  enableFiltering: boolean
+  supportsTsvDownload: boolean,
+  supportsTypeDeletion: boolean,
+  supportsTypeRenaming: boolean,
+  supportsExport: boolean,
+  supportsPointCorrection: boolean,
+  supportsFiltering: boolean
 }
 
 export interface DataProvider {
@@ -72,7 +72,7 @@ export interface DataProvider {
   deleteTable: DeleteTable
   // todos that we will need soon:
   // getMetadata: GetMetadata
-  // downloadTsv: function, see also enableTsvDownload
+  // downloadTsv: function, see also supportsTsvDownload
   // updateAttribute: function, see also boolean
 }
 

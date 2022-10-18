@@ -257,7 +257,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        dataProvider.features.enableFiltering && h(MenuTrigger, {
+        dataProvider.features.supportsFiltering && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },
@@ -289,7 +289,7 @@ const DataTable = props => {
         }, [h(ButtonSecondary, {
           style: { margin: '0rem 1.5rem' }
         }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
-        dataProvider.features.enableFiltering && !snapshotName && div({ style: { width: 300 } }, [
+        dataProvider.features.supportsFiltering && !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',

@@ -7,12 +7,12 @@ import { DataProvider, DataProviderFeatures, DeleteTable, EntityQuerySortDirecti
 
 export class EntityServiceDataProvider implements DataProvider {
   features: DataProviderFeatures = {
-    enableTsvDownload: true,
-    enableTypeDeletion: true,
-    enableTypeRenaming: true,
-    enableExport: true,
-    enablePointCorrection: true,
-    enableFiltering: true
+    supportsTsvDownload: true,
+    supportsTypeDeletion: true,
+    supportsTypeRenaming: true,
+    supportsExport: true,
+    supportsPointCorrection: true,
+    supportsFiltering: true
   }
 
   getPage: GetPage = async (signal: AbortSignal, _workspaceId: string, entityType: string, pageNumber: number,

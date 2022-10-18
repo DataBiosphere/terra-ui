@@ -321,7 +321,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        dataProvider.features.enableTsvDownload && h(MenuButton, {
+        dataProvider.features.supportsTsvDownload && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
@@ -335,7 +335,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             })
           }
         }, 'Download TSV'),
-        dataProvider.features.enableExport && h(MenuButton, {
+        dataProvider.features.supportsExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
             withErrorReporting('Error loading entities.')
@@ -345,14 +345,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             setExporting(true)
           })
         }, 'Export to workspace'),
-        dataProvider.features.enableTypeRenaming && h(MenuButton, {
+        dataProvider.features.supportsTypeRenaming && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-        dataProvider.features.enableTypeDeletion && h(MenuButton, {
+        dataProvider.features.supportsTypeDeletion && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
