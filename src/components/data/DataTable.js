@@ -137,9 +137,11 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, workspace.workspace.workspaceId,
-      entityType, pageNumber, itemsPerPage, sort.field, sort.direction, namespace, name, snapshotName,
-      googleProject, activeTextFilter, filterOperator)
+    const queryOptions = {
+      pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
+      googleProject, activeTextFilter, filterOperator
+    }
+    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions)
 
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))

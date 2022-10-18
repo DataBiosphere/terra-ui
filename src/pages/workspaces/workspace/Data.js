@@ -285,7 +285,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 }
 
 const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
-  const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
 
   const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
@@ -417,7 +417,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onDismiss: () => setDeleting(false),
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
-          await dataProvider.deleteTable(signal, workspaceId, namespace, name, tableName)
+          await dataProvider.deleteTable(tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace)
           })

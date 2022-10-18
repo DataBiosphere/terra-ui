@@ -380,7 +380,7 @@ const EntitiesContent = ({
   const selectedKeys = _.keys(selectedEntities)
   const selectedLength = selectedKeys.length
 
-  const dataProvider = new EntityServiceDataProvider()
+  const dataProvider = new EntityServiceDataProvider(namespace, name)
 
   return igvFiles ?
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :

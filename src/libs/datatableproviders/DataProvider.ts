@@ -49,13 +49,23 @@ export interface EntityQueryResponse {
   results: Entity[]
 }
 
-export type GetPage = (signal: AbortSignal, workspaceId: string, entityType: string, pageNumber: number,
-  itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection,
-  namespace: string, name: string, snapshotName: string, googleProject: string, activeTextFilter: string, filterOperator: string) => Promise<EntityQueryResponse>
+export interface EntityQueryOptions {
+  pageNumber: number,
+  itemsPerPage: number,
+  sortField: string,
+  sortDirection: EntityQuerySortDirection,
+  snapshotName: string,
+  googleProject: string,
+  activeTextFilter: string,
+  filterOperator: string
+}
 
-export type GetMetadata = (signal: AbortSignal, workspaceId: string, namespace: string, name: string) => Promise<EntityMetadata>
+// queryOptions can contain:
+export type GetPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
 
-export type DeleteTable = (workspaceId: string, namespace: string, name: string, entityType: string) => Promise<void>
+export type GetMetadata = (signal: AbortSignal) => Promise<EntityMetadata>
+
+export type DeleteTable = (entityType: string) => Promise<void>
 
 export interface DataProviderFeatures {
   supportsTsvDownload: boolean,

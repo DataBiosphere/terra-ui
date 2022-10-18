@@ -2,7 +2,7 @@
 import { ValueKeyIteratee } from 'lodash'
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataProvider, DataProviderFeatures, DeleteTable, EntityQuerySortDirection, GetMetadata, GetPage } from 'src/libs/datatableproviders/DataProvider'
+import { DataProvider, DataProviderFeatures, DeleteTable, EntityQueryOptions, GetMetadata, GetPage } from 'src/libs/datatableproviders/DataProvider'
 
 
 export class EntityServiceDataProvider implements DataProvider {
@@ -24,15 +24,14 @@ export class EntityServiceDataProvider implements DataProvider {
     supportsFiltering: true
   }
 
-  getPage: GetPage = async (signal: AbortSignal, _workspaceId: string, entityType: string, pageNumber: number,
-    itemsPerPage: number, sortField: string, sortDirection: EntityQuerySortDirection,
-    namespace: string, name: string, snapshotName: string, googleProject: string, activeTextFilter: string, filterOperator: string) => {
-    return await Ajax(signal).Workspaces.workspace(namespace, name)
+  getPage: GetPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
+    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name)
       .paginatedEntitiesOfType(entityType, _.pickBy(_.trim as ValueKeyIteratee<string | number>, {
-        page: pageNumber, pageSize: itemsPerPage, sortField, sortDirection,
-        ...(!!snapshotName ?
-          { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter, filterOperator })
+        page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
+        sortField: queryOptions.sortField, sortDirection: queryOptions.sortDirection,
+        ...(!!queryOptions.snapshotName ?
+          { billingProject: queryOptions.googleProject, dataReference: queryOptions.snapshotName } :
+          { filterTerms: queryOptions.activeTextFilter, filterOperator: queryOptions.filterOperator })
       }))
   }
 
