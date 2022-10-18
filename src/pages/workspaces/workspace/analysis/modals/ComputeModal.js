@@ -12,7 +12,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { cloudServices, machineTypes } from 'src/data/machines'
+import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -1051,7 +1051,11 @@ export const ComputeModalBase = ({
                     value: runtimeType,
                     onChange: ({ value }) => {
                       setRuntimeType(value)
-                      updateComputeConfig('masterMachineType', getDefaultMachineType(isDataproc(value), getToolFromRuntime(value)))
+                      const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolFromRuntime(value))
+                      // we need to update the compute config if the current value is smaller than the default for the dropdown option
+                      if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
+                        updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue)
+                      }
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [

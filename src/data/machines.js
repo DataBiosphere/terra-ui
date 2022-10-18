@@ -1,3 +1,6 @@
+import _ from 'lodash/fp'
+
+
 export const machineTypes = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.50 },
@@ -22,6 +25,9 @@ export const machineTypes = [
   { name: 'n1-highcpu-64', cpu: 64, memory: 57.6 },
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4 }
 ]
+
+// returns true if current machine type is smaller than candidate
+export const isMachineTypeSmaller = (current, candidate) => _.find({ name: current }, machineTypes).cpu < _.find({ name: candidate }, machineTypes).cpu
 
 // As of June 21, 2021:
 // GPUs are only supported with general-purpose N1 or accelerator-optimized A2 machine types.
