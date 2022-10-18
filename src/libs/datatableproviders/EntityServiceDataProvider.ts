@@ -31,7 +31,7 @@ export class EntityServiceDataProvider implements DataProvider {
     return await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
   }
 
-  deleteTable: DeleteTable = async (signal: any, _workspaceId: string, namespace: string, name: string, entityType: string) => {
-    return await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntitiesOfType(entityType)
+  deleteTable: DeleteTable = async (_workspaceId: string, namespace: string, name: string, entityType: string) => {
+    return await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(entityType)
   }
 }
