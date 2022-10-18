@@ -127,13 +127,15 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
-const UnboundDiskNotification = () => {
+export const UnboundDiskNotification = props => {
   return div({
+    ...props,
     style: {
       ...Style.dashboard.rightBoxContainer,
       padding: '1rem',
       border: '1px solid',
-      borderColor: colors.accent()
+      borderColor: colors.accent(),
+      ...props?.style
     }
   }, [
     strong(['Persistent disks can no longer be shared between workspaces. ']),

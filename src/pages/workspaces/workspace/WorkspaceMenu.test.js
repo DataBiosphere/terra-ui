@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen } from '@testing-library/react'
+import { axe } from 'jest-axe'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
@@ -43,7 +44,7 @@ const workspaceMenuProps = {
 }
 
 beforeEach(() => {
-  MenuTrigger.mockImplementation(({ content }) => { return div([content]) })
+  MenuTrigger.mockImplementation(({ content }) => { return div({ role: 'menu' }, [content]) })
   TooltipTrigger.mockImplementation(({ content, children }) => {
     const [open, setOpen] = useState(false)
     return (div([
@@ -67,6 +68,13 @@ describe('WorkspaceMenu - undefined workspace', () => {
   beforeEach(() => {
     // Arrange
     useWorkspaceDetails.mockReturnValue({ workspace: undefined })
+  })
+
+  it('should not fail any accessibility tests', async () => {
+    // Act
+    const { container } = render(h(WorkspaceMenu, workspaceMenuProps))
+    // Assert
+    expect(await axe(container)).toHaveNoViolations()
   })
 
   it.each([
@@ -95,6 +103,15 @@ describe('WorkspaceMenu - undefined workspace', () => {
 })
 
 describe('WorkspaceMenu - GCP workspace', () => {
+  it('should not fail any accessibility tests', async () => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({ workspace: { canShare: true, workspace: {} }, accessLevel: 'OWNER' })
+    // Act
+    const { container } = render(h(WorkspaceMenu, workspaceMenuProps))
+    // Assert
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
   it('renders menu item Clone as enabled', () => {
     // Arrange
     useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } })
@@ -233,6 +250,22 @@ describe('WorkspaceMenu - Azure workspace', () => {
     })
   })
 
+  it('should not fail any accessibility tests', async () => {
+    // Arrange
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: {},
+        canShare: true,
+        accessLevel: 'OWNER'
+      }
+    })
+    // Act
+    const { container } = render(h(WorkspaceMenu, workspaceMenuProps))
+    // Assert
+    expect(await axe(container)).toHaveNoViolations()
+  })
+
   it('renders menu item Clone as disabled', () => {
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
@@ -250,8 +283,6 @@ describe('WorkspaceMenu - Azure workspace', () => {
   })
 
   it('renders menu item Leave as enabled', () => {
-    // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { workspace: {} } })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Leave')
@@ -263,7 +294,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     true, false
   ])('enables/disables Share menu item based on canShare: %s', canShare => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: {},
+        canShare
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Share')
@@ -279,7 +316,13 @@ describe('WorkspaceMenu - Azure workspace', () => {
     true, false
   ])('renders Share tooltip based on canShare: %s', canShare => {
     // Arrange
-    useWorkspaceDetails.mockReturnValue({ workspace: { canShare, workspace: {} } })
+    useWorkspaceDetails.mockReturnValue({
+      workspace: {
+        azureContext: { managedResourceGroupId: 'mrg', subscriptionId: 'subscription', tenantId: 'tenant' },
+        workspace: {},
+        canShare
+      }
+    })
     // Act
     render(h(WorkspaceMenu, workspaceMenuProps))
     const menuItem = screen.getByText('Share')

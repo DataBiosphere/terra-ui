@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { axe } from 'jest-axe'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
@@ -80,5 +81,18 @@ describe('WorkspaceNotifications', () => {
       'notifications/FailedSubmissionNotification/test/test': 'true',
       'notifications/AbortedSubmissionNotification/test/test': 'true'
     })
+  })
+
+  it('has no accessibility errors', async () => {
+    authStore.set({
+      profile: {
+        'notifications/SuccessfulSubmissionNotification/test/test': 'false',
+        'notifications/FailedSubmissionNotification/test/test': 'false',
+        'notifications/AbortedSubmissionNotification/test/test': 'false'
+      }
+    })
+
+    const { container } = render(h(WorkspaceNotifications, { workspace: testWorkspace }))
+    expect(await axe(container)).toHaveNoViolations()
   })
 })
