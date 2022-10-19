@@ -174,16 +174,6 @@ export const billingProjectNameValidator = existing => ({
   }
 })
 
-const noBillingMessage = div({ style: { fontSize: 20, margin: '4rem' } }, [
-  div(['To get started, use the Create button to create a Terra Billing Project']),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    h(Link, {
-      ...Utils.newTabLinkProps,
-      href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
-    }, ['What is a billing project?'])
-  ])
-])
-
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
   initialOpenState: true,
