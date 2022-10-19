@@ -564,7 +564,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      _.isEmpty(workspacesInProject) ?
+      isOwner && _.isEmpty(workspacesInProject) ?
         div({ style: { margin: '1rem' } }, [
           h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '22px' } }, ['Billing project successfully created']),
           h(ButtonPrimary, {
