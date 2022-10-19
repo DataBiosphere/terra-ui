@@ -151,7 +151,7 @@ const MigratePersistentDiskCell = ({ onClick }) => div({
     backgroundColor: colors.danger(0.15), color: colors.danger()
   }
 }, [
-  h(TooltipTrigger, { content: `This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.` }, [
+  h(TooltipTrigger, { content: 'This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.' }, [
     div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
   ]),
   h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])
@@ -364,7 +364,7 @@ const Environments = () => {
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
-      Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
+      Ajax().Runtimes.runtimeWrapper(compute).stop() :
       Ajax().Apps.app(compute.googleProject, compute.appName).pause())
     await wrappedPauseCompute()
     await loadData()

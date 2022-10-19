@@ -18,7 +18,7 @@ const styles = {
   card: {
     height: 245,
     width: 225,
-    marginRight: `1rem`,
+    marginRight: '1rem',
     justifyContent: undefined
   },
   callToActionBanner: {

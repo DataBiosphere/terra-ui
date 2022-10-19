@@ -91,12 +91,12 @@ const ApplicationLauncher = _.flow(
     return h(Modal, {
       onDismiss,
       width: 530,
-      title: _.size(outdatedAnalyses) > 1 ? 'R files in use' : `R file is in use`,
+      title: _.size(outdatedAnalyses) > 1 ? 'R files in use' : 'R file is in use',
       showButtons: false
     }, [
       Utils.cond(
         // if user has more than one outdated rstudio analysis, display plural phrasing
-        [_.size(outdatedAnalyses) > 1, () => [p([`These R files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.`]),
+        [_.size(outdatedAnalyses) > 1, () => [p(['These R files are being edited by another user and your versions are now outdated. Your files will no longer sync with the workspace bucket.']),
           p([getAnalysesDisplayList(outdatedAnalyses)]),
           p(['You can']),
           p(['1) ', strong(['save your changes as new copies']), ' of your files which will enable file syncing on the copies']),
@@ -164,7 +164,7 @@ const ApplicationLauncher = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis file syncing')
     )(async () => {
-      const localBaseDirectory = ``
+      const localBaseDirectory = ''
 
       const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
@@ -174,7 +174,7 @@ const ApplicationLauncher = _.flow(
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)

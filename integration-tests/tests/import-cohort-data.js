@@ -7,7 +7,7 @@ const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const cohortName = `terra-ui-test-cohort`
+const cohortName = 'terra-ui-test-cohort'
 
 const testImportCohortDataFn = _.flow(
   withWorkspace,

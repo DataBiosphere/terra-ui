@@ -12,7 +12,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import { getAvailableComputeRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isUSLocation } from 'src/components/region-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { cloudServices, machineTypes } from 'src/data/machines'
+import { cloudServices, isMachineTypeSmaller, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -63,22 +63,22 @@ const sparkInterfaces = {
   yarn: {
     label: 'yarn',
     displayName: 'YARN Resource Manager',
-    synopsis: `YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.`
+    synopsis: 'YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.'
   },
   appHistory: {
     label: 'apphistory',
     displayName: 'YARN Application Timeline',
-    synopsis: `YARN Application Timeline provides information about current and historic applications executed on the cluster.`
+    synopsis: 'YARN Application Timeline provides information about current and historic applications executed on the cluster.'
   },
   sparkHistory: {
     label: 'sparkhistory',
     displayName: 'Spark History Server',
-    synopsis: `Spark History Server provides information about completed Spark applications on the cluster.`
+    synopsis: 'Spark History Server provides information about completed Spark applications on the cluster.'
   },
   jobHistory: {
     label: 'jobhistory',
     displayName: 'MapReduce History Server',
-    synopsis: `MapReduce History Server displays information about completed MapReduce applications on a cluster.`
+    synopsis: 'MapReduce History Server displays information about completed MapReduce applications on a cluster.'
   }
 }
 // Enums -- end
@@ -695,7 +695,8 @@ export const ComputeModalBase = ({
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true),
+          .getObjectPreview(googleProject, getConfig().terraDockerImageBucket, getConfig().terraDockerVersionsFile, true)
+          .then(r => r.json()),
         currentDisk ? Ajax().Disks.disk(currentDisk.googleProject, currentDisk.name).details() : null
       ])
 
@@ -743,14 +744,17 @@ export const ComputeModalBase = ({
         [Utils.DEFAULT, () => runtimeTypes.gceVm] // for when there's no existing runtime
       )
 
+      const diskSize = Utils.cond([!!runtimeConfig?.diskSize, () => runtimeConfig.diskSize],
+        [!!runtimeConfig?.masterDiskSize, () => runtimeConfig.masterDiskSize],
+        [isDataproc(newRuntimeType), () => defaultDataprocMasterDiskSize],
+        () => defaultGceBootDiskSize)
+
       setRuntimeType(newRuntimeType)
       setComputeConfig({
         selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
         selectedPersistentDiskType: (!!currentPersistentDiskDetails?.diskType && currentPersistentDiskDetails.diskType) || defaultPersistentDiskType,
         masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-        masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || isDataproc(newRuntimeType) ?
-          defaultDataprocMasterDiskSize :
-          defaultGceBootDiskSize,
+        masterDiskSize: diskSize,
         numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
         componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || isDataprocCluster(newRuntimeType),
         numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
@@ -1050,7 +1054,11 @@ export const ComputeModalBase = ({
                     value: runtimeType,
                     onChange: ({ value }) => {
                       setRuntimeType(value)
-                      updateComputeConfig('masterMachineType', getDefaultMachineType(isDataproc(value), getToolFromRuntime(value)))
+                      const defaultMachineTypeForSelectedValue = getDefaultMachineType(isDataproc(value), getToolFromRuntime(value))
+                      // we need to update the compute config if the current value is smaller than the default for the dropdown option
+                      if (isMachineTypeSmaller(computeConfig.masterMachineType, defaultMachineTypeForSelectedValue)) {
+                        updateComputeConfig('masterMachineType', defaultMachineTypeForSelectedValue)
+                      }
                       updateComputeConfig('componentGatewayEnabled', isDataproc(value))
                     },
                     options: [

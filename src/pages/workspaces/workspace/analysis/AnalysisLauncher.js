@@ -12,7 +12,7 @@ import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigg
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -132,7 +132,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
   }, [
     p(lockedByEmail ?
       `This notebook is currently being edited by ${lockedByEmail}.` :
-      `This notebook is currently locked because another user is editing it.`),
+      'This notebook is currently locked because another user is editing it.'),
     p('You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.'),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
@@ -176,7 +176,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateRuntime, onPlayground }) =
         onClick: () => onPlayground()
       }, ['Run in playground mode']),
       h(ButtonPrimary, {
-        'aria-label': `Launcher create`,
+        'aria-label': 'Launcher create',
         style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateRuntime()
       }, ['Recreate cloud environment'])
@@ -209,7 +209,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
 }
 
 const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
-  'aria-label': `analysis header button`,
+  'aria-label': 'analysis header button',
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
@@ -248,18 +248,10 @@ const PreviewHeader = ({
     }
   })
 
-  const startAndRefresh = async (refreshRuntimes, runtime) => {
-    try {
-      if (!!googleProject) {
-        await Ajax().Runtimes.runtime(googleProject, runtime.runtimeName).start()
-      } else {
-        //TODO start for azure
-      }
-      await refreshRuntimes(true)
-    } catch (error) {
-      reportError('Cloud Environment Error', error)
-    }
-  }
+  const startAndRefresh = withErrorReporting('Error starting compute', async (refreshRuntimes, runtime) => {
+    await Ajax().Runtimes.runtimeWrapper(runtime).start()
+    await refreshRuntimes(true)
+  })
 
   useOnMount(() => {
     if (!!googleProject) {
@@ -336,7 +328,7 @@ const PreviewHeader = ({
     h(MenuTrigger, {
       closeOnClick: true,
       content: h(Fragment, [
-        h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
+        h(MenuButton, { 'aria-label': 'Copy analysis', onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
         h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
         h(MenuButton, {
           onClick: withErrorReporting('Error copying to clipboard', async () => {

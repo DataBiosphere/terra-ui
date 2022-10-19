@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { axe } from 'jest-axe'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
@@ -25,10 +26,14 @@ jest.mock('src/components/Modal', () => {
 jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
+  let modalComponent
+
   beforeEach(() => {
     // Arrange
     Ajax.mockImplementation(() => {})
-    render(h(CreateAzureBillingProjectModal, { onSuccess: jest.fn(), onDismiss: jest.fn(), billingProjectNameValidator }))
+    modalComponent = render(
+      h(CreateAzureBillingProjectModal, { onSuccess: jest.fn(), onDismiss: jest.fn(), billingProjectNameValidator })
+    )
   })
 
   const tooShortError = 'Billing project name is too short (minimum is 6 characters)'
@@ -53,6 +58,10 @@ describe('CreateAzureBillingProjectModal', () => {
     expect(getBillingProjectHint()).not.toBeNull()
     verifyDisabled(getManagedAppInput())
     verifyDisabled(getCreateButton())
+  })
+
+  it('should not fail any accessibility tests in initial state', async () => {
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
   })
 
   it.each([
@@ -184,6 +193,8 @@ describe('CreateAzureBillingProjectModal', () => {
     await userEvent.click(selectOption)
     // Assert
     verifyEnabled(getCreateButton())
+    // Verify accessibility with all fields enabled
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
 
     // Act - Click Create
     await act(async () => {
@@ -234,5 +245,7 @@ describe('CreateAzureBillingProjectModal', () => {
     // Assert - Verify expected error message and Create button disabled.
     expect(screen.queryByText(duplicateProjectError)).not.toBeNull()
     verifyDisabled(getCreateButton())
+    // Verify accessibility with error message displayed
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
   })
 })

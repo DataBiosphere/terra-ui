@@ -53,14 +53,14 @@ export const CromwellModalBase = withDisplayName('CromwellModal')(
       return !app ?
         nonStatusSpecificMessage :
         Utils.switchCase(app.status,
-          ['PROVISIONING', () => `The cloud compute is provisioning, which may take several minutes.`],
-          ['STOPPED', () => `The cloud compute is paused.`],
+          ['PROVISIONING', () => 'The cloud compute is provisioning, which may take several minutes.'],
+          ['STOPPED', () => 'The cloud compute is paused.'],
           ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
           ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
           ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
           ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
-          ['RUNNING', () => `There is already an instance of Cromwell running.`],
-          ['ERROR', () => `An error has occurred on your cloud environment.`]
+          ['RUNNING', () => 'There is already an instance of Cromwell running.'],
+          ['ERROR', () => 'An error has occurred on your cloud environment.']
         )
     }
 

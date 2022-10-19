@@ -34,7 +34,7 @@ export const brands = {
     signInName: 'AnVIL',
     queryName: 'anvil',
     welcomeHeader: 'Welcome to AnVIL',
-    description: `The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.`,
+    description: 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space) is a project powered by Terra for biomedical researchers to access data, run analysis tools, and collaborate.',
     hostName: 'anvil.terra.bio',
     docLinks: [
       {
@@ -187,7 +187,8 @@ export const brands = {
     logos: {
       color: radXLogo,
       white: radXLogoWhite
-    }
+    },
+    catalogDataCollectionsToInclude: ['RADx-UP', 'RADx-DHT', 'RADx-Rad', 'RADx-Tech']
   },
   rareX: {
     name: `The RARE${nonBreakingHyphen}X Data Analysis Platform`,
@@ -198,12 +199,12 @@ export const brands = {
     hostName: 'rare-x.terra.bio',
     docLinks: [
       {
-        link: 'https://rare-x.org/DataAnalysisPlatform-Documentation',
-        text: 'Find RARE-X Data Analysis Platform documentation, tutorials and Jupyter notebook examples'
+        link: 'https://docs.google.com/forms/d/e/1FAIpQLScpqfZIXW53IJOiYz2RhASJzm7lZBYAjzkjJ67qFDERUpuDAQ/viewform',
+        text: 'Request access to the RARE-X data set within Terra'
       },
       {
         link: 'https://rare-x.org/researchers/',
-        text: 'Learn more about the RARE-X Data Analysis Platform'
+        text: 'Learn more about the data available from RARE-X'
       },
       {
         link: 'https://support.terra.bio/hc/en-us',

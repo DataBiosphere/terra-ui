@@ -68,11 +68,12 @@
     "preinstall": "node .hooks/check-engine-light.js",
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
-    "test": "react-app-rewired test",
+    "test": "TZ=UTC react-app-rewired test",
     "check-types": "check-dts types/**/*.ts",
     "postinstall": "husky install"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.4.5",
     "@testing-library/dom": "^8.17.1",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.5",
@@ -91,6 +92,7 @@
     "eslint-plugin-lodash-fp": "^2.2.0-a1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "husky": "^7.0.2",
+    "jest-axe": "^6.0.0",
     "lint-staged": "^13.0.3",
     "react-app-rewired": "^2.2.1",
     "source-map-explorer": "^2.5.2",

@@ -37,7 +37,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
       setError(
         await Ajax()
           .Buckets
-          .getObjectPreview(runtime.googleProject, runtime.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, true)
+          .getObjectPreview(runtime.googleProject, runtime.asyncRuntimeFields.stagingBucket, 'userscript_output.txt', true)
           .then(res => res.text()))
       setUserscriptError(true)
     } else {
@@ -92,7 +92,7 @@ export const AppErrorModal = ({ app, onDismiss }) => {
   useOnMount(() => { loadAppError() })
 
   return h(Modal, {
-    title: `Galaxy App is in error state`,
+    title: 'Galaxy App is in error state',
     showCancel: false,
     onDismiss
   }, [
@@ -157,7 +157,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
       notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
           p(['Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.']),
-          h(Link, { 'aria-label': `Welder cutoff link`, href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
+          h(Link, { 'aria-label': 'Welder cutoff link', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {

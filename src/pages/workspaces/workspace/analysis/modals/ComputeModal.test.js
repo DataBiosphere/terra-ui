@@ -77,7 +77,7 @@ const defaultAjaxImpl = {
       details: jest.fn()
     })
   },
-  Buckets: { getObjectPreview: () => Promise.resolve(imageDocs) },
+  Buckets: { getObjectPreview: () => Promise.resolve({ json: () => Promise.resolve(imageDocs) }) },
   Disks: {
     disk: () => ({
       details: jest.fn()
@@ -113,9 +113,8 @@ describe('ComputeModal', () => {
 
     // Assert
     verifyEnabled(getCreateButton())
-    const title = screen.getByText('Jupyter Cloud Environment')
-    expect(title).toBeInTheDocument()
-    expect(screen.getByText('Create custom environment')).toBeInTheDocument()
+    screen.getByText('Jupyter Cloud Environment')
+    screen.getByText('Create custom environment')
   })
 
   it('sends the proper leo API call in default create case (no runtimes or disks)', async () => {
@@ -239,18 +238,18 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getByText(`${runtimeTool.label} Cloud Environment`)).toBeInTheDocument()
+    screen.getByText(`${runtimeTool.label} Cloud Environment`)
 
     const toolImage = _.find({ imageType: runtimeTool.label }, runtime.runtimeImages)
     const selectText = _.find({ image: toolImage.imageUrl }, imageDocs).label
-    expect(screen.getByText(selectText)).toBeInTheDocument()
+    screen.getByText(selectText)
 
-    expect(screen.getByText(machine.cpu)).toBeInTheDocument()
-    expect(screen.getByText(machine.memory)).toBeInTheDocument()
+    screen.getByText(machine.cpu)
+    screen.getByText(machine.memory)
 
     verifyDisabled(screen.getByLabelText('Disk Type'))
     verifyDisabled(screen.getByLabelText('Location'))
-    expect(screen.getByDisplayValue(disk.size)).toBeInTheDocument()
+    screen.getByDisplayValue(disk.size)
 
     verifyEnabled(screen.getByText('Delete Environment'))
     verifyEnabled(screen.getByText('Update'))
@@ -428,8 +427,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    const headerForNextPane = await screen.findByText('Downtime required')
-    expect(headerForNextPane).toBeInTheDocument()
+    await screen.findByText('Downtime required')
 
     // Act
     await act(async () => {
@@ -619,29 +617,28 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getByText(`${tools.Jupyter.label} Cloud Environment`)).toBeInTheDocument()
+    screen.getByText(`${tools.Jupyter.label} Cloud Environment`)
 
     const selectText = hailImage.label
-    expect(screen.getByText(selectText)).toBeInTheDocument()
+    screen.getByText(selectText)
 
-    expect(screen.getByText(machine1.cpu)).toBeInTheDocument()
-    expect(screen.getByText(machine1.memory)).toBeInTheDocument()
-    expect(screen.getByText('Spark cluster')).toBeInTheDocument()
+    screen.getByText(machine1.cpu)
+    screen.getByText(machine1.memory)
+    screen.getByText('Spark cluster')
 
     verifyDisabled(screen.getByLabelText('Workers'))
     verifyDisabled(screen.getByLabelText('Location'))
 
-    //TODO: fix bug affecting this, IA-3739
-    //master and worker disk sizes, there is a bug currently
-    // expect(screen.getByDisplayValue(150)).toBeInTheDocument()
-    // expect(screen.getByDisplayValue(151)).toBeInTheDocument()
+    const inputs = screen.getAllByLabelText('Disk size (GB)')
+    expect(inputs.length).toBe(2)
+    expect(inputs[1]).toHaveDisplayValue(150)
+    expect(inputs[0]).toHaveDisplayValue(151)
 
-    expect(screen.getByText(machine2.cpu)).toBeInTheDocument()
-    expect(screen.getByText(machine2.memory)).toBeInTheDocument()
+    screen.getByText(machine2.cpu)
+    screen.getByText(machine2.memory)
 
     verifyEnabled(screen.getByText('Delete Runtime'))
-    //TODO: verify this is disabled once bug is fixed
-    expect(screen.getByText('Next')).toBeInTheDocument()
+    screen.getByText('Update')
   })
 
   // spark cluster (pass a dataproc runtime and ensure it loads correctly) (
@@ -802,8 +799,8 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getByText('About persistent disk')).toBeInTheDocument()
-    expect(screen.getByText(/Your persistent disk is mounted in the directory/)).toBeInTheDocument()
+    screen.getByText('About persistent disk')
+    screen.getByText(/Your persistent disk is mounted in the directory/)
   })
 
   it('should render whats installed on this environment', async () => {
@@ -815,9 +812,9 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getByText('Installed packages')).toBeInTheDocument()
-    expect(screen.getByText(defaultImage.label)).toBeInTheDocument()
-    expect(screen.getByText('Language:')).toBeInTheDocument()
+    screen.getByText('Installed packages')
+    screen.getByText(defaultImage.label)
+    screen.getByText('Language:')
   })
 
   // GPUs should function properly
@@ -845,8 +842,8 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    expect(screen.getByText('GPU type')).toBeInTheDocument()
-    expect(screen.getByText('GPUs')).toBeInTheDocument()
+    screen.getByText('GPU type')
+    screen.getByText('GPUs')
 
     // Act
     await act(async () => {

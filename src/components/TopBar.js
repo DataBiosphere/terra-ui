@@ -283,7 +283,12 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: 'https://support.terra.bio/hc/en-us/sections/4414878945819',
               onClick: hideNav,
               ...Utils.newTabLinkProps
-            }, ['Release Notes'])
+            }, ['Release Notes']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/categories/4408258992795',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Service Notifications'])
           ]),
           isTerra() && h(NavSection, {
             href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
@@ -381,7 +386,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               }
             })
           ]) :
-          div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
+          div({ style: { width: 'calc(1rem + 1rem + 1rem + 2px + 36px)' } }), // padding (l+r) + margin (l+r) + icon size
         a({
           style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
           href: href || Nav.getLink('root')
