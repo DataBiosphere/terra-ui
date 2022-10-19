@@ -9,7 +9,7 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { setLocalPref } from 'src/libs/prefs'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import validate from 'validate.js'
@@ -34,14 +34,14 @@ const styles = {
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
   const persistenceId = 'billing'
-  const [accessToBillingAccount, setAccessToBillingAccount] = useState(() => getLocalPref(persistenceId)?.accessToBillingAccount)
-  const [verified, setVerified] = useState(() => getLocalPref(persistenceId)?.verified || false)
+  const [accessToBillingAccount, setAccessToBillingAccount] = useState()
+  const [verified, setVerified] = useState(false)
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState('')
   const [isBusy, setIsBusy] = useState(false)
   const [existing, setExisting] = useState([])
   const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
-  const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
+  const [activeStep, setActiveStep] = useState(1)
 
   useEffect(() => {
     setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified })
@@ -89,11 +89,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         },
         href: 'https://console.cloud.google.com',
         ...Utils.newTabLinkProps,
-        disabled: !isActive,
         onClick: () => {
-          if (isDone) {
-            setActiveStep(1)
-          } else {
+          if (!isDone) {
             next()
           }
         }
@@ -123,9 +120,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             name: 'access-to-account',
             checked: accessToBillingAccount === false,
             labelStyle: { ...styles.radioButtonLabel },
-            disabled: !isActive,
             onChange: () => {
-              if (!isDone) { next() }
+              if (!isDone) {
+                next()
+              } else {
+                setActiveStep(3)
+                setVerified(false)
+              }
               setAccessToBillingAccount(false)
             }
           })
@@ -136,9 +137,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             name: 'access-to-account',
             checked: accessToBillingAccount === true,
             labelStyle: { ...styles.radioButtonLabel },
-            disabled: !isActive,
             onChange: () => {
-              if (!isDone) { next() }
+              if (!isDone) {
+                next()
+              } else {
+                setActiveStep(3)
+                setVerified(false)
+              }
               setAccessToBillingAccount(true)
             }
           })
@@ -194,7 +199,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             text: 'I have verified the user has been added to my account',
             name: 'verified', checked: verified === true,
             labelStyle: { ...styles.radioButtonLabel },
-            disabled: !isActive,
             onChange: async () => {
               if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
               setVerified(true)
