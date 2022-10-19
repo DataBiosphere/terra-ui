@@ -251,8 +251,9 @@ export const WorkspaceNotifications = ({ workspace }) => {
 const WorkspaceDashboard = _.flow(
   forwardRefWithName('WorkspaceDashboard'),
   wrapWorkspace({
-    breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
-    activeTab: 'dashboard'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    activeTab: 'dashboard',
+    title: 'Dashboard'
   })
 )(({
   namespace, name,
