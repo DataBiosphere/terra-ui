@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
@@ -68,6 +68,25 @@ const makeDocLinks = _.map(
 
 const LandingPage = () => {
   return h(HeroWrapper, { bigSubhead: true }, [
+    isTerra() && div({
+      style: {
+        ...styles.callToActionBanner,
+        width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
+        color: '#333f50', backgroundColor: '#e9ebf1', marginBottom: 15
+      }
+    }, [
+      div([
+        h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '28px', marginTop: 0, marginBottom: 15 } },
+          ['To access storage and compute resources in Terra, you need to link a Google Cloud billing account and create a Terra Project.']),
+        'Terra projects will allow you to manage your workspace costs'
+      ]),
+      h(ButtonPrimary, {
+        style: { marginTop: 20, padding: '1.25rem 5rem', textTransform: 'none' },
+        onClick: () => {
+          Nav.goToPath('billing')
+        }
+      }, ['Get Started'])
+    ]),
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
     div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [

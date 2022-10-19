@@ -2,7 +2,7 @@ import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, h2, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -564,29 +564,39 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
-        h(WorkspaceCardHeaders, {
-          needsStatusColumn: billingAccountsOutOfDate,
-          sort: workspaceSort,
-          onSort: setWorkspaceSort
-        }),
-        div({}, [
-          _.flow(
-            _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-            _.map(workspace => {
-              const isExpanded = expandedWorkspaceName === workspace.name
-              return h(WorkspaceCard, {
-                workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
-                billingProject,
-                billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
-                key: workspace.workspaceId,
-                isExpanded,
-                onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+      _.isEmpty(workspacesInProject) ?
+        div({ style: { margin: '1rem' } }, [
+          h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '22px' } }, ['Billing project successfully created']),
+          h(ButtonPrimary, {
+            style: { padding: '1rem 1rem', textTransform: 'none' },
+            onClick: () => {
+              Nav.goToPath('workspaces')
+            }
+          }, ['Go to the workspace list page'])
+        ]) :
+        div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
+          h(WorkspaceCardHeaders, {
+            needsStatusColumn: billingAccountsOutOfDate,
+            sort: workspaceSort,
+            onSort: setWorkspaceSort
+          }),
+          div({}, [
+            _.flow(
+              _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+              _.map(workspace => {
+                const isExpanded = expandedWorkspaceName === workspace.name
+                return h(WorkspaceCard, {
+                  workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
+                  billingProject,
+                  billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
+                  key: workspace.workspaceId,
+                  isExpanded,
+                  onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+                })
               })
-            })
-          )(workspacesInProject)
+            )(workspacesInProject)
+          ])
         ])
-      ])
     ]),
     members: h(Fragment, [
       isOwner && h(NewUserCard, {
