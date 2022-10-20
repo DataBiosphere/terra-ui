@@ -9,15 +9,9 @@ export interface EntityMetadata {
   [index: string]: EntityTypeMetadata
 }
 
-export enum EntityQuerySortDirection {
-  Asc = 'asc',
-  Desc = 'desc'
-}
+export type EntityQuerySortDirection = 'asc' | 'desc'
 
-export enum EntityQueryFilterOperator {
-  And = 'and',
-  Or = 'or'
-}
+export type EntityQueryFilterOperator = 'and' | 'or'
 
 // define paginated query result structures
 interface EntityQuery {
