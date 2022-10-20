@@ -26,7 +26,7 @@ export class EntityServiceDataProvider implements DataProvider {
 
   getPage: GetPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
     return await Ajax(signal).Workspaces.workspace(this.namespace, this.name)
-      .paginatedEntitiesOfType(entityType, _.pickBy(_.trim as ValueKeyIteratee<string | number>, {
+      .paginatedEntitiesOfType(entityType, _.pickBy(v => _.trim(v?.toString()), {
         page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
         sortField: queryOptions.sortField, sortDirection: queryOptions.sortDirection,
         ...(!!queryOptions.snapshotName ?
