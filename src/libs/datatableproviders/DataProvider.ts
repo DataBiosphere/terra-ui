@@ -10,16 +10,12 @@ export interface EntityMetadata {
 }
 
 export enum EntityQuerySortDirection {
-  // eslint-disable-next-line no-unused-vars
   Asc = 'asc',
-  // eslint-disable-next-line no-unused-vars
   Desc = 'desc'
 }
 
 export enum EntityQueryFilterOperator {
-  // eslint-disable-next-line no-unused-vars
   And = 'and',
-  // eslint-disable-next-line no-unused-vars
   Or = 'or'
 }
 
