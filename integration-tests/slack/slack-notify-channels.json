@@ -78,7 +78,10 @@
           "name": "run-catalog-workflow"
         },
         {
-          "name": "link-to-new-workspace"
+          "name": "export-tdr-dataset-to-new-workspace"
+        },
+        {
+          "name": "export-workspace-dataset-to-new-workspace"
         },
         {
           "name": "import-cohort-data"
