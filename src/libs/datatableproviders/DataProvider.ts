@@ -51,11 +51,11 @@ export interface EntityQueryOptions {
 }
 
 // queryOptions can contain:
-export type GetPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
+export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
 
-export type GetMetadata = (signal: AbortSignal) => Promise<EntityMetadata>
+export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
-export type DeleteTable = (entityType: string) => Promise<void>
+export type DeleteTableFn = (entityType: string) => Promise<void>
 
 export interface DataProviderFeatures {
   supportsTsvDownload: boolean,
@@ -68,10 +68,10 @@ export interface DataProviderFeatures {
 
 export interface DataProvider {
   features: DataProviderFeatures,
-  getPage: GetPage,
-  deleteTable: DeleteTable
+  getPage: GetPageFn,
+  deleteTable: DeleteTableFn
   // todos that we will need soon:
-  // getMetadata: GetMetadata
+  // getMetadata: GetMetadataFn
   // downloadTsv: function, see also supportsTsvDownload
   // updateAttribute: function, see also boolean
 }

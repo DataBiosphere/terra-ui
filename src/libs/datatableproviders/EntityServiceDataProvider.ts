@@ -2,7 +2,7 @@
 import { ValueKeyIteratee } from 'lodash'
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataProvider, DataProviderFeatures, DeleteTable, EntityQueryOptions, GetMetadata, GetPage } from 'src/libs/datatableproviders/DataProvider'
+import { DataProvider, DataProviderFeatures, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/datatableproviders/DataProvider'
 
 
 export class EntityServiceDataProvider implements DataProvider {
@@ -24,7 +24,7 @@ export class EntityServiceDataProvider implements DataProvider {
     supportsFiltering: true
   }
 
-  getPage: GetPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
+  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
     return await Ajax(signal).Workspaces.workspace(this.namespace, this.name)
       .paginatedEntitiesOfType(entityType, _.pickBy(v => _.trim(v?.toString()), {
         page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
@@ -35,11 +35,11 @@ export class EntityServiceDataProvider implements DataProvider {
       }))
   }
 
-  getMetadata: GetMetadata = async (signal: AbortSignal) => {
+  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
     return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
   }
 
-  deleteTable: DeleteTable = async (entityType: string) => {
+  deleteTable: DeleteTableFn = async (entityType: string) => {
     return await Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 }
