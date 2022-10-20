@@ -22,7 +22,7 @@ import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigge
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { EntityServiceDataTableProvider } from 'src/libs/ajax/datatableproviders/EntityServiceDataTableProvider'
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
