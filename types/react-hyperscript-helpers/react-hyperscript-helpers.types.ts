@@ -25,6 +25,9 @@ interface TestComponentProps {
 
 const TestComponent = (props: PropsWithChildren<TestComponentProps>) => div()
 
+// PropsWithChildren with key
+h(TestComponent, { key: 'key', stringProp: 'value' })
+
 // Props
 h(TestComponent, { stringProp: 'value' })
 h(TestComponent, { stringProp: 'value', optionalNumberProp: 1 })
