@@ -149,6 +149,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
+                [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                  href: datum['dcat:accessURL'], target: '_blank'
+                }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
                 [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
                   icon('unlock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])

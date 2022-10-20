@@ -11,7 +11,8 @@ import * as Utils from 'src/libs/utils'
 export const datasetAccessTypes = {
   CONTROLLED: 'Controlled',
   GRANTED: 'Granted',
-  PENDING: 'Pending'
+  PENDING: 'Pending',
+  EXTERNAL: 'External'
 }
 
 export const uiMessaging = {
@@ -36,6 +37,10 @@ export const datasetReleasePolicies = {
   'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
   'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
+}
+
+export const isExternal = dataset => {
+  return !isWorkspace(dataset) && !isDatarepoSnapshot(dataset)
 }
 
 export const isWorkspace = dataset => {
@@ -79,6 +84,11 @@ const normalizeDataset = dataset => {
       )(dataset['TerraDCAT_ap:hasDataUsePermission'])
     }
 
+  const access = isExternal(dataset) ?
+    datasetAccessTypes.EXTERNAL :
+    dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ?
+      datasetAccessTypes.GRANTED :
+      datasetAccessTypes.CONTROLLED
   return {
     ...dataset,
     // TODO: Consortium should show all consortiums, not just the first
@@ -88,7 +98,7 @@ const normalizeDataset = dataset => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
+    access
   }
 }
 
