@@ -28,7 +28,7 @@ import { Ajax } from 'src/libs/ajax'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
-import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
+import { EntityServiceDataTableProvider } from 'src/libs/datatableproviders/EntityServiceDataTableProvider'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
@@ -380,7 +380,7 @@ const EntitiesContent = ({
   const selectedKeys = _.keys(selectedEntities)
   const selectedLength = selectedKeys.length
 
-  const dataProvider = new EntityServiceDataProvider(namespace, name)
+  const dataProvider = new EntityServiceDataTableProvider(namespace, name)
 
   return igvFiles ?
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :

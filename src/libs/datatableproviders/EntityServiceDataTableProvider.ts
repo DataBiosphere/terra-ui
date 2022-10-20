@@ -1,11 +1,9 @@
-// eslint-disable-next-line lodash-fp/use-fp
-import { ValueKeyIteratee } from 'lodash'
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataProvider, DataProviderFeatures, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/datatableproviders/DataProvider'
+import { DataTableFeatures, DataTableProvider, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/datatableproviders/DataTableProvider'
 
 
-export class EntityServiceDataProvider implements DataProvider {
+export class EntityServiceDataTableProvider implements DataTableProvider {
   constructor(namespace: string, name: string) {
     this.namespace = namespace
     this.name = name
@@ -15,7 +13,7 @@ export class EntityServiceDataProvider implements DataProvider {
 
   name: string
 
-  features: DataProviderFeatures = {
+  features: DataTableFeatures = {
     supportsTsvDownload: true,
     supportsTypeDeletion: true,
     supportsTypeRenaming: true,

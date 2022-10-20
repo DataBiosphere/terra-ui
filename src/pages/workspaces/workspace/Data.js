@@ -26,7 +26,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
-import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
+import { EntityServiceDataTableProvider } from 'src/libs/datatableproviders/EntityServiceDataTableProvider'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
@@ -489,7 +489,7 @@ const WorkspaceData = _.flow(
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
 
-  const entityServiceDataProvider = new EntityServiceDataProvider(namespace, name)
+  const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
   const loadEntityMetadata = async () => {
     try {
@@ -689,7 +689,7 @@ const WorkspaceData = _.flow(
                       forceRefresh()
                     },
                     after: h(DataTableActions, {
-                      dataProvider: entityServiceDataProvider,
+                      dataProvider: entityServiceDataTableProvider,
                       tableName: type,
                       rowCount: typeDetails.count,
                       entityMetadata,

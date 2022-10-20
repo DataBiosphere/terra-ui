@@ -8,7 +8,7 @@ import DataTable from 'src/components/data/DataTable'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
+import { EntityServiceDataTableProvider } from 'src/libs/datatableproviders/EntityServiceDataTableProvider'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -101,7 +101,7 @@ const DataStepContent = ({
         }
       }, [
         h(DataTable, {
-          dataProvider: new EntityServiceDataProvider(namespace, name),
+          dataProvider: new EntityServiceDataTableProvider(namespace, name),
           key: type.description,
           childrenBefore: ({ showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center' } }, [
             div({ style: Style.elements.sectionHeader }, [

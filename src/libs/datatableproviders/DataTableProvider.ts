@@ -57,7 +57,7 @@ export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
 export type DeleteTableFn = (entityType: string) => Promise<void>
 
-export interface DataProviderFeatures {
+export interface DataTableFeatures {
   supportsTsvDownload: boolean,
   supportsTypeDeletion: boolean,
   supportsTypeRenaming: boolean,
@@ -66,8 +66,8 @@ export interface DataProviderFeatures {
   supportsFiltering: boolean
 }
 
-export interface DataProvider {
-  features: DataProviderFeatures,
+export interface DataTableProvider {
+  features: DataTableFeatures,
   getPage: GetPageFn,
   deleteTable: DeleteTableFn
   // todos that we will need soon:
