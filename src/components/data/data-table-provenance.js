@@ -24,7 +24,7 @@ export const DataTableColumnProvenance = ({ workspace, column, provenance }) => 
       ' was configured as an output for the following submissions:'
     ]),
     ol({ style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
-      _.map(({ submissionId, submissionDate, configuration, output }) => {
+      _.map(({ submissionId, submissionDate, submitter, configuration, output }) => {
         return li({ key: submissionId, style: { marginBottom: '0.75rem' } }, [
           div({ style: { marginBottom: '0.25rem' } }, [
             h(Link, {
@@ -32,6 +32,7 @@ export const DataTableColumnProvenance = ({ workspace, column, provenance }) => 
             }, [configuration.name])
           ]),
           div({ style: { marginBottom: '0.25rem' } }, [Utils.makeCompleteDate(submissionDate)]),
+          div({ style: { marginBottom: '0.25rem' } }, [`Submitted by ${submitter}`]),
           div({ style: { marginBottom: '0.25rem' } }, [output])
         ])
       }, provenance)
