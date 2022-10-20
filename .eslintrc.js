@@ -40,6 +40,7 @@ module.exports = {
     'no-multiple-empty-lines': 'warn',
     'no-trailing-spaces': 'warn',
     'no-unneeded-ternary': 'warn',
+    'no-unused-vars': 'off', // prefer @typescript-eslint/no-unused-vars
     '@typescript-eslint/no-unused-vars': [
       'warn', {
         'vars': 'all',
