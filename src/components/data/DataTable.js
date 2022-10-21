@@ -64,7 +64,8 @@ const DataTable = props => {
     deleteColumnUpdateMetadata,
     controlPanelStyle,
     border = true,
-    extraColumnActions
+    extraColumnActions,
+    dataProvider
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -136,13 +137,12 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
-      .paginatedEntitiesOfType(entityType, _.pickBy(_.trim, {
-        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
-        ...(!!snapshotName ?
-          { billingProject: googleProject, dataReference: snapshotName } :
-          { filterTerms: activeTextFilter, filterOperator })
-      }))
+    const queryOptions = {
+      pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
+      googleProject, activeTextFilter, filterOperator
+    }
+    const { results, resultMetadata: { filteredCount, unfilteredCount } } = await dataProvider.getPage(signal, entityType, queryOptions)
+
     // Find all the unique attribute names contained in the current page of results.
     const attrNamesFromResults = _.uniq(_.flatMap(_.keys, _.map('attributes', results)))
     // Add any attribute names from the current page of results to those found in metadata.
@@ -259,7 +259,7 @@ const DataTable = props => {
       }, [
         childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal }),
         div({ style: { flexGrow: 1 } }),
-        h(MenuTrigger, {
+        dataProvider.features.supportsFiltering && h(MenuTrigger, {
           side: 'bottom',
           closeOnClick: false,
           popupProps: { style: { width: 250 } },
@@ -291,7 +291,7 @@ const DataTable = props => {
         }, [h(ButtonSecondary, {
           style: { margin: '0rem 1.5rem' }
         }, [icon('bars', { style: { marginRight: '0.5rem' } }), 'Advanced search'])]),
-        !snapshotName && div({ style: { width: 300 } }, [
+        dataProvider.features.supportsFiltering && !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',
