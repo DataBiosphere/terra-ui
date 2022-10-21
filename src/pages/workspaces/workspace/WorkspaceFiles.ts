@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { h } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import FileBrowser from 'src/components/file-browser/FileBrowser'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
@@ -25,7 +25,14 @@ export const WorkspaceFiles = _.flow(
     [bucketName, googleProject]
   )
 
-  return h(FileBrowser, { provider: fileBrowserProvider })
+  return div({
+    style: {
+      flex: '1 1 0',
+      overflow: 'hidden'
+    }
+  }, [
+    h(FileBrowser, { provider: fileBrowserProvider, title: 'Files' })
+  ])
 })
 
 export const navPaths = [
