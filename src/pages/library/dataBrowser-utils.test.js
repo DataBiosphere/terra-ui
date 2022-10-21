@@ -2,7 +2,9 @@ import '@testing-library/jest-dom'
 
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
-import { datasetAccessTypes, filterAndNormalizeDatasets } from 'src/pages/library/dataBrowser-utils'
+import {
+  datarepoSnapshotUrlFragment, datasetAccessTypes, filterAndNormalizeDatasets, workspaceUrlFragment
+} from 'src/pages/library/dataBrowser-utils'
 
 
 beforeEach(() => {
@@ -20,7 +22,7 @@ describe('dataBrowser-utils', () => {
 
   it('doesn\'t set non external datasets to accessLevel external', () => {
     const normalizedDatasets = filterAndNormalizeDatasets(
-      [{ 'dcat:accessURL': 'any-url.com/#workspaces/a/b' }, { 'dcat:accessURL': 'any-url.com//snapshots/details/' }],
+      [{ 'dcat:accessURL': `any-url.com${workspaceUrlFragment}a/b` }, { 'dcat:accessURL': `any-url.com${datarepoSnapshotUrlFragment}` }],
       brands.terra.catalogDataCollectionsToInclude
     )
     expect(normalizedDatasets[0].access).not.toBe(datasetAccessTypes.EXTERNAL)

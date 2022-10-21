@@ -43,12 +43,16 @@ export const isExternal = dataset => {
   return !isWorkspace(dataset) && !isDatarepoSnapshot(dataset)
 }
 
+export const workspaceUrlFragment = '/#workspaces/'
+
 export const isWorkspace = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
+  return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
+export const datarepoSnapshotUrlFragment = '/snapshots/details/'
+
 export const isDatarepoSnapshot = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
+  return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
 const normalizeDataset = dataset => {
