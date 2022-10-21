@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ReactElement } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 
