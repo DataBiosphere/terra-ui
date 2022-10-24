@@ -40,7 +40,8 @@ module.exports = {
     'no-multiple-empty-lines': 'warn',
     'no-trailing-spaces': 'warn',
     'no-unneeded-ternary': 'warn',
-    'no-unused-vars': [
+    'no-unused-vars': 'off', // prefer @typescript-eslint/no-unused-vars
+    '@typescript-eslint/no-unused-vars': [
       'warn', {
         'vars': 'all',
         'args': 'all',
@@ -66,6 +67,7 @@ module.exports = {
     'arrow-parens': ['warn', 'as-needed'],
     'arrow-spacing': 'warn',
     'no-duplicate-imports': 'warn',
+    'no-restricted-syntax': ['warn', { 'selector': 'TSEnumDeclaration', 'message': 'Use a union of literals instead of an enum' }],
     // TODO: Set 'variables' to 'true' after fixing the existing issues
     'no-use-before-define': ['warn', { 'functions': true, 'classes': true, 'variables': false }],
     'no-useless-rename': 'warn',

@@ -25,6 +25,7 @@ import igvLogo from 'src/images/igv-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
 import { Ajax } from 'src/libs/ajax'
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
@@ -380,7 +381,7 @@ const EntitiesContent = ({
   const selectedKeys = _.keys(selectedEntities)
   const selectedLength = selectedKeys.length
 
-  const dataProvider = new EntityServiceDataProvider()
+  const dataProvider = new EntityServiceDataTableProvider(namespace, name)
 
   return igvFiles ?
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :

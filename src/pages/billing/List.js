@@ -47,6 +47,8 @@ const styles = {
   }
 }
 
+const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
+
 const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
@@ -133,7 +135,7 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
 
   const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
     const iconAndTooltip =
-      status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
+      isCreatingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
           h(InfoBox, { style: { color: colors.danger(), margin: '0 0.5rem 0 0.5rem' }, side: 'right' }, [
             div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
@@ -378,7 +380,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   useEffect(() => {
-    const anyProjectsCreating = _.some({ creationStatus: 'Creating' }, billingProjects)
+    const anyProjectsCreating = _.some(({ status }) => isCreatingStatus(status), billingProjects)
 
     if (anyProjectsCreating && !interval.current) {
       interval.current = setInterval(loadProjects, 10000)

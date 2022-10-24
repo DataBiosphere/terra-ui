@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { axe } from 'jest-axe'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
@@ -25,10 +26,14 @@ jest.mock('src/components/Modal', () => {
 jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
+  let modalComponent
+
   beforeEach(() => {
     // Arrange
     Ajax.mockImplementation(() => {})
-    render(h(CreateAzureBillingProjectModal, { onSuccess: jest.fn(), onDismiss: jest.fn(), billingProjectNameValidator }))
+    modalComponent = render(
+      h(CreateAzureBillingProjectModal, { onSuccess: jest.fn(), onDismiss: jest.fn(), billingProjectNameValidator })
+    )
   })
 
   const tooShortError = 'Billing project name is too short (minimum is 6 characters)'
@@ -42,7 +47,7 @@ describe('CreateAzureBillingProjectModal', () => {
   const noManagedApps = 'No Terra Managed Applications exist for that subscription'
   const managedAppCallFailed = 'Unable to retrieve Managed Applications for that subscription'
   const getSubscriptionInput = () => screen.getByLabelText('Azure subscription *')
-  const getManagedAppInput = () => screen.getByLabelText('Managed application *')
+  const getManagedAppInput = () => screen.getByLabelText('Unassigned managed application *')
   const getCreateButton = () => screen.getByText('Create')
 
   const verifyDisabled = item => expect(item).toHaveAttribute('disabled')
@@ -53,6 +58,10 @@ describe('CreateAzureBillingProjectModal', () => {
     expect(getBillingProjectHint()).not.toBeNull()
     verifyDisabled(getManagedAppInput())
     verifyDisabled(getCreateButton())
+  })
+
+  it('should not fail any accessibility tests in initial state', async () => {
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
   })
 
   it.each([
@@ -114,7 +123,7 @@ describe('CreateAzureBillingProjectModal', () => {
     })
 
     // Assert
-    expect(listAzureManagedApplications).toHaveBeenCalledWith(subscriptionId)
+    expect(listAzureManagedApplications).toHaveBeenCalledWith(subscriptionId, false)
     await screen.findByText(noManagedApps)
     expect(screen.queryByText(invalidUuidError)).toBeNull()
     verifyDisabled(getManagedAppInput())
@@ -153,8 +162,8 @@ describe('CreateAzureBillingProjectModal', () => {
           listAzureManagedApplications: () => Promise.resolve(
             {
               managedApps: [
-                { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1' },
-                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg }
+                { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1', assigned: false },
+                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg, assigned: false }
               ]
             }
           ),
@@ -184,6 +193,8 @@ describe('CreateAzureBillingProjectModal', () => {
     await userEvent.click(selectOption)
     // Assert
     verifyEnabled(getCreateButton())
+    // Verify accessibility with all fields enabled
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
 
     // Act - Click Create
     await act(async () => {
@@ -203,7 +214,7 @@ describe('CreateAzureBillingProjectModal', () => {
           listAzureManagedApplications: () => Promise.resolve(
             {
               managedApps: [
-                { applicationDeploymentName: appName, tenantId: 'fakeTenant', subscriptionId: 'fakeSub', managedResourceGroupId: 'fakeMrg' }
+                { applicationDeploymentName: appName, tenantId: 'fakeTenant', subscriptionId: 'fakeSub', managedResourceGroupId: 'fakeMrg', assigned: false }
               ]
             }
           ),
@@ -234,5 +245,7 @@ describe('CreateAzureBillingProjectModal', () => {
     // Assert - Verify expected error message and Create button disabled.
     expect(screen.queryByText(duplicateProjectError)).not.toBeNull()
     verifyDisabled(getCreateButton())
+    // Verify accessibility with error message displayed
+    expect(await axe(modalComponent.container)).toHaveNoViolations()
   })
 })

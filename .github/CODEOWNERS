@@ -1,8 +1,4 @@
-# This is a comment.
 # Each line is a file pattern followed by one or more owners.
-
-# These owners will be the default owners for everything in
-# the repo. Unless a later match takes precedence,
-# @DataBiosphere/terra-ui-code-owners will be requested for
-# review when someone opens a pull request.
-* @DataBiosphere/terra-ui-code-owners
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners#codeowners-syntax
+/src/libs/brand*.js @DataBiosphere/terra-cobranding
+/src/libs/colors.js @DataBiosphere/terra-cobranding

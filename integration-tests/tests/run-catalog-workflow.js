@@ -10,7 +10,7 @@ const testCatalogFlowFn = _.flow(
   withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workspaceName }) => {
-  await linkDataToWorkspace(page, testUrl, token)
+  await linkDataToWorkspace(page, testUrl, token, 'Readable Catalog Snapshot 1')
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
   await select(page, 'Select a workspace', `${workspaceName}`)

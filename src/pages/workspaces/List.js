@@ -22,16 +22,19 @@ import {
 import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
 import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
+import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { UnboundDiskNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
@@ -91,6 +94,20 @@ const workspaceSubmissionStatus = workspace => {
   )
 }
 
+// [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
+const somePersistentDiskRequiresMigration = (workspaces, disks) => {
+  // construct map of namespace -> (map of name -> workspace) from list of workspace
+  const workspacesByNsAndName = _.flow(
+    _.map('workspace'),
+    _.groupBy('namespace'),
+    _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
+  )(workspaces)
+
+  return workspaces && _.flip(_.some)(disks, ({ googleProject, labels }) => {
+    return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
+  })
+}
+
 const EMPTY_LIST = []
 
 export const WorkspaceList = () => {
@@ -128,12 +145,25 @@ export const WorkspaceList = () => {
 
   const [sort, setSort] = useState({ field: 'lastModified', direction: 'desc' })
 
+  // [PPWM-104] Temporary logic supporting project-per-workspace persistent disk migration
+  const [gcpPersistentDisks, setGcpPersistentDisks] = useState()
+
   useOnMount(() => {
-    const loadFeatured = async () => {
+    const loadFeatured = withErrorIgnoring(async () => {
       setFeaturedList(await Ajax().FirecloudBucket.getFeaturedWorkspaces())
-    }
+    })
+
+    const loadPersistentDisks = withErrorIgnoring(async () => {
+      setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
+        await Ajax().Disks.list({
+          creator: getUser().email,
+          includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
+        })
+      ))
+    })
 
     loadFeatured()
+    loadPersistentDisks()
   })
 
   useEffect(() => {
@@ -349,10 +379,15 @@ export const WorkspaceList = () => {
     })
   ])])
 
-
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+      somePersistentDiskRequiresMigration(workspaces, gcpPersistentDisks) && h(UnboundDiskNotification, {
+        style: {
+          position: 'absolute', top: topBarHeight, left: '50%', transform: 'translate(-50%, -50%)',
+          zIndex: 2 // Draw over top bar but behind contact support dialog
+        }
+      }),
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, fontSize: '1.5rem' } }, ['Workspaces']),
         h(Link, {
