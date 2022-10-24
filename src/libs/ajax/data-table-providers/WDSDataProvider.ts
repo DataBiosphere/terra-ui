@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -82,5 +82,9 @@ export class WDSDataProvider implements DataTableProvider {
 
   deleteTable: DeleteTableFn = async (entityType: string) => {
     return await Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
+  }
+
+  downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
+    return await Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
   }
 }

@@ -1,3 +1,4 @@
+import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -332,24 +333,8 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             if (dataProvider.features.supportsTsvDownload) {
               downloadForm.current.submit()
             } else if (dataProvider.features.supportsTsvAjaxDownload) {
-              /*
-              fetch('https://jsonplaceholder.typicode.com/todos/1')
-              .then(resp => resp.blob())
-              .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                // the filename you want
-                a.download = 'todo-1.json';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-                alert('your file has downloaded!'); // or you know, something with better UX...
-              })
-              .catch(() => alert('oh no!'));
-              */
+              // TODO: this overrides the filename specified by the WDS API. Is that ok?
+              dataProvider.downloadTsv(signal, tableName).then(blob => FileSaver.saveAs(blob, `${tableName}.tsv`))
             }
             // TODO: add Entity Service vs. WDS indicator to mixpanel event
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {

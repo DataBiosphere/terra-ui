@@ -892,7 +892,7 @@ const Workspaces = signal => ({
 
       getEntities: entityType => fetchRawls(`${root}/entities/${entityType}`, _.merge(authOpts(), { signal })).then(r => r.json()),
 
-      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.text()),
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])),
 
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
@@ -1240,8 +1240,11 @@ const WorkspaceDataService = signal => ({
     const res = await fetchWDS(`${instanceId}/types/v0.2/${recordType}`,
       _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     return res
+  },
+  downloadTsv: async (instanceId, recordType) => {
+    const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }))
+    return res
   }
-
 })
 
 export const Ajax = signal => {

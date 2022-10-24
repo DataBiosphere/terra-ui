@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
@@ -14,8 +14,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   name: string
 
   features: DataTableFeatures = {
-    supportsTsvDownload: true,
-    supportsTsvAjaxDownload: false,
+    supportsTsvDownload: false,
+    supportsTsvAjaxDownload: true,
     supportsTypeDeletion: true,
     supportsTypeRenaming: true,
     supportsExport: true,
@@ -40,5 +40,9 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
 
   deleteTable: DeleteTableFn = async (entityType: string) => {
     return await Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
+  }
+
+  downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
+    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType).then(r => r.blob())
   }
 }

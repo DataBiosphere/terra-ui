@@ -57,6 +57,8 @@ export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
 export type DeleteTableFn = (entityType: string) => Promise<void>
 
+export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
+
 export interface DataTableFeatures {
   supportsTsvDownload: boolean,
   supportsTsvAjaxDownload: boolean,
@@ -70,10 +72,10 @@ export interface DataTableFeatures {
 export interface DataTableProvider {
   features: DataTableFeatures,
   getPage: GetPageFn,
-  deleteTable: DeleteTableFn
+  deleteTable: DeleteTableFn,
+  downloadTsv: DownloadTsvFn
   // todos that we will need soon:
   // getMetadata: GetMetadataFn
-  // downloadTsv: function, see also supportsTsvDownload
   // updateAttribute: function, see also boolean
 }
 
