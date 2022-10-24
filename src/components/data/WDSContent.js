@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import DataTable from 'src/components/data/DataTable'
+import { WDSDataProvider } from 'src/libs/ajax/data-table-providers/WDSDataProvider'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { WDSDataProvider } from 'src/libs/datatableproviders/WDSDataProvider'
 
 // map the WDS schema response payload to the Entity Service metadata response
 const asEntityMetadata = wdsSchema => _.mapValues(typeDef => {
@@ -15,7 +15,7 @@ const asEntityMetadata = wdsSchema => _.mapValues(typeDef => {
 const WDSContent = ({
   workspace,
   workspace: {
-    workspace: { namespace, name, googleProject }
+    workspace: { namespace, name, googleProject, workspaceId }
   },
   recordType,
   wdsSchema
@@ -28,7 +28,7 @@ const WDSContent = ({
 
   // Render
   const entityMetadata = asEntityMetadata(wdsSchema)
-  const dataProvider = new WDSDataProvider()
+  const dataProvider = new WDSDataProvider(workspaceId)
 
   return h(Fragment, [
     h(DataTable, {

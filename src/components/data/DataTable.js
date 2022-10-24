@@ -137,7 +137,6 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-
     const queryOptions = {
       pageNumber, itemsPerPage, sortField: sort.field, sortDirection: sort.direction, snapshotName,
       googleProject, activeTextFilter, filterOperator

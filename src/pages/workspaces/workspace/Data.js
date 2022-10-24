@@ -24,12 +24,11 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
+import { WDSDataProvider } from 'src/libs/ajax/data-table-providers/WDSDataProvider'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { dataTableVersionsPathRoot, useDataTableVersions } from 'src/libs/data-table-versions'
-import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
-import { WDSDataProvider } from 'src/libs/datatableproviders/WDSDataProvider'
 import { reportError, reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
@@ -288,8 +287,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
 }
 
 const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
-
-  const { workspace: { namespace, name, workspaceId }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
+  const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
 
   const isSet = tableName.endsWith('_set')
   const isSetOfSets = tableName.endsWith('_set_set')
@@ -501,7 +499,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataProvider = new WDSDataProvider()
+  const wdsDataProvider = new WDSDataProvider(workspaceId)
 
   const loadEntityMetadata = async () => {
     try {

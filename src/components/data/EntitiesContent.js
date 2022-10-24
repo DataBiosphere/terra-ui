@@ -29,7 +29,6 @@ import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-provide
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { useColumnProvenance } from 'src/libs/data-table-provenance'
-import { EntityServiceDataProvider } from 'src/libs/datatableproviders/EntityServiceDataProvider'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
