@@ -167,7 +167,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           h3(['Access type']),
           div([
             Utils.cond(
-              [access === datasetAccessTypes.EXTERNAL, () => 'Managed externally'],
+              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Externally managed'])],
               [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                 style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                 href: requestAccessURL, target: '_blank'
@@ -185,7 +185,6 @@ export const SidebarComponent = ({ dataObj, id }) => {
                 icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
                 'Request Access'
               ])],
-              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Externally managed'])],
               [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
                 icon('unlock', { size: 18, style: { marginRight: 10 } }),
                 'Pending Access'
