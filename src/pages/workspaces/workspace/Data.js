@@ -22,6 +22,7 @@ import { MenuButton, MenuDivider, MenuTrigger } from 'src/components/PopupTrigge
 import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
+import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -283,7 +284,7 @@ const SidebarSeparator = ({ sidebarWidth, setSidebarWidth }) => {
   ])
 }
 
-const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory }) => {
+const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRenameTable, onDeleteTable, isShowingVersionHistory, onSaveVersion, onToggleVersionHistory, dataProvider }) => {
   const { workspace: { namespace, name }, workspaceSubmissionStats: { runningSubmissionsCount } } = workspace
 
   const isSet = tableName.endsWith('_set')
@@ -320,7 +321,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        h(MenuButton, {
+        dataProvider.features.supportsTsvDownload && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
@@ -334,7 +335,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             })
           }
         }, 'Download TSV'),
-        h(MenuButton, {
+        dataProvider.features.supportsExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
             withErrorReporting('Error loading entities.')
@@ -344,14 +345,14 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             setExporting(true)
           })
         }, 'Export to workspace'),
-        h(MenuButton, {
+        dataProvider.features.supportsTypeRenaming && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
           },
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-        h(MenuButton, {
+        dataProvider.features.supportsTypeDeletion && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
@@ -416,10 +417,11 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onDismiss: () => setDeleting(false),
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
-          await Ajax().Workspaces.workspace(namespace, name).deleteEntitiesOfType(tableName)
+          await dataProvider.deleteTable(tableName)
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace)
           })
+          setDeleting(false)
           onDeleteTable(tableName)
         } catch (error) {
           setDeleting(false)
@@ -486,6 +488,8 @@ const WorkspaceData = _.flow(
 
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
+
+  const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
   const loadEntityMetadata = async () => {
     try {
@@ -685,6 +689,7 @@ const WorkspaceData = _.flow(
                       forceRefresh()
                     },
                     after: h(DataTableActions, {
+                      dataProvider: entityServiceDataTableProvider,
                       tableName: type,
                       rowCount: typeDetails.count,
                       entityMetadata,
