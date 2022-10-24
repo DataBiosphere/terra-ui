@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
+import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 
@@ -45,7 +46,30 @@ const FileBrowser = ({ provider, title }: FileBrowserProps) => {
         })
       ])
     ]),
-    div({ style: { flex: '1 0 0' } }, [
+    div({
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 0 0'
+      }
+    }, [
+      div({
+        style: {
+          display: 'flex',
+          flexFlow: 'row wrap',
+          alignItems: 'center',
+          width: '100%',
+          padding: '0.5rem',
+          borderBottom: `0.5px solid ${colors.dark(0.2)}`,
+          backgroundColor: colors.light(0.4)
+        }
+      }, [
+        h(PathBreadcrumbs, {
+          path,
+          rootLabel: 'Workspace bucket',
+          onClickPath: setPath
+        })
+      ]),
       h(FilesInDirectory, { provider, path })
     ])
   ])
