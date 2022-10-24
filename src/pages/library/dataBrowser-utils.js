@@ -39,9 +39,10 @@ export const datasetReleasePolicies = {
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
-export const isExternal = dataset => {
-  return !isWorkspace(dataset) && !isDatarepoSnapshot(dataset)
-}
+export const isExternal = dataset => Utils.cond(
+  [isWorkspace(dataset), () => false],
+  [isDatarepoSnapshot(dataset), () => false],
+  () => true)
 
 export const workspaceUrlFragment = '/#workspaces/'
 
@@ -88,11 +89,10 @@ const normalizeDataset = dataset => {
       )(dataset['TerraDCAT_ap:hasDataUsePermission'])
     }
 
-  const access = isExternal(dataset) ?
-    datasetAccessTypes.EXTERNAL :
-    dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ?
-      datasetAccessTypes.GRANTED :
-      datasetAccessTypes.CONTROLLED
+  const access = Utils.cond(
+    [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
+    [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
+    () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
     // TODO: Consortium should show all consortiums, not just the first
