@@ -167,7 +167,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           h3(['Access type']),
           div([
             Utils.cond(
-              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Externally managed'])],
+              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Managed Externally'])],
               [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
                 style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                 href: requestAccessURL, target: '_blank'
