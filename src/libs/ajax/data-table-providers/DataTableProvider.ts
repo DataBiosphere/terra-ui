@@ -59,6 +59,7 @@ export type DeleteTableFn = (entityType: string) => Promise<void>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean,
+  supportsTsvAjaxDownload: boolean,
   supportsTypeDeletion: boolean,
   supportsTypeRenaming: boolean,
   supportsExport: boolean,

@@ -23,7 +23,8 @@ export class WDSDataProvider implements DataTableProvider {
   workspaceId: string
 
   features: DataTableFeatures = {
-    supportsTsvDownload: true,
+    supportsTsvDownload: false,
+    supportsTsvAjaxDownload: true,
     supportsTypeDeletion: true,
     supportsTypeRenaming: false,
     supportsExport: false,

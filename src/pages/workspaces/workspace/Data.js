@@ -323,14 +323,35 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-
-        dataProvider.features.supportsTsvDownload && h(MenuButton, {
+        (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
             'Download a TSV file containing all rows in this table.',
           onClick: () => {
-            downloadForm.current.submit()
+            if (dataProvider.features.supportsTsvDownload) {
+              downloadForm.current.submit()
+            } else if (dataProvider.features.supportsTsvAjaxDownload) {
+              /*
+              fetch('https://jsonplaceholder.typicode.com/todos/1')
+              .then(resp => resp.blob())
+              .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                // the filename you want
+                a.download = 'todo-1.json';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                alert('your file has downloaded!'); // or you know, something with better UX...
+              })
+              .catch(() => alert('oh no!'));
+              */
+            }
+            // TODO: add Entity Service vs. WDS indicator to mixpanel event
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               downloadFrom: 'all rows',
@@ -338,7 +359,6 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             })
           }
         }, 'Download TSV'),
-
         dataProvider.features.supportsExport && h(MenuButton, {
           onClick: _.flow(
             Utils.withBusyState(setLoading),
@@ -349,7 +369,6 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
             setExporting(true)
           })
         }, 'Export to workspace'),
-
         dataProvider.features.supportsTypeRenaming && h(MenuButton, {
           onClick: () => {
             setRenaming(true)
@@ -357,7 +376,6 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           disabled: !!editWorkspaceErrorMessage,
           tooltip: editWorkspaceErrorMessage || ''
         }, 'Rename table'),
-
         dataProvider.features.supportsTypeDeletion && h(MenuButton, {
           onClick: () => setDeleting(true),
           disabled: !!editWorkspaceErrorMessage,
