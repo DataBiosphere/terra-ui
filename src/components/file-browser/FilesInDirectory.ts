@@ -1,6 +1,12 @@
-import { div, li, ul } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
-import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import FilesTable from 'src/components/file-browser/FilesTable'
+import { icon } from 'src/components/icons'
+import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 interface FilesInDirectoryProps {
@@ -11,13 +17,62 @@ interface FilesInDirectoryProps {
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const { provider, path } = props
 
-  const { state: { files } } = useFilesInDirectory(provider, path)
+  const {
+    state: { status, files },
+    hasNextPage,
+    loadAllRemainingItems,
+    loadNextPage
+  } = useFilesInDirectory(provider, path)
 
-  return div([
-    ul([
-      files.map(file => li({
-        key: file.path
-      }, [file.path]))
+  const isLoading = status === 'Loading'
+
+  return div({
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: '1 0 0'
+    }
+  }, [
+    h(FilesTable, {
+      files,
+      noFilesMessage: Utils.cond(
+        [status === 'Loading', () => 'Loading files...'],
+        [status === 'Error', () => 'Unable to load files'],
+        () => 'No files have been uploaded yet'
+      ),
+      onClickFile: (file: FileBrowserFile) => {
+        console.log(file)
+      }
+    }),
+    div({
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '1rem',
+        borderTop: `1px solid ${colors.dark(0.2)}`,
+        background: '#fff'
+      }
+    }, [
+      div([
+        `${files.length} files. `,
+        isLoading && h(Fragment, [
+          'Loading more... ',
+          icon('loadingSpinner', { size: 12 })
+        ])
+      ]),
+      hasNextPage !== false && div([
+        h(Link, {
+          disabled: isLoading,
+          style: { marginLeft: '1ch' },
+          onClick: () => loadNextPage()
+        }, ['Load next page']),
+        h(Link, {
+          disabled: isLoading,
+          style: { marginLeft: '1ch' },
+          tooltip: 'This may take a long time for folders containing several thousand objects.',
+          onClick: () => loadAllRemainingItems()
+        }, ['Load all'])
+      ])
     ])
   ])
 }
