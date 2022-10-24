@@ -361,6 +361,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     }
   }
 
+
   // Lifecycle
   useOnMount(() => {
     loadProjects()

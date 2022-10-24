@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -7,9 +8,12 @@ import terraHero from 'src/images/terra-hero.png'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { setLocalPref } from 'src/libs/prefs'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -67,8 +71,21 @@ const makeDocLinks = _.map(
 )
 
 const LandingPage = () => {
+  const { isSignedIn } = useStore(authStore)
+  const isAuthInitialized = isSignedIn !== undefined
+  const [billingProjects, setBillingProjects] = useState()
+  const signal = useCancellation()
+  const loadProjects = () => {
+    reportErrorAndRethrow('Error loading billing projects list')(async () => setBillingProjects(await Ajax(signal).Billing.listProjects()))
+  }
+
+  useOnMount(() => {
+    loadProjects()
+  })
+
   return h(HeroWrapper, { bigSubhead: true }, [
-    isTerra() && div({
+    isTerra() && isAuthInitialized && isSignedIn && billingProjects !== undefined && _.isEmpty(billingProjects) &&
+    div({
       style: {
         ...styles.callToActionBanner,
         width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
@@ -76,12 +93,11 @@ const LandingPage = () => {
       }
     }, [
       div([
-        h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '28px', marginTop: 0, marginBottom: 15 } },
-          ['To access storage and compute resources in Terra, you need to link a Google Cloud billing account and create a Terra Project.']),
-        'Terra projects will allow you to manage your workspace costs'
+        h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '28px', margin: 0 } },
+          ['To use Terra, you need to link Terra to a cloud billing account for compute and storage costs.'])
       ]),
       h(ButtonPrimary, {
-        style: { marginTop: 20, padding: '1.25rem 5rem', textTransform: 'none' },
+        style: { marginTop: '1.5rem', padding: '1.25rem 5rem', textTransform: 'none' },
         onClick: () => {
           Nav.goToPath('billing')
         }
