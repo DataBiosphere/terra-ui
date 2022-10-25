@@ -121,7 +121,7 @@ module.exports = {
   },
   'overrides': [
     {
-      'files': 'src/**/*.js',
+      'files': 'src/**/*.{js,ts}',
       'rules': {
         'no-console': ['warn', { 'allow': ['assert', 'error'] }]
       }
