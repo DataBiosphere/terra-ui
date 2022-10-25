@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import DataTable from 'src/components/data/DataTable'
-import { WDSDataProvider } from 'src/libs/ajax/data-table-providers/WDSDataProvider'
+import { WDSDataTableProvider } from 'src/libs/ajax/data-table-providers/WDSDataTableProvider'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 
@@ -28,7 +28,7 @@ const WDSContent = ({
 
   // Render
   const entityMetadata = asEntityMetadata(wdsSchema)
-  const dataProvider = new WDSDataProvider(workspaceId)
+  const dataProvider = new WDSDataTableProvider(workspaceId)
 
   return h(Fragment, [
     h(DataTable, {

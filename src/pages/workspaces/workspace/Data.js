@@ -25,7 +25,7 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
-import { WDSDataProvider } from 'src/libs/ajax/data-table-providers/WDSDataProvider'
+import { WDSDataTableProvider } from 'src/libs/ajax/data-table-providers/WDSDataTableProvider'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -502,7 +502,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataProvider = new WDSDataProvider(workspaceId)
+  const wdsDataTableProvider = new WDSDataTableProvider(workspaceId)
 
   const loadEntityMetadata = async () => {
     try {
@@ -778,7 +778,7 @@ const WorkspaceData = _.flow(
                         forceRefresh()
                       },
                       after: h(DataTableActions, {
-                        dataProvider: wdsDataProvider,
+                        dataProvider: wdsDataTableProvider,
                         tableName: typeDef.name,
                         rowCount: typeDef.count,
                         entityMetadata,

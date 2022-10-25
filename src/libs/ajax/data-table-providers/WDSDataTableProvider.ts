@@ -40,7 +40,7 @@ interface RecordQueryResponse {
 }
 
 
-export class WDSDataProvider implements DataTableProvider {
+export class WDSDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
   }
