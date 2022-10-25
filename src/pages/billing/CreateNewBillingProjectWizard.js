@@ -32,7 +32,7 @@ export const styles = {
   }
 }
 
-const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
+const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts, loadAccounts }) => {
   const persistenceId = 'billing'
   const [accessToBillingAccount, setAccessToBillingAccount] = useState()
   const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState()
@@ -170,9 +170,15 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         h(LabeledCheckbox, {
           checked: verified === true,
           onChange: async () => {
-            if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
-            setVerified(true)
-            next()
+            if (!isDone) {
+              if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+              setVerified(true)
+              next()
+            } else {
+              setActiveStep(3)
+              setAccessToAddBillingAccountUser(undefined)
+              setVerified(false)
+            }
           }
         }, [
           p({ style: { ...styles.radioButtonLabel, marginLeft: '2rem', marginTop: '-1.3rem' } }, [
@@ -191,40 +197,51 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           div({ style: { display: 'flex', displayDirection: 'row' } }, [
             h(RadioButton, {
               text: 'I don\'t have access to do this', name: 'permission',
-              disabled: !isActive, 'aria-disabled': !isActive,
               'aria-checked': accessToAddBillingAccountUser === false,
               checked: accessToAddBillingAccountUser === false,
+              disabled: !isDone && !isActive, 'aria-disabled': !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
-                await setAccessToAddBillingAccountUser(false)
+                if (!isDone) {
+                  await setAccessToAddBillingAccountUser(false)
+                } else {
+                  setActiveStep(3)
+                  await setAccessToAddBillingAccountUser(false)
+                }
               }
             })
           ]),
           div({ style: { marginTop: '2rem', display: 'flex', displayDirection: 'row' } }, [
             h(RadioButton, {
               'data-testid': 'step3-have-a-billing-account',
-              text: 'I have a billing account', name: 'permission',
-              disabled: !isActive, 'aria-disabled': !isActive,
+              text: 'I have added terra-billing as a billing account user (requires reauthentication)', name: 'permission',
               'aria-checked': accessToAddBillingAccountUser === true,
               checked: accessToAddBillingAccountUser === true,
+              disabled: !isDone && !isActive, 'aria-disabled': !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
-                await setAccessToAddBillingAccountUser(true)
+                if (!isDone) {
+                  if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+                  setAccessToAddBillingAccountUser(true)
+                  next()
+                } else {
+                  setAccessToAddBillingAccountUser(undefined)
+                }
               }
             })
           ])
         ])
       ])
 
-    const haveAccessToAdd =
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
-        legend({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
-          [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
-            ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
-              span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]), linkToSupport]
-        ),
-        checkbox
-      ])
+    // const haveAccessToAdd =
+    //   fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+    //     legend({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+    //       [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
+    //         ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
+    //           span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]), linkToSupport]
+    //     ),
+    //     checkbox
+    //   ])
 
     const dontHaveAccessToAdd =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', lexDirection: 'row', justifyContent: 'space-between' } }, [
@@ -243,7 +260,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       isActive || isDone ?
         (accessToBillingAccount ?
           (accessToAddBillingAccountUser !== undefined ?
-            (accessToAddBillingAccountUser ? haveAccessToAdd : dontHaveAccessToAdd) :
+            (accessToAddBillingAccountUser ? haveABillingAccount : dontHaveAccessToAdd) :
             haveABillingAccount) : dontHaveAccessToAdd) :
         haveABillingAccount
     ])
@@ -301,7 +318,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             ])
           ])])
         ]),
-        isActive && _.isEmpty(billingAccounts) ?
+        isActive ?
           div({
             style: {
               display: 'flex', alignItems: 'flex-start',
@@ -318,7 +335,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                 h(Link, {
                   style: { textDecoration: 'underline' },
                   onClick: async () => {
-                    if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+                    if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() } else { loadAccounts() }
                   }
                 }, ['Refresh Step 3'])
               ])
