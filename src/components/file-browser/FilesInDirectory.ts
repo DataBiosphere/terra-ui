@@ -12,10 +12,11 @@ import * as Utils from 'src/libs/utils'
 interface FilesInDirectoryProps {
   provider: FileBrowserProvider
   path: string
+  onClickFile: (file: FileBrowserFile) => void
 }
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
-  const { provider, path } = props
+  const { provider, path, onClickFile } = props
 
   const {
     state: { status, files },
@@ -40,9 +41,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
         [status === 'Error', () => 'Unable to load files'],
         () => 'No files have been uploaded yet'
       ),
-      onClickFile: (file: FileBrowserFile) => {
-        console.log(file)
-      }
+      onClickFile
     }),
     div({
       style: {

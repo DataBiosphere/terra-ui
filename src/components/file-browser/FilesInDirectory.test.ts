@@ -56,7 +56,8 @@ describe('FilesInDirectory', () => {
     // Act
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
-      path: 'path/to/directory/'
+      path: 'path/to/directory/',
+      onClickFile: jest.fn()
     }))
 
     // Assert
@@ -88,7 +89,8 @@ describe('FilesInDirectory', () => {
     // Act
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
-      path: 'path/to/directory/'
+      path: 'path/to/directory/',
+      onClickFile: jest.fn()
     }))
 
     // Assert
@@ -116,7 +118,8 @@ describe('FilesInDirectory', () => {
       // Act
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: 'path/to/directory/'
+        path: 'path/to/directory/',
+        onClickFile: jest.fn()
       }))
 
       // Assert
@@ -158,7 +161,8 @@ describe('FilesInDirectory', () => {
       // Act
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: 'path/to/directory/'
+        path: 'path/to/directory/',
+        onClickFile: jest.fn()
       }))
 
       // Assert
@@ -174,7 +178,8 @@ describe('FilesInDirectory', () => {
       // Act
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
-        path: 'path/to/directory/'
+        path: 'path/to/directory/',
+        onClickFile: jest.fn()
       }))
 
       // Assert
