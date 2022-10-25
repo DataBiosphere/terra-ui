@@ -14,8 +14,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   name: string
 
   features: DataTableFeatures = {
-    supportsTsvDownload: false,
-    supportsTsvAjaxDownload: true,
+    supportsTsvDownload: true,
+    supportsTsvAjaxDownload: false,
     supportsTypeDeletion: true,
     supportsTypeRenaming: true,
     supportsExport: true,
