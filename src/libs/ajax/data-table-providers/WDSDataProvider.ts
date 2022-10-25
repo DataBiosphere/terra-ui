@@ -1,19 +1,44 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityMetadata, EntityQueryOptions, EntityQueryResponse, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
-    name: string,
-    datatype: string,
-    relatesTo?: string
+  name: string,
+  datatype: string,
+  relatesTo?: string
 }
 
 interface RecordTypeSchema {
-    name: string,
-    count: number,
-    attributes: AttributeSchema[]
+  name: string,
+  count: number,
+  attributes: AttributeSchema[]
 }
+
+interface StringToAnyMap {
+  [index: string]: any // truly "any" here; the backend Java representation is Map<String, Object>
+}
+
+interface SearchRequest {
+  offset: number,
+  limit: number,
+  sort: 'and' | 'or',
+  sortAttribute: string
+}
+
+interface RecordResponse {
+  id: string,
+  type: string,
+  attributes: StringToAnyMap,
+  metadata: StringToAnyMap
+}
+
+interface RecordQueryResponse {
+  searchRequest: SearchRequest,
+  totalRecords: number,
+  records: RecordResponse[]
+}
+
 
 export class WDSDataProvider implements DataTableProvider {
   constructor(workspaceId: string) {
@@ -32,17 +57,7 @@ export class WDSDataProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
-  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
-    const wdsPage = await Ajax(signal).WorkspaceDataService
-      .getRecords(this.workspaceId, entityType,
-        _.merge({
-          offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
-          limit: queryOptions.itemsPerPage,
-          sort: queryOptions.sortDirection
-        },
-        queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
-        ))
-
+  transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, entityType: string, queryOptions: EntityQueryOptions) => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
@@ -72,12 +87,29 @@ export class WDSDataProvider implements DataTableProvider {
     }
   }
 
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    const wdsSchema: RecordTypeSchema[] = await Ajax(signal).WorkspaceDataService.getSchema(this.workspaceId)
+  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
+    const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceDataService
+      .getRecords(this.workspaceId, entityType,
+        _.merge({
+          offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
+          limit: queryOptions.itemsPerPage,
+          sort: queryOptions.sortDirection
+        },
+        queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
+        ))
+    return this.transformPage(wdsPage, entityType, queryOptions)
+  }
+
+  transformMetadata: (arg0: RecordTypeSchema[]) => EntityMetadata = (wdsSchema: RecordTypeSchema[]) => {
     const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
     return _.mapValues(typeDef => {
       return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
     }, keyedSchema)
+  }
+
+  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
+    const wdsSchema: RecordTypeSchema[] = await Ajax(signal).WorkspaceDataService.getSchema(this.workspaceId)
+    return this.transformMetadata(wdsSchema)
   }
 
   deleteTable: DeleteTableFn = async (entityType: string) => {
