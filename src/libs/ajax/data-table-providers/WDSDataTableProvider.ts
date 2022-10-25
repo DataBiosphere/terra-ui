@@ -15,10 +15,6 @@ interface RecordTypeSchema {
   attributes: AttributeSchema[]
 }
 
-interface StringToAnyMap {
-  [index: string]: any // truly "any" here; the backend Java representation is Map<String, Object>
-}
-
 interface SearchRequest {
   offset: number,
   limit: number,
@@ -29,8 +25,8 @@ interface SearchRequest {
 interface RecordResponse {
   id: string,
   type: string,
-  attributes: StringToAnyMap,
-  metadata: StringToAnyMap
+  attributes: { [index: string]: any }, // truly "any" here; the backend Java representation is Map<String, Object>
+  metadata?: { [index: string]: any } // truly "any" here; the backend Java representation is Map<String, Object>
 }
 
 interface RecordQueryResponse {
