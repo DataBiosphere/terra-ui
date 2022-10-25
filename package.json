@@ -131,7 +131,7 @@
     "integration-tests"
   ],
   "lint-staged": {
-    "**/*.js": [
+    "**/*.{js,ts}": [
       "yarn eslint --max-warnings=0"
     ]
   }
