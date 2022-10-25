@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, fieldset, h, h2, legend, li, ol, p, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, h2, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -117,7 +117,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       span({ className: 'sr-only' }, ['Step 2, step 2 of 4']),
       h2({ style: { width: '55%', fontSize: 18, marginTop: 0 } }, ['STEP 2']),
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+        div({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
           'Follow the instructions to activate your account in the Google Cloud Console.']),
         div({ style: { width: '25%', float: 'right' } }, [
@@ -127,9 +127,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               'aria-checked': accessToBillingAccount === false,
               checked: accessToBillingAccount === false,
               labelStyle: { ...styles.radioButtonLabel },
-              onChange: async () => {
+              onChange: () => {
                 setNextStep()
-                await setAccessToBillingAccount(false)
+                setAccessToBillingAccount(false)
               }
             })
           ]),
@@ -140,9 +140,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               'aria-checked': accessToBillingAccount === true,
               checked: accessToBillingAccount === true,
               labelStyle: { ...styles.radioButtonLabel },
-              onChange: async () => {
+              onChange: () => {
                 setNextStep()
-                await setAccessToBillingAccount(true)
+                setAccessToBillingAccount(true)
               }
             })
           ])
@@ -201,12 +201,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToAddBillingAccountUser === false,
               disabled: !isDone && !isActive, 'aria-disabled': !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
-              onChange: async () => {
+              onChange: () => {
                 if (!isDone) {
-                  await setAccessToAddBillingAccountUser(false)
+                  setAccessToAddBillingAccountUser(false)
                 } else {
                   setActiveStep(3)
-                  await setAccessToAddBillingAccountUser(false)
+                  setAccessToAddBillingAccountUser(false)
                 }
               }
             })
@@ -219,9 +219,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToAddBillingAccountUser === true,
               disabled: !isDone && !isActive, 'aria-disabled': !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
-              onChange: async () => {
+              onChange: () => {
                 if (!isDone) {
-                  if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+                  if (!Auth.hasBillingScope()) { authorizeAndLoadAccounts() }
                   setAccessToAddBillingAccountUser(true)
                   next()
                 } else {
@@ -364,11 +364,11 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       `The linked billing account is required to cover all Google Cloud data storage, compute and egress costs incurred in a Terra workspace.
         Cloud costs are billed directly from Google and passed through Terra billing projects with no markup.`
     ]),
-    ol({ style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
-      h(step1),
-      h(step2),
-      h(step3),
-      h(step4)
+    ul({ style: { margin: 0, padding: 0, listStyleType: 'none' } }, [
+      step1(),
+      step2(),
+      step3(),
+      step4()
     ])
   ])
 }

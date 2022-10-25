@@ -25,6 +25,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
+import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -470,6 +471,19 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
+        [!selectedName, () => h(CreateNewBillingProjectWizard, {
+          billingAccounts,
+          onSuccess: billingProjectName => {
+            setCreatingBillingProject(null)
+            loadProjects()
+            Nav.history.push({
+              pathname: Nav.getPath('billing'),
+              search: qs.stringify({ selectedName: billingProjectName, type: 'project' })
+            })
+          },
+          loadAccounts,
+          authorizeAndLoadAccounts
+        })],
         [selectedName && _.some({ projectName: selectedName }, billingProjects), () => {
           const billingProject = _.find({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
@@ -486,8 +500,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           return div({ style: { margin: '1rem auto 0 auto' } }, [
             'Select a Billing Project'
           ])
-        }],
-        [_.isEmpty(billingProjects), () => noBillingMessage]
+        }]
+        // [_.isEmpty(billingProjects), () => noBillingMessage]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])
