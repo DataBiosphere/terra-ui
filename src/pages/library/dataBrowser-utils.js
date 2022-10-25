@@ -11,7 +11,8 @@ import * as Utils from 'src/libs/utils'
 export const datasetAccessTypes = {
   CONTROLLED: 'Controlled',
   GRANTED: 'Granted',
-  PENDING: 'Pending'
+  PENDING: 'Pending',
+  EXTERNAL: 'External'
 }
 
 export const uiMessaging = {
@@ -38,12 +39,21 @@ export const datasetReleasePolicies = {
   releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
 }
 
+export const isExternal = dataset => Utils.cond(
+  [isWorkspace(dataset), () => false],
+  [isDatarepoSnapshot(dataset), () => false],
+  () => true)
+
+export const workspaceUrlFragment = '/#workspaces/'
+
 export const isWorkspace = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/#workspaces/')
+  return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
+export const datarepoSnapshotUrlFragment = '/snapshots/details/'
+
 export const isDatarepoSnapshot = dataset => {
-  return _.toLower(dataset['dcat:accessURL']).includes('/snapshots/details/')
+  return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
 const normalizeDataset = dataset => {
@@ -79,6 +89,10 @@ const normalizeDataset = dataset => {
       )(dataset['TerraDCAT_ap:hasDataUsePermission'])
     }
 
+  const access = Utils.cond(
+    [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
+    [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
+    () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
     // TODO: Consortium should show all consortiums, not just the first
@@ -88,7 +102,7 @@ const normalizeDataset = dataset => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner' ? datasetAccessTypes.GRANTED : datasetAccessTypes.CONTROLLED
+    access
   }
 }
 
