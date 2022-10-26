@@ -304,7 +304,7 @@ const Analyses = _.flow(
           resolvedName = `${name} ${++c}`
         }
         return !!googleProject ?
-          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).upload(file) :
+          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(file) :
           Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).upload(file)
       }, files))
       refreshAnalyses()
