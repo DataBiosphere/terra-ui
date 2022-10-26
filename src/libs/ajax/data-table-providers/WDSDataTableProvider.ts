@@ -9,7 +9,7 @@ interface AttributeSchema {
   relatesTo?: string
 }
 
-interface RecordTypeSchema {
+export interface RecordTypeSchema {
   name: string,
   count: number,
   attributes: AttributeSchema[]
@@ -18,7 +18,7 @@ interface RecordTypeSchema {
 interface SearchRequest {
   offset: number,
   limit: number,
-  sort: 'and' | 'or',
+  sort: 'asc' | 'ASC' | 'desc' | 'DESC',
   sortAttribute: string
 }
 
@@ -29,7 +29,7 @@ interface RecordResponse {
   metadata?: { [index: string]: any } // truly "any" here; the backend Java representation is Map<String, Object>
 }
 
-interface RecordQueryResponse {
+export interface RecordQueryResponse {
   searchRequest: SearchRequest,
   totalRecords: number,
   records: RecordResponse[]
@@ -53,13 +53,13 @@ export class WDSDataTableProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
-  transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, entityType: string, queryOptions: EntityQueryOptions) => {
+  transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
     const results = _.map(rec => {
       return {
-        entityType,
+        entityType: recordType,
         attributes: rec.attributes,
         name: rec.id
       }

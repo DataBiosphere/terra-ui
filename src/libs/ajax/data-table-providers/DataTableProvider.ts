@@ -1,5 +1,5 @@
 // define metadata structures
-interface EntityTypeMetadata {
+export interface EntityTypeMetadata {
   attributeNames: string[],
   count: number,
   idName: string
@@ -9,9 +9,9 @@ export interface EntityMetadata {
   [index: string]: EntityTypeMetadata
 }
 
-export type EntityQuerySortDirection = 'asc' | 'desc'
+export type EntityQuerySortDirection = 'asc' | 'ASC' | 'desc' | 'DESC'
 
-export type EntityQueryFilterOperator = 'and' | 'or'
+export type EntityQueryFilterOperator = 'and' | 'AND' | 'or' | 'OR'
 
 // define paginated query result structures
 interface EntityQuery {
@@ -44,10 +44,10 @@ export interface EntityQueryOptions {
   itemsPerPage: number,
   sortField: string,
   sortDirection: EntityQuerySortDirection,
-  snapshotName: string,
-  googleProject: string,
-  activeTextFilter: string,
-  filterOperator: string
+  snapshotName?: string,
+  googleProject?: string,
+  activeTextFilter?: string,
+  filterOperator?: string
 }
 
 // queryOptions can contain:
