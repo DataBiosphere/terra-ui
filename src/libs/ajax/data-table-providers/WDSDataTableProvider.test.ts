@@ -94,7 +94,7 @@ describe('WDSDataTableProvider', () => {
         },
         resultMetadata: {
           filteredCount: 52,
-          unfilteredCount: ,
+          unfilteredCount: 52,
           filteredPageCount: -1
         }
       }
