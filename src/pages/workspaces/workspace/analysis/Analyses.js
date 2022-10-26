@@ -305,7 +305,7 @@ const Analyses = _.flow(
         }
         return !!googleProject ?
           Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(file) :
-          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).upload(file)
+          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(file)
       }, files))
       refreshAnalyses()
     } catch (error) {
