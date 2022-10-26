@@ -395,6 +395,7 @@ const EntitiesContent = ({
           selected: selectedEntities,
           setSelected: setSelectedEntities
         },
+        // DC-575: We may want to use this code for our column settings change
         childrenBefore: ({ columnSettings, showColumnSettingsModal }) => div({ style: { display: 'flex', alignItems: 'center', flex: 'none' } }, [
           renderEditMenu(),
           renderOpenWithMenu(),
