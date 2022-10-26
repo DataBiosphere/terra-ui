@@ -18,6 +18,10 @@ div([false])
 div({ style: { display: 'flex' } }, ['Content'])
 div({ className: 'a-class' }, [div()])
 
+// Key
+div({ key: 'key' })
+div({ key: 'key', style: { display: 'flex' } }, [div()])
+
 interface TestComponentProps {
   stringProp: string
   optionalNumberProp?: number
