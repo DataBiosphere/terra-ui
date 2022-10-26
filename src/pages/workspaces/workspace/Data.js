@@ -336,7 +336,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
               // TODO: this overrides the filename specified by the WDS API. Is that ok?
               dataProvider.downloadTsv(signal, tableName).then(blob => FileSaver.saveAs(blob, `${tableName}.tsv`))
             }
-            // TODO: add Entity Service vs. WDS indicator to mixpanel event
+            // TODO: AJ-656 add Entity Service vs. WDS indicator to mixpanel event
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               downloadFrom: 'all rows',
@@ -427,7 +427,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
           await dataProvider.deleteTable(tableName)
-          // TODO: add WDS vs. Entity Service property to the mixpanel event
+          // TODO: AJ-656 add WDS vs. Entity Service property to the mixpanel event
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace)
           })
@@ -560,7 +560,7 @@ const WorkspaceData = _.flow(
   const loadWdsSchema = async () => {
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
-        setWdsSchema(false)
+        setWdsSchema([])
         setWdsSchemaError(false)
         const wdsSchema = await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
         setWdsSchema(wdsSchema)

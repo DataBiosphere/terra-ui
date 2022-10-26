@@ -6,12 +6,6 @@ import { WDSDataTableProvider } from 'src/libs/ajax/data-table-providers/WDSData
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 
-// map the WDS schema response payload to the Entity Service metadata response
-const asEntityMetadata = wdsSchema => _.mapValues(typeDef => {
-  return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
-}, _.keyBy(typeDef => typeDef.name, wdsSchema))
-
-
 const WDSContent = ({
   workspace,
   workspace: {
@@ -24,11 +18,11 @@ const WDSContent = ({
   // State
   const [refreshKey] = useState(0)
 
-  // TODO: something in state management, setEntityMetadata, and/or loadMetadata need to change; reloading the page causes errors
+  // TODO: AJ-655 something in state management is off; reloading the page while a WDS table is displayed causes errors
 
   // Render
-  const entityMetadata = asEntityMetadata(wdsSchema)
   const dataProvider = new WDSDataTableProvider(workspaceId)
+  const entityMetadata = dataProvider.transformMetadata(wdsSchema)
 
   return h(Fragment, [
     h(DataTable, {
@@ -39,8 +33,6 @@ const WDSContent = ({
       entityType: recordType,
       activeCrossTableTextFilter: false,
       entityMetadata,
-      setEntityMetadata: () => entityMetadata,
-      loadMetadata: () => entityMetadata,
       googleProject,
       workspaceId: { namespace, name },
       workspace,
