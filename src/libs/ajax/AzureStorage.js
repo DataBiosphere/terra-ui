@@ -130,12 +130,12 @@ export const AzureStorage = signal => ({
         ).then(res => res.text())
       },
 
-      create: async textContents => {
+      create: async contents => {
         const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
 
         return fetchOk(azureStorageUrl, {
-          method: 'PUT', body: JSON.stringify(textContents),
-          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': _.size(textContents) }
+          method: 'PUT', body: contents,
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': contents.size }
         })
       },
 
