@@ -12,7 +12,11 @@ const queryOptions: EntityQueryOptions = {
   pageNumber: 2,
   itemsPerPage: 50,
   sortField: 'stringAttr',
-  sortDirection: 'desc'
+  sortDirection: 'desc',
+  snapshotName: '',
+  googleProject: '',
+  activeTextFilter: '',
+  filterOperator: ''
 }
 
 

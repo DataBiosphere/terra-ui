@@ -44,10 +44,10 @@ export interface EntityQueryOptions {
   itemsPerPage: number,
   sortField: string,
   sortDirection: EntityQuerySortDirection,
-  snapshotName?: string,
-  googleProject?: string,
-  activeTextFilter?: string,
-  filterOperator?: string
+  snapshotName: string,
+  googleProject: string,
+  activeTextFilter: string,
+  filterOperator: string
 }
 
 // queryOptions can contain:
