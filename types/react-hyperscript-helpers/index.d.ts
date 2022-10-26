@@ -8,7 +8,9 @@ declare module 'react-hyperscript-helpers' {
 
   type Children<Props> = Props extends { children?: React.ReactNode } ? React.ReactNode[] : (Props extends { children?: unknown } ? [Props['children']] : never)
 
-  type WithKey<P> = P & { key?: string }
+  type Key = string | number
+
+  type WithKey<P> = P & { key?: Key | null | undefined }
 
   interface HHelper {
     <Props extends {}>(
