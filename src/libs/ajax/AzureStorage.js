@@ -139,6 +139,16 @@ export const AzureStorage = signal => ({
         })
       },
 
+      //TODO: Test that it works
+      upload: async file => {
+        const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
+
+        return fetchOk(azureStorageUrl, {
+          method: 'PUT', body: file,
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': file.size }
+        })
+      },
+
       copy,
 
       rename: async destBlob => {

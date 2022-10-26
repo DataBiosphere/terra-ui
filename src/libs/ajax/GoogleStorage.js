@@ -246,6 +246,16 @@ export const GoogleStorage = signal => ({
         )
       },
 
+      upload: async file => {
+        return fetchBuckets(
+          `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
+          _.merge(authOpts(await saToken(googleProject)), {
+            signal, method: 'POST', body: file,
+            headers: { 'Content-Type': mimeType, 'Content-Length': file.size }
+          })
+        )
+      },
+
       delete: doDelete,
 
       getObject,

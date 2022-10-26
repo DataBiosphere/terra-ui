@@ -295,7 +295,7 @@ const Analyses = _.flow(
     Utils.withBusyState(setBusy)
   )(async files => {
     try {
-      await Promise.all(_.map(async file => {
+      await Promise.all(_.map(file => {
         const name = file.name
         const toolLabel = getToolFromFileExtension(file.name)
         let resolvedName = name
@@ -303,10 +303,9 @@ const Analyses = _.flow(
         while (_.includes(resolvedName, existingNames)) {
           resolvedName = `${name} ${++c}`
         }
-        const contents = await Utils.readFileAsText(file)
         return !!googleProject ?
-          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents) :
-          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(contents)
+          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).upload(file) :
+          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).upload(file)
       }, files))
       refreshAnalyses()
     } catch (error) {
