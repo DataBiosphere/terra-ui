@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -8,7 +8,7 @@ import terraHero from 'src/images/terra-hero.png'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { withErrorIgnoring } from 'src/libs/error'
+import { withErrorHandling } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { setLocalPref } from 'src/libs/prefs'
@@ -75,15 +75,16 @@ const LandingPage = () => {
   const [billingProjects, setBillingProjects] = useState()
   const signal = useCancellation()
 
-  useEffect(() => {
-    const loadProjects = withErrorIgnoring(async () => {
-      const projects = await Ajax(signal).Billing.listProjects()
-      setBillingProjects(projects)
-    })
-    if (isSignedIn) {
-      loadProjects()
-    }
-  }, [isSignedIn, setBillingProjects, signal])
+  const loadProjects = withErrorHandling(async error => {
+    const errorJSON = await error.json()
+    console.log(`Unable to load billing projects due to: ${errorJSON?.message}`)
+  })(async () => {
+    const projects = await Ajax(signal).Billing.listProjects()
+    setBillingProjects(projects)
+  })
+  if (isSignedIn) {
+    loadProjects()
+  }
 
   return h(HeroWrapper, { bigSubhead: true }, [
     isTerra() && !_.isUndefined(billingProjects) && _.isEmpty(billingProjects) && div({
