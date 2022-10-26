@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { MiniSortable, SimpleTable } from 'src/components/table'
+import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -84,6 +84,7 @@ const extractCatalogFilters = dataCatalog => {
 
 const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList }) => {
   const DataBrowserTable = ({ filteredList }) => {
+    const [columns, setColumns] = useState()
     return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
       'aria-label': 'dataset list',
       columns: [
@@ -161,6 +162,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
           ])
         }
       }, filteredList)
+    }),
+    !_.isEmpty(columns) && h(ColumnSelector, {
+      onSave: setColumns, columnSettings: columns,
+      style: { backgroundColor: 'unset', height: '2.5rem', width: '2.5rem', border: 0, right: 15 }
     })])
   }
 
