@@ -139,7 +139,8 @@ export const AzureStorage = signal => ({
         })
       },
 
-      //TODO: Test that it works
+      // TODO: Test that it works with the update.
+      // Currently Azure workspace not working.
       upload: async file => {
         const azureStorageUrl = await getBlobUrl(workspaceId, blobName)
 
