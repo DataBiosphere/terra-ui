@@ -231,16 +231,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         ])
       ])
 
-    // const haveAccessToAdd =
-    //   fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
-    //     legend({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
-    //       [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
-    //         ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
-    //           span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]), linkToSupport]
-    //     ),
-    //     checkbox
-    //   ])
-
     const dontHaveAccessToAdd =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', lexDirection: 'row', justifyContent: 'space-between' } }, [
         legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
