@@ -1,21 +1,7 @@
-import { FileBrowserDirectory, FileBrowserFile } from 'src/components/file-browser/file-browser-types'
 import { Ajax } from 'src/libs/ajax'
+import type { FileBrowserProvider } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 
-
-interface RequestOptions {
-  signal?: AbortSignal
-}
-
-export interface IncrementalResponse<T> {
-  results: T[]
-  getNextPage(options?: RequestOptions): Promise<IncrementalResponse<T>>
-  hasNextPage: boolean
-}
-
-export interface FileBrowserBackend {
-  getDirectoriesInDirectory(path: string, options?: RequestOptions): Promise<IncrementalResponse<FileBrowserDirectory>>
-  getFilesInDirectory(path: string, options?: RequestOptions): Promise<IncrementalResponse<FileBrowserFile>>
-}
 
 interface GCSItem {
   bucket: string
@@ -36,13 +22,13 @@ interface GCSItem {
   updated: string
 }
 
-export interface GCSFileBrowserBackendParams {
+export interface GCSFileBrowserProviderParams {
   bucket: string
   project: string
   pageSize?: number
 }
 
-type GCSFileBrowserBackendGetPageParams<T> = {
+type GCSFileBrowserProviderGetPageParams<T> = {
   isFirstPage: boolean
   pageToken?: string
   pendingResults?: T[]
@@ -57,8 +43,8 @@ type GCSFileBrowserBackendGetPageParams<T> = {
   mapItemOrPrefix: (prefix: string) => T
 })
 
-export const GCSFileBrowserBackend = ({ bucket, project, pageSize = 1000 }: GCSFileBrowserBackendParams): FileBrowserBackend => {
-  const getNextPage = async <T>(params: GCSFileBrowserBackendGetPageParams<T>): Promise<IncrementalResponse<T>> => {
+const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBrowserProviderParams): FileBrowserProvider => {
+  const getNextPage = async <T>(params: GCSFileBrowserProviderGetPageParams<T>): Promise<IncrementalResponse<T>> => {
     const { isFirstPage, itemsOrPrefixes, mapItemOrPrefix, pageToken, pendingResults = [], prefix, previousResults = [], signal } = params
 
     let buffer = pendingResults
@@ -96,7 +82,7 @@ export const GCSFileBrowserBackend = ({ bucket, project, pageSize = 1000 }: GCSF
           prefix,
           previousResults: results,
           signal
-        } as GCSFileBrowserBackendGetPageParams<T>) :
+        } as GCSFileBrowserProviderGetPageParams<T>) :
         () => {
           throw new Error('No next page')
         },
@@ -129,3 +115,5 @@ export const GCSFileBrowserBackend = ({ bucket, project, pageSize = 1000 }: GCSF
     })
   }
 }
+
+export default GCSFileBrowserProvider

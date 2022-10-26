@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import _ from 'lodash/fp'
-import { IncrementalResponse } from 'src/components/file-browser/file-browser-backends'
-import { useIncrementalResponse } from 'src/components/file-browser/file-browser-hooks'
+import useIncrementalResponse from 'src/components/useIncrementalResponse'
+import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 
 
 describe('useIncrementalResponse', () => {

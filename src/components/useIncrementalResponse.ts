@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FileBrowserBackend, IncrementalResponse } from 'src/components/file-browser/file-browser-backends'
-import { useCallbackOne } from 'use-memo-one'
+import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 
 
 type GetIncrementalResponse<T> = (options: { signal: AbortSignal }) => Promise<IncrementalResponse<T>>
 
-export const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
+const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
   const response = useRef<IncrementalResponse<T> | null>(null)
   const abortController = useRef(new AbortController())
 
@@ -66,16 +65,4 @@ export const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T
   }
 }
 
-export const useDirectoriesInDirectory = (backend: FileBrowserBackend, path: string) => {
-  // useIncrementalResponse reloads when the getFirstPage function changes, so it should not change unless
-  // backend or path changes. React's useCallback does not provide that guarantee.
-  const getFirstPage = useCallbackOne(opts => backend.getDirectoriesInDirectory(path, opts), [backend, path])
-  return useIncrementalResponse(getFirstPage)
-}
-
-export const useFilesInDirectory = (backend: FileBrowserBackend, path: string) => {
-  // useIncrementalResponse reloads when the getFirstPage function changes, so it should not change unless
-  // backend or path changes. React's useCallback does not provide that guarantee.
-  const getFirstPage = useCallbackOne(opts => backend.getFilesInDirectory(path, opts), [backend, path])
-  return useIncrementalResponse(getFirstPage)
-}
+export default useIncrementalResponse

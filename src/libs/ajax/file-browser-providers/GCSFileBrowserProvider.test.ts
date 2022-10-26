@@ -1,5 +1,5 @@
-import { GCSFileBrowserBackend } from 'src/components/file-browser/file-browser-backends'
 import { Ajax } from 'src/libs/ajax'
+import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
 import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/test-utils'
 
@@ -33,7 +33,7 @@ const expectedFile = path => ({
   updatedAt: 1666792590000
 })
 
-describe('GCSFileBrowserBackend', () => {
+describe('GCSFileBrowserProvider', () => {
   let list
 
   beforeEach(() => {
@@ -79,7 +79,7 @@ describe('GCSFileBrowserBackend', () => {
   })
 
   it('pages through files (objects)', async () => {
-    const backend = GCSFileBrowserBackend({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     const firstResponse = await backend.getFilesInDirectory('')
     expect(firstResponse.results).toEqual([
@@ -102,7 +102,7 @@ describe('GCSFileBrowserBackend', () => {
   })
 
   it('pages through directories (prefixes)', async () => {
-    const backend = GCSFileBrowserBackend({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     const firstResponse = await backend.getDirectoriesInDirectory('')
     expect(firstResponse.results).toEqual([
