@@ -1,5 +1,3 @@
-import _ from 'lodash/fp'
-
 import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
 import { RecordQueryResponse, RecordTypeSchema, WDSDataTableProvider } from './WDSDataTableProvider'
 
