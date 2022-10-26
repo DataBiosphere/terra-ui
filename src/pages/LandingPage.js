@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -75,16 +75,18 @@ const LandingPage = () => {
   const [billingProjects, setBillingProjects] = useState()
   const signal = useCancellation()
 
-  const loadProjects = withErrorHandling(async error => {
-    const errorJSON = await error.json()
-    console.log(`Unable to load billing projects due to: ${errorJSON?.message}`)
-  })(async () => {
-    const projects = await Ajax(signal).Billing.listProjects()
-    setBillingProjects(projects)
-  })
-  if (isSignedIn) {
-    loadProjects()
-  }
+  useEffect(() => {
+    const loadProjects = withErrorHandling(async error => {
+      const errorJSON = await error.json()
+      console.log(`Unable to load billing projects due to: ${errorJSON?.message}`) // eslint-disable-line no-console
+    })(async () => {
+      const projects = await Ajax(signal).Billing.listProjects()
+      setBillingProjects(projects)
+    })
+    if (isSignedIn) {
+      loadProjects()
+    }
+  }, [isSignedIn, setBillingProjects, signal])
 
   return h(HeroWrapper, { bigSubhead: true }, [
     isTerra() && !_.isUndefined(billingProjects) && _.isEmpty(billingProjects) && div({

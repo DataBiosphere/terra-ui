@@ -4,7 +4,6 @@ import { div, fieldset, h, h2, h3, legend, li, p, span, ul } from 'react-hypersc
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -69,7 +68,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const isDone = activeStep > 1
 
     return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-      span({ className: 'sr-only' }, ['Step 1, step 1 of 4']),
       div({ style: { width: '60%' } }, [
         h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 1']),
         span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
@@ -110,7 +108,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     }
 
     return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' } }, [
-      span({ className: 'sr-only' }, ['Step 2, step 2 of 4']),
       h3({ style: { width: '55%', fontSize: 18, marginTop: 0 } }, ['STEP 2']),
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
@@ -162,7 +159,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           checked: verified === true,
           onChange: async () => {
             if (!isDone) {
-              if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+              await authorizeAndLoadAccounts()
               setVerified(true)
               next()
             } else {
@@ -210,7 +207,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
                 if (!isDone) {
-                  if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+                  await authorizeAndLoadAccounts()
                   setAccessToAddBillingAccountUser(true)
                   next()
                 } else {
@@ -235,7 +232,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ])
 
     return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' } }, [
-      span({ className: 'sr-only' }, ['Step 3, step 3 of 4']),
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 3']),
       isActive || isDone ?
         (accessToBillingAccount ?
@@ -253,7 +249,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       'aria-current': isActive ? 'step' : false,
       style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
     }, [
-      span({ className: 'sr-only' }, ['Step 4, step 4 of 4']),
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 4']),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
         ['Create a Terra project to connect your Google billing account to Terra. ' +
@@ -282,7 +277,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                 h(Link, {
                   style: { textDecoration: 'underline' },
                   onClick: async () => {
-                    if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
+                    await authorizeAndLoadAccounts()
                   }
                 }, ['Refresh Step 3'])
               ])
