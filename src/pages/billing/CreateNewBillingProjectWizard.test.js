@@ -46,16 +46,16 @@ const testStep2HaveBillingChecked = () => {
   verifyUnchecked(screen.getByRole('radio', { name: 'I don\'t have access to a Cloud billing account' }))
 }
 
-// const testStep3InitialState = () => {
-//   verifyDisabled(getStep3DontHaveAccessButton())
-//   verifyDisabled(getStep3HaveAddedButton())
-//   verifyUnchecked(screen.queryByRole('radio', { name: 'I don\'t have access to do this' }))
-//   verifyUnchecked(getStep3HaveAddedButton())
-//   expect(textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')).not.toBeNull()
-//   expect(textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
-//     "Billing Account User to your organization's billing account.")).toBeNull()
-//   expect(getStep3CheckBox()).toBeNull()
-// }
+const testStep3InitialState = () => {
+  verifyDisabled(getStep3DontHaveAccessButton())
+  verifyDisabled(getStep3HaveAddedButton())
+  verifyUnchecked(screen.queryByRole('radio', { name: 'I don\'t have access to do this' }))
+  verifyUnchecked(getStep3HaveAddedButton())
+  expect(textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')).not.toBeNull()
+  expect(textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
+    "Billing Account User to your organization's billing account.")).toBeNull()
+  expect(getStep3CheckBox()).toBeNull()
+}
 
 const testStep3RadioButtonsNoneSelected = () => {
   verifyEnabled(getStep3DontHaveAccessButton())
@@ -123,6 +123,7 @@ describe('CreateNewBillingProjectWizard', () => {
     }))
 
     jest.spyOn(Preferences, 'getLocalPref')
+    jest.spyOn(Preferences, 'getLocalPref')
     // STEP 1 BUTTON (always enabled)
     verifyEnabled(getStep1Button())
     expect(getStep1Button().getAttribute('href')).toBe('https://console.cloud.google.com')
@@ -141,20 +142,10 @@ describe('CreateNewBillingProjectWizard', () => {
       expect(allSteps(3).getAttribute('aria-current')).toBe('false')
     })
     it('has the correct initial state for Step 3', () => {
-      verifyDisabled(getStep3DontHaveAccessButton())
-      verifyDisabled(getStep3HaveAddedButton())
-      verifyUnchecked(screen.queryByRole('radio', { name: 'I don\'t have access to do this' }))
-      verifyUnchecked(getStep3HaveAddedButton())
-      expect(textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')).not.toBeNull()
-      expect(textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
-        "Billing Account User to your organization's billing account.")).toBeNull()
-      expect(getStep3CheckBox()).toBeNull()
+      testStep3InitialState()
     })
     it('has the correct initial state for Step 4', () => {
-      verifyDisabled(getBillingProjectInput())
-      verifyDisabled(getBillingAccountInput())
-      verifyDisabled(getStep4CreateButton())
-      expect(screen.queryByText('Refresh Step 3')).toBeNull()
+      testStep4Disabled()
     })
   })
 
@@ -172,20 +163,10 @@ describe('CreateNewBillingProjectWizard', () => {
       expect(allSteps(3).getAttribute('aria-current')).toBe('false')
     })
     it('has the correct initial state for Step 3', () => {
-      verifyDisabled(getStep3DontHaveAccessButton())
-      verifyDisabled(getStep3HaveAddedButton())
-      verifyUnchecked(screen.queryByRole('radio', { name: 'I don\'t have access to do this' }))
-      verifyUnchecked(getStep3HaveAddedButton())
-      expect(textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')).not.toBeNull()
-      expect(textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
-        "Billing Account User to your organization's billing account.")).toBeNull()
-      expect(getStep3CheckBox()).toBeNull()
+      testStep3InitialState()
     })
     it('has the correct initial state for Step 4', () => {
-      verifyDisabled(getBillingProjectInput())
-      verifyDisabled(getBillingAccountInput())
-      verifyDisabled(getStep4CreateButton())
-      expect(screen.queryByText('Refresh Step 3')).toBeNull()
+      testStep4Disabled()
     })
   })
 
@@ -432,4 +413,13 @@ describe('Test Warning', () => {
     fireEvent.click(screen.queryByText('Refresh Step 3'))
     expect(authorizeAndLoadAccounts).toHaveBeenCalled()
   })
+
+  // it('tests Step 4 (warning message and refresh button) when already refreshed', async () => {
+  //
+  // })
 })
+
+// describe('Saved Stated and Authentication', () => {
+//
+// })
+//
