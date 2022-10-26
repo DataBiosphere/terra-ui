@@ -246,8 +246,6 @@ const DataTable = props => {
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
 
-  // DC-575: checking if this is necessary
-  // const showColumnSettingsModal = () => setUpdatingColumnSettings(columnSettings)
 
   return h(Fragment, [
     !!entities && h(Fragment, [
@@ -258,7 +256,7 @@ const DataTable = props => {
           ...controlPanelStyle
         }
       }, [
-        childrenBefore && childrenBefore({ entities, columnSettings, setUpdatingColumnSettings }),
+        childrenBefore && childrenBefore({ entities, columnSettings, showColumnSettingsModal: () => setUpdatingColumnSettings(columnSettings) }),
         div({ style: { flexGrow: 1 } }),
         dataProvider.features.supportsFiltering && h(MenuTrigger, {
           side: 'bottom',
