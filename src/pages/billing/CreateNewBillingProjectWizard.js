@@ -9,7 +9,7 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
-import { setLocalPref } from 'src/libs/prefs'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
 import validate from 'validate.js'
@@ -34,19 +34,19 @@ export const styles = {
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts, loadAccounts }) => {
   const persistenceId = 'billing'
-  const [accessToBillingAccount, setAccessToBillingAccount] = useState()
-  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState()
-  const [verified, setVerified] = useState(false)
+  const [accessToBillingAccount, setAccessToBillingAccount] = useState(() => getLocalPref(persistenceId)?.accessToBillingAccount)
+  const [accessToAddBillingAccountUser, setAccessToAddBillingAccountUser] = useState(() => getLocalPref(persistenceId)?.accessToAddBillingAccountUser)
+  const [verified, setVerified] = useState(() => getLocalPref(persistenceId)?.verified || false)
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState('')
   const [isBusy, setIsBusy] = useState(false)
   const [existing, setExisting] = useState([])
   const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
-  const [activeStep, setActiveStep] = useState(1)
+  const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified })
-  }, [persistenceId, activeStep, accessToBillingAccount, verified])
+    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser })
+  }, [persistenceId, activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser])
 
   const next = () => {
     setActiveStep(activeStep + 1)
@@ -81,7 +81,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ]),
       h(Clickable, {
         style: {
-          color: colors.accent(), backgroundColor: 'none', border: `1px solid ${colors.accent()}`,
+          color: '#426ead', backgroundColor: 'none', border: '1px solid #426ead',
           paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
           height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
           marginLeft: '2rem', textTransform: 'none'
@@ -135,7 +135,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           ]),
           div({ style: { marginTop: '2rem', display: 'flex', displayDirection: 'row' } }, [
             h(RadioButton, {
-              'data-testid': 'step2-have-a-billing-account',
               text: 'I have a billing account', name: 'access-to-account',
               'aria-checked': accessToBillingAccount === true,
               checked: accessToBillingAccount === true,
@@ -158,7 +157,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const linkToSupport =
       div({ style: { marginTop: '1.5rem' } }, [
         h(Link, {
-          ...Utils.newTabLinkProps, style: { textDecoration: 'underline' },
+          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: '#426ead' },
           href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
         }, [
           'Learn how to set up a Google Cloud Billing account'
@@ -213,15 +212,14 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           ]),
           div({ style: { marginTop: '2rem', display: 'flex', displayDirection: 'row' } }, [
             h(RadioButton, {
-              'data-testid': 'step3-have-a-billing-account',
               text: 'I have added terra-billing as a billing account user (requires reauthentication)', name: 'permission',
               'aria-checked': accessToAddBillingAccountUser === true,
               checked: accessToAddBillingAccountUser === true,
               disabled: !isDone && !isActive, 'aria-disabled': !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
-              onChange: () => {
+              onChange: async () => {
                 if (!isDone) {
-                  if (!Auth.hasBillingScope()) { authorizeAndLoadAccounts() }
+                  if (!Auth.hasBillingScope()) { await authorizeAndLoadAccounts() }
                   setAccessToAddBillingAccountUser(true)
                   next()
                 } else {
@@ -270,14 +268,17 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const isActive = activeStep === 4
     const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
 
-    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column', height: 'auto' } }, [
+    return li({
+      'aria-current': isActive ? 'step' : false,
+      style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
+    }, [
       span({ className: 'sr-only' }, ['Step 4, step 4 of 4']),
       h2({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 4']),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
         ['Create a Terra project to connect your Google billing account to Terra. ' +
         'Billing projects allow you to manage your workspaces and are required to create one.']),
       div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-between', height: 'auto' } }, [
-        div({ style: { maxWidth: '35%' } }, [
+        div({ style: { maxWidth: '35%', paddingBottom: '4rem' } }, [
           h(Fragment, [
             h(IdContainer, [id => h(Fragment, [
               h(FormLabel, { htmlFor: id, required: true }, ['Terra billing project']),
@@ -318,7 +319,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
             ])
           ])])
         ]),
-        isActive ?
+        isActive && _.isEmpty(billingAccounts) ?
           div({
             style: {
               display: 'flex', alignItems: 'flex-start',
