@@ -1,7 +1,8 @@
 import { act, renderHook } from '@testing-library/react-hooks'
 import _ from 'lodash/fp'
 import useIncrementalResponse from 'src/components/useIncrementalResponse'
-import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import { ErrorState, LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState'
 
 
 describe('useIncrementalResponse', () => {
@@ -28,83 +29,98 @@ describe('useIncrementalResponse', () => {
   }
 
   it('gets initial response', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    expect(result.current.items).toEqual([])
-    await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
-  })
+    const expectedLoadingState: LoadingState<number[]> = { status: 'Loading', state: [] }
+    const expectedReadyState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
 
-  it('has loading state', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    expect(result.current.isLoading).toEqual(true)
+    expect(result.current.state).toEqual(expectedLoadingState)
     await waitForNextUpdate()
-    expect(result.current.isLoading).toEqual(false)
+    expect(result.current.state).toEqual(expectedReadyState)
   })
 
   it('has error state', async () => {
     const throwError = () => Promise.reject(new Error('Something went wrong'))
+    const expectedErrorState: ErrorState<number[]> = { status: 'Error', error: new Error('Something went wrong'), state: [] }
+
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(throwError))
     await waitForNextUpdate()
-    expect(result.current.error).toEqual(new Error('Something went wrong'))
+    expect(result.current.state).toEqual(expectedErrorState)
   })
 
   it('loads next page', async () => {
+    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    const expectedSecondPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6] }
+
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
+    expect(result.current.state).toEqual(expectedFirstPageState)
+
     act(() => { result.current.loadNextPage() })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6])
+    expect(result.current.state).toEqual(expectedSecondPageState)
   })
 
   it('loads all remaining pages', async () => {
+    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    const expectedAllPagesState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
+
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
-    act(() => { result.current.loadAllRemaining() })
+    expect(result.current.state).toEqual(expectedFirstPageState)
+
+    act(() => { result.current.loadAllRemainingItems() })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(result.current.state).toEqual(expectedAllPagesState)
   })
 
-  it('has hasNextPage state', async () => {
+  it('returns hasNextPage', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
     expect(result.current.hasNextPage).toBe(true)
-    act(() => { result.current.loadAllRemaining() })
+
+    act(() => { result.current.loadAllRemainingItems() })
     await waitForNextUpdate()
     expect(result.current.hasNextPage).toBe(false)
   })
 
   it('reloads / resets to first page', async () => {
+    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    const expectedAllPagesState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
+
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
+
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
-    act(() => { result.current.loadAllRemaining() })
+    expect(result.current.state).toEqual(expectedFirstPageState)
+
+    act(() => { result.current.loadAllRemainingItems() })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(result.current.state).toEqual(expectedAllPagesState)
 
     act(() => { result.current.reload() })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
+    expect(result.current.state).toEqual(expectedFirstPageState)
   })
 
   it('reloads when get first page function changes', async () => {
     const getOtherTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
       return Promise.resolve({
-        items: [100, 101, 102],
+        items: [101, 102, 103],
         getNextPage: () => { throw new Error('No next page') },
         hasNextPage: false
       })
     }
 
+    const expectedStateBeforeChange: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    const expectedStateAfterChange: ReadyState<number[]> = { status: 'Ready', state: [101, 102, 103] }
+
     const { rerender, result, waitForNextUpdate } = renderHook(({ getFirstPage }) => useIncrementalResponse(getFirstPage), {
       initialProps: { getFirstPage: getTestIncrementalResponse }
     })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([1, 2, 3])
+    expect(result.current.state).toEqual(expectedStateBeforeChange)
 
     rerender({ getFirstPage: getOtherTestIncrementalResponse })
     await waitForNextUpdate()
-    expect(result.current.items).toEqual([100, 101, 102])
+    expect(result.current.state).toEqual(expectedStateAfterChange)
   })
 })

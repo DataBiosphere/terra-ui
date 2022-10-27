@@ -1,29 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState'
 
 
 type GetIncrementalResponse<T> = (options: { signal: AbortSignal }) => Promise<IncrementalResponse<T>>
 
-const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
+type UseIncrementalResponseResult<T> = {
+  state: Exclude<LoadedState<T[]>, NoneState>
+  hasNextPage: boolean | undefined
+  loadNextPage: () => Promise<void>
+  loadAllRemainingItems: () => Promise<void>
+  reload: () => Promise<void>
+}
+
+const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>): UseIncrementalResponseResult<T> => {
   const response = useRef<IncrementalResponse<T> | null>(null)
+  const [state, setState] = useState<Exclude<LoadedState<T[]>, NoneState>>({ status: 'Loading', state: [] })
   const abortController = useRef(new AbortController())
 
-  const [error, setError] = useState<Error | null>(null)
-  const [hasNextPage, setHasNextPage] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const [items, setItems] = useState<T[]>([])
-
   const loadPageAndUpdateState = useCallback(async (getPage: GetIncrementalResponse<T>) => {
-    setIsLoading(true)
+    setState(previousState => ({
+      status: 'Loading',
+      state: previousState.state
+    }))
     try {
       const signal = abortController.current.signal
       response.current = await getPage({ signal })
-      setItems(response.current.items)
-      setHasNextPage(response.current.hasNextPage)
-    } catch (err) {
-      setError(err as Error)
-    } finally {
-      setIsLoading(false)
+      setState({ status: 'Ready', state: response.current.items })
+    } catch (error) {
+      setState(previousState => ({
+        status: 'Error',
+        state: previousState.state,
+        error: error as Error
+      }))
     }
   }, [])
 
@@ -33,7 +42,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
     }
   }, [loadPageAndUpdateState])
 
-  const loadAllRemaining = useCallback(async () => {
+  const loadAllRemainingItems = useCallback(async () => {
     if (response.current?.hasNextPage) {
       await loadPageAndUpdateState(async ({ signal }) => {
         let r = response.current!
@@ -46,7 +55,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
   }, [loadPageAndUpdateState])
 
   const reload = useCallback(async () => {
-    setItems([])
+    setState({ status: 'Loading', state: [] })
     await loadPageAndUpdateState(getFirstPage)
   }, [loadPageAndUpdateState, getFirstPage])
 
@@ -54,14 +63,14 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
     reload()
   }, [reload, getFirstPage])
 
+  const isLoading = state.status === 'Loading'
+
   return {
-    error,
-    hasNextPage: isLoading ? undefined : hasNextPage,
-    isLoading,
-    loadAllRemaining: isLoading || !hasNextPage ? () => Promise.resolve() : loadAllRemaining,
-    loadNextPage: isLoading || !hasNextPage ? () => Promise.resolve() : loadNextPage,
-    reload,
-    items
+    state,
+    hasNextPage: isLoading ? undefined : response.current?.hasNextPage,
+    loadAllRemainingItems: isLoading || !response.current?.hasNextPage ? () => Promise.resolve() : loadAllRemainingItems,
+    loadNextPage: isLoading || !response.current?.hasNextPage ? () => Promise.resolve() : loadNextPage,
+    reload
   }
 }
 
