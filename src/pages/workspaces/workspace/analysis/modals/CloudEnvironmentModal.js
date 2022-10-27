@@ -7,6 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -50,7 +51,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
-    isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
+    isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE || viewMode === NEW_JUPYTER_LAB_MODE,
     workspace,
     tool,
     currentRuntime,
@@ -245,6 +246,7 @@ export const CloudEnvironmentModal = ({
 
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
+    [tools.JupyterLab.label, () => jupyterLabLogo],
     [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
     [tools.Cromwell.label, () => cromwellImg],
@@ -379,6 +381,7 @@ export const CloudEnvironmentModal = ({
   }
 
   const NEW_JUPYTER_MODE = tools.Jupyter.label
+  const NEW_JUPYTER_LAB_MODE = tools.JupyterLab.label
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.Galaxy.label
   const NEW_CROMWELL_MODE = tools.Cromwell.label
@@ -386,6 +389,7 @@ export const CloudEnvironmentModal = ({
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
+    [NEW_JUPYTER_LAB_MODE, () => renderComputeModal(NEW_JUPYTER_LAB_MODE)],
     [NEW_AZURE_MODE, () => renderAzureModal()],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
     [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],

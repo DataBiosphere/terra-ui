@@ -19,6 +19,13 @@ const featurePreviewsConfig = [
     description: 'Enabling this feature will enable WDS-powered data tables.',
     groups: ['preview-wds-on-azure'],
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent('Feedback on WDS UI')}`
+  },
+  {
+    id: 'jupyterlab-gcp',
+    title: 'JupyterLab on GCP',
+    description: 'Enabling this feature will launch Jupyter analyses using JupyterLab.',
+    groups: ['preview-jupyterlab-gcp'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`
   }
 ]
 

@@ -167,7 +167,7 @@ export const Runtimes = signal => {
             _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
         },
 
-        setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+        setStorageLinks: ({ localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern }) => {
           return fetchLeo(`${root}/welder/storageLinks`,
             _.mergeAll([authOpts(), jsonBody({
               localBaseDirectory,

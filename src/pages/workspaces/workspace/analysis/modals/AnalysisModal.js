@@ -8,12 +8,14 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -149,7 +151,15 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
     }, [
-      h(Clickable, {
+      isFeaturePreviewEnabled('jupyterlab-gcp') && h(Clickable, {
+        style: styles.toolCard, onClick: () => {
+          setCurrentToolObj(tools.JupyterLab)
+          setFileExt(tools.JupyterLab.defaultExt)
+          enterNextViewMode(tools.JupyterLab.label)
+        },
+        hover: styles.hover
+      }, [img({ src: jupyterLabLogo, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
+      !isFeaturePreviewEnabled('jupyterlab-gcp') && h(Clickable, {
         style: styles.toolCard, onClick: () => {
           const currTool = !!googleProject ? tools.Jupyter : tools.Azure
           setCurrentToolObj(currTool)

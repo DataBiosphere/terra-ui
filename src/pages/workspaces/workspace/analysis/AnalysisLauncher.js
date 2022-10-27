@@ -14,6 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -306,7 +307,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure or JupyterLab
       [(currentRuntimeTool === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
@@ -317,7 +318,7 @@ const PreviewHeader = ({
           ])],
           () => editModeButton
         ),
-        h(HeaderButton, {
+        !isFeaturePreviewEnabled('jupyterlab-gcp') && h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
         }, [
           makeMenuIcon('chalkboard'), 'Playground mode'
@@ -521,7 +522,7 @@ const AnalysisEditorFrame = ({
   const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => `${name}/edit`],
+    [tools.Jupyter.label, () => isFeaturePreviewEnabled('jupyterlab-gcp') ? '' : `${name}/edit`],
     [tools.RStudio.label, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
@@ -536,22 +537,35 @@ const AnalysisEditorFrame = ({
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-      await Ajax()
-        .Runtimes
-        .fileSyncing(googleProject, runtimeName)
-        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
-
-      if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
-        notify('error', 'Unable to Edit Analysis', {
-          message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
-        })
-        chooseMode(undefined)
-      } else {
-        await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
-          sourceUri: `${cloudStorageDirectory}/${analysisName}`,
-          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
-        }])
+      if (isFeaturePreviewEnabled('jupyterlab-gcp')) {
+        console.log('Launching JupyterLab!')
+        console.log(localBaseDirectory)
+        console.log(cloudStorageDirectory)
+        console.log(getPatternFromTool(toolLabel))
+        await Ajax()
+          .Runtimes
+          .fileSyncing(googleProject, runtimeName)
+          .setStorageLinks({ localBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
         setAnalysisSetupComplete(true)
+      } else {
+        console.log('Launching Jupyter!')
+        await Ajax()
+          .Runtimes
+          .fileSyncing(googleProject, runtimeName)
+          .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
+
+        if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
+          notify('error', 'Unable to Edit Analysis', {
+            message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
+          })
+          chooseMode(undefined)
+        } else {
+          await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
+            sourceUri: `${cloudStorageDirectory}/${analysisName}`,
+            localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
+          }])
+          setAnalysisSetupComplete(true)
+        }
       }
     })
 
@@ -562,7 +576,7 @@ const AnalysisEditorFrame = ({
     analysisSetupComplete && cookieReady && h(Fragment, [
       iframe({
         id: 'analysis-iframe',
-        src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
+        src: isFeaturePreviewEnabled('jupyterlab-gcp') ? `${proxyUrl}/lab` : `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
         style: { border: 'none', flex: 1, ...styles },
         ref: frameRef
       }),

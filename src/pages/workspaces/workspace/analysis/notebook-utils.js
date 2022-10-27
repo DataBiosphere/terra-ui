@@ -9,6 +9,7 @@ import { Ajax } from 'src/libs/ajax'
 import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -75,6 +76,7 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 export const tools = {
   RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
   Jupyter: { label: 'Jupyter', ext: ['ipynb'], isNotebook: true, imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
+  JupyterLab: { label: 'JupyterLab', ext: ['ipynb'], isNotebook: true, imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', defaultExt: 'ipynb' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
@@ -93,6 +95,7 @@ export const toolExtensionDisplay = {
 export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
   [tools.RStudio.label, () => '.+(\\.R|\\.Rmd)$'],
   [tools.Jupyter.label, () => '.*\\.ipynb'],
+  [tools.JupyterLab.label, () => '.*\\.ipynb'],
   [tools.Azure.label, () => '.*\\.ipynb']
 )
 
@@ -102,7 +105,7 @@ export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultEx
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.remove(tool => tool.isAppHidden),
   _.filter(tool => !!tool.isAzureCompatible === !!isAzureWorkspace)
-)([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
+)([tools.Jupyter, tools.JupyterLab, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 
 export const toolToExtensionMap = _.flow(
   _.filter('ext'),

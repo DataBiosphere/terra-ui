@@ -10,11 +10,13 @@ import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-square.png'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -56,7 +58,8 @@ export const ContextBar = ({
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [tools.Jupyter.label, () => isFeaturePreviewEnabled('jupyterlab-gcp') ? img({ src: jupyterLabLogo, style: { height: 45, width: 45 }, alt: '' }) : img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+//    [tools.JupyterLab.label, () => img({ src: jupyterLabLogo, style: { height: 45, width: 45 }, alt: '' })],
     [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
     [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
