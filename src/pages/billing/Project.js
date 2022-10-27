@@ -564,11 +564,14 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      isOwner && _.isEmpty(workspacesInProject) ?
-        div({ style: { margin: '1rem', size: 20 } }, ['Use this Terra billing project to create ',
-          h(Link, { style: { textDecoration: 'underline' }, onClick: () => { Nav.goToPath('workspaces') } },
-            ['Workspaces'])]) :
-        div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
+      !_.isUndefined(workspaces) && _.isEmpty(workspacesInProject) ?
+        div({ style: { ...Style.cardList.longCardShadowless, width: 'fit-content' } },
+          [span({ 'aria-hidden': 'true' }, ['Use this Terra billing project to create']),
+            h(Link, {
+              'aria-label': 'Use this Terra billing project to create workspaces', style: { marginLeft: '0.3em', textDecoration: 'underline' },
+              href: Nav.getLink('workspaces')
+            }, ['Workspaces'])]) :
+        !_.isEmpty(workspacesInProject) && div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
           h(WorkspaceCardHeaders, {
             needsStatusColumn: billingAccountsOutOfDate,
             sort: workspaceSort,
