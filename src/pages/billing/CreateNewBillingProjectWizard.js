@@ -71,7 +71,10 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const isActive = activeStep === 1
     const isDone = activeStep > 1
 
-    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+    return li({
+      'aria-current': isActive ? 'step' : false,
+      style: { ...styles.stepBanner(isActive), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
+    }, [
       div({ style: { width: '60%' } }, [
         h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 1']),
         span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
@@ -112,7 +115,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       }
     }
 
-    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' } }, [
+    return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column' } }, [
       h3({ style: { width: '55%', fontSize: 18, marginTop: 0 } }, ['STEP 2']),
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
@@ -159,7 +162,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         ])
 
     const checkbox =
-      div({ style: { width: '25%' } }, [
+      div({ style: { width: '25%', float: 'right' } }, [
         h(LabeledCheckbox, {
           checked: verified === true,
           onChange: async () => {
@@ -182,13 +185,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ])
 
     const haveABillingAccount =
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'row', justifyContent: 'space-between' } }, [
+      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
             ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
               span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]),
           div({ style: { marginTop: '3rem' } }, [linkToSupport])]),
-        div({ style: { width: '25%' } }, [
+        div({ style: { width: '25%', float: 'right' } }, [
           div({ style: { display: 'flex', displayDirection: 'row' } }, [
             h(RadioButton, {
               text: "I don't have access to do this", name: 'permission',
@@ -225,7 +228,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ])
 
     const dontHaveAccessToAdd =
-      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'flex', lexDirection: 'row', justifyContent: 'space-between' } }, [
+      fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [
             span(['Contact your billing account administrator and have them add you and ',
@@ -251,8 +254,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const isActive = activeStep === 4
 
     return li({
-      'aria-current': isActive ? 'step' : false,
-      style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
+      'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column' }
     }, [
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 4']),
       span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', width: '75%' } },
@@ -316,9 +318,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
   return div({ style: { padding: '1.5rem 3rem' } }, [
     h2({ style: { fontWeight: 'bold', fontSize: 18 } }, ['Link a Google Cloud billing account to Terra']),
-    div({
-      style: { marginTop: '0.5rem', fontSize: 14, lineHeight: '22px', width: 'calc(100% - 150px)' }
-    }, [
+    div({ style: { marginTop: '0.5rem', fontSize: 14, lineHeight: '22px', width: 'calc(100% - 150px)' } }, [
       `The linked billing account is required to cover all Google Cloud data storage, compute and egress costs incurred in a Terra workspace.
         Cloud costs are billed directly from Google and passed through Terra billing projects with no markup.`
     ]),
