@@ -241,7 +241,7 @@ export const GoogleStorage = signal => ({
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: contents,
-            headers: { 'Content-Type': mimeType, 'Content-Length': contents.size }
+            headers: { 'Content-Type': mimeType }
           })
         )
       },
