@@ -1,5 +1,5 @@
 import { Ajax } from 'src/libs/ajax'
-import type { FileBrowserProvider } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import type { GCSItem } from 'src/libs/ajax/GoogleStorage'
 import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 
