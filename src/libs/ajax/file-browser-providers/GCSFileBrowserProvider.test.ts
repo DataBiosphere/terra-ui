@@ -82,10 +82,10 @@ describe('GCSFileBrowserProvider', () => {
 
   it('pages through files (objects)', async () => {
     // Arrange
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     // Act
-    const firstResponse = await backend.getFilesInDirectory('')
+    const firstResponse = await provider.getFilesInDirectory('')
     const numGCSRequestsAfterFirstResponse = list.mock.calls.length
     const secondResponse = await firstResponse.getNextPage()
     const numGCSRequestsAfterSecondResponse = list.mock.calls.length
@@ -113,10 +113,10 @@ describe('GCSFileBrowserProvider', () => {
 
   it('pages through directories (prefixes)', async () => {
     // Arrange
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     // Act
-    const firstResponse = await backend.getDirectoriesInDirectory('')
+    const firstResponse = await provider.getDirectoriesInDirectory('')
     const numGCSRequestsAfterFirstResponse = list.mock.calls.length
     const secondResponse = await firstResponse.getNextPage()
     const numGCSRequestsAfterSecondResponse = list.mock.calls.length
