@@ -25,8 +25,7 @@ interface SearchRequest {
 interface RecordResponse {
   id: string,
   type: string,
-  attributes: { [index: string]: any }, // truly "any" here; the backend Java representation is Map<String, Object>
-  metadata?: { [index: string]: any } // truly "any" here; the backend Java representation is Map<String, Object>
+  attributes: { [index: string]: any } // truly "any" here; the backend Java representation is Map<String, Object>
 }
 
 export interface RecordQueryResponse {

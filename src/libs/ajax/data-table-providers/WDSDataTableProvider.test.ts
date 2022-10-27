@@ -40,9 +40,6 @@ describe('WDSDataTableProvider', () => {
               numericAttr: 11,
               stringAttr: 'string',
               timestamp: '2022-10-19T17:39:03.274+00:00'
-            },
-            metadata: {
-              provenance: 'UNUSED'
             }
           },
           {
@@ -53,9 +50,6 @@ describe('WDSDataTableProvider', () => {
               numericAttr: 22,
               stringAttr: 'string',
               timestamp: '2022-10-19T17:39:03.274+00:00'
-            },
-            metadata: {
-              provenance: 'UNUSED'
             }
           }
         ],
