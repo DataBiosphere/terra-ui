@@ -20,7 +20,7 @@ export const styles = {
       padding: '1.5rem 2rem',
       marginTop: '1rem',
       display: 'flex',
-      border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.3)}`,
+      border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.2)}`,
       backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
       boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
     }
