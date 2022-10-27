@@ -892,7 +892,7 @@ const Workspaces = signal => ({
 
       getEntities: entityType => fetchRawls(`${root}/entities/${entityType}`, _.merge(authOpts(), { signal })).then(r => r.json()),
 
-      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])),
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.blob()),
 
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {

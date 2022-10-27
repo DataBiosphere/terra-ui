@@ -43,6 +43,6 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
   }
 
   downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType).then(r => r.blob())
+    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 }
