@@ -20,15 +20,15 @@ export const styles = {
       padding: '1.5rem 2rem',
       marginTop: '1rem',
       display: 'flex',
-      border: active ? '1px solid #426ead' : 'none',
-      backgroundColor: active ? '#4D72AA0C' : '#6D6E700D',
+      border: active ? `1px solid ${colors.accent()}` : `1px solid ${colors.accent(0.3)}`,
+      backgroundColor: active ? colors.light(0.5) : colors.light(0.3),
       boxShadow: active ? '0 0 5px 0 rgba(77,114,170,0.5)' : 'none'
     }
   },
   radioButtonLabel: {
-    marginLeft: '1rem', color: '#426ead', fontWeight: 500, lineHeight: '22px'
+    marginLeft: '1rem', color: colors.accent(), fontWeight: 500, lineHeight: '22px'
   },
-  color: '#426ead'
+  accentColor: colors.accent()
 }
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
@@ -79,7 +79,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ]),
       h(Clickable, {
         style: {
-          color: styles.color, backgroundColor: 'none', border: `1px solid ${styles.color}`,
+          color: styles.accentColor, backgroundColor: 'none', border: `1px solid ${styles.accentColor}`,
           paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
           height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
           marginLeft: '2rem', textTransform: 'none'
@@ -152,7 +152,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     const linkToSupport =
         h(Link, {
-          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: styles.color },
+          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: styles.accentColor },
           href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
         }, [
           'Learn how to set up a Google Cloud Billing account'
@@ -280,7 +280,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Link, {
-                  style: { textDecoration: 'underline', color: styles.color },
+                  style: { textDecoration: 'underline', color: styles.accentColor },
                   onClick: async () => {
                     await authorizeAndLoadAccounts()
                     setRefreshed(true)
@@ -292,7 +292,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                 'Terra still does not have access to any Google Billing Accounts. Please contact Terra support for additional help.',
                 div({ style: { marginTop: '0.5rem' } }, [
                   h(Link, {
-                    style: { textDecoration: 'underline', color: styles.color },
+                    style: { textDecoration: 'underline', color: styles.accentColor },
                     onClick: () => { contactUsActive.set(true) }
                   }, ['Terra support'])
                 ])
