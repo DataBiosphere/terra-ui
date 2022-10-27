@@ -11,14 +11,13 @@ import CreateNewBillingProjectWizard, { styles } from 'src/pages/billing/CreateN
 
 jest.mock('src/libs/ajax')
 jest.spyOn(Preferences, 'getLocalPref')
-const authorizeAndLoadAccounts = jest.fn()
 
 const getStep1Button = () => screen.getByText('Go to Google Cloud Console')
-const getStep2DontHaveBillingAccountButton = () => screen.getByText("I don't have access to a Cloud billing account")
-const getStep2HaveBillingAccountButton = () => screen.getByText('I have a billing account')
+const getStep2DontHaveBillingAccountButton = () => screen.getByLabelText("I don't have access to a Cloud billing account")
+const getStep2HaveBillingAccountButton = () => screen.getByLabelText('I have a billing account')
 const getStep3DontHaveAccessButton = () => screen.queryByLabelText("I don't have access to do this")
 const getStep3HaveAddedButton = () => screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
-const getStep3CheckBox = () => screen.queryByText('I have verified the user has been added to my account (requires reauthentication)')
+const getStep3CheckBox = () => screen.queryByRole('checkbox', { name: 'I have verified the user has been added to my account (requires reauthentication)' })
 const textMatcher = text => screen.queryByText((_, node) => {
   const hasText = node => node.textContent === text
   const nodeHasText = hasText(node)
@@ -27,9 +26,17 @@ const textMatcher = text => screen.queryByText((_, node) => {
   )
   return nodeHasText && childrenDontHaveText
 })
+const getStep3AddTerraAsUserText = () => textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')
+const getStep3ContactBillingAdministrator = () => textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
+  "Billing Account User to your organization's billing account.")
+
 const getStep4CreateButton = () => screen.queryByText('Create Terra Billing Project')
 const getBillingProjectInput = () => screen.getByLabelText('Terra billing project *')
 const getBillingAccountInput = () => screen.getByLabelText('Select billing account *')
+const getStep4RefreshText = () => screen.queryByText('You do not have access to any Google Billing Accounts. Please verify that a billing account ' +
+  'has been created in the Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your ' +
+  'billing account.')
+const getStep4RefreshButton = () => screen.queryByText('Refresh Step 3')
 
 const verifyDisabled = item => expect(item).toHaveAttribute('disabled')
 const verifyEnabled = item => expect(item).not.toHaveAttribute('disabled')
@@ -38,14 +45,19 @@ const verifyUnchecked = item => expect(item).not.toBeChecked()
 
 const allSteps = index => screen.getAllByRole('listitem')[index]
 
+const testStep2ButtonsEnabled = () => {
+  verifyEnabled(getStep2DontHaveBillingAccountButton())
+  verifyEnabled(getStep2HaveBillingAccountButton())
+}
+
 const testStep2DontHaveAccessToBillingChecked = () => {
-  verifyChecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
-  verifyUnchecked(screen.getByRole('radio', { name: 'I have a billing account' }))
+  verifyChecked(getStep2DontHaveBillingAccountButton())
+  verifyUnchecked(getStep2HaveBillingAccountButton())
 }
 
 const testStep2HaveBillingChecked = () => {
-  verifyChecked(screen.getByRole('radio', { name: 'I have a billing account' }))
-  verifyUnchecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
+  verifyChecked(getStep2HaveBillingAccountButton())
+  verifyUnchecked(getStep2DontHaveBillingAccountButton())
 }
 
 const testStep3InitialState = () => {
@@ -53,9 +65,8 @@ const testStep3InitialState = () => {
   verifyDisabled(getStep3HaveAddedButton())
   verifyUnchecked(getStep3DontHaveAccessButton())
   verifyUnchecked(getStep3HaveAddedButton())
-  expect(textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')).not.toBeNull()
-  expect(textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
-    "Billing Account User to your organization's billing account.")).toBeNull()
+  expect(getStep3AddTerraAsUserText()).not.toBeNull()
+  expect(getStep3ContactBillingAdministrator()).toBeNull()
   expect(getStep3CheckBox()).toBeNull()
 }
 
@@ -67,7 +78,8 @@ const testStep3RadioButtonsNoneSelected = () => {
   expect(getStep3DontHaveAccessButton()).not.toBeNull()
   expect(getStep3HaveAddedButton()).not.toBeNull()
   expect(getStep3CheckBox()).toBeNull()
-  textMatcher('Add terra-billing@terra.bio as a Billing Account User to your billing account.')
+  expect(getStep3AddTerraAsUserText()).not.toBeNull()
+  expect(getStep3ContactBillingAdministrator()).toBeNull()
 }
 
 const testStep3Active = () => {
@@ -83,8 +95,8 @@ const testStep3DontHaveAccessToBillingCheckBox = () => {
   expect(getStep3DontHaveAccessButton()).toBeNull()
   expect(getStep3HaveAddedButton()).toBeNull()
   expect(getStep3CheckBox()).not.toBeNull()
-  textMatcher('Contact your billing account administrator and have them add you and terra-billing@terra.bio as a ' +
-    "Billing Account User to your organization's billing account.")
+  expect(getStep3ContactBillingAdministrator()).not.toBeNull()
+  expect(getStep3AddTerraAsUserText()).toBeNull()
 }
 
 const testStep4Active = () => {
@@ -97,16 +109,20 @@ const testStep4Active = () => {
 
 const testStep4Disabled = () => {
   verifyDisabled(getBillingProjectInput())
+  expect(getStep4CreateButton()).not.toBeNull()
   verifyDisabled(getBillingAccountInput())
   verifyDisabled(getStep4CreateButton())
-  expect(screen.queryByText('Refresh Step 3')).toBeNull()
+  expect(getStep4RefreshText()).toBeNull()
+  expect(getStep4RefreshButton()).toBeNull()
 }
 
 const testStep4Enabled = () => {
   verifyEnabled(getStep4CreateButton())
+  expect(getStep4CreateButton()).not.toBeNull()
   verifyEnabled(getBillingProjectInput())
   verifyEnabled(getBillingAccountInput())
-  expect(screen.queryByText('Refresh Step 3')).toBeNull()
+  expect(getStep4RefreshText()).toBeNull()
+  expect(getStep4RefreshButton()).toBeNull()
 }
 
 const accountName = 'Billing_Account_Name'
@@ -140,9 +156,10 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       verifyEnabled(getStep1Button())
       expect(getStep1Button().getAttribute('href')).toBe('https://console.cloud.google.com')
     })
-    it('has Step 2 buttons enabled', () => {
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+    it('has Step 2 buttons enabled and unchecked', () => {
+      testStep2ButtonsEnabled()
+      verifyUnchecked(getStep2DontHaveBillingAccountButton())
+      verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
       testStep3InitialState()
@@ -166,8 +183,9 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       expect(allSteps(3).getAttribute('aria-current')).toBe('false')
     })
     it('has Step 2 buttons enabled', () => {
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+      testStep2ButtonsEnabled()
+      verifyUnchecked(getStep2DontHaveBillingAccountButton())
+      verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
       testStep3InitialState()
@@ -183,13 +201,14 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       fireEvent.click(getStep2DontHaveBillingAccountButton())
     })
     // Assert
+    it('should not change the previous step', () => {
+      verifyEnabled(getStep1Button())
+    })
     it('has the correct radio button selected ', () => {
-      verifyChecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
-      verifyUnchecked(screen.getByRole('radio', { name: 'I have a billing account' }))
+      testStep2DontHaveAccessToBillingChecked()
     })
     it('has Step 2 buttons enabled', () => {
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+      testStep2ButtonsEnabled()
     })
     it('has Step 3 as the current step', () => {
       testStep3Active()
@@ -209,13 +228,14 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
     })
     // Assert
+    it('should not change the previous step', () => {
+      verifyEnabled(getStep1Button())
+    })
     it('has the correct radio button selected', () => {
-      verifyChecked(screen.getByRole('radio', { name: 'I have a billing account' }))
-      verifyUnchecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
+      testStep2HaveBillingChecked()
     })
     it('has Step 2 buttons enabled', () => {
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+      testStep2ButtonsEnabled()
     })
     it('has Step 3 as the current step', () => {
       testStep3Active()
@@ -229,8 +249,8 @@ describe('CreateNewBillingProjectWizard Steps', () => {
   })
 
   describe('Step 3 "I have verified" Checkbox Checked', () => {
-    // Act
     beforeEach(async () => {
+      // Act
       fireEvent.click(getStep2DontHaveBillingAccountButton())
       await act(async () => {
         await userEvent.click(getStep3CheckBox())
@@ -238,13 +258,13 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     // Assert
     it('should not change the state of previous steps ', () => {
-      verifyChecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
-      verifyUnchecked(screen.getByRole('radio', { name: 'I have a billing account' }))
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+      verifyEnabled(getStep1Button())
+      testStep2DontHaveAccessToBillingChecked()
+      testStep2ButtonsEnabled()
     })
-    it('has the checkbox checked for Step 3', () => {
-      verifyChecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
+    it('has the correct state for Step 3', () => {
+      testStep3DontHaveAccessToBillingCheckBox()
+      verifyChecked(getStep3CheckBox())
     })
     it('has Step 4 as the current step', () => {
       testStep4Active()
@@ -262,10 +282,9 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     // Assert
     it('should not change the state of prior steps ', () => {
-      verifyChecked(screen.getByRole('radio', { name: 'I have a billing account' }))
-      verifyUnchecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+      verifyEnabled(getStep1Button())
+      testStep2HaveBillingChecked()
+      testStep2ButtonsEnabled()
     })
     it('should still have Step 3 as the current step', () => {
       testStep3Active()
@@ -285,16 +304,25 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       await act(async () => { await userEvent.click(getStep3HaveAddedButton()) })
     })
     // Assert
-    it('should not change the state of prior steps ', () => {
-      verifyChecked(screen.getByRole('radio', { name: 'I have a billing account' }))
-      verifyUnchecked(screen.getByRole('radio', { name: "I don't have access to a Cloud billing account" }))
-      verifyEnabled(getStep2DontHaveBillingAccountButton())
-      verifyEnabled(getStep2HaveBillingAccountButton())
+    it('should not change the state of prior steps', () => {
+      verifyEnabled(getStep1Button())
+      testStep2ButtonsEnabled()
+      testStep2HaveBillingChecked()
+      verifyEnabled(getStep3HaveAddedButton())
+      verifyEnabled(getStep3DontHaveAccessButton())
     })
-    it('has the correct button selected for Step 3', () => {
-      verifyChecked(screen.getByRole('radio', { name: 'I have added terra-billing as a billing account user (requires reauthentication)' }))
+    it('should show the correct text and buttons Step 3', () => {
+      expect(getStep3DontHaveAccessButton()).not.toBeNull()
+      expect(getStep3HaveAddedButton()).not.toBeNull()
+      expect(getStep3CheckBox()).toBeNull()
+      expect(getStep3AddTerraAsUserText()).not.toBeNull()
+      expect(getStep3ContactBillingAdministrator()).toBeNull()
     })
-    it('should have Step 4 as the current step', () => {
+    it('should have the correct button selected for Step 3', () => {
+      verifyChecked(getStep3HaveAddedButton())
+      verifyUnchecked(getStep3DontHaveAccessButton())
+    })
+    it('should move to the next step (ActiveStep: Step 4)', () => {
       testStep4Active()
     })
     it('should have all fields and button enabled for Step 4', () => {
@@ -312,11 +340,9 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 
       // Step 4 status
       testStep4Enabled()
-      expect(screen.queryByText('Create Terra Billing Project')).not.toBeNull()
-      expect(screen.queryByText('You do not have access to any Google Billing Accounts. Please verify that a billing account ' +
-        'has been created in the Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your ' +
-        'billing account.')).toBeNull()
-      expect(screen.queryByText('Refresh Step 3')).toBeNull()
+      expect(getStep4CreateButton()).not.toBeNull()
+      expect(getStep4RefreshText()).toBeNull()
+      expect(getStep4RefreshButton()).toBeNull()
 
       // Insert valid project Name
       await userEvent.type(getBillingProjectInput(), projectName)
@@ -344,8 +370,7 @@ describe('Step 4 Warning Message', () => {
       }
     })
     render(h(CreateNewBillingProjectWizard, {
-      onSuccess: jest.fn(),
-      billingAccounts: [], authorizeAndLoadAccounts
+      onSuccess: jest.fn(), billingAccounts: [], authorizeAndLoadAccounts: jest.fn()
     }))
 
     fireEvent.click(getStep2DontHaveBillingAccountButton())
@@ -354,29 +379,9 @@ describe('Step 4 Warning Message', () => {
 
   it('should show a warning message when there are no billing accounts', () => {
     // Assert
-    verifyEnabled(getBillingProjectInput())
-    verifyEnabled(getBillingAccountInput())
     expect(getStep4CreateButton()).toBeNull()
-    expect(screen.queryByText('You do not have access to any Google Billing Accounts. Please verify that a billing account ' +
-      'has been created in the Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your ' +
-      'billing account.')).not.toBeNull()
-    expect(screen.queryByText('Refresh Step 3')).not.toBeNull()
-  })
-
-  it('should reload billing accounts when the button is clicked', async () => {
-    // Act
-    await act(async () => { await userEvent.click(screen.queryByText('Refresh Step 3')) })
-    // Assert
-    expect(authorizeAndLoadAccounts).toHaveBeenCalled()
-  })
-
-  it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
-    // Act
-    await act(async () => { await userEvent.click(screen.queryByText('Refresh Step 3')) })
-    // Assert
-    expect(screen.queryByText('Terra still does not have access to any Google Billing Accounts. ' +
-      'Please contact Terra support for additional help.')).not.toBeNull()
-    expect(screen.queryByText('Terra support')).not.toBeNull()
+    expect(getStep4RefreshText()).not.toBeNull()
+    expect(getStep4RefreshButton()).not.toBeNull()
   })
 
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
@@ -393,8 +398,7 @@ describe('Changing prior answers', () => {
   beforeEach(() => {
     Ajax.mockImplementation(() => {})
     render(h(CreateNewBillingProjectWizard, {
-      onSuccess: jest.fn(),
-      billingAccounts: [{ accountName, displayName }], authorizeAndLoadAccounts
+      onSuccess: jest.fn(), billingAccounts: jest.fn(), authorizeAndLoadAccounts: jest.fn()
     }))
   })
 
@@ -434,13 +438,13 @@ describe('Changing prior answers', () => {
     await act(async () => { await userEvent.click(getStep3CheckBox()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyChecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
+    verifyChecked(getStep3CheckBox())
     testStep4Enabled()
     // Act - Uncheck
     await act(async () => { await userEvent.click(getStep3CheckBox()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyUnchecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
+    verifyUnchecked(getStep3CheckBox())
     testStep3Active()
     testStep4Disabled()
   })
