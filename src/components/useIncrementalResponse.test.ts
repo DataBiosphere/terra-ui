@@ -7,31 +7,31 @@ import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 describe('useIncrementalResponse', () => {
   // Returns an incremental response with 3 pages of 3 numbers each
   const getTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
-    const getNextPage = (previousResults: number[], pageNumber: number): Promise<IncrementalResponse<number>> => {
-      const results = [...previousResults, ..._.range(pageNumber * 3 + 1, (pageNumber + 1) * 3 + 1)]
+    const getNextPage = (previousItems: number[], pageNumber: number): Promise<IncrementalResponse<number>> => {
+      const items = [...previousItems, ..._.range(pageNumber * 3 + 1, (pageNumber + 1) * 3 + 1)]
       const hasNextPage = pageNumber < 2
       return Promise.resolve({
-        results,
+        items,
         getNextPage: hasNextPage ?
-          () => getNextPage(results, pageNumber + 1) :
+          () => getNextPage(items, pageNumber + 1) :
           () => { throw new Error('No next page') },
         hasNextPage
       })
     }
 
-    const firstPageResults = [1, 2, 3]
+    const firstPageItems = [1, 2, 3]
     return Promise.resolve({
-      results: firstPageResults,
-      getNextPage: () => getNextPage(firstPageResults, 1),
+      items: firstPageItems,
+      getNextPage: () => getNextPage(firstPageItems, 1),
       hasNextPage: true
     })
   }
 
   it('gets initial response', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    expect(result.current.results).toEqual([])
+    expect(result.current.items).toEqual([])
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
   })
 
   it('has loading state', async () => {
@@ -51,19 +51,19 @@ describe('useIncrementalResponse', () => {
   it('loads next page', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
     act(() => { result.current.loadNextPage() })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3, 4, 5, 6])
+    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6])
   })
 
   it('loads all remaining pages', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
     act(() => { result.current.loadAllRemaining() })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
   })
 
   it('has hasNextPage state', async () => {
@@ -78,20 +78,20 @@ describe('useIncrementalResponse', () => {
   it('reloads / resets to first page', async () => {
     const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
     act(() => { result.current.loadAllRemaining() })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    expect(result.current.items).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     act(() => { result.current.reload() })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
   })
 
   it('reloads when get first page function changes', async () => {
     const getOtherTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
       return Promise.resolve({
-        results: [100, 101, 102],
+        items: [100, 101, 102],
         getNextPage: () => { throw new Error('No next page') },
         hasNextPage: false
       })
@@ -101,10 +101,10 @@ describe('useIncrementalResponse', () => {
       initialProps: { getFirstPage: getTestIncrementalResponse }
     })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([1, 2, 3])
+    expect(result.current.items).toEqual([1, 2, 3])
 
     rerender({ getFirstPage: getOtherTestIncrementalResponse })
     await waitForNextUpdate()
-    expect(result.current.results).toEqual([100, 101, 102])
+    expect(result.current.items).toEqual([100, 101, 102])
   })
 })

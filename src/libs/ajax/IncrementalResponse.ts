@@ -1,5 +1,5 @@
 export default interface IncrementalResponse<T> {
-  results: T[]
+  items: T[]
   getNextPage(options?: { signal?: AbortSignal }): Promise<IncrementalResponse<T>>
   hasNextPage: boolean
 }

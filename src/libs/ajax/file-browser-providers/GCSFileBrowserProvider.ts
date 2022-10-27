@@ -13,9 +13,9 @@ export interface GCSFileBrowserProviderParams {
 type GCSFileBrowserProviderGetPageParams<T> = {
   isFirstPage: boolean
   pageToken?: string
-  pendingResults?: T[]
+  pendingItems?: T[]
   prefix: string
-  previousResults?: T[]
+  previousItems?: T[]
   signal: any
 } & ({
   itemsOrPrefixes: 'items'
@@ -27,9 +27,9 @@ type GCSFileBrowserProviderGetPageParams<T> = {
 
 const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBrowserProviderParams): FileBrowserProvider => {
   const getNextPage = async <T>(params: GCSFileBrowserProviderGetPageParams<T>): Promise<IncrementalResponse<T>> => {
-    const { isFirstPage, itemsOrPrefixes, mapItemOrPrefix, pageToken, pendingResults = [], prefix, previousResults = [], signal } = params
+    const { isFirstPage, itemsOrPrefixes, mapItemOrPrefix, pageToken, pendingItems = [], prefix, previousItems = [], signal } = params
 
-    let buffer = pendingResults
+    let buffer = pendingItems
     let nextPageToken = pageToken
 
     if (nextPageToken || isFirstPage) {
@@ -48,21 +48,21 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
       } while (buffer.length < pageSize && nextPageToken)
     }
 
-    const results = previousResults.concat(buffer.slice(0, pageSize))
-    const nextPendingResults = buffer.slice(pageSize)
-    const hasNextPage = nextPendingResults.length > 0 || !!nextPageToken
+    const items = previousItems.concat(buffer.slice(0, pageSize))
+    const nextPendingItems = buffer.slice(pageSize)
+    const hasNextPage = nextPendingItems.length > 0 || !!nextPageToken
 
     return {
-      results,
+      items,
       getNextPage: hasNextPage ?
         ({ signal } = {}) => getNextPage({
           isFirstPage: false,
           itemsOrPrefixes,
           mapItemOrPrefix,
           pageToken: nextPageToken,
-          pendingResults: nextPendingResults,
+          pendingItems: nextPendingItems,
           prefix,
-          previousResults: results,
+          previousItems: items,
           signal
         } as GCSFileBrowserProviderGetPageParams<T>) :
         () => {

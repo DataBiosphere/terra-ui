@@ -11,14 +11,14 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
   const [error, setError] = useState<Error | null>(null)
   const [hasNextPage, setHasNextPage] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [results, setResults] = useState<T[]>([])
+  const [items, setItems] = useState<T[]>([])
 
   const loadPageAndUpdateState = useCallback(async (getPage: GetIncrementalResponse<T>) => {
     setIsLoading(true)
     try {
       const signal = abortController.current.signal
       response.current = await getPage({ signal })
-      setResults(response.current.results)
+      setItems(response.current.items)
       setHasNextPage(response.current.hasNextPage)
     } catch (err) {
       setError(err as Error)
@@ -46,7 +46,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
   }, [loadPageAndUpdateState])
 
   const reload = useCallback(async () => {
-    setResults([])
+    setItems([])
     await loadPageAndUpdateState(getFirstPage)
   }, [loadPageAndUpdateState, getFirstPage])
 
@@ -61,7 +61,7 @@ const useIncrementalResponse = <T>(getFirstPage: GetIncrementalResponse<T>) => {
     loadAllRemaining: isLoading || !hasNextPage ? () => Promise.resolve() : loadAllRemaining,
     loadNextPage: isLoading || !hasNextPage ? () => Promise.resolve() : loadNextPage,
     reload,
-    results
+    items
   }
 }
 

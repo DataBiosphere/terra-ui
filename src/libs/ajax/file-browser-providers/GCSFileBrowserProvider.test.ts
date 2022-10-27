@@ -82,7 +82,7 @@ describe('GCSFileBrowserProvider', () => {
     const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     const firstResponse = await backend.getFilesInDirectory('')
-    expect(firstResponse.results).toEqual([
+    expect(firstResponse.items).toEqual([
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt')
@@ -91,7 +91,7 @@ describe('GCSFileBrowserProvider', () => {
     expect(list.mock.calls.length).toBe(2)
 
     const secondResponse = await firstResponse.getNextPage()
-    expect(secondResponse.results).toEqual([
+    expect(secondResponse.items).toEqual([
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt'),
@@ -105,7 +105,7 @@ describe('GCSFileBrowserProvider', () => {
     const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
 
     const firstResponse = await backend.getDirectoriesInDirectory('')
-    expect(firstResponse.results).toEqual([
+    expect(firstResponse.items).toEqual([
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' }
@@ -114,7 +114,7 @@ describe('GCSFileBrowserProvider', () => {
     expect(list.mock.calls.length).toBe(3)
 
     const secondResponse = await firstResponse.getNextPage()
-    expect(secondResponse.results).toEqual([
+    expect(secondResponse.items).toEqual([
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' },
