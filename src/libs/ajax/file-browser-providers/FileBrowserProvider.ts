@@ -1,4 +1,4 @@
-import type IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 
 
 export interface FileBrowserFile {
