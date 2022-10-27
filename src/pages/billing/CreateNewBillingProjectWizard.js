@@ -274,12 +274,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               backgroundColor: colors.warning(0.15), maxWidth: '45%'
             }
           }, [
-            icon('warning-standard', { style: { color: colors.warning(), marginRight: '0.5rem', marginTop: '0.25rem' } }),
+            icon('warning-standard', { style: { color: colors.warning(), height: '24px', width: '24px', marginRight: '0.5rem', marginTop: '0.25rem' } }),
             !refreshed ? div({ style: { paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 } }, [
               'You do not have access to any Google Billing Accounts. Please verify that a billing account has been created in the ' +
               'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
               div({ style: { marginTop: '0.5rem' } }, [
-                h(Link, {
+                h(Clickable, {
                   style: { textDecoration: 'underline', color: styles.accentColor },
                   onClick: async () => {
                     await authorizeAndLoadAccounts()
