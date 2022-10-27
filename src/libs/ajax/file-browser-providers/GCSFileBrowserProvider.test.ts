@@ -1,12 +1,14 @@
 import { Ajax } from 'src/libs/ajax'
+import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
+import { GCSItem, GoogleStorageMethods } from 'src/libs/ajax/GoogleStorage'
 import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/test-utils'
 
 
 jest.mock('src/libs/ajax')
 
-const gcsObject = name => ({
+const gcsObject = (name: string): GCSItem => ({
   bucket: 'test-bucket',
   crc32c: 'crc32c',
   etag: 'etag',
@@ -25,7 +27,7 @@ const gcsObject = name => ({
   updated: '2022-10-26T13:56:30.000Z'
 })
 
-const expectedFile = path => ({
+const expectedFile = (path: string): FileBrowserFile => ({
   path,
   url: `gs://test-bucket/${path}`,
   size: 1,
@@ -40,7 +42,7 @@ describe('GCSFileBrowserProvider', () => {
     list = jest.fn().mockImplementation((_googleProject, _bucket, _prefix, options = {}) => {
       const { pageToken } = options
 
-      const response = Utils.switchCase(pageToken,
+      const response: Awaited<ReturnType<GoogleStorageMethods['list']>> = Utils.switchCase(pageToken,
         [undefined, () => ({
           items: [
             gcsObject('a-file.txt'),
@@ -79,47 +81,53 @@ describe('GCSFileBrowserProvider', () => {
   })
 
   it('pages through files (objects)', async () => {
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
-
-    const firstResponse = await backend.getFilesInDirectory('')
-    expect(firstResponse.items).toEqual([
+    const expectedFirstPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt')
-    ])
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(list.mock.calls.length).toBe(2)
-
-    const secondResponse = await firstResponse.getNextPage()
-    expect(secondResponse.items).toEqual([
+    ]
+    const expectedSecondPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt'),
       expectedFile('d-file.txt')
-    ])
+    ]
+
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+
+    const firstResponse = await backend.getFilesInDirectory('')
+    expect(firstResponse.items).toEqual(expectedFirstPageFiles)
+    expect(firstResponse.hasNextPage).toBe(true)
+    expect(list.mock.calls.length).toBe(2)
+
+    const secondResponse = await firstResponse.getNextPage()
+    expect(secondResponse.items).toEqual(expectedSecondPageFiles)
     expect(secondResponse.hasNextPage).toBe(false)
     expect(list.mock.calls.length).toBe(3)
   })
 
   it('pages through directories (prefixes)', async () => {
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
-
-    const firstResponse = await backend.getDirectoriesInDirectory('')
-    expect(firstResponse.items).toEqual([
+    const expectedFirstPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' }
-    ])
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(list.mock.calls.length).toBe(3)
-
-    const secondResponse = await firstResponse.getNextPage()
-    expect(secondResponse.items).toEqual([
+    ]
+    const expectedSecondPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' },
       { path: 'd-prefix/' }
-    ])
+    ]
+
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+
+    const firstResponse = await backend.getDirectoriesInDirectory('')
+    expect(firstResponse.items).toEqual(expectedFirstPageDirectories)
+    expect(firstResponse.hasNextPage).toBe(true)
+    expect(list.mock.calls.length).toBe(3)
+
+    const secondResponse = await firstResponse.getNextPage()
+    expect(secondResponse.items).toEqual(expectedSecondPageDirectories)
     expect(secondResponse.hasNextPage).toBe(false)
     expect(list.mock.calls.length).toBe(3)
   })
