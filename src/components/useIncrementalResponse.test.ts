@@ -29,79 +29,118 @@ describe('useIncrementalResponse', () => {
   }
 
   it('gets initial response', async () => {
-    const expectedLoadingState: LoadingState<number[]> = { status: 'Loading', state: [] }
-    const expectedReadyState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
-
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    expect(result.current.state).toEqual(expectedLoadingState)
+    // Act
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedReadyState)
+    const state = hookReturnRef.current.state
+
+    // Assert
+    const expectedState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    expect(state).toEqual(expectedState)
+  })
+
+  it('has loading state', async () => {
+    // Act
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
+    const initialState = hookReturnRef.current.state
+    await waitForNextUpdate()
+
+    act(() => { hookReturnRef.current.loadNextPage() })
+    const stateAfterLoadingNextPage = hookReturnRef.current.state
+    await waitForNextUpdate()
+
+    // Assert
+    const expectedInitialState: LoadingState<number[]> = { status: 'Loading', state: [] }
+    expect(initialState).toEqual(expectedInitialState)
+
+    const expectedStateAfterLoadingNextPage: LoadingState<number[]> = { status: 'Loading', state: [1, 2, 3] }
+    expect(stateAfterLoadingNextPage).toEqual(expectedStateAfterLoadingNextPage)
   })
 
   it('has error state', async () => {
+    // Arrange
     const throwError = () => Promise.reject(new Error('Something went wrong'))
-    const expectedErrorState: ErrorState<number[]> = { status: 'Error', error: new Error('Something went wrong'), state: [] }
 
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(throwError))
+    // Act
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(throwError))
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedErrorState)
+    const state = hookReturnRef.current.state
+
+    // Assert
+    const expectedErrorState: ErrorState<number[]> = { status: 'Error', error: new Error('Something went wrong'), state: [] }
+    expect(state).toEqual(expectedErrorState)
   })
 
   it('loads next page', async () => {
-    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    // Arrange
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
+    await waitForNextUpdate()
+
+    // Act
+    act(() => { hookReturnRef.current.loadNextPage() })
+    await waitForNextUpdate()
+    const state = hookReturnRef.current.state
+
+    // Assert
     const expectedSecondPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6] }
-
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedFirstPageState)
-
-    act(() => { result.current.loadNextPage() })
-    await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedSecondPageState)
+    expect(state).toEqual(expectedSecondPageState)
   })
 
   it('loads all remaining pages', async () => {
-    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    // Arrange
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
+    await waitForNextUpdate()
+
+    // Act
+    act(() => { hookReturnRef.current.loadAllRemainingItems() })
+    await waitForNextUpdate()
+    const state = hookReturnRef.current.state
+
+    // Assert
     const expectedAllPagesState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
-
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-    await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedFirstPageState)
-
-    act(() => { result.current.loadAllRemainingItems() })
-    await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedAllPagesState)
+    expect(state).toEqual(expectedAllPagesState)
   })
 
   it('returns hasNextPage', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
+    // Arrange
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.hasNextPage).toBe(true)
 
-    act(() => { result.current.loadAllRemainingItems() })
+    // Act
+    const firstPageHasNextPage = hookReturnRef.current.hasNextPage
+
+    act(() => { hookReturnRef.current.loadAllRemainingItems() })
     await waitForNextUpdate()
-    expect(result.current.hasNextPage).toBe(false)
+    const lastPageHasNextPage = hookReturnRef.current.hasNextPage
+
+    // Assert
+    expect(firstPageHasNextPage).toBe(true)
+    expect(lastPageHasNextPage).toBe(false)
   })
 
   it('reloads / resets to first page', async () => {
-    const expectedFirstPageState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
-    const expectedAllPagesState: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
-
-    const { result, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
-
+    // Arrange
+    const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useIncrementalResponse(getTestIncrementalResponse))
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedFirstPageState)
-
-    act(() => { result.current.loadAllRemainingItems() })
+    act(() => { hookReturnRef.current.loadAllRemainingItems() })
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedAllPagesState)
 
-    act(() => { result.current.reload() })
+    // Act
+    const stateBeforeReloading = hookReturnRef.current.state
+    act(() => { hookReturnRef.current.reload() })
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedFirstPageState)
+    const stateAfterReloading = hookReturnRef.current.state
+
+    // Assert
+    const expectedStateBeforeReloading: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3, 4, 5, 6, 7, 8, 9] }
+    expect(stateBeforeReloading).toEqual(expectedStateBeforeReloading)
+
+    const expectedStateAfterReloading: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    expect(stateAfterReloading).toEqual(expectedStateAfterReloading)
   })
 
   it('reloads when get first page function changes', async () => {
+    // Arrange
     const getOtherTestIncrementalResponse = (): Promise<IncrementalResponse<number>> => {
       return Promise.resolve({
         items: [101, 102, 103],
@@ -110,17 +149,22 @@ describe('useIncrementalResponse', () => {
       })
     }
 
-    const expectedStateBeforeChange: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
-    const expectedStateAfterChange: ReadyState<number[]> = { status: 'Ready', state: [101, 102, 103] }
-
-    const { rerender, result, waitForNextUpdate } = renderHook(({ getFirstPage }) => useIncrementalResponse(getFirstPage), {
+    const { rerender, result: hookReturnRef, waitForNextUpdate } = renderHook(({ getFirstPage }) => useIncrementalResponse(getFirstPage), {
       initialProps: { getFirstPage: getTestIncrementalResponse }
     })
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedStateBeforeChange)
 
+    // Act
+    const stateBeforeChange = hookReturnRef.current.state
     rerender({ getFirstPage: getOtherTestIncrementalResponse })
     await waitForNextUpdate()
-    expect(result.current.state).toEqual(expectedStateAfterChange)
+    const stateAfterChange = hookReturnRef.current.state
+
+    // Assert
+    const expectedStateBeforeChange: ReadyState<number[]> = { status: 'Ready', state: [1, 2, 3] }
+    expect(stateBeforeChange).toEqual(expectedStateBeforeChange)
+
+    const expectedStateAfterChange: ReadyState<number[]> = { status: 'Ready', state: [101, 102, 103] }
+    expect(stateAfterChange).toEqual(expectedStateAfterChange)
   })
 })

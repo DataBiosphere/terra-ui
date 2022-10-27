@@ -81,54 +81,64 @@ describe('GCSFileBrowserProvider', () => {
   })
 
   it('pages through files (objects)', async () => {
+    // Arrange
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+
+    // Act
+    const firstResponse = await backend.getFilesInDirectory('')
+    const numGCSRequestsAfterFirstResponse = list.mock.calls.length
+    const secondResponse = await firstResponse.getNextPage()
+    const numGCSRequestsAfterSecondResponse = list.mock.calls.length
+
+    // Assert
     const expectedFirstPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt')
     ]
+    expect(firstResponse.items).toEqual(expectedFirstPageFiles)
+    expect(firstResponse.hasNextPage).toBe(true)
+    expect(numGCSRequestsAfterFirstResponse).toBe(2)
+
     const expectedSecondPageFiles: FileBrowserFile[] = [
       expectedFile('a-file.txt'),
       expectedFile('b-file.txt'),
       expectedFile('c-file.txt'),
       expectedFile('d-file.txt')
     ]
-
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
-
-    const firstResponse = await backend.getFilesInDirectory('')
-    expect(firstResponse.items).toEqual(expectedFirstPageFiles)
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(list.mock.calls.length).toBe(2)
-
-    const secondResponse = await firstResponse.getNextPage()
     expect(secondResponse.items).toEqual(expectedSecondPageFiles)
     expect(secondResponse.hasNextPage).toBe(false)
-    expect(list.mock.calls.length).toBe(3)
+    expect(numGCSRequestsAfterSecondResponse).toBe(3)
   })
 
   it('pages through directories (prefixes)', async () => {
+    // Arrange
+    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
+
+    // Act
+    const firstResponse = await backend.getDirectoriesInDirectory('')
+    const numGCSRequestsAfterFirstResponse = list.mock.calls.length
+    const secondResponse = await firstResponse.getNextPage()
+    const numGCSRequestsAfterSecondResponse = list.mock.calls.length
+
+    // Assert
     const expectedFirstPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' }
     ]
+    expect(firstResponse.items).toEqual(expectedFirstPageDirectories)
+    expect(firstResponse.hasNextPage).toBe(true)
+    expect(numGCSRequestsAfterFirstResponse).toBe(3)
+
     const expectedSecondPageDirectories: FileBrowserDirectory[] = [
       { path: 'a-prefix/' },
       { path: 'b-prefix/' },
       { path: 'c-prefix/' },
       { path: 'd-prefix/' }
     ]
-
-    const backend = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project', pageSize: 3 })
-
-    const firstResponse = await backend.getDirectoriesInDirectory('')
-    expect(firstResponse.items).toEqual(expectedFirstPageDirectories)
-    expect(firstResponse.hasNextPage).toBe(true)
-    expect(list.mock.calls.length).toBe(3)
-
-    const secondResponse = await firstResponse.getNextPage()
     expect(secondResponse.items).toEqual(expectedSecondPageDirectories)
     expect(secondResponse.hasNextPage).toBe(false)
-    expect(list.mock.calls.length).toBe(3)
+    expect(numGCSRequestsAfterSecondResponse).toBe(3)
   })
 })
