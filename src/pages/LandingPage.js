@@ -93,7 +93,7 @@ const LandingPage = () => {
       style: {
         ...styles.callToActionBanner,
         width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
-        color: '#333f50', backgroundColor: '#e9ebf1', marginBottom: 15
+        color: colors.dark(), backgroundColor: colors.light(), marginBottom: 15
       }
     }, [
       div([

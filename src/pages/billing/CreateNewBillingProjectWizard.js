@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react'
 import { div, fieldset, h, h2, h3, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, RadioButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import SupportRequestWrapper from 'src/components/SupportRequest'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 
@@ -25,7 +27,8 @@ export const styles = {
   },
   radioButtonLabel: {
     marginLeft: '1rem', color: '#426ead', fontWeight: 500, lineHeight: '22px'
-  }
+  },
+  color: '#426ead'
 }
 
 const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAndLoadAccounts }) => {
@@ -35,13 +38,14 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
   const [verified, setVerified] = useState(() => getLocalPref(persistenceId)?.verified || false)
   const [billingProjectName, setBillingProjectName] = useState('')
   const [chosenBillingAccount, setChosenBillingAccount] = useState('')
+  const [refreshed, setRefreshed] = useState(false)
   const [isBusy, setIsBusy] = useState(false)
   const [existing, setExisting] = useState([])
   const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser })
-  }, [persistenceId, activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser])
+    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser, refreshed })
+  }, [persistenceId, activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser, refreshed])
 
   const next = () => {
     setActiveStep(activeStep + 1)
@@ -75,7 +79,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       ]),
       h(Clickable, {
         style: {
-          color: '#426ead', backgroundColor: 'none', border: '1px solid #426ead',
+          color: styles.color, backgroundColor: 'none', border: `1px solid ${styles.color}`,
           paddingInline: '1.5rem', display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center',
           height: '2.5rem', fontWeight: 500, fontSize: 14, borderRadius: 2, whiteSpace: 'nowrap',
           marginLeft: '2rem', textTransform: 'none'
@@ -102,6 +106,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         setActiveStep(3)
         setAccessToAddBillingAccountUser(undefined)
         setVerified(false)
+        setRefreshed(false)
       } else {
         next()
       }
@@ -147,7 +152,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     const linkToSupport =
         h(Link, {
-          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: '#426ead' },
+          ...Utils.newTabLinkProps, style: { textDecoration: 'underline', color: styles.color },
           href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
         }, [
           'Learn how to set up a Google Cloud Billing account'
@@ -166,6 +171,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               setActiveStep(3)
               setAccessToAddBillingAccountUser(undefined)
               setVerified(false)
+              setRefreshed(false)
             }
           }
         }, [
@@ -190,12 +196,11 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                if (!isDone) {
-                  setAccessToAddBillingAccountUser(false)
-                } else {
+                if (isDone) {
                   setActiveStep(3)
-                  setAccessToAddBillingAccountUser(false)
+                  setRefreshed(false)
                 }
+                setAccessToAddBillingAccountUser(false)
               }
             })
           ]),
@@ -206,13 +211,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
-                if (!isDone) {
-                  await authorizeAndLoadAccounts()
-                  setAccessToAddBillingAccountUser(true)
-                  next()
+                if (isDone) {
+                  setRefreshed(false)
                 } else {
-                  setAccessToAddBillingAccountUser(undefined)
+                  await authorizeAndLoadAccounts()
+                  next()
                 }
+                setAccessToAddBillingAccountUser(true)
               }
             })
           ])
@@ -266,22 +271,33 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               display: 'flex', alignItems: 'flex-start',
               margin: '1rem 1rem 0', padding: '1rem',
               border: `1px solid ${colors.warning()}`, borderRadius: '5px',
-              backgroundColor: colors.warning(0.15), maxWidth: '50%'
+              backgroundColor: colors.warning(0.15), maxWidth: '45%'
             }
           }, [
             icon('warning-standard', { style: { color: colors.warning(), marginRight: '0.5rem', marginTop: '0.25rem' } }),
-            div({ style: { lineHeight: '24px', fontWeight: 500 } }, [
+            !refreshed ? div({ style: { paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 } }, [
               'You do not have access to any Google Billing Accounts. Please verify that a billing account has been created in the ' +
               'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
-              div({ style: { marginTop: '1rem' } }, [
+              div({ style: { marginTop: '0.5rem' } }, [
                 h(Link, {
-                  style: { textDecoration: 'underline' },
+                  style: { textDecoration: 'underline', color: styles.color },
                   onClick: async () => {
                     await authorizeAndLoadAccounts()
+                    setRefreshed(true)
                   }
                 }, ['Refresh Step 3'])
               ])
-            ])
+            ]) :
+              div({ style: { paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 } }, [
+                'Terra still does not have access to any Google Billing Accounts. Please contact Terra support for additional help.',
+                div({ style: { marginTop: '0.5rem' } }, [
+                  h(Link, {
+                    style: { textDecoration: 'underline', color: styles.color },
+                    onClick: () => { contactUsActive.set(true) }
+                  }, ['Terra support'])
+                ])
+              ]),
+            contactUsActive.get() && h(SupportRequestWrapper)
           ]) :
           div({ style: { display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
             h(ButtonPrimary, {

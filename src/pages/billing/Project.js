@@ -2,7 +2,7 @@ import { subDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
-import { div, h, h2, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -565,15 +565,9 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
   const tabToTable = {
     workspaces: h(Fragment, [
       isOwner && _.isEmpty(workspacesInProject) ?
-        div({ style: { margin: '1rem' } }, [
-          h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '22px' } }, ['Billing project successfully created']),
-          h(ButtonPrimary, {
-            style: { padding: '1rem 1rem', textTransform: 'none' },
-            onClick: () => {
-              Nav.goToPath('workspaces')
-            }
-          }, ['Go to the workspace list page'])
-        ]) :
+        div({ style: { margin: '1rem', size: 20 } }, ['Use this Terra billing project to create ',
+          h(Link, { style: { textDecoration: 'underline' }, onClick: () => { Nav.goToPath('workspaces') } },
+            ['Workspaces'])]) :
         div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
           h(WorkspaceCardHeaders, {
             needsStatusColumn: billingAccountsOutOfDate,

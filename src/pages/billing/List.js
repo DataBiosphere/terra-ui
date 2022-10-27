@@ -464,7 +464,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             'Select a Billing Project'
           ])
         }]
-        // [_.isEmpty(billingProjects), () => noBillingMessage]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])
