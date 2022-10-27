@@ -44,8 +44,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
   const [activeStep, setActiveStep] = useState(() => getLocalPref(persistenceId)?.activeStep || 1)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser, refreshed })
-  }, [persistenceId, activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser, refreshed])
+    setLocalPref(persistenceId, { activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser })
+  }, [persistenceId, activeStep, accessToBillingAccount, verified, accessToAddBillingAccountUser])
 
   const next = () => {
     setActiveStep(activeStep + 1)
