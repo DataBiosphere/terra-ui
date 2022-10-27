@@ -18,7 +18,7 @@ const getStep2DontHaveBillingAccountButton = () => screen.getByText("I don't hav
 const getStep2HaveBillingAccountButton = () => screen.getByText('I have a billing account')
 const getStep3DontHaveAccessButton = () => screen.queryByLabelText("I don't have access to do this")
 const getStep3HaveAddedButton = () => screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
-const getStep3CheckBox = () => screen.queryByRole('checkbox')
+const getStep3CheckBox = () => screen.queryByText('I have verified the user has been added to my account (requires reauthentication)')
 const textMatcher = text => screen.queryByText((_, node) => {
   const hasText = node => node.textContent === text
   const nodeHasText = hasText(node)
@@ -244,7 +244,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       verifyEnabled(getStep2HaveBillingAccountButton())
     })
     it('has the checkbox checked for Step 3', () => {
-      verifyChecked(getStep3CheckBox())
+      verifyChecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
     })
     it('has Step 4 as the current step', () => {
       testStep4Active()
@@ -434,13 +434,13 @@ describe('Changing prior answers', () => {
     await act(async () => { await userEvent.click(getStep3CheckBox()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyChecked(getStep3CheckBox())
+    verifyChecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
     testStep4Enabled()
     // Act - Uncheck
     await act(async () => { await userEvent.click(getStep3CheckBox()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyUnchecked(getStep3CheckBox())
+    verifyUnchecked(screen.getByRole('checkbox', 'I have verified the user has been added to my account (requires reauthentication)'))
     testStep3Active()
     testStep4Disabled()
   })
