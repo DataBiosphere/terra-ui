@@ -18,12 +18,19 @@ div([false])
 div({ style: { display: 'flex' } }, ['Content'])
 div({ className: 'a-class' }, [div()])
 
+// Key
+div({ key: 'key' })
+div({ key: 'key', style: { display: 'flex' } }, [div()])
+
 interface TestComponentProps {
   stringProp: string
   optionalNumberProp?: number
 }
 
 const TestComponent = (props: PropsWithChildren<TestComponentProps>) => div()
+
+// PropsWithChildren with key
+h(TestComponent, { key: 'key', stringProp: 'value' })
 
 // Props
 h(TestComponent, { stringProp: 'value' })
