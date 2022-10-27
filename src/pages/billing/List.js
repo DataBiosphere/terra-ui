@@ -435,7 +435,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [!_.isUndefined(billingProjects) && _.isEmpty(billingProjects), () => h(CreateNewBillingProjectWizard, {
+        [!isLoadingProjects && _.isEmpty(billingProjects), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
             setCreatingBillingProject(null)
