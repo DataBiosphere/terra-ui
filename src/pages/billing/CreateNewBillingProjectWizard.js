@@ -282,7 +282,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               'You do not have access to any Google Billing Accounts. Please verify that a billing account has been created in the ' +
               'Google Billing Console and terra-billing@terra.bio has been added as a Billing Account User to your billing account.',
               div({ style: { marginTop: '0.5rem' } }, [
-                h(Clickable, {
+                h(Link, {
                   style: { textDecoration: 'underline', color: styles.accentColor },
                   onClick: async () => {
                     await authorizeAndLoadAccounts()
