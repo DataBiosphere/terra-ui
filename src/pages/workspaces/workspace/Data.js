@@ -9,7 +9,9 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
-import { EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/components/data/data-utils'
+import {
+  DualEntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell
+} from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
 import FileBrowser from 'src/components/data/FileBrowser'
@@ -487,6 +489,7 @@ const WorkspaceData = _.flow(
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [uploadingWDSFile, setUploadingWDSFile] = useState(false) //probably not the way to do this
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
   const [wdsSchemaError, setWdsSchemaError] = useState()
@@ -763,6 +766,13 @@ const WorkspaceData = _.flow(
                 wdsSchemaError && h(NoDataPlaceholder, {
                   message: 'WDS is unavailable.'
                 }),
+                !wdsSchemaError && !_.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
+                  message: 'No WDS tables have been uploaded.'
+                }),
+                !wdsSchemaError && h(NoDataPlaceholder, {
+                  buttonText: 'Upload TSV',
+                  onAdd: () => setUploadingWDSFile(true)
+                }),
                 wdsSchema && _.map(typeDef => {
                   return div({ key: typeDef.name, role: 'listitem' }, [
                     h(DataTypeButton, {
@@ -921,7 +931,7 @@ const WorkspaceData = _.flow(
               },
               namespace, name, referenceDataType: deletingReference
             }),
-            uploadingFile && h(EntityUploader, {
+            uploadingFile && h(DualEntityUploader, {
               onDismiss: () => setUploadingFile(false),
               onSuccess: () => {
                 setUploadingFile(false)
@@ -929,7 +939,16 @@ const WorkspaceData = _.flow(
                 loadMetadata()
               },
               namespace, name,
-              entityTypes: _.keys(entityMetadata)
+              entityTypes: _.keys(entityMetadata), isWDS: false
+            }),
+            uploadingWDSFile && h(DualEntityUploader, {
+              onDismiss: () => setUploadingWDSFile(false),
+              onSuccess: () => {
+                setUploadingWDSFile(false)
+                forceRefresh()
+                loadMetadata()
+              }, namespace, name,
+              workspaceId, entityTypes: wdsSchema.map(item => item['name']), isWDS: true
             }),
             h(DataTypeSection, {
               title: 'Other Data'

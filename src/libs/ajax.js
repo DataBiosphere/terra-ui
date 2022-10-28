@@ -1244,6 +1244,12 @@ const WorkspaceDataService = signal => ({
   downloadTsv: async (instanceId, recordType) => {
     const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }))
     return res
+  },
+  uploadTsv: async (instanceId, recordType, file) => {
+    const formData = new FormData()
+    formData.set('records', file)
+    const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }]))
+    return res
   }
 })
 
