@@ -274,7 +274,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               margin: '1rem 1rem 0', padding: '1rem',
               border: `1px solid ${colors.warning()}`, borderRadius: '5px',
               backgroundColor: colors.warning(0.15), maxWidth: '45%'
-            }
+            },
+            role: 'alert'
           }, [
             icon('warning-standard', { style: { color: colors.warning(), height: '24px', width: '24px', marginRight: '0.5rem', marginTop: '0.25rem' } }),
             !refreshed ? div({ style: { paddingInline: '0.5rem', lineHeight: '24px', fontWeight: 500 } }, [
@@ -310,7 +311,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               isBusy && icon('loadingSpinner', { size: 16, style: { color: 'white', marginRight: '0.5rem' } }),
               'Create Terra Billing Project'
             ]),
-            isBusy && div({ style: { marginTop: '1rem' } }, ['This may take a minute'])
+            isBusy && div({ role: 'alert', style: { marginTop: '1rem' } }, ['This may take a minute'])
           ])
       ])
     ])
