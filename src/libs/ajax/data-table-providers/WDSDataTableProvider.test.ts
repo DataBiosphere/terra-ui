@@ -161,5 +161,3 @@ describe('WDSDataTableProvider', () => {
     })
   })
 })
-
-export {}
