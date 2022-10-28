@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import _ from 'lodash/fp'
-import {SafeCurry2, SafeCurry3, SafeCurry4} from "./lodash-fp.utils";
+import { SafeCurry2, SafeCurry3, SafeCurry4 } from "./lodash-fp.utils";
 
 
 // Curry2 ////////////////////////////////////////////////////////////////

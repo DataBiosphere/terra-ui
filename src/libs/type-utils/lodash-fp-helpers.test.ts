@@ -1,17 +1,25 @@
 import _ from 'lodash/fp'
 import {
-  AnyFn, AnyPromiseFn,
   createHandler,
   createHandlerAsync,
   curryLastArg,
-  GenericFn, GenericPromiseFn,
   withHandlers
 } from './lodash-fp-helpers'
-import {SafeCurry2, SafeCurry3} from 'types/lodash-fp/lodash-fp.utils'
-import {delay, waitOneTick} from "src/libs/utils";
+import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from "./general-types";
+import { SafeCurry2, SafeCurry3 } from 'types/lodash-fp/lodash-fp.utils'
+import { delay } from "src/libs/utils";
 
 describe('Lodash FP Helpers', () => {
   describe('withHandlers', () => {
+    /*
+       these tests demonstrate different options for creating (non-async)
+       handler/wrapper functions.
+       The use of createHandler helper is the top recommendation, but other
+       options are tested and demonstrated to allow greater flexibility if
+       it's needed and show recommended type annotations on handler/wrapper
+       functions
+     */
+
     it('handles basic handler wrapper fns', () => {
       // Arrange
       const handlersWatcher = jest.fn();
@@ -43,6 +51,7 @@ describe('Lodash FP Helpers', () => {
 
       // Act
       const myFn = withHandlers([handler1, handler2], mainFn)
+
       const myResult = myFn('hello', 'there')
 
       // Assert
@@ -109,6 +118,7 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'sup', 7)
     })
 
+    /* top recommendation */
     it('handles handler wrapper fns created with createHandler', () => {
       // Arrange
       const handlersWatcher = jest.fn();
@@ -142,7 +152,6 @@ describe('Lodash FP Helpers', () => {
 
       // Act
       const myFn = withHandlers([handler1('hi'), handler2('sup', 7)], mainFn)
-      //const myFn = _.flow(handler1('not'), handler2('as safe', 7))(mainFn)
 
       const myResult = myFn('hello', 'there')
 
@@ -196,7 +205,7 @@ describe('Lodash FP Helpers', () => {
       // testing curried functions for completeness, but note that they have
       // inherently less type safety compared to using curryOnlyLastArg or createHandler helpers
       const myFn = withHandlers([handler1('not'), handler2('as safe', 7)], mainFn)
-      // const myFn = _.flow(handler1('not'), handler2('as safe', 7))(mainFn)
+
       const myResult = myFn('hello', 'there')
 
       // Assert
@@ -211,10 +220,18 @@ describe('Lodash FP Helpers', () => {
   })
 
   describe('withHandlers - async', () => {
+    /*
+       These tests demonstrate different options for creating (async)
+       handler/wrapper functions.
+       The use of createHandlerAsync helper is the top recommendation, but
+       other options are tested and demonstrated to allow greater flexibility
+       if it's needed and show recommended type annotations on handler/wrapper
+       functions.
+     */
+
     it('handles basic handler wrapper promise-fns', async () => {
       // Arrange
       const handlersWatcher = jest.fn()
-      // jest.useFakeTimers()
 
       const handler1 = <F extends AnyPromiseFn, P>(
           fn: GenericPromiseFn<F, P>
@@ -246,9 +263,8 @@ describe('Lodash FP Helpers', () => {
 
       // Act
       const myFn = withHandlers([handler1, handler2], mainFn)
-      const myResult = await myFn('hello', 'there')
 
-      // jest.useRealTimers()
+      const myResult = await myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -319,6 +335,7 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'sup', 7)
     })
 
+    /* top recommendation */
     it('handles handler wrapper promise-fns created with createHandlerAsync', async () => {
       // Arrange
       const handlersWatcher = jest.fn();
@@ -345,12 +362,9 @@ describe('Lodash FP Helpers', () => {
       }
 
       const watcher = jest.fn()
-      // const mainFn = async (a: string, b: string): Promise<string> => {
-      //   watcher(a, b)
-      //   return `${a} ${b}!`
-      //}
 
       // Act
+      // example with inline mainFn arg
       const myFn = withHandlers([
             handler1('hi'),
             handler2('sup', 7)
@@ -359,7 +373,6 @@ describe('Lodash FP Helpers', () => {
             watcher(a, b)
             return `${a} ${b}!`
           })
-      //const myFn = _.flow(handler1('not'), handler2('as safe', 7))(mainFn)
 
       const myResult = await myFn('hello', 'there')
 
@@ -404,6 +417,7 @@ describe('Lodash FP Helpers', () => {
       const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
 
       const watcher = jest.fn()
+
       const mainFn = async (a: string, b: string): Promise<string> => {
         watcher(a, b)
         await delay(100)
@@ -419,7 +433,6 @@ describe('Lodash FP Helpers', () => {
         ],
         mainFn)
 
-      // const myFn = _.flow(handler1('not'), handler2('as safe', 7))(mainFn)
       const myResult = await myFn('hello', 'there')
 
       // Assert
