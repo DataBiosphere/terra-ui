@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { axe } from 'jest-axe'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
@@ -130,6 +131,8 @@ const displayName = 'Billing_Account_Display_Name'
 const createGCPProject = jest.fn(() => Promise.resolve())
 
 describe('CreateNewBillingProjectWizard Steps', () => {
+  let wizardComponent
+
   beforeEach(() => {
     // Arrange
     Ajax.mockImplementation(() => {
@@ -138,7 +141,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       }
     })
 
-    render(h(CreateNewBillingProjectWizard, {
+    wizardComponent = render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: [{ accountName, displayName }], authorizeAndLoadAccounts: jest.fn()
     }))
   })
@@ -166,6 +169,9 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     it('has the correct initial state for Step 4', () => {
       testStep4Disabled()
+    })
+    it('passes accessibility checks in initial state', async () => {
+      expect(await axe(wizardComponent.container)).toHaveNoViolations()
     })
   })
 
@@ -350,6 +356,10 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       await userEvent.click(getBillingAccountInput())
       const selectOption = await screen.findByText(displayName)
       await userEvent.click(selectOption)
+
+      // Verify accessibility now that all controls are enabled
+      expect(await axe(wizardComponent.container)).toHaveNoViolations()
+
       // Act - Click Create
       await act(async () => {
         await userEvent.click(getStep4CreateButton())
