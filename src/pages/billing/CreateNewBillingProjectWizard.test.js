@@ -44,7 +44,17 @@ const verifyEnabled = item => expect(item).not.toHaveAttribute('disabled')
 const verifyChecked = item => expect(item).toBeChecked()
 const verifyUnchecked = item => expect(item).not.toBeChecked()
 
-const allSteps = index => screen.getAllByRole('listitem')[index]
+const testStepActive = stepNumber => {
+  screen.getAllByRole('listitem').forEach((step, index) => {
+    if (index === stepNumber - 1) {
+      expect(step).toHaveStyle({ ...styles.stepBanner(true) })
+      expect(step.getAttribute('aria-current')).toBe('step')
+    } else {
+      expect(step).toHaveStyle({ ...styles.stepBanner(false) })
+      expect(step.getAttribute('aria-current')).toBe('false')
+    }
+  })
+}
 
 const testStep2ButtonsEnabled = () => {
   verifyEnabled(getStep2DontHaveBillingAccountButton())
@@ -83,14 +93,6 @@ const testStep3RadioButtonsNoneSelected = () => {
   expect(getStep3ContactBillingAdministrator()).toBeNull()
 }
 
-const testStep3Active = () => {
-  expect(allSteps(2)).toHaveStyle({ ...styles.stepBanner(true) })
-  expect(allSteps(0).getAttribute('aria-current')).toBe('false')
-  expect(allSteps(1).getAttribute('aria-current')).toBe('false')
-  expect(allSteps(2).getAttribute('aria-current')).toBe('step')
-  expect(allSteps(3).getAttribute('aria-current')).toBe('false')
-}
-
 const testStep3DontHaveAccessToBillingCheckBox = () => {
   verifyEnabled(getStep3CheckBox())
   expect(getStep3DontHaveAccessButton()).toBeNull()
@@ -98,14 +100,6 @@ const testStep3DontHaveAccessToBillingCheckBox = () => {
   expect(getStep3CheckBox()).not.toBeNull()
   expect(getStep3ContactBillingAdministrator()).not.toBeNull()
   expect(getStep3AddTerraAsUserText()).toBeNull()
-}
-
-const testStep4Active = () => {
-  expect(allSteps(3)).toHaveStyle({ ...styles.stepBanner(true) })
-  expect(allSteps(0).getAttribute('aria-current')).toBe('false')
-  expect(allSteps(1).getAttribute('aria-current')).toBe('false')
-  expect(allSteps(2).getAttribute('aria-current')).toBe('false')
-  expect(allSteps(3).getAttribute('aria-current')).toBe('step')
 }
 
 const testStep4Disabled = () => {
@@ -149,11 +143,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
   describe('Initial state', () => {
     // Assert
     it('has Step 1 as the current step', () => {
-      expect(allSteps(0)).toHaveStyle({ ...styles.stepBanner(true) })
-      expect(allSteps(0).getAttribute('aria-current')).toBe('step')
-      expect(allSteps(1).getAttribute('aria-current')).toBe('false')
-      expect(allSteps(2).getAttribute('aria-current')).toBe('false')
-      expect(allSteps(3).getAttribute('aria-current')).toBe('false')
+      testStepActive(1)
     })
     it('has Step 1 buttons enabled', () => {
       verifyEnabled(getStep1Button())
@@ -182,11 +172,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     // Assert
     it('has Step 2 as the current step', () => {
-      expect(allSteps(1)).toHaveStyle({ ...styles.stepBanner(true) })
-      expect(allSteps(0).getAttribute('aria-current')).toBe('false')
-      expect(allSteps(1).getAttribute('aria-current')).toBe('step')
-      expect(allSteps(2).getAttribute('aria-current')).toBe('false')
-      expect(allSteps(3).getAttribute('aria-current')).toBe('false')
+      testStepActive(2)
     })
     it('has Step 2 buttons enabled', () => {
       testStep2ButtonsEnabled()
@@ -217,7 +203,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       testStep2ButtonsEnabled()
     })
     it('has Step 3 as the current step', () => {
-      testStep3Active()
+      testStepActive(3)
     })
     it('has the correct text and checkbox enabled for Step 3', () => {
       testStep3DontHaveAccessToBillingCheckBox()
@@ -226,7 +212,6 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       testStep4Disabled()
     })
   })
-
 
   describe('Step 2 Button ("I have a billing account") Selected', () => {
     // Act
@@ -244,7 +229,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       testStep2ButtonsEnabled()
     })
     it('has Step 3 as the current step', () => {
-      testStep3Active()
+      testStepActive(3)
     })
     it('has the correct text and radio buttons enabled for Step 3', () => {
       testStep3RadioButtonsNoneSelected()
@@ -273,7 +258,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       verifyChecked(getStep3CheckBox())
     })
     it('has Step 4 as the current step', () => {
-      testStep4Active()
+      testStepActive(4)
     })
     it('has all fields and button enabled for Step 4', () => {
       testStep4Enabled()
@@ -293,7 +278,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       testStep2ButtonsEnabled()
     })
     it('should still have Step 3 as the current step', () => {
-      testStep3Active()
+      testStepActive(3)
     })
     it('should show the correct text and checkbox for Step 3', () => {
       testStep3DontHaveAccessToBillingCheckBox()
@@ -329,7 +314,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       verifyUnchecked(getStep3DontHaveAccessButton())
     })
     it('should move to the next step (ActiveStep: Step 4)', () => {
-      testStep4Active()
+      testStepActive(4)
     })
     it('should have all fields and button enabled for Step 4', () => {
       testStep4Enabled()
@@ -369,7 +354,6 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
   })
 })
-
 
 describe('Step 4 Warning Message', () => {
   // Arrange
@@ -417,13 +401,13 @@ describe('Changing prior answers', () => {
     fireEvent.click(getStep2DontHaveBillingAccountButton())
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    testStep3Active()
+    testStepActive(3)
     testStep3DontHaveAccessToBillingCheckBox()
     // Act
     fireEvent.click(getStep2HaveBillingAccountButton())
     // Assert
     testStep2HaveBillingChecked()
-    testStep3Active()
+    testStepActive(3)
     testStep3RadioButtonsNoneSelected()
   })
 
@@ -433,7 +417,7 @@ describe('Changing prior answers', () => {
     fireEvent.click(getStep3DontHaveAccessButton())
     // Assert
     testStep2HaveBillingChecked()
-    testStep3Active()
+    testStepActive(3)
     testStep3DontHaveAccessToBillingCheckBox()
     // Act
     fireEvent.click(getStep2DontHaveBillingAccountButton())
@@ -455,7 +439,7 @@ describe('Changing prior answers', () => {
     // Assert
     testStep2DontHaveAccessToBillingChecked()
     verifyUnchecked(getStep3CheckBox())
-    testStep3Active()
+    testStepActive(3)
     testStep4Disabled()
   })
 
@@ -472,7 +456,7 @@ describe('Changing prior answers', () => {
     // Assert
     testStep2HaveBillingChecked()
     testStep3DontHaveAccessToBillingCheckBox()
-    testStep3Active()
+    testStepActive(3)
     testStep4Disabled()
   })
 })
