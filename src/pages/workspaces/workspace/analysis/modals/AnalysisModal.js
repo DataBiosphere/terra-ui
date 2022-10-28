@@ -23,7 +23,7 @@ import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import {
-  analysisNameInput, analysisNameValidator, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
+  analysisNameInput, analysisNameValidator, baseRmd, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
   toolExtensionDisplay, tools
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
@@ -297,8 +297,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onClick: async () => {
               try {
                 const contents = Utils.cond(
-                  [currentToolObj?.isNotebook, () => notebookData[notebookKernel]],
-                  [isRStudio, () => '# Starter file'])
+                  [currentToolObj?.isNotebook, () => JSON.stringify(notebookData[notebookKernel])],
+                  [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 !!googleProject ?
                   await Ajax().Buckets.analysis(googleProject, bucketName, fullAnalysisName, toolLabel).create(contents) :
