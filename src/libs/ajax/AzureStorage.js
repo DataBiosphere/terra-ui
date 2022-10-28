@@ -135,7 +135,7 @@ export const AzureStorage = signal => ({
 
         return fetchOk(azureStorageUrl, {
           method: 'PUT', body: contents,
-          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob', 'Content-Length': contents.size }
+          headers: { 'Content-Type': 'application/x-ipynb+json', 'x-ms-blob-type': 'BlockBlob' }
         })
       },
 
