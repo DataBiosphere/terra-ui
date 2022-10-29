@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from "src/libs/type-utils/general-types";
+import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from 'src/libs/type-utils/general-types'
 
 /**
  * (async Promise overload) Provides better type flow and ergonomics for the common case of wrapping a
@@ -12,7 +12,7 @@ import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from "src/libs/type-utils/gene
  * @param handlers
  * @param mainFn
  */
-export function withHandlers<P, A extends any[], F extends (...args: A) => Promise<P>, F2 extends F>(
+export function withHandlers<P, A extends any[], F extends (...args: A) => Promise<P>>(
   handlers: WrapFn<(...args: A) => Promise<P | unknown>>[],
   mainFn: F
 ): F
@@ -32,7 +32,7 @@ export function withHandlers<F extends AnyFn, F2 extends F>(
 ): GenericFn<F>
 export function withHandlers<F extends AnyFn>(
   handlers: ((fn: F) => F)[],
-  mainFn: F,
+  mainFn: F
 ): F {
   const resultFn = _.flow(...handlers)(mainFn)
   return resultFn

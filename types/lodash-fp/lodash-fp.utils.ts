@@ -1,3 +1,4 @@
+// eslint-disable-next-line lodash-fp/use-fp -- we need these types from base lodash lib
 import { CurriedFunction2, CurriedFunction3, CurriedFunction4, CurriedFunction5 } from 'lodash'
 
 // variadic types can solve SafeCurry for n arguments, but as of TS v4.8, that technique does not
