@@ -82,7 +82,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       'aria-current': isActive ? 'step' : false,
       style: { ...styles.stepBanner(isActive), flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
     }, [
-      div({ style: { width: '60%' } }, [
+      div({ style: { maxWidth: '60%' } }, [
         h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 1']),
         span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
           ['Go to the Google Cloud Platform Billing Console and sign-in with the same user you use to login to Terra.'])
@@ -121,9 +121,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     }
 
     return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), flexDirection: 'column' } }, [
-      h3({ style: { width: '55%', fontSize: 18, marginTop: 0 } }, ['STEP 2']),
+      h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 2']),
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+        legend({ style: { maxWidth: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           ['Select an existing billing account or create a new one.\n\nIf you are creating a new billing account, you may be eligible for $300 in free credits. ' +
           'Follow the instructions to activate your account in the Google Cloud Console.']),
         div({ style: { width: '25%', float: 'right' } }, [
@@ -186,7 +186,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     const haveABillingAccount =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+        legend({ style: { maxWidth: '60%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
             ['Add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'), ' as a Billing Account User',
               span({ style: { fontWeight: 'bold' } }, ' to your billing account.')]),
@@ -225,7 +225,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     const dontHaveAccessToAdd =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
-        legend({ style: { width: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
+        legend({ style: { maxWidth: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [
             span(['Contact your billing account administrator and have them add you and ',
               span({ style: { fontWeight: 'bold' } }, ['terra-billing@terra.bio']), ' as a Billing Account User',
