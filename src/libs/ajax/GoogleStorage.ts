@@ -42,7 +42,7 @@ export type GCSListObjectsResponse = {
   kind: 'storage#objects'
   nextPageToken?: string
   prefixes?: string[]
-  objects?: GCSItem[]
+  items?: GCSItem[]
 }
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
