@@ -184,7 +184,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         ])
       ])
 
-    const haveABillingAccount =
+    const addTerraAsBillingAccountUser =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { maxWidth: '60%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [span({ style: { fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap' } },
@@ -223,7 +223,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         ])
       ])
 
-    const dontHaveAccessToAdd =
+    const contactBillingAccountAdministrator =
       fieldset({ style: { border: 'none', margin: 0, padding: 0, display: 'block' } }, [
         legend({ style: { maxWidth: '55%', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', marginTop: '0.25rem', float: 'left' } },
           [
@@ -239,7 +239,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 3']),
       (isActive || isDone) &&
       (!accessToBillingAccount || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)) ?
-        dontHaveAccessToAdd : haveABillingAccount
+        contactBillingAccountAdministrator : addTerraAsBillingAccountUser
     ])
   }
 
