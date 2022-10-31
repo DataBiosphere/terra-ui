@@ -11,8 +11,6 @@ class TestableWdsProvider extends WDSDataTableProvider {
   }
 }
 
-const provider = new TestableWdsProvider(uuid)
-
 const recordType: string = 'mytype'
 
 const queryOptions: EntityQueryOptions = {
@@ -30,6 +28,8 @@ const queryOptions: EntityQueryOptions = {
 describe('WDSDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
+      const provider = new TestableWdsProvider(uuid)
+
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
         searchRequest: {
@@ -111,6 +111,8 @@ describe('WDSDataTableProvider', () => {
 
   describe('transformMetadata', () => {
     it('restructures a WDS response', () => {
+      const provider = new TestableWdsProvider(uuid)
+
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsSchema: RecordTypeSchema[] = [
         {
