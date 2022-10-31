@@ -227,7 +227,10 @@ const NihLink = ({ nihToken }) => {
 const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   // State
   const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = useStore(authStore)
-  const [isLinking, setIsLinking] = useState(false)
+
+  const oauth2State = new URLSearchParams(window.location.search).get('state')
+  const provider = oauth2State ? JSON.parse(atob(oauth2State)).provider : ''
+  const [isLinking, setIsLinking] = useState(Nav.useRoute().name === 'fence-callback' && key === provider)
 
 
   // Helpers
@@ -629,8 +632,8 @@ const Profile = ({ queryParams }) => {
   const [saving, setSaving] = useState()
 
   // Render
-  const { query } = Nav.useRoute()
-  const tab = query.tab || 'personalInfo'
+  const { query, name } = Nav.useRoute()
+  const tab = query.tab || (name === 'fence-callback' ? 'externalIdentities' : 'personalInfo')
 
   const tabs = [
     { key: 'personalInfo', title: 'Personal Information' },
