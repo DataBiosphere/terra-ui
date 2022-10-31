@@ -51,6 +51,13 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     setActiveStep(activeStep + 1)
   }
 
+  const resetFromStep3 = () => {
+    setActiveStep(3)
+    setAccessToAddBillingAccountUser(undefined)
+    setVerified(false)
+    setRefreshed(false)
+  }
+
   const submit = _.flow(
     reportErrorAndRethrow('Error creating billing project'),
     Utils.withBusyState(setIsBusy)
@@ -102,14 +109,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     const isActive = activeStep === 2
     const isDone = activeStep > 2
 
-    const setNextStep = () => {
+    const setNextStep = accessToBilling => {
+      setAccessToBillingAccount(accessToBilling)
       if (activeStep === 1) {
         setActiveStep(3)
       } else if (isDone) {
-        setActiveStep(3)
-        setAccessToAddBillingAccountUser(undefined)
-        setVerified(false)
-        setRefreshed(false)
+        resetFromStep3()
       } else {
         next()
       }
@@ -128,8 +133,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToBillingAccount === false,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                setNextStep()
-                setAccessToBillingAccount(false)
+                setNextStep(false)
               }
             })
           ]),
@@ -139,8 +143,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToBillingAccount === true,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                setNextStep()
-                setAccessToBillingAccount(true)
+                setNextStep(true)
               }
             })
           ])
@@ -166,15 +169,12 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         h(LabeledCheckbox, {
           checked: verified === true,
           onChange: async () => {
-            if (!isDone) {
+            if (isDone) {
+              resetFromStep3()
+            } else {
               await authorizeAndLoadAccounts()
               setVerified(true)
               next()
-            } else {
-              setActiveStep(3)
-              setAccessToAddBillingAccountUser(undefined)
-              setVerified(false)
-              setRefreshed(false)
             }
           }
         }, [
@@ -199,11 +199,11 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
+                setAccessToAddBillingAccountUser(false)
                 if (isDone) {
                   setActiveStep(3)
                   setRefreshed(false)
                 }
-                setAccessToAddBillingAccountUser(false)
               }
             })
           ]),
@@ -214,13 +214,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
-                if (isDone) {
-                  setRefreshed(false)
-                } else {
-                  await authorizeAndLoadAccounts()
-                  next()
-                }
                 setAccessToAddBillingAccountUser(true)
+                await authorizeAndLoadAccounts()
+                next()
               }
             })
           ])
