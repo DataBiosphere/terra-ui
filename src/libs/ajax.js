@@ -5,7 +5,7 @@ import {
   fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchWDS, jsonBody, withRetryOnError, withUrlPrefix
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody, withRetryOnError, withUrlPrefix
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
@@ -14,6 +14,7 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
+import { WorkspaceDataService } from 'src/libs/ajax/WorkspaceDataService'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
@@ -1224,27 +1225,6 @@ const Surveys = signal => ({
   submitForm: withErrorIgnoring((formId, data) => {
     return fetchGoogleForms(`${formId}/formResponse?${qs.stringify(data)}`, { signal })
   })
-})
-
-const WorkspaceDataService = signal => ({
-  getSchema: async instanceId => {
-    const res = await fetchWDS(`${instanceId}/types/v0.2`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-  getRecords: async (instanceId, recordType, parameters) => {
-    const res = await fetchWDS(`${instanceId}/search/v0.2/${recordType}`,
-      _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }]))
-    return res.json()
-  },
-  deleteTable: async (instanceId, recordType) => {
-    const res = await fetchWDS(`${instanceId}/types/v0.2/${recordType}`,
-      _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
-    return res
-  },
-  downloadTsv: async (instanceId, recordType) => {
-    const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }))
-    return res
-  }
 })
 
 export const Ajax = signal => {

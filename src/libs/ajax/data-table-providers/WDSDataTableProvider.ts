@@ -15,11 +15,11 @@ export interface RecordTypeSchema {
   attributes: AttributeSchema[]
 }
 
-interface SearchRequest {
+export interface SearchRequest {
   offset: number,
   limit: number,
   sort: 'asc' | 'ASC' | 'desc' | 'DESC',
-  sortAttribute: string
+  sortAttribute?: string
 }
 
 interface RecordResponse {
@@ -52,7 +52,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
-  transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
+  protected transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
@@ -63,6 +63,7 @@ export class WDSDataTableProvider implements DataTableProvider {
         name: rec.id
       }
     }, wdsPage.records)
+    // TODO: AJ-661 map WDS arrays to Entity Service array format
 
     return {
       results,
