@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityMetadata, EntityQueryOptions, EntityQueryResponse, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse, GetMetadataFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -83,7 +83,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     }
   }
 
-  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
+  getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceDataService
       .getRecords(this.workspaceId, entityType,
         _.merge({
@@ -108,11 +108,11 @@ export class WDSDataTableProvider implements DataTableProvider {
     return this.transformMetadata(wdsSchema)
   }
 
-  deleteTable: DeleteTableFn = async (entityType: string) => {
-    return await Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
+  deleteTable = (entityType: string): Promise<void> => {
+    return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
   }
 
-  downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
-    return await Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
   }
 }
