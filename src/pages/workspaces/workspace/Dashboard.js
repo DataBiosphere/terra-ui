@@ -273,7 +273,7 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [{ storageContainerName, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined, sas: {} })
+  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -365,8 +365,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { storageContainerName, location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerName, storageLocation: location, sas })
+    const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -483,11 +483,11 @@ const WorkspaceDashboard = _.flow(
           h(TooltipCell, [azureContext.managedResourceGroupId]),
           h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
-        h(InfoRow, { title: 'Storage Container Name' }, [
-          h(TooltipCell, [!!storageContainerName ? storageContainerName : 'Loading']),
+        h(InfoRow, { title: 'Storage Container URL' }, [
+          h(TooltipCell, [!!storageContainerUrl ? storageContainerUrl : 'Loading']),
           h(ClipboardButton, {
-            'aria-label': 'Copy storage container name to clipboard',
-            text: storageContainerName, style: { marginLeft: '0.25rem' }
+            'aria-label': 'Copy storage container URL to clipboard',
+            text: storageContainerUrl, style: { marginLeft: '0.25rem' }
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
@@ -496,6 +496,21 @@ const WorkspaceDashboard = _.flow(
             'aria-label': 'Copy SAS URL to clipboard',
             text: url, style: { marginLeft: '0.25rem' }
           })
+        ]),
+        div({ style: { margin: '0.5rem', fontSize: 12 } }, [
+          div(['Use SAS URL in conjunction with ',
+            h(Link, {
+              ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
+              style: { textDecoration: 'underline' }
+            }, 'AzCopy'),
+            ' or ',
+            h(Link, {
+              ...Utils.newTabLinkProps, href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
+              style: { textDecoration: 'underline' }
+            }, 'Azure Storage Explorer'),
+            ' to access storage associated with this workspace.']),
+          div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
+            ['The SAS URL expires after 1 hour. To generate a new SAS URL, refresh this page.'])
         ])
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {

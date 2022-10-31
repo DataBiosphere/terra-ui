@@ -166,7 +166,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       },
       {
         filter: { url: workspaceSasTokenUrl },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://example.com' }), { status: 200 }))
+        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://storageContainerUrl.com?sasTokenParams' }), { status: 200 }))
       },
       {
         filter: { url: /api\/workspaces[^/](.*)/ },
@@ -197,9 +197,9 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertCloudInformation([
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
-    'Storage Container Namesc-name',
+    'Storage Container URLhttp://storageContainerUrl.com',
     'Location🇺🇸 East US',
-    'SAS URLhttp://example.com'
+    'SAS URLhttp://storageContainerUrl.com?sasTokenParams'
   ])
 
   // READER permissions only
