@@ -1,7 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
-import { GCSItem, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
+import { GCSItem, GCSListObjectsResponse } from 'src/libs/ajax/GoogleStorage'
 import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/test-utils'
 
@@ -42,7 +42,7 @@ describe('GCSFileBrowserProvider', () => {
     list = jest.fn().mockImplementation((_googleProject, _bucket, _prefix, options = {}) => {
       const { pageToken } = options
 
-      const response: Awaited<ReturnType<GoogleStorageContract['list']>> = Utils.switchCase(pageToken,
+      const response: GCSListObjectsResponse = Utils.switchCase(pageToken,
         [undefined, () => ({
           items: [
             gcsObject('a-file.txt'),
