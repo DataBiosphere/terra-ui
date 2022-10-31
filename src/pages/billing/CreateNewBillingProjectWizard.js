@@ -237,12 +237,9 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
 
     return li({ 'aria-current': isActive ? 'step' : false, style: { ...styles.stepBanner(isActive), display: 'flex', flexDirection: 'column' } }, [
       h3({ style: { fontSize: 18, marginTop: 0 } }, ['STEP 3']),
-      isActive || isDone ?
-        (accessToBillingAccount ?
-          (accessToAddBillingAccountUser !== undefined ?
-            (accessToAddBillingAccountUser ? haveABillingAccount : dontHaveAccessToAdd) :
-            haveABillingAccount) : dontHaveAccessToAdd) :
-        haveABillingAccount
+      (isActive || isDone) &&
+      (!accessToBillingAccount || (accessToAddBillingAccountUser !== undefined && !accessToAddBillingAccountUser)) ?
+        dontHaveAccessToAdd : haveABillingAccount
     ])
   }
 
