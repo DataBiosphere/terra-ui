@@ -718,7 +718,6 @@ const WorkspaceData = _.flow(
                       forceRefresh()
                     },
                     after: h(DataTableActions, {
-
                       dataProvider: entityServiceDataTableProvider,
                       tableName: type,
                       rowCount: typeDetails.count,
