@@ -158,6 +158,7 @@ export const notebookData = {
   }, baseNotebook)
 }
 
+export const baseRmd = '---\ntitle: Title\nauthor: Name\ndate: Date\n---'
 
 export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProject, bucketName, existingNames }) => {
   const [notebookName, setNotebookName] = useState('')

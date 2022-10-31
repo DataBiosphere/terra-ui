@@ -176,7 +176,7 @@ export const GoogleStorage = signal => ({
       [tools.Jupyter.label, () => 'api/convert'], [tools.RStudio.label, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
+      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'application/octet-stream'])
 
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
@@ -236,11 +236,11 @@ export const GoogleStorage = signal => ({
 
       copyWithMetadata,
 
-      create: async textContents => {
+      create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: JSON.stringify(textContents),
+            signal, method: 'POST', body: contents,
             headers: { 'Content-Type': mimeType }
           })
         )
