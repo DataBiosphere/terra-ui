@@ -2,7 +2,7 @@ import Color from 'color'
 import _ from 'lodash/fp'
 import {
   isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isElwazi, isFirecloud, isProjectSingular, isRadX, isRareX, isTerra
-} from 'src/libs/brand-utils'
+} from 'src/brand-utils'
 import * as Utils from 'src/libs/utils'
 
 

@@ -1,4 +1,4 @@
-import { isTerra } from 'src/libs/brand-utils'
+import { isTerra } from 'src/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
 
 

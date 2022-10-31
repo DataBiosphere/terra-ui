@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 
 import { render } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
-import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
+import { getEnabledBrand, isRadX } from 'src/brand-utils'
 import { brands } from 'src/libs/brands'
 import * as Nav from 'src/libs/nav'
 import { dataCatalogStore } from 'src/libs/state'

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
+import { getEnabledBrand } from 'src/brand-utils'
 import { Ajax } from 'src/libs/ajax'
-import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'

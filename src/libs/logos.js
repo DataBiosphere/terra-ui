@@ -1,5 +1,5 @@
 import { b, div, img } from 'react-hyperscript-helpers'
-import { getEnabledBrand, isTerra, pickBrandLogo } from 'src/libs/brand-utils'
+import { getEnabledBrand, isTerra, pickBrandLogo } from 'src/brand-utils'
 import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 
