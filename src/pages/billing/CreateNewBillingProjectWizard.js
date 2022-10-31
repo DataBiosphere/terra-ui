@@ -51,7 +51,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     setActiveStep(activeStep + 1)
   }
 
-  const resetFromStep3 = () => {
+  const resetStep3 = () => {
     setActiveStep(3)
     setAccessToAddBillingAccountUser(undefined)
     setVerified(false)
@@ -114,7 +114,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
       if (activeStep === 1) {
         setActiveStep(3)
       } else if (isDone) {
-        resetFromStep3()
+        resetStep3()
       } else {
         next()
       }
@@ -170,7 +170,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
           checked: verified === true,
           onChange: async () => {
             if (isDone) {
-              resetFromStep3()
+              resetStep3()
             } else {
               await authorizeAndLoadAccounts()
               setVerified(true)
