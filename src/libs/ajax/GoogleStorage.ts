@@ -298,4 +298,4 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
   }
 })
 
-export type GoogleStorageMethods = ReturnType<typeof GoogleStorage>
+export type GoogleStorageContract = ReturnType<typeof GoogleStorage>
