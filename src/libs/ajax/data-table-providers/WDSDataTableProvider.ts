@@ -52,7 +52,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
-  protected transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
+  protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
@@ -96,7 +96,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions)
   }
 
-  transformMetadata: (arg0: RecordTypeSchema[]) => EntityMetadata = (wdsSchema: RecordTypeSchema[]) => {
+  transformMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
     const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
     return _.mapValues(typeDef => {
       return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
