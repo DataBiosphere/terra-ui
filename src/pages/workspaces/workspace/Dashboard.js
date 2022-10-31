@@ -496,21 +496,6 @@ const WorkspaceDashboard = _.flow(
             'aria-label': 'Copy SAS URL to clipboard',
             text: url, style: { marginLeft: '0.25rem' }
           })
-        ]),
-        div({ style: { margin: '0.5rem', fontSize: 12 } }, [
-          div(['Use SAS URL in conjunction with ',
-            h(Link, {
-              ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
-              style: { textDecoration: 'underline' }
-            }, 'AzCopy'),
-            ' or ',
-            h(Link, {
-              ...Utils.newTabLinkProps, href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
-              style: { textDecoration: 'underline' }
-            }, 'Azure Storage Explorer'),
-            ' to access storage associated with this workspace.']),
-          div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
-            ['The SAS URL expires after 1 hour. To generate a new SAS URL, refresh this page.'])
         ])
       ]),
       !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
@@ -518,7 +503,22 @@ const WorkspaceDashboard = _.flow(
         ...Utils.newTabLinkProps,
         href: bucketBrowserUrl(bucketName)
       }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-      )])
+      )]),
+      !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
+        div(['Use SAS URL in conjunction with ',
+          h(Link, {
+            ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
+            style: { textDecoration: 'underline' }
+          }, 'AzCopy'),
+          ' or ',
+          h(Link, {
+            ...Utils.newTabLinkProps, href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
+            style: { textDecoration: 'underline' }
+          }, 'Azure Storage Explorer'),
+          ' to access storage associated with this workspace.']),
+        div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
+          ['The SAS URL expires after 1 hour. To generate a new SAS URL, refresh this page.'])
+      ])
     ]
   }
 
