@@ -313,6 +313,18 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
+      [tools.JupyterLab.label, () => {
+        return {
+          ...baseProps,
+          href: Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel }),
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
       [Utils.DEFAULT, () => {
         // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
         const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel })

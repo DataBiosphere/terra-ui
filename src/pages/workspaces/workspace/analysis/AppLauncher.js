@@ -154,6 +154,7 @@ const ApplicationLauncher = _.flow(
         [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
         [tools.RStudio.label, () => proxyUrl],
         [tools.Azure.label, () => `${proxyUrl}/lab`],
+        [tools.JupyterLab.label, () => `${proxyUrl}/lab`],
         [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.Azure.label}.`)]
       )
 

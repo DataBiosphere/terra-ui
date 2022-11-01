@@ -269,7 +269,6 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
-
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
@@ -292,6 +291,14 @@ const PreviewHeader = ({
           }
         }, openMenuIcon)],
       // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
+      [currentRuntimeTool === tools.JupyterLab.label && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
+        () => h(HeaderButton, {
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: currentRuntimeTool, application: currentRuntimeTool, workspaceName: name, namespace })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
+          }
+        }, openMenuIcon)],
       [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
@@ -318,7 +325,7 @@ const PreviewHeader = ({
           ])],
           () => editModeButton
         ),
-        !isFeaturePreviewEnabled('jupyterlab-gcp') && h(HeaderButton, {
+        currentRuntimeTool === tools.Jupyter.label && h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
         }, [
           makeMenuIcon('chalkboard'), 'Playground mode'
@@ -538,17 +545,12 @@ const AnalysisEditorFrame = ({
       withErrorReporting('Error setting up analysis')
     )(async () => {
       if (isFeaturePreviewEnabled('jupyterlab-gcp')) {
-        console.log('Launching JupyterLab!')
-        console.log(localBaseDirectory)
-        console.log(cloudStorageDirectory)
-        console.log(getPatternFromTool(toolLabel))
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtimeName)
           .setStorageLinks({ localBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
         setAnalysisSetupComplete(true)
       } else {
-        console.log('Launching Jupyter!')
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtimeName)

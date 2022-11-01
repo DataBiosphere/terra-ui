@@ -328,7 +328,8 @@ export const ComputeModalBase = ({
           toolDockerImage: desiredRuntime.toolDockerImage,
           labels: {
             saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: name
+            saturnWorkspaceName: name,
+            isJupyterLab: 'true'
           },
           customEnvironmentVariables: customEnvVars,
           ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
