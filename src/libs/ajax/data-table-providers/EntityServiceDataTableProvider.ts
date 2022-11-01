@@ -3,15 +3,11 @@ import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import {
   DataTableFeatures,
-  DataTableProvider,
-  DeleteTableFn, disabledFn,
-  DownloadTsvFn,
+  DataTableProvider, disabledFn,
   EntityQueryOptions,
+  EntityQueryResponse,
   GetMetadataFn,
-  GetPageFn,
-  isInvalidFn,
-  tooltipFn,
-  uploadFn
+  isInvalidFn, tooltipFn, uploadFn
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -42,8 +38,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.'
   }
 
-  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name)
+  getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name)
       .paginatedEntitiesOfType(entityType, _.pickBy(v => _.trim(v?.toString()), {
         page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
         sortField: queryOptions.sortField, sortDirection: queryOptions.sortDirection,
@@ -57,12 +53,12 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
   }
 
-  deleteTable: DeleteTableFn = async (entityType: string) => {
-    return await Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
+  deleteTable = (entityType: string): Promise<void> => {
+    return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 
-  downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 
   isInvalid: isInvalidFn = (modeMatches: boolean, filePresent: boolean, match: boolean, _: boolean) => {

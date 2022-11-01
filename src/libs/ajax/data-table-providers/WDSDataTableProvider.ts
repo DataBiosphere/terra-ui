@@ -3,13 +3,11 @@ import { Ajax } from 'src/libs/ajax'
 import {
   DataTableFeatures,
   DataTableProvider,
-  DeleteTableFn, disabledFn,
-  DownloadTsvFn,
+  disabledFn,
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
   GetMetadataFn,
-  GetPageFn,
   isInvalidFn,
   tooltipFn,
   uploadFn
@@ -28,11 +26,11 @@ export interface RecordTypeSchema {
   attributes: AttributeSchema[]
 }
 
-interface SearchRequest {
+export interface SearchRequest {
   offset: number,
   limit: number,
   sort: 'asc' | 'ASC' | 'desc' | 'DESC',
-  sortAttribute: string
+  sortAttribute?: string
 }
 
 interface RecordResponse {
@@ -70,7 +68,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.'
   }
 
-  transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
+  protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
@@ -81,6 +79,7 @@ export class WDSDataTableProvider implements DataTableProvider {
         name: rec.id
       }
     }, wdsPage.records)
+    // TODO: AJ-661 map WDS arrays to Entity Service array format
 
     return {
       results,
@@ -100,7 +99,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     }
   }
 
-  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
+  getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceDataService
       .getRecords(this.workspaceId, entityType,
         _.merge({
@@ -113,7 +112,7 @@ export class WDSDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions)
   }
 
-  transformMetadata: (arg0: RecordTypeSchema[]) => EntityMetadata = (wdsSchema: RecordTypeSchema[]) => {
+  transformMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
     const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
     return _.mapValues(typeDef => {
       return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
@@ -125,12 +124,12 @@ export class WDSDataTableProvider implements DataTableProvider {
     return this.transformMetadata(wdsSchema)
   }
 
-  deleteTable: DeleteTableFn = async (entityType: string) => {
-    return await Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
+  deleteTable = (entityType: string): Promise<void> => {
+    return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
   }
 
-  downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
-    return await Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
   }
 
   isInvalid: isInvalidFn = (_0: boolean, _1: boolean, _2: boolean, sysNamePresent: boolean) => {

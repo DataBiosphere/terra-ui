@@ -4,7 +4,12 @@ import { RecordQueryResponse, RecordTypeSchema, WDSDataTableProvider } from './W
 
 const uuid = '123e4567-e89b-12d3-a456-426614174000' // value doesn't matter for these tests
 
-const provider = new WDSDataTableProvider(uuid)
+// shell class that extends WDSDataTableProvider to allow testing protected methods
+class TestableWdsProvider extends WDSDataTableProvider {
+  transformPageOverride(arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions): EntityQueryResponse {
+    return this.transformPage(arg0, arg1, arg2)
+  }
+}
 
 const recordType: string = 'mytype'
 
@@ -23,6 +28,8 @@ const queryOptions: EntityQueryOptions = {
 describe('WDSDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
+      const provider = new TestableWdsProvider(uuid)
+
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
         searchRequest: {
@@ -96,7 +103,7 @@ describe('WDSDataTableProvider', () => {
       }
 
       // transformPage() is the method under test
-      const actual: EntityQueryResponse = provider.transformPage(wdsPage, recordType, queryOptions)
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
 
       expect(actual).toStrictEqual(expected)
     })
@@ -104,6 +111,8 @@ describe('WDSDataTableProvider', () => {
 
   describe('transformMetadata', () => {
     it('restructures a WDS response', () => {
+      const provider = new TestableWdsProvider(uuid)
+
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsSchema: RecordTypeSchema[] = [
         {
