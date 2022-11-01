@@ -578,7 +578,7 @@ const AnalysisEditorFrame = ({
     analysisSetupComplete && cookieReady && h(Fragment, [
       iframe({
         id: 'analysis-iframe',
-        src: isFeaturePreviewEnabled('jupyterlab-gcp') ? `${proxyUrl}/lab` : `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
+        src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
         style: { border: 'none', flex: 1, ...styles },
         ref: frameRef
       }),
