@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
+import { SafeCurry2, SafeCurry3 } from 'src/libs/type-utils/lodash-fp-types'
 import { delay } from 'src/libs/utils'
-import { SafeCurry2, SafeCurry3 } from 'types/lodash-fp/lodash-fp.utils'
 
 import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types'
 import {
@@ -14,12 +14,13 @@ import {
 describe('Lodash FP Helpers', () => {
   describe('withHandlers', () => {
     /*
-       these tests demonstrate different options for creating (non-async)
-       handler/wrapper functions.
-       The use of createHandler helper is the top recommendation, but other
-       options are tested and demonstrated to allow greater flexibility if
-       it's needed and show recommended type annotations on handler/wrapper
-       functions
+       - These tests demonstrate different options for creating (non-async)
+         handler/wrapper functions.
+       - The use of createHandler helper is the top recommendation, but other
+         options are tested and demonstrated to allow greater flexibility if
+         it's needed.
+       - These tests also show recommended type annotations on the
+         handler/wrapper functions
      */
 
     it('handles basic handler wrapper fns', () => {
@@ -52,9 +53,11 @@ describe('Lodash FP Helpers', () => {
       }
 
       // Act
+      // When dealing with handlers that don't require additional arguments besides
+      // the main function being wrapped, this setup is sufficient for good type safety
       const myFn = withHandlers([handler1, handler2], mainFn)
 
-      const myResult = myFn('hello', 'there')
+      const myResult: string = myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -64,6 +67,59 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toBeCalledTimes(2)
       expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1')
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2')
+    })
+
+    it('handles curried handler wrapper fns', () => {
+      // Arrange
+      const handlersWatcher = jest.fn()
+      const handler1Fn = <F extends AnyFn>(
+        arg: string,
+        fn: GenericFn<F>
+      ): GenericFn<F> => {
+        return (...args: Parameters<F>): ReturnType<F> => {
+          // simulate typical pattern of calling fn, then do handling
+          const result = fn(...args)
+          handlersWatcher('handler1', arg)
+          return result
+        }
+      }
+      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
+
+      const handler2Fn = <F extends AnyFn>(
+        arg1: string,
+        arg2: number,
+        fn: GenericFn<F>
+      ): GenericFn<F> => {
+        return (...args: Parameters<F>): ReturnType<F> => {
+          // simulate typical pattern of calling fn, then do handling
+          const result = fn(...args)
+          handlersWatcher('handler2', arg1, arg2)
+          return result
+        }
+      }
+      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
+
+      const watcher = jest.fn()
+      const mainFn = (a: string, b: string): string => {
+        watcher(a, b)
+        return `${a} ${b}!`
+      }
+
+      // Act
+      // When using SafeCurryX pattern in Arrange above, along with the recommended type decorations
+      // on the handler/wrapper function, we get really good type safety when using withHandlers.
+      const myFn = withHandlers([handler1('not'), handler2('as safe', 7)], mainFn)
+
+      const myResult: string = myFn('hello', 'there')
+
+      // Assert
+      expect(myResult).toBe('hello there!')
+      expect(watcher).toBeCalledTimes(1)
+      expect(watcher).toBeCalledWith('hello', 'there')
+
+      expect(handlersWatcher).toBeCalledTimes(2)
+      expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'not')
+      expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'as safe', 7)
     })
 
     it('handles handler wrapper fns created with curryLastArg', () => {
@@ -106,9 +162,10 @@ describe('Lodash FP Helpers', () => {
       }
 
       // Act
+      // great type safety
       const myFn = withHandlers([handler1('hi'), handler2('sup', 7)], mainFn)
 
-      const myResult = myFn('hello', 'there')
+      const myResult: string = myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -153,9 +210,10 @@ describe('Lodash FP Helpers', () => {
       }
 
       // Act
+      // great type safety
       const myFn = withHandlers([handler1('hi'), handler2('sup', 7)], mainFn)
 
-      const myResult = myFn('hello', 'there')
+      const myResult: string = myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -165,59 +223,6 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toBeCalledTimes(2)
       expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'hi')
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'sup', 7)
-    })
-
-    it('handles curried handler wrapper fns', () => {
-      // Arrange
-      const handlersWatcher = jest.fn()
-      const handler1Fn = <F extends AnyFn>(
-        arg: string,
-        fn: GenericFn<F>
-      ): GenericFn<F> => {
-        return (...args: Parameters<F>): ReturnType<F> => {
-          // simulate typical pattern of calling fn, then do handling
-          const result = fn(...args)
-          handlersWatcher('handler1', arg)
-          return result
-        }
-      }
-      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
-
-      const handler2Fn = <F extends AnyFn>(
-        arg1: string,
-        arg2: number,
-        fn: GenericFn<F>
-      ): GenericFn<F> => {
-        return (...args: Parameters<F>): ReturnType<F> => {
-          // simulate typical pattern of calling fn, then do handling
-          const result = fn(...args)
-          handlersWatcher('handler2', arg1, arg2)
-          return result
-        }
-      }
-      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
-
-      const watcher = jest.fn()
-      const mainFn = (a: string, b: string): string => {
-        watcher(a, b)
-        return `${a} ${b}!`
-      }
-
-      // Act
-      // testing curried functions for completeness, but note that they have
-      // inherently less type safety compared to using curryOnlyLastArg or createHandler helpers
-      const myFn = withHandlers([handler1('not'), handler2('as safe', 7)], mainFn)
-
-      const myResult = myFn('hello', 'there')
-
-      // Assert
-      expect(myResult).toBe('hello there!')
-      expect(watcher).toBeCalledTimes(1)
-      expect(watcher).toBeCalledWith('hello', 'there')
-
-      expect(handlersWatcher).toBeCalledTimes(2)
-      expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'not')
-      expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'as safe', 7)
     })
   })
 
@@ -264,9 +269,11 @@ describe('Lodash FP Helpers', () => {
       }
 
       // Act
+      // When dealing with handlers that don't require additional arguments besides
+      // the main function being wrapped, this setup is sufficient for good type safety
       const myFn = withHandlers([handler1, handler2], mainFn)
 
-      const myResult = await myFn('hello', 'there')
+      const myResult: string = await myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -276,6 +283,65 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toBeCalledTimes(2)
       expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1')
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2')
+    })
+
+    it('handles curried handler wrapper promise-fns', async () => {
+      // Arrange
+      const handlersWatcher = jest.fn()
+      const handler1Fn = <F extends AnyPromiseFn, P>(
+        arg: string,
+        fn: GenericPromiseFn<F, P>
+      ): GenericPromiseFn<F, P> => {
+        return async (...args: Parameters<F>): Promise<P> => {
+          // simulate typical pattern of calling fn, then do handling
+          const result = await fn(...args)
+          handlersWatcher('handler1', arg)
+          return result
+        }
+      }
+      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
+
+      const handler2Fn = <F extends AnyPromiseFn, P>(
+        arg1: string,
+        arg2: number,
+        fn: GenericPromiseFn<F, P>
+      ): GenericPromiseFn<F, P> => {
+        return async (...args: Parameters<F>): Promise<P> => {
+          // simulate typical pattern of calling fn, then do handling
+          const result = await fn(...args)
+          handlersWatcher('handler2', arg1, arg2)
+          return result
+        }
+      }
+      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
+
+      const watcher = jest.fn()
+
+      const mainFn = async (a: string, b: string): Promise<string> => {
+        watcher(a, b)
+        await delay(100)
+        return `${a} ${b}!`
+      }
+
+      // Act
+      // When using SafeCurryX pattern in Arrange above, along with the recommended type decorations
+      // on the handler/wrapper function, we get really good type safety when using withHandlers.
+      const myFn = withHandlers([
+        handler1('not'),
+        handler2('as safe', 7)
+      ],
+      mainFn)
+
+      const myResult: string = await myFn('hello', 'there')
+
+      // Assert
+      expect(myResult).toBe('hello there!')
+      expect(watcher).toBeCalledTimes(1)
+      expect(watcher).toBeCalledWith('hello', 'there')
+
+      expect(handlersWatcher).toBeCalledTimes(2)
+      expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'not')
+      expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'as safe', 7)
     })
 
     it('handles handler wrapper promise-fns created with curryLastArg', async () => {
@@ -319,13 +385,14 @@ describe('Lodash FP Helpers', () => {
       }
 
       // Act
+      // great type safety
       const myFn = withHandlers([
         handler1('hi'),
         handler2('sup', 7)
       ],
       mainFn)
 
-      const myResult = await myFn('hello', 'there')
+      const myResult: string = await myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -366,7 +433,7 @@ describe('Lodash FP Helpers', () => {
       const watcher = jest.fn()
 
       // Act
-      // example with inline mainFn arg
+      // great type safety - example with inline mainFn arg
       const myFn = withHandlers([
         handler1('hi'),
         handler2('sup', 7)
@@ -377,7 +444,7 @@ describe('Lodash FP Helpers', () => {
         return `${a} ${b}!`
       })
 
-      const myResult = await myFn('hello', 'there')
+      const myResult: string = await myFn('hello', 'there')
 
       // Assert
       expect(myResult).toBe('hello there!')
@@ -387,65 +454,6 @@ describe('Lodash FP Helpers', () => {
       expect(handlersWatcher).toBeCalledTimes(2)
       expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'hi')
       expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'sup', 7)
-    })
-
-    it('handles curried handler wrapper promise-fns', async () => {
-      // Arrange
-      const handlersWatcher = jest.fn()
-      const handler1Fn = <F extends AnyPromiseFn, P>(
-        arg: string,
-        fn: GenericPromiseFn<F, P>
-      ): GenericPromiseFn<F, P> => {
-        return async (...args: Parameters<F>): Promise<P> => {
-          // simulate typical pattern of calling fn, then do handling
-          const result = await fn(...args)
-          handlersWatcher('handler1', arg)
-          return result
-        }
-      }
-      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
-
-      const handler2Fn = <F extends AnyPromiseFn, P>(
-        arg1: string,
-        arg2: number,
-        fn: GenericPromiseFn<F, P>
-      ): GenericPromiseFn<F, P> => {
-        return async (...args: Parameters<F>): Promise<P> => {
-          // simulate typical pattern of calling fn, then do handling
-          const result = await fn(...args)
-          handlersWatcher('handler2', arg1, arg2)
-          return result
-        }
-      }
-      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
-
-      const watcher = jest.fn()
-
-      const mainFn = async (a: string, b: string): Promise<string> => {
-        watcher(a, b)
-        await delay(100)
-        return `${a} ${b}!`
-      }
-
-      // Act
-      // testing curried functions for completeness, but note that they have
-      // inherently less type safety compared to using curryOnlyLastArg or createHandlerAsync helpers
-      const myFn = withHandlers([
-        handler1('not'),
-        handler2('as safe', 7)
-      ],
-      mainFn)
-
-      const myResult = await myFn('hello', 'there')
-
-      // Assert
-      expect(myResult).toBe('hello there!')
-      expect(watcher).toBeCalledTimes(1)
-      expect(watcher).toBeCalledWith('hello', 'there')
-
-      expect(handlersWatcher).toBeCalledTimes(2)
-      expect(handlersWatcher).toHaveBeenNthCalledWith(1, 'handler1', 'not')
-      expect(handlersWatcher).toHaveBeenNthCalledWith(2, 'handler2', 'as safe', 7)
     })
   })
 })
