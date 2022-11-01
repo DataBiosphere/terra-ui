@@ -144,7 +144,9 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             options: _.map(application => {
               return {
                 value: application,
-                label: application.applicationDeploymentName
+                label: !!application.region ?
+                  `${application.applicationDeploymentName} (${application.region})` :
+                  application.applicationDeploymentName
               }
             }, managedApps)
           })
