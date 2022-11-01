@@ -564,29 +564,36 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
-        h(WorkspaceCardHeaders, {
-          needsStatusColumn: billingAccountsOutOfDate,
-          sort: workspaceSort,
-          onSort: setWorkspaceSort
-        }),
-        div({}, [
-          _.flow(
-            _.orderBy([workspaceSort.field], [workspaceSort.direction]),
-            _.map(workspace => {
-              const isExpanded = expandedWorkspaceName === workspace.name
-              return h(WorkspaceCard, {
-                workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
-                billingProject,
-                billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
-                key: workspace.workspaceId,
-                isExpanded,
-                onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+      !_.isUndefined(workspaces) && _.isEmpty(workspacesInProject) ?
+        div({ style: { ...Style.cardList.longCardShadowless, width: 'fit-content' } },
+          [span({ 'aria-hidden': 'true' }, ['Use this Terra billing project to create']),
+            h(Link, {
+              'aria-label': 'Use this Terra billing project to create workspaces', style: { marginLeft: '0.3em', textDecoration: 'underline' },
+              href: Nav.getLink('workspaces')
+            }, ['Workspaces'])]) :
+        !_.isEmpty(workspacesInProject) && div({ role: 'table', 'aria-label': `workspaces in billing project ${billingProject.projectName}` }, [
+          h(WorkspaceCardHeaders, {
+            needsStatusColumn: billingAccountsOutOfDate,
+            sort: workspaceSort,
+            onSort: setWorkspaceSort
+          }),
+          div({}, [
+            _.flow(
+              _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+              _.map(workspace => {
+                const isExpanded = expandedWorkspaceName === workspace.name
+                return h(WorkspaceCard, {
+                  workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
+                  billingProject,
+                  billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
+                  key: workspace.workspaceId,
+                  isExpanded,
+                  onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+                })
               })
-            })
-          )(workspacesInProject)
+            )(workspacesInProject)
+          ])
         ])
-      ])
     ]),
     members: h(Fragment, [
       isOwner && h(NewUserCard, {
