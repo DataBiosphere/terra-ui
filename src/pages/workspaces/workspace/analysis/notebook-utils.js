@@ -9,6 +9,7 @@ import { Ajax } from 'src/libs/ajax'
 import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
@@ -103,6 +104,7 @@ export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultEx
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
 export const getToolsToDisplay = isAzureWorkspace => _.flow(
   _.remove(tool => tool.isAppHidden),
+  _.remove(tool => !isFeaturePreviewEnabled('jupyterlab-gcp') && tool.label === tools.JupyterLab.label),
   _.filter(tool => !!tool.isAzureCompatible === !!isAzureWorkspace)
 )([tools.Jupyter, tools.JupyterLab, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
 

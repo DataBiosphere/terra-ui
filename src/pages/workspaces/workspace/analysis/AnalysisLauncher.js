@@ -554,7 +554,7 @@ const AnalysisEditorFrame = ({
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtimeName)
-          .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromTool(toolLabel))
+          .setStorageLinks({ localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
 
         if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
           notify('error', 'Unable to Edit Analysis', {
