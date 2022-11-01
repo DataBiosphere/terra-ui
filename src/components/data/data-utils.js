@@ -25,7 +25,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -303,7 +303,7 @@ export const notifyDataImportProgress = jobId => {
 }
 
 //renamed from EntityUploader for testing
-export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, isWDS }) => {
+export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
   const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
@@ -317,37 +317,24 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
   const doUpload = async () => {
     setUploading(true)
     try {
-      if (isWDS) {
-        await Ajax().WorkspaceDataService.uploadTsv(workspaceId, recordType, file)
-        onSuccess()
-      } else {
-        const workspace = Ajax().Workspaces.workspace(namespace, name)
-        if (useFireCloudDataModel) {
-          await workspace.importEntitiesFile(file, { deleteEmptyValues })
-        } else {
-          const filesize = file?.size || Number.MAX_SAFE_INTEGER
-          if (filesize < 524288) { // 512k
-            await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
-          } else {
-            const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
-            asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-            notifyDataImportProgress(jobId)
-          }
-        }
-        onSuccess()
-        Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
-          workspaceNamespace: namespace, workspaceName: name
-        })
-      }
+      await dataProvider.doUpload(workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name)
+      onSuccess()
+      Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
+        workspaceNamespace: namespace, workspaceName: name
+      }) //do we do this for WDS?
     } catch (error) {
       await reportError('Error uploading entities', error)
       onDismiss()
     }
   }
 
+  function recordOrEntity() { //this prevents convoluted logic later, but it does mean that we don't check that a wds type already exists until after the file is uploaded
+    if (recordType) return recordType
+    else return newEntityType
+  }
+
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = !isWDS && isFileImportCurrMode === isFileImportLastUsedMode && file && !match
-  const isWDSInvalid = isWDS && !fileContents.match(/sys_name/)
+  const isInvalid = dataProvider.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.match(/sys_name/)) //TODO this should really only look at the first line
   const newEntityType = match?.[1]
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
   const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
@@ -368,19 +355,19 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
         title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: !currentFile || isInvalid || uploading || (isWDS && !recordType),
-          tooltip: (isWDS && !recordType) ? 'Please enter record type' : !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
+          disabled: dataProvider.disabled(currentFile, isInvalid, uploading, recordType),
+          tooltip: dataProvider.tooltip(currentFile, isInvalid, recordType),
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
-          [isWDS ? 'Choose the data to import below. ' : 'Choose the data import option below. ',
+          [dataProvider.uploadInstructions,
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        isWDS && div(['Record type:  ', h(TextInput, {
+        dataProvider.features.needsTypeInput && div(['Record type:  ', h(TextInput, {
           id: 'recordTypeInput',
           value: recordType,
           placeholder: 'Enter record type',
@@ -388,7 +375,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
             setRecordType(value)
           }
         })]),
-        !isWDS && h(SimpleTabBar, {
+        dataProvider.features.supportsTabBar && h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
@@ -454,21 +441,14 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
             }
           })
         ]),
-        currentFile && !isWDS && _.includes(_.toLower(newEntityType), entityTypes) && div({
+        currentFile && _.includes(_.toLower(recordOrEntity()), entityTypes) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `Data with the type '${newEntityType}' already exists in this workspace. `,
+          `Data with the type '${recordOrEntity()}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && isWDS && _.includes(_.toLower(recordType), entityTypes) && div({
-          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
-        }, [
-          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `wwww Data with the type '${recordType}' already exists in this workspace. `,
-          'Uploading more data for the same type may overwrite some entries.'
-        ]),
-        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+        currentFile && containsNullValues && _.includes(_.toLower(recordOrEntity()), entityTypes) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
@@ -508,8 +488,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
         ]),
         div({ style: errorTextStyle }, [
           Utils.cond(
-            [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
-            [isWDSInvalid, () => 'Invalid format: Data does not include sys_name column.'],
+            [isInvalid, () => dataProvider.features.invalidFormatWarning],
             [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
           )
         ]),
@@ -519,7 +498,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
             icon('downloadRegular', { style: { size: 14, marginRight: '0.5rem' } }),
             'Download ',
             h(Link, {
-              href: isWDS ? 'src/../wds_template.tsv' : 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv', //placeholder for wds-compliant template
+              href: dataProvider.features.sampleTSVLink,
               ...Utils.newTabLinkProps,
               onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
                 workspaceNamespace: namespace, workspaceName: name

@@ -938,7 +938,7 @@ const WorkspaceData = _.flow(
                 loadMetadata()
               },
               namespace, name,
-              entityTypes: _.keys(entityMetadata), isWDS: false
+              entityTypes: _.keys(entityMetadata), dataProvider: entityServiceDataTableProvider
             }),
             uploadingWDSFile && h(DualEntityUploader, {
               onDismiss: () => setUploadingWDSFile(false),
@@ -947,7 +947,7 @@ const WorkspaceData = _.flow(
                 forceRefresh()
                 loadMetadata()
               }, namespace, name,
-              workspaceId, entityTypes: wdsSchema.map(item => item['name']), isWDS: true
+              workspaceId, entityTypes: wdsSchema.map(item => item['name']), dataProvider: wdsDataTableProvider
             }),
             h(DataTypeSection, {
               title: 'Other Data'

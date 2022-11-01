@@ -1,6 +1,19 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, DownloadTsvFn, EntityMetadata, EntityQueryOptions, EntityQueryResponse, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import {
+  DataTableFeatures,
+  DataTableProvider,
+  DeleteTableFn, disabledFn,
+  DownloadTsvFn,
+  EntityMetadata,
+  EntityQueryOptions,
+  EntityQueryResponse,
+  GetMetadataFn,
+  GetPageFn,
+  isInvalidFn,
+  tooltipFn,
+  uploadFn
+} from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -49,7 +62,12 @@ export class WDSDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: false,
     supportsExport: false,
     supportsPointCorrection: false,
-    supportsFiltering: false
+    supportsFiltering: false,
+    supportsTabBar: false,
+    needsTypeInput: true,
+    uploadInstructions: 'Choose the data to import below. ',
+    sampleTSVLink: 'src/../wds_template.tsv', //TODO: placeholder, does not currently work
+    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.'
   }
 
   transformPage: (arg0: RecordQueryResponse, arg1: string, arg2: EntityQueryOptions) => EntityQueryResponse = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions) => {
@@ -113,5 +131,21 @@ export class WDSDataTableProvider implements DataTableProvider {
 
   downloadTsv: DownloadTsvFn = async (signal: AbortSignal, entityType: string) => {
     return await Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
+  }
+
+  isInvalid: isInvalidFn = (_0: boolean, _1: boolean, _2: boolean, sysNamePresent: boolean) => {
+    return !sysNamePresent
+  }
+
+  disabled: disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => {
+    return !filePresent || isInvalid || uploading || !recordTypePresent
+  }
+
+  tooltip: tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => {
+    return !recordTypePresent ? 'Please enter record type' : !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+  }
+
+  doUpload: uploadFn = async (workspaceId: string, recordType: string, file: File, _0: boolean, _1: boolean, _2: string, _3: string) => {
+    await Ajax().WorkspaceDataService.uploadTsv(workspaceId, recordType, file)
   }
 }
