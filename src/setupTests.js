@@ -8,13 +8,3 @@ jest.mock('src/configStore', () => ({
 }))
 
 expect.extend(toHaveNoViolations)
-
-beforeAll(() => {
-  const modalRoot = document.createElement('div')
-  modalRoot.id = 'modal-root'
-  document.body.append(modalRoot)
-})
-
-afterAll(() => {
-  document.getElementById('modal-root').remove()
-})

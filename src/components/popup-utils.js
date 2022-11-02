@@ -63,6 +63,10 @@ export const computePopupPosition = ({ side, viewport, target, element, gap }) =
   return { side: finalSide, position: finalPosition }
 }
 
+// Render popups, modals, etc. into the #modal-root element.
+// Fall back to document.body in tests.
+export const getPopupRoot = () => document.getElementById('modal-root') || document.body
+
 export const PopupPortal = ({ children }) => {
-  return createPortal(Children.only(children), document.getElementById('modal-root'))
+  return createPortal(Children.only(children), getPopupRoot())
 }
