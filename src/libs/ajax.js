@@ -10,7 +10,7 @@ import {
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Disks } from 'src/libs/ajax/Disks'
-import { fetchBuckets, GoogleStorage } from 'src/libs/ajax/GoogleStorage'
+import { fetchBuckets, GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -36,21 +36,6 @@ window.ajaxOverrideUtils = {
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
-
-/**
- * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
- * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
- */
-const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
-  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-  const res = await fetchSam(
-    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
-    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
-  )
-  return res.json()
-}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
-
-export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
 
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))

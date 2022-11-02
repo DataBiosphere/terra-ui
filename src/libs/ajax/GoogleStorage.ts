@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { canUseWorkspaceProject, saToken } from 'src/libs/ajax'
-import { authOpts, checkRequesterPaysError, fetchOk, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import { canUseWorkspaceProject } from 'src/libs/ajax'
+import { authOpts, checkRequesterPaysError, fetchOk, fetchSam, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
-import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
@@ -52,6 +52,25 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
 // are not transient and the request should not be retried.
 export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+
+/**
+ * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
+ * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
+ */
+const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
+  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+  const res = await fetchSam(
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
+    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
+  )
+  return res.json()
+}, {
+  expires: 1000 * 60 * 30,
+  // @ts-expect-error
+  keyFn: (...args) => JSON.stringify(args)
+})
+
+export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
