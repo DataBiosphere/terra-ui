@@ -37,14 +37,6 @@ const defaultModalProps = {
   location: testDefaultLocation
 }
 
-jest.mock('react-dom', () => {
-  const originalModule = jest.requireActual('react-dom')
-  return {
-    ...originalModule,
-    createPortal: () => <div></div>
-  }
-})
-
 //TODO: test utils??
 const verifyDisabled = item => expect(item).toHaveAttribute('disabled')
 const verifyEnabled = item => expect(item).not.toHaveAttribute('disabled')
