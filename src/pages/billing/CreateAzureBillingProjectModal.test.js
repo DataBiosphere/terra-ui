@@ -12,6 +12,15 @@ import { billingProjectNameValidator } from 'src/pages/billing/List'
 import { v4 as uuid } from 'uuid'
 
 
+jest.mock('src/components/Modal', () => {
+  const { h } = jest.requireActual('react-hyperscript-helpers')
+  const originalModule = jest.requireActual('src/components/Modal')
+  return {
+    ...originalModule,
+    __esModule: true,
+    default: props => h(originalModule.default, { onAfterOpen: jest.fn(), ...props })
+  }
+})
 jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
