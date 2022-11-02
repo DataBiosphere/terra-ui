@@ -113,6 +113,24 @@ export type GCSListObjectsResponse = {
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
 export const GoogleStorage = (signal?: AbortSignal) => ({
+  checkBucketAccess: async (googleProject, bucket, accessLevel) => {
+    // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+    if (!Utils.canWrite(accessLevel)) {
+      return false
+    }
+
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+    return res.json()
+  },
+
+  checkBucketLocation: async (googleProject, bucket) => {
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+
+    return res.json()
+  },
+
   getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })

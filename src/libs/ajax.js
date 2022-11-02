@@ -11,7 +11,7 @@ import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
 import { Disks } from 'src/libs/ajax/Disks'
-import { fetchBuckets, GoogleStorage, saToken } from 'src/libs/ajax/GoogleStorage'
+import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -447,23 +447,9 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
       },
 
-      checkBucketAccess: async (googleProject, bucket, accessLevel) => {
-        // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
-        if (!Utils.canWrite(accessLevel)) {
-          return false
-        }
+      checkBucketAccess: GoogleStorage(signal).checkBucketAccess,
 
-        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
-          _.merge(authOpts(await saToken(googleProject)), { signal }))
-        return res.json()
-      },
-
-      checkBucketLocation: async (googleProject, bucket) => {
-        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
-          _.merge(authOpts(await saToken(googleProject)), { signal }))
-
-        return res.json()
-      },
+      checkBucketLocation: GoogleStorage(signal).checkBucketLocation,
 
       details: async fields => {
         const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
