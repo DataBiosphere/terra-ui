@@ -23,7 +23,7 @@ const LaunchAnalysisModal = ({
   workspace, workspace: { workspace: { namespace, name: workspaceName, bucketName, googleProject } }, processSingle,
   entitySelectionModel: { type, selectedEntities, newSetName },
   config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-  retryWithMoreMemory, retryMemoryFactor, onSuccess
+  retryWithMoreMemory, retryMemoryFactor, ignoreEmptyOutputs, onSuccess
 }) => {
   const [launching, setLaunching] = useState(undefined)
   const [message, setMessage] = useState(undefined)
@@ -59,7 +59,7 @@ const LaunchAnalysisModal = ({
       const { submissionId } = await launch({
         isSnapshot: type === processSnapshotTable,
         workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment),
+        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment), ignoreEmptyOutputs,
         onProgress: stage => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
         }
