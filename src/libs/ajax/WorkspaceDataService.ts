@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common'
-import { SearchRequest } from 'src/libs/ajax/data-table-providers/WDSDataTableProvider'
+import { SearchRequest } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 
 
 export const WorkspaceDataService = signal => ({

@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import DataTable from 'src/components/data/DataTable'
-import { WDSDataTableProvider } from 'src/libs/ajax/data-table-providers/WDSDataTableProvider'
+import { WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 
@@ -21,7 +21,7 @@ const WDSContent = ({
   // TODO: AJ-655 something in state management is off; reloading the page while a WDS table is displayed causes errors
 
   // Render
-  const dataProvider = new WDSDataTableProvider(workspaceId)
+  const dataProvider = new WdsDataTableProvider(workspaceId)
   const entityMetadata = dataProvider.transformMetadata(wdsSchema)
 
   return h(Fragment, [
