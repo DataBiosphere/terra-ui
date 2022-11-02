@@ -34,10 +34,6 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       }))
   }
 
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
-  }
-
   deleteTable = (entityType: string): Promise<void> => {
     return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }

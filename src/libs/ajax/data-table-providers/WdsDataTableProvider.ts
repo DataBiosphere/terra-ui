@@ -103,11 +103,6 @@ export class WdsDataTableProvider implements DataTableProvider {
     }, keyedSchema)
   }
 
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    const wdsSchema: RecordTypeSchema[] = await Ajax(signal).WorkspaceDataService.getSchema(this.workspaceId)
-    return this.transformMetadata(wdsSchema)
-  }
-
   deleteTable = (entityType: string): Promise<void> => {
     return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
   }

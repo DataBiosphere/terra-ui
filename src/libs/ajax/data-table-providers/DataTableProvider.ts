@@ -74,7 +74,7 @@ export interface DataTableProvider {
   getPage: GetPageFn,
   deleteTable: DeleteTableFn,
   downloadTsv: DownloadTsvFn
-  // todos that we will need soon:
+  // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean
 }
