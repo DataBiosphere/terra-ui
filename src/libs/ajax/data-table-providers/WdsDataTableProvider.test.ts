@@ -109,64 +109,64 @@ describe('WdsDataTableProvider', () => {
       expect(actual).toStrictEqual(expected)
     })
   })
+})
 
-  describe('transformMetadata', () => {
-    it('restructures a WDS response', () => {
-      // ====== Arrange
-      // example response from WDS, copy-pasted from a WDS swagger call
-      const wdsSchema: RecordTypeSchema[] = [
-        {
-          name: 'item',
-          attributes: [
-            {
-              name: 'booleanAttr',
-              datatype: 'BOOLEAN'
-            },
-            {
-              name: 'stringAttr',
-              datatype: 'STRING'
-            }
-          ],
-          count: 7
-        },
-        {
-          name: 'thing',
-          attributes: [
-            {
-              name: 'numericAttr',
-              datatype: 'NUMBER'
-            },
-            {
-              name: 'stringAttr',
-              datatype: 'STRING'
-            },
-            {
-              name: 'timestamp',
-              datatype: 'STRING'
-            }
-          ],
-          count: 4
-        }
-      ]
-
-      // ====== Act
-      const actual: EntityMetadata = wdsToEntityServiceMetadata(wdsSchema)
-
-      // ====== Assert
-      const expected: EntityMetadata = {
-        item: {
-          count: 7,
-          attributeNames: ['booleanAttr', 'stringAttr'],
-          idName: 'sys_name'
-        },
-        thing: {
-          count: 4,
-          attributeNames: ['numericAttr', 'stringAttr', 'timestamp'],
-          idName: 'sys_name'
-        }
+describe('transformMetadata', () => {
+  it('restructures a WDS response', () => {
+    // ====== Arrange
+    // example response from WDS, copy-pasted from a WDS swagger call
+    const wdsSchema: RecordTypeSchema[] = [
+      {
+        name: 'item',
+        attributes: [
+          {
+            name: 'booleanAttr',
+            datatype: 'BOOLEAN'
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING'
+          }
+        ],
+        count: 7
+      },
+      {
+        name: 'thing',
+        attributes: [
+          {
+            name: 'numericAttr',
+            datatype: 'NUMBER'
+          },
+          {
+            name: 'stringAttr',
+            datatype: 'STRING'
+          },
+          {
+            name: 'timestamp',
+            datatype: 'STRING'
+          }
+        ],
+        count: 4
       }
+    ]
 
-      expect(actual).toStrictEqual(expected)
-    })
+    // ====== Act
+    const actual: EntityMetadata = wdsToEntityServiceMetadata(wdsSchema)
+
+    // ====== Assert
+    const expected: EntityMetadata = {
+      item: {
+        count: 7,
+        attributeNames: ['booleanAttr', 'stringAttr'],
+        idName: 'sys_name'
+      },
+      thing: {
+        count: 4,
+        attributeNames: ['numericAttr', 'stringAttr', 'timestamp'],
+        idName: 'sys_name'
+      }
+    }
+
+    expect(actual).toStrictEqual(expected)
   })
 })
