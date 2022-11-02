@@ -561,7 +561,7 @@ const WorkspaceData = _.flow(
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
         setWdsSchema([])
-        setWdsSchemaError(false)
+        setWdsSchemaError(undefined)
         const wdsSchema = await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
