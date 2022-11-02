@@ -18,8 +18,9 @@ export const WorkspaceDataService = signal => ({
       _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     return res
   },
-  downloadTsv: async (instanceId: string, recordType: string): Promise<Response> => {
+  downloadTsv: async (instanceId: string, recordType: string): Promise<Blob> => {
     const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.merge(authOpts(), { signal }))
-    return res
+    const blob = await res.blob()
+    return blob
   }
 })

@@ -108,6 +108,6 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
+    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType)
   }
 }
