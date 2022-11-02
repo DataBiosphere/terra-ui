@@ -28,6 +28,7 @@ const queryOptions: EntityQueryOptions = {
 describe('WDSDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
+      // ====== Arrange
       const provider = new TestableWdsProvider(uuid)
 
       // example response from WDS, copy-pasted from a WDS swagger call
@@ -63,7 +64,10 @@ describe('WDSDataTableProvider', () => {
         totalRecords: 52
       }
 
-      // calling transformPage() on the WDS input should produce this result
+      // ====== Act
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+
+      // ====== Assert
       const expected: EntityQueryResponse = {
         results: [
           {
@@ -102,15 +106,13 @@ describe('WDSDataTableProvider', () => {
         }
       }
 
-      // transformPage() is the method under test
-      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
-
       expect(actual).toStrictEqual(expected)
     })
   })
 
   describe('transformMetadata', () => {
     it('restructures a WDS response', () => {
+      // ====== Arrange
       const provider = new TestableWdsProvider(uuid)
 
       // example response from WDS, copy-pasted from a WDS swagger call
@@ -149,7 +151,10 @@ describe('WDSDataTableProvider', () => {
         }
       ]
 
-      // calling transformMetadata() on the WDS input should produce this result
+      // ====== Act
+      const actual: EntityMetadata = provider.transformMetadata(wdsSchema)
+
+      // ====== Assert
       const expected: EntityMetadata = {
         item: {
           count: 7,
@@ -162,9 +167,6 @@ describe('WDSDataTableProvider', () => {
           idName: 'sys_name'
         }
       }
-
-      // transformMetadata() is the method under test
-      const actual: EntityMetadata = provider.transformMetadata(wdsSchema)
 
       expect(actual).toStrictEqual(expected)
     })
