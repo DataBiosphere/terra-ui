@@ -34,7 +34,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       }))
   }
 
-  deleteTable = (entityType: string): Promise<void> => {
+  deleteTable = (entityType: string): Promise<Response> => {
     return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 

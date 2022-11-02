@@ -55,7 +55,7 @@ export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: 
 
 export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
-export type DeleteTableFn = (entityType: string) => Promise<void>
+export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 

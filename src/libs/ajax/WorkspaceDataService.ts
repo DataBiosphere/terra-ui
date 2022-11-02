@@ -13,7 +13,7 @@ export const WorkspaceDataService = signal => ({
       _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }]))
     return res.json()
   },
-  deleteTable: async (instanceId: string, recordType: string): Promise<void> => {
+  deleteTable: async (instanceId: string, recordType: string): Promise<Response> => {
     const res = await fetchWDS(`${instanceId}/types/v0.2/${recordType}`,
       _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     return res

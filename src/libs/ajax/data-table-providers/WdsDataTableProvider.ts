@@ -103,7 +103,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions)
   }
 
-  deleteTable = (entityType: string): Promise<void> => {
+  deleteTable = (entityType: string): Promise<Response> => {
     return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
   }
 
