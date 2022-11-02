@@ -1,3 +1,13 @@
+/**
+ * Making changes to this file:
+ * Prior to merging a PR that edits this file, be sure to run the analysis-context-bar.js test
+ * by doing the following:
+ * In analysis-context-bar.js, set: targetEnvironments: ['dev']
+ * In the terminal:
+ * $ cd integration-tests
+ * $ yarn test-local analysis-context-bar
+ */
+
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { br, div, h, img, span } from 'react-hyperscript-helpers'
