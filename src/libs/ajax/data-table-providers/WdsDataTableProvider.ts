@@ -18,7 +18,7 @@ export interface RecordTypeSchema {
 export interface SearchRequest {
   offset: number,
   limit: number,
-  sort: 'asc' | 'ASC' | 'desc' | 'DESC',
+  sort: 'asc' | 'desc',
   sortAttribute?: string
 }
 

@@ -36,7 +36,7 @@ describe('WdsDataTableProvider', () => {
         searchRequest: {
           limit: 50,
           offset: 50,
-          sort: 'DESC',
+          sort: 'desc',
           sortAttribute: 'stringAttr'
         },
         records: [
