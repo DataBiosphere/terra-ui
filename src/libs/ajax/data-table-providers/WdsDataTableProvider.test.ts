@@ -1,5 +1,5 @@
 import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
-import { RecordQueryResponse, RecordTypeSchema, WdsDataTableProvider } from './WdsDataTableProvider'
+import { RecordQueryResponse, RecordTypeSchema, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
 
 const uuid = '123e4567-e89b-12d3-a456-426614174000' // value doesn't matter for these tests
@@ -113,8 +113,6 @@ describe('WdsDataTableProvider', () => {
   describe('transformMetadata', () => {
     it('restructures a WDS response', () => {
       // ====== Arrange
-      const provider = new TestableWdsProvider(uuid)
-
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsSchema: RecordTypeSchema[] = [
         {
@@ -152,7 +150,7 @@ describe('WdsDataTableProvider', () => {
       ]
 
       // ====== Act
-      const actual: EntityMetadata = provider.transformMetadata(wdsSchema)
+      const actual: EntityMetadata = wdsToEntityServiceMetadata(wdsSchema)
 
       // ====== Assert
       const expected: EntityMetadata = {

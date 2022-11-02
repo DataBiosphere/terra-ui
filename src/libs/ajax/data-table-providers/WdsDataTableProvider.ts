@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse, GetMetadataFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -34,6 +34,13 @@ export interface RecordQueryResponse {
   records: RecordResponse[]
 }
 
+
+export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
+  const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
+  return _.mapValues(typeDef => {
+    return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
+  }, keyedSchema)
+}
 
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
@@ -94,13 +101,6 @@ export class WdsDataTableProvider implements DataTableProvider {
         queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
         ))
     return this.transformPage(wdsPage, entityType, queryOptions)
-  }
-
-  transformMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
-    const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
-    return _.mapValues(typeDef => {
-      return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
-    }, keyedSchema)
   }
 
   deleteTable = (entityType: string): Promise<void> => {

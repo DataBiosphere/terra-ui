@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, EntityQueryOptions, EntityQueryResponse, GetMetadataFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
