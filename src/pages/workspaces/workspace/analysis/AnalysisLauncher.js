@@ -34,6 +34,8 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+import { AzureComputeModal } from './modals/AzureComputeModal'
+
 
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
@@ -88,7 +90,7 @@ const AnalysisLauncher = _.flow(
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
         h(ComputeModal, {
-          isOpen: createOpen,
+          isOpen: createOpen && !workspace?.azureContext,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,
           workspace,
@@ -106,6 +108,27 @@ const AnalysisLauncher = _.flow(
             setCreateOpen(false)
             await refreshRuntimes(true)
           })
+        }),
+        h(AzureComputeModal, {
+          isOpen: createOpen && workspace?.azureContext,
+          hideCloseButton: true,
+          workspace,
+          runtimes,
+          onDismiss: () => {
+            chooseMode(undefined)
+            setCreateOpen(false)
+          },
+          onSuccess: _.flow(
+            withErrorReporting('Error creating cloud compute'),
+            Utils.withBusyState(setBusy)
+          )(async () => {
+            setCreateOpen(false)
+            await refreshRuntimes(true)
+          }),
+          onError: () => {
+            chooseMode(undefined)
+            setCreateOpen(false)
+          }
         }),
         busy && spinnerOverlay
       ])
