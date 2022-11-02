@@ -1,16 +1,16 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import {
-  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBillingProfileManager, fetchBond, fetchCatalog,
+  appIdentifier, authOpts, fetchAgora, fetchBillingProfileManager, fetchBond, fetchCatalog,
   fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody, withRetryOnError, withUrlPrefix
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Disks } from 'src/libs/ajax/Disks'
-import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
+import { fetchBuckets, GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
@@ -18,7 +18,6 @@ import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -70,51 +69,6 @@ export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespac
     await Ajax().Billing.listProjects()
   )
 }
-
-/*
- * Detects errors due to requester pays buckets, and adds the current workspace's billing
- * project if the user has access, retrying the request once if necessary.
- */
-const withRequesterPays = wrappedFetch => (url, ...args) => {
-  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const workspace = workspaceStore.get()
-
-  const getUserProject = async () => {
-    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
-      requesterPaysProjectStore.set(workspace.workspace.googleProject)
-    }
-    return requesterPaysProjectStore.get()
-  }
-
-  const tryRequest = async () => {
-    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
-    try {
-      const userProject = (knownRequesterPays && await getUserProject()) || undefined
-      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
-      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
-      return res
-    } catch (error) {
-      if (knownRequesterPays === false) {
-        throw error
-      } else {
-        const newResponse = await checkRequesterPaysError(error)
-        if (newResponse.requesterPaysError && !knownRequesterPays) {
-          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
-          if (await getUserProject()) {
-            return tryRequest()
-          }
-        }
-        throw newResponse
-      }
-    }
-  }
-  return tryRequest()
-}
-
-// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
-// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
-// are not transient and the request should not be retried.
-export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 const User = signal => ({
   getStatus: async () => {

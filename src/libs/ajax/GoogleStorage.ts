@@ -1,11 +1,57 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchBuckets, saToken } from 'src/libs/ajax'
-import { authOpts, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
+import { canUseWorkspaceProject, saToken } from 'src/libs/ajax'
+import { authOpts, checkRequesterPaysError, fetchOk, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
+import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
+
+/*
+ * Detects errors due to requester pays buckets, and adds the current workspace's billing
+ * project if the user has access, retrying the request once if necessary.
+ */
+const withRequesterPays = wrappedFetch => (url, ...args) => {
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)![1]
+  const workspace = workspaceStore.get()
+
+  const getUserProject = async () => {
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
+    }
+    return requesterPaysProjectStore.get()
+  }
+
+  const tryRequest = async () => {
+    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
+    try {
+      const userProject = (knownRequesterPays && await getUserProject()) || undefined
+      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      return res
+    } catch (error) {
+      if (knownRequesterPays === false) {
+        throw error
+      } else {
+        const newResponse = await checkRequesterPaysError(error)
+        if (newResponse.requesterPaysError && !knownRequesterPays) {
+          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
+          if (await getUserProject()) {
+            return tryRequest()
+          }
+        }
+        throw newResponse
+      }
+    }
+  }
+  return tryRequest()
+}
+
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
