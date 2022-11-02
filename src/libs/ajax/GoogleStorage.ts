@@ -7,9 +7,47 @@ import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 
 
+// https://cloud.google.com/storage/docs/json_api/v1/objects/list
+export type GCSItem = {
+  bucket: string
+  crc32c: string
+  etag: string
+  generation: string
+  id: string
+  kind: string
+  md5Hash: string
+  mediaLink: string
+  metageneration: string
+  name: string
+  selfLink: string
+  size: string
+  storageClass: string
+  timeCreated: string
+  timeStorageClassUpdated: string
+  updated: string
+}
+
+export type GCSListObjectsOptions = {
+  delimiter?: string
+  endOffset?: string
+  includeTrailingDelimiter?: string
+  maxResults?: number
+  pageToken?: string
+  projection?: 'full' | 'noAcl'
+  startOffset?: string
+  versions?: boolean
+}
+
+export type GCSListObjectsResponse = {
+  kind: 'storage#objects'
+  nextPageToken?: string
+  prefixes?: string[]
+  items?: GCSItem[]
+}
+
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
-export const GoogleStorage = signal => ({
+export const GoogleStorage = (signal?: AbortSignal) => ({
   getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -46,7 +84,7 @@ export const GoogleStorage = signal => ({
     return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
   },
 
-  list: async (googleProject, bucket, prefix, options = {}) => {
+  list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -259,3 +297,5 @@ export const GoogleStorage = signal => ({
     }
   }
 })
+
+export type GoogleStorageContract = ReturnType<typeof GoogleStorage>

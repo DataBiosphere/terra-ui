@@ -3,17 +3,21 @@ import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
-export const isAnvil = () => (window.location.hostname === brands.anvil.hostName) || getConfig().isAnvil
-export const isBaseline = () => (window.location.hostname === brands.baseline.hostName) || getConfig().isBaseline
-export const isBioDataCatalyst = () => (window.location.hostname === brands.bioDataCatalyst.hostName) || getConfig().isBioDataCatalyst
+export const isBrand = brand => {
+  return new RegExp(`^((dev|alpha|perf|staging)\\.)?${brand.hostName}$`).test(window.location.hostname)
+}
+
+export const isAnvil = () => isBrand(brands.anvil) || getConfig().isAnvil
+export const isBaseline = () => isBrand(brands.baseline) || getConfig().isBaseline
+export const isBioDataCatalyst = () => isBrand(brands.bioDataCatalyst) || getConfig().isBioDataCatalyst
 // TODO: Deprecate Datastage (https://broadworkbench.atlassian.net/browse/SATURN-1414)
-export const isDatastage = () => (window.location.hostname === brands.datastage.hostName) || getConfig().isDatastage
-export const isElwazi = () => (window.location.hostname === brands.elwazi.hostName) || getConfig().isElwazi
-export const isFirecloud = () => (window.location.hostname === brands.firecloud.hostName) || getConfig().isFirecloud
-export const isProjectSingular = () => (window.location.hostname === brands.projectSingular.hostName) || getConfig().isProjectSingular
-export const isRadX = () => (window.location.hostname === brands.radX.hostName) || getConfig().isRadX
-export const isRareX = () => (window.location.hostname === brands.rareX.hostName) || getConfig().isRareX
-export const isTerra = () => (window.location.hostname === brands.terra.hostName) || getConfig().isTerra ||
+export const isDatastage = () => isBrand(brands.datastage) || getConfig().isDatastage
+export const isElwazi = () => isBrand(brands.elwazi) || getConfig().isElwazi
+export const isFirecloud = () => isBrand(brands.firecloud) || getConfig().isFirecloud
+export const isProjectSingular = () => isBrand(brands.projectSingular) || getConfig().isProjectSingular
+export const isRadX = () => isBrand(brands.radX) || getConfig().isRadX
+export const isRareX = () => isBrand(brands.rareX) || getConfig().isRareX
+export const isTerra = () => isBrand(brands.terra) || getConfig().isTerra ||
   (!isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isBaseline() && !isElwazi() && !isProjectSingular() && !isRadX() && !isRareX())
 
 export const getEnabledBrand = () => Utils.cond(
