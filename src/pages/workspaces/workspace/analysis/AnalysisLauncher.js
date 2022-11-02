@@ -291,7 +291,6 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
-
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
@@ -313,7 +312,9 @@ const PreviewHeader = ({
             Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
           }
         }, openMenuIcon)],
+      [currentRuntimeTool === tools.Azure.label && runtimeStatus !== 'Running', () => {}],
       // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
+
       [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
