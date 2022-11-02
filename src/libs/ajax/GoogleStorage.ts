@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { canUseWorkspaceProject } from 'src/libs/ajax'
 import { authOpts, checkRequesterPaysError, fetchOk, fetchSam, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'

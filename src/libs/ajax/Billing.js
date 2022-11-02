@@ -120,3 +120,11 @@ export const Billing = signal => ({
     return response.json()
   }
 })
+
+//TODO: this is a weird util method that calls an api... should be refactored so its not a circular utility
+export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
+  return canCompute || _.some(
+    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
+    await Billing.listProjects()
+  )
+}

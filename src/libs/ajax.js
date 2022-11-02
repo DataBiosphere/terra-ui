@@ -48,14 +48,6 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
 
-//TODO: this is a weird util method that calls an api... should be refactored so its not a circular utility
-export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
-  return canCompute || _.some(
-    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
-    await Ajax().Billing.listProjects()
-  )
-}
-
 const User = signal => ({
   getStatus: async () => {
     const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
