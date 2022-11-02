@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from 'src/libs/type-utils/general-types'
 
 /*
-The helpers in this file are to provide even better type safety then the baseline lodash-fp utils
-can give when the scenario is known and specific, or a scenario presents additional type-safety
-challenges that the baseline type utils can't fully give type safety for.
+ * The helpers in this file are to provide even better type safety then the baseline lodash-fp utils
+ * can give when the scenario is known and specific, or a scenario presents additional type-safety
+ * challenges that the baseline type utils can't fully give type safety for.
  */
 
 export interface WithHandlersFn {
