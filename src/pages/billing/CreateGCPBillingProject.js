@@ -3,6 +3,8 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { IdContainer, Select } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
@@ -11,7 +13,8 @@ import validate from 'validate.js'
 
 const CreateGCPBillingProject = ({
   billingAccounts, chosenBillingAccount, setChosenBillingAccount,
-  billingProjectName, setBillingProjectName, existing, disabled = false
+  billingProjectName, setBillingProjectName, existing, disabled = false,
+  billingProjectWizard = false
 }) => {
   const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
 
@@ -29,6 +32,9 @@ const CreateGCPBillingProject = ({
           onChange: v => {
             setBillingProjectName(v)
             setBillingProjectNameTouched(true)
+            if (billingProjectWizard) {
+              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Enter a name' })
+            }
           },
           disabled
         },
@@ -44,7 +50,12 @@ const CreateGCPBillingProject = ({
           isMulti: false,
           placeholder: 'Select a billing account',
           value: chosenBillingAccount,
-          onChange: ({ value }) => setChosenBillingAccount(value),
+          onChange: ({ value }) => {
+            setChosenBillingAccount(value)
+            if (billingProjectWizard) {
+              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Select a billing account' })
+            }
+          },
           options: _.map(account => {
             return {
               value: account,
