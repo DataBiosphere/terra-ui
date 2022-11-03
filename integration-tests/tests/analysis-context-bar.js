@@ -64,5 +64,5 @@ registerTest({
   name: 'analysis-context-bar',
   fn: testAnalysisContextBarFn,
   timeout: 15 * 60 * 1000,
-  targetEnvironments: ['dev', 'staging']
+  targetEnvironments: [] // Disabled test. Previous environments: ['dev', 'staging']
 })
