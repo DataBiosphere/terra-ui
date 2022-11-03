@@ -57,7 +57,7 @@ const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean
  * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
  * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
  */
-const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
+const getServiceAccountToken: (googleProject: string, token: string) => Promise<string> = Utils.memoizeAsync(async (googleProject, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(
     `api/google/v1/user/petServiceAccount/${googleProject}/token`,
@@ -70,7 +70,7 @@ const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) =
   keyFn: (...args) => JSON.stringify(args)
 })
 
-export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
+export const saToken = (googleProject: string): Promise<string> => getServiceAccountToken(googleProject, getUser().token)
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
