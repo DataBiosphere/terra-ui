@@ -68,6 +68,7 @@ const AnalysisLauncher = _.flow(
     const currentFileToolLabel = getToolFromFileExtension(analysisName)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const iframeStyles = { height: '100%', width: '100%' }
+    const isAzureWorkspace = !!workspace.azureContext
 
     useOnMount(() => {
       refreshRuntimes()
@@ -90,7 +91,7 @@ const AnalysisLauncher = _.flow(
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
         h(ComputeModal, {
-          isOpen: createOpen && !workspace?.azureContext,
+          isOpen: createOpen && !isAzureWorkspace,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,
           workspace,
@@ -110,7 +111,7 @@ const AnalysisLauncher = _.flow(
           })
         }),
         h(AzureComputeModal, {
-          isOpen: createOpen && workspace?.azureContext,
+          isOpen: createOpen && isAzureWorkspace,
           hideCloseButton: true,
           workspace,
           runtimes,
