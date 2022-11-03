@@ -4,6 +4,7 @@ import { axe } from 'jest-axe'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import * as Preferences from 'src/libs/prefs'
 import CreateNewBillingProjectWizard, { styles } from 'src/pages/billing/CreateNewBillingProjectWizard'
 
@@ -121,17 +122,17 @@ const testStep4Enabled = () => {
 const accountName = 'Billing_Account_Name'
 const displayName = 'Billing_Account_Display_Name'
 const createGCPProject = jest.fn(() => Promise.resolve())
+const captureEvent = jest.fn()
 
 describe('CreateNewBillingProjectWizard Steps', () => {
   let wizardComponent
 
   beforeEach(() => {
     // Arrange
-    Ajax.mockImplementation(() => {
-      return {
-        Billing: { createGCPProject }
-      }
-    })
+    Ajax.mockImplementation(() => ({
+      Billing: { createGCPProject },
+      Metrics: { captureEvent }
+    }))
 
     wizardComponent = render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: [{ accountName, displayName }], authorizeAndLoadAccounts: jest.fn()
@@ -167,6 +168,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep1Button())
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep1)
     })
     // Assert
     it('has Step 2 as the current step', () => {
@@ -189,6 +191,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2DontHaveBillingAccountButton())
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep2, { buttonName: "I don't have access to a Cloud billing account" })
     })
     // Assert
     it('should not change the previous step', () => {
@@ -215,6 +218,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2HaveBillingAccountButton())
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep2, { buttonName: 'I have a billing account' })
     })
     // Assert
     it('should not change the previous step', () => {
@@ -244,6 +248,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       await act(async () => {
         await userEvent.click(getStep3CheckBox())
       })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: 'I have verified the user has been added to my account (requires reauthentication)' })
     })
     // Assert
     it('should not change the state of previous steps ', () => {
@@ -268,6 +273,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(getStep3DontHaveAccessButton()) })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: "I don't have access to do this" })
     })
     // Assert
     it('should not change the state of prior steps ', () => {
@@ -291,6 +297,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(getStep3HaveAddedButton()) })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: 'I have added terra-billing as a billing account user (requires reauthentication)' })
     })
     // Assert
     it('should not change the state of prior steps', () => {
@@ -335,10 +342,12 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 
       // Insert valid project Name
       await userEvent.type(getBillingProjectInput(), projectName)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Terra billing project' })
       // Select a billing account
       await userEvent.click(getBillingAccountInput())
       const selectOption = await screen.findByText(displayName)
       await userEvent.click(selectOption)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Select billing account' })
 
       // Verify accessibility now that all controls are enabled
       expect(await axe(wizardComponent.container)).toHaveNoViolations()
@@ -349,6 +358,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       })
       // Assert
       expect(createGCPProject).toHaveBeenCalledWith(projectName, accountName)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Create Terra Billing Project' })
     })
   })
 })
@@ -356,11 +366,11 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 describe('Step 4 Warning Message', () => {
   // Arrange
   beforeEach(async () => {
-    Ajax.mockImplementation(() => {
-      return {
-        Billing: { createGCPProject }
-      }
-    })
+    Ajax.mockImplementation(() => ({
+      Billing: { createGCPProject },
+      Metrics: { captureEvent }
+    }))
+
     render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: [], authorizeAndLoadAccounts: jest.fn()
     }))
@@ -379,16 +389,21 @@ describe('Step 4 Warning Message', () => {
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
     // Act
     await act(async () => { await userEvent.click(screen.queryByText('Refresh Step 3')) })
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Refresh Step 3' })
     // Assert
     expect(screen.queryByText('Terra still does not have access to any Google Billing Accounts. ' +
       'Please contact Terra support for additional help.')).not.toBeNull()
     expect(screen.queryByText('Terra support')).not.toBeNull()
+    fireEvent.click(screen.queryByText('Terra support'))
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Terra support' })
   })
 })
 
 describe('Changing prior answers', () => {
   beforeEach(() => {
-    Ajax.mockImplementation(() => {})
+    Ajax.mockImplementation(() => ({
+      Metrics: { captureEvent }
+    }))
     render(h(CreateNewBillingProjectWizard, {
       onSuccess: jest.fn(), billingAccounts: jest.fn(), authorizeAndLoadAccounts: jest.fn()
     }))

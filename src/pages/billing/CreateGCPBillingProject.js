@@ -33,7 +33,7 @@ const CreateGCPBillingProject = ({
             setBillingProjectName(v)
             setBillingProjectNameTouched(true)
             if (billingProjectWizard) {
-              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Enter a name' })
+              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Terra billing project' })
             }
           },
           disabled
@@ -53,7 +53,7 @@ const CreateGCPBillingProject = ({
           onChange: ({ value }) => {
             setChosenBillingAccount(value)
             if (billingProjectWizard) {
-              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Select a billing account' })
+              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Select billing account' })
             }
           },
           options: _.map(account => {

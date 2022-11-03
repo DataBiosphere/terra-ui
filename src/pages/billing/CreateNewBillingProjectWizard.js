@@ -136,8 +136,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToBillingAccount === false,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: "I don't have access to a Cloud billing account" })
                 setNextStep(false)
+                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: "I don't have access to a Cloud billing account" })
               }
             })
           ]),
@@ -147,8 +147,8 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               checked: accessToBillingAccount === true,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: 'I have a billing account' })
                 setNextStep(true)
+                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: 'I have a billing account' })
               }
             })
           ])
@@ -299,7 +299,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                   h(Link, {
                     style: { textDecoration: 'underline', color: styles.accentColor },
                     onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Terra Support' })
+                      Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Terra support' })
                       contactUsActive.set(true)
                     }
                   }, ['Terra support'])
