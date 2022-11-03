@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { getPopupRoot } from 'src/components/popup-utils'
 
 

@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { concatenateAttributeNames, convertAttributeValue, getAttributeType } from 'src/components/data/attribute-utils'
 
 
