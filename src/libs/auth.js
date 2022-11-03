@@ -178,7 +178,7 @@ export const bucketBrowserUrl = id => {
 }
 
 export const isAzureUser = () => {
-  return authStore.get().isAzureUser
+  return jwtDecode(authStore.get().user.token)['idp'].startsWith('https://login.microsoftonline.com/')
 }
 
 export const processUser = (user, isSignInEvent) => {
@@ -211,7 +211,6 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      isAzureUser: jwtDecode(user?.access_token)['idp'].startsWith('https://login.microsoftonline.com/'),
       user: {
         token: user?.access_token,
         scope: user?.scope,
