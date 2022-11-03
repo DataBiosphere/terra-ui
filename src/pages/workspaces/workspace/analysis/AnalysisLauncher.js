@@ -72,6 +72,9 @@ const AnalysisLauncher = _.flow(
       refreshRuntimes()
     })
 
+    console.log((currentRuntimeTool === 'Jupyter' || currentRuntimeTool === 'JupyterLab'))
+    console.log(mode)
+    console.log(currentRuntimeTool)
     console.log(currentFileToolLabel)
 
     return h(Fragment, [
@@ -79,7 +82,7 @@ const AnalysisLauncher = _.flow(
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeTool === 'Jupyter') ?
             h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
-              { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
+              { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentRuntimeTool, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
                 styles: iframeStyles, queryParams, runtime: currentRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
@@ -316,7 +319,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure or JupyterLab
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure or JupyterLab in GCP
       [(currentRuntimeTool === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
@@ -530,6 +533,9 @@ const AnalysisEditorFrame = ({
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
 
+  console.log(toolLabel)
+  console.log('correct')
+
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => `${name}/edit`],
     [tools.JupyterLab.label, () => ''],
@@ -548,35 +554,22 @@ const AnalysisEditorFrame = ({
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis')
     )(async () => {
-      if (isFeaturePreviewEnabled('jupyterlab-gcp')) {
-        await Ajax()
-          .Runtimes
-          .fileSyncing(googleProject, runtimeName)
-          .setStorageLinks({ localBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
+      await Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtimeName)
+        .setStorageLinks({ localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
+
+      if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
+        notify('error', 'Unable to Edit Analysis', {
+          message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
+        })
+        chooseMode(undefined)
+      } else {
         await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
           sourceUri: `${cloudStorageDirectory}/${analysisName}`,
-          localDestinationPath: `${localBaseDirectory}/${analysisName}`
+          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
         }])
         setAnalysisSetupComplete(true)
-      } else {
-        console.log('uhhhh')
-        await Ajax()
-          .Runtimes
-          .fileSyncing(googleProject, runtimeName)
-          .setStorageLinks({ localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
-
-        if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
-          notify('error', 'Unable to Edit Analysis', {
-            message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
-          })
-          chooseMode(undefined)
-        } else {
-          await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
-            sourceUri: `${cloudStorageDirectory}/${analysisName}`,
-            localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
-          }])
-          setAnalysisSetupComplete(true)
-        }
       }
     })
 
