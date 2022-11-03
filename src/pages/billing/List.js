@@ -438,7 +438,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         [!isLoadingProjects && _.isEmpty(billingProjects), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
-            Ajax().Metrics.captureEvent(Events.billingProjectWizardProjectCreated, { billingProject: billingProjectName })
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
             setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({

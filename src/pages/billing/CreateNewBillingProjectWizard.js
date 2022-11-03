@@ -64,7 +64,6 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
     Utils.withBusyState(setIsBusy)
   )(async () => {
     try {
-      Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Create Terra Billing Project' })
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess(billingProjectName)
     } catch (error) {
@@ -99,7 +98,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         href: 'https://console.cloud.google.com',
         ...Utils.newTabLinkProps,
         onClick: () => {
-          Ajax().Metrics.captureEvent(Events.billingProjectWizardStep1)
+          Ajax().Metrics.captureEvent(Events.billingCreationStep1)
           if (!isDone) {
             next()
           }
@@ -137,7 +136,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
                 setNextStep(false)
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: "I don't have access to a Cloud billing account" })
+                Ajax().Metrics.captureEvent(Events.billingCreationStep2BillingAccountNoAccess)
               }
             })
           ]),
@@ -148,7 +147,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
                 setNextStep(true)
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep2, { buttonName: 'I have a billing account' })
+                Ajax().Metrics.captureEvent(Events.billingCreationStep2HaveBillingAccount)
               }
             })
           ])
@@ -174,7 +173,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         h(LabeledCheckbox, {
           checked: verified === true,
           onChange: async () => {
-            Ajax().Metrics.captureEvent(Events.billingProjectWizardStep3, { buttonName: 'I have verified the user has been added to my account (requires reauthentication)' })
+            Ajax().Metrics.captureEvent(Events.billingCreationStep3VerifyUserAdded)
             if (isDone) {
               resetStep3()
             } else {
@@ -205,7 +204,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: () => {
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep3, { buttonName: "I don't have access to do this" })
+                Ajax().Metrics.captureEvent(Events.billingCreationStep3BillingAccountNoAccess)
                 setAccessToAddBillingAccountUser(false)
                 if (isDone) {
                   setActiveStep(3)
@@ -221,7 +220,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               disabled: !isDone && !isActive,
               labelStyle: { ...styles.radioButtonLabel },
               onChange: async () => {
-                Ajax().Metrics.captureEvent(Events.billingProjectWizardStep3, { buttonName: 'I have added terra-billing as a billing account user (requires reauthentication)' })
+                Ajax().Metrics.captureEvent(Events.billingCreationStep3AddedTerraBilling)
                 setAccessToAddBillingAccountUser(true)
                 await authorizeAndLoadAccounts()
                 next()
@@ -265,7 +264,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
         div({ style: { maxWidth: '35%', paddingBottom: '4rem' } }, [
           CreateGCPBillingProject({
             billingAccounts, chosenBillingAccount, setChosenBillingAccount,
-            billingProjectName, setBillingProjectName, existing, disabled: !isActive, billingProjectWizard: true
+            billingProjectName, setBillingProjectName, existing, disabled: !isActive
           })
         ]),
         isActive && _.isEmpty(billingAccounts) ?
@@ -286,7 +285,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                 h(Link, {
                   style: { textDecoration: 'underline', color: styles.accentColor },
                   onClick: async () => {
-                    Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Refresh Step 3' })
+                    Ajax().Metrics.captureEvent(Events.billingCreationRefreshStep3)
                     await authorizeAndLoadAccounts()
                     setRefreshed(true)
                   }
@@ -299,7 +298,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
                   h(Link, {
                     style: { textDecoration: 'underline', color: styles.accentColor },
                     onClick: () => {
-                      Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Terra support' })
+                      Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
                       contactUsActive.set(true)
                     }
                   }, ['Terra support'])

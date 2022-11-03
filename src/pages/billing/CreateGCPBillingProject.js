@@ -13,8 +13,7 @@ import validate from 'validate.js'
 
 const CreateGCPBillingProject = ({
   billingAccounts, chosenBillingAccount, setChosenBillingAccount,
-  billingProjectName, setBillingProjectName, existing, disabled = false,
-  billingProjectWizard = false
+  billingProjectName, setBillingProjectName, existing, disabled = false
 }) => {
   const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
 
@@ -32,9 +31,7 @@ const CreateGCPBillingProject = ({
           onChange: v => {
             setBillingProjectName(v)
             setBillingProjectNameTouched(true)
-            if (billingProjectWizard) {
-              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Terra billing project' })
-            }
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPProjectNameEntered)
           },
           disabled
         },
@@ -52,9 +49,7 @@ const CreateGCPBillingProject = ({
           value: chosenBillingAccount,
           onChange: ({ value }) => {
             setChosenBillingAccount(value)
-            if (billingProjectWizard) {
-              Ajax().Metrics.captureEvent(Events.billingProjectWizardStep4, { buttonName: 'Select billing account' })
-            }
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingAccountSelected)
           },
           options: _.map(account => {
             return {

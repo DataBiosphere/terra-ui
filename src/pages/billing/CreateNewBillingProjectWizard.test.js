@@ -168,7 +168,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep1Button())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep1)
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep1)
     })
     // Assert
     it('has Step 2 as the current step', () => {
@@ -191,7 +191,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2DontHaveBillingAccountButton())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep2, { buttonName: "I don't have access to a Cloud billing account" })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep2BillingAccountNoAccess)
     })
     // Assert
     it('should not change the previous step', () => {
@@ -218,7 +218,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(() => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep2, { buttonName: 'I have a billing account' })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep2HaveBillingAccount)
     })
     // Assert
     it('should not change the previous step', () => {
@@ -248,7 +248,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       await act(async () => {
         await userEvent.click(getStep3CheckBox())
       })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: 'I have verified the user has been added to my account (requires reauthentication)' })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3VerifyUserAdded)
     })
     // Assert
     it('should not change the state of previous steps ', () => {
@@ -273,7 +273,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(getStep3DontHaveAccessButton()) })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: "I don't have access to do this" })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3BillingAccountNoAccess)
     })
     // Assert
     it('should not change the state of prior steps ', () => {
@@ -297,7 +297,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
       await act(async () => { await userEvent.click(getStep3HaveAddedButton()) })
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep3, { buttonName: 'I have added terra-billing as a billing account user (requires reauthentication)' })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3AddedTerraBilling)
     })
     // Assert
     it('should not change the state of prior steps', () => {
@@ -342,12 +342,12 @@ describe('CreateNewBillingProjectWizard Steps', () => {
 
       // Insert valid project Name
       await userEvent.type(getBillingProjectInput(), projectName)
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Terra billing project' })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationGCPProjectNameEntered)
       // Select a billing account
       await userEvent.click(getBillingAccountInput())
       const selectOption = await screen.findByText(displayName)
       await userEvent.click(selectOption)
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Select billing account' })
+      expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationGCPBillingAccountSelected)
 
       // Verify accessibility now that all controls are enabled
       expect(await axe(wizardComponent.container)).toHaveNoViolations()
@@ -358,7 +358,6 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       })
       // Assert
       expect(createGCPProject).toHaveBeenCalledWith(projectName, accountName)
-      expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Create Terra Billing Project' })
     })
   })
 })
@@ -389,13 +388,13 @@ describe('Step 4 Warning Message', () => {
   it('should show the correct message when refresh step 3 is clicked but there are no billing accounts', async () => {
     // Act
     await act(async () => { await userEvent.click(screen.queryByText('Refresh Step 3')) })
-    expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Refresh Step 3' })
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationRefreshStep3)
     // Assert
     expect(screen.queryByText('Terra still does not have access to any Google Billing Accounts. ' +
       'Please contact Terra support for additional help.')).not.toBeNull()
     expect(screen.queryByText('Terra support')).not.toBeNull()
     fireEvent.click(screen.queryByText('Terra support'))
-    expect(captureEvent).toHaveBeenCalledWith(Events.billingProjectWizardStep4, { buttonName: 'Terra support' })
+    expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationContactTerraSupport)
   })
 })
 
