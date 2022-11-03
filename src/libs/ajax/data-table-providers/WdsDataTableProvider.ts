@@ -7,7 +7,6 @@ import {
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
-  GetMetadataFn,
   isInvalidFn,
   tooltipFn,
   uploadFn
@@ -29,7 +28,7 @@ export interface RecordTypeSchema {
 export interface SearchRequest {
   offset: number,
   limit: number,
-  sort: 'asc' | 'ASC' | 'desc' | 'DESC',
+  sort: 'asc' | 'desc',
   sortAttribute?: string
 }
 
@@ -46,7 +45,14 @@ export interface RecordQueryResponse {
 }
 
 
-export class WDSDataTableProvider implements DataTableProvider {
+export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
+  const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
+  return _.mapValues(typeDef => {
+    return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
+  }, keyedSchema)
+}
+
+export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
   }
@@ -112,24 +118,12 @@ export class WDSDataTableProvider implements DataTableProvider {
     return this.transformPage(wdsPage, entityType, queryOptions)
   }
 
-  transformMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
-    const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
-    return _.mapValues(typeDef => {
-      return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
-    }, keyedSchema)
-  }
-
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    const wdsSchema: RecordTypeSchema[] = await Ajax(signal).WorkspaceDataService.getSchema(this.workspaceId)
-    return this.transformMetadata(wdsSchema)
-  }
-
-  deleteTable = (entityType: string): Promise<void> => {
+  deleteTable = (entityType: string): Promise<Response> => {
     return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType).then(r => r.blob())
+    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType)
   }
 
   isInvalid: isInvalidFn = (_0: boolean, _1: boolean, _2: boolean, sysNamePresent: boolean) => {

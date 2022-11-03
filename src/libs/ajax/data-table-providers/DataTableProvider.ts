@@ -9,9 +9,9 @@ export interface EntityMetadata {
   [index: string]: EntityTypeMetadata
 }
 
-export type EntityQuerySortDirection = 'asc' | 'ASC' | 'desc' | 'DESC'
+export type EntityQuerySortDirection = 'asc' | 'desc'
 
-export type EntityQueryFilterOperator = 'and' | 'AND' | 'or' | 'OR'
+export type EntityQueryFilterOperator = 'and'| 'or'
 
 // define paginated query result structures
 interface EntityQuery {
@@ -55,7 +55,7 @@ export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: 
 
 export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
-export type DeleteTableFn = (entityType: string) => Promise<void>
+export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
@@ -91,7 +91,7 @@ export interface DataTableProvider {
   disabled: disabledFn,
   tooltip: tooltipFn,
   doUpload: uploadFn
-  // todos that we will need soon:
+  // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean
 }

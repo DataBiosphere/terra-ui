@@ -6,7 +6,6 @@ import {
   DataTableProvider, disabledFn,
   EntityQueryOptions,
   EntityQueryResponse,
-  GetMetadataFn,
   isInvalidFn, tooltipFn, uploadFn
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
@@ -49,11 +48,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       }))
   }
 
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
-  }
-
-  deleteTable = (entityType: string): Promise<void> => {
+  deleteTable = (entityType: string): Promise<Response> => {
     return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 
