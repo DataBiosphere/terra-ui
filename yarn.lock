@@ -14372,6 +14372,7 @@ resolve@^2.0.0-next.3:
     igv: 2.11.2
     jest-axe: ^6.0.0
     jszip: ^3.7.1
+    jwt-decode: ^3.1.2
     lint-staged: ^13.0.3
     lodash: ^4.17.21
     marked: ^4.0.10

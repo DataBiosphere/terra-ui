@@ -86,6 +86,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.7.1"],\
+            ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
@@ -19299,6 +19300,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.7.1"],\
+            ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
