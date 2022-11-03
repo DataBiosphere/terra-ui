@@ -51,7 +51,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 // requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
 // requesterPaysError is true if the request requires a user project for billing the request to. Such errors
 // are not transient and the request should not be retried.
-export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 /**
  * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
