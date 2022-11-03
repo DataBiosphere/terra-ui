@@ -72,6 +72,8 @@ const AnalysisLauncher = _.flow(
       refreshRuntimes()
     })
 
+    console.log(currentFileToolLabel)
+
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
@@ -290,7 +292,6 @@ const PreviewHeader = ({
             Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
           }
         }, openMenuIcon)],
-      // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
       [currentRuntimeTool === tools.JupyterLab.label && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
         () => h(HeaderButton, {
           onClick: () => {
@@ -299,6 +300,7 @@ const PreviewHeader = ({
             Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
           }
         }, openMenuIcon)],
+      // Azure logic and JupyterLab GCP logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for those two cases.
       [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
@@ -529,11 +531,13 @@ const AnalysisEditorFrame = ({
   const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => isFeaturePreviewEnabled('jupyterlab-gcp') ? '' : `${name}/edit`],
+    [tools.Jupyter.label, () => `${name}/edit`],
+    [tools.JupyterLab.label, () => ''],
     [tools.RStudio.label, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => `${name}/safe`],
+    [tools.JupyterLab.label, () => ''],
     [tools.RStudio.label, () => '']
   )
 
@@ -549,8 +553,13 @@ const AnalysisEditorFrame = ({
           .Runtimes
           .fileSyncing(googleProject, runtimeName)
           .setStorageLinks({ localBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(toolLabel) })
+        await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
+          sourceUri: `${cloudStorageDirectory}/${analysisName}`,
+          localDestinationPath: `${localBaseDirectory}/${analysisName}`
+        }])
         setAnalysisSetupComplete(true)
       } else {
+        console.log('uhhhh')
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtimeName)

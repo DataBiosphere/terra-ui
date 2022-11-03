@@ -397,7 +397,9 @@ export const ComputeModalBase = ({
   const getCurrentMountDirectory = currentRuntimeDetails => {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter'
+    const jupyterLabMountPoint = 'home/jupyterlab'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+    //todo: jupyterlab case
     return currentRuntimeDetails?.labels.tool ?
       (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
       noMountDirectory
