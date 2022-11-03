@@ -5,6 +5,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { getPopupRoot } from 'src/components/popup-utils'
 import { useOnMount, useUniqueId } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -42,7 +43,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
     contentRef: node => { modalNode.current = node },
     aria: { labelledby: titleId, modal: true },
     ariaHideApp: false,
-    parentSelector: () => document.getElementById('modal-root'),
+    parentSelector: getPopupRoot,
     isOpen: true,
     shouldFocusAfterRender: false,
     shouldReturnFocusAfterClose: false,

@@ -16,16 +16,6 @@ jest.mock('src/libs/service-alerts', () => {
   }
 })
 
-beforeAll(() => {
-  const modalRoot = document.createElement('div')
-  modalRoot.id = 'modal-root'
-  document.body.append(modalRoot)
-})
-
-afterAll(() => {
-  document.getElementById('modal-root').remove()
-})
-
 const testAlerts = [
   {
     id: 'abc',
