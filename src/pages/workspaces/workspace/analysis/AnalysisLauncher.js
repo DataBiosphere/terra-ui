@@ -255,6 +255,7 @@ const PreviewHeader = ({
   const welderEnabled = runtime && !runtime.labels?.welderInstallFailed
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
+  const isAzureWorkspace = !!workspace.azureContext
 
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
@@ -305,7 +306,7 @@ const PreviewHeader = ({
       [runtimeStatus === 'Stopped', () => h(HeaderButton, {
         onClick: () => startAndRefresh(refreshRuntimes, runtime)
       }, openMenuIcon)],
-      [currentRuntimeTool === tools.Azure.label && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
+      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
         () => h(HeaderButton, {
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -313,7 +314,7 @@ const PreviewHeader = ({
             Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
           }
         }, openMenuIcon)],
-      [currentRuntimeTool === tools.Azure.label && runtimeStatus !== 'Running', () => {}],
+      [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
       // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
 
       [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
