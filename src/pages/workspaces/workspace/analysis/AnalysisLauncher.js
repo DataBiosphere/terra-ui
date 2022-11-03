@@ -256,7 +256,6 @@ const PreviewHeader = ({
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
-
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
