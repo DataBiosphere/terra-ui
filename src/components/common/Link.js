@@ -5,7 +5,6 @@ import colors from 'src/libs/colors'
 import { forwardRefWithName } from 'src/libs/react-utils'
 
 
-/* @ts-expect-error */
 const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
