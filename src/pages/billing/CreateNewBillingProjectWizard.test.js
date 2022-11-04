@@ -13,11 +13,11 @@ jest.mock('src/libs/ajax')
 jest.spyOn(Preferences, 'getLocalPref')
 
 const getStep1Button = () => screen.getByText('Go to Google Cloud Console')
-const getStep2DontHaveBillingAccountButton = () => screen.getByLabelText("I don't have access to a Cloud billing account")
+const getStep2BillingAccountNoAccessButton = () => screen.getByLabelText("I don't have access to a Cloud billing account")
 const getStep2HaveBillingAccountButton = () => screen.getByLabelText('I have a billing account')
-const getStep3DontHaveAccessButton = () => screen.queryByLabelText("I don't have access to do this")
-const getStep3HaveAddedButton = () => screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
-const getStep3CheckBox = () => screen.queryByRole('checkbox', { name: 'I have verified the user has been added to my account (requires reauthentication)' })
+const getStep3BillingAccountNoAccessButton = () => screen.queryByLabelText("I don't have access to do this")
+const getStep3AddedTerraBillingButton = () => screen.queryByLabelText('I have added terra-billing as a billing account user (requires reauthentication)')
+const getStep3VerifyUserAdded = () => screen.queryByRole('checkbox', { name: 'I have verified the user has been added to my account (requires reauthentication)' })
 const textMatcher = text => screen.queryByText((_, node) => {
   const hasText = node => node.textContent === text
   const nodeHasText = hasText(node)
@@ -56,47 +56,47 @@ const testStepActive = stepNumber => {
 }
 
 const testStep2ButtonsEnabled = () => {
-  verifyEnabled(getStep2DontHaveBillingAccountButton())
+  verifyEnabled(getStep2BillingAccountNoAccessButton())
   verifyEnabled(getStep2HaveBillingAccountButton())
 }
 
 const testStep2DontHaveAccessToBillingChecked = () => {
-  verifyChecked(getStep2DontHaveBillingAccountButton())
+  verifyChecked(getStep2BillingAccountNoAccessButton())
   verifyUnchecked(getStep2HaveBillingAccountButton())
 }
 
 const testStep2HaveBillingChecked = () => {
   verifyChecked(getStep2HaveBillingAccountButton())
-  verifyUnchecked(getStep2DontHaveBillingAccountButton())
+  verifyUnchecked(getStep2BillingAccountNoAccessButton())
 }
 
 const testStep3InitialState = () => {
-  verifyDisabled(getStep3DontHaveAccessButton())
-  verifyDisabled(getStep3HaveAddedButton())
-  verifyUnchecked(getStep3DontHaveAccessButton())
-  verifyUnchecked(getStep3HaveAddedButton())
+  verifyDisabled(getStep3BillingAccountNoAccessButton())
+  verifyDisabled(getStep3AddedTerraBillingButton())
+  verifyUnchecked(getStep3BillingAccountNoAccessButton())
+  verifyUnchecked(getStep3AddedTerraBillingButton())
   expect(getStep3AddTerraAsUserText()).not.toBeNull()
   expect(getStep3ContactBillingAdministrator()).toBeNull()
-  expect(getStep3CheckBox()).toBeNull()
+  expect(getStep3VerifyUserAdded()).toBeNull()
 }
 
 const testStep3RadioButtonsNoneSelected = () => {
-  verifyEnabled(getStep3DontHaveAccessButton())
-  verifyEnabled(getStep3HaveAddedButton())
-  verifyUnchecked(getStep3DontHaveAccessButton())
-  verifyUnchecked(getStep3HaveAddedButton())
-  expect(getStep3DontHaveAccessButton()).not.toBeNull()
-  expect(getStep3HaveAddedButton()).not.toBeNull()
-  expect(getStep3CheckBox()).toBeNull()
+  verifyEnabled(getStep3BillingAccountNoAccessButton())
+  verifyEnabled(getStep3AddedTerraBillingButton())
+  verifyUnchecked(getStep3BillingAccountNoAccessButton())
+  verifyUnchecked(getStep3AddedTerraBillingButton())
+  expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
+  expect(getStep3AddedTerraBillingButton()).not.toBeNull()
+  expect(getStep3VerifyUserAdded()).toBeNull()
   expect(getStep3AddTerraAsUserText()).not.toBeNull()
   expect(getStep3ContactBillingAdministrator()).toBeNull()
 }
 
 const testStep3DontHaveAccessToBillingCheckBox = () => {
-  verifyEnabled(getStep3CheckBox())
-  expect(getStep3DontHaveAccessButton()).toBeNull()
-  expect(getStep3HaveAddedButton()).toBeNull()
-  expect(getStep3CheckBox()).not.toBeNull()
+  verifyEnabled(getStep3VerifyUserAdded())
+  expect(getStep3BillingAccountNoAccessButton()).toBeNull()
+  expect(getStep3AddedTerraBillingButton()).toBeNull()
+  expect(getStep3VerifyUserAdded()).not.toBeNull()
   expect(getStep3ContactBillingAdministrator()).not.toBeNull()
   expect(getStep3AddTerraAsUserText()).toBeNull()
 }
@@ -150,7 +150,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     it('has Step 2 buttons enabled and unchecked', () => {
       testStep2ButtonsEnabled()
-      verifyUnchecked(getStep2DontHaveBillingAccountButton())
+      verifyUnchecked(getStep2BillingAccountNoAccessButton())
       verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
@@ -176,7 +176,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     it('has Step 2 buttons enabled', () => {
       testStep2ButtonsEnabled()
-      verifyUnchecked(getStep2DontHaveBillingAccountButton())
+      verifyUnchecked(getStep2BillingAccountNoAccessButton())
       verifyUnchecked(getStep2HaveBillingAccountButton())
     })
     it('has the correct initial state for Step 3', () => {
@@ -190,7 +190,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
   describe('Step 2 Button ("I dont have access to...") Selected', () => {
     // Act
     beforeEach(() => {
-      fireEvent.click(getStep2DontHaveBillingAccountButton())
+      fireEvent.click(getStep2BillingAccountNoAccessButton())
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep2BillingAccountNoAccess)
     })
     // Assert
@@ -244,9 +244,9 @@ describe('CreateNewBillingProjectWizard Steps', () => {
   describe('Step 3 "I have verified" Checkbox Checked', () => {
     beforeEach(async () => {
       // Act
-      fireEvent.click(getStep2DontHaveBillingAccountButton())
+      fireEvent.click(getStep2BillingAccountNoAccessButton())
       await act(async () => {
-        await userEvent.click(getStep3CheckBox())
+        await userEvent.click(getStep3VerifyUserAdded())
       })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3VerifyUserAdded)
     })
@@ -258,7 +258,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     })
     it('has the correct state for Step 3', () => {
       testStep3DontHaveAccessToBillingCheckBox()
-      verifyChecked(getStep3CheckBox())
+      verifyChecked(getStep3VerifyUserAdded())
     })
     it('has Step 4 as the current step', () => {
       testStepActive(4)
@@ -272,7 +272,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      await act(async () => { await userEvent.click(getStep3DontHaveAccessButton()) })
+      await act(async () => { await userEvent.click(getStep3BillingAccountNoAccessButton()) })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3BillingAccountNoAccess)
     })
     // Assert
@@ -296,7 +296,7 @@ describe('CreateNewBillingProjectWizard Steps', () => {
     // Act
     beforeEach(async () => {
       fireEvent.click(getStep2HaveBillingAccountButton())
-      await act(async () => { await userEvent.click(getStep3HaveAddedButton()) })
+      await act(async () => { await userEvent.click(getStep3AddedTerraBillingButton()) })
       expect(captureEvent).toHaveBeenCalledWith(Events.billingCreationStep3AddedTerraBilling)
     })
     // Assert
@@ -304,19 +304,19 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       verifyEnabled(getStep1Button())
       testStep2ButtonsEnabled()
       testStep2HaveBillingChecked()
-      verifyEnabled(getStep3HaveAddedButton())
-      verifyEnabled(getStep3DontHaveAccessButton())
+      verifyEnabled(getStep3AddedTerraBillingButton())
+      verifyEnabled(getStep3BillingAccountNoAccessButton())
     })
     it('should show the correct text and buttons Step 3', () => {
-      expect(getStep3DontHaveAccessButton()).not.toBeNull()
-      expect(getStep3HaveAddedButton()).not.toBeNull()
-      expect(getStep3CheckBox()).toBeNull()
+      expect(getStep3BillingAccountNoAccessButton()).not.toBeNull()
+      expect(getStep3AddedTerraBillingButton()).not.toBeNull()
+      expect(getStep3VerifyUserAdded()).toBeNull()
       expect(getStep3AddTerraAsUserText()).not.toBeNull()
       expect(getStep3ContactBillingAdministrator()).toBeNull()
     })
     it('should have the correct button selected for Step 3', () => {
-      verifyChecked(getStep3HaveAddedButton())
-      verifyUnchecked(getStep3DontHaveAccessButton())
+      verifyChecked(getStep3AddedTerraBillingButton())
+      verifyUnchecked(getStep3BillingAccountNoAccessButton())
     })
     it('should move to the next step (ActiveStep: Step 4)', () => {
       testStepActive(4)
@@ -331,8 +331,8 @@ describe('CreateNewBillingProjectWizard Steps', () => {
       // Arrange
       const projectName = 'Billing_Project_Name'
       // Complete Step 2 and 3
-      fireEvent.click(getStep2DontHaveBillingAccountButton())
-      await act(async () => { await userEvent.click(getStep3CheckBox()) })
+      fireEvent.click(getStep2BillingAccountNoAccessButton())
+      await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
 
       // Step 4 status
       testStep4Enabled()
@@ -374,8 +374,8 @@ describe('Step 4 Warning Message', () => {
       onSuccess: jest.fn(), billingAccounts: [], authorizeAndLoadAccounts: jest.fn()
     }))
 
-    fireEvent.click(getStep2DontHaveBillingAccountButton())
-    await act(async () => { await userEvent.click(getStep3CheckBox()) })
+    fireEvent.click(getStep2BillingAccountNoAccessButton())
+    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
   })
 
   it('should show a warning message when there are no billing accounts', () => {
@@ -410,7 +410,7 @@ describe('Changing prior answers', () => {
 
   it('should reset from Step 3 if Step 2 answer is changed (option 1 to 2)', () => {
     // Arrange
-    fireEvent.click(getStep2DontHaveBillingAccountButton())
+    fireEvent.click(getStep2BillingAccountNoAccessButton())
     // Assert
     testStep2DontHaveAccessToBillingChecked()
     testStepActive(3)
@@ -426,13 +426,13 @@ describe('Changing prior answers', () => {
   it('should reset from Step 3 if Step 2 answer is changed (option 2 to 1)', () => {
     // Arrange
     fireEvent.click(getStep2HaveBillingAccountButton())
-    fireEvent.click(getStep3DontHaveAccessButton())
+    fireEvent.click(getStep3BillingAccountNoAccessButton())
     // Assert
     testStep2HaveBillingChecked()
     testStepActive(3)
     testStep3DontHaveAccessToBillingCheckBox()
     // Act
-    fireEvent.click(getStep2DontHaveBillingAccountButton())
+    fireEvent.click(getStep2BillingAccountNoAccessButton())
     // Assert
     testStep2DontHaveAccessToBillingChecked()
     testStep3DontHaveAccessToBillingCheckBox()
@@ -440,17 +440,17 @@ describe('Changing prior answers', () => {
 
   it('should reset from Step 3 if Step 3 checkbox is unchecked from Step 4', async () => {
     // Act - Check
-    fireEvent.click(getStep2DontHaveBillingAccountButton())
-    await act(async () => { await userEvent.click(getStep3CheckBox()) })
+    fireEvent.click(getStep2BillingAccountNoAccessButton())
+    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyChecked(getStep3CheckBox())
+    verifyChecked(getStep3VerifyUserAdded())
     testStep4Enabled()
     // Act - Uncheck
-    await act(async () => { await userEvent.click(getStep3CheckBox()) })
+    await act(async () => { await userEvent.click(getStep3VerifyUserAdded()) })
     // Assert
     testStep2DontHaveAccessToBillingChecked()
-    verifyUnchecked(getStep3CheckBox())
+    verifyUnchecked(getStep3VerifyUserAdded())
     testStepActive(3)
     testStep4Disabled()
   })
@@ -458,13 +458,13 @@ describe('Changing prior answers', () => {
   it('should reset from Step 3 if Step 3 radio button answer is changed from Step 4', async () => {
     // Act - Check
     fireEvent.click(getStep2HaveBillingAccountButton())
-    await act(async () => { await userEvent.click(getStep3HaveAddedButton()) })
+    await act(async () => { await userEvent.click(getStep3AddedTerraBillingButton()) })
     // Assert
     testStep2HaveBillingChecked()
-    verifyChecked(getStep3HaveAddedButton())
+    verifyChecked(getStep3AddedTerraBillingButton())
     testStep4Enabled()
     // Act - Uncheck
-    fireEvent.click(getStep3DontHaveAccessButton())
+    fireEvent.click(getStep3BillingAccountNoAccessButton())
     // Assert
     testStep2HaveBillingChecked()
     testStep3DontHaveAccessToBillingCheckBox()
