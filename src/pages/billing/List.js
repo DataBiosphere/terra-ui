@@ -414,7 +414,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       }),
       creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         },

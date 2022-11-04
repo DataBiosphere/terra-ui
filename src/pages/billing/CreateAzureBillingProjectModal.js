@@ -37,7 +37,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
     try {
       await Ajax().Billing.createAzureProject(billingProjectName, chosenManagedApp.tenantId, chosenManagedApp.subscriptionId,
         chosenManagedApp.managedResourceGroupId)
-      onSuccess()
+      onSuccess(billingProjectName)
     } catch (error) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
