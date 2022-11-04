@@ -1,7 +1,7 @@
 import type { InteractiveProps } from 'src/components/Interactive'
 
 
-export type ClickableProps<T extends keyof JSX.Element = 'div'> = {
+export type ClickableProps<T extends keyof JSX.IntrinsicElements = 'div'> = {
   as?: T
   href?: string
   tooltip?: string
@@ -10,6 +10,6 @@ export type ClickableProps<T extends keyof JSX.Element = 'div'> = {
   useTooltipAsLabel?: boolean
 } & Omit<InteractiveProps<T>, 'as'>
 
-declare const Clickable: <T extends keyof JSX.Element>(props: ClickableProps<T>) => JSX.Element
+declare const Clickable: <T extends keyof JSX.IntrinsicElements>(props: ClickableProps<T>) => JSX.Element
 
 export default Clickable
