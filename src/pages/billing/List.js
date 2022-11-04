@@ -193,7 +193,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   )(async () => {
     try {
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
-      onSuccess()
+      onSuccess(billingProjectName)
     } catch (error) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
@@ -406,7 +406,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         }
