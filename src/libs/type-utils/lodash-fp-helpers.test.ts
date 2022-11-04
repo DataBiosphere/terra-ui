@@ -20,7 +20,7 @@ describe('Lodash FP Helpers', () => {
          options are tested and demonstrated to allow greater flexibility if
          it's needed.
        - These tests also show recommended type annotations on the
-         handler/wrapper functions
+         handler/wrapper functions.
      */
 
     it('handles basic handler wrapper fns', () => {

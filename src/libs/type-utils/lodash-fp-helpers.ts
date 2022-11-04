@@ -19,14 +19,13 @@ export interface WithHandlersFn {
 }
 
 /**
- * Provides better type flow and ergonomics for the
- * common case of wrapping a main function with additional pass-thru wrapper
- * functions (handlers).  These handlers are expected to be HoF's
- * (higher order functions) that return a wrapped function with the desired
- * handling logic which still honors the same function signature of the fn
- * it is given as it's single argument
- * @param handlers array of handler (wrapper) functions to apply to mainFn
- * @param mainFn the main function being wrapped with handlers
+ * Provides better type flow and ergonomics for the common case of wrapping
+ * a main function with additional pass-thru wrapper functions (handlers).
+ * These handlers are expected to be HoF's (higher order functions) that
+ * return a wrapped function with the desired handling logic which still honors
+ * the same function signature of the fn it is given as it's single argument.
+ * @param handlers - Array of handler (wrapper) functions to apply to mainFn
+ * @param mainFn - The main function being wrapped with handlers
  */
 export const withHandlers : WithHandlersFn = <F extends AnyFn>(handlers: WrapFn<F>[], mainFn: F) => {
   const resultFn = _.flow(...handlers)(mainFn)
@@ -49,10 +48,10 @@ export interface CurryLastArgFn {
 }
 
 /**
- * produces a curried function that expect the last argument to be given
+ * Produces a curried function that expect the last argument to be given
  * before executing the original function.
- * Provides better type flow then the more general _.curry(fn)
- * @param fn function with up to 5 arguments
+ * Provides better type flow then the more general _.curry(fn).
+ * @param fn - Function with up to 5 arguments
  */
 export const curryLastArg: CurryLastArgFn = (fn: (
     ...args: unknown[]) => unknown) => {
@@ -64,14 +63,15 @@ export const curryLastArg: CurryLastArgFn = (fn: (
 }
 
 /**
- * (non-async) a convenience helper for creating handler-wrapper functions
+ * (non-async) A convenience helper for creating handler-wrapper functions
  * that add logic and/or side effects but produce a wrapped function that
  * preserves the function signature of the original function.  This helper
  * removes the concern of original function arguments by providing a
  * zero-argument executor argument that the given handler function can call.
  * When used with recommended patterns (see unit tests) the need for
  * currying is removed.
- * @param handler
+ * @param handler - The handler function that will use executor arg to run
+ *    the original function
  */
 export const createHandler = <F extends AnyFn>(
   handler: (executor: () => ReturnType<F>) => ReturnType<F>
@@ -91,14 +91,15 @@ export const createHandler = <F extends AnyFn>(
 }
 
 /**
- * (async) a convenience helper for creating handler-wrapper functions
+ * (async) A convenience helper for creating handler-wrapper functions
  * that add logic and/or side effects but produce a wrapped function that
  * preserves the function signature of the original function.  This helper
  * removes the concern of original function arguments by providing a
  * zero-argument executor argument that the given handler function can call.
  * When used with recommended patterns (see unit tests) the need for
  * currying is removed.
- * @param handler
+ * @param handler - The handler function that will use executor arg to run
+ *    the original function
  */
 export const createHandlerAsync = <P, F extends AnyPromiseFn<P>>(
   handler: (executor: () => Promise<P>) => Promise<P>
