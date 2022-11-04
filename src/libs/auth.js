@@ -178,7 +178,11 @@ export const bucketBrowserUrl = id => {
 }
 
 export const isAzureUser = () => {
-  return jwtDecode(authStore.get().user.token)['idp'].startsWith('https://login.microsoftonline.com/')
+  try {
+    return jwtDecode(authStore.get().user.token)['idp'].startsWith('https://login.microsoftonline.com/')
+  } catch {
+    return false
+  }
 }
 
 export const processUser = (user, isSignInEvent) => {
