@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { authOpts, fetchLeo } from 'src/libs/ajax/ajax-common'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
 

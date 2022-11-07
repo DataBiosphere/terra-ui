@@ -1,20 +1,8 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { DataTableSaveVersionModal, DataTableVersion } from 'src/components/data/data-table-versions'
 
-
-beforeAll(() => {
-  const modalRoot = document.createElement('div')
-  modalRoot.id = 'modal-root'
-  document.body.append(modalRoot)
-})
-
-afterAll(() => {
-  document.getElementById('modal-root').remove()
-})
 
 describe('DataTableSaveVersionModal', () => {
   it('renders input for description', () => {

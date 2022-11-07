@@ -106,7 +106,7 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
-    const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceDataService
+    const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
       .getRecords(this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
@@ -119,11 +119,11 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   deleteTable = (entityType: string): Promise<Response> => {
-    return Ajax().WorkspaceDataService.deleteTable(this.workspaceId, entityType)
+    return Ajax().WorkspaceData.deleteTable(this.workspaceId, entityType)
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceDataService.downloadTsv(this.workspaceId, entityType)
+    return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
   }
 
   isInvalid: isInvalidFn = (_0: boolean, _1: boolean, _2: boolean, sysNamePresent: boolean) => {

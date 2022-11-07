@@ -1,4 +1,5 @@
 import { Ajax } from 'src/libs/ajax'
+import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { asMockedFn } from 'src/test-utils'
 
 import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
@@ -31,6 +32,89 @@ const queryOptions: EntityQueryOptions = {
 
 
 describe('WdsDataTableProvider', () => {
+  const getRecordsMockImpl: ReturnType<typeof WorkspaceData>['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
+    const recordQueryResponse: RecordQueryResponse = {
+      searchRequest: {
+        limit: 10,
+        offset: 0,
+        sort: 'desc',
+        sortAttribute: 'numericAttr'
+      },
+      records: [
+        {
+          id: '2',
+          type: 'item',
+          attributes: {
+            arrayBoolean: [
+              true,
+              false
+            ],
+            arrayDate: [
+              '2022-11-03'
+            ],
+            arrayDateTime: [
+              '2022-11-03T04:36:20'
+            ],
+            arrayNumber: [
+              12821.112,
+              0.12121211,
+              11
+            ],
+            arrayString: [
+              'green',
+              'red'
+            ],
+            booleanAttr: true,
+            numericAttr: 2,
+            stringAttr: 'string'
+          }
+        },
+        {
+          id: '1',
+          type: 'item',
+          attributes: {
+            arrayBoolean: [
+              true,
+              false
+            ],
+            arrayDate: [
+              '2022-11-03'
+            ],
+            arrayDateTime: [
+              '2022-11-03T04:36:20'
+            ],
+            arrayNumber: [
+              12821.112,
+              0.12121211,
+              11
+            ],
+            arrayString: [
+              'green',
+              'red'
+            ],
+            booleanAttr: true,
+            numericAttr: 1,
+            stringAttr: 'string'
+          }
+        }
+      ],
+      totalRecords: 2
+    }
+    return Promise.resolve(recordQueryResponse)
+  }
+
+  const deleteTableMockImpl: ReturnType<typeof WorkspaceData>['deleteTable'] = (_instanceId: string, _recordType: string) => {
+    return Promise.resolve(new Response('', { status: 204 }))
+  }
+
+  const downloadTsvMockImpl: ReturnType<typeof WorkspaceData>['downloadTsv'] = (_instanceId: string, _recordType: string) => {
+    return Promise.resolve(new Blob(['hello']))
+  }
+
+  const uploadTsvMockImpl: ReturnType<typeof WorkspaceData>['uploadTsv'] = (_instanceId: string, _recordType: string, _file: File) => {
+    return Promise.resolve(new Response('', { status: 200 }))
+  }
+
   let getRecords
   let deleteTable
   let downloadTsv
@@ -117,12 +201,17 @@ describe('WdsDataTableProvider', () => {
       return Promise.resolve(new Response('', { status: 200 }))
     })
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceDataService: { getRecords, deleteTable, downloadTsv, uploadTsv } } as ReturnType<typeof Ajax>))
+    getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
+    deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
+    downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
+    uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl)
+
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } } as ReturnType<typeof Ajax>))
   })
 
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
 
       // example response from WDS, copy-pasted from a WDS swagger call
@@ -158,10 +247,10 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 52
       }
 
-      // ====== Act
+      // Act
       const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
 
-      // ====== Assert
+      // Assert
       const expected: EntityQueryResponse = {
         results: [
           {
@@ -205,12 +294,13 @@ describe('WdsDataTableProvider', () => {
   })
   describe('getPage', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
       const signal = new AbortController().signal
-      // ====== Act
+
+      // Act
       return provider.getPage(signal, recordType, queryOptions).then(actual => {
-        // ====== Assert
+        // Assert
         expect(getRecords.mock.calls.length).toBe(1)
         expect(actual.resultMetadata.unfilteredCount).toBe(2)
       })
@@ -218,11 +308,12 @@ describe('WdsDataTableProvider', () => {
   })
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
-      // ====== Act
+
+      // Act
       return provider.deleteTable(recordType).then(actual => {
-        // ====== Assert
+        // Assert
         expect(deleteTable.mock.calls.length).toBe(1)
         expect(actual.status).toBe(204)
       })
@@ -230,12 +321,13 @@ describe('WdsDataTableProvider', () => {
   })
   describe('downloadTsv', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
       const signal = new AbortController().signal
-      // ====== Act
+
+      // Act
       return provider.downloadTsv(signal, recordType).then(actual => {
-        // ====== Assert
+        // Assert
         expect(downloadTsv.mock.calls.length).toBe(1)
         actual.text().then(txt => {
           expect(txt).toBe('hello')
@@ -306,7 +398,7 @@ describe('WdsDataTableProvider', () => {
 
 describe('transformMetadata', () => {
   it('restructures a WDS response', () => {
-    // ====== Arrange
+    // Arrange
     // example response from WDS, copy-pasted from a WDS swagger call
     const wdsSchema: RecordTypeSchema[] = [
       {
@@ -343,10 +435,10 @@ describe('transformMetadata', () => {
       }
     ]
 
-    // ====== Act
+    // Act
     const actual: EntityMetadata = wdsToEntityServiceMetadata(wdsSchema)
 
-    // ====== Assert
+    // Assert
     const expected: EntityMetadata = {
       item: {
         count: 7,
