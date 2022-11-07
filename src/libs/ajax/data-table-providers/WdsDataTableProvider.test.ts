@@ -1,4 +1,5 @@
 import { Ajax } from 'src/libs/ajax'
+import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { asMockedFn } from 'src/test-utils'
 
 import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
@@ -31,87 +32,93 @@ const queryOptions: EntityQueryOptions = {
 
 
 describe('WdsDataTableProvider', () => {
+  const getRecordsMockImpl: ReturnType<typeof WorkspaceData>['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
+    const recordQueryResponse: RecordQueryResponse = {
+      searchRequest: {
+        limit: 10,
+        offset: 0,
+        sort: 'desc',
+        sortAttribute: 'numericAttr'
+      },
+      records: [
+        {
+          id: '2',
+          type: 'item',
+          attributes: {
+            arrayBoolean: [
+              true,
+              false
+            ],
+            arrayDate: [
+              '2022-11-03'
+            ],
+            arrayDateTime: [
+              '2022-11-03T04:36:20'
+            ],
+            arrayNumber: [
+              12821.112,
+              0.12121211,
+              11
+            ],
+            arrayString: [
+              'green',
+              'red'
+            ],
+            booleanAttr: true,
+            numericAttr: 2,
+            stringAttr: 'string'
+          }
+        },
+        {
+          id: '1',
+          type: 'item',
+          attributes: {
+            arrayBoolean: [
+              true,
+              false
+            ],
+            arrayDate: [
+              '2022-11-03'
+            ],
+            arrayDateTime: [
+              '2022-11-03T04:36:20'
+            ],
+            arrayNumber: [
+              12821.112,
+              0.12121211,
+              11
+            ],
+            arrayString: [
+              'green',
+              'red'
+            ],
+            booleanAttr: true,
+            numericAttr: 1,
+            stringAttr: 'string'
+          }
+        }
+      ],
+      totalRecords: 2
+    }
+    return Promise.resolve(recordQueryResponse)
+  }
+
+  const deleteTableMockImpl: ReturnType<typeof WorkspaceData>['deleteTable'] = (_instanceId: string, _recordType: string) => {
+    return Promise.resolve(new Response('', { status: 204 }))
+  }
+
+  const downloadTsvMockImpl: ReturnType<typeof WorkspaceData>['downloadTsv'] = (_instanceId: string, _recordType: string) => {
+    return Promise.resolve(new Blob(['hello']))
+  }
+
   let getRecords
   let deleteTable
   let downloadTsv
 
   beforeEach(() => {
-    getRecords = jest.fn().mockImplementation((_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
-      const recordQueryResponse: RecordQueryResponse = {
-        searchRequest: {
-          limit: 10,
-          offset: 0,
-          sort: 'desc',
-          sortAttribute: 'numericAttr'
-        },
-        records: [
-          {
-            id: '2',
-            type: 'item',
-            attributes: {
-              arrayBoolean: [
-                true,
-                false
-              ],
-              arrayDate: [
-                '2022-11-03'
-              ],
-              arrayDateTime: [
-                '2022-11-03T04:36:20'
-              ],
-              arrayNumber: [
-                12821.112,
-                0.12121211,
-                11
-              ],
-              arrayString: [
-                'green',
-                'red'
-              ],
-              booleanAttr: true,
-              numericAttr: 2,
-              stringAttr: 'string'
-            }
-          },
-          {
-            id: '1',
-            type: 'item',
-            attributes: {
-              arrayBoolean: [
-                true,
-                false
-              ],
-              arrayDate: [
-                '2022-11-03'
-              ],
-              arrayDateTime: [
-                '2022-11-03T04:36:20'
-              ],
-              arrayNumber: [
-                12821.112,
-                0.12121211,
-                11
-              ],
-              arrayString: [
-                'green',
-                'red'
-              ],
-              booleanAttr: true,
-              numericAttr: 1,
-              stringAttr: 'string'
-            }
-          }
-        ],
-        totalRecords: 2
-      }
-      return Promise.resolve(recordQueryResponse)
-    })
-    deleteTable = jest.fn().mockImplementation((_instanceId: string, _recordType: string) => {
-      return Promise.resolve(new Response('', { status: 204 }))
-    })
-    downloadTsv = jest.fn().mockImplementation((_instanceId: string, _recordType: string) => {
-      return Promise.resolve(new Blob(['hello']))
-    })
+    getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
+    deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
+    downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
 
     asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv } } as ReturnType<typeof Ajax>))
   })
