@@ -82,7 +82,7 @@ const AnalysisLauncher = _.flow(
         div({ style: { flex: 1 } }, [
           (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && currentRuntimeTool === 'Jupyter') ?
             h(labels?.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
-              { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentRuntimeTool, styles: iframeStyles }) :
+              { key: runtimeName, workspace, runtime: currentRuntime, analysisName, mode, toolLabel: currentFileToolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
                 styles: iframeStyles, queryParams, runtime: currentRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
