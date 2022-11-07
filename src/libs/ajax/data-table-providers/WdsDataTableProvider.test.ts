@@ -246,11 +246,15 @@ describe('WdsDataTableProvider', () => {
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
-      expect(provider.isInvalid(false, false, false, false)).toBeTruthy()
+      expect(provider.isInvalid(false, true, false, false)).toBeTruthy()
     })
 
     it('TSV is invalid', () => {
       expect(provider.isInvalid(false, false, false, true)).toBeFalsy()
+    })
+
+    it('TSV is not present', () => {
+      expect(provider.isInvalid(false, false, false, false)).toBeFalsy()
     })
   })
 
