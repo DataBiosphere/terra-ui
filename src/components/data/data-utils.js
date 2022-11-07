@@ -302,8 +302,7 @@ export const notifyDataImportProgress = jobId => {
   })
 }
 
-//renamed from EntityUploader for testing
-export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider }) => {
+export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
   const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
@@ -313,11 +312,12 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
   const [uploading, setUploading] = useState(false)
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
   const [recordType, setRecordType] = useState(undefined)
+  const [recordAlreadyExists, setRecordAlreadyExists] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
     try {
-      await dataProvider.doUpload(workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name)
+      await dataProvider.doUpload({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
@@ -328,7 +328,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
     }
   }
 
-  function recordOrEntity() { //this prevents convoluted logic later, but it does mean that we don't check that a wds type already exists until after the file is uploaded
+  function recordOrEntity() {
     if (recordType) return recordType
     else return newEntityType
   }
@@ -336,6 +336,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
   const isInvalid = dataProvider.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.match(/sys_name/)) //TODO this should really only look at the first line
   const newEntityType = match?.[1]
+  const entityAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
   const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
@@ -373,6 +374,7 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
           placeholder: 'Enter record type',
           onChange: value => {
             setRecordType(value)
+            setRecordAlreadyExists(_.includes(value, entityTypes))
           }
         })]),
         dataProvider.features.supportsTabBar && h(SimpleTabBar, {
@@ -441,14 +443,14 @@ export const DualEntityUploader = ({ onSuccess, onDismiss, namespace, name, enti
             }
           })
         ]),
-        currentFile && _.includes(_.toLower(recordOrEntity()), entityTypes) && div({
+        ((currentFile && entityAlreadyExists) || recordAlreadyExists) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${recordOrEntity()}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && containsNullValues && _.includes(_.toLower(recordOrEntity()), entityTypes) && div({
+        currentFile && containsNullValues && (entityAlreadyExists || recordAlreadyExists) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),

@@ -50,6 +50,16 @@ export interface EntityQueryOptions {
   filterOperator: string
 }
 
+export interface UploadTSVParameters {
+  file: File,
+  useFireCloudDataModel: boolean
+  deleteEmptyValues: boolean
+  namespace: string
+  name: string,
+  workspaceId: string
+  recordType: string
+}
+
 // queryOptions can contain:
 export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
 
@@ -65,7 +75,7 @@ export type disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: b
 
 export type tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
 
-export type uploadFn = (workspaceId: string, recordType: string, file: File, useFireCloudDataModel: boolean, deleteEmptyValues: boolean, namespace: string, name: string) => void
+export type uploadFn = (uploadParams: UploadTSVParameters) => Promise<void>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean,

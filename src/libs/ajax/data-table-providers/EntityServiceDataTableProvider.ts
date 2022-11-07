@@ -6,7 +6,7 @@ import {
   DataTableProvider, disabledFn,
   EntityQueryOptions,
   EntityQueryResponse,
-  isInvalidFn, tooltipFn, uploadFn
+  isInvalidFn, tooltipFn, uploadFn, UploadTSVParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -68,17 +68,17 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
   }
 
-  doUpload: uploadFn = async (_0: string, _1: string, file: File, useFireCloudDataModel: boolean, deleteEmptyValues: boolean, namespace: string, name: string) => {
-    const workspace = Ajax().Workspaces.workspace(namespace, name)
-    if (useFireCloudDataModel) {
-      await workspace.importEntitiesFile(file, { deleteEmptyValues })
+  doUpload: uploadFn = async (uploadParams: UploadTSVParameters) => {
+    const workspace = Ajax().Workspaces.workspace(uploadParams.namespace, uploadParams.name)
+    if (uploadParams.useFireCloudDataModel) {
+      return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })
     } else {
-      const filesize = file?.size || Number.MAX_SAFE_INTEGER
+      const filesize = uploadParams.file?.size || Number.MAX_SAFE_INTEGER
       if (filesize < 524288) { // 512k
-        await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
+        return workspace.importFlexibleEntitiesFileSynchronous(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })
       } else {
-        const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
-        asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+        const { jobId } = await workspace.importFlexibleEntitiesFileAsync(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })
+        asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace: uploadParams.namespace, name: uploadParams.name }, jobId }))
         notifyDataImportProgress(jobId)
       }
     }

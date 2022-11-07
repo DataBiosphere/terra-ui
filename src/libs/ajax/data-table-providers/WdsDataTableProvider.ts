@@ -9,7 +9,7 @@ import {
   EntityQueryResponse,
   isInvalidFn,
   tooltipFn,
-  uploadFn
+  uploadFn, UploadTSVParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
@@ -138,7 +138,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return !recordTypePresent ? 'Please enter record type' : !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
   }
 
-  doUpload: uploadFn = async (workspaceId: string, recordType: string, file: File, _0: boolean, _1: boolean, _2: string, _3: string) => {
-    await Ajax().WorkspaceDataService.uploadTsv(workspaceId, recordType, file)
+  doUpload: uploadFn = (uploadParams: UploadTSVParameters) => {
+    return Ajax().WorkspaceDataService.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

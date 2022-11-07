@@ -10,7 +10,7 @@ import Collapse from 'src/components/Collapse'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, Link, spinnerOverlay } from 'src/components/common'
 import { DataTableSaveVersionModal, DataTableVersion, DataTableVersions } from 'src/components/data/data-table-versions'
 import {
-  DualEntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell
+  EntityUploader, getRootTypeForSetTable, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell
 } from 'src/components/data/data-utils'
 import EntitiesContent from 'src/components/data/EntitiesContent'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -930,7 +930,7 @@ const WorkspaceData = _.flow(
               },
               namespace, name, referenceDataType: deletingReference
             }),
-            uploadingFile && h(DualEntityUploader, {
+            uploadingFile && h(EntityUploader, {
               onDismiss: () => setUploadingFile(false),
               onSuccess: () => {
                 setUploadingFile(false)
@@ -940,7 +940,7 @@ const WorkspaceData = _.flow(
               namespace, name,
               entityTypes: _.keys(entityMetadata), dataProvider: entityServiceDataTableProvider
             }),
-            uploadingWDSFile && h(DualEntityUploader, {
+            uploadingWDSFile && h(EntityUploader, {
               onDismiss: () => setUploadingWDSFile(false),
               onSuccess: () => {
                 setUploadingWDSFile(false)
