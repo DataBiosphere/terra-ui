@@ -368,15 +368,16 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        dataProvider.features.needsTypeInput && div(['Record type:  ', h(TextInput, {
-          id: 'recordTypeInput',
-          value: recordType,
-          placeholder: 'Enter record type',
-          onChange: value => {
-            setRecordType(value)
-            setRecordAlreadyExists(_.includes(value, entityTypes))
-          }
-        })]),
+        dataProvider.features.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Record type:  '),
+          h(TextInput, {
+            id: 'recordTypeInput',
+            value: recordType,
+            placeholder: 'Enter record type',
+            onChange: value => {
+              setRecordType(value)
+              setRecordAlreadyExists(_.includes(value, entityTypes))
+            }
+          })]),
         dataProvider.features.supportsTabBar && h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],

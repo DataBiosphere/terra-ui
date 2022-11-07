@@ -30,9 +30,11 @@ const queryOptions: EntityQueryOptions = {
   filterOperator: ''
 }
 
+type WorkspaceDataContract = ReturnType<typeof WorkspaceData>
+type AjaxContract = ReturnType<typeof Ajax>
 
 describe('WdsDataTableProvider', () => {
-  const getRecordsMockImpl: ReturnType<typeof WorkspaceData>['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
+  const getRecordsMockImpl: WorkspaceDataContract['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
     const recordQueryResponse: RecordQueryResponse = {
       searchRequest: {
         limit: 10,
@@ -103,110 +105,30 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(recordQueryResponse)
   }
 
-  const deleteTableMockImpl: ReturnType<typeof WorkspaceData>['deleteTable'] = (_instanceId: string, _recordType: string) => {
+  const deleteTableMockImpl: WorkspaceDataContract['deleteTable'] = (_instanceId: string, _recordType: string) => {
     return Promise.resolve(new Response('', { status: 204 }))
   }
 
-  const downloadTsvMockImpl: ReturnType<typeof WorkspaceData>['downloadTsv'] = (_instanceId: string, _recordType: string) => {
+  const downloadTsvMockImpl: WorkspaceDataContract['downloadTsv'] = (_instanceId: string, _recordType: string) => {
     return Promise.resolve(new Blob(['hello']))
   }
 
-  const uploadTsvMockImpl: ReturnType<typeof WorkspaceData>['uploadTsv'] = (_instanceId: string, _recordType: string, _file: File) => {
+  const uploadTsvMockImpl: WorkspaceDataContract['uploadTsv'] = (_instanceId: string, _recordType: string, _file: File) => {
     return Promise.resolve(new Response('', { status: 200 }))
   }
 
-  let getRecords
-  let deleteTable
-  let downloadTsv
-  let uploadTsv
+  let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
+  let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>
+  let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>
+  let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>
 
   beforeEach(() => {
-    getRecords = jest.fn().mockImplementation((_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
-      const recordQueryResponse: RecordQueryResponse = {
-        searchRequest: {
-          limit: 10,
-          offset: 0,
-          sort: 'desc',
-          sortAttribute: 'numericAttr'
-        },
-        records: [
-          {
-            id: '2',
-            type: 'item',
-            attributes: {
-              arrayBoolean: [
-                true,
-                false
-              ],
-              arrayDate: [
-                '2022-11-03'
-              ],
-              arrayDateTime: [
-                '2022-11-03T04:36:20'
-              ],
-              arrayNumber: [
-                12821.112,
-                0.12121211,
-                11
-              ],
-              arrayString: [
-                'green',
-                'red'
-              ],
-              booleanAttr: true,
-              numericAttr: 2,
-              stringAttr: 'string'
-            }
-          },
-          {
-            id: '1',
-            type: 'item',
-            attributes: {
-              arrayBoolean: [
-                true,
-                false
-              ],
-              arrayDate: [
-                '2022-11-03'
-              ],
-              arrayDateTime: [
-                '2022-11-03T04:36:20'
-              ],
-              arrayNumber: [
-                12821.112,
-                0.12121211,
-                11
-              ],
-              arrayString: [
-                'green',
-                'red'
-              ],
-              booleanAttr: true,
-              numericAttr: 1,
-              stringAttr: 'string'
-            }
-          }
-        ],
-        totalRecords: 2
-      }
-      return Promise.resolve(recordQueryResponse)
-    })
-    deleteTable = jest.fn().mockImplementation((_instanceId: string, _recordType: string) => {
-      return Promise.resolve(new Response('', { status: 204 }))
-    })
-    downloadTsv = jest.fn().mockImplementation((_instanceId: string, _recordType: string) => {
-      return Promise.resolve(new Blob(['hello']))
-    })
-    uploadTsv = jest.fn().mockImplementation((_instanceId: string, _recordType: string, _file: File) => {
-      return Promise.resolve(new Response('', { status: 200 }))
-    })
-
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
     uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl)
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } } as ReturnType<typeof Ajax>))
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract> } as Partial<AjaxContract> as AjaxContract))
   })
 
   describe('transformPage', () => {
@@ -338,11 +260,15 @@ describe('WdsDataTableProvider', () => {
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
-      expect(provider.isInvalid(false, false, false, false)).toBeTruthy()
+      expect(provider.isInvalid(false, true, false, false)).toBeTruthy()
     })
 
     it('TSV is invalid', () => {
       expect(provider.isInvalid(false, false, false, true)).toBeFalsy()
+    })
+
+    it('TSV is not present', () => {
+      expect(provider.isInvalid(false, false, false, false)).toBeFalsy()
     })
   })
 

@@ -126,8 +126,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
   }
 
-  isInvalid: isInvalidFn = (_0: boolean, _1: boolean, _2: boolean, sysNamePresent: boolean) => {
-    return !sysNamePresent
+  isInvalid: isInvalidFn = (_0: boolean, filePresent: boolean, _2: boolean, sysNamePresent: boolean) => {
+    return !sysNamePresent && filePresent
   }
 
   disabled: disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => {
@@ -139,6 +139,6 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   doUpload: uploadFn = (uploadParams: UploadTSVParameters) => {
-    return Ajax().WorkspaceDataService.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+    return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }
