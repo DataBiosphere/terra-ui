@@ -75,7 +75,7 @@ export type disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: b
 
 export type tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
 
-export type uploadFn = (uploadParams: UploadTSVParameters) => Promise<void>
+export type uploadFn = (uploadParams: UploadTSVParameters) => Promise<Response>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean,

@@ -34,6 +34,7 @@ describe('WdsDataTableProvider', () => {
   let getRecords
   let deleteTable
   let downloadTsv
+  let uploadTsv
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation((_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
@@ -112,8 +113,11 @@ describe('WdsDataTableProvider', () => {
     downloadTsv = jest.fn().mockImplementation((_instanceId: string, _recordType: string) => {
       return Promise.resolve(new Blob(['hello']))
     })
+    uploadTsv = jest.fn().mockImplementation((_instanceId: string, _recordType: string, _file: File) => {
+      return Promise.resolve(new Response('', { status: 200 }))
+    })
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceDataService: { getRecords, deleteTable, downloadTsv } } as ReturnType<typeof Ajax>))
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceDataService: { getRecords, deleteTable, downloadTsv, uploadTsv } } as ReturnType<typeof Ajax>))
   })
 
   describe('transformPage', () => {
@@ -239,7 +243,7 @@ describe('WdsDataTableProvider', () => {
       })
     })
   })
-  describe.only('isInvalid', () => {
+  describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
       expect(provider.isInvalid(false, false, false, false)).toBeTruthy()
@@ -285,13 +289,19 @@ describe('WdsDataTableProvider', () => {
     })
   })
 
-  // describe('doUpload', () => {
-  //   it('should upload a TSV', () => {
-  //     let testFile: File = new File([""], "test.tsv")
-  //     const provider = new TestableWdsProvider(uuid)
-  //     provider.doUpload(uuid, recordType, testFile, true, true, "hello", "goodbye")
-  //   })
-  // })
+  describe('uploadTsv', () => {
+    it('uploads a TSV', () => {
+      // ====== Arrange
+      const provider = new TestableWdsProvider(uuid)
+      const tsvFile = new File([''], 'testFile.tsv')
+      // ====== Act
+      return provider.doUpload({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
+        // ====== Assert
+        expect(uploadTsv.mock.calls.length).toBe(1)
+        expect(actual.status).toBe(200)
+      })
+    })
+  })
 })
 
 describe('transformMetadata', () => {
