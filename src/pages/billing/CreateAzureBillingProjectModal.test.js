@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
@@ -13,14 +11,11 @@ import { v4 as uuid } from 'uuid'
 
 
 jest.mock('src/components/Modal', () => {
-  const { div, h } = jest.requireActual('react-hyperscript-helpers')
   const originalModule = jest.requireActual('src/components/Modal')
   return {
     ...originalModule,
     __esModule: true,
-    default: props => div({ id: 'modal-root' }, [
-      h(originalModule.default, { onAfterOpen: jest.fn(), ...props })
-    ])
+    default: props => originalModule.default({ onAfterOpen: jest.fn(), ...props })
   }
 })
 jest.mock('src/libs/ajax')

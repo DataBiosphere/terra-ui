@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'

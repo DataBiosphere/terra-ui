@@ -193,7 +193,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   )(async () => {
     try {
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
-      onSuccess()
+      onSuccess(billingProjectName)
     } catch (error) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
@@ -406,14 +406,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         }
       }),
       creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         },
@@ -435,9 +437,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [!isLoadingProjects && _.isEmpty(billingProjects), () => h(CreateNewBillingProjectWizard, {
+        [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
             setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({
