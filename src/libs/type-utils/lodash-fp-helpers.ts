@@ -11,7 +11,7 @@ export interface WithHandlersFn {
   <P, A extends any[], F extends (...args: A) => Promise<P>>(
       handlers: WrapFn<(...args: A) => Promise<P | unknown>>[],
       mainFn: F
-  ): F;
+  ): F
   <F extends AnyFn, F2 extends F>(
       handlers: WrapFn<GenericFn<F2>>[],
       mainFn: F
@@ -35,16 +35,16 @@ export const withHandlers : WithHandlersFn = <F extends AnyFn>(handlers: WrapFn<
 export interface CurryLastArgFn {
   <A, LAST, R>(
       fn: (a: A, last: LAST) => R
-  ) : (a: A) => (last: LAST) => R;
+  ) : (a: A) => (last: LAST) => R
   <A, B, LAST, R>(
       fn: (a: A, b: B, last: LAST) => R
-  ) : (a: A, b: B) => (last: LAST) => R;
+  ) : (a: A, b: B) => (last: LAST) => R
   <A, B, C, LAST, R>(
       fn: (a: A, b: B, c: C, last: LAST) => R
-  ) : (a: A, b: B, c: C) => (last: LAST) => R;
+  ) : (a: A, b: B, c: C) => (last: LAST) => R
   <A, B, C, D, LAST, R>(
       fn: (a: A, b: B, c: C, d: D, last: LAST) => R
-  ) : (a: A, b: B, c: C, d: D) => (last: LAST) => R;
+  ) : (a: A, b: B, c: C, d: D) => (last: LAST) => R
 }
 
 /**
