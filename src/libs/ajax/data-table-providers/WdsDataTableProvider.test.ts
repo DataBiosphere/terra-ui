@@ -239,6 +239,59 @@ describe('WdsDataTableProvider', () => {
       })
     })
   })
+  describe.only('isInvalid', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it('TSV is valid', () => {
+      expect(provider.isInvalid(false, false, false, false)).toBeTruthy()
+    })
+
+    it('TSV is invalid', () => {
+      expect(provider.isInvalid(false, false, false, true)).toBeFalsy()
+    })
+  })
+
+  describe('disabled', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it.each([
+      [[false, false, false, true], true],
+      [[true, true, false, true], true],
+      [[true, false, true, true], true],
+      [[true, false, false, false], true]
+    ])('Upload button is disabled', (conditions: boolean[], result: boolean) => {
+      expect(provider.disabled(conditions[0], conditions[1], conditions[2], conditions[3])).toEqual(result)
+    })
+
+    it('Upload button is not disabled', () => {
+      const actual = provider.disabled(true, false, false, true)
+      expect(actual).toBe(false)
+    })
+  })
+
+  describe('tooltip', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it('Tooltip -- needs record type', () => {
+      const actual = provider.tooltip(true, false, false)
+      expect(actual).toBe('Please enter record type')
+    })
+
+    it('Tooltip -- needs valid data', () => {
+      const actual = provider.tooltip(true, true, true)
+      expect(actual).toBe('Please select valid data to upload')
+    })
+
+    it('Tooltip -- upload selected data', () => {
+      const actual = provider.tooltip(true, false, true)
+      expect(actual).toBe('Upload selected data')
+    })
+  })
+
+  // describe('doUpload', () => {
+  //   it('should upload a TSV', () => {
+  //     let testFile: File = new File([""], "test.tsv")
+  //     const provider = new TestableWdsProvider(uuid)
+  //     provider.doUpload(uuid, recordType, testFile, true, true, "hello", "goodbye")
+  //   })
+  // })
 })
 
 describe('transformMetadata', () => {
