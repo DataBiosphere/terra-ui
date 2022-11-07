@@ -113,7 +113,7 @@ describe('WdsDataTableProvider', () => {
       return Promise.resolve(new Blob(['hello']))
     })
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceDataService: { getRecords, deleteTable, downloadTsv } } as ReturnType<typeof Ajax>))
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv } } as ReturnType<typeof Ajax>))
   })
 
   describe('transformPage', () => {

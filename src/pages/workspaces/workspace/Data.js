@@ -562,7 +562,7 @@ const WorkspaceData = _.flow(
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
-        const wdsSchema = await Ajax(signal).WorkspaceDataService.getSchema(workspaceId)
+        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
         setWdsSchemaError(error)

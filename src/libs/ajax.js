@@ -14,7 +14,7 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
-import { WorkspaceDataService } from 'src/libs/ajax/WorkspaceDataService'
+import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
@@ -1251,7 +1251,7 @@ export const Ajax = signal => {
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
     Surveys: Surveys(signal),
-    WorkspaceDataService: WorkspaceDataService(signal)
+    WorkspaceData: WorkspaceData(signal)
   }
 }
 
