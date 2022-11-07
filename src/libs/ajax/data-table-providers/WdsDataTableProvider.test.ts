@@ -30,9 +30,11 @@ const queryOptions: EntityQueryOptions = {
   filterOperator: ''
 }
 
+type WorkspaceDataContract = ReturnType<typeof WorkspaceData>
+type AjaxContract = ReturnType<typeof Ajax>
 
 describe('WdsDataTableProvider', () => {
-  const getRecordsMockImpl: ReturnType<typeof WorkspaceData>['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
+  const getRecordsMockImpl: WorkspaceDataContract['getRecords'] = (_instanceId: string, _recordType: string, _parameters: SearchRequest) => {
     const recordQueryResponse: RecordQueryResponse = {
       searchRequest: {
         limit: 10,
@@ -103,24 +105,24 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(recordQueryResponse)
   }
 
-  const deleteTableMockImpl: ReturnType<typeof WorkspaceData>['deleteTable'] = (_instanceId: string, _recordType: string) => {
+  const deleteTableMockImpl: WorkspaceDataContract['deleteTable'] = (_instanceId: string, _recordType: string) => {
     return Promise.resolve(new Response('', { status: 204 }))
   }
 
-  const downloadTsvMockImpl: ReturnType<typeof WorkspaceData>['downloadTsv'] = (_instanceId: string, _recordType: string) => {
+  const downloadTsvMockImpl: WorkspaceDataContract['downloadTsv'] = (_instanceId: string, _recordType: string) => {
     return Promise.resolve(new Blob(['hello']))
   }
 
-  let getRecords
-  let deleteTable
-  let downloadTsv
+  let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
+  let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>
+  let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv } } as ReturnType<typeof Ajax>))
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv } as Partial<WorkspaceDataContract> } as Partial<AjaxContract> as AjaxContract))
   })
 
   describe('transformPage', () => {
