@@ -4,33 +4,33 @@ import { DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOption
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
-  name: string,
-  datatype: string,
+  name: string
+  datatype: string
   relatesTo?: string
 }
 
 export interface RecordTypeSchema {
-  name: string,
-  count: number,
+  name: string
+  count: number
   attributes: AttributeSchema[]
 }
 
 export interface SearchRequest {
-  offset: number,
-  limit: number,
-  sort: 'asc' | 'desc',
+  offset: number
+  limit: number
+  sort: 'asc' | 'desc'
   sortAttribute?: string
 }
 
 interface RecordResponse {
-  id: string,
-  type: string,
+  id: string
+  type: string
   attributes: Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
 }
 
 export interface RecordQueryResponse {
-  searchRequest: SearchRequest,
-  totalRecords: number,
+  searchRequest: SearchRequest
+  totalRecords: number
   records: RecordResponse[]
 }
 
