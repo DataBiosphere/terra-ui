@@ -4,7 +4,8 @@ import { fetchBuckets, saToken } from 'src/libs/ajax'
 import { authOpts, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { runtimeTools, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
@@ -72,7 +73,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), items)
   },
 
   listAnalyses: async (googleProject, name) => {
@@ -81,7 +82,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
+    return _.filter(({ name }) => (_.includes(getExtension(name), runtimeTools.Jupyter.ext) || _.includes(getExtension(name), runtimeTools.RStudio.ext)), items)
   },
 
   list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {

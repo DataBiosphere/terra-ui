@@ -10,9 +10,10 @@ import * as Nav from 'src/libs/nav'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getPatternFromTool, getToolFromRuntime, notebookLockHash, stripExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getPatternFromTool, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 

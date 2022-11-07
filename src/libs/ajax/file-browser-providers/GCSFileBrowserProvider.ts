@@ -25,6 +25,8 @@ type GCSFileBrowserProviderGetPageParams<T> = {
   mapItemOrPrefix: (prefix: string) => T
 })
 
+interface BucketListRequestOptions { maxResults: number, pageToken?: string }
+
 const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBrowserProviderParams): FileBrowserProvider => {
   const getNextPage = async <T>(params: GCSFileBrowserProviderGetPageParams<T>): Promise<IncrementalResponse<T>> => {
     const { isFirstPage, itemsOrPrefixes, mapItemOrPrefix, pageToken, pendingItems = [], prefix, previousItems = [], signal } = params
@@ -34,7 +36,7 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
 
     if (nextPageToken || isFirstPage) {
       do {
-        const requestOptions: { maxResults: number; pageToken?: string } = {
+        const requestOptions: BucketListRequestOptions = {
           maxResults: pageSize
         }
         if (nextPageToken) {

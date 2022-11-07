@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import * as Utils from 'src/libs/utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultLocation, defaultPersistentDiskType, runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { v4 as uuid } from 'uuid'
 
 
