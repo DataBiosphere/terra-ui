@@ -35,6 +35,7 @@ const eventsList = {
   billingCreationGCPProjectNameEntered: 'billing:creation:gcpProjectNameEntered',
   billingCreationGCPBillingAccountSelected: 'billing:creation:gcpBillingAccountSelected',
   billingCreationGCPBillingProjectCreated: 'billing:creation:gcpBillingProjectCreated',
+  billingCreationAzureBillingProjectCreated: 'billing:creation:azureBillingProjectCreated',
   changeBillingAccount: 'billing:project:account:update',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
