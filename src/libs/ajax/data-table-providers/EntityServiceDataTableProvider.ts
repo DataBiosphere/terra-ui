@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, DeleteTableFn, EntityQueryOptions, GetMetadataFn, GetPageFn } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { DataTableFeatures, DataTableProvider, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 
 export class EntityServiceDataTableProvider implements DataTableProvider {
@@ -15,6 +15,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
 
   features: DataTableFeatures = {
     supportsTsvDownload: true,
+    supportsTsvAjaxDownload: false,
     supportsTypeDeletion: true,
     supportsTypeRenaming: true,
     supportsExport: true,
@@ -22,8 +23,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsFiltering: true
   }
 
-  getPage: GetPageFn = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name)
+  getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name)
       .paginatedEntitiesOfType(entityType, _.pickBy(v => _.trim(v?.toString()), {
         page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
         sortField: queryOptions.sortField, sortDirection: queryOptions.sortDirection,
@@ -33,11 +34,11 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
       }))
   }
 
-  getMetadata: GetMetadataFn = async (signal: AbortSignal) => {
-    return await Ajax(signal).Workspaces.workspace(this.namespace, this.name).entityMetadata()
+  deleteTable = (entityType: string): Promise<Response> => {
+    return Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
   }
 
-  deleteTable: DeleteTableFn = async (entityType: string) => {
-    return await Ajax().Workspaces.workspace(this.namespace, this.name).deleteEntitiesOfType(entityType)
+  downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
+    return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 }

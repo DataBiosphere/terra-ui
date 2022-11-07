@@ -1,5 +1,5 @@
 // define metadata structures
-interface EntityTypeMetadata {
+export interface EntityTypeMetadata {
   attributeNames: string[]
   count: number
   idName: string
@@ -55,10 +55,13 @@ export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: 
 
 export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 
-export type DeleteTableFn = (entityType: string) => Promise<void>
+export type DeleteTableFn = (entityType: string) => Promise<Response>
+
+export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean
+  supportsTsvAjaxDownload: boolean
   supportsTypeDeletion: boolean
   supportsTypeRenaming: boolean
   supportsExport: boolean
@@ -70,9 +73,9 @@ export interface DataTableProvider {
   features: DataTableFeatures
   getPage: GetPageFn
   deleteTable: DeleteTableFn
+  downloadTsv: DownloadTsvFn
   // todos that we will need soon:
   // getMetadata: GetMetadataFn
-  // downloadTsv: function, see also supportsTsvDownload
   // updateAttribute: function, see also boolean
 }
 
