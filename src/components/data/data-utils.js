@@ -334,7 +334,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   }
 
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = dataProvider.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.match(/sys_name/)) //TODO this should really only look at the first line
+  const isInvalid = dataProvider.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.split('\n')[0].match(/sys_name/)) //only look at the first line
   const newEntityType = match?.[1]
   const entityAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
