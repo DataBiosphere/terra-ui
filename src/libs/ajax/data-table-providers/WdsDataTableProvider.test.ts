@@ -118,7 +118,7 @@ describe('WdsDataTableProvider', () => {
 
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
 
       // example response from WDS, copy-pasted from a WDS swagger call
@@ -154,10 +154,10 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 52
       }
 
-      // ====== Act
+      // Act
       const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
 
-      // ====== Assert
+      // Assert
       const expected: EntityQueryResponse = {
         results: [
           {
@@ -201,12 +201,13 @@ describe('WdsDataTableProvider', () => {
   })
   describe('getPage', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
       const signal = new AbortController().signal
-      // ====== Act
+
+      // Act
       return provider.getPage(signal, recordType, queryOptions).then(actual => {
-        // ====== Assert
+        // Assert
         expect(getRecords.mock.calls.length).toBe(1)
         expect(actual.resultMetadata.unfilteredCount).toBe(2)
       })
@@ -214,11 +215,12 @@ describe('WdsDataTableProvider', () => {
   })
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
-      // ====== Act
+
+      // Act
       return provider.deleteTable(recordType).then(actual => {
-        // ====== Assert
+        // Assert
         expect(deleteTable.mock.calls.length).toBe(1)
         expect(actual.status).toBe(204)
       })
@@ -226,12 +228,13 @@ describe('WdsDataTableProvider', () => {
   })
   describe('downloadTsv', () => {
     it('restructures a WDS response', () => {
-      // ====== Arrange
+      // Arrange
       const provider = new TestableWdsProvider(uuid)
       const signal = new AbortController().signal
-      // ====== Act
+
+      // Act
       return provider.downloadTsv(signal, recordType).then(actual => {
-        // ====== Assert
+        // Assert
         expect(downloadTsv.mock.calls.length).toBe(1)
         actual.text().then(txt => {
           expect(txt).toBe('hello')
@@ -243,7 +246,7 @@ describe('WdsDataTableProvider', () => {
 
 describe('transformMetadata', () => {
   it('restructures a WDS response', () => {
-    // ====== Arrange
+    // Arrange
     // example response from WDS, copy-pasted from a WDS swagger call
     const wdsSchema: RecordTypeSchema[] = [
       {
@@ -280,10 +283,10 @@ describe('transformMetadata', () => {
       }
     ]
 
-    // ====== Act
+    // Act
     const actual: EntityMetadata = wdsToEntityServiceMetadata(wdsSchema)
 
-    // ====== Assert
+    // Assert
     const expected: EntityMetadata = {
       item: {
         count: 7,
