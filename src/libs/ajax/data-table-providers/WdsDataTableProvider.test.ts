@@ -260,15 +260,15 @@ describe('WdsDataTableProvider', () => {
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
-      expect(provider.isInvalid(false, true, false, false)).toBeTruthy()
+      expect(provider.tsvFeatures.isInvalid(false, true, false, false)).toBeTruthy()
     })
 
     it('TSV is invalid', () => {
-      expect(provider.isInvalid(false, false, false, true)).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid(false, false, false, true)).toBeFalsy()
     })
 
     it('TSV is not present', () => {
-      expect(provider.isInvalid(false, false, false, false)).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid(false, false, false, false)).toBeFalsy()
     })
   })
 
@@ -280,11 +280,11 @@ describe('WdsDataTableProvider', () => {
       [[true, false, true, true], true],
       [[true, false, false, false], true]
     ])('Upload button is disabled', (conditions: boolean[], result: boolean) => {
-      expect(provider.disabled(conditions[0], conditions[1], conditions[2], conditions[3])).toEqual(result)
+      expect(provider.tsvFeatures.disabled(conditions[0], conditions[1], conditions[2], conditions[3])).toEqual(result)
     })
 
     it('Upload button is not disabled', () => {
-      const actual = provider.disabled(true, false, false, true)
+      const actual = provider.tsvFeatures.disabled(true, false, false, true)
       expect(actual).toBe(false)
     })
   })
@@ -292,17 +292,17 @@ describe('WdsDataTableProvider', () => {
   describe('tooltip', () => {
     const provider = new TestableWdsProvider(uuid)
     it('Tooltip -- needs record type', () => {
-      const actual = provider.tooltip(true, false, false)
+      const actual = provider.tsvFeatures.tooltip(true, false, false)
       expect(actual).toBe('Please enter record type')
     })
 
     it('Tooltip -- needs valid data', () => {
-      const actual = provider.tooltip(true, true, true)
+      const actual = provider.tsvFeatures.tooltip(true, true, true)
       expect(actual).toBe('Please select valid data to upload')
     })
 
     it('Tooltip -- upload selected data', () => {
-      const actual = provider.tooltip(true, false, true)
+      const actual = provider.tsvFeatures.tooltip(true, false, true)
       expect(actual).toBe('Upload selected data')
     })
   })
@@ -313,7 +313,7 @@ describe('WdsDataTableProvider', () => {
       const provider = new TestableWdsProvider(uuid)
       const tsvFile = new File([''], 'testFile.tsv')
       // ====== Act
-      return provider.doUpload({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
+      return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
         // ====== Assert
         expect(uploadTsv.mock.calls.length).toBe(1)
         expect(actual.status).toBe(200)

@@ -3,10 +3,11 @@ import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import { Ajax } from 'src/libs/ajax'
 import {
   DataTableFeatures,
-  DataTableProvider, disabledFn,
+  DataTableProvider,
   EntityQueryOptions,
   EntityQueryResponse,
-  isInvalidFn, tooltipFn, uploadFn, UploadParameters
+  TSVFeatures,
+  UploadParameters, uploadTsvFn
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -30,11 +31,23 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsExport: true,
     supportsPointCorrection: true,
     supportsFiltering: true,
-    supportsTabBar: true,
+    supportsTabBar: true
+  }
+
+  tsvFeatures: TSVFeatures = {
     needsTypeInput: false,
     uploadInstructions: 'Choose the data import option below. ',
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
-    invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.'
+    invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
+    isInvalid: (modeMatches: boolean, filePresent: boolean, match: boolean, _: boolean) => {
+      return modeMatches && filePresent && match
+    },
+    disabled: (filePresent: boolean, isInvalid: boolean, uploading: boolean, _: boolean) => {
+      return !filePresent || isInvalid || uploading
+    },
+    tooltip: (filePresent: boolean, isInvalid: boolean, _: boolean) => {
+      return !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+    }
   }
 
   getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
@@ -56,19 +69,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 
-  isInvalid: isInvalidFn = (modeMatches: boolean, filePresent: boolean, match: boolean, _: boolean) => {
-    return modeMatches && filePresent && match
-  }
-
-  disabled: disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, _: boolean) => {
-    return !filePresent || isInvalid || uploading
-  }
-
-  tooltip: tooltipFn = (filePresent: boolean, isInvalid: boolean, _: boolean) => {
-    return !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
-  }
-
-  doUpload: uploadFn = async (uploadParams: UploadParameters) => {
+  uploadTsv: uploadTsvFn = async (uploadParams: UploadParameters) => {
     const workspace = Ajax().Workspaces.workspace(uploadParams.namespace, uploadParams.name)
     if (uploadParams.useFireCloudDataModel) {
       return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })

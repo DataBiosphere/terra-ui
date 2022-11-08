@@ -3,13 +3,11 @@ import { Ajax } from 'src/libs/ajax'
 import {
   DataTableFeatures,
   DataTableProvider,
-  disabledFn,
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
-  isInvalidFn,
-  tooltipFn,
-  uploadFn, UploadParameters
+  TSVFeatures,
+  UploadParameters, uploadTsvFn
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
@@ -67,11 +65,23 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsExport: false,
     supportsPointCorrection: false,
     supportsFiltering: false,
-    supportsTabBar: false,
+    supportsTabBar: false
+  }
+
+  tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
     uploadInstructions: 'Choose the data to import below. ',
     sampleTSVLink: 'src/../wds_template.tsv', //TODO: placeholder, does not currently work
-    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.'
+    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
+    isInvalid: (_0: boolean, filePresent: boolean, _2: boolean, sysNamePresent: boolean) => {
+      return !sysNamePresent && filePresent
+    },
+    disabled: (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => {
+      return !filePresent || isInvalid || uploading || !recordTypePresent
+    },
+    tooltip: (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => {
+      return !recordTypePresent ? 'Please enter record type' : !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+    }
   }
 
   protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
@@ -126,19 +136,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
   }
 
-  isInvalid: isInvalidFn = (_0: boolean, filePresent: boolean, _2: boolean, sysNamePresent: boolean) => {
-    return !sysNamePresent && filePresent
-  }
-
-  disabled: disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => {
-    return !filePresent || isInvalid || uploading || !recordTypePresent
-  }
-
-  tooltip: tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => {
-    return !recordTypePresent ? 'Please enter record type' : !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
-  }
-
-  doUpload: uploadFn = (uploadParams: UploadParameters) => {
+  uploadTsv: uploadTsvFn = (uploadParams: UploadParameters) => {
     return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

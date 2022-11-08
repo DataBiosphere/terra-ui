@@ -69,13 +69,13 @@ export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
-export type isInvalidFn = (modeMatches: boolean, filePresent: boolean, match: boolean, sysNamePresent: boolean) => boolean
+export type isInvalidTsvFn = (modeMatches: boolean, filePresent: boolean, match: boolean, sysNamePresent: boolean) => boolean
 
-export type disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => boolean
+export type isTsvUploadButtonDisabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => boolean
 
-export type tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
+export type tsvUploadButtonTooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
 
-export type uploadFn = (uploadParams: UploadParameters) => Promise<Response>
+export type uploadTsvFn = (uploadParams: UploadParameters) => Promise<Response>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean
@@ -86,21 +86,25 @@ export interface DataTableFeatures {
   supportsPointCorrection: boolean
   supportsFiltering: boolean
   supportsTabBar: boolean
+}
+
+export interface TSVFeatures {
   needsTypeInput: boolean
   uploadInstructions: string
   sampleTSVLink: string
   invalidFormatWarning: string
+  isInvalid: isInvalidTsvFn
+  disabled: isTsvUploadButtonDisabledFn
+  tooltip: tsvUploadButtonTooltipFn
 }
 
 export interface DataTableProvider {
   features: DataTableFeatures
+  tsvFeatures: TSVFeatures
   getPage: GetPageFn
   deleteTable: DeleteTableFn
   downloadTsv: DownloadTsvFn
-  isInvalid: isInvalidFn
-  disabled: disabledFn
-  tooltip: tooltipFn
-  doUpload: uploadFn
+  uploadTsv: uploadTsvFn
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean

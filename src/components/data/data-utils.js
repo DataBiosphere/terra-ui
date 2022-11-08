@@ -317,24 +317,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const doUpload = async () => {
     setUploading(true)
     try {
-      await dataProvider.doUpload({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
+      await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()
+      // TODO: AJ-656 add Entity Service vs. WDS indicator to mixpanel event
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
-      }) //do we do this for WDS?
+      })
     } catch (error) {
       await reportError('Error uploading entities', error)
       onDismiss()
     }
   }
 
-  function recordOrEntity() {
-    if (recordType) return recordType
-    else return newEntityType
-  }
-
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = dataProvider.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.split('\n')[0].match(/sys_name/)) //only look at the first line
+  const isInvalid = dataProvider.tsvFeatures.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.split('\n')[0].match(/sys_name/)) //only look at the first line
   const newEntityType = match?.[1]
   const entityAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
@@ -356,19 +352,19 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: dataProvider.disabled(currentFile, isInvalid, uploading, recordType),
-          tooltip: dataProvider.tooltip(currentFile, isInvalid, recordType),
+          disabled: dataProvider.tsvFeatures.disabled(currentFile, isInvalid, uploading, recordType),
+          tooltip: dataProvider.tsvFeatures.tooltip(currentFile, isInvalid, recordType),
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
-          [dataProvider.features.uploadInstructions,
+          [dataProvider.tsvFeatures.uploadInstructions,
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        dataProvider.features.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Record type:  '),
+        dataProvider.tsvFeatures.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Record type:  '),
           h(TextInput, {
             id: 'recordTypeInput',
             value: recordType,
@@ -448,7 +444,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `Data with the type '${recordOrEntity()}' already exists in this workspace. `,
+          `Data with the type '${recordType ? recordType : newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
         currentFile && containsNullValues && (entityAlreadyExists || recordAlreadyExists) && div({
@@ -491,7 +487,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         ]),
         div({ style: errorTextStyle }, [
           Utils.cond(
-            [isInvalid, () => dataProvider.features.invalidFormatWarning],
+            [isInvalid, () => dataProvider.tsvFeatures.invalidFormatWarning],
             [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
           )
         ]),
@@ -501,7 +497,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             icon('downloadRegular', { style: { size: 14, marginRight: '0.5rem' } }),
             'Download ',
             h(Link, {
-              href: dataProvider.features.sampleTSVLink,
+              href: dataProvider.tsvFeatures.sampleTSVLink,
               ...Utils.newTabLinkProps,
               onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
                 workspaceNamespace: namespace, workspaceName: name
