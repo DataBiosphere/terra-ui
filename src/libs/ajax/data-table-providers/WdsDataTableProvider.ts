@@ -22,10 +22,12 @@ export interface SearchRequest {
   sortAttribute?: string
 }
 
+type RecordAttributes = Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
+
 interface RecordResponse {
   id: string
   type: string
-  attributes: Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
+  attributes: RecordAttributes
 }
 
 export interface RecordQueryResponse {
@@ -59,17 +61,11 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
-  private transformAttributes = (attributes: Record<string, unknown>): Record<string, unknown> => {
+  // transforms a WDS array to Entity Service array format
+  private transformAttributes = (attributes: RecordAttributes): RecordAttributes => {
     return _.mapValues(val => {
-      if (_.isArray(val)) {
-        return {
-          itemsType: 'AttributeValue',
-          items: val
-        }
-      } else {
-        return val
-      }
-    }, attributes) as unknown as Record<string, unknown>
+      return _.isArray(val) ? { itemsType: 'AttributeValue', items: val } : val
+    }, attributes)
   }
 
   protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
@@ -83,7 +79,6 @@ export class WdsDataTableProvider implements DataTableProvider {
         name: rec.id
       }
     }, wdsPage.records)
-    // TODO: AJ-661 map WDS arrays to Entity Service array format
 
     return {
       results,
