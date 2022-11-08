@@ -186,7 +186,7 @@ const navigateToDataCatalog = async (page, testUrl, token) => {
 
 const enableDataCatalog = async page => {
   await click(page, clickable({ textContains: 'datasets' }))
-  await click(page, input({ labelContains: 'New Catalog OFF' }))
+  await click(page, clickable({ textContains: 'New Catalog OFF' }))
   await waitForNoSpinners(page)
 }
 
