@@ -225,7 +225,7 @@ describe('WdsDataTableProvider', () => {
             type: 'item',
             attributes: {
               stringAttr: 'string',
-              arrayOfNums: [1, 2, 3]
+              arrayOfNums: [2, 4, 6, 8]
             }
           }
         ],
@@ -244,7 +244,7 @@ describe('WdsDataTableProvider', () => {
               stringAttr: 'string',
               arrayOfNums: {
                 itemsType: 'AttributeValue',
-                items: [1, 2, 3]
+                items: [2, 4, 6, 8]
               }
             },
             name: '1'
