@@ -1,7 +1,7 @@
 // define metadata structures
 export interface EntityTypeMetadata {
-  attributeNames: string[],
-  count: number,
+  attributeNames: string[]
+  count: number
   idName: string
 }
 
@@ -15,47 +15,47 @@ export type EntityQueryFilterOperator = 'and' | 'or'
 
 // define paginated query result structures
 interface EntityQuery {
-  page: number,
-  pageSize: number,
-  sortField: string,
-  sortDirection: EntityQuerySortDirection,
-  filterTerms: string,
+  page: number
+  pageSize: number
+  sortField: string
+  sortDirection: EntityQuerySortDirection
+  filterTerms: string
   filterOperator: EntityQueryFilterOperator
 }
 interface EntityQueryResultMetadata {
-  unfilteredCount: number,
-  filteredCount: number,
+  unfilteredCount: number
+  filteredCount: number
   filteredPageCount: number
 }
 interface Entity {
-  name: string,
-  entityType: string,
+  name: string
+  entityType: string
   attributes: Record<string, any>
 }
 
 export interface EntityQueryResponse {
-  parameters: EntityQuery,
-  resultMetadata: EntityQueryResultMetadata,
+  parameters: EntityQuery
+  resultMetadata: EntityQueryResultMetadata
   results: Entity[]
 }
 
 export interface EntityQueryOptions {
-  pageNumber: number,
-  itemsPerPage: number,
-  sortField: string,
-  sortDirection: EntityQuerySortDirection,
-  snapshotName: string,
-  googleProject: string,
-  activeTextFilter: string,
+  pageNumber: number
+  itemsPerPage: number
+  sortField: string
+  sortDirection: EntityQuerySortDirection
+  snapshotName: string
+  googleProject: string
+  activeTextFilter: string
   filterOperator: string
 }
 
 export interface UploadTSVParameters {
-  file: File,
+  file: File
   useFireCloudDataModel: boolean
   deleteEmptyValues: boolean
   namespace: string
-  name: string,
+  name: string
   workspaceId: string
   recordType: string
 }
@@ -78,28 +78,28 @@ export type tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePre
 export type uploadFn = (uploadParams: UploadTSVParameters) => Promise<Response>
 
 export interface DataTableFeatures {
-  supportsTsvDownload: boolean,
-  supportsTsvAjaxDownload: boolean,
-  supportsTypeDeletion: boolean,
-  supportsTypeRenaming: boolean,
-  supportsExport: boolean,
-  supportsPointCorrection: boolean,
-  supportsFiltering: boolean,
-  supportsTabBar: boolean,
-  needsTypeInput: boolean,
-  uploadInstructions: string,
-  sampleTSVLink: string,
+  supportsTsvDownload: boolean
+  supportsTsvAjaxDownload: boolean
+  supportsTypeDeletion: boolean
+  supportsTypeRenaming: boolean
+  supportsExport: boolean
+  supportsPointCorrection: boolean
+  supportsFiltering: boolean
+  supportsTabBar: boolean
+  needsTypeInput: boolean
+  uploadInstructions: string
+  sampleTSVLink: string
   invalidFormatWarning: string
 }
 
 export interface DataTableProvider {
-  features: DataTableFeatures,
-  getPage: GetPageFn,
-  deleteTable: DeleteTableFn,
-  downloadTsv: DownloadTsvFn,
+  features: DataTableFeatures
+  getPage: GetPageFn
+  deleteTable: DeleteTableFn
+  downloadTsv: DownloadTsvFn
   isInvalid: isInvalidFn
-  disabled: disabledFn,
-  tooltip: tooltipFn,
+  disabled: disabledFn
+  tooltip: tooltipFn
   doUpload: uploadFn
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
