@@ -104,7 +104,7 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
       await Ajax().Apps.app(cloudResource, appName).delete(deleteDisk)
       onSuccess()
     } else {
-      throw new Error('unable to delete non-GCP apps currently - unimplemented')
+      throw new Error('Deleting apps is currently only supported on GCP')
     }
   })
   return h(Modal, {
