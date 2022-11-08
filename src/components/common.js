@@ -7,6 +7,7 @@ import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helper
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
+import { ButtonPrimary } from 'src/components/common/buttons'
 import Clickable from 'src/components/common/Clickable'
 import Link from 'src/components/common/Link'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -20,7 +21,7 @@ import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
-import colors, { terraSpecial } from 'src/libs/colors'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -30,70 +31,9 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
+export * from 'src/components/common/buttons'
 export { Clickable, Link }
 
-const styles = {
-  button: {
-    display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
-    fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
-    userSelect: 'none'
-  },
-  tabBar: {
-    container: {
-      display: 'flex', alignItems: 'center',
-      fontWeight: 400, textTransform: 'uppercase',
-      height: '2.25rem',
-      borderBottom: `1px solid ${terraSpecial()}`, flex: ''
-    },
-    tab: {
-      flex: 'none', padding: '0 1em', height: '100%',
-      alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
-      borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
-    },
-    active: {
-      borderBottomColor: terraSpecial(),
-      fontWeight: 600
-    }
-  }
-}
-
-export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
-      borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) }
-  }, props), [children])
-}
-
-export const ButtonSecondary = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), [children])
-}
-
-export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
-    disabled,
-    style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
-      color: colors.accent(),
-      backgroundColor: disabled ? colors.dark(0.25) : 'white'
-    },
-    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), [children])
-}
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   useLabelAssert('Checkbox', { ...props, allowId: true })
