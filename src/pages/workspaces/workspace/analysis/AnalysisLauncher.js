@@ -34,6 +34,8 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+import { AzureComputeModal } from './modals/AzureComputeModal'
+
 
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
@@ -66,6 +68,7 @@ const AnalysisLauncher = _.flow(
     const currentFileToolLabel = getToolFromFileExtension(analysisName)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const iframeStyles = { height: '100%', width: '100%' }
+    const isAzureWorkspace = !!workspace.azureContext
 
     useOnMount(() => {
       refreshRuntimes()
@@ -88,7 +91,7 @@ const AnalysisLauncher = _.flow(
         mode && h(RuntimeKicker, { runtime: currentRuntime, refreshRuntimes }),
         mode && h(RuntimeStatusMonitor, { runtime: currentRuntime }),
         h(ComputeModal, {
-          isOpen: createOpen,
+          isOpen: createOpen && !isAzureWorkspace,
           tool: currentFileToolLabel,
           shouldHideCloseButton: false,
           workspace,
@@ -106,6 +109,27 @@ const AnalysisLauncher = _.flow(
             setCreateOpen(false)
             await refreshRuntimes(true)
           })
+        }),
+        h(AzureComputeModal, {
+          isOpen: createOpen && isAzureWorkspace,
+          hideCloseButton: true,
+          workspace,
+          runtimes,
+          onDismiss: () => {
+            chooseMode(undefined)
+            setCreateOpen(false)
+          },
+          onSuccess: _.flow(
+            withErrorReporting('Error creating cloud compute'),
+            Utils.withBusyState(setBusy)
+          )(async () => {
+            setCreateOpen(false)
+            await refreshRuntimes(true)
+          }),
+          onError: () => {
+            chooseMode(undefined)
+            setCreateOpen(false)
+          }
         }),
         busy && spinnerOverlay
       ])
@@ -231,7 +255,7 @@ const PreviewHeader = ({
   const welderEnabled = runtime && !runtime.labels?.welderInstallFailed
   const { mode } = queryParams
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
-
+  const isAzureWorkspace = !!workspace.azureContext
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
@@ -268,7 +292,6 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
-
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
@@ -282,7 +305,7 @@ const PreviewHeader = ({
       [runtimeStatus === 'Stopped', () => h(HeaderButton, {
         onClick: () => startAndRefresh(refreshRuntimes, runtime)
       }, openMenuIcon)],
-      [currentRuntimeTool === tools.Azure.label && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
+      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
         () => h(HeaderButton, {
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -290,7 +313,9 @@ const PreviewHeader = ({
             Nav.goToPath(appLauncherTabName, { namespace, name, application: currentRuntimeTool })
           }
         }, openMenuIcon)],
+      [isAzureWorkspace && runtimeStatus !== 'Running', () => {}],
       // Azure logic must come before this branch, as currentRuntimeTool !== currentFileToolLabel for azure.
+
       [currentRuntimeTool !== currentFileToolLabel, () => createNewRuntimeOpenButton],
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch

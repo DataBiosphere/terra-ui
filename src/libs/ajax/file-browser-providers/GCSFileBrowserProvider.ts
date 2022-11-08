@@ -34,7 +34,7 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
 
     if (nextPageToken || isFirstPage) {
       do {
-        const requestOptions: { maxResults: number, pageToken?: string } = {
+        const requestOptions: { maxResults: number; pageToken?: string } = {
           maxResults: pageSize
         }
         if (nextPageToken) {

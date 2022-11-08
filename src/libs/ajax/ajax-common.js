@@ -98,3 +98,4 @@ export const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchO
 export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 export const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
+export const fetchWDS = _.flow(withUrlPrefix(`${getConfig().wdsUrlRoot}/`), withAppIdentifier)(fetchOk)

@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, getByText, render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
@@ -14,16 +12,6 @@ jest.mock('src/libs/service-alerts', () => {
     ...originalModule,
     useServiceAlerts: jest.fn()
   }
-})
-
-beforeAll(() => {
-  const modalRoot = document.createElement('div')
-  modalRoot.id = 'modal-root'
-  document.body.append(modalRoot)
-})
-
-afterAll(() => {
-  document.getElementById('modal-root').remove()
 })
 
 const testAlerts = [

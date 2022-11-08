@@ -14,6 +14,7 @@ import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
 import { Resources } from 'src/libs/ajax/Resources'
 import { Runtimes } from 'src/libs/ajax/Runtimes'
+import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
@@ -892,7 +893,7 @@ const Workspaces = signal => ({
 
       getEntities: entityType => fetchRawls(`${root}/entities/${entityType}`, _.merge(authOpts(), { signal })).then(r => r.json()),
 
-      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.text()),
+      getEntitiesTsv: entityType => fetchOrchestration(`api/workspaces/${namespace}/${name}/entities/${entityType}/tsv?model=flexible`, _.mergeAll([authOpts(), { signal }])).then(r => r.blob()),
 
       copyEntities: async (destNamespace, destName, entityType, entities, link) => {
         const payload = {
@@ -1249,7 +1250,8 @@ export const Ajax = signal => {
     CromIAM: CromIAM(signal),
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
-    Surveys: Surveys(signal)
+    Surveys: Surveys(signal),
+    WorkspaceData: WorkspaceData(signal)
   }
 }
 

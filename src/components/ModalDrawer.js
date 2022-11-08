@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
+import { getPopupRoot } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import { useLabelAssert } from 'src/libs/react-utils'
 
@@ -37,7 +38,7 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, onExited, ...pr
   }, [transitionState => h(RModal, {
     aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true, hidden: transitionState !== 'entered' },
     ariaHideApp: false,
-    parentSelector: () => document.getElementById('modal-root'),
+    parentSelector: getPopupRoot,
     isOpen: true,
     onRequestClose: onDismiss,
     style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
