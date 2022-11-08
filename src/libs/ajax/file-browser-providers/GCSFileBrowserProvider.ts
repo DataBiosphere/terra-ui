@@ -25,7 +25,10 @@ type GCSFileBrowserProviderGetPageParams<T> = {
   mapItemOrPrefix: (prefix: string) => T
 })
 
-interface BucketListRequestOptions { maxResults: number, pageToken?: string }
+interface BucketListRequestOptions {
+  maxResults: number
+  pageToken?: string
+}
 
 const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBrowserProviderParams): FileBrowserProvider => {
   const getNextPage = async <T>(params: GCSFileBrowserProviderGetPageParams<T>): Promise<IncrementalResponse<T>> => {
