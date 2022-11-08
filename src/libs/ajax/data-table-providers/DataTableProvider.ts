@@ -50,7 +50,7 @@ export interface EntityQueryOptions {
   filterOperator: string
 }
 
-export interface UploadTSVParameters {
+export interface UploadParameters {
   file: File
   useFireCloudDataModel: boolean
   deleteEmptyValues: boolean
@@ -75,7 +75,7 @@ export type disabledFn = (filePresent: boolean, isInvalid: boolean, uploading: b
 
 export type tooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
 
-export type uploadFn = (uploadParams: UploadTSVParameters) => Promise<Response>
+export type uploadFn = (uploadParams: UploadParameters) => Promise<Response>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean

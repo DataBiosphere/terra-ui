@@ -6,7 +6,7 @@ import {
   DataTableProvider, disabledFn,
   EntityQueryOptions,
   EntityQueryResponse,
-  isInvalidFn, tooltipFn, uploadFn, UploadTSVParameters
+  isInvalidFn, tooltipFn, uploadFn, UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -68,7 +68,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
   }
 
-  doUpload: uploadFn = async (uploadParams: UploadTSVParameters) => {
+  doUpload: uploadFn = async (uploadParams: UploadParameters) => {
     const workspace = Ajax().Workspaces.workspace(uploadParams.namespace, uploadParams.name)
     if (uploadParams.useFireCloudDataModel) {
       return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })

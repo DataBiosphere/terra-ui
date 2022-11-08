@@ -362,7 +362,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
-          [dataProvider.uploadInstructions,
+          [dataProvider.features.uploadInstructions,
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
