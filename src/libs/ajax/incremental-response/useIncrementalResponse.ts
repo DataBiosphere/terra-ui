@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
 import LoadedState, { NoneState } from 'src/libs/type-utils/LoadedState'
+
+import IncrementalResponse from './IncrementalResponse'
 
 
 type GetIncrementalResponse<T> = (options: { signal: AbortSignal }) => Promise<IncrementalResponse<T>>
