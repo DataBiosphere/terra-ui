@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const uuid = require('uuid')
 const {
-  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
+  click, clickable, dismissNotifications, fillIn, findText, gotoPage, input, label, signIntoTerra, waitForNoSpinners, navChild, noSpinnersAfter,
   navOptionNetworkIdle, enablePageLogging
 } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -186,7 +186,7 @@ const navigateToDataCatalog = async (page, testUrl, token) => {
 
 const enableDataCatalog = async page => {
   await click(page, clickable({ textContains: 'datasets' }))
-  await click(page, clickable({ textContains: 'New Catalog OFF' }))
+  await click(page, label({ labelContains: 'New Catalog OFF' }))
   await waitForNoSpinners(page)
 }
 

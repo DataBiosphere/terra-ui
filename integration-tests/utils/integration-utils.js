@@ -133,12 +133,16 @@ const assertTextNotFound = async (page, text) => {
 }
 
 const input = ({ labelContains, placeholder }) => {
-  const base = '(//input | //textarea)'
+  const base = '(//input | //textarea | //*[@role="switch"])'
   if (labelContains) {
     return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id]`
   } else if (placeholder) {
     return `${base}[@placeholder="${placeholder}"]`
   }
+}
+
+const label = ({ labelContains }) => {
+  return `(//label[contains(normalize-space(.),"${labelContains}")])`
 }
 
 const fillIn = async (page, xpath, text) => {
@@ -468,6 +472,7 @@ module.exports = {
   heading,
   image,
   input,
+  label,
   select,
   svgText,
   delay,
