@@ -79,7 +79,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
+    ...([{ name: 'data', link: 'workspace-data' }]),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
     { name: 'analyses', link: analysisTabName },
@@ -97,6 +97,7 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
+        // TODO: this is where tabs are made visible
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ])
@@ -399,6 +400,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
+        // TODO: workspace is what needs to include isGoogleProject
         namespace, name, activeTab, showTabBar, workspace, refreshWorkspace,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
