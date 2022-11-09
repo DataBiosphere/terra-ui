@@ -13,8 +13,11 @@ export const mockModalModule = (): ModalExports => {
 
   type ModalFn = FunctionComponent & {propTypes: typeof originalModule.modalPropTypes};
 
-  // Stub out onAfterOpen for noOp because real implementation needs
-  // unavailable dom measuring services
+  // Stub out onAfterOpen for noOp because the real implementation needs
+  // unavailable dom measuring services.
+  // Note that this issue may not show up in non-async tests, since the
+  // internal implementation of react-modal only hits onAfterOpen as part of
+  // a requestAnimationFrame async flow.
   const modalFn = props => originalModule.default({ onAfterOpen: jest.fn(), ...props })
   modalFn.propTypes = originalModule.modalPropTypes
 
