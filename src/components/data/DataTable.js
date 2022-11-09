@@ -16,6 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -321,7 +322,7 @@ const DataTable = props => {
               numFixedColumns: visibleColumns.length > 0 ? 2 : 0,
               columns: [
                 {
-                  width: 70,
+                  width: isFeaturePreviewEnabled('workspace-data-service') ? 0 : 70, // WDS does not support selection of rows
                   headerRenderer: () => {
                     return h(Fragment, [
                       h(Checkbox, {
