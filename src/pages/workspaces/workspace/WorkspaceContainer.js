@@ -81,7 +81,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    ...(isFeaturePreviewEnabled('workspace-data-service') ? [{ name: 'data', link: 'workspace-data' }] : []),
+    ...(isFeaturePreviewEnabled('workspace-data-service') || isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
     { name: 'analyses', link: analysisTabName },
