@@ -17,6 +17,8 @@ export const authStore = Utils.atom({
   oidcConfig: {}
 })
 
+export const getUser = () => authStore.get().user
+
 export const userStatus = {
   unregistered: 'unregistered',
   registeredWithoutTos: 'registeredWithoutTos',
