@@ -134,6 +134,10 @@
   "workspaces": [
     "integration-tests"
   ],
+  "jest": {
+    "clearMocks": true,
+    "resetMocks": false
+  },
   "lint-staged": {
     "**/*.{js,ts}": [
       "yarn eslint --max-warnings=0"

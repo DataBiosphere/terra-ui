@@ -86,7 +86,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   ])
 }
 
-Modal.propTypes = {
+export const modalPropTypes = {
   onDismiss: PropTypes.func.isRequired,
   title: PropTypes.node,
   titleExtras: PropTypes.node,
@@ -98,5 +98,7 @@ Modal.propTypes = {
   okButton: PropTypes.oneOfType([PropTypes.string, PropTypes.func, PropTypes.node]),
   children: PropTypes.node
 }
+
+Modal.propTypes = modalPropTypes
 
 export default Modal

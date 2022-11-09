@@ -13,9 +13,12 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+
+
+export { getUser }
 
 
 export const getOidcConfig = () => {
@@ -167,10 +170,6 @@ export const ensureAuthSettled = () => {
       }
     })
   })
-}
-
-export const getUser = () => {
-  return authStore.get().user
 }
 
 export const bucketBrowserUrl = id => {
