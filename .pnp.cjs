@@ -54,6 +54,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:18.7.16"],\
             ["@types/react", "npm:18.0.18"],\
             ["@types/react-dom", "npm:18.0.6"],\
+            ["@types/testing-library__jest-dom", "npm:5.14.5"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
@@ -85,6 +86,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.7.1"],\
+            ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\
@@ -19266,6 +19268,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/node", "npm:18.7.16"],\
             ["@types/react", "npm:18.0.18"],\
             ["@types/react-dom", "npm:18.0.6"],\
+            ["@types/testing-library__jest-dom", "npm:5.14.5"],\
             ["animate.css", "npm:4.1.1"],\
             ["array-move", "npm:4.0.0"],\
             ["babel-plugin-prismjs", "virtual:3bc50e11628962e2d3d040387b897fa78149010dc0c7837774133f031c81b063c69d97afa708f6f7b77daf0a0d6419898bc26265121b2bec06dfc7ebf0feed1d#npm:2.1.0"],\
@@ -19297,6 +19300,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["igv", "npm:2.11.2"],\
             ["jest-axe", "npm:6.0.0"],\
             ["jszip", "npm:3.7.1"],\
+            ["jwt-decode", "npm:3.1.2"],\
             ["lint-staged", "npm:13.0.3"],\
             ["lodash", "npm:4.17.21"],\
             ["marked", "npm:4.0.10"],\

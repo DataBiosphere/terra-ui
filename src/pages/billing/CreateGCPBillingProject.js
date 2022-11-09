@@ -3,6 +3,8 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { IdContainer, Select } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
@@ -29,6 +31,7 @@ const CreateGCPBillingProject = ({
           onChange: v => {
             setBillingProjectName(v)
             setBillingProjectNameTouched(true)
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPProjectNameEntered)
           },
           disabled
         },
@@ -44,7 +47,10 @@ const CreateGCPBillingProject = ({
           isMulti: false,
           placeholder: 'Select a billing account',
           value: chosenBillingAccount,
-          onChange: ({ value }) => setChosenBillingAccount(value),
+          onChange: ({ value }) => {
+            setChosenBillingAccount(value)
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingAccountSelected)
+          },
           options: _.map(account => {
             return {
               value: account,

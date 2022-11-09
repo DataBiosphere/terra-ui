@@ -6,7 +6,8 @@ module.exports = {
     'import/resolver': {
       'eslint-import-resolver-custom-alias': {
         'alias': {
-          'src': './src'
+          'src': './src',
+          'types': './types'
         },
         'extensions': ['.js', '.ts']
       }
@@ -16,7 +17,6 @@ module.exports = {
     // Best Practices
     'no-multi-spaces': 'warn',
     'require-await': 'warn',
-
     // Stylistic Issues
     'array-bracket-newline': ['warn', 'consistent'],
     'array-bracket-spacing': 'warn',
@@ -34,6 +34,7 @@ module.exports = {
     'key-spacing': 'warn',
     'keyword-spacing': 'warn',
     'lines-between-class-members': 'warn',
+    '@typescript-eslint/member-delimiter-style': ['warn', { 'multiline': { 'delimiter': 'none' } }],
     'no-floating-decimal': 'warn',
     'no-lonely-if': 'warn',
     'no-multi-assign': 'warn',

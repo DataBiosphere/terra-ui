@@ -246,7 +246,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
         onClick: () => onTagFilter({ lowerTag, label, section: name })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-        div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
+        div({ style: styles.pill(isChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
       ])
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {

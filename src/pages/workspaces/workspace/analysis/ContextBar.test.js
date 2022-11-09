@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'

@@ -63,6 +63,19 @@ export const computePopupPosition = ({ side, viewport, target, element, gap }) =
   return { side: finalSide, position: finalPosition }
 }
 
+// Render popups, modals, etc. into the #modal-root element.
+// Create the element if it does not exist.
+export const getPopupRoot = () => {
+  let popupRoot = document.getElementById('modal-root')
+  if (!popupRoot) {
+    popupRoot = document.createElement('div')
+    popupRoot.id = 'modal-root'
+    popupRoot.role = 'complementary'
+    document.body.append(popupRoot)
+  }
+  return popupRoot
+}
+
 export const PopupPortal = ({ children }) => {
-  return createPortal(Children.only(children), document.getElementById('modal-root'))
+  return createPortal(Children.only(children), getPopupRoot())
 }

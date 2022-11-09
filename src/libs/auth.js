@@ -1,4 +1,5 @@
 import { parseJSON } from 'date-fns/fp'
+import jwtDecode from 'jwt-decode'
 import _ from 'lodash/fp'
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
@@ -12,9 +13,12 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+
+
+export { getUser }
 
 
 export const getOidcConfig = () => {
@@ -168,12 +172,16 @@ export const ensureAuthSettled = () => {
   })
 }
 
-export const getUser = () => {
-  return authStore.get().user
-}
-
 export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
+}
+
+export const isAzureUser = () => {
+  try {
+    return jwtDecode(authStore.get().user.token)['idp'].startsWith('https://login.microsoftonline.com/')
+  } catch {
+    return false
+  }
 }
 
 export const processUser = (user, isSignInEvent) => {

@@ -7,19 +7,21 @@ import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helper
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
+import { ButtonPrimary } from 'src/components/common/buttons'
+import Clickable from 'src/components/common/Clickable'
+import Link from 'src/components/common/Link'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
-import colors, { terraSpecial } from 'src/libs/colors'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -29,116 +31,9 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const styles = {
-  button: {
-    display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
-    fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
-    userSelect: 'none'
-  },
-  tabBar: {
-    container: {
-      display: 'flex', alignItems: 'center',
-      fontWeight: 400, textTransform: 'uppercase',
-      height: '2.25rem',
-      borderBottom: `1px solid ${terraSpecial()}`, flex: ''
-    },
-    tab: {
-      flex: 'none', padding: '0 1em', height: '100%',
-      alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
-      borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
-    },
-    active: {
-      borderBottomColor: terraSpecial(),
-      fontWeight: 600
-    }
-  }
-}
+export * from 'src/components/common/buttons'
+export { Clickable, Link }
 
-export const Clickable = forwardRefWithName('Clickable',
-  ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
-    const child = h(Interactive, {
-      'aria-disabled': !!disabled,
-      as, disabled, ref,
-      onClick: (...args) => onClick && !disabled && onClick(...args),
-      href: !disabled ? href : undefined,
-      tabIndex: disabled ? '-1' : '0',
-      ...props
-    }, [children])
-
-    // To support accessibility, every link must have a label or contain text or a labeled child.
-    // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
-    // rather than as the description as we otherwise would.
-    //
-    // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
-    // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
-    //
-    // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
-    // Interactive element, we need to do the check here instead.
-    const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
-
-    // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
-    // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
-    if (useAsLabel && !tooltip) {
-      useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
-    }
-
-    if (tooltip) {
-      return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
-    } else {
-      return child
-    }
-  })
-
-export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
-  return h(Clickable, _.merge({
-    ref,
-    style: {
-      color: disabled ? colors.disabled() : baseColor(variant === 'light' ? 0.3 : 1),
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      fontWeight: 500, display: 'inline'
-    },
-    hover: disabled ? undefined : { color: baseColor(variant === 'light' ? 0.1 : 0.8) },
-    disabled
-  }, props), [children])
-})
-
-export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
-      borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) }
-  }, props), [children])
-}
-
-export const ButtonSecondary = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), [children])
-}
-
-export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
-    disabled,
-    style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
-      color: colors.accent(),
-      backgroundColor: disabled ? colors.dark(0.25) : 'white'
-    },
-    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), [children])
-}
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   useLabelAssert('Checkbox', { ...props, allowId: true })

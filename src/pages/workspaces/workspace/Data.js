@@ -1,3 +1,4 @@
+import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
@@ -15,6 +16,7 @@ import FileBrowser from 'src/components/data/FileBrowser'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
+import WDSContent from 'src/components/data/WDSContent'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
@@ -23,6 +25,7 @@ import { FlexTable, HeaderCell } from 'src/components/table'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { EntityServiceDataTableProvider } from 'src/libs/ajax/data-table-providers/EntityServiceDataTableProvider'
+import { WdsDataTableProvider } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -321,13 +324,19 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
           input({ type: 'hidden', name: 'FCtoken', value: getUser().token }),
           input({ type: 'hidden', name: 'model', value: 'flexible' })
         ]),
-        dataProvider.features.supportsTsvDownload && h(MenuButton, {
+        (dataProvider.features.supportsTsvDownload || dataProvider.features.supportsTsvAjaxDownload) && h(MenuButton, {
           disabled: isSetOfSets,
           tooltip: isSetOfSets ?
             'Downloading sets of sets as TSV is not supported at this time.' :
             'Download a TSV file containing all rows in this table.',
           onClick: () => {
-            downloadForm.current.submit()
+            if (dataProvider.features.supportsTsvDownload) {
+              downloadForm.current.submit()
+            } else if (dataProvider.features.supportsTsvAjaxDownload) {
+              // TODO: this overrides the filename specified by the WDS API. Is that ok?
+              dataProvider.downloadTsv(signal, tableName).then(blob => FileSaver.saveAs(blob, `${tableName}.tsv`))
+            }
+            // TODO: AJ-656 add Entity Service vs. WDS indicator to mixpanel event
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
               downloadFrom: 'all rows',
@@ -418,6 +427,7 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
           await dataProvider.deleteTable(tableName)
+          // TODO: AJ-656 add WDS vs. Entity Service property to the mixpanel event
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
             ...extractWorkspaceDetails(workspace.workspace)
           })
@@ -458,7 +468,7 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
   }, [h(Link, { ...Utils.newTabLinkProps, href: feedbackUrl }, [`Provide feedback on data table ${label}`])])
 }
 
-const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects'])
+const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds'])
 
 const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
@@ -473,11 +483,13 @@ const WorkspaceData = _.flow(
   const [selectedData, setSelectedData] = useState(() => StateHistory.get().selectedData)
   const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
   const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
+  const [wdsSchema, setWdsSchema] = useState(() => StateHistory.get().wdsSchema)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
+  const [wdsSchemaError, setWdsSchemaError] = useState()
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [activeCrossTableTextFilter, setActiveCrossTableTextFilter] = useState('')
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
@@ -490,6 +502,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId)
 
   const loadEntityMetadata = async () => {
     try {
@@ -529,7 +542,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -541,6 +554,19 @@ const WorkspaceData = _.flow(
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
       setSnapshotDetails(_.set([snapshotName, 'error'], true))
+    }
+  }
+
+  const loadWdsSchema = async () => {
+    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
+      try {
+        setWdsSchema([])
+        setWdsSchemaError(undefined)
+        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(workspaceId)
+        setWdsSchema(wdsSchema)
+      } catch (error) {
+        setWdsSchemaError(error)
+      }
     }
   }
 
@@ -732,14 +758,44 @@ const WorkspaceData = _.flow(
             isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
               title: 'WDS'
             }, [
-              div({
-                style: {
-                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-                  padding: '0.5rem 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}`,
-                  backgroundColor: 'white'
-                }
-              }, ['Coming soon.']),
-              div({}, '')
+              [
+                wdsSchemaError && h(NoDataPlaceholder, {
+                  message: 'WDS is unavailable.'
+                }),
+                wdsSchema && _.map(typeDef => {
+                  return div({ key: typeDef.name, role: 'listitem' }, [
+                    h(DataTypeButton, {
+                      key: typeDef.name,
+                      selected: selectedData?.type === workspaceDataTypes.wds && selectedData.entityType === typeDef.name,
+                      entityName: typeDef.name,
+                      entityCount: typeDef.count,
+                      filteredCount: typeDef.count,
+                      activeCrossTableTextFilter: false,
+                      crossTableSearchInProgress: false,
+                      onClick: () => {
+                        setSelectedData({ type: workspaceDataTypes.wds, entityType: typeDef.name })
+                        forceRefresh()
+                      },
+                      after: h(DataTableActions, {
+                        dataProvider: wdsDataTableProvider,
+                        tableName: typeDef.name,
+                        rowCount: typeDef.count,
+                        entityMetadata,
+                        workspace,
+                        onRenameTable: undefined,
+                        onDeleteTable: tableName => {
+                          setSelectedData(undefined)
+                          setWdsSchema(_.remove(typeDef => typeDef.name === tableName, wdsSchema))
+                          forceRefresh() // TODO: may not be correct, resolve this as part of AJ-655
+                        },
+                        isShowingVersionHistory: false,
+                        onSaveVersion: undefined,
+                        onToggleVersionHistory: undefined
+                      })
+                    })
+                  ])
+                }, wdsSchema)
+              ]
             ]),
             (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
               title: 'Snapshots',
@@ -969,6 +1025,13 @@ const WorkspaceData = _.flow(
               await loadMetadata()
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
+          })],
+          [workspaceDataTypes.wds, () => h(WDSContent, {
+            key: refreshKey,
+            workspaceUUID: workspaceId,
+            workspace,
+            recordType: selectedData.entityType,
+            wdsSchema
           })]
         )
       ])

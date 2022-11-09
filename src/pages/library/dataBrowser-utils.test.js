@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {

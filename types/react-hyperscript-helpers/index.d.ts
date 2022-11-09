@@ -17,14 +17,14 @@ declare module 'react-hyperscript-helpers' {
       component: Component<Props>,
       props: WithKey<Omit<Props, 'children'>>,
       children: Children<Props>
-    ): React.ReactElement<any, any>;
+    ): React.ReactElement<any, any>
 
     <Props extends {}>(
       component: Component<Props>,
       propsOrChildren: Props extends { children?: unknown } ? WithKey<Props> | Children<Props> : WithKey<Props>
-    ): React.ReactElement<any, any>;
+    ): React.ReactElement<any, any>
 
-    <Props extends {}>(component: Component<Props>): React.ReactElement<any, any>;
+    <Props extends {}>(component: Component<Props>): React.ReactElement<any, any>
   }
 
   export const h: HHelper
@@ -36,7 +36,7 @@ declare module 'react-hyperscript-helpers' {
   type DataAttributeKey = `data-${string}`
 
   type WithDataAttributes<T> = T & {
-    [dataAttribute: DataAttributeKey]: string;
+    [dataAttribute: DataAttributeKey]: string
   }
 
   type HtmlHelper<T extends TagName> = {

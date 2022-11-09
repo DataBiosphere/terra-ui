@@ -1,7 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import { GCSItem } from 'src/libs/ajax/GoogleStorage'
-import IncrementalResponse from 'src/libs/ajax/IncrementalResponse'
+import IncrementalResponse from 'src/libs/ajax/incremental-response/IncrementalResponse'
 
 
 export interface GCSFileBrowserProviderParams {
@@ -34,7 +34,7 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
 
     if (nextPageToken || isFirstPage) {
       do {
-        const requestOptions: { maxResults: number, pageToken?: string } = {
+        const requestOptions: { maxResults: number; pageToken?: string } = {
           maxResults: pageSize
         }
         if (nextPageToken) {
