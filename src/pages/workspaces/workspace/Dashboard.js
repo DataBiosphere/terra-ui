@@ -302,9 +302,9 @@ const WorkspaceDashboard = _.flow(
     } else {
       loadAzureStorage()
 
-      // sas tokens expires after 1 hour
+      // sas tokens expires after 8 hours
       clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ minutes: 50 }))
+      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ hours: 8 }))
     }
   }
 
@@ -517,7 +517,7 @@ const WorkspaceDashboard = _.flow(
           }, 'Azure Storage Explorer'),
           ' to access storage associated with this workspace.']),
         div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
-          ['The SAS URL expires after 1 hour. To generate a new SAS URL, refresh this page.'])
+          ['The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.'])
       ])
     ]
   }
