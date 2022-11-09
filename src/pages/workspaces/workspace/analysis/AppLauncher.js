@@ -151,7 +151,7 @@ const ApplicationLauncher = _.flow(
 
       const proxyUrl = runtime?.proxyUrl
       const url = await Utils.switchCase(application,
-        [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+        [tools.terminal.label, () => `${proxyUrl}/terminals/1`],
         [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
         [tools.RStudio.label, () => proxyUrl],
         [tools.Azure.label, () => `${proxyUrl}/lab`],
@@ -223,7 +223,7 @@ const ApplicationLauncher = _.flow(
           src: iframeSrc,
           style: {
             border: 'none', flex: 1,
-            ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === tools.terminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })
