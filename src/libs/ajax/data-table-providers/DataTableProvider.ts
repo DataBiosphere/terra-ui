@@ -50,6 +50,11 @@ export interface EntityQueryOptions {
   filterOperator: string
 }
 
+export interface AttributeArray {
+  itemsType: 'AttributeValue'
+  items: unknown[] // truly "unknown" here; the backend Java representation is Object[]
+}
+
 // queryOptions can contain:
 export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
 

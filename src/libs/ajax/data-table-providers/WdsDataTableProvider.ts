@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { AttributeArray, DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -44,6 +44,25 @@ export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): Entit
   }, keyedSchema)
 }
 
+export const relationUriScheme = 'terra-wds'
+
+// Callers outside this module should not call this function. It returns a string array of size 2
+// iff it looks like a valid relation URI; else it returns an empty array.
+// Returning the array prevents callers from string-parsing the URI multiple times.
+// This function does not verify that the record type and record id are syntactically
+// valid according to WDS - for instance, do they contain special characters?
+// WDS should own that logic. Here, we only check if the type and id are nonempty.
+const getRelationParts = (val: unknown): string[] => {
+  if (_.isString(val) && val.startsWith(`${relationUriScheme}:/`)) {
+    const parts: string[] = val.substring(relationUriScheme.length + 2).split('/')
+    if (parts.length === 2 && _.every(part => !!part, parts)) {
+      return parts
+    }
+    return []
+  }
+  return []
+}
+
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string) {
     this.workspaceId = workspaceId
@@ -61,10 +80,19 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsFiltering: false
   }
 
+  private maybeTransformRelation = (val: unknown): unknown => {
+    const relationParts = getRelationParts(val)
+    return relationParts.length ? { entityType: relationParts[0], entityName: relationParts[1] } : val
+  }
+
+  private toEntityServiceArray = (val: unknown[]): AttributeArray => {
+    return { itemsType: 'AttributeValue', items: val }
+  }
+
   // transforms a WDS array to Entity Service array format
   private transformAttributes = (attributes: RecordAttributes): RecordAttributes => {
     return _.mapValues(val => {
-      return _.isArray(val) ? { itemsType: 'AttributeValue', items: val } : val
+      return _.isArray(val) ? this.toEntityServiceArray(val.map(this.maybeTransformRelation)) : this.maybeTransformRelation(val)
     }, attributes)
   }
 
