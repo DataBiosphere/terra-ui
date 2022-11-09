@@ -335,6 +335,69 @@ describe('WdsDataTableProvider', () => {
 
       expect(actual).toStrictEqual(expected)
     })
+    it('handles mixed arrays that contain some relation URIs and some strings', () => {
+      // Arrange
+      const provider = new TestableWdsProvider(uuid)
+
+      // example response from WDS, copy-pasted from a WDS swagger call
+      const wdsPage: RecordQueryResponse = {
+        searchRequest: {
+          limit: 1,
+          offset: 0,
+          sort: 'asc',
+          sortAttribute: 'stringAttr'
+        },
+        records: [
+          {
+            id: '1',
+            type: 'item',
+            attributes: {
+              mixedArrayRelationFirst: ['terra-wds:/mytype/3', 'hello', 'world'],
+              mixedArrayRelationLast: ['hello', 'world', 'terra-wds:/mytype/12']
+            }
+          }
+        ],
+        totalRecords: 1
+      }
+
+      // Act
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+
+      // Assert
+      const expected: EntityQueryResponse = {
+        results: [
+          {
+            entityType: recordType,
+            attributes: {
+              mixedArrayRelationFirst: {
+                itemsType: 'AttributeValue',
+                items: ['terra-wds:/mytype/3', 'hello', 'world']
+              },
+              mixedArrayRelationLast: {
+                itemsType: 'AttributeValue',
+                items: ['hello', 'world', 'terra-wds:/mytype/12']
+              }
+            },
+            name: '1'
+          }
+        ],
+        parameters: {
+          page: 2,
+          pageSize: 50,
+          sortField: 'stringAttr',
+          sortDirection: 'desc',
+          filterTerms: '',
+          filterOperator: 'and'
+        },
+        resultMetadata: {
+          filteredCount: 1,
+          unfilteredCount: 1,
+          filteredPageCount: -1
+        }
+      }
+
+      expect(actual).toStrictEqual(expected)
+    })
   })
   describe('getPage', () => {
     it('restructures a WDS response', () => {
