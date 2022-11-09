@@ -128,6 +128,8 @@ describe('CreateNewBillingProjectWizard Steps', () => {
   let wizardComponent
 
   beforeEach(() => {
+    jest.resetAllMocks()
+
     // Arrange
     Ajax.mockImplementation(() => ({
       Billing: { createGCPProject },

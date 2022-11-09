@@ -4,6 +4,7 @@ import { axe } from 'jest-axe'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
+import { mockModalModule } from 'src/components/Modal.mock'
 import { Ajax } from 'src/libs/ajax'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
@@ -11,13 +12,9 @@ import { v4 as uuid } from 'uuid'
 
 
 jest.mock('src/components/Modal', () => {
-  const originalModule = jest.requireActual('src/components/Modal')
-  return {
-    ...originalModule,
-    __esModule: true,
-    default: props => originalModule.default({ onAfterOpen: jest.fn(), ...props })
-  }
+  return mockModalModule()
 })
+
 jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
