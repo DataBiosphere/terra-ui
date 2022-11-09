@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
-import { Link, Switch } from 'src/components/common'
+import { IdContainer, Link, Switch } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
@@ -19,18 +19,21 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
   }, [
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       strong(['Preview the new Data Catalog']),
-      label({
-        role: 'link',
-        style: { fontWeight: 'bold', display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
-      }, [
-        h(Switch, {
-          checked: catalogShowing,
-          onLabel: '', offLabel: '',
-          width: 55, height: 25,
-          onChange
-        }),
-        div({ style: { marginLeft: 10 } }, [`New Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
-      ])
+      h(IdContainer, [id => h(Fragment, [
+        div({
+          style: { display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
+        }, [
+          h(Switch, {
+            id,
+            checked: catalogShowing,
+            onLabel: '', offLabel: '',
+            width: 55, height: 25,
+            onChange
+          }),
+          label({ htmlFor: id, style: { fontWeight: 'bold', marginLeft: 10 } }, [`New Catalog ${catalogShowing ? 'ON' : 'OFF'}`])
+        ])
+      ])])
+
     ]),
     catalogShowing && div({ style: { display: 'flex' } }, [
       icon('talk-bubble', { size: 45, style: { marginLeft: '1.5rem', margin: '0 0.5rem' } }),
