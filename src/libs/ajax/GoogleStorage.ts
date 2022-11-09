@@ -1,12 +1,77 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchBuckets, saToken } from 'src/libs/ajax'
-import { authOpts, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
+import { authOpts, checkRequesterPaysError, fetchOk, fetchSam, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
+import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { runtimeTools, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
+
+/*
+ * Detects errors due to requester pays buckets, and adds the current workspace's billing
+ * project if the user has access, retrying the request once if necessary.
+ */
+const withRequesterPays = wrappedFetch => (url, ...args) => {
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)![1]
+  const workspace = workspaceStore.get()
+
+  const getUserProject = async () => {
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
+    }
+    return requesterPaysProjectStore.get()
+  }
+
+  const tryRequest = async () => {
+    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
+    try {
+      const userProject = (knownRequesterPays && await getUserProject()) || undefined
+      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      return res
+    } catch (error) {
+      if (knownRequesterPays === false) {
+        throw error
+      } else {
+        const newResponse = await checkRequesterPaysError(error)
+        if (newResponse.requesterPaysError && !knownRequesterPays) {
+          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
+          if (await getUserProject()) {
+            return tryRequest()
+          }
+        }
+        throw newResponse
+      }
+    }
+  }
+  return tryRequest()
+}
+
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+
+/**
+ * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
+ * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
+ */
+const getServiceAccountToken: (googleProject: string, token: string) => Promise<string> = Utils.memoizeAsync(async (googleProject, token) => {
+  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+  const res = await fetchSam(
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
+    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
+  )
+  return res.json()
+}, {
+  expires: 1000 * 60 * 30,
+  // @ts-expect-error
+  keyFn: (...args) => JSON.stringify(args)
+})
+
+export const saToken = (googleProject: string): Promise<string> => getServiceAccountToken(googleProject, getUser().token)
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list
 export type GCSItem = {
@@ -49,6 +114,24 @@ export type GCSListObjectsResponse = {
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
 export const GoogleStorage = (signal?: AbortSignal) => ({
+  checkBucketAccess: async (googleProject, bucket, accessLevel) => {
+    // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+    if (!Utils.canWrite(accessLevel)) {
+      return false
+    }
+
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+    return res.json()
+  },
+
+  checkBucketLocation: async (googleProject, bucket) => {
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+
+    return res.json()
+  },
+
   getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })

@@ -11,7 +11,6 @@ const eitherThrow = (testFailure, { cleanupFailure, cleanupMessage }) => {
   }
 }
 
-//chance to dataset with asses
 const linkDataToWorkspace = async (page, testUrl, token, datasetName) => {
   await navigateToDataCatalog(page, testUrl, token)
   await click(page, checkbox({ text: 'Granted', isDescendant: true }))
