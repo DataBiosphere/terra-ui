@@ -25,8 +25,6 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         }, [
           h(Switch, {
             id,
-            role: 'switch',
-            'aria-checked': catalogShowing,
             checked: catalogShowing,
             onLabel: '', offLabel: '',
             width: 55, height: 25,
