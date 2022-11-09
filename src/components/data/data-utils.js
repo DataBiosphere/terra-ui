@@ -364,11 +364,11 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        dataProvider.tsvFeatures.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Record type:  '),
+        dataProvider.tsvFeatures.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Table name:  '),
           h(TextInput, {
             id: 'recordTypeInput',
             value: recordType,
-            placeholder: 'Enter record type',
+            placeholder: 'Enter table name',
             onChange: value => {
               setRecordType(value)
               setRecordAlreadyExists(_.includes(value, entityTypes))
