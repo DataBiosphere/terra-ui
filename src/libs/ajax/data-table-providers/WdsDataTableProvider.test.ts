@@ -307,7 +307,7 @@ describe('WdsDataTableProvider', () => {
               numAttr: 123,
               relationScalar: { entityType: 'mytype', entityName: 'myid' },
               relationArray: {
-                itemsType: 'AttributeValue',
+                itemsType: 'EntityReference',
                 items: [
                   { entityType: 'mytype', entityName: '3' },
                   { entityType: 'mytype', entityName: '6' },

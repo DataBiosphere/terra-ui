@@ -51,8 +51,13 @@ export interface EntityQueryOptions {
 }
 
 export interface AttributeArray {
-  itemsType: 'AttributeValue'
+  itemsType: 'AttributeValue' | 'EntityReference'
   items: unknown[] // truly "unknown" here; the backend Java representation is Object[]
+}
+
+export interface EntityReference {
+  entityType: string
+  entityName: string
 }
 
 // queryOptions can contain:

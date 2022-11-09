@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { AttributeArray, DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import { AttributeArray, DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse, EntityReference } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -86,6 +86,14 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   private toEntityServiceArray = (val: unknown[]): AttributeArray => {
+    // domain logic says that WDS arrays will all be of the same type. Check the first element
+    // to see if it is a relation vs. some other datatype
+    if (val.length) {
+      const first = val[0] as EntityReference
+      if (first && first.entityType && first.entityName && typeof(first.entityType) == 'string' && typeof(first.entityName) == 'string') {
+        return { itemsType: 'EntityReference', items: val }
+      }
+    }
     return { itemsType: 'AttributeValue', items: val }
   }
 
