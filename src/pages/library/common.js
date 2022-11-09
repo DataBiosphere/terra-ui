@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
@@ -12,7 +12,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import * as StateHistory from 'src/libs/state-history'
 
 
 export const commonStyles = {
@@ -326,7 +325,7 @@ export const SearchAndFilterComponent = ({
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || {})
+  const selectedTags = useMemo(() => qs.parse(query.selectedTags) || {}, [query])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
@@ -408,7 +407,8 @@ export const SearchAndFilterComponent = ({
   const onSearchChange = filter => {
     const newSearch = qs.stringify({
       ...query,
-      filter: filter || undefined
+      filter: filter || undefined,
+      selectedTags
     }, { addQueryPrefix: true })
 
     if (filter) {
@@ -421,10 +421,6 @@ export const SearchAndFilterComponent = ({
       Nav.history.replace({ search: newSearch })
     }
   }
-
-  useEffect(() => {
-    StateHistory.update({ selectedTags })
-  }, [selectedTags])
 
   return h(Fragment, [
     div({
@@ -447,7 +443,6 @@ export const SearchAndFilterComponent = ({
         h(Link, {
           onClick: () => {
             setSelectedSections([])
-            setSelectedTags({})
           }
         }, ['clear'])
       ]),
@@ -503,12 +498,18 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: ({ section, lowerTag, label }) => {
+          onTagFilter: ({ section, lowerTag }) => {
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            setSelectedTags(oldSelectedTags => {
-              const newTags = _.xorBy('lowerTag', [{ lowerTag, label, section }], oldSelectedTags[section])
-              return newTags.length > 0 ? _.set(section, newTags, oldSelectedTags) : _.omit(section, oldSelectedTags)
-            })
+            const newTags = _.xorBy('lowerTag', [{ lowerTag }], selectedTags[section])
+            const newSelectedTags = newTags.length > 0 ? _.set(section, newTags, selectedTags) : _.omit(section, selectedTags)
+            const newSearch = qs.stringify({
+              ...query,
+              filter: searchFilter,
+              selectedTags: newSelectedTags
+            }, { addQueryPrefix: true })
+            if (newSearch !== Nav.history.location.search) {
+              Nav.history.replace({ search: newSearch })
+            }
           },
           sections,
           selectedSections,
@@ -519,7 +520,7 @@ export const SearchAndFilterComponent = ({
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
         _.isEmpty(filteredData.data) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          children({ filteredList: filteredData.data, sections, selectedTags, setSelectedTags })
+          children({ filteredList: filteredData.data, sections })
       ])
     ])
   ])
