@@ -28,7 +28,7 @@ import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-
 import validate from 'validate.js'
 
 
-export const useWorkspaces = () => {
+export const useWorkspaces = attributes => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = useStore(workspacesStore)
@@ -36,9 +36,11 @@ export const useWorkspaces = () => {
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await Ajax(signal).Workspaces.list([
-      'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags'
-    ])
+    const ws = await Ajax(signal).Workspaces.list(
+      attributes || [
+        'accessLevel', 'public', 'workspace', 'workspace.attributes.description',
+        'workspace.attributes.tag:tags'
+      ])
     workspacesStore.set(ws)
   })
   useOnMount(() => {
