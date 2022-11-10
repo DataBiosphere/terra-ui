@@ -308,132 +308,224 @@ const DataTable = props => {
           ({ width, height }) => {
             const visibleColumns = _.filter('visible', columnSettings)
 
-            const defaultColumns = [
-              {
-                width: 70,
-                field: 'select-row-checkbox',
-                headerRenderer: () => {
-                  return h(Fragment, [
-                    h(Checkbox, {
-                      checked: pageSelected(),
-                      disabled: !entities.length,
-                      onChange: pageSelected() ? deselectPage : selectPage,
-                      'aria-label': 'Select all'
-                    }),
-                    h(MenuTrigger, {
-                      closeOnClick: true,
-                      content: h(Fragment, [
-                        h(MenuButton, { onClick: selectPage }, ['Page']),
-                        !!filteredCount && (h(MenuButton, { onClick: selectAll },
-                          ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`]))),
-                        h(MenuButton, { onClick: selectNone }, ['None'])
-                      ]),
-                      side: 'bottom'
-                    }, [
-                      h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
+            const selectRowColumn = {
+              width: 70,
+              headerRenderer: () => {
+                return h(Fragment, [
+                  h(Checkbox, {
+                    checked: pageSelected(),
+                    disabled: !entities.length,
+                    onChange: pageSelected() ? deselectPage : selectPage,
+                    'aria-label': 'Select all'
+                  }),
+                  h(MenuTrigger, {
+                    closeOnClick: true,
+                    content: h(Fragment, [
+                      h(MenuButton, { onClick: selectPage }, ['Page']),
+                      !!filteredCount && (h(MenuButton, { onClick: selectAll },
+                        ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`]))),
+                      h(MenuButton, { onClick: selectNone }, ['None'])
+                    ]),
+                    side: 'bottom'
+                  }, [
+                    h(Clickable, { 'aria-label': '"Select All" options' }, [icon('caretDown')])
+                  ])
+                ])
+              },
+              cellRenderer: ({ rowIndex }) => {
+                const thisEntity = entities[rowIndex]
+                const { name } = thisEntity
+                const checked = _.has([name], selected)
+                return h(Checkbox, {
+                  'aria-label': name,
+                  checked,
+                  onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
+                })
+              }
+            }
+
+            const defaultColumnsWithSelectRow = [selectRowColumn, {
+              field: 'name',
+              width: nameWidth,
+              headerRenderer: () => h(Resizable, {
+                width: nameWidth, onWidthChange: delta => {
+                  setColumnWidths(_.set('name', nameWidth + delta))
+                }
+              }, [
+                h(HeaderOptions, { sort, field: 'name', onSort: setSort },
+                  [h(HeaderCell, [entityMetadata[entityType].idName])])
+              ]),
+              cellRenderer: ({ rowIndex }) => {
+                const { name: entityName } = entities[rowIndex]
+                return h(Fragment, [
+                  renderDataCell(entityName, workspace),
+                  div({ style: { flexGrow: 1 } }),
+                  h(ClipboardButton, {
+                    'aria-label': `Copy ${entityName} to clipboard`,
+                    className: 'cell-hover-only',
+                    style: { marginLeft: '1rem' },
+                    text: entityName
+                  }),
+                  editable && h(EditDataLink, {
+                    'aria-label': `Rename ${entityType} ${entityName}`,
+                    onClick: () => setRenamingEntity(entityName)
+                  })
+                ])
+              }
+            },
+            ..._.map(({ name: attributeName }) => {
+              const thisWidth = columnWidths[attributeName] || 300
+              const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
+              return {
+                field: attributeName,
+                width: thisWidth,
+                headerRenderer: () => h(Resizable, {
+                  width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
+                }, [
+                  h(HeaderOptions, {
+                    sort, field: attributeName, onSort: setSort,
+                    extraActions: _.concat(
+                      editable ? [
+                        // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                        // Without this, autofocus doesn't work in the modals.
+                        { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
+                        { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                        { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                      ] : [],
+                      extraColumnActions ? extraColumnActions(attributeName) : [])
+                  }, [
+                    h(HeaderCell, [
+                      !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                      columnName
                     ])
                   ])
-                },
-                cellRenderer: ({ rowIndex }) => {
-                  const thisEntity = entities[rowIndex]
-                  const { name } = thisEntity
-                  const checked = _.has([name], selected)
-                  return h(Checkbox, {
-                    'aria-label': name,
-                    checked,
-                    onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
-                  })
-                }
-              },
-              {
-                field: 'name',
-                width: nameWidth,
-                headerRenderer: () => h(Resizable, {
-                  width: nameWidth, onWidthChange: delta => {
-                    setColumnWidths(_.set('name', nameWidth + delta))
-                  }
-                }, [
-                  h(HeaderOptions, { sort, field: 'name', onSort: setSort },
-                    [h(HeaderCell, [entityMetadata[entityType].idName])])
                 ]),
                 cellRenderer: ({ rowIndex }) => {
-                  const { name: entityName } = entities[rowIndex]
-                  return h(Fragment, [
-                    renderDataCell(entityName, workspace),
-                    div({ style: { flexGrow: 1 } }),
-                    h(ClipboardButton, {
-                      'aria-label': `Copy ${entityName} to clipboard`,
-                      className: 'cell-hover-only',
-                      style: { marginLeft: '1rem' },
-                      text: entityName
-                    }),
-                    editable && h(EditDataLink, {
-                      'aria-label': `Rename ${entityType} ${entityName}`,
-                      onClick: () => setRenamingEntity(entityName)
-                    })
-                  ])
-                }
-              },
-              ..._.map(({ name: attributeName }) => {
-                const thisWidth = columnWidths[attributeName] || 300
-                const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
-                return {
-                  field: attributeName,
-                  width: thisWidth,
-                  headerRenderer: () => h(Resizable, {
-                    width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
-                  }, [
-                    h(HeaderOptions, {
-                      sort, field: attributeName, onSort: setSort,
-                      extraActions: _.concat(
-                        editable ? [
-                          // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
-                          // Without this, autofocus doesn't work in the modals.
-                          { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
-                          { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
-                          { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
-                        ] : [],
-                        extraColumnActions ? extraColumnActions(attributeName) : [])
-                    }, [
-                      h(HeaderCell, [
-                        !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
-                        columnName
-                      ])
-                    ])
-                  ]),
-                  cellRenderer: ({ rowIndex }) => {
-                    const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
-                    const dataCell = renderDataCell(dataInfo, workspace)
-                    const divider = div({ style: { flexGrow: 1 } })
-                    const copyButton = h(ClipboardButton, {
-                      'aria-label': `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
-                      className: 'cell-hover-only',
-                      style: { marginLeft: '1rem' },
-                      text: entityAttributeText(dataInfo)
-                    })
-                    const editLink = editable && h(EditDataLink, {
-                      'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
-                      'aria-haspopup': 'dialog',
-                      'aria-expanded': !!updatingEntity,
-                      onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
-                    })
+                  const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
+                  const dataCell = renderDataCell(dataInfo, workspace)
+                  const divider = div({ style: { flexGrow: 1 } })
+                  const copyButton = h(ClipboardButton, {
+                    'aria-label': `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
+                    className: 'cell-hover-only',
+                    style: { marginLeft: '1rem' },
+                    text: entityAttributeText(dataInfo)
+                  })
+                  const editLink = editable && h(EditDataLink, {
+                    'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                    'aria-haspopup': 'dialog',
+                    'aria-expanded': !!updatingEntity,
+                    onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
+                  })
 
-                    if (!!dataInfo && _.isArray(dataInfo.items)) {
-                      const isPlural = dataInfo.items.length !== 1
-                      const label = dataInfo?.itemsType === 'EntityReference' ?
-                        isPlural ? 'entities' : 'entity' :
-                        isPlural ? 'items' : 'item'
-                      const itemsLink = h(Link, {
-                        style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
-                        onClick: () => setViewData(dataInfo)
-                      }, ` (${dataInfo.items.length} ${label})`)
-                      return h(Fragment, [dataCell, divider, copyButton, editLink, itemsLink])
-                    } else {
-                      return h(Fragment, [dataCell, divider, copyButton, editLink])
-                    }
+                  if (!!dataInfo && _.isArray(dataInfo.items)) {
+                    const isPlural = dataInfo.items.length !== 1
+                    const label = dataInfo?.itemsType === 'EntityReference' ?
+                      isPlural ? 'entities' : 'entity' :
+                      isPlural ? 'items' : 'item'
+                    const itemsLink = h(Link, {
+                      style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                      onClick: () => setViewData(dataInfo)
+                    }, ` (${dataInfo.items.length} ${label})`)
+                    return h(Fragment, [dataCell, divider, copyButton, editLink, itemsLink])
+                  } else {
+                    return h(Fragment, [dataCell, divider, copyButton, editLink])
                   }
                 }
-              }, visibleColumns)
+              }
+            }, visibleColumns)]
+
+            const defaultColumnsWithoutSelectRow = [{
+              field: 'name',
+              width: nameWidth,
+              headerRenderer: () => h(Resizable, {
+                width: nameWidth, onWidthChange: delta => {
+                  setColumnWidths(_.set('name', nameWidth + delta))
+                }
+              }, [
+                h(HeaderOptions, { sort, field: 'name', onSort: setSort },
+                  [h(HeaderCell, [entityMetadata[entityType].idName])])
+              ]),
+              cellRenderer: ({ rowIndex }) => {
+                const { name: entityName } = entities[rowIndex]
+                return h(Fragment, [
+                  renderDataCell(entityName, workspace),
+                  div({ style: { flexGrow: 1 } }),
+                  h(ClipboardButton, {
+                    'aria-label': `Copy ${entityName} to clipboard`,
+                    className: 'cell-hover-only',
+                    style: { marginLeft: '1rem' },
+                    text: entityName
+                  }),
+                  editable && h(EditDataLink, {
+                    'aria-label': `Rename ${entityType} ${entityName}`,
+                    onClick: () => setRenamingEntity(entityName)
+                  })
+                ])
+              }
+            },
+            ..._.map(({ name: attributeName }) => {
+              const thisWidth = columnWidths[attributeName] || 300
+              const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
+              return {
+                field: attributeName,
+                width: thisWidth,
+                headerRenderer: () => h(Resizable, {
+                  width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
+                }, [
+                  h(HeaderOptions, {
+                    sort, field: attributeName, onSort: setSort,
+                    extraActions: _.concat(
+                      editable ? [
+                        // settimeout 0 is needed to delay opening the modaals until after the popup menu closes.
+                        // Without this, autofocus doesn't work in the modals.
+                        { label: 'Rename Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setRenamingColumn(attributeName), 0) },
+                        { label: 'Delete Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setDeletingColumn(attributeName), 0) },
+                        { label: 'Clear Column', disabled: !!noEdit, tooltip: noEdit || '', onClick: () => setTimeout(() => setClearingColumn(attributeName), 0) }
+                      ] : [],
+                      extraColumnActions ? extraColumnActions(attributeName) : [])
+                  }, [
+                    h(HeaderCell, [
+                      !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } }, [columnNamespace]),
+                      columnName
+                    ])
+                  ])
+                ]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
+                  const dataCell = renderDataCell(dataInfo, workspace)
+                  const divider = div({ style: { flexGrow: 1 } })
+                  const copyButton = h(ClipboardButton, {
+                    'aria-label': `Copy attribute ${attributeName} of ${entityType} ${entityName} to clipboard`,
+                    className: 'cell-hover-only',
+                    style: { marginLeft: '1rem' },
+                    text: entityAttributeText(dataInfo)
+                  })
+                  const editLink = editable && h(EditDataLink, {
+                    'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
+                    'aria-haspopup': 'dialog',
+                    'aria-expanded': !!updatingEntity,
+                    onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
+                  })
+
+                  if (!!dataInfo && _.isArray(dataInfo.items)) {
+                    const isPlural = dataInfo.items.length !== 1
+                    const label = dataInfo?.itemsType === 'EntityReference' ?
+                      isPlural ? 'entities' : 'entity' :
+                      isPlural ? 'items' : 'item'
+                    const itemsLink = h(Link, {
+                      style: { display: 'inline', whiteSpace: 'nowrap', marginLeft: '1rem' },
+                      onClick: () => setViewData(dataInfo)
+                    }, ` (${dataInfo.items.length} ${label})`)
+                    return h(Fragment, [dataCell, divider, copyButton, editLink, itemsLink])
+                  } else {
+                    return h(Fragment, [dataCell, divider, copyButton, editLink])
+                  }
+                }
+              }
+            }, visibleColumns)]
+
+            const defaultColumns = [
+              ...(dataProvider.features.supportsRowSelection ? defaultColumnsWithSelectRow : defaultColumnsWithoutSelectRow),
             ]
 
             return h(GridTable, {
@@ -447,7 +539,7 @@ const DataTable = props => {
               initialY,
               sort,
               numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
-              columns: dataProvider.features.supportsRowSelection ? defaultColumns : defaultColumns.filter(column => column.field !== 'select-row-checkbox'),
+              columns: defaultColumns,
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
               },
