@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedTextArea } from 'src/components/input'
@@ -102,7 +102,6 @@ const LaunchAnalysisModal = ({
       }, ['Launch']) :
       h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
   }, [
-    div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
     div({ style: { margin: '0.5rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
