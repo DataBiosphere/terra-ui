@@ -122,6 +122,7 @@ export interface TSVFeatures {
 }
 
 export interface DataTableProvider {
+  providerName: string
   features: DataTableFeatures
   tsvFeatures: TSVFeatures
   getPage: GetPageFn

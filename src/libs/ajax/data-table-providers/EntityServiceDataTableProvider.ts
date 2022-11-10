@@ -19,6 +19,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     this.name = name
   }
 
+  providerName: string = 'Entity Service'
+
   namespace: string
 
   name: string

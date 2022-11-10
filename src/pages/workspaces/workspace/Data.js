@@ -338,9 +338,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
               // TODO: this overrides the filename specified by the WDS API. Is that ok?
               dataProvider.downloadTsv(signal, tableName).then(blob => FileSaver.saveAs(blob, `${tableName}.tsv`))
             }
-            // TODO: AJ-656 add Entity Service vs. WDS indicator to mixpanel event
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
+              providerName: dataProvider.providerName,
               downloadFrom: 'all rows',
               fileType: '.tsv'
             })
@@ -429,9 +429,9 @@ const DataTableActions = ({ workspace, tableName, rowCount, entityMetadata, onRe
       onConfirm: Utils.withBusyState(setLoading)(async () => {
         try {
           await dataProvider.deleteTable(tableName)
-          // TODO: AJ-656 add WDS vs. Entity Service property to the mixpanel event
           Ajax().Metrics.captureEvent(Events.workspaceDataDeleteTable, {
-            ...extractWorkspaceDetails(workspace.workspace)
+            ...extractWorkspaceDetails(workspace.workspace),
+            providerName: dataProvider.providerName
           })
           setDeleting(false)
           onDeleteTable(tableName)
