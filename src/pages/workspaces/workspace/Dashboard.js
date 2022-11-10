@@ -301,10 +301,6 @@ const WorkspaceDashboard = _.flow(
       loadBucketSize()
     } else {
       loadAzureStorage()
-
-      // sas tokens expires after 8 hours
-      clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ hours: 8 }))
     }
   }
 
