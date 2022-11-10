@@ -119,7 +119,7 @@ describe('WdsDataTableProvider', () => {
   }
 
   const uploadTsvMockImpl: WorkspaceDataContract['uploadTsv'] = (_instanceId: string, _recordType: string, _file: File) => {
-    return Promise.resolve(new Response('', { status: 200 }))
+    return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 })
   }
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
@@ -512,7 +512,7 @@ describe('WdsDataTableProvider', () => {
       return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
         // ====== Assert
         expect(uploadTsv.mock.calls.length).toBe(1)
-        expect(actual.status).toBe(200)
+        expect(actual.recordsModified).toBe(1)
       })
     })
   })

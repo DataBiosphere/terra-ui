@@ -100,7 +100,7 @@ export type isTsvUploadButtonDisabledFn = (options: isTsvUploadButtonDisabledOpt
 
 export type tsvUploadButtonTooltipFn = (options: tsvUploadButtonTooltipOptions) => string
 
-export type uploadTsvFn = (uploadParams: UploadParameters) => Promise<Response>
+export type uploadTsvFn = (uploadParams: UploadParameters) => Promise<any>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean

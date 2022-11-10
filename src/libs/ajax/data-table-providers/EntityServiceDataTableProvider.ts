@@ -69,7 +69,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 
-  uploadTsv = async (uploadParams: UploadParameters) => {
+  uploadTsv = async (uploadParams: UploadParameters): Promise<any> => {
     const workspace = Ajax().Workspaces.workspace(uploadParams.namespace, uploadParams.name)
     if (uploadParams.useFireCloudDataModel) {
       return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })

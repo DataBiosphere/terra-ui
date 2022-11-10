@@ -10,6 +10,7 @@ import {
   TSVFeatures, tsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import * as Utils from 'src/libs/utils'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -43,6 +44,11 @@ export interface RecordQueryResponse {
   searchRequest: SearchRequest
   totalRecords: number
   records: RecordResponse[]
+}
+
+export interface TsvUploadResponse {
+  message: string
+  recordsModified: number
 }
 
 
@@ -93,7 +99,7 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
-    sampleTSVLink: 'src/../wds_template.tsv', //TODO: placeholder, does not currently work
+    sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (options: isInvalidTsvOptions): boolean => {
       return options.modeMatches && !options.sysNamePresent && options.filePresent
@@ -102,7 +108,11 @@ export class WdsDataTableProvider implements DataTableProvider {
       return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent
     },
     tooltip: (options: tsvUploadButtonTooltipOptions): string => {
-      return !options.recordTypePresent ? 'Please enter record type' : !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+      return Utils.cond(
+        [!options.recordTypePresent, () => 'Please enter record type'],
+        [!options.filePresent || options.isInvalid, () => 'Please select valid data to upload'],
+        () => 'Upload selected data'
+      )
     }
   }
 
@@ -182,7 +192,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
   }
 
-  uploadTsv = (uploadParams: UploadParameters) => {
+  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
     return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

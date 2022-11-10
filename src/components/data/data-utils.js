@@ -313,7 +313,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [uploading, setUploading] = useState(false)
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
   const [recordType, setRecordType] = useState(undefined)
-  const [recordTypeAlreadyExists, setRecordTypeAlreadyExists] = useState(false)
+  const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
@@ -328,6 +328,18 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       onDismiss()
     }
   }
+
+  const recordTypeNameErrors = validate.single(recordType, {
+    presence: {
+      allowEmpty: false,
+      message: 'Table name is required'
+    },
+    format: {
+      pattern: '^(?!sys_)[a-z0-9_.-]*',
+      flags: 'i',
+      message: 'Table name may only contain alphanumeric characters, underscores, dashes, and periods and cannot start with \'sys_\'.'
+    }
+  })
 
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
   const isInvalid = dataProvider.tsvFeatures.isInvalid({ modeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file, sysNamePresent: fileContents.split('\n')[0].match(/sys_name/) }) //only look at the first line
@@ -364,16 +376,21 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        dataProvider.tsvFeatures.needsTypeInput && [div({ style: { padding: '0 0 1rem' } }, 'Table name:  '),
-          h(TextInput, {
-            id: 'recordTypeInput',
-            value: recordType,
-            placeholder: 'Enter table name',
-            onChange: value => {
-              setRecordType(value)
-              setRecordTypeAlreadyExists(_.includes(value, entityTypes))
-            }
-          })],
+        dataProvider.tsvFeatures.needsTypeInput && h(Fragment, [
+          h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
+          h(ValidatedInput, {
+            inputProps: {
+              autoFocus: true,
+              placeholder: 'Enter a table name',
+              value: recordType,
+              onChange: value => {
+                setRecordType(value)
+                setRecordTypeInputTouched(true)
+              }
+            },
+            error: recordTypeInputTouched && Utils.summarizeErrors(recordTypeNameErrors)
+          })
+        ]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
@@ -440,7 +457,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }
           })
         ]),
-        ((currentFile && entityTypeAlreadyExists) || recordTypeAlreadyExists) && div({
+        ((currentFile && entityTypeAlreadyExists) || _.includes(recordType, entityTypes)) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
