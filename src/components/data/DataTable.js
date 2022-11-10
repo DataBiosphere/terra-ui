@@ -434,7 +434,7 @@ const DataTable = props => {
               }
             }, visibleColumns)]
 
-            const defaultColumns = [...(dataProvider.features.supportsRowSelection ? selectRowColumn : []), ...defaultColumnsWithoutSelectRow]
+            const defaultColumns = [...(dataProvider.features.supportsRowSelection ? [selectRowColumn] : []), ...defaultColumnsWithoutSelectRow]
 
             return h(GridTable, {
               ref: table,
