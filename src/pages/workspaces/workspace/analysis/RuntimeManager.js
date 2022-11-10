@@ -16,9 +16,9 @@ import { clearNotification, notify } from 'src/libs/notifications'
 import { useOnMount, usePrevious } from 'src/libs/react-utils'
 import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { cloudProviders, getCurrentApp, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 export const RuntimeErrorModal = ({ runtime, onDismiss }) => {

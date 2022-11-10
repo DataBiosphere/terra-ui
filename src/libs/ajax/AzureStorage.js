@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)

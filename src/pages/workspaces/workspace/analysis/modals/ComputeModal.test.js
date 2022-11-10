@@ -11,12 +11,12 @@ import {
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
   runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 jest.mock('src/libs/notifications', () => ({

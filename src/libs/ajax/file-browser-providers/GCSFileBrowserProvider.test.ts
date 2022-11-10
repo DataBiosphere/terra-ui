@@ -3,7 +3,7 @@ import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browse
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
 import { GCSItem, GCSListObjectsResponse } from 'src/libs/ajax/GoogleStorage'
 import * as Utils from 'src/libs/utils'
-import { asMockedFn } from 'src/test-utils'
+import { asMockedFn } from 'src/testing/test-utils'
 
 
 jest.mock('src/libs/ajax')
