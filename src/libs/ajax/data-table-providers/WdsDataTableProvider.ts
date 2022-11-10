@@ -68,6 +68,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     this.workspaceId = workspaceId
   }
 
+  providerName: string = 'WDS'
+
   workspaceId: string
 
   features: DataTableFeatures = {

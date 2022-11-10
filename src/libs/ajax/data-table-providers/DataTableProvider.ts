@@ -76,6 +76,7 @@ export interface DataTableFeatures {
 }
 
 export interface DataTableProvider {
+  providerName: string
   features: DataTableFeatures
   getPage: GetPageFn
   deleteTable: DeleteTableFn
