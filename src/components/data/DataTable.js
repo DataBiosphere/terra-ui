@@ -446,7 +446,7 @@ const DataTable = props => {
               initialX,
               initialY,
               sort,
-              numFixedColumns: visibleColumns.length > 0 ? 2 : 0,
+              numFixedColumns: visibleColumns.length > 0 ? (dataProvider.features.supportsRowSelection ? 2 : 1) : 0,
               columns: dataProvider.features.supportsRowSelection ? defaultColumns : defaultColumns.filter(column => column.field !== 'select-row-checkbox'),
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
