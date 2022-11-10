@@ -742,10 +742,10 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
+              label({ id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
-                  id,
+                  labelId: id,
                   value: attributeToEdit,
                   suggestions: attributeNames,
                   placeholder: 'Column name',
