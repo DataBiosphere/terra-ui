@@ -73,6 +73,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     uploadInstructions: 'Choose the data to import below. ',
     sampleTSVLink: 'src/../wds_template.tsv', //TODO: placeholder, does not currently work
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
+    //WdsDataTableProvider and EntityServiceDataTableProvider use different variables to determine whether a file is invalid, so some are ignored here
     isInvalid: (_0: boolean, filePresent: boolean, _2: boolean, sysNamePresent: boolean) => {
       return !sysNamePresent && filePresent
     },

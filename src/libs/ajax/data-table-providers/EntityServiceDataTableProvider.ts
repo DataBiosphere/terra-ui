@@ -39,6 +39,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     uploadInstructions: 'Choose the data import option below. ',
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
     invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
+    //WdsDataTableProvider and EntityServiceDataTableProvider use different variables to determine whether a file is invalid, so some are ignored here
     isInvalid: (modeMatches: boolean, filePresent: boolean, match: boolean, _: boolean) => {
       return modeMatches && filePresent && match
     },

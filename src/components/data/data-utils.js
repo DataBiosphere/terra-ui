@@ -448,7 +448,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           `Data with the type '${recordType ? recordType : newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && containsNullValues && (entityAlreadyExists || recordAlreadyExists) && div({
+        currentFile && containsNullValues && entityAlreadyExists && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),

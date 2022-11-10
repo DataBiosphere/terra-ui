@@ -766,7 +766,7 @@ const WorkspaceData = _.flow(
                   message: 'WDS is unavailable.'
                 }),
                 !wdsSchemaError && h(NoDataPlaceholder, {
-                  message: _.isEmpty(wdsSchema) ? 'No WDS tables have been uploaded.' : '',
+                  message: _.isEmpty(wdsSchema) ? 'No tables have been uploaded.' : '',
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
