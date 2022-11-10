@@ -10,7 +10,8 @@ const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
 export const AzureStorage = signal => ({
   sasToken: async (workspaceId, containerId) => {
-    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+    // sas token expires after 8 hours
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
       _.merge(authOpts(), { signal, method: 'POST' }))
 
     return tokenResponse.json()
