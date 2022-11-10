@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { createEvent, fireEvent, getAllByRole, getByText, render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
@@ -19,19 +19,21 @@ type UseDirectoriesInDirectoryResult = ReturnType<typeof useDirectoriesInDirecto
 const mockFileBrowserProvider: FileBrowserProvider = {} as FileBrowserProvider
 
 describe('FileBrowserDirectory', () => {
-  it('renders the directory name as a button', () => {
+  it('renders the directory name', () => {
     // Act
     render(h(FileBrowserDirectory, {
-      provider: mockFileBrowserProvider,
-      path: 'path/to/directory/',
-      isHighlighted: () => false,
+      activeDescendant: 'node-0',
       level: 0,
+      id: 'node-0',
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
       onSelectDirectory: jest.fn()
     }))
 
     // Assert
-    const button = screen.getByRole('button')
-    expect(button).toHaveTextContent('directory')
+    screen.getByText('directory')
   })
 
   it('it calls onSelectDirectory callback with path when directory name is clicked', async () => {
@@ -40,23 +42,28 @@ describe('FileBrowserDirectory', () => {
 
     const onSelectDirectory = jest.fn()
     render(h(FileBrowserDirectory, {
-      provider: mockFileBrowserProvider,
-      path: 'path/to/directory/',
-      isHighlighted: () => false,
+      activeDescendant: 'node-0',
+      id: 'node-0',
       level: 0,
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
       onSelectDirectory
     }))
 
     // Act
-    const button = screen.getByRole('button')
-    await user.click(button)
+    const link = screen.getByText('directory')
+    await user.click(link)
 
     // Assert
     expect(onSelectDirectory).toHaveBeenCalledWith('path/to/directory/')
   })
 
-  it('fetches and renders directory contents when expanded', () => {
+  it('fetches and renders directory contents when expanded', async () => {
     // Arrange
+    const user = userEvent.setup()
+
     const directories = [
       {
         path: 'path/to/directory/subdirectory1'
@@ -80,21 +87,24 @@ describe('FileBrowserDirectory', () => {
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
     render(h(FileBrowserDirectory, {
-      provider: mockFileBrowserProvider,
-      path: 'path/to/directory/',
-      isHighlighted: () => false,
+      activeDescendant: 'node-0',
+      id: 'node-0',
       level: 0,
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
       onSelectDirectory: jest.fn()
     }))
 
     // Act
     const contentsFetchedBeforeExpanding = asMockedFn(useDirectoriesInDirectory).mock.calls.length > 0
-    const details = screen.getByRole('group')
-    fireEvent(details, createEvent('toggle', details, { target: { open: true } }))
+    const toggle = screen.getByTestId('toggle-expanded')
+    await user.click(toggle)
     const contentsFetchedAfterExpanding = asMockedFn(useDirectoriesInDirectory).mock.calls.length > 0
 
-    const subdirectoryButtons = getAllByRole(details, 'button')
-    const renderedSubdirectories = subdirectoryButtons.map(button => button.textContent)
+    const subdirectoryList = screen.getByRole('group')
+    const renderedSubdirectories = Array.from(subdirectoryList.children).map(el => el.children[1].textContent)
 
     // Assert
     expect(contentsFetchedBeforeExpanding).toBe(false)
@@ -108,8 +118,10 @@ describe('FileBrowserDirectory', () => {
     { state: { status: 'Error', error: new Error('Something went wrong'), directories: [] }, expectedMessage: 'Error loading contents' }
   ] as { state: UseDirectoriesInDirectoryResult['state']; expectedMessage: string }[])(
     'it renders a status message while loading contents or on an error loading contents ($state.status)',
-    ({ state, expectedMessage }) => {
+    async ({ state, expectedMessage }) => {
       // Arrange
+      const user = userEvent.setup()
+
       const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
         state,
         hasNextPage: false,
@@ -121,19 +133,22 @@ describe('FileBrowserDirectory', () => {
       asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
       render(h(FileBrowserDirectory, {
-        provider: mockFileBrowserProvider,
-        path: 'path/to/directory/',
-        isHighlighted: () => false,
+        activeDescendant: 'node-0',
+        id: 'node-0',
         level: 0,
+        path: 'path/to/directory/',
+        provider: mockFileBrowserProvider,
+        selectedDirectory: '',
+        setActiveDescendant: () => {},
         onSelectDirectory: jest.fn()
       }))
 
       // Act
-      const details = screen.getByRole('group')
-      fireEvent(details, createEvent('toggle', details, { target: { open: true } }))
+      const toggle = screen.getByTestId('toggle-expanded')
+      await user.click(toggle)
 
       // Assert
-      getByText(details, expectedMessage)
+      screen.getByText(expectedMessage)
     }
   )
 
@@ -165,15 +180,18 @@ describe('FileBrowserDirectory', () => {
       const user = userEvent.setup()
 
       render(h(FileBrowserDirectory, {
-        provider: mockFileBrowserProvider,
-        path: 'path/to/directory/',
-        isHighlighted: () => false,
+        activeDescendant: 'node-0',
+        id: 'node-0',
         level: 0,
+        path: 'path/to/directory/',
+        provider: mockFileBrowserProvider,
+        selectedDirectory: '',
+        setActiveDescendant: () => {},
         onSelectDirectory: jest.fn()
       }))
 
-      const details = screen.getByRole('group')
-      fireEvent(details, createEvent('toggle', details, { target: { open: true } }))
+      const toggle = screen.getByTestId('toggle-expanded')
+      await user.click(toggle)
 
       // Assert
       const loadNextPageButton = screen.getByText('Load next page')

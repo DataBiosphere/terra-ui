@@ -1,25 +1,45 @@
-import { Fragment, ReactNode, useState } from 'react'
-import { details, div, h, li, p, span, summary, ul } from 'react-hyperscript-helpers'
+import { Dispatch, Fragment, ReactNode, SetStateAction, useRef, useState } from 'react'
+import { h, li, p, span, ul } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import { basename } from 'src/components/file-browser/file-browser-utils'
 import { icon } from 'src/components/icons'
+import Interactive, { InteractiveProps } from 'src/components/Interactive' // eslint-disable-line import/named
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 
 
 interface FileBrowserDirectoryContentsProps {
-  provider: FileBrowserProvider
-  isHighlighted: (path: string) => boolean
+  activeDescendant: string
   level: number
+  parentId: string
   path: string
+  provider: FileBrowserProvider
+  selectedDirectory: string
+  setActiveDescendant: Dispatch<SetStateAction<string>>
   onSelectDirectory: (path: string) => void
 }
 
-const renderDirectoryStatus = (level: number, children: ReactNode) => p({ style: { padding: '0.5rem', margin: `0 0 0.25rem ${level * 1.25}rem` } }, [children])
+const renderDirectoryStatus = (level: number, children: ReactNode) => p({
+  style: {
+    // Match padding + border of tree items.
+    padding: 'calc(0.25rem + 1px) 0.5rem',
+    // Align with arrow icons of tree items.
+    margin: `0 0 0 ${level + 0.75}rem`
+  }
+}, [children])
 
 export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContentsProps) => {
-  const { provider, isHighlighted, level, path, onSelectDirectory } = props
+  const {
+    activeDescendant,
+    level,
+    parentId,
+    path,
+    provider,
+    selectedDirectory,
+    setActiveDescendant,
+    onSelectDirectory
+  } = props
 
   const {
     state: { status, directories },
@@ -27,121 +47,159 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     loadNextPage
   } = useDirectoriesInDirectory(provider, path)
 
-  if (status === 'Error') {
-    return renderDirectoryStatus(level + 1, 'Error loading contents')
-  }
-
   return h(Fragment, [
-    directories.length > 0 && ul({
+    status === 'Loading' && renderDirectoryStatus(level, 'Loading...'),
+    status === 'Error' && renderDirectoryStatus(level, 'Error loading contents'),
+    (status === 'Ready' || directories.length > 0) && ul({
+      'aria-label': `${basename(path) || 'Files'} subdirectories`,
+      role: 'group',
       style: {
         padding: 0,
         margin: 0,
         listStyleType: 'none'
       }
     }, [
-      directories.map(directory => li({
-        key: directory.path
-      }, [
-        h(FileBrowserDirectory, {
-          provider,
-          isHighlighted,
+      directories.map((directory, index) => {
+        return h(FileBrowserDirectory, {
+          key: directory.path,
+          activeDescendant,
+          id: `${parentId}-${index}`,
           level: level + 1,
           path: directory.path,
+          provider,
+          selectedDirectory,
+          setActiveDescendant,
           onSelectDirectory
         })
-      ]))
-    ]),
-    status === 'Loading' && renderDirectoryStatus(level, 'Loading...'),
-    hasNextPage && h(Link, {
-      style: { display: 'inline-block', padding: '0.25rem 0.5rem', marginLeft: `${level * 1.25}rem` },
-      onClick: () => loadNextPage()
-    }, ['Load next page'])
+      }),
+      hasNextPage && li({
+        // aria-level starts at 1, level starts at 0.
+        'aria-level': level + 1,
+        id: `${parentId}-load-next`,
+        role: 'treeitem',
+        style: {
+          display: 'flex',
+          flexDirection: 'column'
+        }
+      }, [
+        h(Link, {
+          role: 'presentation',
+          tabIndex: -1,
+          style: {
+            // Align with directory tree item arrow icons.
+            padding: `0.25rem 0.5rem 0.25rem ${level + 1.25}rem`,
+            borderColor: `${parentId}-load-next` === activeDescendant ? colors.accent() : 'transparent',
+            borderStyle: 'solid',
+            borderWidth: '1px 0'
+          },
+          onClick: () => loadNextPage()
+        }, ['Load next page'])
+      ])
+    ])
   ])
 }
 
 interface FileBrowserDirectoryProps {
+  activeDescendant: string
+  id: string
   provider: FileBrowserProvider
-  isHighlighted: (path: string) => boolean
   level: number
   path: string
+  selectedDirectory: string
+  setActiveDescendant: Dispatch<SetStateAction<string>>
   onSelectDirectory: (path: string) => void
 }
 
 export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
-  const { provider, isHighlighted, level, path, onSelectDirectory } = props
+  const {
+    activeDescendant,
+    id,
+    level,
+    path,
+    provider,
+    selectedDirectory,
+    setActiveDescendant,
+    onSelectDirectory
+  } = props
+  const isSelected = path === selectedDirectory
 
-  const [isOpen, setIsOpen] = useState(false)
-  // Don't load the directory contents until the details element is opened
-  const [renderContents, setRenderContents] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
-  const indent = `${1.25 * (level - 1)}rem`
-
-  return div({
+  return li({
+    'aria-expanded': isExpanded,
+    // Label with the link to read only the directory basename instead of both the basename and the subdirectories list label.
+    'aria-labelledby': `${id}-link`,
+    // aria-level starts at 1, level starts at 0.
+    'aria-level': level + 1,
+    // aria-selected: false results in every tree item being read as "selected".
+    'aria-selected': isSelected ? true : undefined,
+    // Data attribute allows getting the directory path from the activedescendant element ID.
+    'data-path': path,
+    id,
+    role: 'treeitem',
     style: {
+      display: 'flex',
+      flexDirection: 'column',
       position: 'relative'
     }
   }, [
-    // This link cannot be nested inside the summary element, so it's absolutely
-    // positioned to overlap it.
-    h(Link, {
+    // Wrapper span provides a larger click target than just the icon.
+    span({
+      'aria-hidden': true,
+      'data-testid': 'toggle-expanded',
       style: {
         position: 'absolute',
-        left: `calc(${indent} + 1rem + 12px)`,
-        right: '0.5rem',
+        top: '1px',
+        left: `${level - 1}rem`,
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        width: '2rem',
+        height: '1.5rem'
+      },
+      onClick: () => setIsExpanded(v => !v)
+    }, [
+      icon(isExpanded ? 'angle-down' : 'angle-right', {
+        // @ts-expect-error
+        color: isSelected ? '#000' : colors.accent(),
+        size: 14
+      })
+    ]),
+    h(Link, {
+      id: `${id}-link`,
+      role: 'presentation',
+      tabIndex: -1,
+      style: {
+        display: 'inline-block',
         overflow: 'hidden',
-        padding: '0.5rem 0',
+        maxWidth: '100%',
+        padding: `0.25rem 0.5rem 0.25rem ${level + 1}rem`,
+        borderColor: id === activeDescendant ? colors.accent() : 'transparent',
+        borderStyle: 'solid',
+        borderWidth: '1px 0',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        ...(isHighlighted(path) && {
+        ...(isSelected && {
           color: '#000'
         })
       },
-      ...(isHighlighted(path) && {
+      ...(isSelected && {
         hover: { color: '#000' }
       }),
       onClick: () => {
         onSelectDirectory(path)
       }
-    }, [basename(path)]),
-    details({
-      onToggle: e => {
-        // Avoid a toggle event on parent folders' details elements
-        e.stopPropagation()
-
-        const isOpen = (e.target as HTMLDetailsElement).open
-        setIsOpen(isOpen)
-        if (isOpen) {
-          setRenderContents(true)
-        }
-      }
-    }, [
-      summary({
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          height: '2rem',
-          paddingLeft: `calc(${indent} + 0.5rem`,
-          marginBottom: '0.25rem',
-          color: colors.accent(),
-          cursor: 'pointer',
-          listStyleType: 'none',
-          ...(isHighlighted(path) && {
-            background: colors.accent(0.1),
-            color: '#000'
-          })
-        }
-      }, [
-        icon(isOpen ? 'angle-down' : 'angle-right', { size: 12 }),
-        span({ className: 'sr-only' }, [`${basename(path)} subdirectories`])
-      ]),
-      renderContents && h(FileBrowserDirectoryContents, {
-        provider,
-        isHighlighted,
-        level,
-        path,
-        onSelectDirectory
-      })
-    ])
+    }, [basename(path) || 'Files']),
+    isExpanded && h(FileBrowserDirectoryContents, {
+      activeDescendant,
+      level,
+      parentId: id,
+      path,
+      provider,
+      selectedDirectory,
+      setActiveDescendant,
+      onSelectDirectory
+    })
   ])
 }
 
@@ -152,18 +210,109 @@ interface FileBrowserDirectoriesProps {
 }
 
 const FileBrowserDirectories = (props: FileBrowserDirectoriesProps) => {
-  const { provider, selectedDirectory, onSelectDirectory } = props
+  const {
+    provider,
+    selectedDirectory,
+    onSelectDirectory
+  } = props
 
-  return div({
+  const treeElementRef = useRef<HTMLUListElement | null>(null)
+
+  const [activeDescendant, setActiveDescendant] = useState('node-0')
+
+  return h(Interactive, {
+    as: 'ul',
+    ref: treeElementRef,
+    // aria-activedescendant tells which tree item is "focused", while actual focus stays on the tree itself.
+    'aria-activedescendant': activeDescendant,
+    'aria-label': 'Workspace files',
+    role: 'tree',
+    tabIndex: 0,
     style: {
-      marginTop: '0.5rem'
+      padding: 0,
+      border: '2px solid transparent',
+      margin: 0,
+      listStyleType: 'none'
+    },
+    hover: {
+      border: `2px solid ${colors.accent()}`
+    },
+    onKeyDown: e => {
+      // If the key isn't relevant to tree navigation, do nothing.
+      if (!(e.key === 'Enter' || e.key.startsWith('Arrow'))) {
+        return
+      }
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const currentTreeItem = document.getElementById(activeDescendant)
+
+      if (!currentTreeItem) {
+        // If the active descendant isn't found (for example, if it was in a group that has been collapsed),
+        // then reset the active descendant to the first item in the tree.
+        setActiveDescendant('node-0')
+      } else if (e.key === 'Enter') {
+        if (currentTreeItem.id.endsWith('-load-next')) {
+          // If on a load next page tree item, load the next page.
+          (currentTreeItem.firstElementChild as HTMLElement)!.click()
+        } else {
+          // Otherwise, select the path for the current tree item.
+          onSelectDirectory(currentTreeItem.dataset.path!)
+        }
+      } else if (e.key === 'ArrowLeft') {
+        const isExpanded = currentTreeItem.getAttribute('aria-expanded') === 'true'
+        if (isExpanded) {
+          // Close the tree item if it is open.
+          (currentTreeItem.firstElementChild as HTMLElement)!.click()
+        } else {
+          // If the tree item is closed, move to the parent tree item (if there is one).
+          const parentGroup = currentTreeItem.parentElement!
+          if (parentGroup.getAttribute('role') === 'group') {
+            // If the parent group is a group within the tree, move up the tree.
+            // Else if the parent group is the tree itself, do nothing.
+            const parentTreeItem = parentGroup.parentElement!
+            setActiveDescendant(parentTreeItem.id)
+          }
+        }
+      } else if (e.key === 'ArrowRight') {
+        const expanded = currentTreeItem.getAttribute('aria-expanded')
+        if (expanded === 'false') {
+          // Open the tree item if it is currently closed.
+          (currentTreeItem.firstElementChild as HTMLElement)!.click()
+        } else if (expanded === 'true') {
+          // Move to the first child node.
+          // If the current tree item has no children, then do nothing.
+          const firstChildTreeItem = currentTreeItem.lastElementChild!.firstElementChild
+          if (firstChildTreeItem) {
+            setActiveDescendant(firstChildTreeItem.id)
+          }
+        }
+      } else if (e.key === 'ArrowDown') {
+        // Move to the next tree item without opening/closing any tree items.
+        const allTreeItemIds = Array.from(treeElementRef.current!.querySelectorAll('[role="treeitem"]')).map(el => el.id)
+        const indexOfCurrentTreeItem = allTreeItemIds.findIndex(id => id === activeDescendant)
+        if (indexOfCurrentTreeItem < allTreeItemIds.length - 1) {
+          setActiveDescendant(allTreeItemIds[indexOfCurrentTreeItem + 1])
+        }
+      } else if (e.key === 'ArrowUp') {
+        // Move to the previous tree item without opening/closing any tree items.
+        const allTreeItemIds = Array.from(treeElementRef.current!.querySelectorAll('[role="treeitem"]')).map(el => el.id)
+        const indexOfCurrentTreeItem = allTreeItemIds.findIndex(id => id === activeDescendant)
+        if (indexOfCurrentTreeItem > 1) {
+          setActiveDescendant(allTreeItemIds[indexOfCurrentTreeItem - 1])
+        }
+      }
     }
-  }, [
-    h(FileBrowserDirectoryContents, {
+  } as InteractiveProps<'ul'>, [
+    h(FileBrowserDirectory, {
+      activeDescendant,
       provider,
-      isHighlighted: path => path === selectedDirectory,
+      id: 'node-0',
       level: 0,
       path: '',
+      selectedDirectory,
+      setActiveDescendant,
       onSelectDirectory
     })
   ])
