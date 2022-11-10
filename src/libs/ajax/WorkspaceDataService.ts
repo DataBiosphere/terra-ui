@@ -1,6 +1,11 @@
 import _ from 'lodash/fp'
 import { authOpts, fetchWDS, jsonBody } from 'src/libs/ajax/ajax-common'
-import { RecordQueryResponse, RecordTypeSchema, SearchRequest } from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
+import {
+  RecordQueryResponse,
+  RecordTypeSchema,
+  SearchRequest,
+  TsvUploadResponse
+} from 'src/libs/ajax/data-table-providers/WdsDataTableProvider'
 
 
 export const WorkspaceData = signal => ({
@@ -23,7 +28,7 @@ export const WorkspaceData = signal => ({
     const blob = await res.blob()
     return blob
   },
-  uploadTsv: async (instanceId, recordType, file) => {
+  uploadTsv: async (instanceId: string, recordType: string, file: File): Promise<TsvUploadResponse> => {
     const formData = new FormData()
     formData.set('records', file)
     const res = await fetchWDS(`${instanceId}/tsv/v0.2/${recordType}`, _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }]))

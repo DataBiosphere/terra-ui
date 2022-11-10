@@ -380,6 +380,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
           h(ValidatedInput, {
             inputProps: {
+              id: 'add-table-name',
               autoFocus: true,
               placeholder: 'Enter a table name',
               value: recordType,
