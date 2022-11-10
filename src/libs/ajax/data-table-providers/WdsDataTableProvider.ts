@@ -77,7 +77,8 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: false,
     supportsExport: false,
     supportsPointCorrection: false,
-    supportsFiltering: false
+    supportsFiltering: false,
+    supportsRowSelection: false
   }
 
   private maybeTransformRelation = (val: unknown): unknown => {

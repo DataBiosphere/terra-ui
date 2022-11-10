@@ -20,7 +20,8 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: true,
     supportsExport: true,
     supportsPointCorrection: true,
-    supportsFiltering: true
+    supportsFiltering: true,
+    supportsRowSelection: true
   }
 
   getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
