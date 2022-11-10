@@ -1,8 +1,10 @@
 const _ = require('lodash/fp')
-const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText, gotoPage, waitForNoSpinners, signIntoTerra } = require('../utils/integration-utils')
+const { checkbox, click, clickable, input, fillIn, heading, findHeading, findText, gotoPage, waitForNoSpinners, signIntoTerra } = require(
+  '../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { enableDataCatalog } = require('../utils/integration-helpers')
+const qs = require('qs')
 
 
 const getDatasetCount = async page => {
@@ -45,6 +47,8 @@ const testCatalogFilterFn = withUserToken(async ({ testUrl, page, token }) => {
   if (datasetSizeAfterFilter >= datasetSizeAfterSearch) {
     throw new Error(`Filter for '${filterItem}' was not applied to the table`)
   }
+
+  expect(page.target().url()).toContain(qs.stringify(filterItem))
 
   // Testing filter by multiple same facets
   await click(page, checkbox({ text: secondFilterItem, isDescendant: true }))
