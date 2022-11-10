@@ -37,7 +37,8 @@ import { notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cohortNotebook, cohortRNotebook, NotebookCreator, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const getDataset = dataExplorerUrl => {

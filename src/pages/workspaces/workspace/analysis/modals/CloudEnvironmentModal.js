@@ -21,7 +21,6 @@ import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/m
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
-import { getAppType, getToolsToDisplay, isPauseSupported, isToolAnApp, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
@@ -29,6 +28,7 @@ import {
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { getAppType, getToolsToDisplay, isAppToolLabel, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const titleId = 'cloud-env-modal'
@@ -140,7 +140,7 @@ export const CloudEnvironmentModal = ({
     try {
       setBusy(true)
       await promise
-      await isToolAnApp(toolLabel) ? refreshApps() : refreshRuntimes()
+      await isAppToolLabel(toolLabel) ? refreshApps() : refreshRuntimes()
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -150,7 +150,7 @@ export const CloudEnvironmentModal = ({
 
   //TODO: add azure start
   // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
-  const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+  const startApp = toolLabel => Utils.cond([isAppToolLabel(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(cloudContext.cloudResource, appName).resume())
@@ -159,7 +159,7 @@ export const CloudEnvironmentModal = ({
       Ajax().Runtimes.runtimeWrapper(currentRuntime).start())
   }])
 
-  const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+  const stopApp = toolLabel => Utils.cond([isAppToolLabel(toolLabel), () => {
     const { appName, cloudContext } = currentApp(toolLabel)
     executeAndRefresh(toolLabel, Ajax().Apps.app(cloudContext.cloudResource, appName).pause())
   }], [Utils.DEFAULT, () => {
@@ -177,7 +177,7 @@ export const CloudEnvironmentModal = ({
 
   const renderStatusClickable = toolLabel => Utils.cond(
     [toolLabel === currentRuntimeTool, () => getIconFromStatus(toolLabel, currentRuntimeStatus)],
-    [isToolAnApp(toolLabel), () => {
+    [isAppToolLabel(toolLabel), () => {
       const normalizedAppStatus = _.capitalize(currentApp(toolLabel)?.status)
       return getIconFromStatus(toolLabel, normalizedAppStatus)
     }],
@@ -229,7 +229,7 @@ export const CloudEnvironmentModal = ({
           style: { color: colors.danger(0.9) },
           onClick: () => {
             Utils.cond(
-              [isToolAnApp(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
+              [isAppToolLabel(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
               [Utils.DEFAULT, () => setErrorRuntimeId(currentRuntime?.id)]
             )
           },
@@ -251,7 +251,7 @@ export const CloudEnvironmentModal = ({
     [tools.Azure.label, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isToolAnApp(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
+    [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
       // This asks 'does this tool have a runtime'
@@ -267,7 +267,7 @@ export const CloudEnvironmentModal = ({
     const app = currentApp(toolLabel)
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
-    const isToolBusy = isToolAnApp(toolLabel) ?
+    const isToolBusy = isAppToolLabel(toolLabel) ?
       getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || !isLaunchSupported(toolLabel)

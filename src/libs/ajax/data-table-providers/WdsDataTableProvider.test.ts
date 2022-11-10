@@ -1,6 +1,6 @@
 import { Ajax } from 'src/libs/ajax'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
-import { asMockedFn } from 'src/test-utils'
+import { asMockedFn } from 'src/testing/test-utils'
 
 import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
 import { RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'

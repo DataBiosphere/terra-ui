@@ -2,40 +2,15 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
-import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
-import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { analysisLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { addExtensionToNotebook } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import validate from 'validate.js'
 
-
-export const notebookLockHash = (bucketName, email) => Utils.sha256(`${bucketName}:${email}`)
-
-export const findPotentialNotebookLockers = async ({ canShare, namespace, workspaceName, bucketName }) => {
-  if (canShare) {
-    const { acl } = await Ajax().Workspaces.workspace(namespace, workspaceName).getAcl()
-    const potentialLockers = _.flow(
-      _.toPairs,
-      _.map(([email, data]) => ({ email, ...data })),
-      _.filter(({ accessLevel }) => Utils.hasAccessLevel('WRITER', accessLevel))
-    )(acl)
-    const lockHolderPromises = _.map(async ({ email }) => {
-      const lockHash = await notebookLockHash(bucketName, email)
-      return { [lockHash]: email }
-    }, potentialLockers)
-    return _.mergeAll(await Promise.all(lockHolderPromises))
-  } else {
-    return {}
-  }
-}
 
 export const analysisNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -43,7 +18,7 @@ export const analysisNameValidator = existing => ({
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
     message: h(Fragment, [
       div('Name can\'t contain these characters:'),
-      div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
+      div({ style: { margin: '0.5rem 1rem' } }, ['@ # $ % * + = ? , [ ] : ; / \\ '])
     ])
   },
   exclusion: {
@@ -51,16 +26,6 @@ export const analysisNameValidator = existing => ({
     message: 'already exists'
   }
 })
-
-// removes all paths up to and including the last slash
-export const getFileName = _.flow(_.split('/'), _.last)
-
-export const getExtension = _.flow(_.split('.'), _.last)
-
-export const stripExtension = _.replace(/\.[^/.]+$/, '')
-
-// removes leading dirs and a file ext suffix on paths
-export const getDisplayName = _.flow(getFileName, stripExtension)
 
 export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   ...props,
@@ -70,70 +35,6 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
     placeholder: 'Enter a name'
   }
 })
-
-// The label here matches the leonardo `tool` label for runtimes
-export const tools = {
-  RStudio: { label: 'RStudio', ext: ['Rmd', 'R'], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' },
-  Jupyter: { label: 'Jupyter', ext: ['ipynb'], isNotebook: true, imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk', isLaunchUnsupported: true, defaultExt: 'ipynb' },
-  jupyterTerminal: { label: 'terminal' },
-  spark: { label: 'spark' },
-  Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
-  Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible(), isPauseUnsupported: true },
-  Azure: { label: 'Azure', isNotebook: true, ext: ['ipynb'], isAzureCompatible: true, isLaunchUnsupported: false, defaultExt: 'ipynb' }
-}
-
-export const toolExtensionDisplay = {
-  RStudio: [
-    { label: 'R Markdown (.Rmd)', value: 'Rmd' },
-    { label: 'R Script (.R)', value: 'R' }
-  ],
-  Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' }]
-}
-
-export const getPatternFromTool = toolLabel => Utils.switchCase(toolLabel,
-  [tools.RStudio.label, () => '.+(\\.R|\\.Rmd)$'],
-  [tools.Jupyter.label, () => '.*\\.ipynb'],
-  [tools.Azure.label, () => '.*\\.ipynb']
-)
-
-export const addExtensionToNotebook = name => `${name}.${tools.Jupyter.defaultExt}`
-
-// Returns the tools in the order that they should be displayed for Cloud Environment tools
-export const getToolsToDisplay = isAzureWorkspace => _.flow(
-  _.remove(tool => tool.isAppHidden),
-  _.filter(tool => !!tool.isAzureCompatible === !!isAzureWorkspace)
-)([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
-
-export const toolToExtensionMap = _.flow(
-  _.filter('ext'),
-  _.map(tool => ({ [tool.label]: tool.ext })),
-  _.reduce(_.merge, {})
-)(tools)
-
-const extensionToToolMap = (() => {
-  const extMap = {}
-  _.forEach(extension => extMap[extension] = tools.RStudio.label, tools.RStudio.ext)
-  _.forEach(extension => extMap[extension] = tools.Jupyter.label, tools.Jupyter.ext)
-  return extMap
-})()
-
-// Returns appType for app with given label, or undefined if tool is not an app.
-export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
-
-// Returns label for app with given image id, or undefined if id is not associated with an app.
-export const getToolForImage = image => _.find(tool => tool.imageIds?.includes(image))(tools)?.label
-
-// Does the tool label correspond to an app?
-export const isToolAnApp = label => getAppType(label) !== undefined
-
-// Returns registered appTypes.
-export const allAppTypes = _.flow(_.map('appType'), _.compact)(tools)
-
-export const getToolFromFileExtension = fileName => extensionToToolMap[getExtension(fileName)]
-export const getToolFromRuntime = _.get(['labels', 'tool'])
-export const isPauseSupported = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
-
-export const getAnalysisFileExtension = toolLabel => toolToExtensionMap[toolLabel]
 
 const baseNotebook = {
   cells: [
@@ -220,102 +121,6 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProjec
     ])]),
     creating && spinnerOverlay
   ])
-}
-
-export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, workspaceName, googleProject, workspaceId, namespace, bucketName, onDismiss, onSuccess }) => {
-  const [newName, setNewName] = useState('')
-  const [existingNames, setExistingNames] = useState([])
-  const [nameTouched, setNameTouched] = useState(false)
-  const [processing, setProcessing] = useState(false)
-  const signal = useCancellation()
-
-  useOnMount(() => {
-    const loadNames = async () => {
-      const existingAnalyses = !!googleProject ?
-        await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName) :
-        await Ajax(signal).AzureStorage.listNotebooks(workspaceId)
-      const existingNames = _.map(({ name }) => getFileName(name), existingAnalyses)
-      setExistingNames(existingNames)
-    }
-    loadNames()
-  })
-
-  const errors = validate(
-    { newName },
-    { newName: analysisNameValidator(existingNames) },
-    { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
-  )
-
-  return h(Modal, {
-    onDismiss,
-    title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
-    okButton: h(ButtonPrimary, {
-      disabled: errors || processing,
-      tooltip: Utils.summarizeErrors(errors),
-      onClick: async () => {
-        setProcessing(true)
-        try {
-          const rename = !!googleProject ?
-            () => Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
-            () => Ajax().AzureStorage.blob(workspaceId, printName).rename(newName)
-
-          const duplicate = !!googleProject ?
-            () => Ajax().Buckets.analysis(googleProject, bucketName, getFileName(printName), toolLabel).copy(`${newName}.${getExtension(printName)}`, bucketName, true) :
-            () => Ajax().AzureStorage.blob(workspaceId, printName).copy(newName)
-
-          if (destroyOld) {
-            await rename()
-          } else {
-            await duplicate()
-          }
-
-          onSuccess()
-          if (fromLauncher) {
-            Nav.goToPath(analysisLauncherTabName, {
-              namespace, name: workspaceName, analysisName: `${newName}.${getExtension(printName)}`, toolLabel
-            })
-          }
-          if (destroyOld) {
-            Ajax().Metrics.captureEvent(Events.notebookRename, {
-              oldName: printName,
-              newName,
-              workspaceName,
-              workspaceNamespace: namespace
-            })
-          } else {
-            Ajax().Metrics.captureEvent(Events.notebookCopy, {
-              oldName: printName,
-              newName,
-              fromWorkspaceNamespace: namespace,
-              fromWorkspaceName: workspaceName,
-              toWorkspaceNamespace: namespace,
-              toWorkspaceName: workspaceName
-            })
-          }
-        } catch (error) {
-          reportError(`Error ${destroyOld ? 'renaming' : 'copying'} analysis`, error)
-        }
-      }
-    }, `${destroyOld ? 'Rename' : 'Copy'} Analysis`)
-  },
-  Utils.cond(
-    [processing, () => [centeredSpinner()]],
-    () => [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
-        analysisNameInput({
-          error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
-          inputProps: {
-            id, value: newName,
-            onChange: v => {
-              setNewName(v)
-              setNameTouched(true)
-            }
-          }
-        })
-      ])])
-    ]
-  ))
 }
 
 // In Python notebook, use ' instead of " in code cells, to avoid formatting problems.

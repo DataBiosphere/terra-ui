@@ -2,14 +2,16 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
 export const AzureStorage = signal => ({
   sasToken: async (workspaceId, containerId) => {
-    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+    // sas token expires after 8 hours
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
       _.merge(authOpts(), { signal, method: 'POST' }))
 
     return tokenResponse.json()
