@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
 import {
+  AttributeArray,
   DataTableFeatures,
   DataTableProvider,
   EntityMetadata,
@@ -30,10 +31,12 @@ export interface SearchRequest {
   sortAttribute?: string
 }
 
+type RecordAttributes = Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
+
 interface RecordResponse {
   id: string
   type: string
-  attributes: Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
+  attributes: RecordAttributes
 }
 
 export interface RecordQueryResponse {
@@ -48,6 +51,25 @@ export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): Entit
   return _.mapValues(typeDef => {
     return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
   }, keyedSchema)
+}
+
+export const relationUriScheme = 'terra-wds'
+
+// Callers outside this module should not call this function. It returns a string array of size 2
+// iff it looks like a valid relation URI; else it returns an empty array.
+// Returning the array prevents callers from string-parsing the URI multiple times.
+// This function does not verify that the record type and record id are syntactically
+// valid according to WDS - for instance, do they contain special characters?
+// WDS should own that logic. Here, we only check if the type and id are nonempty.
+const getRelationParts = (val: unknown): string[] => {
+  if (_.isString(val) && val.startsWith(`${relationUriScheme}:/`)) {
+    const parts: string[] = val.substring(relationUriScheme.length + 2).split('/')
+    if (parts.length === 2 && _.every(part => !!part, parts)) {
+      return parts
+    }
+    return []
+  }
+  return []
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
@@ -85,6 +107,31 @@ export class WdsDataTableProvider implements DataTableProvider {
     }
   }
 
+  private maybeTransformRelation = (val: unknown): unknown => {
+    const relationParts = getRelationParts(val)
+    return relationParts.length ? { entityType: relationParts[0], entityName: relationParts[1] } : val
+  }
+
+  private toEntityServiceArray = (val: unknown[]): AttributeArray => {
+    if (val.length && getRelationParts(val[0]).length) {
+      // first element of the array looks like a relation. Now, check all elements.
+      const translated: string[][] = val.map(getRelationParts)
+      if (_.every(parts => parts.length, translated)) {
+        const references = translated.map(parts => { return { entityType: parts[0], entityName: parts[1] } })
+        return { itemsType: 'EntityReference', items: references }
+      }
+    }
+    // empty array, or the first element isn't a relation; return as attribute values.
+    return { itemsType: 'AttributeValue', items: val }
+  }
+
+  // transforms a WDS array to Entity Service array format
+  private transformAttributes = (attributes: RecordAttributes): RecordAttributes => {
+    return _.mapValues(val => {
+      return _.isArray(val) ? this.toEntityServiceArray(val) : this.maybeTransformRelation(val)
+    }, attributes)
+  }
+
   protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
@@ -92,11 +139,10 @@ export class WdsDataTableProvider implements DataTableProvider {
     const results = _.map(rec => {
       return {
         entityType: recordType,
-        attributes: rec.attributes,
+        attributes: this.transformAttributes(rec.attributes),
         name: rec.id
       }
     }, wdsPage.records)
-    // TODO: AJ-661 map WDS arrays to Entity Service array format
 
     return {
       results,

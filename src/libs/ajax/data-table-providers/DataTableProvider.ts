@@ -60,6 +60,11 @@ export interface UploadParameters {
   recordType: string
 }
 
+export interface AttributeArray {
+  itemsType: 'AttributeValue' | 'EntityReference'
+  items: unknown[] // truly "unknown" here; the backend Java representation is Object[]
+}
+
 // queryOptions can contain:
 export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
 
