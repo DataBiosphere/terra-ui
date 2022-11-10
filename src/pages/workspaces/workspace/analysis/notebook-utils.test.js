@@ -1,4 +1,5 @@
-import { allAppTypes, isToolAnApp, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+
+import { allAppTypes, isAppToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 describe('getAllAppTypes and isToolAnApp', () => {
@@ -6,7 +7,7 @@ describe('getAllAppTypes and isToolAnApp', () => {
     expect(allAppTypes.sort).toBe([tools.Galaxy.appType, tools.Cromwell.appType].sort)
   })
   it('isToolAnApp returns if a tool label corresponds to an app', () => {
-    expect(isToolAnApp(tools.Cromwell.label)).toBeTruthy()
-    expect(isToolAnApp(tools.Jupyter.label)).toBeFalsy()
+    expect(isAppToolLabel(tools.Cromwell.label)).toBeTruthy()
+    expect(isAppToolLabel(tools.Jupyter.label)).toBeFalsy()
   })
 })

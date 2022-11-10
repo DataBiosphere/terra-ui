@@ -18,17 +18,18 @@ import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import {
-  analysisNameInput, analysisNameValidator, baseRmd, getAppType, getFileName, getToolFromFileExtension, getToolFromRuntime, isToolAnApp, notebookData,
-  toolExtensionDisplay, tools
+  analysisNameInput, analysisNameValidator, baseRmd, notebookData
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getAppType, getToolFromFileExtension, getToolFromRuntime, isAppToolLabel, toolExtensionDisplay, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -79,8 +80,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         [environmentMode, onSuccess],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label || currentTool === tools.Azure.label, () => setViewMode(analysisMode)],
-          [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
-          [isToolAnApp(currentTool) && !!app, () => {
+          [isAppToolLabel(currentTool) && !app, () => setViewMode(environmentMode)],
+          [isAppToolLabel(currentTool) && !!app, () => {
             console.error(
               `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(
                 app.appType)} instance when one exists; the button should be disabled.`)
@@ -174,7 +175,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         hover: !galaxyApp ? styles.hover : undefined,
         disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) })]),
-      !tools.Cromwell.isAppHidden && h(Clickable, {
+      !tools.Cromwell.isHidden && h(Clickable, {
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentToolObj(tools.Cromwell)
           enterNextViewMode(tools.Cromwell.label)

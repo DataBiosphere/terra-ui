@@ -28,13 +28,15 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import {
+  findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getToolFromFileExtension, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
