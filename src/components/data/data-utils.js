@@ -313,7 +313,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [uploading, setUploading] = useState(false)
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
   const [recordType, setRecordType] = useState(undefined)
-  const [recordAlreadyExists, setRecordAlreadyExists] = useState(false)
+  const [recordTypeAlreadyExists, setRecordTypeAlreadyExists] = useState(false)
 
   const doUpload = async () => {
     setUploading(true)
@@ -331,9 +331,9 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   }
 
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = dataProvider.tsvFeatures.isInvalid(isFileImportCurrMode === isFileImportLastUsedMode, file, !match, fileContents.split('\n')[0].match(/sys_name/)) //only look at the first line
+  const isInvalid = dataProvider.tsvFeatures.isInvalid({ modeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file, sysNamePresent: fileContents.split('\n')[0].match(/sys_name/) }) //only look at the first line
   const newEntityType = match?.[1]
-  const entityAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
+  const entityTypeAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
   const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
@@ -353,29 +353,29 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: dataProvider.tsvFeatures.disabled(currentFile, isInvalid, uploading, recordType),
-          tooltip: dataProvider.tsvFeatures.tooltip(currentFile, isInvalid, recordType),
+          disabled: dataProvider.tsvFeatures.disabled({ filePresent: currentFile, isInvalid, uploading, recordTypePresent: recordType }),
+          tooltip: dataProvider.tsvFeatures.tooltip({ filePresent: currentFile, isInvalid, recordTypePresent: recordType }),
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
-          [dataProvider.tsvFeatures.uploadInstructions,
+          ['Choose the data import option below. ',
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
-        dataProvider.tsvFeatures.needsTypeInput && div([div({ style: { padding: '0 0 1rem' } }, 'Table name:  '),
+        dataProvider.tsvFeatures.needsTypeInput && [div({ style: { padding: '0 0 1rem' } }, 'Table name:  '),
           h(TextInput, {
             id: 'recordTypeInput',
             value: recordType,
             placeholder: 'Enter table name',
             onChange: value => {
               setRecordType(value)
-              setRecordAlreadyExists(_.includes(value, entityTypes))
+              setRecordTypeAlreadyExists(_.includes(value, entityTypes))
             }
-          })]),
-        dataProvider.features.supportsTabBar && h(SimpleTabBar, {
+          })],
+        h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
           value: isFileImportCurrMode ? 'file' : 'text',
@@ -441,14 +441,14 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }
           })
         ]),
-        ((currentFile && entityAlreadyExists) || recordAlreadyExists) && div({
+        ((currentFile && entityTypeAlreadyExists) || recordTypeAlreadyExists) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
           `Data with the type '${recordType ? recordType : newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && containsNullValues && entityAlreadyExists && div({
+        currentFile && containsNullValues && entityTypeAlreadyExists && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),

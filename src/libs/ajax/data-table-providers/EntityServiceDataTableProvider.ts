@@ -5,9 +5,9 @@ import {
   DataTableFeatures,
   DataTableProvider,
   EntityQueryOptions,
-  EntityQueryResponse,
-  TSVFeatures,
-  UploadParameters, uploadTsvFn
+  EntityQueryResponse, isInvalidTsvOptions, isTsvUploadButtonDisabledOptions,
+  TSVFeatures, tsvUploadButtonTooltipOptions,
+  UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -30,24 +30,21 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: true,
     supportsExport: true,
     supportsPointCorrection: true,
-    supportsFiltering: true,
-    supportsTabBar: true
+    supportsFiltering: true
   }
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: false,
-    uploadInstructions: 'Choose the data import option below. ',
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
     invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
-    //WdsDataTableProvider and EntityServiceDataTableProvider use different variables to determine whether a file is invalid, so some are ignored here
-    isInvalid: (modeMatches: boolean, filePresent: boolean, match: boolean, _: boolean) => {
-      return modeMatches && filePresent && match
+    isInvalid: (options: isInvalidTsvOptions): boolean => {
+      return options.modeMatches && options.filePresent && options.match
     },
-    disabled: (filePresent: boolean, isInvalid: boolean, uploading: boolean, _: boolean) => {
-      return !filePresent || isInvalid || uploading
+    disabled: (options: isTsvUploadButtonDisabledOptions): boolean => {
+      return !options.filePresent || options.isInvalid || options.uploading
     },
-    tooltip: (filePresent: boolean, isInvalid: boolean, _: boolean) => {
-      return !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+    tooltip: (options: tsvUploadButtonTooltipOptions): string => {
+      return !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
     }
   }
 
@@ -70,7 +67,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     return Ajax(signal).Workspaces.workspace(this.namespace, this.name).getEntitiesTsv(entityType)
   }
 
-  uploadTsv: uploadTsvFn = async (uploadParams: UploadParameters) => {
+  uploadTsv = async (uploadParams: UploadParameters) => {
     const workspace = Ajax().Workspaces.workspace(uploadParams.namespace, uploadParams.name)
     if (uploadParams.useFireCloudDataModel) {
       return workspace.importEntitiesFile(uploadParams.file, { deleteEmptyValues: uploadParams.deleteEmptyValues })

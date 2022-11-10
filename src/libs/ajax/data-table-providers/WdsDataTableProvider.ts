@@ -6,9 +6,9 @@ import {
   DataTableProvider,
   EntityMetadata,
   EntityQueryOptions,
-  EntityQueryResponse,
-  TSVFeatures,
-  UploadParameters, uploadTsvFn
+  EntityQueryResponse, isInvalidTsvOptions, isTsvUploadButtonDisabledOptions,
+  TSVFeatures, tsvUploadButtonTooltipOptions,
+  UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 
 // interface definitions for WDS payload responses
@@ -86,24 +86,21 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: false,
     supportsExport: false,
     supportsPointCorrection: false,
-    supportsFiltering: false,
-    supportsTabBar: false
+    supportsFiltering: false
   }
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
-    uploadInstructions: 'Choose the data to import below. ',
     sampleTSVLink: 'src/../wds_template.tsv', //TODO: placeholder, does not currently work
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
-    //WdsDataTableProvider and EntityServiceDataTableProvider use different variables to determine whether a file is invalid, so some are ignored here
-    isInvalid: (_0: boolean, filePresent: boolean, _2: boolean, sysNamePresent: boolean) => {
-      return !sysNamePresent && filePresent
+    isInvalid: (options: isInvalidTsvOptions): boolean => {
+      return options.modeMatches && !options.sysNamePresent && options.filePresent
     },
-    disabled: (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => {
-      return !filePresent || isInvalid || uploading || !recordTypePresent
+    disabled: (options: isTsvUploadButtonDisabledOptions): boolean => {
+      return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent
     },
-    tooltip: (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => {
-      return !recordTypePresent ? 'Please enter record type' : !filePresent || isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
+    tooltip: (options: tsvUploadButtonTooltipOptions): string => {
+      return !options.recordTypePresent ? 'Please enter record type' : !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
     }
   }
 
@@ -183,7 +180,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
   }
 
-  uploadTsv: uploadTsvFn = (uploadParams: UploadParameters) => {
+  uploadTsv = (uploadParams: UploadParameters) => {
     return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

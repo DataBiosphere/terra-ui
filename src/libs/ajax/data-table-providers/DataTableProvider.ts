@@ -50,7 +50,7 @@ export interface EntityQueryOptions {
   filterOperator: string
 }
 
-export interface UploadParameters {
+export type UploadParameters = {
   file: File
   useFireCloudDataModel: boolean
   deleteEmptyValues: boolean
@@ -58,6 +58,26 @@ export interface UploadParameters {
   name: string
   workspaceId: string
   recordType: string
+}
+
+export type isInvalidTsvOptions = {
+  modeMatches: boolean
+  filePresent: boolean
+  match: boolean
+  sysNamePresent: boolean
+}
+
+export type isTsvUploadButtonDisabledOptions = {
+  filePresent: boolean
+  isInvalid: boolean
+  uploading: boolean
+  recordTypePresent: boolean
+}
+
+export type tsvUploadButtonTooltipOptions = {
+  filePresent: boolean
+  isInvalid: boolean
+  recordTypePresent: boolean
 }
 
 export interface AttributeArray {
@@ -74,11 +94,11 @@ export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
-export type isInvalidTsvFn = (modeMatches: boolean, filePresent: boolean, match: boolean, sysNamePresent: boolean) => boolean
+export type isInvalidTsvFn = (options: isInvalidTsvOptions) => boolean
 
-export type isTsvUploadButtonDisabledFn = (filePresent: boolean, isInvalid: boolean, uploading: boolean, recordTypePresent: boolean) => boolean
+export type isTsvUploadButtonDisabledFn = (options: isTsvUploadButtonDisabledOptions) => boolean
 
-export type tsvUploadButtonTooltipFn = (filePresent: boolean, isInvalid: boolean, recordTypePresent: boolean) => string
+export type tsvUploadButtonTooltipFn = (options: tsvUploadButtonTooltipOptions) => string
 
 export type uploadTsvFn = (uploadParams: UploadParameters) => Promise<Response>
 
@@ -90,12 +110,10 @@ export interface DataTableFeatures {
   supportsExport: boolean
   supportsPointCorrection: boolean
   supportsFiltering: boolean
-  supportsTabBar: boolean
 }
 
 export interface TSVFeatures {
   needsTypeInput: boolean
-  uploadInstructions: string
   sampleTSVLink: string
   invalidFormatWarning: string
   isInvalid: isInvalidTsvFn
