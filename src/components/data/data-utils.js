@@ -320,9 +320,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     try {
       await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()
-      // TODO: AJ-656 add Entity Service vs. WDS indicator to mixpanel event
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
-        workspaceNamespace: namespace, workspaceName: name
+        workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
       })
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -501,7 +500,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: dataProvider.tsvFeatures.sampleTSVLink,
               ...Utils.newTabLinkProps,
               onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
-                workspaceNamespace: namespace, workspaceName: name
+                workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
               })
             }, ['sample_template.tsv '])
           ]),
