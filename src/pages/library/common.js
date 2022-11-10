@@ -403,23 +403,27 @@ export const SearchAndFilterComponent = ({
     }
   }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
 
-
-  const onSearchChange = filter => {
+  const navigateToFilterAndSelection = (filter, selectedTags) => {
     const newSearch = qs.stringify({
       ...query,
       filter: filter || undefined,
-      selectedTags
+      selectedTags: selectedTags || undefined
     }, { addQueryPrefix: true })
 
+    if (newSearch !== Nav.history.location.search) {
+      Nav.history.replace({ search: newSearch })
+    }
+  }
+
+
+  const onSearchChange = filter => {
     if (filter) {
       // This method is already debounced, but we need to further debounce the event logging to
       // prevent getting all the intermediate filter strings in the event logs.
       debounceSearchEvent(filter)
     }
 
-    if (newSearch !== Nav.history.location.search) {
-      Nav.history.replace({ search: newSearch })
-    }
+    navigateToFilterAndSelection(filter, selectedTags)
   }
 
   return h(Fragment, [
@@ -443,6 +447,7 @@ export const SearchAndFilterComponent = ({
         h(Link, {
           onClick: () => {
             setSelectedSections([])
+            navigateToFilterAndSelection(searchFilter, {})
           }
         }, ['clear'])
       ]),
@@ -502,14 +507,7 @@ export const SearchAndFilterComponent = ({
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
             const newTags = _.xorBy('lowerTag', [{ lowerTag }], selectedTags[section])
             const newSelectedTags = newTags.length > 0 ? _.set(section, newTags, selectedTags) : _.omit(section, selectedTags)
-            const newSearch = qs.stringify({
-              ...query,
-              filter: searchFilter,
-              selectedTags: newSelectedTags
-            }, { addQueryPrefix: true })
-            if (newSearch !== Nav.history.location.search) {
-              Nav.history.replace({ search: newSearch })
-            }
+            navigateToFilterAndSelection(searchFilter, newSelectedTags)
           },
           sections,
           selectedSections,
