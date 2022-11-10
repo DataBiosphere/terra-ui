@@ -956,11 +956,6 @@ const Submissions = signal => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
     return res.json()
-  },
-
-  cromwellVersion: async () => {
-    const res = await fetchOk(`${getConfig().rawlsUrlRoot}/version/executionEngine`, { signal })
-    return res.json()
   }
 })
 
