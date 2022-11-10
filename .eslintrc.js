@@ -23,7 +23,7 @@ module.exports = {
     'block-spacing': 'warn',
     'brace-style': ['warn', '1tbs', { 'allowSingleLine': true }],
     'camelcase': ['warn', { 'properties': 'never' }],
-    'comma-dangle': 'warn',
+    'comma-dangle': ['warn', 'only-multiline'],
     'comma-spacing': 'warn',
     'comma-style': 'warn',
     'computed-property-spacing': 'warn',
