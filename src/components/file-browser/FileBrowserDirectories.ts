@@ -1,4 +1,4 @@
-import { Dispatch, Fragment, ReactNode, SetStateAction, useRef, useState } from 'react'
+import { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useRef, useState } from 'react'
 import { h, li, p, span, ul } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
@@ -7,6 +7,7 @@ import { icon } from 'src/components/icons'
 import Interactive, { InteractiveProps } from 'src/components/Interactive' // eslint-disable-line import/named
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 interface FileBrowserDirectoryContentsProps {
@@ -17,6 +18,7 @@ interface FileBrowserDirectoryContentsProps {
   provider: FileBrowserProvider
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
+  onFinishedLoading: () => void
   onSelectDirectory: (path: string) => void
 }
 
@@ -38,6 +40,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     provider,
     selectedDirectory,
     setActiveDescendant,
+    onFinishedLoading,
     onSelectDirectory
   } = props
 
@@ -47,8 +50,13 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     loadNextPage
   } = useDirectoriesInDirectory(provider, path)
 
+  useEffect(() => {
+    if (status === 'Ready' || status === 'Error') {
+      onFinishedLoading()
+    }
+  }, [onFinishedLoading, status])
+
   return h(Fragment, [
-    status === 'Loading' && renderDirectoryStatus(level, 'Loading...'),
     status === 'Error' && renderDirectoryStatus(level, 'Error loading contents'),
     (status === 'Ready' || directories.length > 0) && ul({
       'aria-label': `${basename(path) || 'Files'} subdirectories`,
@@ -124,6 +132,7 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
   const isSelected = path === selectedDirectory
 
   const [isExpanded, setIsExpanded] = useState(false)
+  const [hasLoadedContents, setHasLoadedContents] = useState(false)
 
   return li({
     'aria-expanded': isExpanded,
@@ -159,7 +168,11 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
       },
       onClick: () => setIsExpanded(v => !v)
     }, [
-      icon(isExpanded ? 'angle-down' : 'angle-right', {
+      icon(Utils.cond(
+        [isExpanded && hasLoadedContents, () => 'angle-down'],
+        [isExpanded && !hasLoadedContents, () => 'loadingSpinner'],
+        [!isExpanded, () => 'angle-right']
+      ), {
         // @ts-expect-error
         color: isSelected ? '#000' : colors.accent(),
         size: 14
@@ -173,7 +186,7 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
         display: 'inline-block',
         overflow: 'hidden',
         maxWidth: '100%',
-        padding: `0.25rem 0.5rem 0.25rem ${level + 1}rem`,
+        padding: `0.25rem 0.5rem 0.25rem ${level + 1.25}rem`,
         borderColor: id === activeDescendant ? colors.accent() : 'transparent',
         borderStyle: 'solid',
         borderWidth: '1px 0',
@@ -198,6 +211,7 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
       provider,
       selectedDirectory,
       setActiveDescendant,
+      onFinishedLoading: () => setHasLoadedContents(true),
       onSelectDirectory
     })
   ])
