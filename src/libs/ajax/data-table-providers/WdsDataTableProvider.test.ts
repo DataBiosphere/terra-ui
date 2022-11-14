@@ -6,7 +6,7 @@ import {
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
-  isTsvUploadButtonDisabledOptions
+  IsTsvUploadButtonDisabledOptions
 } from './DataTableProvider'
 import { RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
@@ -475,7 +475,7 @@ describe('WdsDataTableProvider', () => {
       [{ filePresent: true, isInvalid: true, uploading: false, recordTypePresent: true }, true],
       [{ filePresent: true, isInvalid: false, uploading: true, recordTypePresent: true }, true],
       [{ filePresent: true, isInvalid: false, uploading: false, recordTypePresent: false }, true]
-    ])('Upload button is disabled', (conditions: isTsvUploadButtonDisabledOptions, result: boolean) => {
+    ])('Upload button is disabled', (conditions: IsTsvUploadButtonDisabledOptions, result: boolean) => {
       expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
     })
 

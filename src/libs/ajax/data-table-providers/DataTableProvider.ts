@@ -60,21 +60,21 @@ export type UploadParameters = {
   recordType: string
 }
 
-export type isInvalidTsvOptions = {
+export type IsInvalidTsvOptions = {
   modeMatches: boolean
   filePresent: boolean
   match: boolean
   sysNamePresent: boolean
 }
 
-export type isTsvUploadButtonDisabledOptions = {
+export type IsTsvUploadButtonDisabledOptions = {
   filePresent: boolean
   isInvalid: boolean
   uploading: boolean
   recordTypePresent: boolean
 }
 
-export type tsvUploadButtonTooltipOptions = {
+export type TsvUploadButtonTooltipOptions = {
   filePresent: boolean
   isInvalid: boolean
   recordTypePresent: boolean
@@ -94,13 +94,13 @@ export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
-export type isInvalidTsvFn = (options: isInvalidTsvOptions) => boolean
+export type IsInvalidTsvFn = (options: IsInvalidTsvOptions) => boolean
 
-export type isTsvUploadButtonDisabledFn = (options: isTsvUploadButtonDisabledOptions) => boolean
+export type IsTsvUploadButtonDisabledFn = (options: IsTsvUploadButtonDisabledOptions) => boolean
 
-export type tsvUploadButtonTooltipFn = (options: tsvUploadButtonTooltipOptions) => string
+export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) => string
 
-export type uploadTsvFn = (uploadParams: UploadParameters) => Promise<any>
+export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>
 
 export interface DataTableFeatures {
   supportsTsvDownload: boolean
@@ -116,9 +116,9 @@ export interface TSVFeatures {
   needsTypeInput: boolean
   sampleTSVLink: string
   invalidFormatWarning: string
-  isInvalid: isInvalidTsvFn
-  disabled: isTsvUploadButtonDisabledFn
-  tooltip: tsvUploadButtonTooltipFn
+  isInvalid: IsInvalidTsvFn
+  disabled: IsTsvUploadButtonDisabledFn
+  tooltip: TsvUploadButtonTooltipFn
 }
 
 export interface DataTableProvider {
@@ -128,7 +128,7 @@ export interface DataTableProvider {
   getPage: GetPageFn
   deleteTable: DeleteTableFn
   downloadTsv: DownloadTsvFn
-  uploadTsv: uploadTsvFn
+  uploadTsv: UploadTsvFn
   // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean

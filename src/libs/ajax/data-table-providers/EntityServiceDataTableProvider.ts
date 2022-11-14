@@ -5,8 +5,8 @@ import {
   DataTableFeatures,
   DataTableProvider,
   EntityQueryOptions,
-  EntityQueryResponse, isInvalidTsvOptions, isTsvUploadButtonDisabledOptions,
-  TSVFeatures, tsvUploadButtonTooltipOptions,
+  EntityQueryResponse, IsInvalidTsvOptions, IsTsvUploadButtonDisabledOptions,
+  TSVFeatures, TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import { asyncImportJobStore } from 'src/libs/state'
@@ -39,13 +39,13 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     needsTypeInput: false,
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
     invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
-    isInvalid: (options: isInvalidTsvOptions): boolean => {
+    isInvalid: (options: IsInvalidTsvOptions): boolean => {
       return options.modeMatches && options.filePresent && options.match
     },
-    disabled: (options: isTsvUploadButtonDisabledOptions): boolean => {
+    disabled: (options: IsTsvUploadButtonDisabledOptions): boolean => {
       return !options.filePresent || options.isInvalid || options.uploading
     },
-    tooltip: (options: tsvUploadButtonTooltipOptions): string => {
+    tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return !options.filePresent || options.isInvalid ? 'Please select valid data to upload' : 'Upload selected data'
     }
   }
