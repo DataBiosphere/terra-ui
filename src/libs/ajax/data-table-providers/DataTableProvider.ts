@@ -110,6 +110,7 @@ export interface DataTableFeatures {
   supportsExport: boolean
   supportsPointCorrection: boolean
   supportsFiltering: boolean
+  supportsRowSelection: boolean
 }
 
 export interface TSVFeatures {
