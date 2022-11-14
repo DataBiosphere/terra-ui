@@ -25,6 +25,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -220,7 +221,7 @@ export const ContextBar = ({
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]),
-        !isAzureWorkspace && h(Clickable, {
+        isFeaturePreviewEnabled('workspace-files') && !isAzureWorkspace && h(Clickable, {
           style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
           hover: contextBarStyles.hover,
           'data-testid': 'workspace-files-link',
