@@ -16,6 +16,7 @@ interface FileBrowserDirectoryContentsProps {
   parentId: string
   path: string
   provider: FileBrowserProvider
+  rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
   onFinishedLoading: () => void
@@ -38,6 +39,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     parentId,
     path,
     provider,
+    rootLabel,
     selectedDirectory,
     setActiveDescendant,
     onFinishedLoading,
@@ -59,7 +61,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
   return h(Fragment, [
     status === 'Error' && renderDirectoryStatus(level, 'Error loading contents'),
     (status === 'Ready' || directories.length > 0) && ul({
-      'aria-label': `${basename(path) || 'Files'} subdirectories`,
+      'aria-label': `${path === '' ? rootLabel : basename(path)} subdirectories`,
       role: 'group',
       style: {
         padding: 0,
@@ -75,6 +77,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
           level: level + 1,
           path: directory.path,
           provider,
+          rootLabel,
           selectedDirectory,
           setActiveDescendant,
           onSelectDirectory
@@ -113,6 +116,7 @@ interface FileBrowserDirectoryProps {
   provider: FileBrowserProvider
   level: number
   path: string
+  rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
   onSelectDirectory: (path: string) => void
@@ -125,6 +129,7 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
     level,
     path,
     provider,
+    rootLabel,
     selectedDirectory,
     setActiveDescendant,
     onSelectDirectory
@@ -202,13 +207,14 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
       onClick: () => {
         onSelectDirectory(path)
       }
-    }, [basename(path) || 'Files']),
+    }, [path === '' ? rootLabel : basename(path)]),
     isExpanded && h(FileBrowserDirectoryContents, {
       activeDescendant,
       level,
       parentId: id,
       path,
       provider,
+      rootLabel,
       selectedDirectory,
       setActiveDescendant,
       onFinishedLoading: () => setHasLoadedContents(true),
@@ -325,6 +331,7 @@ const FileBrowserDirectories = (props: FileBrowserDirectoriesProps) => {
       id: 'node-0',
       level: 0,
       path: '',
+      rootLabel: 'Workspace bucket',
       selectedDirectory,
       setActiveDescendant,
       onSelectDirectory

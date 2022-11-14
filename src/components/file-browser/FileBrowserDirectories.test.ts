@@ -27,6 +27,7 @@ describe('FileBrowserDirectory', () => {
       id: 'node-0',
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
       onSelectDirectory: jest.fn()
@@ -47,6 +48,7 @@ describe('FileBrowserDirectory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
       onSelectDirectory
@@ -92,6 +94,7 @@ describe('FileBrowserDirectory', () => {
       level: 0,
       path: 'path/to/directory/',
       provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
       selectedDirectory: '',
       setActiveDescendant: () => {},
       onSelectDirectory: jest.fn()
@@ -138,6 +141,7 @@ describe('FileBrowserDirectory', () => {
         level: 0,
         path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
+        rootLabel: 'Workspace bucket',
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onSelectDirectory: jest.fn()
@@ -185,6 +189,7 @@ describe('FileBrowserDirectory', () => {
         level: 0,
         path: 'path/to/directory/',
         provider: mockFileBrowserProvider,
+        rootLabel: 'Workspace bucket',
         selectedDirectory: '',
         setActiveDescendant: () => {},
         onSelectDirectory: jest.fn()
