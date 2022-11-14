@@ -645,8 +645,8 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        isGoogleWorkspace && div({
+      (isGoogleWorkspace || isFeaturePreviewEnabled('workspace-data-service')) && div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+        div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -661,12 +661,12 @@ const WorkspaceData = _.flow(
             content: h(Fragment, [
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
-                onClick: () => setUploadingFile(true)
+                onClick: () => isGoogleWorkspace ? setUploadingFile(true) : setUploadingWDSFile(true)
               }, 'Upload TSV'),
-              h(MenuButton, {
+              isGoogleWorkspace && h(MenuButton, {
                 href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
               }, ['Open data uploader']),
-              h(MenuButton, {
+              isGoogleWorkspace && h(MenuButton, {
                 'aria-haspopup': 'dialog',
                 onClick: () => setImportingReference(true)
               }, 'Add reference data')
@@ -768,8 +768,8 @@ const WorkspaceData = _.flow(
                 wdsSchemaError && h(NoDataPlaceholder, {
                   message: 'Data tables are unavailable.'
                 }),
-                !wdsSchemaError && h(NoDataPlaceholder, {
-                  message: _.isEmpty(wdsSchema) ? 'No tables have been uploaded.' : '',
+                !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
+                  message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
