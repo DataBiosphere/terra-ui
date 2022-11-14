@@ -342,7 +342,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   })
 
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = dataProvider.tsvFeatures.isInvalid({ modeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file, sysNamePresent: fileContents.split('\n')[0].match(/sys_name/) }) //only look at the first line
+  const isInvalid = dataProvider.tsvFeatures.isInvalid({ fileImportModeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file, sysNamePresent: fileContents.split('\n')[0].match(/sys_name/) }) //only look at the first line
   const newEntityType = match?.[1]
   const entityTypeAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined

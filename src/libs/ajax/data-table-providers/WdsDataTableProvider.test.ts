@@ -6,7 +6,7 @@ import {
   EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse,
-  IsTsvUploadButtonDisabledOptions
+  TsvUploadButtonDisabledOptions
 } from './DataTableProvider'
 import { RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
@@ -456,15 +456,15 @@ describe('WdsDataTableProvider', () => {
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
-      expect(provider.tsvFeatures.isInvalid({ modeMatches: true, match: false, filePresent: true, sysNamePresent: false })).toBeTruthy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true, sysNamePresent: false })).toBeTruthy()
     })
 
     it('TSV is invalid', () => {
-      expect(provider.tsvFeatures.isInvalid({ modeMatches: true, match: false, filePresent: false, sysNamePresent: true })).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: true })).toBeFalsy()
     })
 
     it('TSV is not present', () => {
-      expect(provider.tsvFeatures.isInvalid({ modeMatches: true, match: false, filePresent: false, sysNamePresent: false })).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: false })).toBeFalsy()
     })
   })
 
@@ -475,7 +475,7 @@ describe('WdsDataTableProvider', () => {
       [{ filePresent: true, isInvalid: true, uploading: false, recordTypePresent: true }, true],
       [{ filePresent: true, isInvalid: false, uploading: true, recordTypePresent: true }, true],
       [{ filePresent: true, isInvalid: false, uploading: false, recordTypePresent: false }, true]
-    ])('Upload button is disabled', (conditions: IsTsvUploadButtonDisabledOptions, result: boolean) => {
+    ])('Upload button is disabled', (conditions: TsvUploadButtonDisabledOptions, result: boolean) => {
       expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
     })
 

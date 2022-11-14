@@ -60,14 +60,14 @@ export type UploadParameters = {
   recordType: string
 }
 
-export type IsInvalidTsvOptions = {
-  modeMatches: boolean
+export type InvalidTsvOptions = {
+  fileImportModeMatches: boolean
   filePresent: boolean
   match: boolean
   sysNamePresent: boolean
 }
 
-export type IsTsvUploadButtonDisabledOptions = {
+export type TsvUploadButtonDisabledOptions = {
   filePresent: boolean
   isInvalid: boolean
   uploading: boolean
@@ -94,9 +94,9 @@ export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
-export type IsInvalidTsvFn = (options: IsInvalidTsvOptions) => boolean
+export type IsInvalidTsvFn = (options: InvalidTsvOptions) => boolean
 
-export type IsTsvUploadButtonDisabledFn = (options: IsTsvUploadButtonDisabledOptions) => boolean
+export type IsTsvUploadButtonDisabledFn = (options: TsvUploadButtonDisabledOptions) => boolean
 
 export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) => string
 

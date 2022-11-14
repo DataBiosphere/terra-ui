@@ -6,8 +6,8 @@ import {
   DataTableProvider,
   EntityMetadata,
   EntityQueryOptions,
-  EntityQueryResponse, IsInvalidTsvOptions, IsTsvUploadButtonDisabledOptions,
-  TSVFeatures, TsvUploadButtonTooltipOptions,
+  EntityQueryResponse, InvalidTsvOptions, TSVFeatures, TsvUploadButtonDisabledOptions,
+  TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
 import * as Utils from 'src/libs/utils'
@@ -101,10 +101,10 @@ export class WdsDataTableProvider implements DataTableProvider {
     needsTypeInput: true,
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
-    isInvalid: (options: IsInvalidTsvOptions): boolean => {
-      return options.modeMatches && !options.sysNamePresent && options.filePresent
+    isInvalid: (options: InvalidTsvOptions): boolean => {
+      return options.fileImportModeMatches && !options.sysNamePresent && options.filePresent
     },
-    disabled: (options: IsTsvUploadButtonDisabledOptions): boolean => {
+    disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
       return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
