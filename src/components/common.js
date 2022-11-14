@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, h1, img, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
@@ -34,19 +34,9 @@ import * as Utils from 'src/libs/utils'
 export * from 'src/components/common/buttons'
 export * from 'src/components/common/Checkbox'
 export * from 'src/components/common/IdContainer'
+export * from 'src/components/common/RadioButton'
 export { Clickable, Link }
 
-
-export const RadioButton = ({ text, name, labelStyle, ...props }) => {
-  return h(IdContainer, [id => h(Fragment, [
-    input({
-      type: 'radio', id,
-      name,
-      ...props
-    }),
-    text && label({ htmlFor: id, style: labelStyle }, [text])
-  ])])
-}
 
 const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   {
