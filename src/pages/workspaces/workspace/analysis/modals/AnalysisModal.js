@@ -79,7 +79,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         )],
         [environmentMode, onSuccess],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label || currentTool === tools.Azure.label, () => setViewMode(analysisMode)],
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label || currentTool === tools.JupyterLab.label, () => setViewMode(analysisMode)],
           [isAppToolLabel(currentTool) && !app, () => setViewMode(environmentMode)],
           [isAppToolLabel(currentTool) && !!app, () => {
             console.error(
@@ -101,7 +101,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       [tools.RStudio.label, renderComputeModal],
       [tools.Galaxy.label, () => renderAppModal(GalaxyModalBase, tools.Galaxy.label)],
       [tools.Cromwell.label, () => renderAppModal(CromwellModalBase, tools.Cromwell.label)],
-      [tools.Azure.label, renderAzureModal]
+      [tools.JupyterLab.label, renderAzureModal] // TODO: Needs to be azure specific
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
@@ -117,7 +117,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     })
 
     const renderAzureModal = () => h(AzureComputeModalBase, {
-      isOpen: currentTool === tools.Azure.label,
+      isOpen: currentTool === tools.JupyterLab.label, //TODO: Needs to switch based off cloudProvider
       workspace,
       runtimes,
       onDismiss,
@@ -152,7 +152,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       h(Clickable, {
         style: styles.toolCard, onClick: () => {
-          const currTool = !!googleProject ? tools.Jupyter : tools.Azure
+          const currTool = !!googleProject ? tools.Jupyter : tools.JupyterLab
           setCurrentToolObj(currTool)
           setFileExt(currTool.defaultExt)
           enterNextViewMode(currTool.label)
@@ -196,7 +196,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         onDropRejected: () => reportError('Not a valid analysis file',
           `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
-          const tool = !!googleProject ? tools[getToolFromFileExtension(files.pop().path)] : tools.Azure
+          const tool = !!googleProject ? tools[getToolFromFileExtension(files.pop().path)] : tools.JupyterLab
           setCurrentToolObj(tool)
           currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeTool !== tool ?
             onSuccess() :
@@ -220,7 +220,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
       [tools.RStudio.label, () => 'R file'],
       [tools.Jupyter.label, () => 'notebook'],
-      [tools.Azure.label, () => 'notebook'],
+      [tools.JupyterLab.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
     const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
@@ -231,7 +231,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const renderCreateAnalysisBody = toolLabel => {
       const isJupyter = toolLabel === tools.Jupyter.label
       const isRStudio = toolLabel === tools.RStudio.label
-      const isAzure = toolLabel === tools.Azure.label
+      const isJupyterLab = toolLabel === tools.JupyterLab.label
 
       const errors = validate(
         { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
@@ -280,7 +280,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             })
           ])])]
         ),
-        (isAzure || isRStudio || isJupyter) &&
+        (isJupyterLab || isRStudio || isJupyter) &&
         currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeTool !== toolLabel &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),

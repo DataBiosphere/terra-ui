@@ -62,7 +62,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
-    isOpen: viewMode === NEW_AZURE_MODE,
+    isOpen: viewMode === NEW_JUPYTERLAB_MODE, //TODO: Needs to be switched based off cloudProvider
     hideCloseButton: true,
     workspace,
     runtimes,
@@ -248,7 +248,7 @@ export const CloudEnvironmentModal = ({
     [tools.Galaxy.label, () => galaxyLogo],
     [tools.RStudio.label, () => rstudioBioLogo],
     [tools.Cromwell.label, () => cromwellImg],
-    [tools.Azure.label, () => jupyterLogo])
+    [tools.JupyterLab.label, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
     [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
@@ -382,11 +382,11 @@ export const CloudEnvironmentModal = ({
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.Galaxy.label
   const NEW_CROMWELL_MODE = tools.Cromwell.label
-  const NEW_AZURE_MODE = tools.Azure.label
+  const NEW_JUPYTERLAB_MODE = tools.JupyterLab.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
-    [NEW_AZURE_MODE, () => renderAzureModal()],
+    [NEW_JUPYTERLAB_MODE, () => renderAzureModal()],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
     [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
     [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
@@ -398,7 +398,7 @@ export const CloudEnvironmentModal = ({
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
     [NEW_CROMWELL_MODE, () => 675],
-    [NEW_AZURE_MODE, () => 675],
+    [NEW_JUPYTERLAB_MODE, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 

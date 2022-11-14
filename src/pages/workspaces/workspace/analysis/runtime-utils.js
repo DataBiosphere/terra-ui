@@ -383,11 +383,12 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 }
 
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
+// TODO: Requires refactor that checks cloudProvider.
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
     [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
     [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [toolLabel === tools.JupyterLab.labels, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
     [Utils.DEFAULT, () => {
       return ''

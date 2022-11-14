@@ -46,7 +46,7 @@ const ApplicationLauncher = _.flow(
   // This sets up welder for RStudio and Jupyter Lab Apps
   // Jupyter is always launched with a specific file, which is localized
   // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label)
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.JupyterLab.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -155,8 +155,8 @@ const ApplicationLauncher = _.flow(
         [tools.terminal.label, () => `${proxyUrl}/terminals/1`],
         [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
         [tools.RStudio.label, () => proxyUrl],
-        [tools.Azure.label, () => `${proxyUrl}/lab`],
-        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.Azure.label}.`)]
+        [tools.JupyterLab.label, () => `${proxyUrl}/lab`],
+        [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.JupyterLab.label}.`)]
       )
 
       setIframeSrc(url)

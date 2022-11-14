@@ -71,8 +71,7 @@ export const ContextBar = ({
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
     [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -80,6 +79,7 @@ export const ContextBar = ({
     [_.upperCase(status) === 'ERROR', () => colors.danger()],
     [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
+
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
