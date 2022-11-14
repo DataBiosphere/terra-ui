@@ -223,11 +223,9 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
 const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag, filteredData }) => {
   // State
   const [showAll, setShowAll] = useState(false)
-  const labelsToDisplay = computeLabels(labels, _.flatMap(_.map('label'), selectedTags))
-  const lowerSelectedTags = _.flow(
-    _.get(name),
-    _.map('lowerTag')
-  )(selectedTags)
+  const lowerSelectedTags = _.get(name, selectedTags)
+  const selectedLabels = _.filter(label => _.includes(_.toLower(label), lowerSelectedTags), labels)
+  const labelsToDisplay = computeLabels(labels, selectedLabels)
 
   //Render
   return h(Fragment, [
@@ -368,7 +366,7 @@ export const SearchAndFilterComponent = ({
       } else {
         const selectedDataByTag = _.map(
           _.flow(
-            _.flatMap(({ lowerTag }) => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
+            _.flatMap(lowerTag => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
             _.uniqBy(idField)
           ), tags
         )
@@ -403,11 +401,11 @@ export const SearchAndFilterComponent = ({
     }
   }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
 
-  const navigateToFilterAndSelection = (filter, selectedTags) => {
+  const navigateToFilterAndSelection = ({ filter = searchFilter, tags = selectedTags } = {}) => {
     const newSearch = qs.stringify({
       ...query,
       filter: filter || undefined,
-      selectedTags: selectedTags || undefined
+      selectedTags: tags || undefined
     }, { addQueryPrefix: true })
 
     if (newSearch !== Nav.history.location.search) {
@@ -423,7 +421,7 @@ export const SearchAndFilterComponent = ({
       debounceSearchEvent(filter)
     }
 
-    navigateToFilterAndSelection(filter, selectedTags)
+    navigateToFilterAndSelection({ filter })
   }
 
   return h(Fragment, [
@@ -447,7 +445,7 @@ export const SearchAndFilterComponent = ({
         h(Link, {
           onClick: () => {
             setSelectedSections([])
-            navigateToFilterAndSelection(searchFilter, {})
+            navigateToFilterAndSelection({ tags: {} })
           }
         }, ['clear'])
       ]),
@@ -505,9 +503,9 @@ export const SearchAndFilterComponent = ({
           onSectionFilter: section => setSelectedSections(_.xor([section])),
           onTagFilter: ({ section, lowerTag }) => {
             Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            const newTags = _.xorBy('lowerTag', [{ lowerTag }], selectedTags[section])
+            const newTags = _.xor([lowerTag], selectedTags[section])
             const newSelectedTags = newTags.length > 0 ? _.set(section, newTags, selectedTags) : _.omit(section, selectedTags)
-            navigateToFilterAndSelection(searchFilter, newSelectedTags)
+            navigateToFilterAndSelection({ tags: newSelectedTags })
           },
           sections,
           selectedSections,
