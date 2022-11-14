@@ -501,6 +501,9 @@ const WorkspaceData = _.flow(
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
+  const isGoogleWorkspace = !!googleProject
+  const isAzureWorkspace = !isGoogleWorkspace
+
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
 
@@ -643,7 +646,7 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
-        div({
+        isGoogleWorkspace && div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
             backgroundColor: colors.light(),
@@ -676,7 +679,7 @@ const WorkspaceData = _.flow(
         ]),
         div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
           div({ role: 'list' }, [
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Tables',
               error: entityMetadataError,
               retryFunction: loadEntityMetadata
@@ -758,12 +761,12 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
-            isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
-              title: 'WDS'
+            isFeaturePreviewEnabled('workspace-data-service') && isAzureWorkspace && h(DataTypeSection, {
+              title: 'Tables'
             }, [
               [
                 wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'WDS is unavailable.'
+                  message: 'Data tables are unavailable.'
                 }),
                 !wdsSchemaError && h(NoDataPlaceholder, {
                   message: _.isEmpty(wdsSchema) ? 'No tables have been uploaded.' : '',
@@ -805,7 +808,7 @@ const WorkspaceData = _.flow(
                 }, wdsSchema)
               ]
             ]),
-            (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
+            (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
               title: 'Snapshots',
               error: snapshotMetadataError,
               retryFunction: loadSnapshotMetadata
@@ -882,7 +885,7 @@ const WorkspaceData = _.flow(
                 )])
               }, sortedSnapshotPairs)
             ]),
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Reference Data'
             }, [
               _.isEmpty(referenceData) && h(NoDataPlaceholder, {
@@ -947,7 +950,7 @@ const WorkspaceData = _.flow(
               }, namespace, name,
               workspaceId, entityTypes: wdsSchema.map(item => item['name']), dataProvider: wdsDataTableProvider
             }),
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Other Data'
             }, [
               h(DataTypeButton, {
