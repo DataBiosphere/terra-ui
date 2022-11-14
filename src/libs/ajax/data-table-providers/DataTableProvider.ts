@@ -50,6 +50,36 @@ export interface EntityQueryOptions {
   filterOperator: string
 }
 
+export type UploadParameters = {
+  file: File
+  useFireCloudDataModel: boolean
+  deleteEmptyValues: boolean
+  namespace: string
+  name: string
+  workspaceId: string
+  recordType: string
+}
+
+export type InvalidTsvOptions = {
+  fileImportModeMatches: boolean
+  filePresent: boolean
+  match: boolean
+  sysNamePresent: boolean
+}
+
+export type TsvUploadButtonDisabledOptions = {
+  filePresent: boolean
+  isInvalid: boolean
+  uploading: boolean
+  recordTypePresent: boolean
+}
+
+export type TsvUploadButtonTooltipOptions = {
+  filePresent: boolean
+  isInvalid: boolean
+  recordTypePresent: boolean
+}
+
 export interface AttributeArray {
   itemsType: 'AttributeValue' | 'EntityReference'
   items: unknown[] // truly "unknown" here; the backend Java representation is Object[]
@@ -64,6 +94,14 @@ export type DeleteTableFn = (entityType: string) => Promise<Response>
 
 export type DownloadTsvFn = (signal: AbortSignal, entityType: string) => Promise<Blob>
 
+export type IsInvalidTsvFn = (options: InvalidTsvOptions) => boolean
+
+export type IsTsvUploadButtonDisabledFn = (options: TsvUploadButtonDisabledOptions) => boolean
+
+export type TsvUploadButtonTooltipFn = (options: TsvUploadButtonTooltipOptions) => string
+
+export type UploadTsvFn = (uploadParams: UploadParameters) => Promise<any>
+
 export interface DataTableFeatures {
   supportsTsvDownload: boolean
   supportsTsvAjaxDownload: boolean
@@ -74,13 +112,24 @@ export interface DataTableFeatures {
   supportsFiltering: boolean
 }
 
+export interface TSVFeatures {
+  needsTypeInput: boolean
+  sampleTSVLink: string
+  invalidFormatWarning: string
+  isInvalid: IsInvalidTsvFn
+  disabled: IsTsvUploadButtonDisabledFn
+  tooltip: TsvUploadButtonTooltipFn
+}
+
 export interface DataTableProvider {
   providerName: string
   features: DataTableFeatures
+  tsvFeatures: TSVFeatures
   getPage: GetPageFn
   deleteTable: DeleteTableFn
   downloadTsv: DownloadTsvFn
-  // todos that we will need soon:
+  uploadTsv: UploadTsvFn
+  // todos that we may need soon:
   // getMetadata: GetMetadataFn
   // updateAttribute: function, see also boolean
 }

@@ -2,7 +2,12 @@ import { Ajax } from 'src/libs/ajax'
 import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { EntityMetadata, EntityQueryOptions, EntityQueryResponse } from './DataTableProvider'
+import {
+  EntityMetadata,
+  EntityQueryOptions,
+  EntityQueryResponse,
+  TsvUploadButtonDisabledOptions
+} from './DataTableProvider'
 import { RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
 
@@ -113,16 +118,22 @@ describe('WdsDataTableProvider', () => {
     return Promise.resolve(new Blob(['hello']))
   }
 
+  const uploadTsvMockImpl: WorkspaceDataContract['uploadTsv'] = (_instanceId: string, _recordType: string, _file: File) => {
+    return Promise.resolve({ message: 'Upload Succeeded', recordsModified: 1 })
+  }
+
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
   let deleteTable: jest.MockedFunction<WorkspaceDataContract['deleteTable']>
   let downloadTsv: jest.MockedFunction<WorkspaceDataContract['downloadTsv']>
+  let uploadTsv: jest.MockedFunction<WorkspaceDataContract['uploadTsv']>
 
   beforeEach(() => {
     getRecords = jest.fn().mockImplementation(getRecordsMockImpl)
     deleteTable = jest.fn().mockImplementation(deleteTableMockImpl)
     downloadTsv = jest.fn().mockImplementation(downloadTsvMockImpl)
+    uploadTsv = jest.fn().mockImplementation(uploadTsvMockImpl)
 
-    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv } as Partial<WorkspaceDataContract> } as Partial<AjaxContract> as AjaxContract))
+    asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract> } as Partial<AjaxContract> as AjaxContract))
   })
 
   describe('transformPage', () => {
@@ -439,6 +450,69 @@ describe('WdsDataTableProvider', () => {
         actual.text().then(txt => {
           expect(txt).toBe('hello')
         })
+      })
+    })
+  })
+  describe('isInvalid', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it('TSV is valid', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true, sysNamePresent: false })).toBeTruthy()
+    })
+
+    it('TSV is invalid', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: true })).toBeFalsy()
+    })
+
+    it('TSV is not present', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: false })).toBeFalsy()
+    })
+  })
+
+  describe('disabled', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it.each([
+      [{ filePresent: false, isInvalid: false, uploading: false, recordTypePresent: true }, true],
+      [{ filePresent: true, isInvalid: true, uploading: false, recordTypePresent: true }, true],
+      [{ filePresent: true, isInvalid: false, uploading: true, recordTypePresent: true }, true],
+      [{ filePresent: true, isInvalid: false, uploading: false, recordTypePresent: false }, true]
+    ])('Upload button is disabled', (conditions: TsvUploadButtonDisabledOptions, result: boolean) => {
+      expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
+    })
+
+    it('Upload button is not disabled', () => {
+      const actual = provider.tsvFeatures.disabled({ filePresent: true, isInvalid: false, uploading: false, recordTypePresent: true })
+      expect(actual).toBe(false)
+    })
+  })
+
+  describe('tooltip', () => {
+    const provider = new TestableWdsProvider(uuid)
+    it('Tooltip -- needs record type', () => {
+      const actual = provider.tsvFeatures.tooltip({ filePresent: true, isInvalid: false, recordTypePresent: false })
+      expect(actual).toBe('Please enter record type')
+    })
+
+    it('Tooltip -- needs valid data', () => {
+      const actual = provider.tsvFeatures.tooltip({ filePresent: true, isInvalid: true, recordTypePresent: true })
+      expect(actual).toBe('Please select valid data to upload')
+    })
+
+    it('Tooltip -- upload selected data', () => {
+      const actual = provider.tsvFeatures.tooltip({ filePresent: true, isInvalid: false, recordTypePresent: true })
+      expect(actual).toBe('Upload selected data')
+    })
+  })
+
+  describe('uploadTsv', () => {
+    it('uploads a TSV', () => {
+      // ====== Arrange
+      const provider = new TestableWdsProvider(uuid)
+      const tsvFile = new File([''], 'testFile.tsv')
+      // ====== Act
+      return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {
+        // ====== Assert
+        expect(uploadTsv.mock.calls.length).toBe(1)
+        expect(actual.recordsModified).toBe(1)
       })
     })
   })
