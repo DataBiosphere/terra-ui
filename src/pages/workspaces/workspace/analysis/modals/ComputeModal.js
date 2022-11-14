@@ -23,7 +23,6 @@ import * as Nav from 'src/libs/nav'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, defaultAutopauseThreshold, defaultComputeRegion, defaultComputeZone, defaultDataprocMachineType, defaultDataprocMasterDiskSize,
@@ -32,6 +31,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 

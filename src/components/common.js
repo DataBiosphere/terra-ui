@@ -26,7 +26,7 @@ import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { forwardRefWithName, useCancellation, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
+import { forwardRefWithName, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -330,29 +330,6 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
       }
     }, props)
   }, [children])
-}
-
-export const CromwellVersionLink = props => {
-  const [version, setVersion] = useState()
-  const signal = useCancellation()
-
-  useOnMount(() => {
-    const setCromwellVersion = async () => {
-      const { cromwell } = await Ajax(signal).Submissions.cromwellVersion()
-
-      setVersion(cromwell.split('-')[0])
-    }
-
-    setCromwellVersion()
-  })
-
-  return version ?
-    h(Link, {
-      href: `https://github.com/broadinstitute/cromwell/releases/tag/${version}`,
-      ...Utils.newTabLinkProps,
-      ...props
-    }, ['Cromwell ', version, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) :
-    'Cromwell version loading...'
 }
 
 const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({

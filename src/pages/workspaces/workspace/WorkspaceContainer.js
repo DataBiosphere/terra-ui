@@ -25,12 +25,12 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -284,7 +284,6 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
-  const sasTokenRefreshInterval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -301,10 +300,6 @@ const WorkspaceDashboard = _.flow(
       loadBucketSize()
     } else {
       loadAzureStorage()
-
-      // sas tokens expires after 1 hour
-      clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ minutes: 50 }))
     }
   }
 
@@ -320,13 +315,6 @@ const WorkspaceDashboard = _.flow(
   useEffect(() => {
     setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
   }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
-
-  useEffect(() => {
-    return () => {
-      clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = undefined
-    }
-  }, [sasTokenRefreshInterval])
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -517,7 +505,7 @@ const WorkspaceDashboard = _.flow(
           }, 'Azure Storage Explorer'),
           ' to access storage associated with this workspace.']),
         div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
-          ['The SAS URL expires after 1 hour. To generate a new SAS URL, refresh this page.'])
+          ['The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.'])
       ])
     ]
   }

@@ -5,7 +5,8 @@ import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { runtimeTools, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 /*
@@ -155,7 +156,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), items)
   },
 
   listAnalyses: async (googleProject, name) => {
@@ -164,7 +165,7 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
+    return _.filter(({ name }) => (_.includes(getExtension(name), runtimeTools.Jupyter.ext) || _.includes(getExtension(name), runtimeTools.RStudio.ext)), items)
   },
 
   list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {
