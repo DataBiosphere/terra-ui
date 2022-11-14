@@ -9,6 +9,7 @@ import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import { ButtonPrimary } from 'src/components/common/buttons'
 import Clickable from 'src/components/common/Clickable'
+import { IdContainer } from 'src/components/common/IdContainer'
 import Link from 'src/components/common/Link'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -32,6 +33,7 @@ import * as Utils from 'src/libs/utils'
 
 
 export * from 'src/components/common/buttons'
+export * from 'src/components/common/IdContainer'
 export { Clickable, Link }
 
 
@@ -309,11 +311,6 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
       isUnlinking && spinnerOverlay
     ])
   ])
-}
-
-export const IdContainer = ({ children }) => {
-  const [id] = useState(() => _.uniqueId('element-'))
-  return children(id)
 }
 
 export const FocusTrapper = ({ children, onBreakout, ...props }) => {
