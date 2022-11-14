@@ -324,6 +324,14 @@ const withAutocomplete = WrappedComponent => forwardRefWithName(`withAutocomplet
   ])
 })
 
+/**
+ * Note that `labelId` (the id of the label associated with the text input) must be passed in the props to avoid
+ * an accessibility bug-- our typical pattern of associating a label with the id does not work because this is
+ * a wrapped component with a child component (`Downshift`) that uses `labelId` as the id for `aria-labelledby`.
+ *
+ * If no visible label is desired, use `className: 'sr-only'` to visually hide the label while still properly
+ * associating a label for accessibility support.
+ */
 export const AutocompleteTextInput = withAutocomplete(TextInput)
 
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput)

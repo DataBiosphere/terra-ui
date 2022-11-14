@@ -237,9 +237,9 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   }, [
     div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
       h(IdContainer, [id => div({ style: { flexGrow: 1, marginRight: '1rem' } }, [
-        h(FormLabel, { htmlFor: id }, ['User email']),
+        h(FormLabel, { id }, ['User email']),
         h(AutocompleteTextInput, {
-          id,
+          labelId: id,
           openOnFocus: true,
           placeholderText: _.includes(searchValue, aclEmails) ?
             'This email has already been added to the list' :
