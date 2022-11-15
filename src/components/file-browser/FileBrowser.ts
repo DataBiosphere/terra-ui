@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import FileBrowserDirectories from 'src/components/file-browser/FileBrowserDirectories'
-import FileBrowserFiles from 'src/components/file-browser/FileBrowserFiles'
+import DirectoryTree from 'src/components/file-browser/DirectoryTree'
+import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 
@@ -38,7 +38,7 @@ const FileBrowser = ({ provider, title }: FileBrowserProps) => {
           background: '#fff'
         }
       }, [
-        h(FileBrowserDirectories, {
+        h(DirectoryTree, {
           provider,
           selectedDirectory: path,
           onSelectDirectory: setPath
@@ -46,7 +46,7 @@ const FileBrowser = ({ provider, title }: FileBrowserProps) => {
       ])
     ]),
     div({ style: { flex: '1 0 0' } }, [
-      h(FileBrowserFiles, { provider, path })
+      h(FilesInDirectory, { provider, path })
     ])
   ])
 }

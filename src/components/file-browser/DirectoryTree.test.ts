@@ -3,8 +3,8 @@ import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
+import { Directory } from 'src/components/file-browser/DirectoryTree'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
-import { FileBrowserDirectory } from 'src/components/file-browser/FileBrowserDirectories'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -18,10 +18,10 @@ type UseDirectoriesInDirectoryResult = ReturnType<typeof useDirectoriesInDirecto
 
 const mockFileBrowserProvider: FileBrowserProvider = {} as FileBrowserProvider
 
-describe('FileBrowserDirectory', () => {
+describe('Directory', () => {
   it('renders the directory name', () => {
     // Act
-    render(h(FileBrowserDirectory, {
+    render(h(Directory, {
       activeDescendant: 'node-0',
       level: 0,
       id: 'node-0',
@@ -42,7 +42,7 @@ describe('FileBrowserDirectory', () => {
     const user = userEvent.setup()
 
     const onSelectDirectory = jest.fn()
-    render(h(FileBrowserDirectory, {
+    render(h(Directory, {
       activeDescendant: 'node-0',
       id: 'node-0',
       level: 0,
@@ -88,7 +88,7 @@ describe('FileBrowserDirectory', () => {
 
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
-    render(h(FileBrowserDirectory, {
+    render(h(Directory, {
       activeDescendant: 'node-0',
       id: 'node-0',
       level: 0,
@@ -132,7 +132,7 @@ describe('FileBrowserDirectory', () => {
 
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
-    render(h(FileBrowserDirectory, {
+    render(h(Directory, {
       activeDescendant: 'node-0',
       id: 'node-0',
       level: 0,
@@ -173,7 +173,7 @@ describe('FileBrowserDirectory', () => {
 
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
-    render(h(FileBrowserDirectory, {
+    render(h(Directory, {
       activeDescendant: 'node-0',
       id: 'node-0',
       level: 0,
@@ -220,7 +220,7 @@ describe('FileBrowserDirectory', () => {
       // Arrange
       const user = userEvent.setup()
 
-      render(h(FileBrowserDirectory, {
+      render(h(Directory, {
         activeDescendant: 'node-0',
         id: 'node-0',
         level: 0,

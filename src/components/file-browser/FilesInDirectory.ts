@@ -3,12 +3,12 @@ import { useFilesInDirectory } from 'src/components/file-browser/file-browser-ho
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 
 
-interface FileBrowserFilesProps {
+interface FilesInDirectoryProps {
   provider: FileBrowserProvider
   path: string
 }
 
-const FileBrowserFiles = (props: FileBrowserFilesProps) => {
+const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const { provider, path } = props
 
   const { state: { files } } = useFilesInDirectory(provider, path)
@@ -22,4 +22,4 @@ const FileBrowserFiles = (props: FileBrowserFilesProps) => {
   ])
 }
 
-export default FileBrowserFiles
+export default FilesInDirectory

@@ -10,7 +10,7 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
-interface FileBrowserDirectoryContentsProps {
+interface SubdirectoriesProps {
   activeDescendant: string
   level: number
   parentId: string
@@ -32,7 +32,7 @@ const renderDirectoryStatus = (level: number, children: ReactNode) => p({
   }
 }, [children])
 
-export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContentsProps) => {
+export const Subdirectories = (props: SubdirectoriesProps) => {
   const {
     activeDescendant,
     level,
@@ -92,7 +92,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
       }
     }, [
       directories.map((directory, index) => {
-        return h(FileBrowserDirectory, {
+        return h(Directory, {
           key: directory.path,
           activeDescendant,
           id: `${parentId}-${index}`,
@@ -132,7 +132,7 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
   ])
 }
 
-interface FileBrowserDirectoryProps {
+interface DirectoryProps {
   activeDescendant: string
   id: string
   provider: FileBrowserProvider
@@ -144,7 +144,7 @@ interface FileBrowserDirectoryProps {
   onSelectDirectory: (path: string) => void
 }
 
-export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
+export const Directory = (props: DirectoryProps) => {
   const {
     activeDescendant,
     id,
@@ -235,7 +235,7 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
         onSelectDirectory(path)
       }
     }, [path === '' ? rootLabel : basename(path)]),
-    isExpanded && h(FileBrowserDirectoryContents, {
+    isExpanded && h(Subdirectories, {
       activeDescendant,
       level,
       parentId: id,
@@ -250,13 +250,13 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
   ])
 }
 
-interface FileBrowserDirectoriesProps {
+interface DirectoryTreeProps {
   provider: FileBrowserProvider
   selectedDirectory: string
   onSelectDirectory: (path: string) => void
 }
 
-const FileBrowserDirectories = (props: FileBrowserDirectoriesProps) => {
+const DirectoryTree = (props: DirectoryTreeProps) => {
   const {
     provider,
     selectedDirectory,
@@ -352,7 +352,7 @@ const FileBrowserDirectories = (props: FileBrowserDirectoriesProps) => {
       }
     }
   } as InteractiveProps<'ul'>, [
-    h(FileBrowserDirectory, {
+    h(Directory, {
       activeDescendant,
       provider,
       id: 'node-0',
@@ -366,4 +366,4 @@ const FileBrowserDirectories = (props: FileBrowserDirectoriesProps) => {
   ])
 }
 
-export default FileBrowserDirectories
+export default DirectoryTree
