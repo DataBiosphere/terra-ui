@@ -4,7 +4,7 @@ import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -179,10 +179,12 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
     onDismiss: () => {
       setShowAll(false)
     },
-    okButton: () => {
-      setShowAll(false)
-      onTagFilter({ section: name, tags: filterChanges })
-    }
+    okButton: h(ButtonPrimary, {
+      onClick: () => {
+        setShowAll(false)
+        onTagFilter({ section: name, tags: filterChanges })
+      }
+    }, 'Apply Filters')
   }, [
     h(FilterBar, {
       name,
