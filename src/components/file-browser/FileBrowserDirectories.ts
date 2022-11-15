@@ -193,7 +193,12 @@ export const FileBrowserDirectory = (props: FileBrowserDirectoryProps) => {
         width: '2rem',
         height: '1.5rem'
       },
-      onClick: () => setIsExpanded(v => !v)
+      onClick: () => {
+        setIsExpanded(!isExpanded)
+        if (isExpanded && activeDescendant.startsWith(`${id}-`)) {
+          setActiveDescendant(id)
+        }
+      }
     }, [
       icon(Utils.cond(
         [isExpanded && hasLoadedContents, () => 'angle-down'],
