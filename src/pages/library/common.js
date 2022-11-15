@@ -100,7 +100,9 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
           fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
           background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
         },
-        'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+        'aria-label': filteredBy === String.fromCharCode(index) ?
+          `Filtering by ${String.fromCharCode(index)}` :
+          `Filter option: ${String.fromCharCode(index)}`,
         onClick: () => {
           const charFromCode = String.fromCharCode(index)
           setFilteredBy(charFromCode)
@@ -120,7 +122,8 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
         ])
       ])
     ]),
-    filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
+    filterType === filterOptions.alpha && filteredBy &&
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
       h(Link, {
         style: { fontSize: '1rem' },
         onClick: () => {
@@ -439,7 +442,10 @@ export const SearchAndFilterComponent = ({
     }, [
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
-        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData.data)} Results found` }, [_.size(filteredData.data)])
+        div({
+          style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status',
+          'aria-label': `${_.size(filteredData.data)} Results found`
+        }, [_.size(filteredData.data)])
       ]),
       div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
@@ -451,32 +457,35 @@ export const SearchAndFilterComponent = ({
         }, ['clear'])
       ]),
       div({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(DelayedAutoCompleteInput, {
-          style: { borderRadius: 25, flex: '1 1 0' },
-          inputIcon: 'search',
-          openOnFocus: true,
-          value: searchFilter,
-          'aria-label': `Search ${searchType}`,
-          placeholder: 'Search Name or Description',
-          itemToString: v => v[titleField],
-          onChange: onSearchChange,
-          suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
-          renderSuggestion: suggestion => {
-            return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
-              _.flow(
-                _.split(filterRegex),
-                _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-                maybeMatch => {
-                  return _.size(maybeMatch) < 2 ? [
-                    _.truncate({ length: 90 }, _.head(maybeMatch)),
-                    div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
-                  ] : maybeMatch
-                }
-              )(suggestion[titleField])
-            )
-          },
-          suggestions: filteredData.data
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          h(div, { id, className: 'sr-only' }, `Search ${searchType}`),
+          h(DelayedAutoCompleteInput, {
+            style: { borderRadius: 25, flex: '1 1 0' },
+            inputIcon: 'search',
+            openOnFocus: true,
+            value: searchFilter,
+            labelId: id,
+            placeholder: 'Search Name or Description',
+            itemToString: v => v[titleField],
+            onChange: onSearchChange,
+            suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
+            renderSuggestion: suggestion => {
+              return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
+                _.flow(
+                  _.split(filterRegex),
+                  _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
+                  maybeMatch => {
+                    return _.size(maybeMatch) < 2 ? [
+                      _.truncate({ length: 90 }, _.head(maybeMatch)),
+                      div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
+                    ] : maybeMatch
+                  }
+                )(suggestion[titleField])
+              )
+            },
+            suggestions: filteredData.data
+          })
+        ])]),
         !customSort && h(IdContainer, [id => h(Fragment, [
           label({
             htmlFor: id,

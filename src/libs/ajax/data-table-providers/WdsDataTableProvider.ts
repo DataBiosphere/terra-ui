@@ -1,6 +1,16 @@
 import _ from 'lodash/fp'
 import { Ajax } from 'src/libs/ajax'
-import { AttributeArray, DataTableFeatures, DataTableProvider, EntityMetadata, EntityQueryOptions, EntityQueryResponse } from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import {
+  AttributeArray,
+  DataTableFeatures,
+  DataTableProvider,
+  EntityMetadata,
+  EntityQueryOptions,
+  EntityQueryResponse, InvalidTsvOptions, TSVFeatures, TsvUploadButtonDisabledOptions,
+  TsvUploadButtonTooltipOptions,
+  UploadParameters
+} from 'src/libs/ajax/data-table-providers/DataTableProvider'
+import * as Utils from 'src/libs/utils'
 
 // interface definitions for WDS payload responses
 interface AttributeSchema {
@@ -34,6 +44,11 @@ export interface RecordQueryResponse {
   searchRequest: SearchRequest
   totalRecords: number
   records: RecordResponse[]
+}
+
+export interface TsvUploadResponse {
+  message: string
+  recordsModified: number
 }
 
 
@@ -79,7 +94,27 @@ export class WdsDataTableProvider implements DataTableProvider {
     supportsTypeRenaming: false,
     supportsExport: false,
     supportsPointCorrection: false,
-    supportsFiltering: false
+    supportsFiltering: false,
+    supportsRowSelection: false
+  }
+
+  tsvFeatures: TSVFeatures = {
+    needsTypeInput: true,
+    sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
+    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
+    isInvalid: (options: InvalidTsvOptions): boolean => {
+      return options.fileImportModeMatches && !options.sysNamePresent && options.filePresent
+    },
+    disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
+      return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent
+    },
+    tooltip: (options: TsvUploadButtonTooltipOptions): string => {
+      return Utils.cond(
+        [!options.recordTypePresent, () => 'Please enter record type'],
+        [!options.filePresent || options.isInvalid, () => 'Please select valid data to upload'],
+        () => 'Upload selected data'
+      )
+    }
   }
 
   private maybeTransformRelation = (val: unknown): unknown => {
@@ -156,5 +191,9 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
     return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
+  }
+
+  uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
+    return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

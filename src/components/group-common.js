@@ -182,9 +182,9 @@ export const NewUserModal = ({
       }, ['Add User'])
     }, [
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['User email']),
+        h(FormLabel, { id, required: true }, ['User email']),
         h(AutocompleteTextInput, {
-          id,
+          labelId: id,
           autoFocus: true,
           openOnFocus: false,
           value: userEmail,
