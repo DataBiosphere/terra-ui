@@ -167,7 +167,7 @@ const WorkflowDashboard = _.flow(
                 style: { display: 'flex', alignItems: 'center' },
                 tooltip: 'Job Manager'
               }, [icon('tasks', { size: 18 }), ' Job Manager']),
-              h(Link, {
+              workflowRoot && h(Link, {
                 ...Utils.newTabLinkProps,
                 href: bucketBrowserUrl(workflowRoot.replace('gs://', '')),
                 style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
