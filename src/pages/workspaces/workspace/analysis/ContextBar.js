@@ -227,6 +227,7 @@ export const ContextBar = ({
           'data-testid': 'workspace-files-link',
           tooltipSide: 'left',
           href: Nav.getLink('workspace-files', { namespace, name: workspaceName }),
+          tooltip: 'Browse workspace files',
           tooltipDelay: 100,
           useTooltipAsLabel: false
         }, [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])])
