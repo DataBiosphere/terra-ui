@@ -978,7 +978,7 @@ const WorkspaceData = _.flow(
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
         Utils.switchCase(selectedData?.type,
-          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
+          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])],
           [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
             workspace,
             refreshKey
