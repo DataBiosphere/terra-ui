@@ -30,12 +30,12 @@ import * as AnalysisLauncher from 'src/pages/workspaces/workspace/analysis/Analy
 import * as AppLauncher from 'src/pages/workspaces/workspace/analysis/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
+import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
-import * as WorkspaceFiles from 'src/pages/workspaces/workspace/WorkspaceFiles'
 
 
 /*

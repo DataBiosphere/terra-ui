@@ -8,8 +8,8 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 import { useMemo } from 'use-memo-one'
 
 
-export const WorkspaceFiles = _.flow(
-  forwardRefWithName('WorkspaceFiles'),
+export const Files = _.flow(
+  forwardRefWithName('Files'),
   wrapWorkspace({
     activeTab: null,
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -39,7 +39,7 @@ export const navPaths = [
   {
     name: 'workspace-files',
     path: '/workspaces/:namespace/:name/files',
-    component: WorkspaceFiles,
+    component: Files,
     title: ({ name }) => `${name} - Files`
   }
 ]
