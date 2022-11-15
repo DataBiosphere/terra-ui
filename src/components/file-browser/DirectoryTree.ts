@@ -132,6 +132,8 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   ])
 }
 
+const selectedDirectoryColor = '#000'
+
 interface DirectoryProps {
   activeDescendant: string
   id: string
@@ -206,7 +208,7 @@ export const Directory = (props: DirectoryProps) => {
         [!isExpanded, () => 'angle-right']
       ), {
         // @ts-expect-error
-        color: isSelected ? '#000' : colors.accent(),
+        color: isSelected ? selectedDirectoryColor : colors.accent(),
         size: 14
       })
     ]),
@@ -225,11 +227,11 @@ export const Directory = (props: DirectoryProps) => {
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         ...(isSelected && {
-          color: '#000'
+          color: selectedDirectoryColor
         })
       },
       ...(isSelected && {
-        hover: { color: '#000' }
+        hover: { color: selectedDirectoryColor }
       }),
       onClick: () => {
         onSelectDirectory(path)
