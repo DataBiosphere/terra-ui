@@ -116,45 +116,82 @@ describe('FileBrowserDirectory', () => {
     expect(renderedSubdirectories).toEqual(['subdirectory1', 'subdirectory2', 'subdirectory3'])
   })
 
-  it.each([
-    { state: { status: 'Loading', directories: [] }, expectedMessage: 'Loading...' },
-    { state: { status: 'Error', error: new Error('Something went wrong'), directories: [] }, expectedMessage: 'Error loading contents' }
-  ] as { state: UseDirectoriesInDirectoryResult['state']; expectedMessage: string }[])(
-    'it renders a status message while loading contents or on an error loading contents ($state.status)',
-    async ({ state, expectedMessage }) => {
-      // Arrange
-      const user = userEvent.setup()
+  it('it renders a screen reader announcement while loading', async () => {
+    // Arrange
+    const user = userEvent.setup()
 
-      const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
-        state,
-        hasNextPage: false,
-        loadNextPage: () => Promise.resolve(),
-        loadAllRemainingItems: () => Promise.resolve(),
-        reload: () => Promise.resolve()
-      }
+    const loadingState = { status: 'Loading', directories: [] } as UseDirectoriesInDirectoryResult['state']
 
-      asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
-
-      render(h(FileBrowserDirectory, {
-        activeDescendant: 'node-0',
-        id: 'node-0',
-        level: 0,
-        path: 'path/to/directory/',
-        provider: mockFileBrowserProvider,
-        rootLabel: 'Workspace bucket',
-        selectedDirectory: '',
-        setActiveDescendant: () => {},
-        onSelectDirectory: jest.fn()
-      }))
-
-      // Act
-      const toggle = screen.getByTestId('toggle-expanded')
-      await user.click(toggle)
-
-      // Assert
-      screen.getByText(expectedMessage)
+    const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
+      state: loadingState,
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
     }
-  )
+
+    asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
+
+    render(h(FileBrowserDirectory, {
+      activeDescendant: 'node-0',
+      id: 'node-0',
+      level: 0,
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
+      onSelectDirectory: jest.fn()
+    }))
+
+    // Act
+    const toggle = screen.getByTestId('toggle-expanded')
+    await user.click(toggle)
+
+    // Assert
+    const announcement = screen.getByText('Loading directory subdirectories')
+    expect(announcement).toHaveClass('sr-only')
+  })
+
+  it('it renders a status message if there was an error loading contents', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const errorState = {
+      status: 'Error',
+      error: new Error('Something went wrong'),
+      directories: []
+    } as UseDirectoriesInDirectoryResult['state']
+
+    const useDirectoriesInDirectoryResult: UseDirectoriesInDirectoryResult = {
+      state: errorState,
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
+
+    render(h(FileBrowserDirectory, {
+      activeDescendant: 'node-0',
+      id: 'node-0',
+      level: 0,
+      path: 'path/to/directory/',
+      provider: mockFileBrowserProvider,
+      rootLabel: 'Workspace bucket',
+      selectedDirectory: '',
+      setActiveDescendant: () => {},
+      onSelectDirectory: jest.fn()
+    }))
+
+    // Act
+    const toggle = screen.getByTestId('toggle-expanded')
+    await user.click(toggle)
+
+    // Assert
+    screen.getByText('Error loading subdirectories')
+  })
 
   describe('when next page is available', () => {
     // Arrange
