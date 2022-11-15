@@ -501,6 +501,9 @@ const WorkspaceData = _.flow(
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
+  const isGoogleWorkspace = !!googleProject
+  const isAzureWorkspace = !isGoogleWorkspace
+
   const signal = useCancellation()
   const asyncImportJobs = useStore(asyncImportJobStore)
 
@@ -642,7 +645,7 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+      (isGoogleWorkspace || isFeaturePreviewEnabled('workspace-data-service')) && div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
         div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
@@ -658,12 +661,12 @@ const WorkspaceData = _.flow(
             content: h(Fragment, [
               h(MenuButton, {
                 'aria-haspopup': 'dialog',
-                onClick: () => setUploadingFile(true)
+                onClick: () => isGoogleWorkspace ? setUploadingFile(true) : setUploadingWDSFile(true)
               }, 'Upload TSV'),
-              h(MenuButton, {
+              isGoogleWorkspace && h(MenuButton, {
                 href: `${Nav.getLink('upload')}?${qs.stringify({ workspace: workspaceId })}`
               }, ['Open data uploader']),
-              h(MenuButton, {
+              isGoogleWorkspace && h(MenuButton, {
                 'aria-haspopup': 'dialog',
                 onClick: () => setImportingReference(true)
               }, 'Add reference data')
@@ -676,7 +679,7 @@ const WorkspaceData = _.flow(
         ]),
         div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
           div({ role: 'list' }, [
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Tables',
               error: entityMetadataError,
               retryFunction: loadEntityMetadata
@@ -758,15 +761,15 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
-            isFeaturePreviewEnabled('workspace-data-service') && h(DataTypeSection, {
-              title: 'WDS'
+            isFeaturePreviewEnabled('workspace-data-service') && isAzureWorkspace && h(DataTypeSection, {
+              title: 'Tables'
             }, [
               [
                 wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'WDS is unavailable.'
+                  message: 'Data tables are unavailable.'
                 }),
-                !wdsSchemaError && h(NoDataPlaceholder, {
-                  message: _.isEmpty(wdsSchema) ? 'No tables have been uploaded.' : '',
+                !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
+                  message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
@@ -805,7 +808,7 @@ const WorkspaceData = _.flow(
                 }, wdsSchema)
               ]
             ]),
-            (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
+            (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && isGoogleWorkspace && h(DataTypeSection, {
               title: 'Snapshots',
               error: snapshotMetadataError,
               retryFunction: loadSnapshotMetadata
@@ -882,7 +885,7 @@ const WorkspaceData = _.flow(
                 )])
               }, sortedSnapshotPairs)
             ]),
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Reference Data'
             }, [
               _.isEmpty(referenceData) && h(NoDataPlaceholder, {
@@ -947,7 +950,7 @@ const WorkspaceData = _.flow(
               }, namespace, name,
               workspaceId, entityTypes: wdsSchema.map(item => item['name']), dataProvider: wdsDataTableProvider
             }),
-            h(DataTypeSection, {
+            isGoogleWorkspace && h(DataTypeSection, {
               title: 'Other Data'
             }, [
               h(DataTypeButton, {
@@ -975,7 +978,7 @@ const WorkspaceData = _.flow(
       div({ style: styles.tableViewPanel }, [
         _.includes(selectedData?.type, [workspaceDataTypes.entities, workspaceDataTypes.entitiesVersion]) && h(DataTableFeaturePreviewFeedbackBanner),
         Utils.switchCase(selectedData?.type,
-          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
+          [undefined, () => div({ style: { textAlign: 'center' } }, ['Select a data type from the navigation panel on the left'])],
           [workspaceDataTypes.localVariables, () => h(LocalVariablesContent, {
             workspace,
             refreshKey
