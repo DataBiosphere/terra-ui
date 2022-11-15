@@ -794,7 +794,7 @@ const WorkspaceData = _.flow(
                         onDeleteTable: tableName => {
                           setSelectedData(undefined)
                           setWdsSchema(_.remove(typeDef => typeDef.name === tableName, wdsSchema))
-                          forceRefresh() // TODO: may not be correct, resolve this as part of AJ-655
+                          forceRefresh()
                         },
                         isShowingVersionHistory: false,
                         onSaveVersion: undefined,
