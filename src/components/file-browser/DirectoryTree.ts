@@ -125,7 +125,17 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
             borderStyle: 'solid',
             borderWidth: '1px 0'
           },
-          onClick: () => loadNextPage()
+          onClick: async e => {
+            const numSubdirectoriesLoaded = directories.length
+            const group = e.target.parentElement.parentElement
+            await loadNextPage()
+            const items = group.querySelectorAll('[role="treeitem"]')
+            if (items.length > numSubdirectoriesLoaded) {
+              setActiveDescendant(`${parentId}-${numSubdirectoriesLoaded}`)
+            } else {
+              setActiveDescendant(`${parentId}-${items.length - 1}`)
+            }
+          }
         }, ['Load next page'])
       ])
     ])
