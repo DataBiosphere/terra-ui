@@ -13127,10 +13127,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "HARD"\
         }],\
-        ["npm:3.2.0", {\
-          "packageLocation": "./.yarn/cache/loader-utils-npm-3.2.0-02250d00d7-c7b9a8dc4b.zip/node_modules/loader-utils/",\
+        ["npm:3.2.1", {\
+          "packageLocation": "./.yarn/cache/loader-utils-npm-3.2.1-76ae2fd253-4e3ea054cd.zip/node_modules/loader-utils/",\
           "packageDependencies": [\
-            ["loader-utils", "npm:3.2.0"]\
+            ["loader-utils", "npm:3.2.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -16785,7 +16785,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["gzip-size", "npm:6.0.0"],\
             ["immer", "npm:9.0.12"],\
             ["is-root", "npm:2.1.0"],\
-            ["loader-utils", "npm:3.2.0"],\
+            ["loader-utils", "npm:3.2.1"],\
             ["open", "npm:8.4.0"],\
             ["pkg-up", "npm:3.1.0"],\
             ["prompts", "npm:2.4.2"],\
