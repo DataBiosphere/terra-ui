@@ -19242,6 +19242,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["prompts", "npm:2.4.2"],\
             ["puppeteer", "npm:13.5.1"],\
             ["puppeteer-cluster", "virtual:dbab8a24bb1e83f64d01070d471958b56ec3d11fd3ae5a8c71ee6e018bca5308c73bd59656625959ac80a6ed20fc47a8e80415eaa84ea83f83b375ceeaa8e710#npm:0.23.0"],\
+            ["qs", "npm:6.10.3"],\
             ["uuid", "npm:8.3.2"]\
           ],\
           "linkType": "SOFT"\
