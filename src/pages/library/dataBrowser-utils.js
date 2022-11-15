@@ -124,7 +124,7 @@ const extractTags = dataset => {
 
 export const filterAndNormalizeDatasets = (datasets, dataCollectionsToInclude) => {
   const filteredDatasets = _.filter(dataCollectionsToInclude ?
-    dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
+    dataset => _.intersectionBy(_.toLower, dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
   datasets)
   return _.map(dataset => {
