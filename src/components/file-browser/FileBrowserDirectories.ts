@@ -46,6 +46,10 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     onSelectDirectory
   } = props
 
+  const directoryLabel = path === '' ? rootLabel : basename(path)
+
+  const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null)
+
   const {
     state: { status, directories },
     hasNextPage,
@@ -56,12 +60,30 @@ export const FileBrowserDirectoryContents = (props: FileBrowserDirectoryContents
     if (status === 'Ready' || status === 'Error') {
       onFinishedLoading()
     }
-  }, [onFinishedLoading, status])
+
+    if (status === 'Ready') {
+      loadedAlertElementRef.current!.innerHTML = `Loaded ${directoryLabel} subdirectories`
+    }
+    if (status === 'Error') {
+      loadedAlertElementRef.current!.innerHTML = `Error loading ${directoryLabel} subdirectories`
+    }
+  }, [directoryLabel, onFinishedLoading, status])
 
   return h(Fragment, [
-    status === 'Error' && renderDirectoryStatus(level, 'Error loading contents'),
+    span({
+      ref: loadedAlertElementRef,
+      'aria-live': 'polite',
+      className: 'sr-only',
+      role: 'alert',
+    }),
+    status === 'Loading' && span({
+      'aria-live': 'assertive',
+      className: 'sr-only',
+      role: 'alert',
+    }, [`Loading ${directoryLabel} subdirectories`]),
+    status === 'Error' && renderDirectoryStatus(level, 'Error loading subdirectories'),
     (status === 'Ready' || directories.length > 0) && ul({
-      'aria-label': `${path === '' ? rootLabel : basename(path)} subdirectories`,
+      'aria-label': `${directoryLabel} subdirectories`,
       role: 'group',
       style: {
         padding: 0,
