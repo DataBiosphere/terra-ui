@@ -162,21 +162,23 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
     _.fromPairs
   )(labels))
   const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
-  const [filterChanges, setFilterChanges] = useState({})
+  const [filterChanges, setFilterChanges] = useState([])
   const [filteredLabels, setFilteredLabels] = useState(labels)
 
   return h(Modal, {
     title: div({ style: { fontSize: '1.325rem', fontWeight: 700 } }, [`Filter by: "${name}"`]),
     width: '100%',
     showButtons: true,
-    okButton: 'Apply Filters',
     styles: {
       modal: { maxWidth: 900, padding: 30 },
       buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
     },
     onDismiss: () => {
       setShowAll(false)
-      _.forEach(onTagFilter, filterChanges)
+    },
+    okButton: () => {
+      setShowAll(false)
+      onTagFilter({ section: name, tags: filterChanges })
     }
   }, [
     h(FilterBar, {
@@ -196,16 +198,15 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
       div({
         style: {
           display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
-          fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
+          fontSize: '1rem', marginTop: 20
         }
       }, _.map(label => {
         const lowerTag = _.toLower(label)
-        const escapedTag = lowerTag.replace(/\./g, '-')
         return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
           h(LabeledCheckbox, {
-            checked: !!filterChanges[escapedTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            checked: !!_.includes(lowerTag, filterChanges) ^ _.includes(lowerTag, lowerSelectedTags),
             onChange: () => {
-              setFilterChanges(prevFilter => prevFilter[escapedTag] ? _.omit(escapedTag, prevFilter) : _.set(escapedTag, { lowerTag, label, section: name }, prevFilter))
+              setFilterChanges(_.xor([lowerTag]))
             },
             style: { position: 'absolute', left: -25, top: 2 }
           }, [
@@ -241,7 +242,7 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
           display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
           paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
         },
-        onClick: () => onTagFilter({ lowerTag, label, section: name })
+        onClick: () => onTagFilter({ section: name, tags: [lowerTag] })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
         div({ style: styles.pill(isChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
@@ -501,9 +502,9 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: ({ section, lowerTag }) => {
-            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            const newTags = _.xor([lowerTag], selectedTags[section])
+          onTagFilter: ({ section, tags }) => {
+            _.forEach(tag => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag }), tags)
+            const newTags = _.xor(tags, selectedTags[section])
             const newSelectedTags = newTags.length > 0 ? _.set(section, newTags, selectedTags) : _.omit(section, selectedTags)
             navigateToFilterAndSelection({ tags: newSelectedTags })
           },
