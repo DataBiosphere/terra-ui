@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
+import { createElement, Fragment, useState } from 'react'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -24,6 +23,17 @@ import {
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 
+const isChildren = x => typeof x === 'string' || typeof x === 'number' || Array.isArray(x)
+
+const h = (type, a, b) => {
+  const [props, children] = isChildren(a) ? [{}, a] : [a, b]
+  return createElement(type, props, ...(Array.isArray(children) ? children : [children]))
+}
+const div = _.partial(h, ['div'])
+const h2 = _.partial(h, ['h2'])
+const p = _.partial(h, ['p'])
+const span = _.partial(h, ['span'])
+const strong = _.partial(h, ['strong'])
 
 const DeleteRuntimeModal = ({
   runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
@@ -182,7 +192,7 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
       _.isEmpty(workspaces) ? [
         strong(space, ['You own this disk but do not have access to any workspaces where it can be shared.']),
         renderDeleteDiskSelection(),
-        span(space, 'OR'),
+        span(space, ['OR']),
         div([
           h(Link, { onClick: _.flow(onDismiss, onContactSupport) }, 'Contact Terra Support'),
           ' to have it transferred to another user.'
