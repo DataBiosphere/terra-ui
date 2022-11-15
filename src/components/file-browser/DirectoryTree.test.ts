@@ -2,7 +2,8 @@ import '@testing-library/jest-dom'
 
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { h } from 'react-hyperscript-helpers'
+import { axe } from 'jest-axe'
+import { h, ul } from 'react-hyperscript-helpers'
 import { Directory } from 'src/components/file-browser/DirectoryTree'
 import { useDirectoriesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import FileBrowserProvider from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
@@ -88,17 +89,21 @@ describe('Directory', () => {
 
     asMockedFn(useDirectoriesInDirectory).mockReturnValue(useDirectoriesInDirectoryResult)
 
-    render(h(Directory, {
-      activeDescendant: 'node-0',
-      id: 'node-0',
-      level: 0,
-      path: 'path/to/directory/',
-      provider: mockFileBrowserProvider,
-      rootLabel: 'Workspace bucket',
-      selectedDirectory: '',
-      setActiveDescendant: () => {},
-      onSelectDirectory: jest.fn()
-    }))
+    const { container } = render(
+      ul({ role: 'tree' }, [
+        h(Directory, {
+          activeDescendant: 'node-0',
+          id: 'node-0',
+          level: 0,
+          path: 'path/to/directory/',
+          provider: mockFileBrowserProvider,
+          rootLabel: 'Workspace bucket',
+          selectedDirectory: '',
+          setActiveDescendant: () => {},
+          onSelectDirectory: jest.fn()
+        })
+      ])
+    )
 
     // Act
     const contentsFetchedBeforeExpanding = asMockedFn(useDirectoriesInDirectory).mock.calls.length > 0
@@ -114,6 +119,8 @@ describe('Directory', () => {
     expect(contentsFetchedAfterExpanding).toBe(true)
 
     expect(renderedSubdirectories).toEqual(['subdirectory1', 'subdirectory2', 'subdirectory3'])
+
+    expect(await axe(container)).toHaveNoViolations()
   })
 
   it('it renders a screen reader announcement while loading', async () => {
