@@ -13,7 +13,6 @@ export const Files = _.flow(
   wrapWorkspace({
     activeTab: null,
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    showTabBar: false,
     title: 'Files',
     topBarContent: null
   })
