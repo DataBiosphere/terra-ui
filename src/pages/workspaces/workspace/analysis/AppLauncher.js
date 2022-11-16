@@ -7,6 +7,7 @@ import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -188,11 +189,18 @@ const ApplicationLauncher = _.flow(
       setShouldSetupWelder(false)
     }
 
-    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
-      const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
-      setOutdatedAnalyses(outdatedRAnalyses)
-      !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
-    })
+    const findOutdatedAnalyses = async () => {
+      try {
+        const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
+        setOutdatedAnalyses(outdatedRAnalyses)
+        !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
+      } catch (error) {
+        notify('error', 'Error loading outdated analyses', {
+          id: 'error-loading-outdated-analyses',
+          detail: error instanceof Response ? await error.text() : error
+        })
+      }
+    }
 
     computeIframeSrc()
     if (runtimeStatus === 'Running') {
