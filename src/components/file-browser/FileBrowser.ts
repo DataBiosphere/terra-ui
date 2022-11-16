@@ -81,7 +81,12 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
             onClickPath: setPath
           })
         ]),
-        h(FilesInDirectory, { provider, path, onClickFile: setFocusedFile })
+        h(FilesInDirectory, {
+          provider,
+          path,
+          rootLabel: 'Workspace bucket',
+          onClickFile: setFocusedFile
+        })
       ])
     ]),
 

@@ -9,19 +9,25 @@ import * as Utils from 'src/libs/utils'
 
 
 interface FilesTableProps {
+  'aria-label'?: string
   files: FileBrowserFile[]
   noFilesMessage: string
   onClickFile: (file: FileBrowserFile) => void
 }
 
 const FilesTable = (props: FilesTableProps) => {
-  const { files, noFilesMessage, onClickFile } = props
+  const {
+    'aria-label': ariaLabel = 'Files',
+    files,
+    noFilesMessage,
+    onClickFile
+  } = props
 
   return div({ style: { display: 'flex', flex: '1 1 auto' } }, [
     h(AutoSizer, {}, [
       /* @ts-expect-error */
       ({ width, height }) => h(FlexTable, {
-        'aria-label': 'File browser',
+        'aria-label': ariaLabel,
         width,
         height,
         rowCount: files.length,

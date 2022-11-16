@@ -2,6 +2,7 @@ import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
+import { basename } from 'src/components/file-browser/file-browser-utils'
 import FilesTable from 'src/components/file-browser/FilesTable'
 import { icon } from 'src/components/icons'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
@@ -12,11 +13,12 @@ import * as Utils from 'src/libs/utils'
 interface FilesInDirectoryProps {
   provider: FileBrowserProvider
   path: string
+  rootLabel?: string
   onClickFile: (file: FileBrowserFile) => void
 }
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
-  const { provider, path, onClickFile } = props
+  const { provider, path, rootLabel = 'Files', onClickFile } = props
 
   const {
     state: { status, files },
@@ -35,6 +37,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     }
   }, [
     h(FilesTable, {
+      'aria-label': `Files in ${path === '' ? rootLabel : basename(path)}`,
       files,
       noFilesMessage: Utils.cond(
         [status === 'Loading', () => 'Loading files...'],
