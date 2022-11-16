@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { MiniSortable, SimpleTable } from 'src/components/table'
+import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
@@ -81,36 +81,37 @@ const extractCatalogFilters = dataCatalog => {
   }]
 }
 
+const allColumns = {
+  project: { title: 'Consortium', contents: datum => datum.project },
+  subjects: { title: 'No. of Subjects', contents: datum => datum?.counts?.donors },
+  dataModality: { title: 'Data Modality', contents: datum => _.join(', ', datum.dataModality) },
+  lastUpdated: { title: 'Last Updated', contents: datum => datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null },
+}
 
-const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList }) => {
-  const DataBrowserTable = ({ filteredList }) => {
-    return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
+const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList }) => {
+  const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
+  return ({ filteredList }) => {
+    return div({ style: { position: 'relative', margin: '0 15px' } }, [h(SimpleTable, {
       'aria-label': 'dataset list',
       columns: [
         {
           header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
           size: { grow: 2.2 }, key: 'name'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project', onSort: setSort }, ['Consortium'])]),
-          size: { grow: 1 }, key: 'project'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
-          size: { grow: 1 }, key: 'subjects'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataModality', onSort: setSort }, ['Data Modality'])]),
-          size: { grow: 1 }, key: 'dataModality'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
-          size: { grow: 1 }, key: 'lastUpdated'
-        }
+        },
+        ..._.map(columnKey => {
+          return {
+            header: div({ style: styles.table.header },
+              [h(MiniSortable, { sort, field: columnKey, onSort: setSort }, [allColumns[columnKey].title])]),
+            size: { grow: 1 }, key: columnKey
+          }
+        }, cols)
       ],
       rowStyle: styles.table.row,
       cellStyle: { border: 'none', paddingRight: 15 },
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { project, requestAccessURL, dataModality, access } = datum
-
+        const { requestAccessURL, access } = datum
         return {
           name: h(Link,
             {
@@ -124,10 +125,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
             },
             [datum['dct:title']]
           ),
-          project,
-          subjects: datum?.counts?.donors,
-          dataModality: dataModality.join(', '),
-          lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
+          ..._.reduce((reduced, columnKey) => { return { ...reduced, [columnKey]: allColumns[columnKey].contents(datum) } }, {}, cols),
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.cond(
@@ -161,10 +159,12 @@ const makeDataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessL
           ])
         }
       }, filteredList)
+    }),
+    h(ColumnSelector, {
+      onSave: setCols, columnSettings: cols,
+      style: { backgroundColor: 'unset', height: '2.5rem', width: '2.5rem', border: 0, right: 15 }
     })])
   }
-
-  return DataBrowserTable
 }
 
 export const Browser = () => {
@@ -180,7 +180,7 @@ export const Browser = () => {
       titleField: 'dct:title',
       descField: 'dct:description',
       idField: 'id'
-    }, [makeDataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList })]),
+    }, [DataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList })]),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()
