@@ -30,6 +30,7 @@ const FilesTable = (props: FilesTableProps) => {
         styleHeader: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
         hoverHighlight: true,
         border: false,
+        tabIndex: -1,
         columns: [
           {
             size: { min: 100, grow: 1 },
