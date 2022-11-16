@@ -88,87 +88,98 @@ const allColumns = {
   lastUpdated: { title: 'Last Updated', contents: datum => datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null },
 }
 
-const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList }) => {
-  const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
-  return ({ filteredList }) => {
-    return div({ style: { position: 'relative', margin: '0 15px' } }, [h(SimpleTable, {
-      'aria-label': 'dataset list',
-      columns: [
-        {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
-          size: { grow: 2.2 }, key: 'name'
-        },
-        ..._.map(columnKey => {
-          return {
-            header: div({ style: styles.table.header },
-              [h(MiniSortable, { sort, field: columnKey, onSort: setSort }, [allColumns[columnKey].title])]),
-            size: { grow: 1 }, key: columnKey
-          }
-        }, cols)
-      ],
-      rowStyle: styles.table.row,
-      cellStyle: { border: 'none', paddingRight: 15 },
-      useHover: false,
-      underRowKey: 'underRow',
-      rows: _.map(datum => {
-        const { requestAccessURL, access } = datum
+const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList }) => {
+  return div({ style: { position: 'relative', margin: '0 15px' } }, [h(SimpleTable, {
+    'aria-label': 'dataset list',
+    columns: [
+      {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
+        size: { grow: 2.2 }, key: 'name'
+      },
+      ..._.map(columnKey => {
         return {
-          name: h(Link,
-            {
-              onClick: () => {
-                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
-                  id: datum.id,
-                  title: datum['dct:title']
-                })
-                Nav.goToPath('library-details', { id: datum.id })
-              }
-            },
-            [datum['dct:title']]
-          ),
-          ..._.reduce((reduced, columnKey) => { return { ...reduced, [columnKey]: allColumns[columnKey].contents(datum) } }, {}, cols),
-          underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              Utils.cond(
-                [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  href: requestAccessURL, target: '_blank'
-                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-                [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  onClick: () => {
-                    setRequestDatasetAccessList([datum])
-                    Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                      id: datum.id,
-                      title: datum['dct:title']
-                    })
-                  }
-                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-                [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
-                  icon('lock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
-                ])],
-                [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
-                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                  href: datum['dcat:accessURL'], target: '_blank'
-                }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
-                [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
-                  icon('unlock'),
-                  div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
-                ])])
-            ])
-          ])
+          header: div({ style: styles.table.header },
+            [h(MiniSortable, { sort, field: columnKey, onSort: setSort }, [allColumns[columnKey].title])]),
+          size: { grow: 1 }, key: columnKey
         }
-      }, filteredList)
-    }),
-    h(ColumnSelector, {
-      onSave: setCols, columnSettings: cols,
-      style: { backgroundColor: 'unset', height: '2.5rem', width: '2.5rem', border: 0, right: 15 }
-    })])
-  }
+      }, cols)
+    ],
+    rowStyle: styles.table.row,
+    cellStyle: { border: 'none', paddingRight: 15 },
+    useHover: false,
+    underRowKey: 'underRow',
+    rows: _.map(datum => {
+      const { requestAccessURL, access } = datum
+      return {
+        name: h(Link,
+          {
+            onClick: () => {
+              Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
+                id: datum.id,
+                title: datum['dct:title']
+              })
+              Nav.goToPath('library-details', { id: datum.id })
+            }
+          },
+          [datum['dct:title']]
+        ),
+        ..._.reduce((reduced, columnKey) => { return { ...reduced, [columnKey]: allColumns[columnKey].contents(datum) } }, {}, cols),
+        underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+          div({ style: { display: 'flex', alignItems: 'center' } }, [
+            Utils.cond(
+              [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                href: requestAccessURL, target: '_blank'
+              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+              [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                onClick: () => {
+                  setRequestDatasetAccessList([datum])
+                  Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+                    id: datum.id,
+                    title: datum['dct:title']
+                  })
+                }
+              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+              [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                icon('lock'),
+                div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
+              ])],
+              [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+                href: datum['dcat:accessURL'], target: '_blank'
+              }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
+              [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
+                icon('unlock'),
+                div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
+              ])])
+          ])
+        ])
+      }
+    }, filteredList)
+  }),
+  h(ColumnSelector, {
+    onSave: columnSettings => {
+      setCols(
+        _.flow(
+          _.filter(columnSetting => columnSetting.visible),
+          _.map(columnSetting => columnSetting.key)
+        )(columnSettings)
+      )
+    },
+    columnSettings: _.flow(
+      _.toPairs,
+      _.map(([k, v]) => {
+        return { name: v.title, key: k, visible: _.includes(k, cols) }
+      })
+    )(allColumns),
+    style: { backgroundColor: 'unset', width: 'auto', height: 'auto', border: 0 }
+  })])
 }
 
 export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 
@@ -179,8 +190,9 @@ export const Browser = () => {
       searchType: 'Datasets',
       titleField: 'dct:title',
       descField: 'dct:description',
-      idField: 'id'
-    }, [DataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList })]),
+      idField: 'id',
+      listView: filteredList => DataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList })
+    }),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()

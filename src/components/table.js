@@ -916,6 +916,7 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
  * @param {Object[]} columnSettings - current column list, in order
  * @param {string} columnSettings[].name
  * @param {bool} columnSettings[].visible
+ * @param modalWidth - Width of the selector modal
  * @param {Object} style - style override for the button
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
