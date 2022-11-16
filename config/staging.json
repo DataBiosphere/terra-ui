@@ -27,7 +27,6 @@
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
   "alphaAzureGroup": "alpha-azure-feature-group",
-  "alphaSpendReportGroup": "Alpha_Spend_Report_Users",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-staging.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-staging",

@@ -262,7 +262,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
-  const [isAlphaSpendReportUser, setIsAlphaSpendReportUser] = useState(false)
   const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
 
   const signal = useCancellation()
@@ -273,10 +272,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
-
-  const loadAlphaSpendReportMember = reportErrorAndRethrow('Error loading spend report group membership')(async () => {
-    setIsAlphaSpendReportUser(await Ajax(signal).Groups.group(getConfig().alphaSpendReportGroup).isMember())
-  })
 
   const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
     setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
@@ -331,7 +326,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   useOnMount(() => {
     loadProjects()
     tryAuthorizeAccounts().then(loadAccounts)
-    loadAlphaSpendReportMember()
     loadAlphaAzureMember()
   })
 
@@ -458,7 +452,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingAccounts,
             authorizeAndLoadAccounts,
             reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects),
-            isAlphaSpendReportUser,
             isOwner: _.find({ projectName: selectedName }, projectsOwned)
           })
         }],
