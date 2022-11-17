@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import Collapse from 'src/components/Collapse'
-import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { HeaderRenderer, IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -34,7 +34,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { UnboundDiskNotification } from 'src/pages/workspaces/workspace/Dashboard'
+import { UnboundDiskNotification, v1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
@@ -120,7 +120,8 @@ export const WorkspaceList = () => {
   const [updatingStars, setUpdatingStars] = useState(false)
 
   //A user may have lost access to a workspace after viewing it, so we'll filter those out just in case
-  const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces), getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
+  const recentlyViewed = useMemo(() => _.filter(w => _.find({ workspace: { workspaceId: w.workspaceId } }, workspaces),
+    getLocalPref(recentlyViewedPersistenceId)?.recentlyViewed || []), [workspaces])
 
   const persistenceId = 'workspaces/list'
   const [recentlyViewedOpen, setRecentlyViewedOpen] = useState(() => _.defaultTo(true, getLocalPref(persistenceId)?.recentlyViewedOpen))
@@ -255,7 +256,9 @@ export const WorkspaceList = () => {
           field: 'name',
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
+            const {
+              accessLevel, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
+            } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
             const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
 
@@ -275,7 +278,20 @@ export const WorkspaceList = () => {
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
                   tooltipSide: 'right'
-                }, [name])
+                }, [name]),
+                workspaceVersion === 'v1' && h(IdContainer, [
+                  id => h(TooltipTrigger, {
+                    side: 'right',
+                    type: 'light',
+                    useTooltipAsLabel: true,
+                    content: h(v1WorkspaceNotification, { id, showIcon: false, showLinks: false })
+                  }, [icon('warning-standard',
+                    {
+                      'aria-labelledby': id,
+                      style: { color: colors.warning(), height: '1.0rem', width: '1.0rem', marginLeft: '0.5rem', marginTop: '0rem' }
+                    })]
+                  )
+                ])
               ]),
               div({ style: { ...styles.tableCellContent } }, [
                 h(FirstParagraphMarkdownViewer, {

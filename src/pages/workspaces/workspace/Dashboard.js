@@ -25,7 +25,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, requesterPaysProjectStore } from 'src/libs/state'
+import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
@@ -126,6 +126,47 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
+export const v1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
+  return div({
+    style: {
+      ...Style.dashboard.rightBoxContainer,
+      display: 'flex', alignItems: 'flex-start',
+      id,
+      padding: '1rem',
+      border: '1px solid',
+      borderColor: colors.warning(),
+      backgroundColor: colors.warning(0.10)
+    }
+  }, [
+    !!showIcon &&
+    icon('warning-standard', { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
+
+    div([
+      span(['Terra will no longer support this workspace after ', strong(['January 31, 2023']), '.']),
+      div({ style: { paddingTop: '1rem' } }, !!showLinks ?
+        [
+          'If you wish to keep this workspace, please ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360047679911',
+            style: { wordBreak: 'break-word' }, ...Utils.newTabLinkProps
+          }, [
+            'reattach a valid Google Billing Account'
+          ]),
+          ' to the billing project belonging to this workspace and contact ',
+          h(Link, {
+            style: { wordBreak: 'break-word' },
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
+              contactUsActive.set(true)
+            }
+          }, ['Terra support']),
+          ' to migrate your workspace.'
+        ] :
+        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace'])
+    ])
+  ])
+}
+
 export const UnboundDiskNotification = props => {
   return div({
     ...props,
@@ -134,6 +175,7 @@ export const UnboundDiskNotification = props => {
       padding: '1rem',
       border: '1px solid',
       borderColor: colors.accent(),
+      marginTop: '1rem',
       ...props?.style
     }
   }, [
@@ -273,7 +315,8 @@ const WorkspaceDashboard = _.flow(
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
   /* eslint-disable @typescript-eslint/no-unused-vars */
-  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
+  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState(
+    { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -313,7 +356,8 @@ const WorkspaceDashboard = _.flow(
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(() => getLocalPref(persistenceId)?.notificationsPanelOpen || false)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
+    setLocalPref(persistenceId,
+      { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
   }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
 
   // Helpers
@@ -428,7 +472,8 @@ const WorkspaceDashboard = _.flow(
       ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.'
     ])],
     // If the current user is the only owner of the workspace, check if the workspace is shared.
-    [_.size(acl) > 1, () => 'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.']
+    [_.size(acl) > 1,
+      () => 'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.']
   )
 
   const getCloudInformation = () => {
@@ -469,7 +514,8 @@ const WorkspaceDashboard = _.flow(
         // ]), depends on TOAZ-265
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
-          h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+          h(ClipboardButton,
+            { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Storage Container URL' }, [
           h(TooltipCell, [!!storageContainerUrl ? storageContainerUrl : 'Loading']),
@@ -562,6 +608,7 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
+      workspace.workspace.workspaceVersion === 'v1' && h(v1WorkspaceNotification, { showIcon: true, showLinks: true }),
       _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
