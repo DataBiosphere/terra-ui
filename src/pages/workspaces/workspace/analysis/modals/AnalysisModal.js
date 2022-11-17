@@ -80,7 +80,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         )],
         [environmentMode, onSuccess],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label || currentTool === tools.Azure.label, () => setViewMode(analysisMode)],
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label || currentTool === tools.JupyterLab.label || currentTool === tools.Azure.label, () => setViewMode(analysisMode)],
           [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
           [isToolAnApp(currentTool) && !!app, () => {
             console.error(
@@ -99,6 +99,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
+      [tools.JupyterLab.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
       [tools.Galaxy.label, () => renderAppModal(GalaxyModalBase, tools.Galaxy.label)],
       [tools.Cromwell.label, () => renderAppModal(CromwellModalBase, tools.Cromwell.label)],
@@ -153,21 +154,13 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }, [
       isFeaturePreviewEnabled('jupyterlab-gcp') && h(Clickable, {
         style: styles.toolCard, onClick: () => {
-          setCurrentToolObj(tools.JupyterLab)
-          setFileExt(tools.JupyterLab.defaultExt)
-          enterNextViewMode(tools.JupyterLab.label)
-        },
-        hover: styles.hover
-      }, [img({ src: jupyterLabLogo, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
-      !isFeaturePreviewEnabled('jupyterlab-gcp') && h(Clickable, {
-        style: styles.toolCard, onClick: () => {
-          const currTool = !!googleProject ? tools.Jupyter : tools.Azure
+          const currTool = !!googleProject ? tools.JupyterLab : tools.Azure
           setCurrentToolObj(currTool)
           setFileExt(currTool.defaultExt)
           enterNextViewMode(currTool.label)
         },
         hover: styles.hover
-      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
+      }, [img({ src: isFeaturePreviewEnabled('jupyterlab-gcp') ? jupyterLabLogo : jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
       !!googleProject && h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentToolObj(tools.RStudio)
@@ -229,6 +222,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
       [tools.RStudio.label, () => 'R file'],
       [tools.Jupyter.label, () => 'notebook'],
+      [tools.JupyterLab.label, () => 'notebook'],
       [tools.Azure.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 

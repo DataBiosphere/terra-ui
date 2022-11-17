@@ -44,7 +44,7 @@ const ApplicationLauncher = _.flow(
   // This sets up welder for RStudio and Jupyter Lab Apps
   // Jupyter is always launched with a specific file, which is localized
   // RStudio/Jupyter Lab in Azure are launched in a general sense, and all files are localized.
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label)
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(application === tools.RStudio.label || application === tools.Azure.label || application === tools.JupyterLab.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -154,7 +154,7 @@ const ApplicationLauncher = _.flow(
         [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
         [tools.RStudio.label, () => proxyUrl],
         [tools.Azure.label, () => `${proxyUrl}/lab`],
-        [tools.JupyterLab.label, () => `${proxyUrl}/lab`],
+        [tools.JupyterLab.label, () => proxyUrl],
         [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark, ${tools.RStudio.label}, or ${tools.Azure.label}.`)]
       )
 
@@ -175,13 +175,14 @@ const ApplicationLauncher = _.flow(
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, '', cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)
           .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime)))
     })
 
+    console.log(shouldSetupWelder)
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()

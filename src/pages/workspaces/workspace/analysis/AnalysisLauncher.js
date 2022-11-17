@@ -72,11 +72,6 @@ const AnalysisLauncher = _.flow(
       refreshRuntimes()
     })
 
-    console.log((currentRuntimeTool === 'Jupyter' || currentRuntimeTool === 'JupyterLab'))
-    console.log(mode)
-    console.log(currentRuntimeTool)
-    console.log(currentFileToolLabel)
-
     return h(Fragment, [
       div({ style: { flex: 1, display: 'flex' } }, [
         div({ style: { flex: 1 } }, [
@@ -532,9 +527,6 @@ const AnalysisEditorFrame = ({
   const [busy, setBusy] = useState(false)
   const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = useStore(cookieReadyStore)
-
-  console.log(toolLabel)
-  console.log('correct')
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => `${name}/edit`],

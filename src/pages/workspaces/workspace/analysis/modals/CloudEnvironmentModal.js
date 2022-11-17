@@ -411,6 +411,7 @@ export const CloudEnvironmentModal = ({
 
   const width = Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => 675],
+    [NEW_JUPYTER_LAB_MODE, () => 675],
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
     [NEW_CROMWELL_MODE, () => 675],
