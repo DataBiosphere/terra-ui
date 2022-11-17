@@ -124,6 +124,6 @@ export const Billing = signal => ({
 export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
   return canCompute || _.some(
     ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
-    await Billing.listProjects()
+    await Billing().listProjects()
   )
 }

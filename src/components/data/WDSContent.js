@@ -18,8 +18,6 @@ const WDSContent = ({
   // State
   const [refreshKey] = useState(0)
 
-  // TODO: AJ-655 something in state management is off; reloading the page while a WDS table is displayed causes errors
-
   // Render
   const dataProvider = new WdsDataTableProvider(workspaceId)
   const entityMetadata = wdsToEntityServiceMetadata(wdsSchema)
