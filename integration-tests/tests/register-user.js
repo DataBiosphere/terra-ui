@@ -6,8 +6,8 @@ const { registerTest } = require('../utils/jest-utils')
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
   await gotoPage(page, testUrl)
-  await click(page, clickable({ textContains: 'View Workspaces' }))
   await verifyAccessibility(page)
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, { token })
   await fillInReplace(page, input({ labelContains: 'First Name' }), 'Integration')
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
