@@ -288,7 +288,7 @@ export const WorkspaceList = () => {
                   }, [icon('warning-standard',
                     {
                       'aria-labelledby': id,
-                      style: { color: colors.warning(), height: '1.0rem', width: '1.0rem', marginLeft: '0.5rem', marginTop: '0rem' }
+                      style: { color: colors.warning(), height: '1.3rem', width: '1.3rem', marginLeft: '0.5rem', marginTop: '-0.2rem' }
                     })]
                   )
                 ])

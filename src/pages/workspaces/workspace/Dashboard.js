@@ -139,8 +139,8 @@ export const v1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
     }
   }, [
     !!showIcon &&
-    icon('warning-standard', { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
-
+    icon('warning-standard',
+      { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
     div([
       span(['Terra will no longer support this workspace after ', strong(['January 31, 2023']), '.']),
       div({ style: { paddingTop: '1rem' } }, !!showLinks ?
@@ -162,7 +162,7 @@ export const v1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
           }, ['Terra support']),
           ' to migrate your workspace.'
         ] :
-        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace'])
+        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace.'])
     ])
   ])
 }
