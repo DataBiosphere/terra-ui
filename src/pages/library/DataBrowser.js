@@ -81,11 +81,16 @@ const extractCatalogFilters = dataCatalog => {
   }]
 }
 
+// All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
-  project: { title: 'Consortium', contents: datum => datum.project },
-  subjects: { title: 'No. of Subjects', contents: datum => datum?.counts?.donors },
-  dataModality: { title: 'Data Modality', contents: datum => _.join(', ', datum.dataModality) },
-  lastUpdated: { title: 'Last Updated', contents: datum => datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null },
+  // A column is a key, title and a function that produces the table contents for that column, given a row.
+  project: { title: 'Consortium', contents: row => row.project },
+  subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
+  dataModality: { title: 'Data Modality', contents: row => _.join(', ', row.dataModality) },
+  lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
+  dataType: { title: 'Data type', contents: row => _.join(', ', getUnique('dataType', { row })) },
+  fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
+  species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
 const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList }) => {
@@ -179,6 +184,8 @@ const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList,
 
 export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  // This state contains the current set of visible columns, in the order that they appear.
+  // Note that the Dataset Name column isn't customizable and is always shown first.
   const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
