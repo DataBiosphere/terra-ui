@@ -34,7 +34,7 @@ import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cloudProviders, isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { UnboundDiskNotification, v1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
+import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccessModal'
@@ -284,7 +284,7 @@ export const WorkspaceList = () => {
                     side: 'right',
                     type: 'light',
                     useTooltipAsLabel: true,
-                    content: h(v1WorkspaceNotification, { id, showIcon: false, showLinks: false })
+                    content: h(V1WorkspaceNotification, { id, showIcon: false, showLinks: false })
                   }, [icon('warning-standard',
                     {
                       'aria-labelledby': id,

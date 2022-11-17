@@ -126,7 +126,7 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
-export const v1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
+export const V1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
   return div({
     style: {
       ...Style.dashboard.rightBoxContainer,
@@ -608,7 +608,7 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      workspace.workspace.workspaceVersion === 'v1' && h(v1WorkspaceNotification, { showIcon: true, showLinks: true }),
+      workspace.workspace.workspaceVersion === 'v1' && h(V1WorkspaceNotification, { showIcon: true, showLinks: true }),
       _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',
