@@ -316,6 +316,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [recordType, setRecordType] = useState(undefined)
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false)
 
+  // TODO: https://broadworkbench.atlassian.net/browse/WOR-614
+  // This value is mostly hard-coded for now for Azure public preview. Once WOR-614 is complete, this value can be dynamically updated
   const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(defaultAzureRegion)
 
   const doUpload = async () => {
