@@ -20,7 +20,8 @@ import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+
+import { appTools } from '../tool-utils'
 
 
 const defaultDataDisk = { size: 500, diskType: pdTypes.standard }
@@ -36,7 +37,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     onDismiss, onError, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } }, shouldHideCloseButton = true
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-    const app = getCurrentApp(tools.Galaxy.appType)(apps)
+    const app = getCurrentApp(appTools.Galaxy.appType)(apps)
     const attachedDataDisk = getCurrentAttachedDataDisk(app, appDataDisks)
 
     const [dataDisk, setDataDisk] = useState(attachedDataDisk || defaultDataDisk)
@@ -45,7 +46,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const currentDataDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
     const updateDataDisk = _.curry((key, value) => setDataDisk(_.set(key, value)))
 
     const createGalaxy = _.flow(
@@ -54,7 +55,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: !!currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDisk.size,
-        diskType: dataDisk.diskType.label, appType: tools.Galaxy.appType, namespace, bucketName, workspaceName
+        diskType: dataDisk.diskType.label, appType: appTools.Galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
