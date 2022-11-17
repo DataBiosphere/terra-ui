@@ -36,7 +36,7 @@ import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/An
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolFromFileExtension, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolFromFileExtension, getToolFromRuntime, runtimeTools, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -105,13 +105,13 @@ const AnalysisCard = ({
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
-      ...(toolLabel === tools.Jupyter.label ? [
+      ...(toolLabel === toolLabels.Jupyter ? [
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: locked || !canWrite || currentRuntimeTool === tools.RStudio.label,
+          disabled: locked || !canWrite || currentRuntimeTool === toolLabels.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -124,9 +124,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeTool === tools.Jupyter.label,
+          disabled: !canWrite || currentRuntimeTool === toolLabels.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeTool === toolLabels.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -184,8 +184,8 @@ const AnalysisCard = ({
   }, [getFileName(name)])
 
   const toolIconSrc = Utils.switchCase(application,
-    [tools.Jupyter.label, () => jupyterLogo],
-    [tools.RStudio.label, () => rstudioSquareLogo])
+    [toolLabels.Jupyter, () => jupyterLogo],
+    [toolLabels.RStudio, () => rstudioSquareLogo])
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
     img({ src: toolIconSrc, style: { height: 40, width: 40 } })
@@ -266,8 +266,8 @@ const Analyses = _.flow(
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: new Date(notebook.updated).getTime() }), notebooks)
-    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: toolLabels.RStudio, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
@@ -407,12 +407,12 @@ const Analyses = _.flow(
 
   // Render
   return h(Dropzone, {
-    accept: `.${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}`,
+    accept: `.${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}`,
     disabled: !Utils.canWrite(accessLevel),
     style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      `The selected file is not one of the supported types: .${tools.Jupyter.ext.join(', .')}, .${tools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
+      `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     analyses && h(PageBox, { style: { height: '100%', margin: '0px', padding: '3rem' } }, [

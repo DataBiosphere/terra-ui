@@ -32,7 +32,7 @@ import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getAppType, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const contextBarStyles = {
@@ -62,17 +62,17 @@ export const ContextBar = ({
   const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
-  const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
+  const isTerminalEnabled = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
   const isAzureWorkspace = !!workspace.azureContext
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Galaxy.label, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
-    [tools.Cromwell.label, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
-    [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [tools.Azure.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
+    [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
+    [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [toolLabels.Azure, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(
@@ -111,19 +111,19 @@ export const ContextBar = ({
   }
 
   const getEnvironmentStatusIcons = () => {
-    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
+    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
     const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(tools.Cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
-      ...(galaxyApp ? [getIconForTool(tools.Galaxy.label, galaxyApp.status)] : []),
-      ...(cromwellApp ? [getIconForTool(tools.Cromwell.label, cromwellApp.status)] : [])
+      ...(galaxyApp ? [getIconForTool(toolLabels.Galaxy, galaxyApp.status)] : []),
+      ...(cromwellApp ? [getIconForTool(toolLabels.Cromwell, cromwellApp.status)] : [])
     ])
   }
 
   //This excludes cromwellapp in the calculation.
   const getTotalToolAndDiskCostDisplay = () => {
-    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
-    const galaxyDisk = getCurrentAppDataDisk(tools.Galaxy.appType, apps, appDataDisks, workspaceName)
+    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
+    const galaxyDisk = getCurrentAppDataDisk(appTools.Galaxy.appType, apps, appDataDisks, workspaceName)
     const galaxyRuntimeCost = galaxyApp ? getGalaxyComputeCost(galaxyApp) : 0
     const galaxyDiskCost = galaxyDisk ? getGalaxyDiskCost(galaxyDisk) : 0
     const runtimeCost = currentRuntime ? getRuntimeCost(currentRuntime) : 0

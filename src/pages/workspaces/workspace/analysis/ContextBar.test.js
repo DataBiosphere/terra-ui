@@ -7,7 +7,7 @@ import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -483,7 +483,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.Jupyter.label)
+    getByText(toolLabels.Jupyter)
   })
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
@@ -500,7 +500,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.Galaxy.label)
+    getByText(toolLabels.Galaxy)
   })
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
@@ -519,7 +519,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.RStudio.label)
+    getByText(toolLabels.RStudio)
   })
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {

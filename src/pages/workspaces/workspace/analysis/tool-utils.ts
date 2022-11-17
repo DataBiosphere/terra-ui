@@ -1,20 +1,21 @@
 import _ from 'lodash/fp'
+import { CloudProviderType } from 'src/libs/ajax/ajax-common'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
-export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'Azure'
+export type RuntimeToolLabel = 'Jupyter' | 'RStudio' | 'JupyterLab'
 export type AppToolLabel = 'Galaxy' | 'Cromwell'
 export type MiscToolLabel = 'spark' | 'terminal'
 export type ToolLabel = RuntimeToolLabel | AppToolLabel | MiscToolLabel
 
-export const toolLabelTypes: Record<ToolLabel, ToolLabel> = {
+export const toolLabels: Record<ToolLabel, ToolLabel> = {
   Jupyter: 'Jupyter',
   RStudio: 'RStudio',
   terminal: 'terminal',
   spark: 'spark',
-  Azure: 'Azure',
+  JupyterLab: 'JupyterLab',
   Galaxy: 'Galaxy',
   Cromwell: 'Cromwell'
 }
@@ -46,34 +47,44 @@ export interface AppTool extends Tool {
   appType: string
 }
 
+const RStudio: RuntimeTool = { label: 'RStudio', ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension }
+
+const Jupyter: RuntimeTool = {
+  label: 'Jupyter',
+  ext: ['ipynb' as Extension],
+  isNotebook: true,
+  imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
+  defaultImageId: 'terra-jupyter-gatk',
+  isLaunchUnsupported: true,
+  defaultExt: 'ipynb' as Extension
+}
+
+const JupyterLab: RuntimeTool = {
+  label: 'JupyterLab',
+  isNotebook: true,
+  ext: ['ipynb' as Extension],
+  isAzureCompatible: true,
+  isLaunchUnsupported: false,
+  defaultExt: 'ipynb' as Extension,
+  imageIds: [],
+  defaultImageId: ''
+}
+
+const Galaxy: AppTool = { label: 'Galaxy', appType: 'GALAXY' }
+
+const Cromwell: AppTool = { label: 'Cromwell', appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+
 export const appTools: Record<AppToolLabel, AppTool> = {
-  Galaxy: { label: 'Galaxy', appType: 'GALAXY' },
-  Cromwell: { label: 'Cromwell', appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+  Galaxy,
+  Cromwell
 }
 
 export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
-  RStudio: { label: 'RStudio', ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension },
-  Jupyter: {
-    label: 'Jupyter',
-    ext: ['ipynb' as Extension],
-    isNotebook: true,
-    imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
-    defaultImageId: 'terra-jupyter-gatk',
-    isLaunchUnsupported: true,
-    defaultExt: 'ipynb' as Extension
-  },
+  RStudio,
+  Jupyter,
   // azure should be changed in backend to be a same as jupyter
   // we should use analysis file's cloud provider to determine azure/other logic for jupyter
-  Azure: {
-    label: 'Azure',
-    isNotebook: true,
-    ext: ['ipynb' as Extension],
-    isAzureCompatible: true,
-    isLaunchUnsupported: false,
-    defaultExt: 'ipynb' as Extension,
-    imageIds: [],
-    defaultImageId: ''
-  }
+  JupyterLab,
 }
 
 export const tools: Record<ToolLabel, Tool> = {
@@ -81,6 +92,18 @@ export const tools: Record<ToolLabel, Tool> = {
   ...appTools,
   terminal: { label: 'terminal' },
   spark: { label: 'spark' }
+}
+
+export const cloudTools: Record<CloudProviderType, Partial<Record<ToolLabel, Tool>>> = {
+  GCP: {
+    RStudio,
+    Jupyter,
+    Galaxy,
+    Cromwell
+  },
+  AZURE: {
+    JupyterLab
+  }
 }
 
 export interface ExtensionDisplay {
@@ -95,16 +118,15 @@ export const toolExtensionDisplay: Partial<Record<ToolLabel, ExtensionDisplay[]>
   ],
   Jupyter: [{ label: 'IPython Notebook (.ipynb)', value: 'ipynb' as Extension }]
 }
-export const getPatternFromTool = (toolLabel: ToolLabel): string => Utils.switchCase(toolLabel,
-  [tools.RStudio.label, () => '.+(\\.R|\\.Rmd)$'],
-  [tools.Jupyter.label, () => '.*\\.ipynb'],
-  [tools.Azure.label, () => '.*\\.ipynb']
+export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string => Utils.switchCase(toolLabel,
+  [toolLabels.RStudio, () => '.+(\\.R|\\.Rmd)$'],
+  [toolLabels.Jupyter, () => '.*\\.ipynb'],
+  [toolLabels.JupyterLab, () => '.*\\.ipynb']
 )
+//TODO: Pass in the cloudProvider, use the cloudProviderTools Object
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
-export const getToolsToDisplay = (isAzureWorkspace: boolean): Tool[] => _.flow(
-  _.remove((tool: Tool) => !!tool.isHidden),
-  _.filter(tool => !!tool.isAzureCompatible === !!isAzureWorkspace)
-)([tools.Jupyter, tools.RStudio, tools.Galaxy, tools.Cromwell, tools.Azure])
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(_.values(cloudTools[cloudProvider]))
+
 
 export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
   _.filter('ext'),

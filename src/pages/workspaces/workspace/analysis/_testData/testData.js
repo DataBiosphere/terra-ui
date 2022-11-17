@@ -3,7 +3,7 @@ import * as Utils from 'src/libs/utils'
 import {
   defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultLocation, defaultPersistentDiskType, runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { v4 as uuid } from 'uuid'
 
 
@@ -176,7 +176,7 @@ export const getGoogleRuntime = ({
 } = {}) => {
   const googleProject = workspace.workspace.googleProject
   const imageUri = image ? image : Utils.switchCase(tool.label,
-    [tools.RStudio.label, () => defaultRImage.image],
+    [toolLabels.RStudio, () => defaultRImage.image],
     [Utils.DEFAULT, () => defaultImage.image])
 
   return {
