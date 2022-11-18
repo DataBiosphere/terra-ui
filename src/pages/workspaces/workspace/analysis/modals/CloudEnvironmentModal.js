@@ -53,7 +53,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
-    isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
+    isOpen: viewMode === toolLabels.Jupyter || viewMode === toolLabels.RStudio,
     workspace,
     tool,
     currentRuntime,
@@ -65,7 +65,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
-    isOpen: viewMode === NEW_AZURE_MODE,
+    isOpen: viewMode === toolLabels.JupyterLab,
     hideCloseButton: true,
     workspace,
     runtimes,
@@ -381,12 +381,6 @@ export const CloudEnvironmentModal = ({
     ])
   }
 
-  const NEW_JUPYTER_MODE = toolLabels.Jupyter
-  const NEW_RSTUDIO_MODE = toolLabels.RStudio
-  const NEW_GALAXY_MODE = toolLabels.Galaxy
-  const NEW_CROMWELL_MODE = toolLabels.Cromwell
-  const NEW_AZURE_MODE = toolLabels.JupyterLab
-
   const getGCPView = () => Utils.switchCase(viewMode,
     [toolLabels.Jupyter, () => renderComputeModal(toolLabels.Jupyter)],
     [toolLabels.RStudio, () => renderComputeModal(toolLabels.RStudio)],
@@ -406,11 +400,11 @@ export const CloudEnvironmentModal = ({
   )
 
   const width = Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => 675],
-    [NEW_RSTUDIO_MODE, () => 675],
-    [NEW_GALAXY_MODE, () => 675],
-    [NEW_CROMWELL_MODE, () => 675],
-    [NEW_AZURE_MODE, () => 675],
+    [toolLabels.Jupyter, () => 675],
+    [toolLabels.RStudio, () => 675],
+    [toolLabels.Galaxy, () => 675],
+    [toolLabels.Cromwell, () => 675],
+    [toolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 
