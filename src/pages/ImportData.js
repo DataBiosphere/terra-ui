@@ -38,23 +38,26 @@ const styles = {
   }
 }
 
-const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
+const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...props }) => {
+  const color = disabled ? colors.dark(0.25) : colors.accent(1)
   return h(Clickable, {
     style: {
       ...style,
       padding: '1rem', marginTop: '1rem',
       display: 'flex', alignItems: 'center',
-      border: `1px solid ${colors.accent(1)}`, borderRadius: 4
+      border: `1px solid ${color}`, borderRadius: 4,
+      cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: { backgroundColor: colors.accent(0.1) },
+    hover: disabled ? {} : { backgroundColor: colors.accent(0.1) },
+    onClick: !disabled && onClick,
     ...props
   }, [
-    icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color: colors.accent(1) } }),
+    icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color } }),
     div({ style: { flex: 1 } }, [
-      div({ style: { fontWeight: 'bold', color: colors.accent(1) } }, [title]),
-      div([detail])
+      div({ style: { fontWeight: 'bold', color } }, [title]),
+      div({ style: { color } }, [detail])
     ]),
-    icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem', color: colors.accent(1) } })
+    icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem', color } })
   ])
 }
 
@@ -73,7 +76,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   ])
 }
 
-const ImportData = () => {
+export const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
   const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId, tdrSyncPermissions } } = Nav.useRoute()
@@ -83,6 +86,7 @@ const ImportData = () => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
+  const [userHasBillingProjects, setUserHasBillingProjects] = useState(true)
 
   const { dataCatalog } = useDataCatalog()
   const snapshots = _.flow(
@@ -121,7 +125,10 @@ const ImportData = () => {
       Utils.withBusyState(setIsImporting),
       withErrorReporting('Error loading templates')
     )(async () => {
-      setAllTemplates(await Ajax().FirecloudBucket.getTemplateWorkspaces())
+      const templates = await Ajax().FirecloudBucket.getTemplateWorkspaces()
+      setAllTemplates(templates)
+      const numProjects = await Ajax().Billing.listProjects().length
+      setUserHasBillingProjects(numProjects > 0)
     })
     loadTemplateWorkspaces()
   })
@@ -187,6 +194,13 @@ const ImportData = () => {
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) })
     Nav.goToPath('workspace-data', { namespace, name })
   })
+
+  const linkAccountPrompt = () => {
+    return div({}, [
+      div({ style: { marginTop: '1.5rem' } }, ['But first, to use Terra, you need to link Terra to a cloud account for compute and storage costs']),
+      h(ButtonPrimary, { style: { marginTop: '.5rem', padding: '.75rem 3.5rem' }, href: '/billing' }, 'Get Started')
+    ])
+  }
 
   return h(FooterWrapper, [
     h(TopBar, { title }),
@@ -299,8 +313,10 @@ const ImportData = () => {
           }],
           [Utils.DEFAULT, () => {
             return h(Fragment, [
-              h2({ style: styles.title }, ['Destination Workspace']),
+              h2({ style: styles.title }, ['Destination of the prepared data']),
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
+              div({ style: { fontWeight: '600', marginTop: '1.5rem', fontSize: '1rem', lineHeight: '1.5' } }, ['Stay in Terra and combine it with other data you have and use Terra tools for analyses']),
+              !userHasBillingProjects && h(linkAccountPrompt),
               !!filteredTemplates.length && h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 iconName: 'copySolid',
@@ -311,14 +327,16 @@ const ImportData = () => {
                 onClick: () => setMode('existing'),
                 iconName: 'fileSearchSolid',
                 title: 'Start with an existing workspace',
-                detail: 'Select one of your workspaces'
+                detail: 'Select one of your workspaces',
+                disabled: !userHasBillingProjects
               }),
               h(ChoiceButton, {
                 onClick: () => setIsCreateOpen(true),
                 iconName: 'plus-circle',
                 title: 'Start with a new workspace',
                 detail: 'Set up an empty workspace that you will configure for analysis',
-                'aria-haspopup': 'dialog'
+                'aria-haspopup': 'dialog',
+                disabled: !userHasBillingProjects
               }),
               isCreateOpen && h(NewWorkspaceModal, {
                 requiredAuthDomain: ad,
