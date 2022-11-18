@@ -31,7 +31,7 @@ import {
 import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { appTools, getAppType, getToolFromFileExtension, getToolFromRuntime, isAppToolLabel, runtimeTools, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { cloudAppTools, cloudRuntimeTools, getAppType, getToolFromFileExtension, getToolFromRuntime, isAppToolLabel, runtimeTools, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -155,48 +155,54 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    const galaxyApp = currentApp(toolLabels.Galaxy)
-    const cromwellApp = currentApp(toolLabels.Cromwell)
-
     // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
-    // N8 TODO: Iterate over cloud-specific tools and apps to render buttons.
+    const availableRuntimeTools = cloudRuntimeTools[cloudProvider]
+    const availableAppTools = cloudAppTools[cloudProvider]
+
+    const currentApps = {
+      Galaxy: currentApp(toolLabels.Galaxy),
+      Cromwell: currentApp(toolLabels.Cromwell)
+    }
+
+    const appDisabledMessages = {
+      Galaxy: 'You already have a galaxy environment',
+      Cromwell: 'You already have a Cromwell instance'
+    }
+
+    const toolImages = {
+      Jupyter: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
+      RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
+      JupyterLab: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
+      Galaxy: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
+      Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
+    }
+
+    const runtimeToolButtons = _.values(availableRuntimeTools).map((runtimeTool => {
+      return !runtimeTool.isHidden ? h(Clickable, {
+        style: styles.toolCard, onClick: () => {
+          setCurrentToolObj(runtimeTool)
+          setFileExt(runtimeTool.defaultExt)
+          enterNextViewMode(runtimeTool.label)
+        },
+        hover: styles.hover
+      }, [toolImages[runtimeTool.label]]) : ''
+    }))
+
+    const appToolButtons = _.values(availableAppTools).map((appTool => {
+      const currentApp = currentApps[appTool.label]
+      return !appTool.isHidden ? h(Clickable, {
+        style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
+          setCurrentToolObj(appTool)
+          enterNextViewMode(appTool.label)
+        },
+        hover: !currentApp ? styles.hover : undefined,
+        disabled: !!currentApp, tooltip: currentApp ? appDisabledMessages[appTool.label] : ''
+      }, [toolImages[appTool.label]]) : ''
+    }))
+
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
-    }, [
-      h(Clickable, {
-        style: styles.toolCard, onClick: () => {
-          const currTool = !!googleProject ? runtimeTools.Jupyter : runtimeTools.JupyterLab
-          setCurrentToolObj(currTool)
-          setFileExt(currTool.defaultExt)
-          enterNextViewMode(currTool.label)
-        },
-        hover: styles.hover
-      }, [img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) })]),
-      !!googleProject && h(Clickable, {
-        style: styles.toolCard, onClick: () => {
-          setCurrentToolObj(runtimeTools.RStudio)
-          setFileExt(runtimeTools.RStudio.defaultExt)
-          enterNextViewMode(runtimeTools.RStudio.label)
-        },
-        hover: styles.hover
-      }, [img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) })]),
-      !!googleProject && h(Clickable, {
-        style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentToolObj(appTools.Galaxy)
-          enterNextViewMode(appTools.Galaxy.label)
-        },
-        hover: !galaxyApp ? styles.hover : undefined,
-        disabled: !!galaxyApp, tooltip: galaxyApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, alt: 'Create new appTools.Galaxy app', style: _.merge(styles.image, { width: 139 }) })]),
-      !tools.Cromwell.isHidden && h(Clickable, {
-        style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
-          setCurrentToolObj(tools.Cromwell)
-          enterNextViewMode(toolLabels.Cromwell)
-        },
-        hover: !cromwellApp ? styles.hover : undefined,
-        disabled: !!cromwellApp, tooltip: cromwellApp ? 'You already have a Cromwell instance' : ''
-      }, [img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })])
-    ])
+    }, [runtimeToolButtons, appToolButtons])
 
     const renderSelectAnalysisBody = () => div({
       style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' }
