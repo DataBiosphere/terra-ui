@@ -155,7 +155,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    // TODO: Try to move app/tool-specific info into tools (in notebook-utils.js) so the function below can just iterate over tools instead of duplicating logic
     const availableRuntimeTools = cloudRuntimeTools[cloudProvider]
     const availableAppTools = cloudAppTools[cloudProvider]
 
@@ -184,7 +183,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           setFileExt(runtimeTool.defaultExt)
           enterNextViewMode(runtimeTool.label)
         },
-        hover: styles.hover
+        hover: styles.hover,
+        key: runtimeTool.label
       }, [toolImages[runtimeTool.label]]) : ''
     }))
 
@@ -196,7 +196,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           enterNextViewMode(appTool.label)
         },
         hover: !currentApp ? styles.hover : undefined,
-        disabled: !!currentApp, tooltip: currentApp ? appDisabledMessages[appTool.label] : ''
+        disabled: !!currentApp, tooltip: currentApp ? appDisabledMessages[appTool.label] : '',
+        key: appTool.label,
       }, [toolImages[appTool.label]]) : ''
     }))
 
