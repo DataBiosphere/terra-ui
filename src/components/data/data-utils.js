@@ -21,6 +21,7 @@ import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
+import { defaultAzureRegion, getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -303,7 +304,7 @@ export const notifyDataImportProgress = jobId => {
   })
 }
 
-export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider }) => {
+export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
   const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
@@ -314,6 +315,10 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
   const [recordType, setRecordType] = useState(undefined)
   const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false)
+
+  // TODO: https://broadworkbench.atlassian.net/browse/WOR-614
+  // This value is mostly hard-coded for now for Azure public preview. Once WOR-614 is complete, this value can be dynamically updated
+  const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(defaultAzureRegion)
 
   const doUpload = async () => {
     setUploading(true)
@@ -369,13 +374,13 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
-        div({ style: { padding: '0 0 1rem' } },
+        div(
           ['Choose the data import option below. ',
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
-            p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
+            p(['Data will be saved in location: 🇺🇸  ', span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay), ' (Terra-managed).'])]),
         dataProvider.tsvFeatures.needsTypeInput && h(Fragment, [
           h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
           h(ValidatedInput, {
