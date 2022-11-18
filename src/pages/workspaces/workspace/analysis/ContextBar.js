@@ -112,7 +112,7 @@ export const ContextBar = ({
 
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
-    const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(tools.Cromwell.appType)(apps)
+    const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(appTools.Cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(toolLabels.Galaxy, galaxyApp.status)] : []),
