@@ -6,10 +6,8 @@ import Modal from 'src/components/Modal'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportErrorAndRethrow, withErrorHandling, withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
+import { withErrorHandling } from 'src/libs/error'
 import { useGetter } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -18,7 +16,7 @@ import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspace
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
+  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
@@ -36,23 +34,13 @@ const span = _.partial(h, ['span'])
 const strong = _.partial(h, ['strong'])
 
 const DeleteRuntimeModal = ({
-  runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
+  runtime: { runtimeConfig: { persistentDiskId }, ...runtime }, onDismiss, deleteRuntime, onSuccess
 }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
-  const [deleting, setDeleting] = useState()
-  const deleteRuntime = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment')
-  )(async () => {
-    isGcpContext(cloudContext) ?
-      await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk) :
-      await Ajax().Runtimes.runtimeV2(workspaceId, runtimeName).delete(deleteDisk)
-    onSuccess()
-  })
   return h(Modal, {
     title: 'Delete cloud environment?',
     onDismiss,
-    okButton: deleteRuntime
+    okButton: () => deleteRuntime(runtime, deleteDisk).then(onSuccess)
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
@@ -67,47 +55,29 @@ const DeleteRuntimeModal = ({
         'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'
       ])
-    ]),
-    deleting && spinnerOverlay
+    ])
   ])
 }
 
-const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
-  const [busy, setBusy] = useState(false)
-  const deleteDisk = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error deleting persistent disk')
-  )(async () => {
-    await Ajax().Disks.disk(googleProject, name).delete()
-    onSuccess()
-  })
+const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, deleteDisk, onSuccess }) => {
   return h(Modal, {
     title: 'Delete persistent disk?',
     onDismiss,
-    okButton: deleteDisk
+    okButton: () => deleteDisk(googleProject, name).then(onSuccess)
   }, [
     p([
       'Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])
     ]),
-    isGalaxyDisk && h(SaveFilesHelp, [false]),
-    busy && spinnerOverlay
+    isGalaxyDisk && h(SaveFilesHelp, [false])
   ])
 }
 
-const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, onSuccess }) => {
+const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, deleteApp, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
-  const [deleting, setDeleting] = useState()
-  const deleteApp = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment')
-  )(async () => {
-    await Ajax().Apps.app(googleProject, appName).delete(deleteDisk)
-    onSuccess()
-  })
   return h(Modal, {
     title: 'Delete cloud environment?',
     onDismiss,
-    okButton: deleteApp
+    okButton: () => deleteApp(googleProject, appName, deleteDisk).then(onSuccess)
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       diskName ?
@@ -118,8 +88,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
       appType === tools.Galaxy.appType && h(SaveFilesHelpGalaxy)
-    ]),
-    deleting && spinnerOverlay
+    ])
   ])
 }
 
@@ -136,7 +105,7 @@ const MigratePersistentDiskCell = ({ onClick }) => div({
   h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])
 ])
 
-const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, onContactSupport, onDeleteDisk }) => {
+const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, onContactSupport, onDeleteDisk, copyDiskToWorkspace }) => {
   // show a spinner when we're copying the disk to another workspace
   const [migrating, setMigrating] = useState()
   // workspaceId -> boolean indicating if we should copy the disk to the workspace
@@ -144,22 +113,10 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
   const [deleteDisk, setDeleteDisk] = useState(false)
 
-  const copyDiskToWorkspace = ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
-    // show an error for each failed copy operation
-    return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
-      () => Ajax().Disks.disk(googleProject, disk.name).create({
-        ..._.pick(['size', 'blockSize', 'zone'], disk),
-        diskType: disk.diskType.label,
-        labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
-        sourceDisk: _.pick(['googleProject', 'name'], disk)
-      })
-    )()
-  }
-
   // dismiss the UI at most once on error
   const migrateDisk = _.flow(withErrorHandling(onDismiss), Utils.withBusyState(setMigrating))(async () => {
     const destinations = _.filter(({ workspaceId }) => isWorkspaceSelected[workspaceId], workspaces)
-    await Promise.all(_.map(copyDiskToWorkspace, destinations))
+    await Promise.all(_.map(copyDiskToWorkspace(disk), destinations))
     await onSuccess()
   })
 
@@ -256,8 +213,11 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
 }
 
 const EnvironmentsTable = ({
-  workspaces, runtimes, apps, disks, loadData: loadData_, setLoading,
-  shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator
+  workspaces, runtimes, apps, disks, loadData: loadData_,
+  shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator,
+  deleteRuntime, deleteDisk, deleteApp, copyDiskToWorkspace,
+  pauseComputeAndRefresh,
+  getWorkspaceHref
 }) => {
   const [errorRuntimeId, setErrorRuntimeId] = useState()
   const getErrorRuntimeId = useGetter(errorRuntimeId)
@@ -289,14 +249,6 @@ const EnvironmentsTable = ({
       setDeleteAppId(undefined)
     }
   }
-
-  const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
-    const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
-      Ajax().Runtimes.runtimeWrapper(compute).stop() :
-      Ajax().Apps.app(compute.googleProject, compute.appName).pause())
-    await wrappedPauseCompute()
-    await loadData()
-  })
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
     [isApp(cloudEnvironment), () => 'Kubernetes'],
@@ -355,7 +307,7 @@ const EnvironmentsTable = ({
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return !!name ?
       h(Fragment, [
-        h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
+        h(Link, { href: getWorkspaceHref({ namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
         shouldWarn && h(TooltipTrigger, {
           content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
         }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -465,6 +417,7 @@ const EnvironmentsTable = ({
       disk,
       isGalaxyDisk: getDiskAppType(disk) === tools.Galaxy.appType,
       onDismiss: () => setDeleteDiskId(undefined),
+      deleteDisk,
       onSuccess: () => {
         setDeleteDiskId(undefined)
         loadData()
@@ -614,7 +567,7 @@ const EnvironmentsTable = ({
             const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
             return !!workspace ?
               h(Fragment, [
-                h(Link, { href: Nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
+                h(Link, { href: getWorkspaceHref(workspace), style: { wordBreak: 'break-word' } },
                   [workspace.name]),
                 diskStatus !== 'Deleting' && multipleDisks &&
                 h(TooltipTrigger, {
@@ -723,6 +676,7 @@ const EnvironmentsTable = ({
     deleteRuntimeId && h(DeleteRuntimeModal, {
       runtime: _.find({ id: deleteRuntimeId }, runtimes),
       onDismiss: () => setDeleteRuntimeId(undefined),
+      deleteRuntime,
       onSuccess: () => {
         setDeleteRuntimeId(undefined)
         loadData()
@@ -732,6 +686,7 @@ const EnvironmentsTable = ({
     deleteAppId && h(DeleteAppModal, {
       app: _.find({ appName: deleteAppId }, apps),
       onDismiss: () => setDeleteAppId(undefined),
+      deleteApp,
       onSuccess: () => {
         setDeleteAppId(undefined)
         loadData()
@@ -757,6 +712,7 @@ const EnvironmentsTable = ({
         _.sortBy(({ name }) => _.lowerCase(name))
       )(workspaces),
       onDismiss: () => setMigrateDisk(undefined),
+      copyDiskToWorkspace,
       onSuccess: () => {
         setMigrateDisk(undefined)
         loadData()

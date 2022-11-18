@@ -11,8 +11,9 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import { topBarHeight } from 'src/libs/style'
@@ -20,6 +21,38 @@ import * as Utils from 'src/libs/utils'
 import EnvironmentsTable from 'src/pages/EnvironmentsTable'
 import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
+
+const deleteRuntime =
+  withErrorReporting('Error deleting cloud environment')((rt, shouldDeleteDisk) =>
+    isGcpContext(rt.cloudContext) ?
+      Ajax().Runtimes.runtime(rt.googleProject, rt.runtimeName).delete(shouldDeleteDisk) :
+      Ajax().Runtimes.runtimeV2(rt.workspaceId, rt.runtimeName).delete(shouldDeleteDisk))
+
+const deleteDisk =
+  withErrorReporting('Error deleting persistent disk')((googleProject, name) =>
+    Ajax().Disks.disk(googleProject, name).delete())
+
+const deleteApp =
+  withErrorReporting('Error deleting cloud environment')((googleProject, appName, shouldDeleteDisk) =>
+    Ajax().Apps.app(googleProject, appName).delete(shouldDeleteDisk))
+
+const copyDiskToWorkspace = disk => ({ googleProject, namespace: saturnWorkspaceNamespace, name: saturnWorkspaceName }) => {
+  // show an error for each failed copy operation
+  return reportErrorAndRethrow(`Error copying persistent disk to workspace '${saturnWorkspaceName}'`,
+    () => Ajax().Disks.disk(googleProject, disk.name).create({
+      ..._.pick(['size', 'blockSize', 'zone'], disk),
+      diskType: disk.diskType.label,
+      labels: { saturnWorkspaceNamespace, saturnWorkspaceName },
+      sourceDisk: _.pick(['googleProject', 'name'], disk)
+    })
+  )()
+}
+
+const pauseCompute =
+  withErrorReporting('Error pausing compute')((computeType, compute) =>
+    computeType === 'runtime' ?
+      Ajax().Runtimes.runtimeWrapper(compute).stop() :
+      Ajax().Apps.app(compute.googleProject, compute.appName).pause())
 
 const MigratePersistentDisksBanner = ({ count }) => {
   const deadline = new Date('2023-01-01T00:00:00.000Z')
@@ -63,6 +96,7 @@ const Environments = () => {
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
   const [loading, setLoading] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator] = useState(true)
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
@@ -117,11 +151,18 @@ const Environments = () => {
     // h(TopBar, { title: 'Cloud Environments' }),
     h(EnvironmentsTable, {
       workspaces, runtimes, apps, disks, loadData, setLoading,
-      shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator
+      shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator,
+      deleteRuntime: Utils.withBusyState(setBusy)(deleteRuntime),
+      deleteDisk: Utils.withBusyState(setBusy)(deleteDisk),
+      deleteApp: Utils.withBusyState(setBusy)(deleteApp),
+      copyDiskToWorkspace,
+      pauseComputeAndRefresh:
+        Utils.withBusyState(setBusy)((...args) => pauseCompute(...args).then(loadData)),
+      getWorkspaceHref: ws => Nav.getLink('workspace-dashboard', ws)
     }),
     numDisksRequiringMigration > 0 && h(MigratePersistentDisksBanner, { count: numDisksRequiringMigration }, []),
     contactUsActive.get() && h(SupportRequestWrapper),
-    loading && spinnerOverlay
+    (loading || busy) && spinnerOverlay
   ])
 }
 
