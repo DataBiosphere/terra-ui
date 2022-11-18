@@ -185,7 +185,9 @@ const AnalysisCard = ({
 
   const toolIconSrc = Utils.switchCase(application,
     [toolLabels.Jupyter, () => jupyterLogo],
-    [toolLabels.RStudio, () => rstudioSquareLogo])
+    [toolLabels.RStudio, () => rstudioSquareLogo],
+    [toolLabels.JupyterLab, () => jupyterLogo]
+  )
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
     img({ src: toolIconSrc, style: { height: 40, width: 40 } })

@@ -72,7 +72,7 @@ export const ContextBar = ({
     [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
     [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [toolLabels.Azure, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [toolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(

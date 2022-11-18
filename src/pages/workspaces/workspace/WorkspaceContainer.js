@@ -245,7 +245,6 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
         Ajax(signal).Disks.list({ ...cloudEnvFilters, includeLabels: 'saturnApplication,saturnWorkspaceName,saturnWorkspaceNamespace' }),
         Ajax(signal).Runtimes.listV2(cloudEnvFilters)
       ]) : [[], []]
-
       setRuntimes(_.remove(isV1Artifact(workspace?.workspace), newRuntimes))
       setAppDataDisks(_.remove(disk => _.isUndefined(getDiskAppType(disk)), newDisks))
       setPersistentDisks(mapToPdTypes(_.filter(disk => _.isUndefined(getDiskAppType(disk)), newDisks)))
