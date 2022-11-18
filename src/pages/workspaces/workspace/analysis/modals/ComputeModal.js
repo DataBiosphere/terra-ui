@@ -701,7 +701,6 @@ export const ComputeModalBase = ({
         currentDisk ? Ajax().Disks.disk(currentDisk.googleProject, currentDisk.name).details() : null
       ])
 
-      //TODO: Make cloud specific? tools -> cloudTools['GCP' | 'Azure']
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, runtimeTools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
