@@ -130,13 +130,9 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
   [toolLabels.Jupyter, () => '.*\\.ipynb'],
   [toolLabels.JupyterLab, () => '.*\\.ipynb']
 )
-//TODO: Pass in the cloudProvider, use the cloudProviderTools Object
-// Returns the tools in the order that they should be displayed for Cloud Environment tools
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
-  _.values(cloudRuntimeTools[cloudProvider]) as Tool[]).concat(
-  _.values(cloudAppTools[cloudProvider] as Tool[])
-)
 
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
+  (_.values(cloudRuntimeTools[cloudProvider]) as Tool[]).concat(_.values(cloudAppTools[cloudProvider] as Tool[])))
 
 export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
   _.filter('ext'),

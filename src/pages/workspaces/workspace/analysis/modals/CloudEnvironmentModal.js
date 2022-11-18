@@ -11,6 +11,7 @@ import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
+import { cloudProviderTypes } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -43,6 +44,7 @@ export const CloudEnvironmentModal = ({
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
+  const cloudProvider = getCloudProviderFromWorkspace(workspace)
   const cookieReady = useStore(cookieReadyStore)
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
@@ -385,14 +387,22 @@ export const CloudEnvironmentModal = ({
   const NEW_CROMWELL_MODE = toolLabels.Cromwell
   const NEW_AZURE_MODE = toolLabels.JupyterLab
 
-  /* TODO: Switch getView based on CloudProvider */
-  const getView = () => Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
-    [NEW_AZURE_MODE, () => renderAzureModal()],
-    [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
-    [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
+  const getGCPView = () => Utils.switchCase(viewMode,
+    [toolLabels.Jupyter, () => renderComputeModal(toolLabels.Jupyter)],
+    [toolLabels.RStudio, () => renderComputeModal(toolLabels.RStudio)],
+    [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
+    [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)],
     [Utils.DEFAULT, renderDefaultPage]
+  )
+
+  const getAzureView = () => Utils.switchCase(viewMode,
+    [toolLabels.JupyterLab, renderAzureModal()],
+    [Utils.DEFAULT, renderDefaultPage]
+  )
+
+  const getView = () => Utils.switchCase(cloudProvider,
+    [cloudProviderTypes.GCP, getGCPView],
+    [cloudProviderTypes.AZURE, getAzureView]
   )
 
   const width = Utils.switchCase(viewMode,
