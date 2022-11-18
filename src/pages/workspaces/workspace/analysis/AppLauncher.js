@@ -175,7 +175,7 @@ const ApplicationLauncher = _.flow(
         await Ajax()
           .Runtimes
           .fileSyncing(googleProject, runtime.runtimeName)
-          .setStorageLinks(localBaseDirectory, cloudStorageDirectory, getPatternFromTool(getToolFromRuntime(runtime))) :
+          .setStorageLinks({localBaseDirectory, cloudStorageDirectory, pattern: getPatternFromTool(getToolFromRuntime(runtime))}) :
         await Ajax()
           .Runtimes
           .azureProxy(runtime.proxyUrl)
