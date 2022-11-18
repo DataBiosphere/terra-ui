@@ -67,7 +67,7 @@ const JupyterLab: RuntimeTool = {
   isLaunchUnsupported: false,
   defaultExt: 'ipynb' as Extension,
   imageIds: [],
-  defaultImageId: ''
+  defaultImageId: '',
 }
 
 const Galaxy: AppTool = { label: 'Galaxy', appType: 'GALAXY' }
@@ -94,16 +94,23 @@ export const tools: Record<ToolLabel, Tool> = {
   spark: { label: 'spark' }
 }
 
-export const cloudTools: Record<CloudProviderType, Partial<Record<ToolLabel, Tool>>> = {
+//TODO: Should the value be a list?
+export const cloudRuntimeTools: Record<CloudProviderType, Partial<Record<ToolLabel, RuntimeTool>>> = {
   GCP: {
     RStudio,
-    Jupyter,
-    Galaxy,
-    Cromwell
+    Jupyter
   },
   AZURE: {
     JupyterLab
   }
+}
+
+export const cloudAppTools: Record<CloudProviderType, Partial<Record<ToolLabel, AppTool>>> = {
+  GCP: {
+    Galaxy,
+    Cromwell
+  },
+  AZURE: {}
 }
 
 export interface ExtensionDisplay {
@@ -125,7 +132,10 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
 )
 //TODO: Pass in the cloudProvider, use the cloudProviderTools Object
 // Returns the tools in the order that they should be displayed for Cloud Environment tools
-export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(_.values(cloudTools[cloudProvider]))
+export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
+  _.values(cloudRuntimeTools[cloudProvider]) as Tool[]).concat(
+  _.values(cloudAppTools[cloudProvider] as Tool[])
+)
 
 
 export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
