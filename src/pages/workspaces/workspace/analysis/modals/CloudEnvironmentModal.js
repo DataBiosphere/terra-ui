@@ -5,12 +5,12 @@ import { Clickable, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
+import { getCloudProviderFromWorkspace } from 'src/components/workspace-utils'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
-import { cloudProviderTypes } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -36,7 +36,7 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, computeRegion, workspace: { azureContext, workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks, location, computeRegion, workspace: { workspace: { namespace, name: workspaceName } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -83,7 +83,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(azureContext ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP)) //TODO: We should have access to cloudProvider string.
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
   )
 
   const toolPanelStyles = {
@@ -249,7 +249,7 @@ export const CloudEnvironmentModal = ({
     [toolLabels.Galaxy, () => galaxyLogo],
     [toolLabels.RStudio, () => rstudioBioLogo],
     [toolLabels.Cromwell, () => cromwellImg],
-    [toolLabels.Azure, () => jupyterLogo])
+    [toolLabels.JupyterLab, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
     [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === toolLabels.Galaxy && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
