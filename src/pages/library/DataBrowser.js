@@ -93,6 +93,11 @@ const allColumns = {
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
+// Columns are stored as a list of column key names in `cols` below. The column settings that the ColumnSelector dialog uses contains
+// the column title, key and a visible flag.
+//
+// These functions convert between the two formats.
+
 export const convertSettingsToCols = _.flow(
   _.filter(columnSetting => columnSetting.visible),
   _.map(columnSetting => columnSetting.key)
