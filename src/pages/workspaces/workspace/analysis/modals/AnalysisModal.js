@@ -164,7 +164,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     }
 
     const appDisabledMessages = {
-      Galaxy: 'You already have a galaxy environment',
+      Galaxy: 'You already have a Galaxy environment',
       Cromwell: 'You already have a Cromwell instance'
     }
 
