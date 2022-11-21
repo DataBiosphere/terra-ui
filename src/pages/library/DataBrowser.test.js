@@ -10,7 +10,7 @@ const cols = ['project']
 
 describe('DataBrowser', () => {
   it('converts selected columns to settings', () => {
-    // Avoid copying entire list of columns into this test by checking for a subset of elements
+    // Avoid copying entire list of columns into this test by checking for a subset of elements.
     expect(convertColsToSettings(cols)).toEqual(expect.arrayContaining(settings))
   })
 
