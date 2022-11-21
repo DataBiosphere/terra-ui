@@ -33,7 +33,6 @@ export interface Tool {
   isNotebook?: boolean
   isLaunchUnsupported?: boolean
   isPauseUnsupported?: boolean
-  isAzureCompatible?: boolean
 }
 
 export interface RuntimeTool extends Tool {
@@ -63,7 +62,6 @@ const JupyterLab: RuntimeTool = {
   label: 'JupyterLab',
   isNotebook: true,
   ext: ['ipynb' as Extension],
-  isAzureCompatible: true,
   isLaunchUnsupported: false,
   defaultExt: 'ipynb' as Extension,
   imageIds: [],
