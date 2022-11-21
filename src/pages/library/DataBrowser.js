@@ -93,6 +93,18 @@ const allColumns = {
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
+export const convertSettingsToCols = _.flow(
+  _.filter(columnSetting => columnSetting.visible),
+  _.map(columnSetting => columnSetting.key)
+)
+
+export const convertColsToSettings = cols => _.flow(
+  _.toPairs,
+  _.map(([k, v]) => {
+    return { name: v.title, key: k, visible: _.includes(k, cols) }
+  })
+)(allColumns)
+
 const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList }) => {
   return div({ style: { position: 'relative', margin: '0 15px' } }, [h(SimpleTable, {
     'aria-label': 'dataset list',
@@ -164,20 +176,8 @@ const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList,
     }, filteredList)
   }),
   h(ColumnSelector, {
-    onSave: columnSettings => {
-      setCols(
-        _.flow(
-          _.filter(columnSetting => columnSetting.visible),
-          _.map(columnSetting => columnSetting.key)
-        )(columnSettings)
-      )
-    },
-    columnSettings: _.flow(
-      _.toPairs,
-      _.map(([k, v]) => {
-        return { name: v.title, key: k, visible: _.includes(k, cols) }
-      })
-    )(allColumns),
+    onSave: _.flow(convertSettingsToCols, setCols),
+    columnSettings: convertColsToSettings(cols),
     style: { backgroundColor: 'unset', width: 'auto', height: 'auto', border: 0 }
   })])
 }
