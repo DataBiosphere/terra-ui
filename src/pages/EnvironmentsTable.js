@@ -1,15 +1,13 @@
 import _ from 'lodash/fp'
 import { createElement, Fragment, useState } from 'react'
-import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { Clickable, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
-import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/components/table'
+import { SimpleFlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
-import { withErrorHandling } from 'src/libs/error'
 import { useGetter } from 'src/libs/react-utils'
-import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
@@ -20,6 +18,7 @@ import {
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+
 
 const isChildren = x => typeof x === 'string' || typeof x === 'number' || Array.isArray(x)
 
@@ -92,132 +91,13 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, on
   ])
 }
 
-const MigratePersistentDiskCell = ({ onClick }) => div({
-  style: {
-    display: 'flex', flex: 1, flexDirection: 'column', textAlign: 'center',
-    height: '100%', margin: '-1rem', padding: '0.5rem 0 0 0',
-    backgroundColor: colors.danger(0.15), color: colors.danger()
-  }
-}, [
-  h(TooltipTrigger, { content: 'This disk is shared between workspaces, which is no longer supported. Click "Migrate" to make copies for relevant workspaces.' }, [
-    div(['Offline', icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
-  ]),
-  h(Link, { onClick, style: { wordBreak: 'break-word' } }, ['Migrate'])
-])
-
-const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, onContactSupport, onDeleteDisk, copyDiskToWorkspace }) => {
-  // show a spinner when we're copying the disk to another workspace
-  const [migrating, setMigrating] = useState()
-  // workspaceId -> boolean indicating if we should copy the disk to the workspace
-  const [isWorkspaceSelected, setIsWorkspaceSelected] = useState({})
-  // users can choose to delete their disk instead of coping via a checkbox. Mutually exclusive with `isWorkspaceSelected`
-  const [deleteDisk, setDeleteDisk] = useState(false)
-
-  // dismiss the UI at most once on error
-  const migrateDisk = _.flow(withErrorHandling(onDismiss), Utils.withBusyState(setMigrating))(async () => {
-    const destinations = _.filter(({ workspaceId }) => isWorkspaceSelected[workspaceId], workspaces)
-    await Promise.all(_.map(copyDiskToWorkspace(disk), destinations))
-    await onSuccess()
-  })
-
-  const space = { style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }
-
-  const renderDeleteDiskSelection = () => {
-    const onChange = choice => {
-      setDeleteDisk(choice)
-      if (choice) { setIsWorkspaceSelected({}) }
-    }
-
-    return div({ style: { ...space, display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-      h(LabeledCheckbox, { checked: deleteDisk, onChange }, []),
-      span({ style: { paddingLeft: '0.5rem' } }, ['Delete this disk.'])
-    ])
-  }
-
-  const costPerCopy = getPersistentDiskCostMonthly(disk, getRegionFromZone(disk.zone))
-  const numberOfCopies = _.flow(_.values, _.compact, _.size)(isWorkspaceSelected)
-
-  return h(Modal, {
-    title: `Migrate ${disk.name}`,
-    okButton: deleteDisk || _.isEmpty(workspaces) ?
-      h(ButtonPrimary, { disabled: !deleteDisk, onClick: _.flow(onDismiss, onDeleteDisk) }, 'Delete') :
-      h(ButtonPrimary, { disabled: numberOfCopies === 0, onClick: migrateDisk }, 'Migrate'),
-    onDismiss
-  }, [
-    div({ style: { display: 'flex', flexDirection: 'column' } }, Array.prototype.concat(
-      [span(space, 'Due to data security policies, persistent disks can no longer be shared between workspaces.')],
-      _.isEmpty(workspaces) ? [
-        strong(space, ['You own this disk but do not have access to any workspaces where it can be shared.']),
-        renderDeleteDiskSelection(),
-        span(space, ['OR']),
-        div([
-          h(Link, { onClick: _.flow(onDismiss, onContactSupport) }, 'Contact Terra Support'),
-          ' to have it transferred to another user.'
-        ])
-      ] : [
-        strong(space, ['Select workspaces where you want to use a copy of this disk.']),
-        h(FlexTable, {
-          'aria-label': 'workspace-selection',
-          width: 400, height: 250, headerHeight: 24, rowHeight: 24, variant: 'light',
-          rowCount: _.size(workspaces),
-          columns: [
-            {
-              field: 'selection',
-              size: { basis: 24, grow: 0 },
-              headerRenderer: () => h(TooltipTrigger, { content: 'Select all' }, [
-                h(LabeledCheckbox, {
-                  checked: _.every(w => isWorkspaceSelected[w.workspaceId], workspaces),
-                  onChange: selected => {
-                    setDeleteDisk(false)
-                    setIsWorkspaceSelected(_.reduce((state, w) => _.set(w.workspaceId, selected, state), {}, workspaces))
-                  }
-                }, [])
-              ]),
-              cellRenderer: ({ rowIndex }) => {
-                const workspaceId = workspaces[rowIndex].workspaceId
-                return h(LabeledCheckbox, {
-                  checked: isWorkspaceSelected[workspaceId],
-                  onChange: selected => {
-                    setIsWorkspaceSelected(_.set(workspaceId, selected, isWorkspaceSelected))
-                    setDeleteDisk(false)
-                  }
-                })
-              }
-            },
-            {
-              field: 'workspace',
-              headerRenderer: () => h(HeaderCell, {}, ['Workspace name']),
-              cellRenderer: ({ rowIndex }) => {
-                const { authorizationDomain, name } = workspaces[rowIndex]
-                const authDomains = _.map('membersGroupName', authorizationDomain)?.join(', ')
-                const text = Utils.cond(
-                  [authorizationDomain.length === 1, () => `${name} (Authorization Domain: ${authDomains})`],
-                  [authorizationDomain.length > 1, () => `${name} (Authorization Domains: ${authDomains})`],
-                  [Utils.DEFAULT, () => name]
-                )
-                return h(TextCell, { title: text }, [text])
-              }
-            }
-          ]
-        }),
-        span(space, ['OR']),
-        renderDeleteDiskSelection(),
-        div({ style: { display: 'flex', flexDirection: 'column' } }, [
-          strong(space, ['Cost']),
-          `${Utils.formatUSD(costPerCopy)}/month per copy. (${Utils.formatUSD(costPerCopy * numberOfCopies)}/month total after migration)`
-        ])
-      ],
-      [migrating && spinnerOverlay]
-    ))
-  ])
-}
-
 const EnvironmentsTable = ({
-  workspaces, runtimes, apps, disks, loadData: loadData_,
+  runtimes, apps, disks, loadData: loadData_,
   shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator,
-  deleteRuntime, deleteDisk, deleteApp, copyDiskToWorkspace,
+  deleteRuntime, deleteDisk, deleteApp,
   pauseComputeAndRefresh,
-  getWorkspaceHref
+  getWorkspaceHref,
+  renderers
 }) => {
   const [errorRuntimeId, setErrorRuntimeId] = useState()
   const getErrorRuntimeId = useGetter(errorRuntimeId)
@@ -229,7 +109,6 @@ const EnvironmentsTable = ({
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
-  const [migrateDisk, setMigrateDisk] = useState()
   const loadData = async () => {
     const { newRuntimes, newDisks, newApps } =
       await loadData_({ getErrorRuntimeId, getDeleteRuntimeId, getDeleteDiskId })
@@ -610,7 +489,9 @@ const EnvironmentsTable = ({
           headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
           cellRenderer: ({ rowIndex }) => {
             const disk = filteredDisks[rowIndex]
-            return disk.requiresMigration ? h(MigratePersistentDiskCell, { onClick: () => setMigrateDisk(disk) }, []) : disk.status
+            return disk.requiresMigration ?
+              renderers.migratePersistentDiskCell({ disk, onDeleteDisk: () => setDeleteDiskId(disk.id)}, []) :
+              disk.status
           }
         },
         {
@@ -699,26 +580,6 @@ const EnvironmentsTable = ({
         setErrorAppId(undefined)
         loadData()
       }
-    }),
-    migrateDisk && h(MigratePersistentDiskModal, {
-      disk: migrateDisk,
-      workspaces: _.flow(
-        _.get(migrateDisk.googleProject),
-        _.values,
-        _.filter(({ accessLevel, workspace: { googleProject } }) => {
-          return Utils.canWrite(accessLevel) && _.isEmpty(disksByProject[googleProject])
-        }),
-        _.map('workspace'),
-        _.sortBy(({ name }) => _.lowerCase(name))
-      )(workspaces),
-      onDismiss: () => setMigrateDisk(undefined),
-      copyDiskToWorkspace,
-      onSuccess: () => {
-        setMigrateDisk(undefined)
-        loadData()
-      },
-      onContactSupport: () => contactUsActive.set(true),
-      onDeleteDisk: () => setDeleteDiskId(migrateDisk.id)
     })
   ])
 }
