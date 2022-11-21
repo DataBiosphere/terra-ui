@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -151,7 +152,13 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             }, managedApps)
           })
         ])
-      ])])
+      ])]),
+      div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
+          icon('clock', { size: 16, style: { marginRight: '0.5rem' } }),
+          strong(['Creating a Terra billing project on Azure may take up to 15 minutes to complete. During this time, the billing project is not available for use.'])
+        ]
+      )
     ]),
     isBusy && spinnerOverlay
   ])
