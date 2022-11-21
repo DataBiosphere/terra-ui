@@ -7,12 +7,14 @@ import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getPatternFromTool, getToolFromRuntime, notebookLockHash, stripExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension, notebookLockHash, stripExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { appLauncherTabName, PeriodicAzureCookieSetter, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getAnalysesDisplayList, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getPatternFromTool, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -150,7 +152,7 @@ const ApplicationLauncher = _.flow(
 
       const proxyUrl = runtime?.proxyUrl
       const url = await Utils.switchCase(application,
-        [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+        [tools.terminal.label, () => `${proxyUrl}/terminals/1`],
         [tools.spark.label, () => getSparkInterfaceSource(proxyUrl)],
         [tools.RStudio.label, () => proxyUrl],
         [tools.Azure.label, () => `${proxyUrl}/lab`],
@@ -187,11 +189,18 @@ const ApplicationLauncher = _.flow(
       setShouldSetupWelder(false)
     }
 
-    const findOutdatedAnalyses = withErrorReporting('Error loading outdated analyses', async () => {
-      const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
-      setOutdatedAnalyses(outdatedRAnalyses)
-      !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
-    })
+    const findOutdatedAnalyses = async () => {
+      try {
+        const outdatedRAnalyses = await checkForOutdatedAnalyses({ googleProject, bucketName })
+        setOutdatedAnalyses(outdatedRAnalyses)
+        !_.isEmpty(outdatedRAnalyses) && setFileOutdatedOpen(true)
+      } catch (error) {
+        notify('error', 'Error loading outdated analyses', {
+          id: 'error-loading-outdated-analyses',
+          detail: error instanceof Response ? await error.text() : error
+        })
+      }
+    }
 
     computeIframeSrc()
     if (runtimeStatus === 'Running') {
@@ -222,7 +231,7 @@ const ApplicationLauncher = _.flow(
           src: iframeSrc,
           style: {
             border: 'none', flex: 1,
-            ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === tools.terminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })

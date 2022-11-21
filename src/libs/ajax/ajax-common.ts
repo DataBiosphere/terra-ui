@@ -5,6 +5,15 @@ import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
+export type CloudProviderType = 'AZURE' | 'GCP'
+export const cloudProviderTypes: Record<CloudProviderType, CloudProviderType> = {
+  AZURE: 'AZURE',
+  GCP: 'GCP'
+}
+export const isCloudProvider = (x: unknown): x is CloudProviderType => {
+  return x as string in cloudProviderTypes
+}
+
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 export const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
@@ -21,6 +30,7 @@ export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => asyn
   while (Date.now() < somePointInTheFuture) {
     const until = Math.random() * maxDelayIncrement + minDelay
     try {
+      // @ts-ignore
       return await Utils.withDelay(until, wrappedFetch)(...args)
     } catch (error) {
       if (shouldNotRetryFn(error)) {
@@ -98,3 +108,4 @@ export const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchO
 export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 export const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
 export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
+export const fetchWDS = _.flow(withUrlPrefix(`${getConfig().wdsUrlRoot}/`), withAppIdentifier)(fetchOk)

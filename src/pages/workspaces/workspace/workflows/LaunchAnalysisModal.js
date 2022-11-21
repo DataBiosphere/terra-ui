@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedTextArea } from 'src/components/input'
@@ -23,7 +23,7 @@ const LaunchAnalysisModal = ({
   workspace, workspace: { workspace: { namespace, name: workspaceName, bucketName, googleProject } }, processSingle,
   entitySelectionModel: { type, selectedEntities, newSetName },
   config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-  retryWithMoreMemory, retryMemoryFactor, onSuccess
+  retryWithMoreMemory, retryMemoryFactor, ignoreEmptyOutputs, onSuccess
 }) => {
   const [launching, setLaunching] = useState(undefined)
   const [message, setMessage] = useState(undefined)
@@ -59,7 +59,7 @@ const LaunchAnalysisModal = ({
       const { submissionId } = await launch({
         isSnapshot: type === processSnapshotTable,
         workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment),
+        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment), ignoreEmptyOutputs,
         onProgress: stage => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
         }
@@ -102,7 +102,6 @@ const LaunchAnalysisModal = ({
       }, ['Launch']) :
       h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
   }, [
-    div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
     div({ style: { margin: '0.5rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),

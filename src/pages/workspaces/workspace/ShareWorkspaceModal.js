@@ -5,6 +5,7 @@ import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Sel
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal, { styles as modalStyles } from 'src/components/Modal'
+import { getPopupRoot } from 'src/components/popup-utils'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -56,7 +57,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, isAzureWorkspace,
           )
         }),
         options: accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER'],
-        menuPortalTarget: document.getElementById('modal-root'),
+        menuPortalTarget: getPopupRoot(),
         ...props
       })
     ]),
@@ -236,9 +237,9 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
   }, [
     div({ style: { display: 'flex', alignItems: 'flex-end' } }, [
       h(IdContainer, [id => div({ style: { flexGrow: 1, marginRight: '1rem' } }, [
-        h(FormLabel, { htmlFor: id }, ['User email']),
+        h(FormLabel, { id }, ['User email']),
         h(AutocompleteTextInput, {
-          id,
+          labelId: id,
           openOnFocus: true,
           placeholderText: _.includes(searchValue, aclEmails) ?
             'This email has already been added to the list' :

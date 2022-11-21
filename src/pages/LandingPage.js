@@ -1,15 +1,19 @@
 import _ from 'lodash/fp'
+import { useEffect, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonOutline, Clickable, HeroWrapper, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isFirecloud, isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
+import { withErrorHandling } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { setLocalPref } from 'src/libs/prefs'
+import { useCancellation, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -67,7 +71,42 @@ const makeDocLinks = _.map(
 )
 
 const LandingPage = () => {
+  const { isSignedIn } = useStore(authStore)
+  const [billingProjects, setBillingProjects] = useState()
+  const signal = useCancellation()
+
+  useEffect(() => {
+    const loadProjects = withErrorHandling(async error => {
+      const errorJSON = await error.json()
+      console.log(`Unable to load billing projects due to: ${errorJSON?.message}`) // eslint-disable-line no-console
+    })(async () => {
+      const projects = await Ajax(signal).Billing.listProjects()
+      setBillingProjects(projects)
+    })
+    if (isSignedIn) {
+      loadProjects()
+    }
+  }, [isSignedIn, setBillingProjects, signal])
+
   return h(HeroWrapper, { bigSubhead: true }, [
+    isTerra() && !_.isUndefined(billingProjects) && _.isEmpty(billingProjects) && div({
+      style: {
+        ...styles.callToActionBanner,
+        width: `calc(${styles.card.width * 3}px + ${styles.card.marginRight} * 2)`,
+        color: colors.dark(), backgroundColor: colors.light(), marginBottom: 15
+      }
+    }, [
+      div([
+        h2({ style: { fontSize: 18, fontWeight: 600, lineHeight: '28px', margin: 0 } },
+          ['To use Terra, you need to link Terra to a cloud billing account for compute and storage costs.'])
+      ]),
+      h(ButtonPrimary, {
+        style: { marginTop: '1.5rem', padding: '1.25rem 5rem', textTransform: 'none' },
+        onClick: () => {
+          Nav.goToPath('billing')
+        }
+      }, ['Get Started'])
+    ]),
     // width is set to prevent text from overlapping the background image and decreasing legibility
     div({ style: { maxWidth: 'calc(100% - 460px)' } }, makeDocLinks(getEnabledBrand().docLinks)),
     div({ style: { display: 'flex', margin: '2rem 0 1rem 0' } }, [

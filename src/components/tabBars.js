@@ -95,7 +95,7 @@ export const TabBar = ({
   ])
 }
 TabBar.propTypes = {
-  activeTab: PropTypes.string.isRequired,
+  activeTab: PropTypes.string,
   tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
   displayNames: PropTypes.arrayOf(PropTypes.string),
   refresh: PropTypes.func,

@@ -28,13 +28,15 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import {
+  findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
-import {
-  AnalysisDuplicator, findPotentialNotebookLockers, getExtension, getFileName, getToolFromFileExtension, getToolFromRuntime, notebookLockHash, tools
-} from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getToolFromFileExtension, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -295,7 +297,7 @@ const Analyses = _.flow(
     Utils.withBusyState(setBusy)
   )(async files => {
     try {
-      await Promise.all(_.map(async file => {
+      await Promise.all(_.map(file => {
         const name = file.name
         const toolLabel = getToolFromFileExtension(file.name)
         let resolvedName = name
@@ -303,10 +305,9 @@ const Analyses = _.flow(
         while (_.includes(resolvedName, existingNames)) {
           resolvedName = `${name} ${++c}`
         }
-        const contents = await Utils.readFileAsText(file)
         return !!googleProject ?
-          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents) :
-          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(contents)
+          Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(file) :
+          Ajax(signal).AzureStorage.blob(workspaceId, resolvedName).create(file)
       }, files))
       refreshAnalyses()
     } catch (error) {

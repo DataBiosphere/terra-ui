@@ -1,3 +1,13 @@
+/**
+ * Making changes to this file:
+ * Prior to merging a PR that edits this file, be sure to run the analysis-context-bar.js test
+ * by doing the following:
+ * In analysis-context-bar.js, set: targetEnvironments: ['dev']
+ * In the terminal:
+ * $ cd integration-tests
+ * $ yarn test-local analysis-context-bar
+ */
+
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { br, div, h, img, span } from 'react-hyperscript-helpers'
@@ -15,13 +25,14 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getAppType, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const contextBarStyles = {
@@ -54,6 +65,7 @@ export const ContextBar = ({
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
+  const isAzureWorkspace = !!workspace.azureContext
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
@@ -100,7 +112,7 @@ export const ContextBar = ({
 
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
-    const cromwellApp = !tools.Cromwell.isAppHidden && getCurrentApp(tools.Cromwell.appType)(apps)
+    const cromwellApp = !tools.Cromwell.isHidden && getCurrentApp(tools.Cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(tools.Galaxy.label, galaxyApp.status)] : []),
@@ -208,7 +220,17 @@ export const ContextBar = ({
           tooltipDelay: 100,
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
-        }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])])
+        }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]),
+        isFeaturePreviewEnabled('workspace-files') && !isAzureWorkspace && h(Clickable, {
+          style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
+          hover: contextBarStyles.hover,
+          'data-testid': 'workspace-files-link',
+          tooltipSide: 'left',
+          href: Nav.getLink('workspace-files', { namespace, name: workspaceName }),
+          tooltip: 'Browse workspace files',
+          tooltipDelay: 100,
+          useTooltipAsLabel: false
+        }, [icon('folderSolid', { size: 40 }), span({ className: 'sr-only' }, ['Workspace files'])])
       ])
     ])
   ])

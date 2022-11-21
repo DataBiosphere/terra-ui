@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, getByText, render } from '@testing-library/react'
 import { h } from 'react-hyperscript-helpers'
 import { isFeaturePreviewEnabled, toggleFeaturePreview, useAvailableFeaturePreviews } from 'src/libs/feature-previews'

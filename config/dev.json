@@ -22,6 +22,7 @@
   "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "shouldUseDrsHub": true,
+  "wdsUrlRoot": "http://localhost:8080",
   "workspaceManagerUrlRoot": "https://workspace.dsde-dev.broadinstitute.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",

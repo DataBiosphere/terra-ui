@@ -326,6 +326,7 @@ const WorkflowView = _.flow(
       useReferenceDisks: false,
       retryWithMoreMemory: false,
       retryMemoryFactor: 1.2,
+      ignoreEmptyOutputs: false,
       includeOptionalInputs: true,
       filter: '',
       errors: { inputs: {}, outputs: {} },
@@ -370,7 +371,7 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-      retryWithMoreMemory, retryMemoryFactor, entitySelectionModel, variableSelected, modifiedConfig, updatingConfig,
+      retryWithMoreMemory, retryMemoryFactor, ignoreEmptyOutputs, entitySelectionModel, variableSelected, modifiedConfig, updatingConfig,
       selectedSnapshotEntityMetadata, availableSnapshots
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -388,7 +389,7 @@ const WorkflowView = _.flow(
           workspace, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
-          useReferenceDisks, retryWithMoreMemory, retryMemoryFactor,
+          useReferenceDisks, retryWithMoreMemory, retryMemoryFactor, ignoreEmptyOutputs,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
@@ -604,7 +605,7 @@ const WorkflowView = _.flow(
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
       availableSnapshots, selectedSnapshotEntityMetadata, selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache,
-      deleteIntermediateOutputFiles, useReferenceDisks, retryWithMoreMemory, retryMemoryFactor, currentSnapRedacted, savedSnapRedacted, wdl,
+      deleteIntermediateOutputFiles, useReferenceDisks, retryWithMoreMemory, retryMemoryFactor, ignoreEmptyOutputs, currentSnapRedacted, savedSnapRedacted, wdl,
       snapshotReferenceError
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -884,7 +885,17 @@ const WorkflowView = _.flow(
                 h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
                   [clickToLearnMore])
               ])
-            )
+            ),
+            span({ style: styles.checkBoxSpanMargins }, [
+              h(LabeledCheckbox, {
+                checked: ignoreEmptyOutputs,
+                onChange: v => this.setState({ ignoreEmptyOutputs: v }),
+                style: styles.checkBoxLeftMargin
+              }, [' Ignore empty outputs'])
+            ]),
+            h(InfoBox, [
+              'Do not create output columns if the data is null/empty. '
+            ])
           ]),
           h(StepButtons, {
             tabs: [

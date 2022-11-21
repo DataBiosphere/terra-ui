@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render } from '@testing-library/react'
 import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
@@ -8,8 +6,8 @@ import { Ajax } from 'src/libs/ajax'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10

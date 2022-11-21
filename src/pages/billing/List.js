@@ -3,10 +3,9 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
-import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
@@ -18,13 +17,14 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
-import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
+import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
+import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
 import DeleteBillingProjectModal from 'src/pages/billing/DeleteBillingProjectModal'
 import ProjectDetail from 'src/pages/billing/Project'
 import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -174,16 +174,6 @@ export const billingProjectNameValidator = existing => ({
   }
 })
 
-const noBillingMessage = div({ style: { fontSize: 20, margin: '4rem' } }, [
-  div(['To get started, use the Create button to create a Terra Billing Project']),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    h(Link, {
-      ...Utils.newTabLinkProps,
-      href: 'https://support.terra.bio/hc/en-us/articles/360026182251'
-    }, ['What is a billing project?'])
-  ])
-])
-
 const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title: span({ style: { fontWeight: 'bold' } }, [title]),
   initialOpenState: true,
@@ -193,7 +183,6 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
   const [billingProjectName, setBillingProjectName] = useState('')
-  const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
   const [existing, setExisting] = useState([])
   const [isBusy, setIsBusy] = useState(false)
   const [chosenBillingAccount, setChosenBillingAccount] = useState('')
@@ -204,7 +193,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   )(async () => {
     try {
       await Ajax().Billing.createGCPProject(billingProjectName, chosenBillingAccount.accountName)
-      onSuccess()
+      onSuccess(billingProjectName)
     } catch (error) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
@@ -241,41 +230,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
       }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
     ]),
     billingPresent && h(Fragment, [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Terra billing project']),
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            autoFocus: true,
-            value: billingProjectName,
-            placeholder: 'Enter a name',
-            onChange: v => {
-              setBillingProjectName(v)
-              setBillingProjectNameTouched(true)
-            }
-          },
-          error: billingProjectNameTouched && Utils.summarizeErrors(errors?.billingProjectName)
-        })
-      ])]),
-      !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-        div({ style: { fontSize: 14 } }, [
-          h(Select, {
-            id,
-            isMulti: false,
-            placeholder: 'Select a billing account',
-            value: chosenBillingAccount,
-            onChange: ({ value }) => setChosenBillingAccount(value),
-            options: _.map(account => {
-              return {
-                value: account,
-                label: account.displayName
-              }
-            }, billingAccounts)
-          })
-        ])
-      ])]),
+      CreateGCPBillingProject({ billingAccounts, chosenBillingAccount, setChosenBillingAccount, billingProjectName, setBillingProjectName, existing }),
       !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
         div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
           'Terra does not have access to this account. '),
@@ -371,6 +326,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     }
   }
 
+
   // Lifecycle
   useOnMount(() => {
     loadProjects()
@@ -450,14 +406,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         billingAccounts,
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         }
       }),
       creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
-        onSuccess: () => {
+        onSuccess: billingProjectName => {
+          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, { billingProject: billingProjectName })
           setCreatingBillingProject(null)
           loadProjects()
         },
@@ -479,6 +437,19 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
+        [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
+          billingAccounts,
+          onSuccess: billingProjectName => {
+            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
+            setCreatingBillingProject(null)
+            loadProjects()
+            Nav.history.push({
+              pathname: Nav.getPath('billing'),
+              search: qs.stringify({ selectedName: billingProjectName, type: 'project' })
+            })
+          },
+          authorizeAndLoadAccounts
+        })],
         [selectedName && _.some({ projectName: selectedName }, billingProjects), () => {
           const billingProject = _.find({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
@@ -495,8 +466,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           return div({ style: { margin: '1rem auto 0 auto' } }, [
             'Select a Billing Project'
           ])
-        }],
-        [_.isEmpty(billingProjects), () => noBillingMessage]
+        }]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])

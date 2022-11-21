@@ -209,10 +209,10 @@ const SavedColumnSettings = ({ workspace, snapshotName, entityType, entityMetada
     div(showSaveForm ? [
       p({ style: { marginTop: 0 } }, 'Save this column selection'),
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id }, 'Column selection name'),
+        h(FormLabel, { id }, 'Column selection name'),
         h(AutocompleteTextInput, {
           ref: settingsNameInput,
-          id,
+          labelId: id,
           openOnFocus: true,
           placeholderText: 'Enter a name for selection',
           onPick: setSelectedSettingsName,

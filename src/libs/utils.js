@@ -89,9 +89,9 @@ export const hasAccessLevel = _.curry((required, current) => {
   return workspaceAccessLevels.indexOf(current) >= workspaceAccessLevels.indexOf(required)
 })
 
-export const canWrite = hasAccessLevel('WRITER')
-export const canRead = hasAccessLevel('READER')
-export const isOwner = hasAccessLevel('OWNER')
+export const canWrite = accessLevel => hasAccessLevel('WRITER', accessLevel)
+export const canRead = accessLevel => hasAccessLevel('READER', accessLevel)
+export const isOwner = accessLevel => hasAccessLevel('OWNER', accessLevel)
 
 export const workflowStatuses = ['Queued', 'Launching', 'Submitted', 'Running', 'Aborting', 'Succeeded', 'Failed', 'Aborted']
 

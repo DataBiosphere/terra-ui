@@ -37,7 +37,7 @@ export const useWorkspaces = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const ws = await Ajax(signal).Workspaces.list([
-      'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags'
+      'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags', 'workspace.workspaceVersion'
     ])
     workspacesStore.set(ws)
   })

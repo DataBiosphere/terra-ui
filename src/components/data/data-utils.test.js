@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { render } from '@testing-library/react'
 import _ from 'lodash/fp'
 import { entityAttributeText, getRootTypeForSetTable, prepareAttributeForUpload, renderDataCell } from 'src/components/data/data-utils'

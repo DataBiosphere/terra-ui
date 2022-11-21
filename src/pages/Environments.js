@@ -15,7 +15,7 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
@@ -23,7 +23,6 @@ import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
@@ -31,6 +30,7 @@ import {
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const DeleteRuntimeModal = ({
@@ -92,15 +92,20 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
   ])
 }
 
-const DeleteAppModal = ({ app: { googleProject, appName, diskName, appType }, onDismiss, onSuccess }) => {
+const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { cloudProvider, cloudResource } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteApp = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment')
+    withErrorReportingInModal('Error deleting cloud environment', onDismiss)
   )(async () => {
-    await Ajax().Apps.app(googleProject, appName).delete(deleteDisk)
-    onSuccess()
+    //TODO: this should use types in IA-3824
+    if (cloudProvider === 'GCP') {
+      await Ajax().Apps.app(cloudResource, appName).delete(deleteDisk)
+      onSuccess()
+    } else {
+      throw new Error('Deleting apps is currently only supported on GCP')
+    }
   })
   return h(Modal, {
     title: 'Delete cloud environment?',
@@ -365,7 +370,8 @@ const Environments = () => {
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
       Ajax().Runtimes.runtimeWrapper(compute).stop() :
-      Ajax().Apps.app(compute.googleProject, compute.appName).pause())
+      //TODO: AKS vs GKE apps
+      Ajax().Apps.app(compute.workspace.googleProject, compute.appName).pause())
     await wrappedPauseCompute()
     await loadData()
   })
@@ -374,6 +380,7 @@ const Environments = () => {
   usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
+    //TODO: AKS vs GKE apps
     [isApp(cloudEnvironment), () => 'Kubernetes'],
     [cloudEnvironment?.runtimeConfig?.cloudService === 'DATAPROC', () => 'Dataproc'],
     [Utils.DEFAULT, () => cloudEnvironment?.runtimeConfig?.cloudService])
@@ -469,7 +476,7 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, googleProject, auditInfo: { creator }, workspaceId } = app
+    const { appName, diskName, auditInfo: { creator }, workspace: { workspaceId, googleProject } } = app
     const disk = _.find({ name: diskName }, disks)
     return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }

@@ -19,7 +19,8 @@
     "noImplicitAny": false,
     "paths": {
       "react-hyperscript-helpers": ["./types/react-hyperscript-helpers"],
-      "src/*": ["./src/*"]
+      "src/*": ["./src/*"],
+      "types/*": ["./types/*"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,

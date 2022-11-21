@@ -294,12 +294,14 @@ registerTest({
 
 const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) => {
   const { ownedBillingProjectName, notOwnedBillingProjectName, azureBillingProjectName, billingPage } = await setUpBillingTest(page, testUrl, token)
+  const useBillingProjectText = 'Use this Terra billing project to createWorkspaces'
 
   const verifyWorkspaceControls = async () => {
     await billingPage.assertText('Workspaces')
     await billingPage.assertText('Name')
     await billingPage.assertText('Created By')
     await billingPage.assertText('Last Modified')
+    await billingPage.assertTextNotFound(useBillingProjectText)
   }
 
   // Select a billing project that is owned by the user
@@ -314,10 +316,12 @@ const testBillingWorkspacesFn = withUserToken(async ({ page, testUrl, token }) =
   // Check accessibility of workspaces view (GCP).
   await verifyAccessibility(page)
 
-  // Select a billing project that is not owned by the user and verify workspace tab is visible
+  // Select a billing project that is not owned by the user and verify message that shows when there are no workspaces
   await billingPage.visit()
   await billingPage.selectProject(notOwnedBillingProjectName)
-  await verifyWorkspaceControls()
+  await billingPage.assertText(useBillingProjectText)
+  // Check accessibility for color contrast of the message.
+  await verifyAccessibility(page)
 
   // Select Azure billing project and verify workspace tab details
   await billingPage.visit()

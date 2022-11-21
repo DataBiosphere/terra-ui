@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import _ from 'lodash/fp'
@@ -13,35 +11,13 @@ import {
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
   defaultDataprocMachineType, defaultDataprocMasterDiskSize, defaultDataprocWorkerDiskSize,
   defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
   runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
-
-jest.mock('src/components/Modal', () => {
-  const { div, h } = jest.requireActual('react-hyperscript-helpers')
-  const originalModule = jest.requireActual('src/components/Modal')
-  return {
-    ...originalModule,
-    __esModule: true,
-    default: props => div({ id: 'modal-root' }, [
-      h(originalModule.default, { onAfterOpen: jest.fn(), ...props })
-    ])
-  }
-})
-
-// Mocking PopupTrigger to avoid test environment issues with React Portal's requirement to use
-// DOM measure services which are not available in jest environment
-jest.mock('src/components/PopupTrigger', () => {
-  const originalModule = jest.requireActual('src/components/PopupTrigger')
-  return {
-    ...originalModule,
-    MenuTrigger: jest.fn()
-  }
-})
 
 jest.mock('src/libs/notifications', () => ({
   notify: (...args) => {
@@ -58,14 +34,6 @@ const defaultModalProps = {
   currentRuntime: undefined, currentDisk: undefined, tool: tools.Jupyter.label, workspace: defaultGoogleWorkspace,
   location: testDefaultLocation
 }
-
-jest.mock('react-dom', () => {
-  const originalModule = jest.requireActual('react-dom')
-  return {
-    ...originalModule,
-    createPortal: () => <div></div>
-  }
-})
 
 //TODO: test utils??
 const verifyDisabled = item => expect(item).toHaveAttribute('disabled')

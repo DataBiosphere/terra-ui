@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -37,7 +38,7 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
     try {
       await Ajax().Billing.createAzureProject(billingProjectName, chosenManagedApp.tenantId, chosenManagedApp.subscriptionId,
         chosenManagedApp.managedResourceGroupId)
-      onSuccess()
+      onSuccess(billingProjectName)
     } catch (error) {
       if (error.status === 409) {
         setExisting(_.concat(billingProjectName, existing))
@@ -144,12 +145,20 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
             options: _.map(application => {
               return {
                 value: application,
-                label: application.applicationDeploymentName
+                label: !!application.region ?
+                  `${application.applicationDeploymentName} (${application.region})` :
+                  application.applicationDeploymentName
               }
             }, managedApps)
           })
         ])
-      ])])
+      ])]),
+      div({ style: { paddingTop: '1.0rem', display: 'flex' } },
+        [
+          icon('clock', { size: 16, style: { marginRight: '0.5rem' } }),
+          strong(['Creating a Terra billing project on Azure may take up to 15 minutes to complete. During this time, the billing project is not available for use.'])
+        ]
+      )
     ]),
     isBusy && spinnerOverlay
   ])

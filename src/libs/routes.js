@@ -30,6 +30,7 @@ import * as AnalysisLauncher from 'src/pages/workspaces/workspace/analysis/Analy
 import * as AppLauncher from 'src/pages/workspaces/workspace/analysis/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
+import * as WorkspaceFiles from 'src/pages/workspaces/workspace/Files'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
@@ -78,6 +79,7 @@ const routes = _.flatten([
   WorkflowDetails.navPaths,
   Upload.navPaths,
   FeaturePreviews.navPaths,
+  WorkspaceFiles.navPaths,
   NotFound.navPaths // must be last
 ])
 

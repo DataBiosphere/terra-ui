@@ -19,6 +19,13 @@ const featurePreviewsConfig = [
     description: 'Enabling this feature will enable WDS-powered data tables.',
     groups: ['preview-wds-on-azure'],
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent('Feedback on WDS UI')}`
+  },
+  {
+    id: 'workspace-files',
+    title: 'Workspace Files Browser',
+    description: 'Enabling this feature will allow you to use the new workspace files browser.',
+    groups: ['preview-workspace-files'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on workspace files browser')}`
   }
 ]
 

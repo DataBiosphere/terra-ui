@@ -24,7 +24,7 @@ handlers:
   expiration: 0s
   secure: always
   http_headers:
-    Content-Security-Policy: "base-uri 'self'; object-src 'none'; script-src 'self' https://fast.appcues.com https://us.jsagent.tcell.insight.rapid7.com https://cdnjs.cloudflare.com; style-src * 'unsafe-inline'"
+    Content-Security-Policy: "base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-eval' https://fast.appcues.com https://us.jsagent.tcell.insight.rapid7.com https://cdnjs.cloudflare.com; style-src * 'unsafe-inline'"
     X-Frame-Options: "SAMEORIGIN"
     Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
     X-Content-Type-Options: "nosniff"

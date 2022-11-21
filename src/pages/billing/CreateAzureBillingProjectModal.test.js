@@ -1,11 +1,10 @@
-import '@testing-library/jest-dom'
-
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
 import _ from 'lodash/fp'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
+import { mockModalModule } from 'src/components/Modal.mock'
 import { Ajax } from 'src/libs/ajax'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import { billingProjectNameValidator } from 'src/pages/billing/List'
@@ -13,16 +12,9 @@ import { v4 as uuid } from 'uuid'
 
 
 jest.mock('src/components/Modal', () => {
-  const { div, h } = jest.requireActual('react-hyperscript-helpers')
-  const originalModule = jest.requireActual('src/components/Modal')
-  return {
-    ...originalModule,
-    __esModule: true,
-    default: props => div({ id: 'modal-root' }, [
-      h(originalModule.default, { onAfterOpen: jest.fn(), ...props })
-    ])
-  }
+  return mockModalModule()
 })
+
 jest.mock('src/libs/ajax')
 
 describe('CreateAzureBillingProjectModal', () => {
@@ -148,10 +140,11 @@ describe('CreateAzureBillingProjectModal', () => {
     verifyDisabled(getCreateButton())
   })
 
-  it('renders available managed applications and can create a project', async () => {
+  it('renders available managed applications with their regions and can create a project', async () => {
     // Arrange - Mock managed app and create project Ajax calls to succeed.
     const projectName = 'Billing_Project_Name'
     const appName = 'appName'
+    const appRegion = 'appRegion'
     const tenant = 'tenant'
     const subscription = 'subscription'
     const mrg = 'mrg'
@@ -163,7 +156,7 @@ describe('CreateAzureBillingProjectModal', () => {
             {
               managedApps: [
                 { applicationDeploymentName: 'testApp1', tenantId: 'fakeTenant1', subscriptionId: 'fakeSub1', managedResourceGroupId: 'fakeMrg1', assigned: false },
-                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg, assigned: false }
+                { applicationDeploymentName: appName, tenantId: tenant, subscriptionId: subscription, managedResourceGroupId: mrg, assigned: false, region: appRegion }
               ]
             }
           ),
@@ -189,7 +182,7 @@ describe('CreateAzureBillingProjectModal', () => {
 
     // Act - Select one of the managed apps
     await userEvent.click(getManagedAppInput())
-    const selectOption = await screen.findByText(appName)
+    const selectOption = await screen.findByText(`${appName} (${appRegion})`)
     await userEvent.click(selectOption)
     // Assert
     verifyEnabled(getCreateButton())
@@ -231,6 +224,7 @@ describe('CreateAzureBillingProjectModal', () => {
     await waitFor(() => verifyEnabled(getManagedAppInput()))
     // Select one of the managed apps
     await userEvent.click(getManagedAppInput())
+    // Note no region in the Ajax response, so just renders the name
     const selectOption = await screen.findByText(appName)
     await userEvent.click(selectOption)
 

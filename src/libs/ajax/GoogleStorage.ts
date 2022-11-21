@@ -1,15 +1,137 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { fetchBuckets, saToken } from 'src/libs/ajax'
-import { authOpts, fetchOk, jsonBody } from 'src/libs/ajax/ajax-common'
+import { authOpts, checkRequesterPaysError, fetchOk, fetchSam, jsonBody, withRetryOnError, withUrlPrefix } from 'src/libs/ajax/ajax-common'
+import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
 import { getConfig } from 'src/libs/config'
+import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-import { getExtension, getFileName, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { runtimeTools, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
+
+/*
+ * Detects errors due to requester pays buckets, and adds the current workspace's billing
+ * project if the user has access, retrying the request once if necessary.
+ */
+const withRequesterPays = wrappedFetch => (url, ...args) => {
+  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)![1]
+  const workspace = workspaceStore.get()
+
+  const getUserProject = async () => {
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
+    }
+    return requesterPaysProjectStore.get()
+  }
+
+  const tryRequest = async () => {
+    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
+    try {
+      const userProject = (knownRequesterPays && await getUserProject()) || undefined
+      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      return res
+    } catch (error) {
+      if (knownRequesterPays === false) {
+        throw error
+      } else {
+        const newResponse = await checkRequesterPaysError(error)
+        if (newResponse.requesterPaysError && !knownRequesterPays) {
+          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
+          if (await getUserProject()) {
+            return tryRequest()
+          }
+        }
+        throw newResponse
+      }
+    }
+  }
+  return tryRequest()
+}
+
+// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
+// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
+// are not transient and the request should not be retried.
+const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
+
+/**
+ * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
+ * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
+ */
+const getServiceAccountToken: (googleProject: string, token: string) => Promise<string> = Utils.memoizeAsync(async (googleProject, token) => {
+  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
+  const res = await fetchSam(
+    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
+    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
+  )
+  return res.json()
+}, {
+  expires: 1000 * 60 * 30,
+  // @ts-expect-error
+  keyFn: (...args) => JSON.stringify(args)
+})
+
+export const saToken = (googleProject: string): Promise<string> => getServiceAccountToken(googleProject, getUser().token)
+
+// https://cloud.google.com/storage/docs/json_api/v1/objects/list
+export type GCSItem = {
+  bucket: string
+  crc32c: string
+  etag: string
+  generation: string
+  id: string
+  kind: string
+  md5Hash: string
+  mediaLink: string
+  metageneration: string
+  name: string
+  selfLink: string
+  size: string
+  storageClass: string
+  timeCreated: string
+  timeStorageClassUpdated: string
+  updated: string
+}
+
+export type GCSListObjectsOptions = {
+  delimiter?: string
+  endOffset?: string
+  includeTrailingDelimiter?: string
+  maxResults?: number
+  pageToken?: string
+  projection?: 'full' | 'noAcl'
+  startOffset?: string
+  versions?: boolean
+}
+
+export type GCSListObjectsResponse = {
+  kind: 'storage#objects'
+  nextPageToken?: string
+  prefixes?: string[]
+  items?: GCSItem[]
+}
 
 const encodeAnalysisName = name => encodeURIComponent(`notebooks/${name}`)
 
-export const GoogleStorage = signal => ({
+export const GoogleStorage = (signal?: AbortSignal) => ({
+  checkBucketAccess: async (googleProject, bucket, accessLevel) => {
+    // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
+    if (!Utils.canWrite(accessLevel)) {
+      return false
+    }
+
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+    return res.json()
+  },
+
+  checkBucketLocation: async (googleProject, bucket) => {
+    const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+      _.merge(authOpts(await saToken(googleProject)), { signal }))
+
+    return res.json()
+  },
+
   getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -34,7 +156,7 @@ export const GoogleStorage = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => _.includes(getExtension(name), tools.Jupyter.ext), items)
+    return _.filter(({ name }) => _.includes(getExtension(name), runtimeTools.Jupyter.ext), items)
   },
 
   listAnalyses: async (googleProject, name) => {
@@ -43,10 +165,10 @@ export const GoogleStorage = signal => ({
       _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => (_.includes(getExtension(name), tools.Jupyter.ext) || _.includes(getExtension(name), tools.RStudio.ext)), items)
+    return _.filter(({ name }) => (_.includes(getExtension(name), runtimeTools.Jupyter.ext) || _.includes(getExtension(name), runtimeTools.RStudio.ext)), items)
   },
 
-  list: async (googleProject, bucket, prefix, options = {}) => {
+  list: async (googleProject: string, bucket: string, prefix: string, options: GCSListObjectsOptions = {}): Promise<GCSListObjectsResponse> => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ delimiter: '/', ...options, prefix })}`,
       _.merge(authOpts(await saToken(googleProject)), { signal })
@@ -176,7 +298,7 @@ export const GoogleStorage = signal => ({
       [tools.Jupyter.label, () => 'api/convert'], [tools.RStudio.label, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
+      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'application/octet-stream'])
 
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 
@@ -236,11 +358,11 @@ export const GoogleStorage = signal => ({
 
       copyWithMetadata,
 
-      create: async textContents => {
+      create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
           _.merge(authOpts(await saToken(googleProject)), {
-            signal, method: 'POST', body: JSON.stringify(textContents),
+            signal, method: 'POST', body: contents,
             headers: { 'Content-Type': mimeType }
           })
         )
@@ -259,3 +381,5 @@ export const GoogleStorage = signal => ({
     }
   }
 })
+
+export type GoogleStorageContract = ReturnType<typeof GoogleStorage>

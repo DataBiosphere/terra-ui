@@ -1,5 +1,3 @@
-import '@testing-library/jest-dom'
-
 import { render } from '@testing-library/react'
 import { addDays, addHours, setMilliseconds } from 'date-fns/fp'
 import _ from 'lodash/fp'

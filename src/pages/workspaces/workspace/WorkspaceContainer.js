@@ -10,11 +10,13 @@ import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
-import { Ajax, saToken } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
+import { saToken } from 'src/libs/ajax/GoogleStorage'
 import { getUser } from 'src/libs/auth'
 import { isTerra } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { useCancellation, useOnMount, usePrevious, useStore, withDisplayName } from 'src/libs/react-utils'
@@ -23,12 +25,12 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime, getDiskAppType, isGcpContext, mapToPdTypes
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import RuntimeManager from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
 import LockWorkspaceModal from 'src/pages/workspaces/workspace/LockWorkspaceModal'
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
@@ -79,7 +81,7 @@ const WorkspaceTabs = ({
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
-    ...(isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
+    ...(isFeaturePreviewEnabled('workspace-data-service') || isGoogleWorkspace ? [{ name: 'data', link: 'workspace-data' }] : []),
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
     { name: 'analyses', link: analysisTabName },

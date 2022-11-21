@@ -8,19 +8,23 @@ declare module 'react-hyperscript-helpers' {
 
   type Children<Props> = Props extends { children?: React.ReactNode } ? React.ReactNode[] : (Props extends { children?: unknown } ? [Props['children']] : never)
 
+  type Key = string | number
+
+  type WithKey<P> = P & { key?: Key | null | undefined }
+
   interface HHelper {
     <Props extends {}>(
       component: Component<Props>,
-      props: Omit<Props, 'children'>,
+      props: WithKey<Omit<Props, 'children'>>,
       children: Children<Props>
-    ): React.ReactElement<any, any>;
+    ): React.ReactElement<any, any>
 
     <Props extends {}>(
       component: Component<Props>,
-      propsOrChildren: Props extends { children?: unknown } ? Props | Children<Props> : Props
-    ): React.ReactElement<any, any>;
+      propsOrChildren: Props extends { children?: unknown } ? WithKey<Props> | Children<Props> : WithKey<Props>
+    ): React.ReactElement<any, any>
 
-    <Props extends {}>(component: Component<Props>): React.ReactElement<any, any>;
+    <Props extends {}>(component: Component<Props>): React.ReactElement<any, any>
   }
 
   export const h: HHelper
@@ -32,7 +36,7 @@ declare module 'react-hyperscript-helpers' {
   type DataAttributeKey = `data-${string}`
 
   type WithDataAttributes<T> = T & {
-    [dataAttribute: DataAttributeKey]: string;
+    [dataAttribute: DataAttributeKey]: string
   }
 
   type HtmlHelper<T extends TagName> = {

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useState } from 'react'
 import { dd, div, dl, dt, h, h3, i, span, strong } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper } from 'src/components/bucket-utils'
@@ -18,7 +18,6 @@ import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, refreshTerraProfile } from 'src/libs/auth'
-import { getRegionFlag, getRegionLabel } from 'src/libs/azure-utils'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -26,7 +25,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
-import { authStore, requesterPaysProjectStore } from 'src/libs/state'
+import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import SignIn from 'src/pages/SignIn'
@@ -127,6 +126,47 @@ const RightBoxSection = ({ title, info, initialOpenState, afterTitle, onClick, c
   ])
 }
 
+export const V1WorkspaceNotification = ({ showIcon, showLinks, id }) => {
+  return div({
+    style: {
+      ...Style.dashboard.rightBoxContainer,
+      display: 'flex', alignItems: 'flex-start',
+      id,
+      padding: '1rem',
+      border: '1px solid',
+      borderColor: colors.warning(),
+      backgroundColor: colors.warning(0.10)
+    }
+  }, [
+    !!showIcon &&
+    icon('warning-standard',
+      { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
+    div([
+      span(['Terra will no longer support this workspace after ', strong(['January 31, 2023']), '.']),
+      div({ style: { paddingTop: '1rem' } }, !!showLinks ?
+        [
+          'If you wish to keep this workspace, please ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360047679911',
+            style: { wordBreak: 'break-word' }, ...Utils.newTabLinkProps
+          }, [
+            'reattach a valid Google Billing Account'
+          ]),
+          ' to the billing project belonging to this workspace and contact ',
+          h(Link, {
+            style: { wordBreak: 'break-word' },
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingCreationContactTerraSupport)
+              contactUsActive.set(true)
+            }
+          }, ['Terra support']),
+          ' to migrate your workspace.'
+        ] :
+        ['If you wish to keep this workspace, please reattach a valid Google Billing Account to the billing project belonging to this workspace and contact Terra support to migrate your workspace.'])
+    ])
+  ])
+}
+
 export const UnboundDiskNotification = props => {
   return div({
     ...props,
@@ -135,6 +175,7 @@ export const UnboundDiskNotification = props => {
       padding: '1rem',
       border: '1px solid',
       borderColor: colors.accent(),
+      marginTop: '1rem',
       ...props?.style
     }
   }, [
@@ -273,7 +314,9 @@ const WorkspaceDashboard = _.flow(
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCost, setStorageCost] = useState(undefined)
   const [bucketSize, setBucketSize] = useState(undefined)
-  const [{ storageContainerName, storageLocation, sas: { url } }, setAzureStorage] = useState({ storageContainerName: undefined, storageLocation: undefined, sas: {} })
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const [{ storageContainerUrl, storageLocation, sas: { url } }, setAzureStorage] = useState(
+    { storageContainerUrl: undefined, storageLocation: undefined, sas: {} })
   const [editDescription, setEditDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -284,7 +327,6 @@ const WorkspaceDashboard = _.flow(
   const persistenceId = `workspaces/${namespace}/${name}/dashboard`
 
   const signal = useCancellation()
-  const sasTokenRefreshInterval = useRef()
 
   const refresh = () => {
     loadSubmissionCount()
@@ -301,10 +343,6 @@ const WorkspaceDashboard = _.flow(
       loadBucketSize()
     } else {
       loadAzureStorage()
-
-      // sas tokens expires after 1 hour
-      clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = setInterval(loadAzureStorage, Utils.durationToMillis({ minutes: 50 }))
     }
   }
 
@@ -318,15 +356,9 @@ const WorkspaceDashboard = _.flow(
   const [notificationsPanelOpen, setNotificationsPanelOpen] = useState(() => getLocalPref(persistenceId)?.notificationsPanelOpen || false)
 
   useEffect(() => {
-    setLocalPref(persistenceId, { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
+    setLocalPref(persistenceId,
+      { workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen })
   }, [persistenceId, workspaceInfoPanelOpen, cloudInfoPanelOpen, ownersPanelOpen, authDomainPanelOpen, tagsPanelOpen, notificationsPanelOpen])
-
-  useEffect(() => {
-    return () => {
-      clearInterval(sasTokenRefreshInterval.current)
-      sasTokenRefreshInterval.current = undefined
-    }
-  }, [sasTokenRefreshInterval])
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -365,8 +397,8 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadAzureStorage = withErrorReporting('Error loading Azure storage information.', async () => {
-    const { storageContainerName, location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
-    setAzureStorage({ storageContainerName, storageLocation: location, sas })
+    const { location, sas } = await Ajax(signal).AzureStorage.details(workspaceId)
+    setAzureStorage({ storageContainerUrl: _.head(_.split('?', sas.url)), storageLocation: location, sas })
   })
 
   const loadConsent = withErrorReporting('Error loading data', async () => {
@@ -440,7 +472,8 @@ const WorkspaceDashboard = _.flow(
       ' to add another owner to ensure someone is able to manage the workspace in case they lose access to their account.'
     ])],
     // If the current user is the only owner of the workspace, check if the workspace is shared.
-    [_.size(acl) > 1, () => 'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.']
+    [_.size(acl) > 1,
+      () => 'You are the only owner of this shared workspace. Consider adding another owner to ensure someone is able to manage the workspace in case you lose access to your account.']
   )
 
   const getCloudInformation = () => {
@@ -476,18 +509,19 @@ const WorkspaceDashboard = _.flow(
         h(InfoRow, { title: 'Cloud Name' }, [
           h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 16 } })
         ]),
-        h(InfoRow, { title: 'Location' }, [
-          h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
-        ]),
+        // h(InfoRow, { title: 'Location' }, [
+        //   h(TooltipCell, !!storageLocation ? [getRegionFlag(storageLocation), ' ', getRegionLabel(storageLocation)] : ['Loading'])
+        // ]), depends on TOAZ-265
         h(InfoRow, { title: 'Resource Group ID' }, [
           h(TooltipCell, [azureContext.managedResourceGroupId]),
-          h(ClipboardButton, { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
+          h(ClipboardButton,
+            { 'aria-label': 'Copy resource group id to clipboard', text: azureContext.managedResourceGroupId, style: { marginLeft: '0.25rem' } })
         ]),
-        h(InfoRow, { title: 'Storage Container Name' }, [
-          h(TooltipCell, [!!storageContainerName ? storageContainerName : 'Loading']),
+        h(InfoRow, { title: 'Storage Container URL' }, [
+          h(TooltipCell, [!!storageContainerUrl ? storageContainerUrl : 'Loading']),
           h(ClipboardButton, {
-            'aria-label': 'Copy storage container name to clipboard',
-            text: storageContainerName, style: { marginLeft: '0.25rem' }
+            'aria-label': 'Copy storage container URL to clipboard',
+            text: storageContainerUrl, style: { marginLeft: '0.25rem' }
           })
         ]),
         h(InfoRow, { title: 'Storage SAS URL' }, [
@@ -503,7 +537,22 @@ const WorkspaceDashboard = _.flow(
         ...Utils.newTabLinkProps,
         href: bucketBrowserUrl(bucketName)
       }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-      )])
+      )]),
+      !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
+        div(['Use SAS URL in conjunction with ',
+          h(Link, {
+            ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
+            style: { textDecoration: 'underline' }
+          }, 'AzCopy'),
+          ' or ',
+          h(Link, {
+            ...Utils.newTabLinkProps, href: 'https://azure.microsoft.com/en-us/products/storage/storage-explorer',
+            style: { textDecoration: 'underline' }
+          }, 'Azure Storage Explorer'),
+          ' to access storage associated with this workspace.']),
+        div({ style: { paddingTop: '0.5rem', fontWeight: 'bold' } },
+          ['The SAS URL expires after 8 hours. To generate a new SAS URL, refresh this page.'])
+      ])
     ]
   }
 
@@ -559,6 +608,7 @@ const WorkspaceDashboard = _.flow(
       ])
     ]),
     div({ style: Style.dashboard.rightBox }, [
+      workspace.workspace.workspaceVersion === 'v1' && h(V1WorkspaceNotification, { showIcon: true, showLinks: true }),
       _.some(isV1Artifact(workspace.workspace), analysesData?.persistentDisks) && h(UnboundDiskNotification),
       h(RightBoxSection, {
         title: 'Workspace information',

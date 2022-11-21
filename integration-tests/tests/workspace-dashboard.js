@@ -2,7 +2,7 @@
 const _ = require('lodash/fp')
 const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, assertTextNotFound, click, clickable, findElement, findText, gotoPage, navChild, noSpinnersAfter, verifyAccessibility
+  assertNavChildNotFound, click, clickable, findText, gotoPage, navChild, verifyAccessibility
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -25,34 +25,6 @@ const workspaceDashboardPage = (testPage, token, workspaceName) => {
 
     assertReadOnly: async () => {
       await findText(testPage, 'Workspace is read only')
-    },
-
-    assertWorkspaceMenuItems: async expectedMenuItems => {
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-      await Promise.all(_.map(async ({ label, tooltip }) => {
-        if (!!tooltip) {
-          await findElement(testPage, clickable({ textContains: label, isEnabled: false }))
-          await findText(testPage, tooltip)
-        } else {
-          await findElement(testPage, clickable({ textContains: label }))
-        }
-      }, expectedMenuItems))
-    },
-
-    assertLockWorkspace: async () => {
-      await assertTextNotFound(testPage, 'Workspace is locked')
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-      await click(testPage, clickable({ textContains: 'Lock' }))
-      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Lock Workspace' })) })
-      await findText(testPage, 'Workspace is locked')
-    },
-
-    assertUnlockWorkspace: async () => {
-      await findText(testPage, 'Workspace is locked')
-      await click(testPage, clickable({ text: 'Workspace Action Menu' }))
-      await click(testPage, clickable({ textContains: 'Unlock' }))
-      await noSpinnersAfter(testPage, { action: () => click(testPage, clickable({ text: 'Unlock Workspace' })) })
-      await assertTextNotFound(testPage, 'Workspace is locked')
     },
 
     assertTabs: async (expectedTabs, enabled) => {
@@ -93,13 +65,6 @@ const testGoogleWorkspace = _.flow(
   // Check selected items in cloud information
   const currentDate = new Date().toLocaleDateString()
   await dashboard.assertCloudInformation(['Cloud NameGoogle Cloud Platform', `Bucket SizeUpdated on ${currentDate}0 B`])
-
-  // Test locking and unlocking the workspace
-  await dashboard.assertLockWorkspace()
-  await dashboard.assertUnlockWorkspace()
-
-  // Verify other Workspace menu items are in correct state (all will be enabled).
-  await dashboard.assertWorkspaceMenuItems([{ label: 'Clone' }, { label: 'Share' }, { label: 'Delete' }, { label: 'Lock' }])
 
   // Verify expected tabs are present.
   await dashboard.assertTabs(['data', 'analyses', 'workflows', 'job history'], true)
@@ -153,24 +118,17 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     resources: [
       {
         metadata: {
-          resourceId: 'dummy-sa-resource-id',
-          resourceType: 'AZURE_STORAGE_ACCOUNT'
-        },
-        resourceAttributes: { azureStorage: { region: 'eastus' } }
-      },
-      {
-        metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
           controlledResourceMetadata: { accessScope: 'PRIVATE_ACCESS' }
         },
-        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'private-sc-name' } }
+        resourceAttributes: { azureStorageContainer: { storageContainerName: 'private-sc-name' } }
       },
       {
         metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
           controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
         },
-        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
+        resourceAttributes: { azureStorageContainer: { storageContainerName: 'sc-name' } }
       }
     ]
   }
@@ -201,7 +159,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
       },
       {
         filter: { url: workspaceSasTokenUrl },
-        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://example.com' }), { status: 200 }))
+        fn: () => () => Promise.resolve(new Response(JSON.stringify({ sasToken: 'fake_token', url: 'http://storageContainerUrl.com?sasTokenParams' }), { status: 200 }))
       },
       {
         filter: { url: /api\/workspaces[^/](.*)/ },
@@ -232,21 +190,13 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
   await dashboard.assertCloudInformation([
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
-    'Storage Container Namesc-name',
-    'Location🇺🇸 East US',
-    'SAS URLhttp://example.com'
+    'Storage Container URLhttp://storageContainerUrl.com',
+    // 'Location🇺🇸 East US', depends on TOAZ-265
+    'SAS URLhttp://storageContainerUrl.com?sasTokenParams'
   ])
 
   // READER permissions only
   await dashboard.assertReadOnly()
-
-  // Verify workspace tooltips on Workspace menu items (all will be disabled due to Azure workspace + READER permissions).
-  await dashboard.assertWorkspaceMenuItems([
-    { label: 'Clone', tooltip: 'Cloning is not currently supported on Azure Workspaces' },
-    { label: 'Share', tooltip: 'You have not been granted permission to share this workspace' },
-    { label: 'Lock', tooltip: 'You have not been granted permission to lock this workspace' },
-    { label: 'Delete', tooltip: 'You must be an owner of this workspace or the underlying billing project' }
-  ])
 
   // Verify tabs that currently depend on Google project ID are not present.
   await dashboard.assertTabs(['data', 'notebooks', 'workflows', 'job history'], false)

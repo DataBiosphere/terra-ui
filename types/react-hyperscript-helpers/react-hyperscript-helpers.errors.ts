@@ -22,11 +22,11 @@ const TestComponent = (props: TestComponentProps) => div()
 // Missing required prop
 // TODO: This is currently valid, but preferably would error since it is missing a required prop (stringProp).
 h(TestComponent)
-// THROWS Argument of type '{ optionalNumberProp: number; }' is not assignable to parameter of type 'TestComponentProps'.
+// THROWS Argument of type '{ optionalNumberProp: number; }' is not assignable to parameter of type 'WithKey<TestComponentProps>'.
 h(TestComponent, { optionalNumberProp: 1 })
 
 // Invalid prop
-// THROWS Argument of type '{ invalidProp: string; }' is not assignable to parameter of type 'TestComponentProps'.
+// THROWS Argument of type '{ invalidProp: string; }' is not assignable to parameter of type 'WithKey<TestComponentProps>'.
 h(TestComponent, { invalidProp: 'value' })
 
 // Component does not accept children
@@ -36,7 +36,7 @@ h(TestComponent, { stringProp: 'value' }, [div()])
 // THROWS Argument of type '{ stringProp: string; }' is not assignable to parameter of type 'never'.
 h(TestComponent, { stringProp: 'value' }, { stringProp: 'value' })
 
-// THROWS Argument of type 'string[]' is not assignable to parameter of type 'Omit<TestComponentProps, "children">'.
+// THROWS Argument of type 'string[]' is not assignable to parameter of type 'WithKey<Omit<TestComponentProps, "children">>'.
 h(TestComponent, ['Content'], ['Content'])
 
 // Component that takes a function as a child
