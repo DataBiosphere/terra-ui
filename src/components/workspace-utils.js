@@ -13,6 +13,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
 import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
+import { cloudProviderTypes } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -37,7 +38,7 @@ export const useWorkspaces = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const ws = await Ajax(signal).Workspaces.list([
-      'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags', 'workspace.workspaceVersion'
+      'accessLevel', 'public', 'workspace', 'workspace.attributes.description', 'workspace.attributes.tag:tags'
     ])
     workspacesStore.set(ws)
   })
@@ -503,4 +504,9 @@ export const NoWorkspacesMessage = ({ onClick }) => {
       }, ['What\'s a workspace?'])
     ])
   ])
+}
+
+//TODO: Workspace should contain it's cloud provider in a better fashion.
+export const getCloudProviderFromWorkspace = workspace => {
+  return workspace.azureContext ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP
 }

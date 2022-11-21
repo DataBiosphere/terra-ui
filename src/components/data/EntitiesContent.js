@@ -38,7 +38,7 @@ import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-uti
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { runtimeTools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const getDataset = dataExplorerUrl => {
@@ -123,7 +123,7 @@ const ToolDrawer = _.flow(
         onSuccess: async (notebookName, notebookKernel) => {
           const cohortName = _.values(selectedEntities)[0].name
           const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
-          await Buckets.notebook(googleProject, bucketName, `${notebookName}.${tools.Jupyter.defaultExt}`).create(JSON.parse(contents))
+          await Buckets.notebook(googleProject, bucketName, `${notebookName}.${runtimeTools.Jupyter.defaultExt}`).create(JSON.parse(contents))
           Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, extractWorkspaceDetails(workspace.workspace))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },

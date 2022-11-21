@@ -6,7 +6,7 @@ import { getConfig } from 'src/libs/config'
 import { getUser, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getExtension, getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { runtimeTools, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { runtimeTools, toolLabelTypes } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 /*
@@ -295,10 +295,10 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'api/convert'], [tools.RStudio.label, () => 'api/convert/rmd'])
+      [toolLabelTypes.Jupyter, () => 'api/convert'], [toolLabelTypes.RStudio, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'application/octet-stream'])
+      [toolLabelTypes.Jupyter, () => 'application/x-ipynb+json'], [toolLabelTypes.RStudio, () => 'application/octet-stream'])
 
     const encodeFileName = name => encodeAnalysisName(getFileName(name))
 

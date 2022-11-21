@@ -31,7 +31,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolForImage, getToolFromRuntime, toolLabelTypes, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -357,7 +357,7 @@ export const ComputeModalBase = ({
     return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions }
   }
 
-  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
+  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === toolLabelTypes.RStudio
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig()
@@ -577,7 +577,7 @@ export const ComputeModalBase = ({
 
   const makeImageInfo = style => {
     const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
-    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === tools.RStudio.label
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === toolLabelTypes.RStudio
     const changelogUrl = _.isEmpty(leoImages) ?
       '' :
       `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`
@@ -864,7 +864,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== tools.RStudio.label })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== toolLabelTypes.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -1535,7 +1535,7 @@ export const ComputeModalBase = ({
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolForImage(id) === tools.RStudio.label)))
+          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolForImage(id) === toolLabelTypes.RStudio)))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -1543,7 +1543,7 @@ export const ComputeModalBase = ({
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages(image => getToolForImage(image.id) === tools.RStudio.label)
+          options: getImages(image => getToolForImage(image.id) === toolLabelTypes.RStudio)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',

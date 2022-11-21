@@ -36,7 +36,7 @@ import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/An
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
 import { analysisLauncherTabName, analysisTabName, appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolFromFileExtension, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolFromFileExtension, getToolFromRuntime, toolLabelTypes, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -105,13 +105,13 @@ const AnalysisCard = ({
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
-      ...(toolLabel === tools.Jupyter.label ? [
+      ...(toolLabel === toolLabelTypes.Jupyter ? [
         h(MenuButton, {
           'aria-label': 'Edit',
           href: analysisEditLink,
-          disabled: locked || !canWrite || currentRuntimeTool === tools.RStudio.label,
+          disabled: locked || !canWrite || currentRuntimeTool === toolLabelTypes.RStudio,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with Jupyter to edit.']),
+            [currentRuntimeTool === toolLabelTypes.RStudio, () => 'You must have a runtime with Jupyter to edit.']),
           tooltipSide: 'left'
         }, locked ? [makeMenuIcon('lock'), 'Open (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
         h(MenuButton, {
@@ -124,9 +124,9 @@ const AnalysisCard = ({
         h(MenuButton, {
           'aria-label': 'Launch',
           href: rstudioLaunchLink,
-          disabled: !canWrite || currentRuntimeTool === tools.Jupyter.label,
+          disabled: !canWrite || currentRuntimeTool === toolLabelTypes.Jupyter,
           tooltip: Utils.cond([!canWrite, () => noWrite],
-            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with RStudio to launch.']),
+            [currentRuntimeTool === toolLabelTypes.RStudio, () => 'You must have a runtime with RStudio to launch.']),
           tooltipSide: 'left'
         }, [makeMenuIcon('rocket'), 'Open'])
       ]),
@@ -184,8 +184,8 @@ const AnalysisCard = ({
   }, [getFileName(name)])
 
   const toolIconSrc = Utils.switchCase(application,
-    [tools.Jupyter.label, () => jupyterLogo],
-    [tools.RStudio.label, () => rstudioSquareLogo])
+    [toolLabelTypes.Jupyter, () => jupyterLogo],
+    [toolLabelTypes.RStudio, () => rstudioSquareLogo])
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
     img({ src: toolIconSrc, style: { height: 40, width: 40 } })
@@ -266,8 +266,8 @@ const Analyses = _.flow(
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: new Date(notebook.updated).getTime() }), notebooks)
-    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: tools.RStudio.label, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: toolLabelTypes.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
+    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: toolLabelTypes.RStudio, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))

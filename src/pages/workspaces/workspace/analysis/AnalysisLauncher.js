@@ -34,7 +34,7 @@ import {
   getConvertedRuntimeStatus, getCurrentPersistentDisk, getCurrentRuntime, usableStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import {
-  getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, tools
+  getPatternFromTool, getToolFromFileExtension, getToolFromRuntime, toolLabelTypes
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -309,7 +309,7 @@ const PreviewHeader = ({
       [runtimeStatus === 'Stopped', () => h(HeaderButton, {
         onClick: () => startAndRefresh(refreshRuntimes, runtime)
       }, openMenuIcon)],
-      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === tools.Jupyter.label,
+      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabelTypes.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -324,19 +324,19 @@ const PreviewHeader = ({
       // If the tool is RStudio and we are in this branch, we need to either start an existing runtime or launch the app
       // Worth mentioning that the Stopped branch will launch RStudio, and then we depend on the RuntimeManager to prompt user the app is ready to launch
       // Then open can be clicked again
-      [currentFileToolLabel === tools.RStudio.label && _.includes(runtimeStatus, ['Running', null]),
+      [currentFileToolLabel === toolLabelTypes.RStudio && _.includes(runtimeStatus, ['Running', null]),
         () => h(HeaderButton, {
           onClick: () => {
             if (runtimeStatus === 'Running') {
               Ajax().Metrics.captureEvent(Events.analysisLaunch,
-                { origin: 'analysisLauncher', source: tools.RStudio.label, application: tools.RStudio.label, workspaceName: name, namespace })
+                { origin: 'analysisLauncher', source: toolLabelTypes.RStudio, application: toolLabelTypes.RStudio, workspaceName: name, namespace })
               Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
             }
           }
         },
         openMenuIcon)],
       // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
-      [(currentRuntimeTool === tools.Jupyter.label && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
+      [(currentRuntimeTool === toolLabelTypes.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
             makeMenuIcon('warning-standard'), 'Open (Disabled)'
@@ -492,7 +492,7 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
     Ajax()
       .Metrics
       .captureEvent(Events.analysisLaunch,
-        { source: tools.Jupyter.label, application: tools.Jupyter.label, workspaceName: details.name, namespace: details.namespace })
+        { source: toolLabelTypes.Jupyter, application: toolLabelTypes.Jupyter, workspaceName: details.name, namespace: details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
@@ -550,12 +550,12 @@ const AnalysisEditorFrame = ({
   const cookieReady = useStore(cookieReadyStore)
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => `${name}/edit`],
-    [tools.RStudio.label, () => ''])
+    [toolLabelTypes.Jupyter, () => `${name}/edit`],
+    [toolLabelTypes.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => `${name}/safe`],
-    [tools.RStudio.label, () => '']
+    [toolLabelTypes.Jupyter, () => `${name}/safe`],
+    [toolLabelTypes.RStudio, () => '']
   )
 
   useOnMount(() => {

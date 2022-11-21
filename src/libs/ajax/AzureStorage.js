@@ -3,7 +3,7 @@ import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-com
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 import { getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabelTypes } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
@@ -69,7 +69,7 @@ export const AzureStorage = signal => ({
 
   listNotebooks: async workspaceId => {
     const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
-    return _.map(notebook => ({ ...notebook, application: tools.Jupyter.label }), notebooks)
+    return _.map(notebook => ({ ...notebook, application: toolLabelTypes.Jupyter }), notebooks)
   },
 
   blob: (workspaceId, blobName) => {

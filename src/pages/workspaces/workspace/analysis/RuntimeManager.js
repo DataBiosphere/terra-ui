@@ -18,7 +18,7 @@ import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { cloudProviders, getCurrentApp, getCurrentRuntime } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, toolLabelTypes } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
@@ -134,8 +134,8 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
     const createdDate = new Date(runtime?.createdDate)
     const dateNotified = getDynamic(getSessionStorage(), `notifiedOutdatedRuntime${runtime?.id}`) || {}
     const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
-    const galaxyApp = getCurrentApp(tools.Galaxy.appType)(apps)
-    const prevGalaxyApp = getCurrentApp(tools.Galaxy.appType)(prevApps)
+    const galaxyApp = getCurrentApp(appTools.Galaxy.appType)(apps)
+    const prevGalaxyApp = getCurrentApp(appTools.Galaxy.appType)(prevApps)
 
     if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -144,7 +144,7 @@ const RuntimeManager = ({ namespace, name, runtimes, apps }) => {
       errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
       runtime?.status === 'Running' && prevRuntime?.status && prevRuntime.status !== 'Running' &&
-      runtime?.labels?.tool === tools.RStudio.label && window.location.hash !== rStudioLaunchLink
+      runtime?.labels?.tool === toolLabelTypes.RStudio && window.location.hash !== rStudioLaunchLink
     ) {
       const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {

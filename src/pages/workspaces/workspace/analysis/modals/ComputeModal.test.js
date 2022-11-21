@@ -16,7 +16,7 @@ import {
   defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
   runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabelTypes, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 jest.mock('src/libs/notifications', () => ({
@@ -31,7 +31,7 @@ jest.mock('src/libs/ajax')
 const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
-  currentRuntime: undefined, currentDisk: undefined, tool: tools.Jupyter.label, workspace: defaultGoogleWorkspace,
+  currentRuntime: undefined, currentDisk: undefined, tool: toolLabelTypes.Jupyter, workspace: defaultGoogleWorkspace,
   location: testDefaultLocation
 }
 
@@ -585,7 +585,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    screen.getByText(`${tools.Jupyter.label} Cloud Environment`)
+    screen.getByText(`${toolLabelTypes.Jupyter} Cloud Environment`)
 
     const selectText = hailImage.label
     screen.getByText(selectText)
