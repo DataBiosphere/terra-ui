@@ -46,10 +46,10 @@ export interface AppTool extends Tool {
   appType: string
 }
 
-const RStudio: RuntimeTool = { label: 'RStudio', ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension }
+const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension }
 
 const Jupyter: RuntimeTool = {
-  label: 'Jupyter',
+  label: toolLabels.Jupyter,
   ext: ['ipynb' as Extension],
   isNotebook: true,
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
@@ -59,7 +59,7 @@ const Jupyter: RuntimeTool = {
 }
 
 const JupyterLab: RuntimeTool = {
-  label: 'JupyterLab',
+  label: toolLabels.JupyterLab,
   isNotebook: true,
   ext: ['ipynb' as Extension],
   isLaunchUnsupported: false,
@@ -68,9 +68,9 @@ const JupyterLab: RuntimeTool = {
   defaultImageId: '',
 }
 
-const Galaxy: AppTool = { label: 'Galaxy', appType: 'GALAXY' }
+const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
 
-const Cromwell: AppTool = { label: 'Cromwell', appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
+const Cromwell: AppTool = { label: toolLabels.Cromwell, appType: 'CROMWELL', isHidden: !isCromwellAppVisible(), isPauseUnsupported: true }
 
 export const appTools: Record<AppToolLabel, AppTool> = {
   Galaxy,
