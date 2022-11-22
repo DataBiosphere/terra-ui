@@ -69,7 +69,7 @@ export const AzureStorage = signal => ({
 
   listNotebooks: async workspaceId => {
     const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
-    return _.map(notebook => ({ ...notebook, application: toolLabels.JupyterLab }), notebooks) //TODO: Tool label WAS Jupyter
+    return _.map(notebook => ({ ...notebook, application: toolLabels.JupyterLab }), notebooks)
   },
 
   blob: (workspaceId, blobName) => {
