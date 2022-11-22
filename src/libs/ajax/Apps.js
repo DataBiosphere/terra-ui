@@ -25,7 +25,8 @@ export const Apps = signal => ({
         const body = {
           labels: {
             saturnWorkspaceNamespace: namespace,
-            saturnWorkspaceName: workspaceName
+            saturnWorkspaceName: workspaceName,
+            saturnAutoCreated: 'true'
           },
           kubernetesRuntimeConfig,
           diskConfig: {
