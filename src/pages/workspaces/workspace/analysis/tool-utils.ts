@@ -92,7 +92,6 @@ export const tools: Record<ToolLabel, Tool> = {
   spark: { label: 'spark' }
 }
 
-//TODO: Should the value be a list?
 export const cloudRuntimeTools: Record<CloudProviderType, Partial<Record<ToolLabel, RuntimeTool>>> = {
   GCP: {
     RStudio,
