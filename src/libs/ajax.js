@@ -831,7 +831,7 @@ const Catalog = signal => ({
     return res.json()
   },
   exportDataset: async ({ id, workspaceId }) => {
-    return await fetchCatalog(`v1/datasets/${id}/export/${workspaceId}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return await fetchCatalog(`v1/datasets/${id}/export`, _.mergeAll([authOpts(), jsonBody({ workspaceId }), { signal, method: 'POST' }]))
   }
 })
 
