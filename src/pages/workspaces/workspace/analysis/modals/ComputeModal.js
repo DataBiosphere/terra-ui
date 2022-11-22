@@ -1440,8 +1440,8 @@ export const ComputeModalBase = ({
 
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-
     const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+    const desiredToolPhrase = isCustomImage ? 'a custom image' : strong([desiredTool])
 
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
@@ -1486,10 +1486,8 @@ export const ComputeModalBase = ({
             existingRuntime?.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
-            existingRuntime && existingRuntime.tool !== desiredTool ?
-              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime?.tool]), ' to ',
-                strong([desiredTool]), '.']) :
-              undefined,
+            existingRuntime?.tool !== desiredTool ? p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime.tool]), ' to ',
+        desiredToolPhrase, '.']) : undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
             p(['Your existing data will be preserved during this update.'])
           ])]
