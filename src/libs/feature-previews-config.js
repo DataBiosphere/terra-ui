@@ -23,7 +23,7 @@ const featurePreviewsConfig = [
   {
     id: 'jupyterlab-gcp',
     title: 'JupyterLab on GCP',
-    description: 'Enabling this feature will allow you to spin up a JupyterLab Cloud Environment in GCP. If a JupyterLab environment is present in your workspace, Jupyter notebooks will be automatically launched using JupyterLab.',
+    description: 'Enabling this feature will allow you to spin up a JupyterLab Cloud Environment in GCP.',
     groups: ['preview-jupyterlab-gcp'],
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`
   }

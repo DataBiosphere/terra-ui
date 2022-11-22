@@ -168,7 +168,7 @@ const isDataproc = runtimeType => runtimeType === runtimeTypes.dataprocSingleNod
 const isDataprocCluster = runtimeType => runtimeType === runtimeTypes.dataprocCluster
 
 const getImageUrl = runtimeDetails => {
-  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
+  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio', 'JupyterLab']), runtimeDetails?.runtimeImages)?.imageUrl
 }
 
 const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => isGce(runtimeType) &&
