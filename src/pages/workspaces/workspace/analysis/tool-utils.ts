@@ -88,8 +88,8 @@ export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
 export const tools: Record<ToolLabel, Tool> = {
   ...runtimeTools,
   ...appTools,
-  terminal: { label: 'terminal' },
-  spark: { label: 'spark' }
+  terminal: { label: toolLabels.terminal },
+  spark: { label: toolLabels.spark }
 }
 
 export const cloudRuntimeTools: Record<CloudProviderType, Partial<Record<ToolLabel, RuntimeTool>>> = {
