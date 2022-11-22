@@ -126,6 +126,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
+        style: { minWidth: '6rem' },
         min: 150, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
@@ -912,12 +913,13 @@ export const ComputeModalBase = ({
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
     const enableAutopauseSpan = span(['Enable autopause'])
-    const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
+    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+    const gridItemInputStyle = { minWidth: '6rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: 'repeat(6, auto)', justifyContent: 'flex-start' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
@@ -925,6 +927,7 @@ export const ComputeModalBase = ({
               div([
                 h(Select, {
                   id,
+                  style: gridItemInputStyle,
                   isSearchable: false,
                   value: currentNumCpus,
                   onChange: ({ value }) => {
@@ -945,6 +948,7 @@ export const ComputeModalBase = ({
               div([
                 h(Select, {
                   id,
+                  style: gridItemInputStyle,
                   isSearchable: false,
                   value: currentMemory,
                   onChange: ({ value }) => {
@@ -1699,7 +1703,7 @@ export const ComputeModalBase = ({
   }
 
   const renderPersistentDiskSection = diskExists => {
-    const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
+    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
 
     const renderPersistentDiskType = id => h(div, [
       label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),
