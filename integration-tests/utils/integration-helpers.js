@@ -175,6 +175,11 @@ const withRegisteredUser = test => withUser(async options => {
   await test(options)
 })
 
+const overrideConfig = async (page, configToPassIn) => {
+  await page.evaluate(configPassedIn => window.configOverridesStore.set(configPassedIn), configToPassIn)
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
+}
+
 const navigateToDataCatalog = async (page, testUrl, token) => {
   await gotoPage(page, testUrl)
   await waitForNoSpinners(page)
@@ -221,6 +226,7 @@ module.exports = {
   defaultTimeout,
   navigateToDataCatalog,
   enableDataCatalog,
+  overrideConfig,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,
