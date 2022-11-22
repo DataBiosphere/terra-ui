@@ -1,3 +1,6 @@
+const { configOverridesStore } = require('../../src/libs/state')
+
+
 const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { gotoPage, verifyAccessibility } = require('../utils/integration-utils')
@@ -10,8 +13,10 @@ const testCobrandAccessibility = _.flow(
   withUserToken
 )(async ({ page, testUrl }) => {
   await gotoPage(page, testUrl)
+  await verifyAccessibility(page)
 
-  // Check accessibility.
+  configOverridesStore.set({ isRareX: true })
+  await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] })
   await verifyAccessibility(page)
 })
 
