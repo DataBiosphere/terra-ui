@@ -182,10 +182,6 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
         fn: window.ajaxOverrideUtils.makeSuccess(projectListResult)
       },
       {
-        filter: { url: /Alpha_Spend_Report_Users\/action\/use/ },
-        fn: window.ajaxOverrideUtils.makeSuccess(true)
-      },
-      {
         filter: { url: /api\/billing\/v2(.*)\/members$/ },
         fn: () => () => window.ajaxOverrideUtils.makeSuccess([])
       },
