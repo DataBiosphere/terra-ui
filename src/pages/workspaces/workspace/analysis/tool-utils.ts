@@ -92,22 +92,22 @@ export const tools: Record<ToolLabel, Tool> = {
   spark: { label: toolLabels.spark }
 }
 
-export const cloudRuntimeTools: Record<CloudProviderType, Partial<Record<ToolLabel, RuntimeTool>>> = {
-  GCP: {
+export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
+  GCP: [
     RStudio,
     Jupyter
-  },
-  AZURE: {
+  ],
+  AZURE: [
     JupyterLab
-  }
+  ]
 }
 
-export const cloudAppTools: Record<CloudProviderType, Partial<Record<ToolLabel, AppTool>>> = {
-  GCP: {
+export const cloudAppTools: Record<CloudProviderType, AppTool[]> = {
+  GCP: [
     Galaxy,
     Cromwell
-  },
-  AZURE: {}
+  ],
+  AZURE: []
 }
 
 export interface ExtensionDisplay {
@@ -129,7 +129,7 @@ export const getPatternFromRuntimeTool = (toolLabel: RuntimeToolLabel): string =
 )
 
 export const getToolsToDisplayForCloudProvider = (cloudProvider: CloudProviderType): Tool[] => _.remove((tool: Tool) => !!tool.isHidden)(
-  (_.values(cloudRuntimeTools[cloudProvider]) as Tool[]).concat(_.values(cloudAppTools[cloudProvider] as Tool[])))
+  (cloudRuntimeTools[cloudProvider] as Tool[]).concat(cloudAppTools[cloudProvider] as Tool[]))
 
 export const toolToExtensionMap: Record<ToolLabel, Extension> = _.flow(
   _.filter('ext'),

@@ -175,7 +175,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
     }
 
-    const runtimeToolButtons = _.values(availableRuntimeTools).map((runtimeTool => {
+    const runtimeToolButtons = availableRuntimeTools.map((runtimeTool => {
       return !runtimeTool.isHidden ? h(Clickable, {
         style: styles.toolCard, onClick: () => {
           setCurrentToolObj(runtimeTool)
@@ -187,7 +187,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       }, [toolImages[runtimeTool.label]]) : ''
     }))
 
-    const appToolButtons = _.values(availableAppTools).map((appTool => {
+    const appToolButtons = availableAppTools.map((appTool => {
       const currentApp = currentApps[appTool.label]
       return !appTool.isHidden ? h(Clickable, {
         style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
