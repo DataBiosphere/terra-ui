@@ -118,24 +118,17 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     resources: [
       {
         metadata: {
-          resourceId: 'dummy-sa-resource-id',
-          resourceType: 'AZURE_STORAGE_ACCOUNT'
-        },
-        resourceAttributes: { azureStorage: { region: 'eastus' } }
-      },
-      {
-        metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
           controlledResourceMetadata: { accessScope: 'PRIVATE_ACCESS' }
         },
-        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'private-sc-name' } }
+        resourceAttributes: { azureStorageContainer: { storageContainerName: 'private-sc-name' } }
       },
       {
         metadata: {
           resourceType: 'AZURE_STORAGE_CONTAINER',
           controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' }
         },
-        resourceAttributes: { azureStorageContainer: { storageAccountId: 'dummy-sa-resource-id', storageContainerName: 'sc-name' } }
+        resourceAttributes: { azureStorageContainer: { storageContainerName: 'sc-name' } }
       }
     ]
   }
@@ -198,7 +191,7 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
     'Cloud NameMicrosoft Azure',
     'Resource Group IDdummy-mrg-id',
     'Storage Container URLhttp://storageContainerUrl.com',
-    'Location🇺🇸 East US',
+    // 'Location🇺🇸 East US', depends on TOAZ-265
     'SAS URLhttp://storageContainerUrl.com?sasTokenParams'
   ])
 
