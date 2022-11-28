@@ -1,5 +1,5 @@
-import { Fragment } from 'react'
-import { div, h, p } from 'react-hyperscript-helpers'
+import { Fragment, useEffect, useRef } from 'react'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import { basename } from 'src/components/file-browser/file-browser-utils'
@@ -20,6 +20,10 @@ interface FilesInDirectoryProps {
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const { provider, path, rootLabel = 'Files', onClickFile } = props
 
+  const directoryLabel = path === '' ? rootLabel : basename(path)
+
+  const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null)
+
   const {
     state: { status, files },
     hasNextPage,
@@ -29,6 +33,14 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
 
   const isLoading = status === 'Loading'
 
+  useEffect(() => {
+    loadedAlertElementRef.current!.innerHTML = Utils.switchCase(status,
+      ['Loading', () => ''],
+      ['Ready', () => `Loaded ${files.length} files in ${directoryLabel}`],
+      ['Error', () => `Error loading files in ${directoryLabel}`]
+    )
+  }, [directoryLabel, files, status])
+
   return div({
     style: {
       display: 'flex',
@@ -36,9 +48,20 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       flex: '1 0 0'
     }
   }, [
+    span({
+      ref: loadedAlertElementRef,
+      'aria-live': 'polite',
+      className: 'sr-only',
+      role: 'alert',
+    }),
+    status === 'Loading' && span({
+      'aria-live': 'assertive',
+      className: 'sr-only',
+      role: 'alert',
+    }, [`Loading files in ${directoryLabel}`]),
     files.length > 0 && h(Fragment, [
       h(FilesTable, {
-        'aria-label': `Files in ${path === '' ? rootLabel : basename(path)}`,
+        'aria-label': `Files in ${directoryLabel}`,
         files,
         onClickFile
       }),
