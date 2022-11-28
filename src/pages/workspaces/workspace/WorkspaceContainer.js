@@ -8,6 +8,7 @@ import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
+import TitleBar from 'src/components/TitleBar'
 import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -101,7 +102,15 @@ const WorkspaceTabs = ({
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
-    ])
+    ]),
+    // (!!workspace && isAzureWorkspace) ?
+    h(TitleBar, {
+      title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem', justifyContent: 'center' } }, [
+        icon('warning-standard', { size: 32, style: { color: colors.light(), marginRight: '0.5rem' } }),
+        div({ style: { color: colors.light() } }, ['Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. Please do not import or use any federally protected data in Azure workspaces.'])
+      ]), style: { backgroundColor: colors.danger(), justifyContent: 'center', alignItems: 'center' }
+    })
+    // : []
   ])
 }
 
