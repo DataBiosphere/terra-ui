@@ -169,7 +169,7 @@ const isDataproc = runtimeType => runtimeType === runtimeTypes.dataprocSingleNod
 const isDataprocCluster = runtimeType => runtimeType === runtimeTypes.dataprocCluster
 
 const getImageUrl = runtimeDetails => {
-  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
+  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio', 'JupyterLab']), runtimeDetails?.runtimeImages)?.imageUrl
 }
 
 const shouldUsePersistentDisk = (runtimeType, runtimeDetails, upgradeDiskSelected) => isGce(runtimeType) &&
@@ -398,7 +398,9 @@ export const ComputeModalBase = ({
   const getCurrentMountDirectory = currentRuntimeDetails => {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter'
+    const jupyterLabMountPoint = '/home/jupyter'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+    //todo jupyterlab case
     return currentRuntimeDetails?.labels.tool ?
       (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
       noMountDirectory

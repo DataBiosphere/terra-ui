@@ -14,6 +14,7 @@ import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigg
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
@@ -186,7 +187,7 @@ const AnalysisCard = ({
   const toolIconSrc = Utils.switchCase(application,
     [toolLabels.Jupyter, () => jupyterLogo],
     [toolLabels.RStudio, () => rstudioSquareLogo],
-    [toolLabels.JupyterLab, () => jupyterLogo]
+    [toolLabels.JupyterLab, () => jupyterLabLogo]
   )
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [

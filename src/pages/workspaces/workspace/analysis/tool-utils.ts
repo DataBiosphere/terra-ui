@@ -64,8 +64,8 @@ const JupyterLab: RuntimeTool = {
   ext: ['ipynb' as Extension],
   isLaunchUnsupported: false,
   defaultExt: 'ipynb' as Extension,
-  imageIds: [],
-  defaultImageId: '',
+  imageIds: ['terra-jupyterlab-base'],
+  defaultImageId: 'terra-jupyterlab-base',
 }
 
 const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
@@ -95,7 +95,8 @@ export const tools: Record<ToolLabel, Tool> = {
 export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   GCP: [
     RStudio,
-    Jupyter
+    Jupyter,
+    JupyterLab
   ],
   AZURE: [
     JupyterLab

@@ -19,6 +19,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
@@ -69,6 +70,7 @@ export const ContextBar = ({
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
+    [toolLabels.JupyterLab, () => img({ src: jupyterLabLogo, style: { height: 45, width: 45 }, alt: '' })],
     [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
     [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
