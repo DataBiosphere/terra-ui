@@ -777,6 +777,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       } else {
         setErrorMessage(await (error instanceof Response ? error.text() : error))
       }
+      setUpdatingProjectCost(false)
     })
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
