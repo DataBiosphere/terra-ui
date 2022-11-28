@@ -56,7 +56,7 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       }
     }, [
       div([
-        `${files.length} files. `,
+        `${files.length} files `,
         isLoading && h(Fragment, [
           'Loading more... ',
           icon('loadingSpinner', { size: 12 })
