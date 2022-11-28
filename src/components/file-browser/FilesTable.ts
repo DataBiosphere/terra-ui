@@ -5,6 +5,7 @@ import { Link } from 'src/components/common'
 import { basename } from 'src/components/file-browser/file-browser-utils'
 import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -43,16 +44,18 @@ const FilesTable = (props: FilesTableProps) => {
             headerRenderer: () => h(HeaderCell, ['Name']),
             cellRenderer: ({ rowIndex }) => {
               const file = files[rowIndex]
-              return h(TextCell, [
-                h(Link, {
-                  href: file.url,
-                  style: { textDecoration: 'underline' },
-                  onClick: e => {
-                    e.preventDefault()
-                    onClickFile(file)
-                  }
-                }, [basename(file.path)])
-              ])
+              return h(Link, {
+                href: file.url,
+                // @ts-expect-error
+                style: {
+                  ...Style.noWrapEllipsis,
+                  textDecoration: 'underline'
+                },
+                onClick: e => {
+                  e.preventDefault()
+                  onClickFile(file)
+                }
+              }, [basename(file.path)])
             }
           },
           {
