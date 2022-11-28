@@ -126,14 +126,14 @@ export const Runtimes = signal => {
 
       // [IA-3710] In order to keep the front-end backwards compatible, any Azure tool labels
       // will be changed to JupyterLab.
-      return res.json().then(runtimeList => {
-        return runtimeList.map(element => {
-          if (element.labels.tool === 'Azure') {
-            element.labels.tool = 'JupyterLab'
-          }
-          return element
-        })
-      })
+      const runtimeList = await res.json()
+      const runtimesWithToolLabelDecorated = _.map(runtime => {
+        if (runtime.labels.tool === 'Azure') {
+          runtime.labels.tool = 'JupyterLab'
+        }
+        return runtime
+      }, runtimeList)
+      return runtimesWithToolLabelDecorated
     },
 
     listV2WithWorkspace: async (workspaceId, labels = {}) => {
