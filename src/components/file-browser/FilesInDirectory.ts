@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import { basename } from 'src/components/file-browser/file-browser-utils'
@@ -36,45 +36,55 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       flex: '1 0 0'
     }
   }, [
-    h(FilesTable, {
-      'aria-label': `Files in ${path === '' ? rootLabel : basename(path)}`,
-      files,
-      noFilesMessage: Utils.cond(
+    files.length > 0 && h(Fragment, [
+      h(FilesTable, {
+        'aria-label': `Files in ${path === '' ? rootLabel : basename(path)}`,
+        files,
+        onClickFile
+      }),
+      div({
+        style: {
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '1rem',
+          borderTop: `1px solid ${colors.dark(0.2)}`,
+          background: '#fff'
+        }
+      }, [
+        div([
+          `${files.length} files `,
+          isLoading && h(Fragment, [
+            'Loading more... ',
+            icon('loadingSpinner', { size: 12 })
+          ])
+        ]),
+        hasNextPage !== false && div([
+          h(Link, {
+            disabled: isLoading,
+            style: { marginLeft: '1ch' },
+            onClick: () => loadNextPage()
+          }, ['Load next page']),
+          h(Link, {
+            disabled: isLoading,
+            style: { marginLeft: '1ch' },
+            tooltip: 'This may take a long time for folders containing several thousand objects.',
+            onClick: () => loadAllRemainingItems()
+          }, ['Load all'])
+        ])
+      ])
+    ]),
+    files.length === 0 && p({
+      style: {
+        marginTop: '1rem',
+        fontStyle: 'italic',
+        textAlign: 'center',
+      }
+    }, [
+      Utils.cond(
         [status === 'Loading', () => 'Loading files...'],
         [status === 'Error', () => 'Unable to load files'],
         () => 'No files have been uploaded yet'
-      ),
-      onClickFile
-    }),
-    div({
-      style: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        padding: '1rem',
-        borderTop: `1px solid ${colors.dark(0.2)}`,
-        background: '#fff'
-      }
-    }, [
-      div([
-        `${files.length} files `,
-        isLoading && h(Fragment, [
-          'Loading more... ',
-          icon('loadingSpinner', { size: 12 })
-        ])
-      ]),
-      hasNextPage !== false && div([
-        h(Link, {
-          disabled: isLoading,
-          style: { marginLeft: '1ch' },
-          onClick: () => loadNextPage()
-        }, ['Load next page']),
-        h(Link, {
-          disabled: isLoading,
-          style: { marginLeft: '1ch' },
-          tooltip: 'This may take a long time for folders containing several thousand objects.',
-          onClick: () => loadAllRemainingItems()
-        }, ['Load all'])
-      ])
+      )
     ])
   ])
 }

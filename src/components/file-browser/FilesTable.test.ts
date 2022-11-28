@@ -45,7 +45,7 @@ describe('FilesTable', () => {
     // { field: 'last modified', columnIndex: 2, expected: [] }
   ])('renders a column with file $field', ({ columnIndex, expected }) => {
     // Act
-    render(h(FilesTable, { files, noFilesMessage: 'No files available', onClickFile: jest.fn() }))
+    render(h(FilesTable, { files, onClickFile: jest.fn() }))
 
     const tableRows = screen.getAllByRole('row').slice(1) // skip header row
     const cellsInColumn = tableRows.map(row => getAllByRole(row, 'cell')[columnIndex])
@@ -57,7 +57,7 @@ describe('FilesTable', () => {
 
   it('renders file names as links', () => {
     // Act
-    render(h(FilesTable, { files, noFilesMessage: 'No files available', onClickFile: jest.fn() }))
+    render(h(FilesTable, { files, onClickFile: jest.fn() }))
 
     const tableRows = screen.getAllByRole('row').slice(1) // skip header row
     const fileNameCells = tableRows.map(row => getAllByRole(row, 'cell')[0])
@@ -71,20 +71,12 @@ describe('FilesTable', () => {
     ])
   })
 
-  it('renders a message if no files are present', () => {
-    // Act
-    render(h(FilesTable, { files: [], noFilesMessage: 'No files available', onClickFile: jest.fn() }))
-
-    // Assert
-    screen.getByText('No files available')
-  })
-
   it('calls onClickFile callback when a file link is clicked', async () => {
     // Arrange
     const user = userEvent.setup()
 
     const onClickFile = jest.fn()
-    render(h(FilesTable, { files, noFilesMessage: 'No files available', onClickFile }))
+    render(h(FilesTable, { files, onClickFile }))
 
     const tableRows = screen.getAllByRole('row').slice(1) // skip header row
     const fileNameCells = tableRows.map(row => getAllByRole(row, 'cell')[0])

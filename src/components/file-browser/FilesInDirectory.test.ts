@@ -102,7 +102,7 @@ describe('FilesInDirectory', () => {
     { state: { status: 'Ready', files: [] }, expectedMessage: 'No files have been uploaded yet' },
     { state: { status: 'Error', error: new Error('Something went wrong'), files: [] }, expectedMessage: 'Unable to load files' }
   ] as { state: UseFilesInDirectoryResult['state']; expectedMessage: string }[])(
-    'sets noFilesMessage prop for FilesTable based on loading state ($state.status)',
+    'renders a message based on loading state ($state.status) when no files are present',
     ({ state, expectedMessage }) => {
       // Arrange
       const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
@@ -123,7 +123,7 @@ describe('FilesInDirectory', () => {
       }))
 
       // Assert
-      expect(FilesTable).toHaveBeenCalledWith(expect.objectContaining({ noFilesMessage: expectedMessage }), expect.anything())
+      screen.getByText(expectedMessage)
     }
   )
 

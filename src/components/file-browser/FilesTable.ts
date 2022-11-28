@@ -12,7 +12,6 @@ import * as Utils from 'src/libs/utils'
 interface FilesTableProps {
   'aria-label'?: string
   files: FileBrowserFile[]
-  noFilesMessage: string
   onClickFile: (file: FileBrowserFile) => void
 }
 
@@ -20,7 +19,6 @@ const FilesTable = (props: FilesTableProps) => {
   const {
     'aria-label': ariaLabel = 'Files',
     files,
-    noFilesMessage,
     onClickFile
   } = props
 
@@ -32,7 +30,7 @@ const FilesTable = (props: FilesTableProps) => {
         width,
         height,
         rowCount: files.length,
-        noContentMessage: noFilesMessage,
+        noContentMessage: ' ',
         styleCell: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
         styleHeader: () => ({ padding: '0.5em', borderRight: 'none', borderLeft: 'none' }),
         hoverHighlight: true,

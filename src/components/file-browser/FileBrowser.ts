@@ -1,4 +1,4 @@
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
@@ -18,8 +18,6 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   const [path, setPath] = useState('')
 
   const [focusedFile, setFocusedFile] = useState<FileBrowserFile | null>(null)
-
-  const rightPaneRef = useRef<HTMLDivElement | null>(null)
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
@@ -51,13 +49,11 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
             selectedDirectory: path,
             onSelectDirectory: selectedDirectoryPath => {
               setPath(selectedDirectoryPath)
-              ;(rightPaneRef.current!.querySelector('[role="table"]') as HTMLElement).focus()
             }
           })
         ])
       ]),
       div({
-        ref: rightPaneRef,
         style: {
           display: 'flex',
           flexDirection: 'column',
