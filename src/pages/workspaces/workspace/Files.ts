@@ -30,7 +30,7 @@ export const Files = _.flow(
       overflow: 'hidden'
     }
   }, [
-    h(FileBrowser, { provider: fileBrowserProvider, title: 'Files' })
+    h(FileBrowser, { workspace, provider: fileBrowserProvider, title: 'Files' })
   ])
 })
 
