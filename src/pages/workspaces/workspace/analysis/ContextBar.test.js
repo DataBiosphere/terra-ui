@@ -3,11 +3,12 @@ import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost, runtimeConfigCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const GALAXY_COMPUTE_COST = 10
@@ -224,9 +225,9 @@ const azureRunning = {
   proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
   runtimeConfig: {
     cloudService: 'AZURE_VM',
-    machineType: 'Standard_DS1_v2',
+    machineType: defaultAzureMachineType,
     persistentDiskId: 15778,
-    region: 'eastus',
+    region: defaultAzureRegion,
     runtimeName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
     status: 'Running',
     workspaceId: '2a77dcb5-882c-46b9-a3bc-5d251aff14d0'
@@ -483,7 +484,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.Jupyter.label)
+    getByText(toolLabels.Jupyter)
   })
 
   it('clicking Galaxy opens CloudEnvironmentModal with Galaxy as filter for tool.', () => {
@@ -500,7 +501,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.Galaxy.label)
+    getByText(toolLabels.Galaxy)
   })
 
   it('clicking RStudio opens CloudEnvironmentModal with RStudio as filter for tool.', () => {
@@ -519,7 +520,7 @@ describe('ContextBar - actions', () => {
 
     // Assert
     getByText('Cloud Environment Details')
-    getByText(tools.RStudio.label)
+    getByText(toolLabels.RStudio)
   })
 
   it('clicking Terminal will attempt to start currently stopped runtime', async () => {

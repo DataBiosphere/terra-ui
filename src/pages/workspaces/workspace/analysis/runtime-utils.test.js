@@ -4,7 +4,7 @@ import {
   getAnalysesDisplayList, getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentAppIncludingDeleting,
   getCurrentRuntime, getDiskAppType, runtimeStatuses, workspaceHasMultipleApps, workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 jest.mock('src/data/machines', () => {
@@ -472,26 +472,26 @@ const mockBucketAnalyses = [
 
 describe('getCurrentApp', () => {
   it('returns undefined if no instances of the app exist', () => {
-    expect(getCurrentApp(tools.Galaxy.appType)([])).toBeUndefined()
-    expect(getCurrentApp(tools.Cromwell.appType)([galaxyRunning])).toBeUndefined()
+    expect(getCurrentApp(appTools.Galaxy.appType)([])).toBeUndefined()
+    expect(getCurrentApp(appTools.Cromwell.appType)([galaxyRunning])).toBeUndefined()
   })
   it('returns the most recent app for the given type (that is not deleting)', () => {
-    expect(getCurrentApp(tools.Galaxy.appType)(mockApps)).toBe(galaxyRunning)
-    expect(getCurrentApp(tools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
+    expect(getCurrentApp(appTools.Galaxy.appType)(mockApps)).toBe(galaxyRunning)
+    expect(getCurrentApp(appTools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
   })
 })
 
 describe('getCurrentAppIncludingDeleting', () => {
   it('does not filter out deleting', () => {
-    expect(getCurrentAppIncludingDeleting(tools.Galaxy.appType)(mockApps)).toBe(galaxyDeleting)
-    expect(getCurrentAppIncludingDeleting(tools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
+    expect(getCurrentAppIncludingDeleting(appTools.Galaxy.appType)(mockApps)).toBe(galaxyDeleting)
+    expect(getCurrentAppIncludingDeleting(appTools.Cromwell.appType)(mockApps)).toBe(cromwellProvisioning)
   })
 })
 
 describe('getDiskAppType', () => {
   it('returns the appType for disks attached to apps', () => {
-    expect(getDiskAppType(galaxyDeletingDisk)).toBe(tools.Galaxy.appType)
-    expect(getDiskAppType(cromwellProvisioningDisk)).toBe(tools.Cromwell.appType)
+    expect(getDiskAppType(galaxyDeletingDisk)).toBe(appTools.Galaxy.appType)
+    expect(getDiskAppType(cromwellProvisioningDisk)).toBe(appTools.Cromwell.appType)
   })
   it('returns undefined for runtime disks', () => {
     expect(getDiskAppType(jupyterDisk)).toBeUndefined()
@@ -541,37 +541,37 @@ describe('getCurrentRuntime', () => {
 
 describe('getCurrentAppDataDisk', () => {
   it('returns undefined if no disk exists for the given app type', () => {
-    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [cromwellProvisioning], [cromwellProvisioningDisk])).toBeUndefined()
   })
   it('returns the newest attached disk, even if app is deleting', () => {
-    expect(getCurrentAppDataDisk(tools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)
-    expect(getCurrentAppDataDisk(tools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(cromwellProvisioningDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDeletingDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(appTools.Cromwell.appType, mockApps, mockAppDisks, 'test-workspace')).toStrictEqual(cromwellProvisioningDiskUpdatedPd)
   })
   it('returns the newest unattached disk that is not deleting if no app instance exists', () => {
-    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
-    expect(getCurrentAppDataDisk(tools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toStrictEqual(cromwellUnattachedDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(appTools.Cromwell.appType, [galaxyRunning], mockAppDisks, 'test-workspace')).toStrictEqual(cromwellUnattachedDiskUpdatedPd)
   })
   it('returns a galaxy disk only if it is in the same workspace as the previous app it was attached to', () => {
-    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
-    expect(getCurrentAppDataDisk(tools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [], mockAppDisks, 'test-workspace')).toStrictEqual(galaxyDiskUpdatedPd)
+    expect(getCurrentAppDataDisk(appTools.Galaxy.appType, [], mockAppDisks, 'incorrect-workspace')).toBeUndefined()
   })
 })
 
 describe('workspaceHasMultipleApps', () => {
   it('returns true when there are multiple galaxy apps in the same project and workspace', () => {
-    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.Galaxy.appType)).toBe(true)
+    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, appTools.Galaxy.appType)).toBe(true)
   })
   it('returns false when there is not multiple cromwell apps', () => {
-    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, tools.Cromwell.appType)).toBe(false)
+    expect(workspaceHasMultipleApps(mockAppsSameWorkspace, appTools.Cromwell.appType)).toBe(false)
   })
 })
 
 describe('workspaceHasMultipleDisks', () => {
   it('returns true when there are multiple galaxy disks in the same project and workspace', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.Galaxy.appType)).toBe(true)
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.Galaxy.appType)).toBe(true)
   })
   it('returns false when there is not multiple cromwell disks', () => {
-    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, tools.Cromwell.appType)).toBe(false)
+    expect(workspaceHasMultipleDisks(mockAppDisksSameWorkspace, appTools.Cromwell.appType)).toBe(false)
   })
 })
 
@@ -588,7 +588,7 @@ describe('getCostDisplayForTool', () => {
     const app = galaxyRunning
     const currentRuntime = undefined
     const currentRuntimeTool = undefined
-    const toolLabel = tools.Galaxy.label
+    const toolLabel = toolLabels.Galaxy
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -601,8 +601,8 @@ describe('getCostDisplayForTool', () => {
     const expectedResult = 'Running $0.06/hr'
     const app = undefined
     const currentRuntime = jupyter1
-    const currentRuntimeTool = tools.Jupyter.label
-    const toolLabel = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.Jupyter
+    const toolLabel = toolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -615,8 +615,8 @@ describe('getCostDisplayForTool', () => {
     const expectedResult = 'Paused $0.01/hr'
     const app = undefined
     const currentRuntime = { ...jupyter1, status: 'Stopped' }
-    const currentRuntimeTool = tools.Jupyter.label
-    const toolLabel = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.Jupyter
+    const toolLabel = toolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -629,8 +629,8 @@ describe('getCostDisplayForTool', () => {
     const expectedResult = ''
     const app = undefined
     const currentRuntime = jupyter1
-    const currentRuntimeTool = tools.RStudio.label
-    const toolLabel = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.RStudio
+    const toolLabel = toolLabels.Jupyter
 
     // Act
     const result = getCostDisplayForTool(app, currentRuntime, currentRuntimeTool, toolLabel)
@@ -649,7 +649,7 @@ describe('getCostDisplayForDisk', () => {
     const currentRuntimeTool = undefined
     const persistentDisks = []
     const runtimes = []
-    const toolLabel = tools.Galaxy.label
+    const toolLabel = toolLabels.Galaxy
     const expectedResult = 'Disk $0.04/hr'
 
     // Act
@@ -663,10 +663,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.Jupyter
     const persistentDisks = [jupyter1Disk]
     const runtimes = [jupyter1]
-    const toolLabel = tools.Jupyter.label
+    const toolLabel = toolLabels.Jupyter
     const expectedResult = 'Disk < $0.01/hr'
 
     // Act
@@ -697,10 +697,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.Jupyter
     const persistentDisks = []
     const runtimes = []
-    const toolLabel = tools.RStudio.label
+    const toolLabel = toolLabels.RStudio
     const expectedResult = ''
 
     // Act
@@ -714,10 +714,10 @@ describe('getCostDisplayForDisk', () => {
     const app = undefined
     const appDataDisks = []
     const computeRegion = 'US-CENTRAL1'
-    const currentRuntimeTool = tools.Jupyter.label
+    const currentRuntimeTool = toolLabels.Jupyter
     const persistentDisks = [{ ...jupyter1Disk, status: 'Deleting' }]
     const runtimes = [jupyter1]
-    const toolLabel = tools.Jupyter.label
+    const toolLabel = toolLabels.Jupyter
     const expectedResult = ''
 
     // Act

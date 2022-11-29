@@ -8,7 +8,7 @@ import {
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { allAppTypes, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { allAppTypes, appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 export const computeStyles = {
@@ -81,7 +81,7 @@ export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = (isDataproc, tool) => Utils.cond(
   [isDataproc, () => defaultDataprocMachineType],
-  [tool === tools.RStudio.label, () => defaultRStudioMachineType],
+  [tool === toolLabels.RStudio, () => defaultRStudioMachineType],
   [Utils.DEFAULT, () => defaultGceMachineType])
 
 // GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
@@ -226,7 +226,7 @@ export const getRuntimeCost = ({ runtimeConfig, status }) => Utils.switchCase(st
 
 export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
 
-export const getAppCost = (app, dataDisk) => app.appType === tools.Galaxy.appType ? getGalaxyCost(app, dataDisk) : 0
+export const getAppCost = (app, dataDisk) => app.appType === appTools.Galaxy.appType ? getGalaxyCost(app, dataDisk) : 0
 
 export const getGalaxyCost = (app, dataDisk) => {
   return getGalaxyDiskCost(dataDisk) + getGalaxyComputeCost(app)
@@ -372,7 +372,7 @@ export const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = getCurrentAppIncludingDeleting(tools.Galaxy.appType)(apps)
+  const currentGalaxyApp = getCurrentAppIncludingDeleting(appTools.Galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
@@ -385,9 +385,9 @@ export const getGalaxyCostTextChildren = (app, appDataDisks) => {
 // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
 export const getCostDisplayForTool = (app, currentRuntime, currentRuntimeTool, toolLabel) => {
   return Utils.cond(
-    [toolLabel === tools.Galaxy.label, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
-    [toolLabel === tools.Cromwell.label, () => ''], // We will determine what to put here later
-    [toolLabel === tools.Azure.labels, () => ''], //TODO: Azure cost calculation
+    [toolLabel === toolLabels.Galaxy, () => app ? `${getComputeStatusForDisplay(app.status)} ${Utils.formatUSD(getGalaxyComputeCost(app))}/hr` : ''],
+    [toolLabel === toolLabels.Cromwell, () => ''], // We will determine what to put here later
+    [toolLabel === toolLabels.JupyterLab, () => ''], //TODO: Azure cost calculation
     [getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool), () => `${getComputeStatusForDisplay(currentRuntime.status)} ${Utils.formatUSD(getRuntimeCost(currentRuntime))}/hr`],
     [Utils.DEFAULT, () => {
       return ''
