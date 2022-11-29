@@ -521,4 +521,5 @@ export const runtimeStatuses = {
   error: { label: 'Error', leoLabel: 'Error', canChangeCompute: true }
 }
 
+export const getCreatorForRuntime = _.get(['auditInfo', 'creator'])
 
