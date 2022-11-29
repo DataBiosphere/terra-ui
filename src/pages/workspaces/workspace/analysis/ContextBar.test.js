@@ -3,6 +3,7 @@ import { act } from 'react-dom/test-utils'
 import { div, h } from 'react-hyperscript-helpers'
 import { MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
+import { defaultAzureMachineType, defaultAzureRegion } from 'src/libs/azure-utils'
 import * as Utils from 'src/libs/utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
@@ -224,9 +225,9 @@ const azureRunning = {
   proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
   runtimeConfig: {
     cloudService: 'AZURE_VM',
-    machineType: 'Standard_DS2_v2',
+    machineType: defaultAzureMachineType,
     persistentDiskId: 15778,
-    region: 'eastus',
+    region: defaultAzureRegion,
     runtimeName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
     status: 'Running',
     workspaceId: '2a77dcb5-882c-46b9-a3bc-5d251aff14d0'
