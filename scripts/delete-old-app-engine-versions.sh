@@ -90,10 +90,8 @@ filter_app_engine_versions() {
 check_remaining_items() {
     REMAIN_LIST_ITEMS=($(filter_app_engine_versions "version.createTime.date('%Y-%m-%d', Z)>'${DELETION_DATE}'"))
     REMAIN_LIST_COUNT="${#REMAIN_LIST_ITEMS[@]}"
-    if [ "${REMAIN_LIST_COUNT}" -lt 1 ]; then
-        abort "all deployments would be deleted"
-    elif [ "$REMAIN_LIST_COUNT" -lt 15 ]; then
-        abort "less than 15 deployments would remain"
+    if [ "$REMAIN_LIST_COUNT" -lt 5 ]; then
+        abort "less than 5 deployments would remain"
     fi
 }
 
@@ -147,7 +145,7 @@ check_user_permissions
 
 printf "${INFO} Selected project ${GRN}%s${RST}\n" "${NEW_PROJECT}"
 
-DELETION_TIME=$(jq -n 'now - (7 * 24 * 60 * 60)') # 7 days
+DELETION_TIME=$(jq -n 'now - (10 * 24 * 60 * 60)') # 10 days
 DELETION_DATE=$(unix_epoch_to_date "${DELETION_TIME}")
 if [ "$1" == "dev" ]; then
     set_dev_deletion_date
