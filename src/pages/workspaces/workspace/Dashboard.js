@@ -484,23 +484,11 @@ const WorkspaceDashboard = _.flow(
         ]),
         h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
         h(InfoRow, { title: 'Google Project ID' }, [
-          h(TooltipCell,
-          //h(Link,{
-          //    tooltip: 'Open in Google Cloud Console',
-          //    ...Utils.newTabLinkProps,
-          //   href: `https://console.cloud.google.com/welcome?project=${googleProject}`
-          //  },
-            [googleProject]
-          ),
+          h(TooltipCell, [googleProject]),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Bucket Name' }, [
           h(TooltipCell, [bucketName]),
-          //h(Link,{
-          //  tooltip: 'Open bucket in browser',
-          //  ...Utils.newTabLinkProps,
-          //  href: bucketBrowserUrl(bucketName)
-          //}, [bucketName]),
           h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
         ]),
         Utils.canWrite(accessLevel) && h(InfoRow, {
