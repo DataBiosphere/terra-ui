@@ -1,14 +1,15 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import {
-  appIdentifier, authOpts, checkRequesterPaysError, fetchAgora, fetchBillingProfileManager, fetchBond, fetchCatalog,
+  appIdentifier, authOpts, fetchAgora, fetchBond, fetchCatalog,
   fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody, withRetryOnError, withUrlPrefix
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
+import { Billing } from 'src/libs/ajax/Billing'
 import { Disks } from 'src/libs/ajax/Disks'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
@@ -18,7 +19,6 @@ import { WorkspaceData } from 'src/libs/ajax/WorkspaceDataService'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import { knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -38,21 +38,6 @@ window.ajaxOverrideUtils = {
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
 
-/**
- * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
- * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
- */
-const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
-  const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
-  const res = await fetchSam(
-    `api/google/v1/user/petServiceAccount/${googleProject}/token`,
-    _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
-  )
-  return res.json()
-}, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
-
-export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
-
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
   return res.json()
@@ -62,59 +47,6 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
-
-//TODO: this is a weird util method that calls an api... should be refactored so its not a circular utility
-export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
-  return canCompute || _.some(
-    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
-    await Ajax().Billing.listProjects()
-  )
-}
-
-/*
- * Detects errors due to requester pays buckets, and adds the current workspace's billing
- * project if the user has access, retrying the request once if necessary.
- */
-const withRequesterPays = wrappedFetch => (url, ...args) => {
-  const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const workspace = workspaceStore.get()
-
-  const getUserProject = async () => {
-    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
-      requesterPaysProjectStore.set(workspace.workspace.googleProject)
-    }
-    return requesterPaysProjectStore.get()
-  }
-
-  const tryRequest = async () => {
-    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
-    try {
-      const userProject = (knownRequesterPays && await getUserProject()) || undefined
-      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
-      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
-      return res
-    } catch (error) {
-      if (knownRequesterPays === false) {
-        throw error
-      } else {
-        const newResponse = await checkRequesterPaysError(error)
-        if (newResponse.requesterPaysError && !knownRequesterPays) {
-          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
-          if (await getUserProject()) {
-            return tryRequest()
-          }
-        }
-        throw newResponse
-      }
-    }
-  }
-  return tryRequest()
-}
-
-// requesterPaysError may be set on responses from requests to the GCS API that are wrapped in withRequesterPays.
-// requesterPaysError is true if the request requires a user project for billing the request to. Such errors
-// are not transient and the request should not be retried.
-export const fetchBuckets = _.flow(withRequesterPays, withRetryOnError(error => Boolean(error.requesterPaysError)), withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 
 const User = signal => ({
   getStatus: async () => {
@@ -442,124 +374,6 @@ const Groups = signal => ({
   }
 })
 
-const Billing = signal => ({
-  listProjects: async () => {
-    const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  getProject: async projectName => {
-    const route = `billing/v2/${projectName}`
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }))
-    return res.json()
-  },
-
-  listAccounts: async () => {
-    const res = await fetchRawls('user/billingAccounts?firecloudHasAccess=true', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  createGCPProject: async (projectName, billingAccount) => {
-    return await fetchRawls('billing/v2',
-      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }])
-    )
-  },
-
-  createAzureProject: async (projectName, tenantId, subscriptionId, managedResourceGroupId) => {
-    return await fetchRawls('billing/v2',
-      _.mergeAll([authOpts(), jsonBody(
-        { projectName, managedAppCoordinates: { tenantId, subscriptionId, managedResourceGroupId } }
-      ),
-      { signal, method: 'POST' }])
-    )
-  },
-
-  deleteProject: async projectName => {
-    const route = `billing/v2/${projectName}`
-    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'DELETE' }))
-    return res
-  },
-
-  changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
-      _.mergeAll([
-        authOpts(), { signal, method: 'PUT' },
-        jsonBody({ billingAccount: newBillingAccountName })
-      ]))
-    return res
-  },
-
-  removeBillingAccount: async ({ billingProjectName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
-      _.merge(authOpts(), { signal, method: 'DELETE' }))
-    return res
-  },
-
-  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
-    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
-      _.mergeAll([
-        authOpts(), { signal, method: 'PUT' },
-        jsonBody({ datasetGoogleProject, datasetName })
-      ]))
-    return res
-  },
-
-  /**
-   * Returns the spend report for the given billing project, from 12 AM on the startDate to 11:59 PM on the endDate (UTC). Spend details by
-   * Workspace are included.
-   *
-   * @param billingProjectName
-   * @param startDate, a string of the format YYYY-MM-DD, representing the start date of the report.
-   * @param endDate a string of the format YYYY-MM-DD, representing the end date of the report.
-   * @returns {Promise<*>}
-   */
-  getSpendReport: async ({ billingProjectName, startDate, endDate }) => {
-    const res = await fetchRawls(
-      `billing/v2/${billingProjectName}/spendReport?${qs.stringify({ startDate, endDate, aggregationKey: 'Workspace~Category' })}&${qs.stringify({ aggregationKey: 'Category' })}`,
-      _.merge(authOpts(), { signal })
-    )
-    return res.json()
-  },
-
-  listProjectUsers: async projectName => {
-    const res = await fetchRawls(`billing/v2/${projectName}/members`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  addProjectUser: (projectName, roles, email) => {
-    const addRole = role => fetchRawls(
-      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
-      _.merge(authOpts(), { signal, method: 'PUT' })
-    )
-
-    return Promise.all(_.map(addRole, roles))
-  },
-
-  removeProjectUser: (projectName, roles, email) => {
-    const removeRole = role => fetchRawls(
-      `billing/v2/${projectName}/members/${role}/${encodeURIComponent(email)}`,
-      _.merge(authOpts(), { signal, method: 'DELETE' })
-    )
-
-    return Promise.all(_.map(removeRole, roles))
-  },
-
-  changeUserRoles: async (projectName, email, oldRoles, newRoles) => {
-    const billing = Billing()
-    if (!_.isEqual(oldRoles, newRoles)) {
-      await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
-      return billing.removeProjectUser(projectName, _.difference(oldRoles, newRoles), email)
-    }
-  },
-
-  listAzureManagedApplications: async (subscriptionId, includeAssignedApplications) => {
-    const response = await fetchBillingProfileManager(
-      `azure/v1/managedApps?azureSubscriptionId=${subscriptionId}&includeAssignedApplications=${includeAssignedApplications}`,
-      _.merge(authOpts(), { signal }))
-    return response.json()
-  }
-})
-
 const attributesUpdateOps = _.flow(
   _.toPairs,
   _.flatMap(([k, v]) => {
@@ -633,23 +447,9 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
       },
 
-      checkBucketAccess: async (googleProject, bucket, accessLevel) => {
-        // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
-        if (!Utils.canWrite(accessLevel)) {
-          return false
-        }
+      checkBucketAccess: GoogleStorage(signal).checkBucketAccess,
 
-        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
-          _.merge(authOpts(await saToken(googleProject)), { signal }))
-        return res.json()
-      },
-
-      checkBucketLocation: async (googleProject, bucket) => {
-        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
-          _.merge(authOpts(await saToken(googleProject)), { signal }))
-
-        return res.json()
-      },
+      checkBucketLocation: GoogleStorage(signal).checkBucketLocation,
 
       details: async fields => {
         const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
@@ -1031,7 +831,7 @@ const Catalog = signal => ({
     return res.json()
   },
   exportDataset: async ({ id, workspaceId }) => {
-    return await fetchCatalog(`v1/datasets/${id}/export/${workspaceId}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return await fetchCatalog(`v1/datasets/${id}/export`, _.mergeAll([authOpts(), jsonBody({ workspaceId }), { signal, method: 'POST' }]))
   }
 })
 
@@ -1155,11 +955,6 @@ const Methods = signal => ({
 const Submissions = signal => ({
   queueStatus: async () => {
     const res = await fetchRawls('submissions/queueStatus', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-
-  cromwellVersion: async () => {
-    const res = await fetchOk(`${getConfig().rawlsUrlRoot}/version/executionEngine`, { signal })
     return res.json()
   }
 })

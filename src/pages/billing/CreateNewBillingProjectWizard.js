@@ -273,7 +273,7 @@ const CreateNewBillingProjectWizard = ({ onSuccess, billingAccounts, authorizeAn
               display: 'flex', alignItems: 'flex-start',
               margin: '1rem 1rem 0', padding: '1rem',
               border: `1px solid ${colors.warning()}`, borderRadius: '5px',
-              backgroundColor: colors.warning(0.15), maxWidth: '45%'
+              backgroundColor: colors.warning(0.10), maxWidth: '45%'
             },
             role: 'alert'
           }, [

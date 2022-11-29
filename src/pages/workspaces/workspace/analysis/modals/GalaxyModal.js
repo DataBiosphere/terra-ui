@@ -15,12 +15,12 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   computeStyles, findMachineType, getCurrentApp, getCurrentAppDataDisk, getCurrentAttachedDataDisk, getGalaxyComputeCost, getGalaxyDiskCost,
   pdTypes, RadioBlock
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const defaultDataDisk = { size: 500, diskType: pdTypes.standard }
@@ -269,7 +269,7 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
     }
 
     const renderComputeProfileSection = () => {
-      const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '2rem', alignItems: 'center' }
+      const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(6, auto)', gridGap: '0.75rem', alignItems: 'center', justifyContent: 'flex-start' }
       return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: computeStyles.headerText }, ['Cloud compute profile']),
         div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
@@ -454,11 +454,14 @@ export const GalaxyModalBase = withDisplayName('GalaxyModal')(
 
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
+
+  const gridItemInputStyle = { minWidth: '6rem' }
+
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: computeStyles.label }, ['Nodes']),
-        div([
+        div({ style: gridItemInputStyle }, [
           h(NumberInput, {
             id,
             min: 1,
@@ -474,7 +477,7 @@ const MachineSelector = ({ value, onChange }) => {
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: computeStyles.label }, ['CPUs']),
-        div([
+        div({ style: gridItemInputStyle }, [
           h(Select, {
             id,
             isSearchable: false,
@@ -491,7 +494,7 @@ const MachineSelector = ({ value, onChange }) => {
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: computeStyles.label }, ['Memory (GB)']),
-        div([
+        div({ style: gridItemInputStyle }, [
           h(Select, {
             id,
             isSearchable: false,

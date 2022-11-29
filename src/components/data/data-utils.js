@@ -19,13 +19,15 @@ import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
-import { Ajax, canUseWorkspaceProject } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
+import { canUseWorkspaceProject } from 'src/libs/ajax/Billing'
+import { defaultAzureRegion, getRegionLabel } from 'src/libs/azure-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -302,7 +304,7 @@ export const notifyDataImportProgress = jobId => {
   })
 }
 
-export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes }) => {
+export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes, workspaceId, dataProvider, isGoogleWorkspace }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
   const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
@@ -311,26 +313,20 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
   const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [deleteEmptyValues, setDeleteEmptyValues] = useState(false)
+  const [recordType, setRecordType] = useState(undefined)
+  const [recordTypeInputTouched, setRecordTypeInputTouched] = useState(false)
+
+  // TODO: https://broadworkbench.atlassian.net/browse/WOR-614
+  // This value is mostly hard-coded for now for Azure public preview. Once WOR-614 is complete, this value can be dynamically updated
+  const regionLabelToDisplay = isGoogleWorkspace ? 'US' : getRegionLabel(defaultAzureRegion)
 
   const doUpload = async () => {
     setUploading(true)
     try {
-      const workspace = Ajax().Workspaces.workspace(namespace, name)
-      if (useFireCloudDataModel) {
-        await workspace.importEntitiesFile(file, { deleteEmptyValues })
-      } else {
-        const filesize = file?.size || Number.MAX_SAFE_INTEGER
-        if (filesize < 524288) { // 512k
-          await workspace.importFlexibleEntitiesFileSynchronous(file, { deleteEmptyValues })
-        } else {
-          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file, { deleteEmptyValues })
-          asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-          notifyDataImportProgress(jobId)
-        }
-      }
+      await dataProvider.uploadTsv({ workspaceId, recordType, file, useFireCloudDataModel, deleteEmptyValues, namespace, name })
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
-        workspaceNamespace: namespace, workspaceName: name
+        workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
       })
     } catch (error) {
       await reportError('Error uploading entities', error)
@@ -338,9 +334,22 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   }
 
+  const recordTypeNameErrors = validate.single(recordType, {
+    presence: {
+      allowEmpty: false,
+      message: 'Table name is required'
+    },
+    format: {
+      pattern: '^(?!sys_)[a-z0-9_.-]*',
+      flags: 'i',
+      message: 'Table name may only contain alphanumeric characters, underscores, dashes, and periods and cannot start with \'sys_\'.'
+    }
+  })
+
   const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-  const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
+  const isInvalid = dataProvider.tsvFeatures.isInvalid({ fileImportModeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file, sysNamePresent: fileContents.split('\n')[0].match(/sys_name/) }) //only look at the first line
   const newEntityType = match?.[1]
+  const entityTypeAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
   const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
   const containsNullValues = fileContents.match(/^\t|\t\t+|\t$|\n\n+/gm)
 
@@ -360,18 +369,34 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         title: 'Import Table Data',
         width: '35rem',
         okButton: h(ButtonPrimary, {
-          disabled: !currentFile || isInvalid || uploading,
-          tooltip: !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
+          disabled: dataProvider.tsvFeatures.disabled({ filePresent: currentFile, isInvalid, uploading, recordTypePresent: recordType }),
+          tooltip: dataProvider.tsvFeatures.tooltip({ filePresent: currentFile, isInvalid, recordTypePresent: recordType }),
           onClick: doUpload
         }, ['Start Import Job'])
       }, [
-        div({ style: { padding: '0 0 1rem' } },
+        div(
           ['Choose the data import option below. ',
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
-            p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
+            p(['Data will be saved in location: 🇺🇸  ', span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay), ' (Terra-managed).'])]),
+        dataProvider.tsvFeatures.needsTypeInput && h(Fragment, [
+          h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
+          h(ValidatedInput, {
+            inputProps: {
+              id: 'add-table-name',
+              autoFocus: true,
+              placeholder: 'Enter a table name',
+              value: recordType,
+              onChange: value => {
+                setRecordType(value)
+                setRecordTypeInputTouched(true)
+              }
+            },
+            error: recordTypeInputTouched && Utils.summarizeErrors(recordTypeNameErrors)
+          })
+        ]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: 'file', width: 127 }, { title: 'Text Import', key: 'text', width: 127 }],
@@ -438,14 +463,14 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             }
           })
         ]),
-        currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
+        ((currentFile && entityTypeAlreadyExists) || _.includes(recordType, entityTypes)) && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-          `Data with the type '${newEntityType}' already exists in this workspace. `,
+          `Data with the type '${recordType ? recordType : newEntityType}' already exists in this workspace. `,
           'Uploading more data for the same type may overwrite some entries.'
         ]),
-        currentFile && containsNullValues && _.includes(_.toLower(newEntityType), entityTypes) && div({
+        currentFile && containsNullValues && entityTypeAlreadyExists && div({
           style: { ...warningBoxStyle, margin: '1rem 0 0.5rem' }
         }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
@@ -485,7 +510,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
         ]),
         div({ style: errorTextStyle }, [
           Utils.cond(
-            [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
+            [isInvalid, () => dataProvider.tsvFeatures.invalidFormatWarning],
             [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
           )
         ]),
@@ -495,10 +520,10 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             icon('downloadRegular', { style: { size: 14, marginRight: '0.5rem' } }),
             'Download ',
             h(Link, {
-              href: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
+              href: dataProvider.tsvFeatures.sampleTSVLink,
               ...Utils.newTabLinkProps,
               onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
-                workspaceNamespace: namespace, workspaceName: name
+                workspaceNamespace: namespace, workspaceName: name, providerName: dataProvider.providerName
               })
             }, ['sample_template.tsv '])
           ]),
@@ -741,10 +766,10 @@ export const MultipleEntityEditor = ({ entityType, entities, attributeNames, ent
         div({ style: { display: 'flex', flexDirection: 'column', marginBottom: '1rem' } }, [
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
+              label({ id, style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Select a column to edit'),
               div({ style: { position: 'relative', display: 'flex', alignItems: 'center' } }, [
                 h(AutocompleteTextInput, {
-                  id,
+                  labelId: id,
                   value: attributeToEdit,
                   suggestions: attributeNames,
                   placeholder: 'Column name',

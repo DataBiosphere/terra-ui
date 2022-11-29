@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import pluralize from 'pluralize'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { div, em, h, h2, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedAutoCompleteInput, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -12,7 +12,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import * as StateHistory from 'src/libs/state-history'
 
 
 export const commonStyles = {
@@ -101,7 +100,9 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
           fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 5, borderRadius: '50%', minWidth: 20,
           background: filteredBy === String.fromCharCode(index) ? colors.accent(0.3) : 'transparent'
         },
-        'aria-label': filteredBy === String.fromCharCode(index) ? `Filtering by ${String.fromCharCode(index)}` : `Filter option: ${String.fromCharCode(index)}`,
+        'aria-label': filteredBy === String.fromCharCode(index) ?
+          `Filtering by ${String.fromCharCode(index)}` :
+          `Filter option: ${String.fromCharCode(index)}`,
         onClick: () => {
           const charFromCode = String.fromCharCode(index)
           setFilteredBy(charFromCode)
@@ -121,7 +122,8 @@ const FilterBar = ({ name, onClear, onFilterByLetter, onFilterBySearchText, onSo
         ])
       ])
     ]),
-    filterType === filterOptions.alpha && filteredBy && div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
+    filterType === filterOptions.alpha && filteredBy &&
+    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', marginTop: 5 } }, [
       h(Link, {
         style: { fontSize: '1rem' },
         onClick: () => {
@@ -163,22 +165,26 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
     _.fromPairs
   )(labels))
   const labelsByFirstChar = _.groupBy(label => _.capitalize(label)[0], labels)
-  const [filterChanges, setFilterChanges] = useState({})
+  const [filterChanges, setFilterChanges] = useState([])
   const [filteredLabels, setFilteredLabels] = useState(labels)
 
   return h(Modal, {
     title: div({ style: { fontSize: '1.325rem', fontWeight: 700 } }, [`Filter by: "${name}"`]),
     width: '100%',
     showButtons: true,
-    okButton: 'Apply Filters',
     styles: {
       modal: { maxWidth: 900, padding: 30 },
       buttonRow: { width: '100%', borderTop: `6px solid ${colors.dark(0.1)}`, paddingTop: 20 }
     },
     onDismiss: () => {
       setShowAll(false)
-      _.forEach(onTagFilter, filterChanges)
-    }
+    },
+    okButton: h(ButtonPrimary, {
+      onClick: () => {
+        setShowAll(false)
+        onTagFilter({ section: name, tags: filterChanges })
+      }
+    }, 'Apply Filters')
   }, [
     h(FilterBar, {
       name,
@@ -197,16 +203,15 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
       div({
         style: {
           display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
-          fontSize: '1rem', textTransform: 'capitalize', marginTop: 20
+          fontSize: '1rem', marginTop: 20
         }
       }, _.map(label => {
         const lowerTag = _.toLower(label)
-        const escapedTag = lowerTag.replace(/\./g, '-')
         return div({ className: 'label', style: { width: '25%', margin: '0 15px 10px 30px', position: 'relative', minHeight: 30 } }, [
           h(LabeledCheckbox, {
-            checked: !!filterChanges[escapedTag] ^ _.includes(lowerTag, lowerSelectedTags),
+            checked: !!_.includes(lowerTag, filterChanges) ^ _.includes(lowerTag, lowerSelectedTags),
             onChange: () => {
-              setFilterChanges(prevFilter => prevFilter[escapedTag] ? _.omit(escapedTag, prevFilter) : _.set(escapedTag, { lowerTag, label, section: name }, prevFilter))
+              setFilterChanges(_.xor([lowerTag]))
             },
             style: { position: 'absolute', left: -25, top: 2 }
           }, [
@@ -224,11 +229,9 @@ const FilterModal = ({ name, labels, setShowAll, onTagFilter, listDataByTag, low
 const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer, listDataByTag, filteredData }) => {
   // State
   const [showAll, setShowAll] = useState(false)
-  const labelsToDisplay = computeLabels(labels, _.flatMap(_.map('label'), selectedTags))
-  const lowerSelectedTags = _.flow(
-    _.get(name),
-    _.map('lowerTag')
-  )(selectedTags)
+  const lowerSelectedTags = _.get(name, selectedTags)
+  const selectedLabels = _.filter(label => _.includes(_.toLower(label), lowerSelectedTags), labels)
+  const labelsToDisplay = computeLabels(labels, selectedLabels)
 
   //Render
   return h(Fragment, [
@@ -244,10 +247,10 @@ const FilterSection = ({ name, onTagFilter, labels, selectedTags, labelRenderer,
           display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
           paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
         },
-        onClick: () => onTagFilter({ lowerTag, label, section: name })
+        onClick: () => onTagFilter({ section: name, tags: [lowerTag] })
       }, [
         div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelRenderer ? labelRenderer(label) : label)]),
-        div({ 'aria-label': `${numMatches} matches`, style: styles.pill(isChecked) }, [numMatches])
+        div({ style: styles.pill(isChecked) }, [numMatches, div({ className: 'sr-only' }, [' matches'])])
       ])
     }, labelsToDisplay),
     _.size(labels) > numLabelsToRender && h(Link, {
@@ -326,7 +329,7 @@ export const SearchAndFilterComponent = ({
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || {})
+  const selectedTags = useMemo(() => qs.parse(query.selectedTags) || {}, [query])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${_.escapeRegExp(searchFilter)})`, 'i')
 
@@ -369,7 +372,7 @@ export const SearchAndFilterComponent = ({
       } else {
         const selectedDataByTag = _.map(
           _.flow(
-            _.flatMap(({ lowerTag }) => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
+            _.flatMap(lowerTag => _.intersectionBy(idField, listData, listDataByTag[lowerTag])),
             _.uniqBy(idField)
           ), tags
         )
@@ -404,27 +407,28 @@ export const SearchAndFilterComponent = ({
     }
   }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
 
-
-  const onSearchChange = filter => {
+  const navigateToFilterAndSelection = ({ filter = searchFilter, tags = selectedTags } = {}) => {
     const newSearch = qs.stringify({
       ...query,
-      filter: filter || undefined
+      filter: filter || undefined,
+      selectedTags: tags || undefined
     }, { addQueryPrefix: true })
-
-    if (filter) {
-      // This method is already debounced, but we need to further debounce the event logging to
-      // prevent getting all the intermediate filter strings in the event logs.
-      debounceSearchEvent(filter)
-    }
 
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
   }
 
-  useEffect(() => {
-    StateHistory.update({ selectedTags })
-  }, [selectedTags])
+
+  const onSearchChange = filter => {
+    if (filter) {
+      // This method is already debounced, but we need to further debounce the event logging to
+      // prevent getting all the intermediate filter strings in the event logs.
+      debounceSearchEvent(filter)
+    }
+
+    navigateToFilterAndSelection({ filter })
+  }
 
   return h(Fragment, [
     div({
@@ -440,44 +444,50 @@ export const SearchAndFilterComponent = ({
     }, [
       h2({ style: { ...styles.sidebarRow } }, [
         div({ style: styles.header }, [searchType]),
-        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status', 'aria-label': `${_.size(filteredData.data)} Results found` }, [_.size(filteredData.data)])
+        div({
+          style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)), role: 'status',
+          'aria-label': `${_.size(filteredData.data)} Results found`
+        }, [_.size(filteredData.data)])
       ]),
       div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
         div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
         h(Link, {
           onClick: () => {
             setSelectedSections([])
-            setSelectedTags({})
+            navigateToFilterAndSelection({ tags: {} })
           }
         }, ['clear'])
       ]),
       div({ style: { display: 'flex', alignItems: 'center' } }, [
-        h(DelayedAutoCompleteInput, {
-          style: { borderRadius: 25, flex: '1 1 0' },
-          inputIcon: 'search',
-          openOnFocus: true,
-          value: searchFilter,
-          'aria-label': `Search ${searchType}`,
-          placeholder: 'Search Name or Description',
-          itemToString: v => v[titleField],
-          onChange: onSearchChange,
-          suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
-          renderSuggestion: suggestion => {
-            return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
-              _.flow(
-                _.split(filterRegex),
-                _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-                maybeMatch => {
-                  return _.size(maybeMatch) < 2 ? [
-                    _.truncate({ length: 90 }, _.head(maybeMatch)),
-                    div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
-                  ] : maybeMatch
-                }
-              )(suggestion[titleField])
-            )
-          },
-          suggestions: filteredData.data
-        }),
+        h(IdContainer, [id => h(Fragment, [
+          h(div, { id, className: 'sr-only' }, `Search ${searchType}`),
+          h(DelayedAutoCompleteInput, {
+            style: { borderRadius: 25, flex: '1 1 0' },
+            inputIcon: 'search',
+            openOnFocus: true,
+            value: searchFilter,
+            labelId: id,
+            placeholder: 'Search Name or Description',
+            itemToString: v => v[titleField],
+            onChange: onSearchChange,
+            suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
+            renderSuggestion: suggestion => {
+              return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
+                _.flow(
+                  _.split(filterRegex),
+                  _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
+                  maybeMatch => {
+                    return _.size(maybeMatch) < 2 ? [
+                      _.truncate({ length: 90 }, _.head(maybeMatch)),
+                      div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion[descField])])
+                    ] : maybeMatch
+                  }
+                )(suggestion[titleField])
+              )
+            },
+            suggestions: filteredData.data
+          })
+        ])]),
         !customSort && h(IdContainer, [id => h(Fragment, [
           label({
             htmlFor: id,
@@ -503,12 +513,11 @@ export const SearchAndFilterComponent = ({
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: ({ section, lowerTag, label }) => {
-            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag: lowerTag })
-            setSelectedTags(oldSelectedTags => {
-              const newTags = _.xorBy('lowerTag', [{ lowerTag, label, section }], oldSelectedTags[section])
-              return newTags.length > 0 ? _.set(section, newTags, oldSelectedTags) : _.omit(section, oldSelectedTags)
-            })
+          onTagFilter: ({ section, tags }) => {
+            _.forEach(tag => Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag }), tags)
+            const newTags = _.xor(tags, selectedTags[section])
+            const newSelectedTags = newTags.length > 0 ? _.set(section, newTags, selectedTags) : _.omit(section, selectedTags)
+            navigateToFilterAndSelection({ tags: newSelectedTags })
           },
           sections,
           selectedSections,
@@ -519,7 +528,7 @@ export const SearchAndFilterComponent = ({
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
         _.isEmpty(filteredData.data) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          children({ filteredList: filteredData.data, sections, selectedTags, setSelectedTags })
+          children({ filteredList: filteredData.data, sections })
       ])
     ])
   ])

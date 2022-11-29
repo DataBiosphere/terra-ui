@@ -13,9 +13,12 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+
+
+export { getUser }
 
 
 export const getOidcConfig = () => {
@@ -39,6 +42,8 @@ export const getOidcConfig = () => {
     stateStore: new WebStorageStateStore({ store: getLocalStorage() }),
     userStore: new WebStorageStateStore({ store: getLocalStorage() }),
     automaticSilentRenew: true,
+    // Leo's setCookie interval is currently 5 min, set refresh auth then 5 min 30 seconds to gurantee that setCookie's token won't expire between 2 setCookie api calls
+    accessTokenExpiringNotificationTimeInSeconds: 330,
     includeIdTokenInSilentRenew: true,
     extraQueryParams: { access_type: 'offline' }
   }
@@ -167,10 +172,6 @@ export const ensureAuthSettled = () => {
       }
     })
   })
-}
-
-export const getUser = () => {
-  return authStore.get().user
 }
 
 export const bucketBrowserUrl = id => {

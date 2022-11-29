@@ -2,14 +2,16 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension, tools } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
+import { getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
 
 export const AzureStorage = signal => ({
   sasToken: async (workspaceId, containerId) => {
-    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken`,
+    // sas token expires after 8 hours
+    const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
       _.merge(authOpts(), { signal, method: 'POST' }))
 
     return tokenResponse.json()
@@ -20,29 +22,18 @@ export const AzureStorage = signal => ({
       _.merge(authOpts(), { signal })
     )
     const data = await res.json()
-    const storageAccount = _.find({ metadata: { resourceType: 'AZURE_STORAGE_ACCOUNT' } }, data.resources)
+    const container = _.find(
+      {
+        metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } }
+      },
+      data.resources
+    )
+    const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
 
-    if (storageAccount === undefined) { // Internal users may have early workspaces with no storage account.
-      return {
-        location: undefined,
-        storageContainerName: undefined,
-        sas: { url: undefined, token: undefined }
-      }
-    } else {
-      const container = _.find(
-        {
-          metadata: { resourceType: 'AZURE_STORAGE_CONTAINER', controlledResourceMetadata: { accessScope: 'SHARED_ACCESS' } },
-          resourceAttributes: { azureStorageContainer: { storageAccountId: storageAccount.metadata.resourceId } }
-        },
-        data.resources
-      )
-      const sas = await AzureStorage(signal).sasToken(workspaceId, container.metadata.resourceId)
-
-      return {
-        location: storageAccount.resourceAttributes.azureStorage.region,
-        storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
-        sas
-      }
+    return {
+      location: 'Unknown', // depends on TOAZ-265
+      storageContainerName: container.resourceAttributes.azureStorageContainer.storageContainerName,
+      sas
     }
   },
 

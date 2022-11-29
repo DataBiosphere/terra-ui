@@ -3,16 +3,15 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
-import RSelect, { components as RSelectComponents } from 'react-select'
-import RAsyncCreatableSelect from 'react-select/async-creatable'
-import RSwitch from 'react-switch'
+import { b, div, h, h1, img, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common/buttons'
 import Clickable from 'src/components/common/Clickable'
+import { IdContainer } from 'src/components/common/IdContainer'
 import Link from 'src/components/common/Link'
+import { spinnerOverlay } from 'src/components/common/spinners'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
@@ -20,267 +19,25 @@ import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
-import colors, { terraSpecial } from 'src/libs/colors'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { forwardRefWithName, useCancellation, useLabelAssert, useOnMount, useUniqueId } from 'src/libs/react-utils'
+import { useOnMount } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
+export * from 'src/components/common/buttons'
+export * from 'src/components/common/Checkbox'
+export * from 'src/components/common/IdContainer'
+export * from 'src/components/common/RadioButton'
+export * from 'src/components/common/Select'
+export * from 'src/components/common/spinners'
+export * from 'src/components/common/Switch'
 export { Clickable, Link }
 
-const styles = {
-  button: {
-    display: 'inline-flex', justifyContent: 'space-around', alignItems: 'center', height: '2.25rem',
-    fontWeight: 500, fontSize: 14, textTransform: 'uppercase', whiteSpace: 'nowrap',
-    userSelect: 'none'
-  },
-  tabBar: {
-    container: {
-      display: 'flex', alignItems: 'center',
-      fontWeight: 400, textTransform: 'uppercase',
-      height: '2.25rem',
-      borderBottom: `1px solid ${terraSpecial()}`, flex: ''
-    },
-    tab: {
-      flex: 'none', padding: '0 1em', height: '100%',
-      alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
-      borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
-    },
-    active: {
-      borderBottomColor: terraSpecial(),
-      fontWeight: 600
-    }
-  }
-}
-
-export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
-      borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) }
-  }, props), [children])
-}
-
-export const ButtonSecondary = ({ disabled, children, ...props }) => {
-  return h(Clickable, _.merge({
-    disabled,
-    style: {
-      ...styles.button,
-      color: disabled ? colors.dark(0.7) : colors.accent(),
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: disabled ? undefined : { color: colors.accent(0.8) }
-  }, props), [children])
-}
-
-export const ButtonOutline = ({ disabled, children, ...props }) => {
-  return h(ButtonPrimary, _.merge({
-    disabled,
-    style: {
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent()}`,
-      color: colors.accent(),
-      backgroundColor: disabled ? colors.dark(0.25) : 'white'
-    },
-    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
-  }, props), [children])
-}
-
-export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
-  useLabelAssert('Checkbox', { ...props, allowId: true })
-  return h(Interactive, _.merge({
-    as: 'span',
-    className: 'fa-layers fa-fw',
-    role: 'checkbox',
-    'aria-checked': checked,
-    onClick: () => !disabled && onChange?.(!checked),
-    style: { verticalAlign: 'middle' },
-    disabled
-  }, props), [
-    icon('squareSolid', { style: { color: Utils.cond([disabled, () => colors.light(1.2)], [checked, () => colors.accent()], () => 'white') } }), // bg
-    !disabled && icon('squareLight', { style: { color: checked ? colors.accent(1.2) : colors.dark(0.75) } }), // border
-    checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }) // check
-  ])
-}
-
-export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...props }) => {
-  return h(IdContainer, [id => h(Fragment, [
-    h(Checkbox, { checked, onChange, disabled, 'aria-labelledby': id, ...props }),
-    span({
-      id,
-      style: {
-        verticalAlign: 'middle',
-        color: disabled ? colors.dark(0.8) : undefined,
-        cursor: disabled ? 'default' : 'pointer'
-      },
-      onClick: () => !disabled && onChange?.(!checked),
-      disabled
-    }, [children])
-  ])])
-}
-
-export const RadioButton = ({ text, name, labelStyle, ...props }) => {
-  return h(IdContainer, [id => h(Fragment, [
-    input({
-      type: 'radio', id,
-      name,
-      ...props
-    }),
-    text && label({ htmlFor: id, style: labelStyle }, [text])
-  ])])
-}
-
-const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
-  {
-    style: {
-      position: 'absolute',
-      display: 'flex', alignItems: 'center',
-      top: 0, right: 0, bottom: 0, left: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.1)',
-      zIndex: 9999, // make sure it's on top of any third party components with z-indicies
-      ...outerStyles
-    }
-  }, [
-    centeredSpinner({
-      size: 64,
-      style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem', ...innerStyles }
-    })
-  ]
-)
-
-export const spinnerOverlay = makeBaseSpinner({})
-
-export const absoluteSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'absolute' } })
-
-export const fixedSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'fixed' } })
-
-export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
-
-export const topSpinnerOverlay = makeBaseSpinner({ innerStyles: { marginTop: 150 } })
-
-const commonSelectProps = {
-  theme: base => _.merge(base, {
-    colors: {
-      primary: colors.accent(),
-      neutral20: colors.dark(0.55),
-      neutral30: colors.dark(0.55)
-    },
-    spacing: { controlHeight: 36 }
-  }),
-  styles: {
-    control: (base, { isDisabled }) => _.merge(base, {
-      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
-      boxShadow: 'none'
-    }),
-    singleValue: base => ({ ...base, color: colors.dark() }),
-    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-      fontWeight: isSelected ? 600 : undefined,
-      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
-      color: isDisabled ? undefined : colors.dark(),
-      ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
-    }),
-    clearIndicator: base => ({ ...base, paddingRight: 0 }),
-    indicatorSeparator: () => ({ display: 'none' }),
-    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
-    multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
-    placeholder: base => ({ ...base, color: colors.dark(0.8) })
-  },
-  components: {
-    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
-      selectProps,
-      innerProps: {
-        role: 'option',
-        'aria-selected': props.isSelected
-      }
-    }), [
-      div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
-        div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
-        props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
-      ])
-    ]),
-    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
-      selectProps,
-      innerProps: {
-        role: 'listbox',
-        'aria-label': 'Options',
-        'aria-multiselectable': selectProps.isMulti
-      }
-    }), [children])
-  }
-}
-
-const formatGroupLabel = group => (
-  div({
-    style: {
-      color: colors.dark(),
-      fontSize: 14,
-      height: 30,
-      fontWeight: 600,
-      borderBottom: `1px solid ${colors.dark(0.25)}`
-    }
-  }, [group.label]))
-
-const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
-  const myId = useUniqueId()
-  const inputId = id || myId
-
-  return h(RSelect, _.merge({
-    inputId,
-    ...commonSelectProps,
-    getOptionLabel: ({ value, label }) => label || value.toString(),
-    value: newValue || null, // need null instead of undefined to clear the select
-    options: newOptions,
-    formatGroupLabel
-  }, props))
-}
-
-/**
- * @param {Object} props - see {@link https://react-select.com/props#select-props}
- * @param props.value - a member of options
- * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
- * @param props.id - The HTML ID to give the form element
- */
-export const Select = ({ value, options, ...props }) => {
-  useLabelAssert('Select', { ...props, allowId: true })
-
-  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
-
-  return h(BaseSelect, { value, newOptions, findValue, ...props })
-}
-
-/**
- * @param {Object} props - see {@link https://react-select.com/props#select-props}
- * @param props.value - a member of an inner options object
- * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
- * @param props.id - The HTML ID to give the form element
- */
-export const GroupedSelect = ({ value, options, ...props }) => {
-  useLabelAssert('GroupedSelect', { ...props, allowId: true })
-
-  const flattenedOptions = _.flatMap('options', options)
-  const findValue = target => _.find({ value: target }, flattenedOptions)
-
-  return h(BaseSelect, { value, newOptions: options, findValue, ...props })
-}
-
-export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, {
-    ...commonSelectProps,
-    ...props
-  })
-}
 
 export const PageBoxVariants = {
   LIGHT: 'light'
@@ -371,11 +128,6 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
   ])
 }
 
-export const IdContainer = ({ children }) => {
-  const [id] = useState(() => _.uniqueId('element-'))
-  return children(id)
-}
-
 export const FocusTrapper = ({ children, onBreakout, ...props }) => {
   return h(FocusLock, {
     returnFocus: true,
@@ -391,58 +143,6 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
     }, props)
   }, [children])
 }
-
-export const CromwellVersionLink = props => {
-  const [version, setVersion] = useState()
-  const signal = useCancellation()
-
-  useOnMount(() => {
-    const setCromwellVersion = async () => {
-      const { cromwell } = await Ajax(signal).Submissions.cromwellVersion()
-
-      setVersion(cromwell.split('-')[0])
-    }
-
-    setCromwellVersion()
-  })
-
-  return version ?
-    h(Link, {
-      href: `https://github.com/broadinstitute/cromwell/releases/tag/${version}`,
-      ...Utils.newTabLinkProps,
-      ...props
-    }, ['Cromwell ', version, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) :
-    'Cromwell version loading...'
-}
-
-const SwitchLabel = ({ isOn, onLabel, offLabel }) => div({
-  style: {
-    display: 'flex', justifyContent: isOn ? 'flex-start' : 'flex-end',
-    fontSize: 15, fontWeight: 'bold', color: 'white',
-    height: '100%', lineHeight: '28px',
-    ...(isOn ? { marginLeft: '0.75rem' } : { marginRight: '0.5rem' })
-  }
-}, [isOn ? onLabel : offLabel])
-
-export const Switch = forwardRefWithName('Switch', ({ onChange, onLabel = 'True', offLabel = 'False', ...props }, ref) => {
-  return h(RSwitch, {
-    onChange: value => onChange(value),
-    offColor: colors.dark(0.5),
-    onColor: colors.success(1.2),
-    checkedIcon: h(SwitchLabel, { isOn: true, onLabel, offLabel }),
-    uncheckedIcon: h(SwitchLabel, { isOn: false, onLabel, offLabel }),
-    width: 80,
-    ...props,
-    ref: rSwitch => {
-      const inputEl = rSwitch ? rSwitch.$inputRef : null
-      if (_.has('current', ref)) {
-        ref.current = inputEl
-      } else if (_.isFunction(ref)) {
-        ref(inputEl)
-      }
-    }
-  })
-})
 
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, showDocLink = false, children }) => {
   const brand = getEnabledBrand()
