@@ -155,10 +155,7 @@ export const fetchDataRepo = _.flow(
   withRetryAfterReloadingExpiredAuthToken
 )(fetchOk)
 
-export const fetchDockstore = _.flow(
-  withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`),
-  withRetryAfterReloadingExpiredAuthToken
-)(fetchOk)
+export const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 
 export const fetchAgora = _.flow(
   withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`),
