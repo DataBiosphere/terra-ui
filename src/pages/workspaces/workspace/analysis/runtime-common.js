@@ -144,7 +144,6 @@ export const SaveFilesHelpRStudio = () => {
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])
     ]),
-    p(['Note: RStudio files are not autosaved to the workspace bucket (unlike Jupyter *.ipynb files). Autosaving *.Rmd files will be supported soon. Stay tuned!'])
   ])
 }
 
