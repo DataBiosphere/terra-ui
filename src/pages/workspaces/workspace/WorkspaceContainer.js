@@ -103,14 +103,14 @@ const WorkspaceTabs = ({
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ]),
-    // (!!workspace && isAzureWorkspace) ?
-    h(TitleBar, {
-      title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
-        icon('warning-standard', { size: 32, style: { color: colors.light(), marginRight: '0.5rem' } }),
-        span({ style: { color: colors.light() } }, ['Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. Please do not import or use any federally protected data in Azure workspaces.'])
-      ]), style: { backgroundColor: colors.danger() }
-    })
-    // : []
+    (!!workspace && isAzureWorkspace) ?
+      h(TitleBar, {
+        title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+          icon('warning-standard', { size: 32, style: { color: colors.light(), marginRight: '0.5rem' } }),
+          span({ style: { color: colors.light() } }, ['Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. Please do not import or use any federally protected data in Azure workspaces.'])
+        ]), style: { backgroundColor: colors.danger() }
+      }) :
+      []
   ])
 }
 
