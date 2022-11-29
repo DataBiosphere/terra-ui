@@ -5,12 +5,12 @@ import { appIdentifier, authOpts, fetchLeo, jsonBody } from 'src/libs/ajax/ajax-
 
 export const Apps = signal => ({
   list: async (project, labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
+    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
-  listWithoutProject: async labels => {
-    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify(labels)}`,
+  listWithoutProject: async (labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
