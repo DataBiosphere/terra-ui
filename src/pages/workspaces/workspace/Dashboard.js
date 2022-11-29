@@ -451,11 +451,23 @@ const WorkspaceDashboard = _.flow(
         ]),
         h(InfoRow, { title: 'Location' }, [h(BucketLocation, { workspace })]),
         h(InfoRow, { title: 'Google Project ID' }, [
-          h(TooltipCell, [googleProject]),
+          h(TooltipCell,
+          //h(Link,{
+          //    tooltip: 'Open in Google Cloud Console',
+          //    ...Utils.newTabLinkProps,
+          //   href: `https://console.cloud.google.com/welcome?project=${googleProject}`
+          //  },
+            [googleProject]
+          ),
           h(ClipboardButton, { 'aria-label': 'Copy google project id to clipboard', text: googleProject, style: { marginLeft: '0.25rem' } })
         ]),
         h(InfoRow, { title: 'Bucket Name' }, [
           h(TooltipCell, [bucketName]),
+          //h(Link,{
+          //  tooltip: 'Open bucket in browser',
+          //  ...Utils.newTabLinkProps,
+          //  href: bucketBrowserUrl(bucketName)
+          //}, [bucketName]),
           h(ClipboardButton, { 'aria-label': 'Copy bucket name to clipboard', text: bucketName, style: { marginLeft: '0.25rem' } })
         ]),
         Utils.canWrite(accessLevel) && h(InfoRow, {
@@ -503,6 +515,12 @@ const WorkspaceDashboard = _.flow(
         ...Utils.newTabLinkProps,
         href: bucketBrowserUrl(bucketName)
       }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+      )]),
+      !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+        style: { margin: '1rem 0.5rem' },
+        ...Utils.newTabLinkProps,
+        href: `https://console.cloud.google.com/welcome?project=${googleProject}`
+      }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
       )]),
       !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
         div(['Use SAS URL in conjunction with ',
