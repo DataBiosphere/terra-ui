@@ -30,7 +30,7 @@ import {
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { getToolFromRuntime, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getToolFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const DeleteRuntimeModal = ({
@@ -120,7 +120,7 @@ const DeleteAppModal = ({ app: { appName, diskName, appType, cloudContext: { clo
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      appType === tools.Galaxy.appType && h(SaveFilesHelpGalaxy)
+      appType === appTools.Galaxy.appType && h(SaveFilesHelpGalaxy)
     ]),
     deleting && spinnerOverlay
   ])
@@ -509,7 +509,7 @@ const Environments = () => {
     const { status } = compute
 
     const shouldShowPauseButton = isApp(compute) ?
-      !_.find(tool => tool.appType && tool.appType === compute.appType)(tools)?.isPauseUnsupported :
+      !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported :
       isPauseSupported(getToolFromRuntime(compute))
 
     return shouldShowPauseButton && h(Link, {
@@ -547,7 +547,7 @@ const Environments = () => {
   const renderDeleteDiskModal = disk => {
     return h(DeleteDiskModal, {
       disk,
-      isGalaxyDisk: getDiskAppType(disk) === tools.Galaxy.appType,
+      isGalaxyDisk: getDiskAppType(disk) === appTools.Galaxy.appType,
       onDismiss: () => setDeleteDiskId(undefined),
       onSuccess: () => {
         setDeleteDiskId(undefined)
