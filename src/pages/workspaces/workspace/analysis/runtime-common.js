@@ -143,7 +143,7 @@ export const SaveFilesHelpRStudio = () => {
         href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])
-    ]),
+    ])
   ])
 }
 
