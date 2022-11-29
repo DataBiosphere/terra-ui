@@ -224,7 +224,7 @@ const azureRunning = {
   proxyUrl: 'https://relay-ns-2a77dcb5-882c-46b9-a3bc-5d251aff14d0.servicebus.windows.net/saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
   runtimeConfig: {
     cloudService: 'AZURE_VM',
-    machineType: 'Standard_DS1_v2',
+    machineType: 'Standard_DS2_v2',
     persistentDiskId: 15778,
     region: 'eastus',
     runtimeName: 'saturn-b2eecc2d-75d5-44f5-8eb2-5147db41874a',
