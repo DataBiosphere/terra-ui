@@ -532,18 +532,20 @@ const WorkspaceDashboard = _.flow(
           })
         ])
       ]),
-      !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
-        style: { margin: '1rem 0.5rem' },
-        ...Utils.newTabLinkProps,
-        href: bucketBrowserUrl(bucketName)
-      }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-      )]),
-      !!googleProject && div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
-        style: { margin: '1rem 0.5rem' },
-        ...Utils.newTabLinkProps,
-        href: `https://console.cloud.google.com/welcome?project=${googleProject}`
-      }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
-      )]),
+      !!googleProject && h(Fragment, [
+        div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+          style: { margin: '1rem 0.5rem' },
+          ...Utils.newTabLinkProps,
+          href: bucketBrowserUrl(bucketName)
+        }, ['Open bucket in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+        )]),
+        div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
+          style: { margin: '1rem 0.5rem' },
+          ...Utils.newTabLinkProps,
+          href: `https://console.cloud.google.com/welcome?project=${googleProject}`
+        }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
+        )])
+      ]),
       !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
         div(['Use SAS URL in conjunction with ',
           h(Link, {
