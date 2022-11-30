@@ -94,8 +94,8 @@ export const tools: Record<ToolLabel, Tool> = {
 
 export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   GCP: [
-    RStudio,
-    Jupyter
+    Jupyter,
+    RStudio
   ],
   AZURE: [
     JupyterLab
