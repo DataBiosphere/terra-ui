@@ -79,11 +79,12 @@ const AzureWarning = () => {
 
 const WorkspaceTabs = ({
   namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace, isAzureWorkspace
+  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
 }) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
+  const isAzureWorkspace = !!workspace?.workspace.azureContext
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -139,7 +140,6 @@ const WorkspaceContainer = ({
   // If googleProject is not undefined (server info not yet loaded)
   // and not the empty string, we know that we have a Google workspace.
   const isGoogleWorkspace = !!workspace?.workspace.googleProject
-  const isAzureWorkspace = !!workspace?.workspace.azureContext
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -165,7 +165,7 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, {
       namespace, name, activeTab, refresh, workspace, setDeletingWorkspace, setCloningWorkspace,
-      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace, isAzureWorkspace
+      setLeavingWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, isGoogleWorkspace
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       [div({ style: { flex: 1, display: 'flex' } }, [
