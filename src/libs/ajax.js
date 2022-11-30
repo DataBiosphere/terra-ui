@@ -50,7 +50,7 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
 
 const User = signal => ({
   getStatus: async () => {
-    const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    const res = await fetchSam('register/user/v2/self/info', _.mergeAll([authOpts(), { signal }]))
     return res.json()
   },
 

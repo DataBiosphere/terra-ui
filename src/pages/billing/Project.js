@@ -14,14 +14,12 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { reloadAuthToken, signOut } from 'src/libs/auth'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -769,14 +767,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         }
       })
     maybeLoadProjectCost().catch(async error => {
-      if (error instanceof Response && error.status === 401) {
-        if (!await reloadAuthToken()) {
-          notify('info', 'Session timed out', sessionTimeoutProps)
-          signOut()
-        }
-      } else {
-        setErrorMessage(await (error instanceof Response ? error.text() : error))
-      }
+      setErrorMessage(await (error instanceof Response ? error.text() : error))
+      setUpdatingProjectCost(false)
     })
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 

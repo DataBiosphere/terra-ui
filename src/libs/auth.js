@@ -68,6 +68,11 @@ export const signOut = () => {
     .finally(() => auth.clearStaleState())
 }
 
+export const signOutAfterSessionTimeout = () => {
+  signOut()
+  notify('info', 'Session timed out', sessionTimeoutProps)
+}
+
 const revokeTokens = async () => {
   const auth = getAuthInstance()
   if (auth.settings.metadata.revocation_endpoint) {

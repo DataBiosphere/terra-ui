@@ -123,7 +123,17 @@ export const Runtimes = signal => {
     listV2: async (labels = {}) => {
       const res = await fetchLeo(`api/v2/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
         _.mergeAll([authOpts(), appIdentifier, { signal }]))
-      return res.json()
+
+      // [IA-3710] In order to keep the front-end backwards compatible, any Azure tool labels
+      // will be changed to JupyterLab.
+      const runtimeList = await res.json()
+      const runtimesWithToolLabelDecorated = _.map(runtime => {
+        if (runtime.labels.tool === 'Azure') {
+          runtime.labels.tool = 'JupyterLab'
+        }
+        return runtime
+      }, runtimeList)
+      return runtimesWithToolLabelDecorated
     },
 
     listV2WithWorkspace: async (workspaceId, labels = {}) => {
