@@ -65,6 +65,18 @@ const WorkspacePermissionNotice = ({ workspace }) => {
   ])
 }
 
+const AzureWarning = () => {
+  const warningMessage = 'Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. ' +
+    'Please do not import or use any federally protected data in Azure workspaces.'
+
+  return h(TitleBar, {
+    title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+      span({ style: { color: colors.dark() } }, [warningMessage])
+    ]), style: { backgroundColor: colors.accent(0.25) }
+  })
+}
+
 const WorkspaceTabs = ({
   namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
   setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
@@ -103,14 +115,7 @@ const WorkspaceTabs = ({
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ]),
-    (!!workspace && isAzureWorkspace) ?
-      h(TitleBar, {
-        title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
-          icon('warning-standard', { size: 32, style: { color: colors.light(), marginRight: '0.5rem' } }),
-          span({ style: { color: colors.light() } }, ['Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. Please do not import or use any federally protected data in Azure workspaces.'])
-        ]), style: { backgroundColor: colors.danger() }
-      }) :
-      []
+    workspace && isAzureWorkspace && AzureWarning(isAzureWorkspace)
   ])
 }
 
