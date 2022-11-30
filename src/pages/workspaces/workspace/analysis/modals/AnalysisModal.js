@@ -106,6 +106,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const getGCPEnvironmentView = () => Utils.switchCase(currentTool,
       [toolLabels.Jupyter, renderComputeModal],
+      [toolLabels.JupyterLab, renderComputeModal],
       [toolLabels.RStudio, renderComputeModal],
       [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
       [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)]

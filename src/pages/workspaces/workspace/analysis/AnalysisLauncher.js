@@ -335,7 +335,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure or JupyterLab in GCP
       [(currentRuntimeTool === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
@@ -551,6 +551,7 @@ const AnalysisEditorFrame = ({
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => `${name}/edit`],
+    [toolLabels.JupyterLab, () => ''],
     [toolLabels.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
