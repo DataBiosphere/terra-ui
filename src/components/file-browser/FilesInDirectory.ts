@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react'
+import { Dispatch, Fragment, SetStateAction, useEffect, useRef } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
@@ -14,11 +14,20 @@ interface FilesInDirectoryProps {
   provider: FileBrowserProvider
   path: string
   rootLabel?: string
+  selectedFiles: { [path: string]: FileBrowserFile }
+  setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>
   onClickFile: (file: FileBrowserFile) => void
 }
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
-  const { provider, path, rootLabel = 'Files', onClickFile } = props
+  const {
+    path,
+    provider,
+    rootLabel = 'Files',
+    selectedFiles,
+    setSelectedFiles,
+    onClickFile
+  } = props
 
   const directoryLabel = path === '' ? rootLabel : basename(path)
 
@@ -63,6 +72,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       h(FilesTable, {
         'aria-label': `Files in ${directoryLabel}`,
         files,
+        selectedFiles,
+        setSelectedFiles,
         onClickFile
       }),
       div({

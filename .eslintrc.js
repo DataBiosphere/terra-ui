@@ -46,7 +46,8 @@ module.exports = {
       'warn', {
         'vars': 'all',
         'args': 'all',
-        'argsIgnorePattern': '^_|^props'
+        'argsIgnorePattern': '^_|^props',
+        'ignoreRestSiblings': true,
       }
     ],
     'no-whitespace-before-property': 'warn',
