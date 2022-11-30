@@ -10,6 +10,7 @@ import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
+import { cloudProviderTypes } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -17,6 +18,7 @@ import * as Nav from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
@@ -28,20 +30,21 @@ import {
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
-import { getAppType, getToolsToDisplay, isAppToolLabel, isPauseSupported, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { appTools, getAppType, getToolsToDisplayForCloudProvider, isAppToolLabel, isPauseSupported, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onSuccess, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, computeRegion, workspace: { azureContext, workspace: { namespace, name: workspaceName } },
+  workspace, persistentDisks, location, computeRegion, workspace: { workspace: { namespace, name: workspaceName } },
   filterForTool = undefined
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
+  const cloudProvider = getCloudProviderFromWorkspace(workspace)
   const cookieReady = useStore(cookieReadyStore)
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
@@ -50,7 +53,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
-    isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
+    isOpen: viewMode === toolLabels.Jupyter || viewMode === toolLabels.RStudio,
     workspace,
     tool,
     currentRuntime,
@@ -62,7 +65,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderAzureModal = () => h(AzureComputeModalBase, {
-    isOpen: viewMode === NEW_AZURE_MODE,
+    isOpen: viewMode === toolLabels.JupyterLab,
     hideCloseButton: true,
     workspace,
     runtimes,
@@ -82,7 +85,7 @@ export const CloudEnvironmentModal = ({
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplay(azureContext))
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
   )
 
   const toolPanelStyles = {
@@ -244,14 +247,14 @@ export const CloudEnvironmentModal = ({
   }
 
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
-    [tools.Jupyter.label, () => jupyterLogo],
-    [tools.Galaxy.label, () => galaxyLogo],
-    [tools.RStudio.label, () => rstudioBioLogo],
-    [tools.Cromwell.label, () => cromwellImg],
-    [tools.Azure.label, () => jupyterLogo])
+    [toolLabels.Jupyter, () => jupyterLogo],
+    [toolLabels.Galaxy, () => galaxyLogo],
+    [toolLabels.RStudio, () => rstudioBioLogo],
+    [toolLabels.Cromwell, () => cromwellImg],
+    [toolLabels.JupyterLab, () => jupyterLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === tools.Galaxy.label && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
+    [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === toolLabels.Galaxy && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel, currentRuntime, currentRuntimeTool)
       // This asks 'does this tool have a runtime'
@@ -289,7 +292,7 @@ export const CloudEnvironmentModal = ({
       )
     }
     return Utils.switchCase(toolLabel,
-      [tools.Galaxy.label, () => {
+      [toolLabels.Galaxy, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls?.galaxy,
@@ -300,13 +303,13 @@ export const CloudEnvironmentModal = ({
           ...Utils.newTabLinkPropsWithReferrer
         }
       }],
-      [tools.Cromwell.label, () => {
+      [toolLabels.Cromwell, () => {
         return {
           ...baseProps,
           href: app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.Cromwell.appType })
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.Cromwell.appType })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -320,7 +323,7 @@ export const CloudEnvironmentModal = ({
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
               { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
-            if ((toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && currentRuntime?.status === 'Stopped') {
+            if ((toolLabel === toolLabels.Jupyter || toolLabel === toolLabels.RStudio) && currentRuntime?.status === 'Stopped') {
               startApp(toolLabel)
             }
             onDismiss()
@@ -378,27 +381,30 @@ export const CloudEnvironmentModal = ({
     ])
   }
 
-  const NEW_JUPYTER_MODE = tools.Jupyter.label
-  const NEW_RSTUDIO_MODE = tools.RStudio.label
-  const NEW_GALAXY_MODE = tools.Galaxy.label
-  const NEW_CROMWELL_MODE = tools.Cromwell.label
-  const NEW_AZURE_MODE = tools.Azure.label
-
-  const getView = () => Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
-    [NEW_AZURE_MODE, () => renderAzureModal()],
-    [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)],
-    [NEW_CROMWELL_MODE, () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)],
+  const getGCPView = () => Utils.switchCase(viewMode,
+    [toolLabels.Jupyter, () => renderComputeModal(toolLabels.Jupyter)],
+    [toolLabels.RStudio, () => renderComputeModal(toolLabels.RStudio)],
+    [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
+    [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 
+  const getAzureView = () => Utils.switchCase(viewMode,
+    [toolLabels.JupyterLab, renderAzureModal],
+    [Utils.DEFAULT, renderDefaultPage]
+  )
+
+  const getView = () => Utils.switchCase(cloudProvider,
+    [cloudProviderTypes.GCP, getGCPView],
+    [cloudProviderTypes.AZURE, getAzureView]
+  )
+
   const width = Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => 675],
-    [NEW_RSTUDIO_MODE, () => 675],
-    [NEW_GALAXY_MODE, () => 675],
-    [NEW_CROMWELL_MODE, () => 675],
-    [NEW_AZURE_MODE, () => 675],
+    [toolLabels.Jupyter, () => 675],
+    [toolLabels.RStudio, () => 675],
+    [toolLabels.Galaxy, () => 675],
+    [toolLabels.Cromwell, () => 675],
+    [toolLabels.JupyterLab, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 

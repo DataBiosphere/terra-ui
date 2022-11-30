@@ -16,7 +16,7 @@ import {
   defaultGceMachineType, defaultGpuType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, defaultPersistentDiskType,
   runtimeStatuses
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
 jest.mock('src/libs/notifications', () => ({
@@ -31,7 +31,7 @@ jest.mock('src/libs/ajax')
 const onSuccess = jest.fn()
 const defaultModalProps = {
   onSuccess, onDismiss: jest.fn(), onError: jest.fn(),
-  currentRuntime: undefined, currentDisk: undefined, tool: tools.Jupyter.label, workspace: defaultGoogleWorkspace,
+  currentRuntime: undefined, currentDisk: undefined, tool: toolLabels.Jupyter, workspace: defaultGoogleWorkspace,
   location: testDefaultLocation
 }
 
@@ -170,8 +170,8 @@ describe('ComputeModal', () => {
 
   // with a [jupyter, rstudio] runtime existing and, details pane is open
   it.each([
-    { runtimeTool: tools.Jupyter },
-    { runtimeTool: tools.RStudio }
+    { runtimeTool: runtimeTools.Jupyter },
+    { runtimeTool: runtimeTools.RStudio }
   ])('opens runtime details pane with a $runtimeTool.label runtime and a disk existing', async ({ runtimeTool }) => {
     // Arrange
     const disk = getDisk()
@@ -266,8 +266,8 @@ describe('ComputeModal', () => {
 
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should bring up confirmation
   it.each([
-    { tool: tools.Jupyter },
-    { tool: tools.RStudio }
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
   ])('deletes environment with a confirmation for disk deletion for tool $tool.label', async ({ tool }) => {
     // Arrange
     const disk = getDisk()
@@ -309,8 +309,8 @@ describe('ComputeModal', () => {
 
   // click delete environment on an existing [jupyter, rstudio] runtime with disk should delete
   it.each([
-    { tool: tools.Jupyter },
-    { tool: tools.RStudio }
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
   ])('clicking through delete confirmation and then delete should call delete for tool $tool.label', async ({ tool }) => {
     // Arrange
     const disk = getDisk()
@@ -353,8 +353,8 @@ describe('ComputeModal', () => {
 
   // click update with downtime (and keep pd)
   it.each([
-    { tool: tools.Jupyter },
-    { tool: tools.RStudio }
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
   ])('updating a runtime after changing a field that requires downtime should call update for tool $tool.label', async ({ tool }) => {
     // Arrange
     const disk = getDisk()
@@ -585,7 +585,7 @@ describe('ComputeModal', () => {
     })
 
     // Assert
-    screen.getByText(`${tools.Jupyter.label} Cloud Environment`)
+    screen.getByText(`${toolLabels.Jupyter} Cloud Environment`)
 
     const selectText = hailImage.label
     screen.getByText(selectText)
