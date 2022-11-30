@@ -115,7 +115,7 @@ const WorkspaceTabs = ({
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ]),
-    workspace && isAzureWorkspace && AzureWarning(isAzureWorkspace)
+    workspace && isAzureWorkspace && AzureWarning()
   ])
 }
 
