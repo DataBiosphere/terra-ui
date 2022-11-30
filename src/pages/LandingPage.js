@@ -77,8 +77,8 @@ const LandingPage = () => {
 
   useEffect(() => {
     const loadProjects = withErrorHandling(async error => {
-      const errorJSON = await error.json()
-      console.log(`Unable to load billing projects due to: ${errorJSON?.message}`) // eslint-disable-line no-console
+      const errorObj = await error instanceof Response ? error.json() : error
+      console.log(`Unable to load billing projects due to: ${errorObj?.message}`) // eslint-disable-line no-console
     })(async () => {
       const projects = await Ajax(signal).Billing.listProjects()
       setBillingProjects(projects)
