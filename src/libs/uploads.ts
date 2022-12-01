@@ -1,11 +1,25 @@
 import _ from 'lodash/fp'
-import { useCallback, useReducer } from 'react'
+import { Reducer, useCallback, useReducer } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { useCancelable } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const init = () => {
+export type UploadState = {
+  active: boolean
+  totalFiles: number
+  totalBytes: number
+  uploadedBytes: number
+  currentFileNum: number
+  currentFile: File | null
+  files: File[]
+  completedFiles: File[]
+  errors: unknown[]
+  aborted: boolean
+  done: boolean
+}
+
+const init = (): UploadState => {
   return {
     active: false,
     totalFiles: 0,
@@ -21,8 +35,58 @@ const init = () => {
   }
 }
 
-export const useUploader = () => {
-  const [state, dispatch] = useReducer((state, update) => {
+type UploadUpdateStart = {
+  action: 'start'
+  files: File[]
+}
+
+type UploadUpdateStartFile = {
+  action: 'startFile'
+  file: File
+  fileNum: number
+}
+
+type UploadUpdateFinishFile = {
+  action: 'finishFile'
+  file: File
+}
+
+type UploadUpdateError = {
+  action: 'error'
+  error: unknown
+}
+
+type UploadUpdateAbort = {
+  action: 'abort'
+}
+
+type UploadUpdateFinish = {
+  action: 'finish'
+}
+
+type UploadUpdate =
+  | UploadUpdateStart
+  | UploadUpdateStartFile
+  | UploadUpdateFinishFile
+  | UploadUpdateError
+  | UploadUpdateAbort
+  | UploadUpdateFinish
+
+export type UploadFilesArgs = {
+  googleProject: string
+  bucketName: string
+  prefix: string
+  files: File[]
+}
+
+export type UseUploaderResult = {
+  uploadState: UploadState
+  uploadFiles: (args: UploadFilesArgs) => Promise<void>
+  cancelUpload: () => void
+}
+
+export const useUploader = (): UseUploaderResult => {
+  const [state, dispatch] = useReducer<Reducer<UploadState, UploadUpdate>, null>((state, update) => {
     switch (update.action) {
       // Calculate how many files and how many bytes we are working with
       case 'start':
@@ -45,13 +109,13 @@ export const useUploader = () => {
         return {
           ...state,
           uploadedBytes: state.uploadedBytes + update.file.size,
-          completedFiles: Utils.append(update.file, state.completedFiles)
+          completedFiles: [...state.completedFiles, update.file]
         }
 
       case 'error':
         return {
           ...state,
-          errors: Utils.append(update.error, state.errors)
+          errors: [...state.errors, update.error]
         }
 
       case 'abort':
@@ -74,7 +138,7 @@ export const useUploader = () => {
 
   const { signal, abort } = useCancelable()
 
-  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }) => {
+  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }: UploadFilesArgs) => {
     const uploadCancelled = new Promise((_resolve, reject) => {
       signal.addEventListener('abort', () => reject())
     })
@@ -110,7 +174,7 @@ export const useUploader = () => {
   return {
     uploadState: state,
     // Only one upload can be active at a time.
-    uploadFiles: state.active ? _.noop : uploadFiles,
+    uploadFiles: state.active ? () => { throw Error('Upload in progress') } : uploadFiles,
     cancelUpload: abort
   }
 }
