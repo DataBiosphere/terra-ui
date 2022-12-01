@@ -456,15 +456,15 @@ describe('WdsDataTableProvider', () => {
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
     it('TSV is valid', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true, sysNamePresent: false })).toBeTruthy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true })).toBeTruthy()
     })
 
     it('TSV is invalid', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: true })).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
     })
 
     it('TSV is not present', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false, sysNamePresent: false })).toBeFalsy()
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
     })
   })
 
