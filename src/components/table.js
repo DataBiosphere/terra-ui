@@ -208,7 +208,7 @@ export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = flexTableDefaultRowHeight, rowHeight = flexTableDefaultRowHeight,
   styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
-  border = true,
+  border = true, tabIndex,
   ...props
 }) => {
   useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
@@ -226,7 +226,8 @@ export const FlexTable = ({
     'aria-colcount': columns.length,
     'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
-    className: 'flex-table'
+    className: 'flex-table',
+    tabIndex,
   }, [
     div({
       style: {
