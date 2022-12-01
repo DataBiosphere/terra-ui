@@ -92,10 +92,11 @@ export const tools: Record<ToolLabel, Tool> = {
   spark: { label: toolLabels.spark }
 }
 
+//The order of the array is important, it decides the order in AnalysisModal.
 export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   GCP: [
-    RStudio,
-    Jupyter
+    Jupyter,
+    RStudio
   ],
   AZURE: [
     JupyterLab
