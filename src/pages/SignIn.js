@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { HeroWrapper, Link } from 'src/components/common'
+import { Link } from 'src/components/common'
+import { HeroWrapper } from 'src/components/HeroWrapper'
 import SignInButton from 'src/components/SignInButton'
 import { getEnabledBrand, isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
