@@ -86,7 +86,7 @@ export interface AttributeArray {
 }
 
 // queryOptions can contain:
-export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions) => Promise<EntityQueryResponse>
+export type GetPageFn = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata) => Promise<EntityQueryResponse>
 
 export type GetMetadataFn = (signal: AbortSignal) => Promise<EntityMetadata>
 

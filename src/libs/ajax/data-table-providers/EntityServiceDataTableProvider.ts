@@ -4,6 +4,7 @@ import { Ajax } from 'src/libs/ajax'
 import {
   DataTableFeatures,
   DataTableProvider,
+  EntityMetadata,
   EntityQueryOptions,
   EntityQueryResponse, InvalidTsvOptions, TSVFeatures, TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
@@ -51,7 +52,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     }
   }
 
-  getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
+  getPage = (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, _metadata: EntityMetadata): Promise<EntityQueryResponse> => {
     return Ajax(signal).Workspaces.workspace(this.namespace, this.name)
       .paginatedEntitiesOfType(entityType, _.pickBy(v => _.trim(v?.toString()), {
         page: queryOptions.pageNumber, pageSize: queryOptions.itemsPerPage,
