@@ -66,8 +66,8 @@ const WorkspacePermissionNotice = ({ workspace }) => {
 }
 
 const AzureWarning = () => {
-  const warningMessage = 'Reminder: Azure workspaces (like this one) are currently NOT authorized to contain any federally protected data. ' +
-    'Please do not import or use any federally protected data in Azure workspaces.'
+  const warningMessage = 'Warning: This is an Azure workspace and is NOT authorized for federally protected data at this time. ' +
+    'Kindly avoid the use or storage of federally protected data in Azure workspaces.'
 
   return h(TitleBar, {
     title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
