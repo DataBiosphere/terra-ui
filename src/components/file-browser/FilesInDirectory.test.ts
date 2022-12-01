@@ -57,6 +57,8 @@ describe('FilesInDirectory', () => {
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
       path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
       onClickFile: jest.fn()
     }))
 
@@ -90,6 +92,8 @@ describe('FilesInDirectory', () => {
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
       path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
       onClickFile: jest.fn()
     }))
 
@@ -119,6 +123,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
@@ -162,6 +168,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
@@ -179,6 +187,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
