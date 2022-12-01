@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import { Reducer, useCallback, useReducer } from 'react'
-import { Ajax } from 'src/libs/ajax'
 import { useCancelable } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
@@ -72,20 +71,13 @@ type UploadUpdate =
   | UploadUpdateAbort
   | UploadUpdateFinish
 
-export type UploadFilesArgs = {
-  googleProject: string
-  bucketName: string
-  prefix: string
-  files: File[]
-}
-
 export type UseUploaderResult = {
   uploadState: UploadState
-  uploadFiles: (args: UploadFilesArgs) => Promise<void>
+  uploadFiles: (files: File[]) => Promise<void>
   cancelUpload: () => void
 }
 
-export const useUploader = (): UseUploaderResult => {
+export const useUploader = (uploadFile: (file: File, opts: { signal: AbortSignal }) => Promise<void>): UseUploaderResult => {
   const [state, dispatch] = useReducer<Reducer<UploadState, UploadUpdate>, null>((state, update) => {
     switch (update.action) {
       // Calculate how many files and how many bytes we are working with
@@ -138,7 +130,7 @@ export const useUploader = (): UseUploaderResult => {
 
   const { signal, abort } = useCancelable()
 
-  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }: UploadFilesArgs) => {
+  const uploadFiles = useCallback(async (files: File[]) => {
     const uploadCancelled = new Promise((_resolve, reject) => {
       signal.addEventListener('abort', () => reject())
     })
@@ -153,7 +145,7 @@ export const useUploader = (): UseUploaderResult => {
         // AbortError and returns a Promise that never resolves. Thus, this Promise.race is needed
         // to avoid hanging indefinitely while awaiting a cancelled upload request.
         await Promise.race([
-          Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file),
+          uploadFile(file, { signal }),
           uploadCancelled
         ])
         dispatch({ action: 'finishFile', file })
@@ -169,7 +161,7 @@ export const useUploader = (): UseUploaderResult => {
     if (!signal.aborted) {
       dispatch({ action: 'finish' })
     }
-  }, [signal])
+  }, [signal, uploadFile])
 
   return {
     uploadState: state,
