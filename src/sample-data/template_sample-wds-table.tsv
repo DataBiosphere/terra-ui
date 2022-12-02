@@ -1,4 +1,4 @@
-sys_name	column-1-file-type-i-e-CRAM	column-2-file-type-i-e-collection-date
+an_awesome_column_name	column-1-file-type-i-e-CRAM	column-2-file-type-i-e-collection-date
 your-sample-1-id	gs://fc-workspace-bucket/file1.cram	01/01/2001
 your-sample-2-id	drs://dg.4503:dg.4503/96d3a324-054e-442d-89c4-784d84125b95	02/02/2002
 your-sample-3-id	gs://external-bucket/file3.cram	03/03/2003

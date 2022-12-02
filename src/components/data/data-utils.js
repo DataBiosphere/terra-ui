@@ -346,8 +346,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   })
 
-  // const match = isGoogleWorkspace ? /(?:membership|entity):([^\s]+)_id/.exec(fileContents) : !isGoogleWorkspace;
-  const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents) // Specific to Google Workspaces
+  const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents) // Specific to Google Workspaces -- Azure workspaces do not have this requirement for TSV headers
   const isInvalid = dataProvider.tsvFeatures.isInvalid({ fileImportModeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file })
   const newEntityType = match?.[1]
   const entityTypeAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
