@@ -19,7 +19,7 @@
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
   "rexUrlRoot": "https://terra-rex-dev.appspot.com",
-  "samUrlRoot": "https://sam.dsde-dev.broadinstitute.org",
+  "samUrlRoot": "https://local.broadinstitute.org:50443",
   "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "shouldUseDrsHub": true,
   "wdsUrlRoot": "http://localhost:8080",
