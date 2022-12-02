@@ -153,7 +153,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
-    const primaryKey = !!metadata[recordType] ? metadata[recordType].idName : 'sys_name' // for safety; recordType should always be present
+    const primaryKey = !!metadata[recordType] ? metadata[recordType].idName : '(unknown column)' // for safety; recordType should always be present
     const results = _.map(rec => {
       return {
         entityType: recordType,
