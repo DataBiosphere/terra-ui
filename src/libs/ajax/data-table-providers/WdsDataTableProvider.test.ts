@@ -463,11 +463,11 @@ describe('WdsDataTableProvider', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: true })).toBeTruthy()
     })
 
-    it('TSV is not present; however, a non-file upload tab is selected (e.g. the `Text Import` tab).', () => {
+    it('Data is provided for an upload mode that does not require a file to be uploaded (e.g. the `Text Import` tab)', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
     })
 
-    it('TSV is not present and different mode (e.g. the `Text Import` tab) is selected', () => {
+    it('TSV is not present and any upload mode is presented', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: false })).toBeFalsy()
     })
   })
