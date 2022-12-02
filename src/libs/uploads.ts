@@ -138,7 +138,9 @@ export const useUploader = (uploadFile: (file: File, opts: { signal: AbortSignal
     dispatch({ action: 'start', files })
     for (const [index, file] of Utils.toIndexPairs(files)) {
       try {
-        signal.throwIfAborted()
+        if (signal.aborted) {
+          throw signal.reason
+        }
 
         dispatch({ action: 'startFile', file, fileNum: index })
         // If the upload request is cancelled, the withCancellation wrapper in Ajax.js swallows the
@@ -161,6 +163,11 @@ export const useUploader = (uploadFile: (file: File, opts: { signal: AbortSignal
     if (!signal.aborted) {
       dispatch({ action: 'finish' })
     }
+
+    // useCancelable will call abort when unmounted. After files are uploaded,
+    // we no longer care about that method of cancellation. Catch here to
+    // avoid an unhandled promise rejection.
+    uploadCancelled.catch(() => {})
   }, [signal, uploadFile])
 
   return {
