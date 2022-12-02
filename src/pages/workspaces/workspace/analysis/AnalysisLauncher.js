@@ -26,7 +26,7 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { ComputeModal } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
-import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
+import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/export-analysis-modal/ExportAnalysisModal'
 import {
   analysisLauncherTabName, analysisTabName, appLauncherTabName, ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor,
   StatusMessage
