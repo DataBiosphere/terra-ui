@@ -65,13 +65,6 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
   }, [children])
 }
 
-export const WarningTitle = ({ children, iconSize = 36 }) => {
-  return div({ style: { display: 'flex', alignItems: 'center' } }, [
-    icon('warning-standard', { size: iconSize, style: { color: colors.warning(), marginRight: '0.75rem' } }),
-    children
-  ])
-}
-
 export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
