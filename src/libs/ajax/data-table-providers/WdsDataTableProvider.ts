@@ -102,7 +102,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     needsTypeInput: true,
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
     isInvalid: (options: InvalidTsvOptions): boolean => {
-      return options.fileImportModeMatches && options.filePresent
+      return !options.fileImportModeMatches && options.filePresent
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
       return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent

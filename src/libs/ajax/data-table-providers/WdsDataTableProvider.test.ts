@@ -455,16 +455,20 @@ describe('WdsDataTableProvider', () => {
   })
   describe('isInvalid', () => {
     const provider = new TestableWdsProvider(uuid)
-    it('TSV is valid', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true })).toBeTruthy()
+    it('TSV is present with correct mode selected in UI', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true })).toBeFalsy()
     })
 
-    it('TSV is invalid', () => {
+    it('TSV is present; however, a different mode (e.g. the `Text Import` tab) is selected', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: true })).toBeTruthy()
+    })
+
+    it('TSV is not present; however, a non-file upload tab is selected (e.g. the `Text Import` tab).', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
     })
 
-    it('TSV is not present', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
+    it('TSV is not present and different mode (e.g. the `Text Import` tab) is selected', () => {
+      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: false })).toBeFalsy()
     })
   })
 

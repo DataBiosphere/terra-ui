@@ -346,7 +346,8 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     }
   })
 
-  const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
+  // const match = isGoogleWorkspace ? /(?:membership|entity):([^\s]+)_id/.exec(fileContents) : !isGoogleWorkspace;
+  const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents) // Specific to Google Workspaces
   const isInvalid = dataProvider.tsvFeatures.isInvalid({ fileImportModeMatches: isFileImportCurrMode === isFileImportLastUsedMode, match: !match, filePresent: file })
   const newEntityType = match?.[1]
   const entityTypeAlreadyExists = _.includes(_.toLower(newEntityType), entityTypes)
