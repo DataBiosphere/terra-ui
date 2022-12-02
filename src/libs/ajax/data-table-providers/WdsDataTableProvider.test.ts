@@ -467,7 +467,7 @@ describe('WdsDataTableProvider', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
     })
 
-    it('TSV is not present and any upload mode is presented', () => {
+    it('TSV is not present and any upload type is being used', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: false })).toBeFalsy()
     })
   })
