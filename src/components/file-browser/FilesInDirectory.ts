@@ -12,6 +12,8 @@ import * as Utils from 'src/libs/utils'
 
 
 interface FilesInDirectoryProps {
+  editDisabled?: boolean
+  editDisabledReason?: string
   provider: FileBrowserProvider
   path: string
   rootLabel?: string
@@ -22,6 +24,8 @@ interface FilesInDirectoryProps {
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const {
+    editDisabled = false,
+    editDisabledReason,
     path,
     provider,
     rootLabel = 'Files',
@@ -60,6 +64,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     }
   }, [
     h(FilesMenu, {
+      disabled: editDisabled,
+      disabledReason: editDisabledReason,
       provider,
       selectedFiles,
       onDeleteFiles: () => {
