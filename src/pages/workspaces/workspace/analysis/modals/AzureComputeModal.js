@@ -38,12 +38,12 @@ export const AzureComputeModalBase = ({
     Utils.withBusyState(setLoading)
   )(async () => {
     const currentRuntime = getCurrentRuntime(runtimes)
-    setCurrentRuntimeDetails(currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null)
-
+    const runtimeDetails = currentRuntime ? await Ajax().Runtimes.runtimeV2(workspaceId, currentRuntime.runtimeName).details() : null
+    setCurrentRuntimeDetails(runtimeDetails)
     setComputeConfig({
-      machineType: currentRuntimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
-      diskSize: currentRuntimeDetails?.diskConfig?.size || defaultAzureDiskSize,
-      region: currentRuntime?.runtimeConfig?.region || defaultAzureRegion
+      machineType: runtimeDetails?.runtimeConfig?.machineType || defaultAzureMachineType,
+      diskSize: runtimeDetails?.diskConfig?.size || defaultAzureDiskSize,
+      region: runtimeDetails?.runtimeConfig?.region || defaultAzureRegion
     })
   }))
 

@@ -324,7 +324,7 @@ const debounceSearchEvent = _.debounce(5000, sendSearchEvent)
 
 export const SearchAndFilterComponent = ({
   fullList, sidebarSections, customSort, searchType,
-  titleField = 'name', descField = 'description', idField = 'lowerName', children
+  titleField = 'name', descField = 'description', idField = 'lowerName', listView
 }) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
@@ -528,7 +528,7 @@ export const SearchAndFilterComponent = ({
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
         _.isEmpty(filteredData.data) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          children({ filteredList: filteredData.data, sections })
+          listView(filteredData.data)
       ])
     ])
   ])

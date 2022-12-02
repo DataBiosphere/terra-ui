@@ -5,9 +5,9 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, Checkbox, ClipboardButton, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants,
-  ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
+  ButtonPrimary, Checkbox, ClipboardButton, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants, spinnerOverlay
 } from 'src/components/common'
+import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'

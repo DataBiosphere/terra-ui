@@ -914,11 +914,13 @@ export const ColumnSettings = ({ columnSettings, onChange }) => {
 }
 
 /**
- * @param {Object[]} columnSettings - current column list, in order
- * @param {string} columnSettings[].name
- * @param {bool} columnSettings[].visible
- * @param {Object} style - style override for the button
- * @param {function(Object[])} onSave - called with modified settings when user saves
+ * @param {Object} obj
+ * @param {Object[]} obj.columnSettings - current column list, in order
+ * @param {string} obj.columnSettings[].name - column name
+ * @param {bool} obj.columnSettings[].visible - true if column is visible
+ * @param {integer} [obj.modalWidth] - Width of the selector modal
+ * @param {Object} obj.style - style override for the button
+ * @param {function(Object[])} obj.onSave - called with modified settings when user saves
  */
 export const ColumnSelector = ({ onSave, columnSettings, modalWidth = 600, style }) => {
   const [open, setOpen] = useState(false)

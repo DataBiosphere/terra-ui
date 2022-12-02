@@ -113,15 +113,14 @@ const Showcase = () => {
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
-      searchType: 'Featured Workspaces'
-    }, [
-      ({ filteredList }) => {
+      searchType: 'Featured Workspaces',
+      listView: filteredList => {
         return _.map(workspace => {
           const { namespace, name } = workspace
           return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
         }, filteredList)
       }
-    ])
+    })
   ])
 }
 
