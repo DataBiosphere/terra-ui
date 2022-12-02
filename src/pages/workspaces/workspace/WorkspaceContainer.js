@@ -66,8 +66,9 @@ const WorkspacePermissionNotice = ({ workspace }) => {
 }
 
 const AzureWarning = () => {
-  const warningMessage = 'Warning: This is an Azure workspace and is NOT authorized for federally protected data at this time. ' +
-    'Kindly avoid the use or storage of federally protected data in Azure workspaces.'
+  const warningMessage = 'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) in ' +
+    'this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset or ' +
+    'you have your own agreements in place.'
 
   return h(TitleBar, {
     title: div({ style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
