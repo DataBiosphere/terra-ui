@@ -85,7 +85,7 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.workspace.azureContext
+  const isAzureWorkspace = !!workspace?.azureContext
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -116,7 +116,7 @@ const WorkspaceTabs = ({
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ]),
-    isAzureWorkspace && AzureWarning()
+    isAzureWorkspace && h(AzureWarning)
   ])
 }
 
