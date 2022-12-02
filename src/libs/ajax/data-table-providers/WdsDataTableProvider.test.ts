@@ -8,7 +8,7 @@ import {
   EntityQueryResponse,
   TsvUploadButtonDisabledOptions
 } from './DataTableProvider'
-import { RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
+import { RecordAttributes, RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
 
 jest.mock('src/libs/ajax')
@@ -17,12 +17,16 @@ const uuid = '123e4567-e89b-12d3-a456-426614174000' // value doesn't matter for 
 
 // shell class that extends WdsDataTableProvider to allow testing protected methods
 class TestableWdsProvider extends WdsDataTableProvider {
-  transformPageOverride(wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse {
-    return this.transformPage(wdsPage, recordType, queryOptions)
+  transformPageOverride(wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): EntityQueryResponse {
+    return this.transformPage(wdsPage, recordType, queryOptions, metadata)
+  }
+
+  transformAttributesOverride = (attributes: RecordAttributes, primaryKey: string): RecordAttributes => {
+    return this.transformAttributes(attributes, primaryKey)
   }
 }
 
-const recordType: string = 'mytype'
+const recordType: string = 'item'
 
 const queryOptions: EntityQueryOptions = {
   pageNumber: 2,
@@ -50,7 +54,7 @@ describe('WdsDataTableProvider', () => {
       records: [
         {
           id: '2',
-          type: 'item',
+          type: recordType,
           attributes: {
             arrayBoolean: [
               true,
@@ -78,7 +82,7 @@ describe('WdsDataTableProvider', () => {
         },
         {
           id: '1',
-          type: 'item',
+          type: recordType,
           attributes: {
             arrayBoolean: [
               true,
@@ -136,6 +140,55 @@ describe('WdsDataTableProvider', () => {
     asMockedFn(Ajax).mockImplementation(() => ({ WorkspaceData: { getRecords, deleteTable, downloadTsv, uploadTsv } as Partial<WorkspaceDataContract> } as Partial<AjaxContract> as AjaxContract))
   })
 
+  describe('transformAttributes', () => {
+    it('excludes the primary key from the resultant attributes', () => {
+      // Arrange
+      const provider = new TestableWdsProvider(uuid)
+
+      const input: RecordAttributes = {
+        something: 123,
+        somethingElse: 'hello',
+        myPrimaryKey: 'an id of some sort',
+        foo: 'bar'
+      }
+
+      // Act
+      const actual = provider.transformAttributesOverride(input, 'myPrimaryKey')
+
+      // Assert
+      const expected: RecordAttributes = {
+        something: 123,
+        somethingElse: 'hello',
+        foo: 'bar'
+      }
+
+      // Assert
+      expect(actual).toStrictEqual(expected)
+    })
+    it('is resilient if the primary key does not exist in input attributes', () => {
+      // Arrange
+      const provider = new TestableWdsProvider(uuid)
+
+      const input: RecordAttributes = {
+        something: 123,
+        somethingElse: 'hello',
+        foo: 'bar'
+      }
+
+      // Act
+      const actual = provider.transformAttributesOverride(input, 'myPrimaryKey')
+
+      // Assert
+      const expected: RecordAttributes = {
+        something: 123,
+        somethingElse: 'hello',
+        foo: 'bar'
+      }
+
+      // Assert
+      expect(actual).toStrictEqual(expected)
+    })
+  })
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
@@ -152,7 +205,7 @@ describe('WdsDataTableProvider', () => {
         records: [
           {
             id: '1',
-            type: 'item',
+            type: recordType,
             attributes: {
               booleanAttr: true,
               numericAttr: 11,
@@ -162,7 +215,7 @@ describe('WdsDataTableProvider', () => {
           },
           {
             id: '2',
-            type: 'item',
+            type: recordType,
             attributes: {
               booleanAttr: true,
               numericAttr: 22,
@@ -174,8 +227,17 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 52
       }
 
+      // example metadata for the previous response
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['booleanAttr', 'numericAttr', 'stringAttr', 'timestamp'],
+          idName: 'stringAttr'
+        }
+      }
+
       // Act
-      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions, metadata)
 
       // Assert
       const expected: EntityQueryResponse = {
@@ -185,7 +247,6 @@ describe('WdsDataTableProvider', () => {
             attributes: {
               booleanAttr: true,
               numericAttr: 11,
-              stringAttr: 'string',
               timestamp: '2022-10-19T17:39:03.274+00:00'
             },
             name: '1'
@@ -195,7 +256,6 @@ describe('WdsDataTableProvider', () => {
             attributes: {
               booleanAttr: true,
               numericAttr: 22,
-              stringAttr: 'string',
               timestamp: '2022-10-19T17:39:03.274+00:00'
             },
             name: '2'
@@ -233,7 +293,7 @@ describe('WdsDataTableProvider', () => {
         records: [
           {
             id: '1',
-            type: 'item',
+            type: recordType,
             attributes: {
               stringAttr: 'string',
               arrayOfNums: [2, 4, 6, 8]
@@ -243,8 +303,17 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 1
       }
 
+      // example metadata for the previous response
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['arrayOfNums', 'stringAttr'],
+          idName: 'stringAttr'
+        }
+      }
+
       // Act
-      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions, metadata)
 
       // Assert
       const expected: EntityQueryResponse = {
@@ -252,7 +321,6 @@ describe('WdsDataTableProvider', () => {
           {
             entityType: recordType,
             attributes: {
-              stringAttr: 'string',
               arrayOfNums: {
                 itemsType: 'AttributeValue',
                 items: [2, 4, 6, 8]
@@ -293,7 +361,7 @@ describe('WdsDataTableProvider', () => {
         records: [
           {
             id: '1',
-            type: 'item',
+            type: recordType,
             attributes: {
               stringAttr: 'string',
               numAttr: 123,
@@ -305,8 +373,17 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 1
       }
 
+      // example metadata for the previous response
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['numAttr', 'stringAttr', 'relationScalar', 'relationArray'],
+          idName: 'stringAttr'
+        }
+      }
+
       // Act
-      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions, metadata)
 
       // Assert
       const expected: EntityQueryResponse = {
@@ -314,7 +391,6 @@ describe('WdsDataTableProvider', () => {
           {
             entityType: recordType,
             attributes: {
-              stringAttr: 'string',
               numAttr: 123,
               relationScalar: { entityType: 'mytype', entityName: 'myid' },
               relationArray: {
@@ -361,7 +437,7 @@ describe('WdsDataTableProvider', () => {
         records: [
           {
             id: '1',
-            type: 'item',
+            type: recordType,
             attributes: {
               mixedArrayRelationFirst: ['terra-wds:/mytype/3', 'hello', 'world'],
               mixedArrayRelationLast: ['hello', 'world', 'terra-wds:/mytype/12']
@@ -371,8 +447,17 @@ describe('WdsDataTableProvider', () => {
         totalRecords: 1
       }
 
+      // example metadata for the previous response
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          idName: 'sys_name'
+        }
+      }
+
       // Act
-      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions)
+      const actual: EntityQueryResponse = provider.transformPageOverride(wdsPage, recordType, queryOptions, metadata)
 
       // Assert
       const expected: EntityQueryResponse = {
@@ -416,8 +501,16 @@ describe('WdsDataTableProvider', () => {
       const provider = new TestableWdsProvider(uuid)
       const signal = new AbortController().signal
 
+      const metadata: EntityMetadata = {
+        item: {
+          count: 7,
+          attributeNames: ['mixedArrayRelationFirst', 'mixedArrayRelationLast'],
+          idName: 'sys_name'
+        }
+      }
+
       // Act
-      return provider.getPage(signal, recordType, queryOptions).then(actual => {
+      return provider.getPage(signal, recordType, queryOptions, metadata).then(actual => {
         // Assert
         expect(getRecords.mock.calls.length).toBe(1)
         expect(actual.resultMetadata.unfilteredCount).toBe(2)
@@ -524,7 +617,7 @@ describe('transformMetadata', () => {
     // example response from WDS, copy-pasted from a WDS swagger call
     const wdsSchema: RecordTypeSchema[] = [
       {
-        name: 'item',
+        name: recordType,
         attributes: [
           {
             name: 'booleanAttr',
@@ -533,13 +626,22 @@ describe('transformMetadata', () => {
           {
             name: 'stringAttr',
             datatype: 'STRING'
+          },
+          {
+            name: 'item_id',
+            datatype: 'STRING'
           }
         ],
-        count: 7
+        count: 7,
+        primaryKey: 'item_id'
       },
       {
         name: 'thing',
         attributes: [
+          {
+            name: 'thing_id',
+            datatype: 'STRING'
+          },
           {
             name: 'numericAttr',
             datatype: 'NUMBER'
@@ -553,7 +655,23 @@ describe('transformMetadata', () => {
             datatype: 'STRING'
           }
         ],
-        count: 4
+        count: 4,
+        primaryKey: 'thing_id'
+      },
+      {
+        name: 'system',
+        attributes: [
+          {
+            name: 'one',
+            datatype: 'NUMBER'
+          },
+          {
+            name: 'two',
+            datatype: 'STRING'
+          },
+        ],
+        count: 12345,
+        primaryKey: 'sys_name'
       }
     ]
 
@@ -565,11 +683,16 @@ describe('transformMetadata', () => {
       item: {
         count: 7,
         attributeNames: ['booleanAttr', 'stringAttr'],
-        idName: 'sys_name'
+        idName: 'item_id'
       },
       thing: {
         count: 4,
         attributeNames: ['numericAttr', 'stringAttr', 'timestamp'],
+        idName: 'thing_id'
+      },
+      system: {
+        count: 12345,
+        attributeNames: ['one', 'two'],
         idName: 'sys_name'
       }
     }
