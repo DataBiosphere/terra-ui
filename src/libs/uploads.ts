@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { Reducer, useCallback, useReducer } from 'react'
 import { useCancelable } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
@@ -87,7 +86,7 @@ export const useUploader = (uploadFile: (file: File, opts: { signal: AbortSignal
           active: true,
           files: update.files,
           totalFiles: update.files.length,
-          totalBytes: _.reduce((total, file) => total += file.size, 0, update.files)
+          totalBytes: update.files.reduce((total, file) => total + file.size, 0),
         }
 
       case 'startFile':
