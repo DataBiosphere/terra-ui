@@ -71,7 +71,7 @@ const AzureWarning = () => {
     'you have your own agreements in place.'
 
   return h(TitleBar, {
-    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+    title: div({ role: 'alert', id: 'azureWarningBanner', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
       icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
       span({ style: { color: colors.dark(), fontSize: 14 } }, [warningMessage])
     ]), style: { backgroundColor: colors.accent(0.25) }

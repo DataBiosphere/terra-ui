@@ -2,11 +2,15 @@
 const _ = require('lodash/fp')
 const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
-  assertNavChildNotFound, click, clickable, findText, gotoPage, navChild, verifyAccessibility
+  assertNavChildNotFound, assertTextNotFound, click, clickable, findText, gotoPage, navChild, verifyAccessibility
 } = require('../utils/integration-utils')
 const { registerTest } = require('../utils/jest-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
+
+const azureWarning = 'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) ' +
+  'in this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset ' +
+  'or you have your own agreements in place.'
 
 const workspaceDashboardPage = (testPage, token, workspaceName) => {
   return {
@@ -31,7 +35,11 @@ const workspaceDashboardPage = (testPage, token, workspaceName) => {
       await Promise.all(_.map(async tab => {
         await (enabled ? testPage.waitForXPath(navChild(tab)) : assertNavChildNotFound(testPage, tab))
       }, expectedTabs))
-    }
+    },
+
+    assertAzureWarning: async () => {
+      await testPage.waitForXPath(`//*[@id="azureWarningBanner"]/*[contains(text(), "${azureWarning}")]`, { visible: true })
+    },
   }
 }
 
@@ -71,6 +79,9 @@ const testGoogleWorkspace = _.flow(
 
   // Check accessibility.
   await verifyAccessibility(page)
+
+  // Verify that there is no Azure warning
+  await assertTextNotFound(azureWarning)
 })
 
 registerTest({
@@ -206,6 +217,9 @@ const testAzureWorkspace = withUserToken(async ({ page, token, testUrl }) => {
 
   // Check accessibility.
   await verifyAccessibility(page)
+
+  // Verify Azure warning is visible
+  await dashboard.assertAzureWarning()
 })
 
 registerTest({
