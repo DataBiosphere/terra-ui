@@ -1,5 +1,3 @@
-import _ from 'lodash/fp'
-import { SafeCurry2, SafeCurry3 } from 'src/libs/type-utils/lodash-fp-types'
 import { delay } from 'src/libs/utils'
 
 import { AnyFn, AnyPromiseFn, GenericFn, GenericPromiseFn } from './general-types'
@@ -7,6 +5,7 @@ import {
   createHandler,
   createHandlerAsync,
   curryLastArg,
+  safeCurry,
   withHandlers
 } from './lodash-fp-helpers'
 
@@ -83,7 +82,7 @@ describe('Lodash FP Helpers', () => {
           return result
         }
       }
-      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
+      const handler1 = safeCurry(handler1Fn)
 
       const handler2Fn = <F extends AnyFn>(
         arg1: string,
@@ -97,7 +96,7 @@ describe('Lodash FP Helpers', () => {
           return result
         }
       }
-      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
+      const handler2 = safeCurry(handler2Fn)
 
       const watcher = jest.fn()
       const mainFn = (a: string, b: string): string => {
@@ -299,7 +298,7 @@ describe('Lodash FP Helpers', () => {
           return result
         }
       }
-      const handler1 = _.curry(handler1Fn) as SafeCurry2<typeof handler1Fn>
+      const handler1 = safeCurry(handler1Fn)
 
       const handler2Fn = <F extends AnyPromiseFn, P>(
         arg1: string,
@@ -313,7 +312,7 @@ describe('Lodash FP Helpers', () => {
           return result
         }
       }
-      const handler2 = _.curry(handler2Fn) as SafeCurry3<typeof handler2Fn>
+      const handler2 = safeCurry(handler2Fn)
 
       const watcher = jest.fn()
 

@@ -31,7 +31,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolForImage, getToolFromRuntime, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolForImage, getToolFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -126,6 +126,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
+        style: { minWidth: '6rem' },
         min: 150, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
@@ -357,7 +358,7 @@ export const ComputeModalBase = ({
     return { currentNumCpus, currentMemory, validGpuName, validGpuNames, validGpuType, validGpuOptions, validNumGpus, validNumGpusOptions }
   }
 
-  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === tools.RStudio.label
+  const isRStudioImage = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id) === runtimeTools.RStudio.label
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime, autopauseThreshold: existingAutopauseThreshold } = getExistingEnvironmentConfig()
@@ -577,7 +578,7 @@ export const ComputeModalBase = ({
 
   const makeImageInfo = style => {
     const selectedImage = _.find({ image: selectedLeoImage }, leoImages)
-    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === tools.RStudio.label
+    const shouldDisable = _.isEmpty(leoImages) ? true : selectedImage.isCommunity || getToolForImage(selectedImage.id) === toolLabels.RStudio
     const changelogUrl = _.isEmpty(leoImages) ?
       '' :
       `https://github.com/DataBiosphere/terra-docker/blob/master/${_.replace('_legacy', '', selectedImage.id)}/CHANGELOG.md`
@@ -700,7 +701,7 @@ export const ComputeModalBase = ({
         currentDisk ? Ajax().Disks.disk(currentDisk.googleProject, currentDisk.name).details() : null
       ])
 
-      const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+      const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, runtimeTools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
@@ -717,7 +718,7 @@ export const ComputeModalBase = ({
       const getSelectedImage = () => {
         if (foundImage) {
           if (!_.includes(foundImage, filteredNewLeoImages)) {
-            return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
+            return _.find({ id: runtimeTools[tool].defaultImageId }, newLeoImages).image
           } else {
             return imageUrl
           }
@@ -864,7 +865,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== tools.RStudio.label })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== toolLabels.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -912,12 +913,13 @@ export const ComputeModalBase = ({
     const enableGpusSpan = span(['Enable GPUs ', betaVersionTag])
     const autoPauseCheckboxEnabled = true
     const enableAutopauseSpan = span(['Enable autopause'])
-    const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
+    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
+    const gridItemInputStyle = { minWidth: '6rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
       div([
-        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: '0.25fr 5rem 1fr 5.5rem 1fr 5.5rem' } }, [
+        div({ style: { ...gridStyle, gridGap: '.75rem', gridTemplateColumns: 'repeat(6, auto)', justifyContent: 'flex-start' } }, [
           // CPU & Memory Selection
           h(IdContainer, [
             id => h(Fragment, [
@@ -925,6 +927,7 @@ export const ComputeModalBase = ({
               div([
                 h(Select, {
                   id,
+                  style: gridItemInputStyle,
                   isSearchable: false,
                   value: currentNumCpus,
                   onChange: ({ value }) => {
@@ -945,6 +948,7 @@ export const ComputeModalBase = ({
               div([
                 h(Select, {
                   id,
+                  style: gridItemInputStyle,
                   isSearchable: false,
                   value: currentMemory,
                   onChange: ({ value }) => {
@@ -1440,8 +1444,8 @@ export const ComputeModalBase = ({
 
   const renderEnvironmentWarning = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-
     const desiredTool = getToolForImage(_.find({ image: selectedLeoImage }, leoImages)?.id)
+    const desiredToolPhrase = isCustomImage ? 'a custom image' : strong([desiredTool])
 
     return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
       h(TitleBar, {
@@ -1487,8 +1491,13 @@ export const ComputeModalBase = ({
           ])],
           [willRequireDowntime(), () => h(Fragment, [
             existingRuntime && existingRuntime.tool !== desiredTool ?
-              p(['By continuing, you will be changing the application of your cloud environment from ', strong([existingRuntime?.tool]), ' to ',
-                strong([desiredTool]), '.']) :
+              p([
+                'By continuing, you will be changing the application of your cloud environment from ',
+                strong([existingRuntime.tool]),
+                ' to ',
+                desiredToolPhrase,
+                '.'
+              ]) :
               undefined,
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
             p(['Your existing data will be preserved during this update.'])
@@ -1535,7 +1544,7 @@ export const ComputeModalBase = ({
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolForImage(id) === tools.RStudio.label)))
+          options: getImages(({ isCommunity, id }) => (!isCommunity && !(getToolForImage(id) === toolLabels.RStudio)))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -1543,7 +1552,7 @@ export const ComputeModalBase = ({
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: getImages(image => getToolForImage(image.id) === tools.RStudio.label)
+          options: getImages(image => getToolForImage(image.id) === toolLabels.RStudio)
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',
@@ -1701,7 +1710,7 @@ export const ComputeModalBase = ({
   }
 
   const renderPersistentDiskSection = diskExists => {
-    const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
+    const gridStyle = { display: 'grid', gridGap: '1rem', alignItems: 'center', marginTop: '1rem' }
 
     const renderPersistentDiskType = id => h(div, [
       label({ htmlFor: id, style: computeStyles.label }, ['Disk Type']),

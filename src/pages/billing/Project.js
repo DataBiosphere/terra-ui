@@ -14,14 +14,12 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { reloadAuthToken, signOut } from 'src/libs/auth'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -476,7 +474,7 @@ const ErrorAlert = ({ errorMessage }) => {
   ])
 }
 
-const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isAlphaSpendReportUser, isOwner, reloadBillingProject }) => {
+const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProject, isOwner, reloadBillingProject }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -677,7 +675,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       _.capitalize(key === 'members' && !isOwner ? 'owners' : key) // Rewrite the 'Members' tab to say 'Owners' if the user has the User role
     ]),
     tableName: _.lowerCase(key)
-  }), _.filter(key => (key !== spendReportKey || (isAlphaSpendReportUser && isOwner && isGcpProject)), _.keys(tabToTable)))
+  }), _.filter(key => (key !== spendReportKey || (isOwner && isGcpProject)), _.keys(tabToTable)))
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
@@ -769,14 +767,8 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         }
       })
     maybeLoadProjectCost().catch(async error => {
-      if (error instanceof Response && error.status === 401) {
-        if (!await reloadAuthToken()) {
-          notify('info', 'Session timed out', sessionTimeoutProps)
-          signOut()
-        }
-      } else {
-        setErrorMessage(await (error instanceof Response ? error.text() : error))
-      }
+      setErrorMessage(await (error instanceof Response ? error.text() : error))
+      setUpdatingProjectCost(false)
     })
   }, [spendReportLengthInDays, tab]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -822,7 +814,6 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
-        key: `tabBarKey${isAlphaSpendReportUser}`, // The Spend report tab is only present for alpha users, so force recreation.
         onChange: newTab => {
           if (newTab === tab) {
             reloadBillingProjectUsers()

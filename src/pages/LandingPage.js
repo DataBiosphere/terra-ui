@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, Clickable, HeroWrapper, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, Link } from 'src/components/common'
+import { HeroWrapper } from 'src/components/HeroWrapper'
 import { icon } from 'src/components/icons'
 import hexButton from 'src/images/hex-button.svg'
 import terraHero from 'src/images/terra-hero.png'
@@ -77,8 +78,8 @@ const LandingPage = () => {
 
   useEffect(() => {
     const loadProjects = withErrorHandling(async error => {
-      const errorJSON = await error.json()
-      console.log(`Unable to load billing projects due to: ${errorJSON?.message}`) // eslint-disable-line no-console
+      const errorObj = await error instanceof Response ? error.json() : error
+      console.log(`Unable to load billing projects due to: ${errorObj?.message}`) // eslint-disable-line no-console
     })(async () => {
       const projects = await Ajax(signal).Billing.listProjects()
       setBillingProjects(projects)

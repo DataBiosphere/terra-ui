@@ -305,7 +305,9 @@ const BucketBrowser = (({
 
   const [viewingObject, setViewingObject] = useState(null)
 
-  const { uploadState, uploadFiles, cancelUpload } = useUploader()
+  const { uploadState, uploadFiles, cancelUpload } = useUploader((file, { signal }) => {
+    return Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file)
+  })
   const [creatingNewFolder, setCreatingNewFolder] = useState(false)
   const [deletingSelectedObjects, setDeletingSelectedObjects] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -331,7 +333,7 @@ const BucketBrowser = (({
       multiple: true,
       maxFiles: 0, // no limit on number of files
       onDropAccepted: async files => {
-        await uploadFiles({ googleProject, bucketName, prefix, files })
+        await uploadFiles(files)
         reload()
         onUploadFiles()
       }

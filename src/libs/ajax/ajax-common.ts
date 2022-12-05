@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { getUser } from 'src/libs/auth'
+import { getUser, reloadAuthToken, signOutAfterSessionTimeout } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -17,6 +17,9 @@ export const isCloudProvider = (x: unknown): x is CloudProviderType => {
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 export const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
+
+type FetchFn = typeof fetch
+
 export const withUrlPrefix = _.curry((prefix, wrappedFetch) => (path, ...args) => {
   return wrappedFetch(prefix + path, ...args)
 })
@@ -41,6 +44,27 @@ export const withRetryOnError = _.curry((shouldNotRetryFn, wrappedFetch) => asyn
   }
   return wrappedFetch(...args)
 })
+
+export const withRetryAfterReloadingExpiredAuthToken = (wrappedFetch: FetchFn): FetchFn => async (resource: RequestInfo | URL, options?: RequestInit) => {
+  const requestHasAuthHeader = _.isMatch(authOpts(), options as object)
+  try {
+    return await wrappedFetch(resource, options)
+  } catch (error) {
+    const isUnauthorizedResponse = error instanceof Response && error.status === 401
+    if (isUnauthorizedResponse && requestHasAuthHeader) {
+      const successfullyReloadedAuthToken = !!(await reloadAuthToken())
+      if (successfullyReloadedAuthToken) {
+        const optionsWithNewAuthToken = _.merge(options, authOpts())
+        return await wrappedFetch(resource, optionsWithNewAuthToken)
+      } else {
+        signOutAfterSessionTimeout()
+        throw new Error('Session timed out')
+      }
+    } else {
+      throw error
+    }
+  }
+}
 
 const withAppIdentifier = wrappedFetch => (url, options) => {
   return wrappedFetch(url, _.merge(options, appIdentifier))
@@ -91,21 +115,90 @@ const withErrorRejection = wrappedFetch => async (...args) => {
 
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
-export const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
-export const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-export const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-export const fetchBillingProfileManager = _.flow(withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-export const fetchWorkspaceManager = _.flow(withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-export const fetchCatalog = withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`, fetchOk)
-export const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
+
+export const fetchLeo = _.flow(
+  withUrlPrefix(`${getConfig().leoUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchSam = _.flow(
+  withUrlPrefix(`${getConfig().samUrlRoot}/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchRawls = _.flow(
+  withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchBillingProfileManager = _.flow(
+  withUrlPrefix(`${getConfig().billingProfileManagerUrlRoot}/api/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchWorkspaceManager = _.flow(
+  withUrlPrefix(`${getConfig().workspaceManagerUrlRoot}/api/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchCatalog = _.flow(
+  withUrlPrefix(`${getConfig().catalogUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk)
+
+export const fetchDataRepo = _.flow(
+  withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken
+)(fetchOk)
+
 export const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
-export const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
-export const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
-export const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
-export const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
-export const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-export const fetchDrsHub = withUrlPrefix(`${getConfig().drsHubUrlRoot}/`, fetchOk)
-export const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
-export const fetchEcm = withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`, fetchOk)
+
+export const fetchAgora = _.flow(
+  withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchOrchestration = _.flow(
+  withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`),
+  withAppIdentifier,
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchRex = _.flow(
+  withUrlPrefix(`${getConfig().rexUrlRoot}/api/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchBond = _.flow(
+  withUrlPrefix(`${getConfig().bondUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchMartha = _.flow(
+  withUrlPrefix(`${getConfig().marthaUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchDrsHub = _.flow(
+  withUrlPrefix(`${getConfig().drsHubUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchBard = _.flow(
+  withUrlPrefix(`${getConfig().bardRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
+export const fetchEcm = _.flow(
+  withUrlPrefix(`${getConfig().externalCredsUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
+
 export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
+
 export const fetchWDS = _.flow(withUrlPrefix(`${getConfig().wdsUrlRoot}/`), withAppIdentifier)(fetchOk)

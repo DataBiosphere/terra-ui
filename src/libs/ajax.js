@@ -50,7 +50,7 @@ const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceName
 
 const User = signal => ({
   getStatus: async () => {
-    const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+    const res = await fetchSam('register/user/v2/self/info', _.mergeAll([authOpts(), { signal }]))
     return res.json()
   },
 
@@ -831,7 +831,7 @@ const Catalog = signal => ({
     return res.json()
   },
   exportDataset: async ({ id, workspaceId }) => {
-    return await fetchCatalog(`v1/datasets/${id}/export/${workspaceId}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return await fetchCatalog(`v1/datasets/${id}/export`, _.mergeAll([authOpts(), jsonBody({ workspaceId }), { signal, method: 'POST' }]))
   }
 })
 

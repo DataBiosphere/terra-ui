@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { AnyFn, AnyPromiseFn, GenericFn, WrapFn } from 'src/libs/type-utils/general-types'
+import { SafeCurry2, SafeCurry3, SafeCurry4, SafeCurry5 } from 'src/libs/type-utils/lodash-fp-types'
 
 /*
  * The helpers in this file are to provide even better type safety then the baseline lodash-fp utils
@@ -60,6 +61,31 @@ export const curryLastArg: CurryLastArgFn = (fn: (
       return fn(...args2, last)
     }
   }
+}
+
+export interface SafeCurryXFn {
+  <F extends (a: any, b: any) => any>(
+      fn: F
+  ) : SafeCurry2<F>
+  <F extends (a: any, b: any, c: any) => any>(
+      fn: F
+  ) : SafeCurry3<F>
+  <F extends (a: any, b: any, c: any, d: any) => any>(
+      fn: F
+  ) : SafeCurry4<F>
+  <F extends (a: any, b: any, c: any, d: any, e: any) => any>(
+      fn: F
+  ) : SafeCurry5<F>
+}
+
+/**
+ * curry's a function using Lodash.curry() but with greatly improved type
+ * safety and flow.
+ *
+ * @param fn a function with up to 5 arguments, which will be curried
+ */
+export const safeCurry: SafeCurryXFn = (fn: AnyFn) => {
+  return _.curry(fn)
 }
 
 /**
