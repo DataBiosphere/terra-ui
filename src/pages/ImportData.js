@@ -48,14 +48,14 @@ const ChoiceButton = ({ iconName, title, detail, style, onClick, disabled, ...pr
       border: `1px solid ${color}`, borderRadius: 4,
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? {} : { backgroundColor: colors.accent(0.1) },
+    hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) },
     onClick: !disabled && onClick,
     ...props
   }, [
     icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color } }),
     div({ style: { flex: 1 } }, [
       div({ style: { fontWeight: 'bold', color } }, [title]),
-      div({ style: { color } }, [detail])
+      div({ style: disabled ? { color: colors.dark(0.25) } : undefined }, [detail])
     ]),
     icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem', color } })
   ])
@@ -123,7 +123,7 @@ export const ImportData = () => {
   useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
-      withErrorReporting('Error loading templates')
+      withErrorReporting('Error loading initial data')
     )(async () => {
       const templates = await Ajax().FirecloudBucket.getTemplateWorkspaces()
       setAllTemplates(templates)
