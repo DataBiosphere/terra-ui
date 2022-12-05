@@ -3,6 +3,7 @@ import { div, h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
 import { basename } from 'src/components/file-browser/file-browser-utils'
+import { FilesMenu } from 'src/components/file-browser/FilesMenu'
 import FilesTable from 'src/components/file-browser/FilesTable'
 import { icon } from 'src/components/icons'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
@@ -11,6 +12,8 @@ import * as Utils from 'src/libs/utils'
 
 
 interface FilesInDirectoryProps {
+  editDisabled?: boolean
+  editDisabledReason?: string
   provider: FileBrowserProvider
   path: string
   rootLabel?: string
@@ -21,6 +24,8 @@ interface FilesInDirectoryProps {
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const {
+    editDisabled = false,
+    editDisabledReason,
     path,
     provider,
     rootLabel = 'Files',
@@ -37,7 +42,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     state: { status, files },
     hasNextPage,
     loadAllRemainingItems,
-    loadNextPage
+    loadNextPage,
+    reload,
   } = useFilesInDirectory(provider, path)
 
   const isLoading = status === 'Loading'
@@ -57,6 +63,17 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
       flex: '1 0 0'
     }
   }, [
+    h(FilesMenu, {
+      disabled: editDisabled,
+      disabledReason: editDisabledReason,
+      provider,
+      selectedFiles,
+      onDeleteFiles: () => {
+        setSelectedFiles({})
+        reload()
+      },
+    }),
+
     span({
       ref: loadedAlertElementRef,
       'aria-live': 'polite',
