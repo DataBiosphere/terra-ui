@@ -38,7 +38,7 @@ const workspaceDashboardPage = (testPage, token, workspaceName) => {
     },
 
     assertAzureWarning: async () => {
-      await testPage.waitForXPath(`//*[@id="azureWarningBanner"]/*[contains(text(), "${azureWarning}")]`, { visible: true })
+      await testPage.waitForXPath(`//*[@role='alert']/*[contains(text(), "${azureWarning}")]`, { visible: true })
     },
   }
 }
