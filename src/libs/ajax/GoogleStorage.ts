@@ -206,8 +206,8 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     return { items, prefixes }
   },
 
-  delete: async (googleProject, bucket, name) => {
-    return fetchBuckets(
+  delete: async (googleProject: string, bucket: string, name: string): Promise<void> => {
+    await fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
       _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
     )
