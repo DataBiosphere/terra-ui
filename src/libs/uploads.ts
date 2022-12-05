@@ -1,11 +1,23 @@
-import _ from 'lodash/fp'
-import { useCallback, useReducer } from 'react'
-import { Ajax } from 'src/libs/ajax'
+import { Reducer, useCallback, useReducer } from 'react'
 import { useCancelable } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const init = () => {
+export type UploadState = {
+  active: boolean
+  totalFiles: number
+  totalBytes: number
+  uploadedBytes: number
+  currentFileNum: number
+  currentFile: File | null
+  files: File[]
+  completedFiles: File[]
+  errors: unknown[]
+  aborted: boolean
+  done: boolean
+}
+
+const init = (): UploadState => {
   return {
     active: false,
     totalFiles: 0,
@@ -21,8 +33,51 @@ const init = () => {
   }
 }
 
-export const useUploader = () => {
-  const [state, dispatch] = useReducer((state, update) => {
+type UploadUpdateStart = {
+  action: 'start'
+  files: File[]
+}
+
+type UploadUpdateStartFile = {
+  action: 'startFile'
+  file: File
+  fileNum: number
+}
+
+type UploadUpdateFinishFile = {
+  action: 'finishFile'
+  file: File
+}
+
+type UploadUpdateError = {
+  action: 'error'
+  error: unknown
+}
+
+type UploadUpdateAbort = {
+  action: 'abort'
+}
+
+type UploadUpdateFinish = {
+  action: 'finish'
+}
+
+type UploadUpdate =
+  | UploadUpdateStart
+  | UploadUpdateStartFile
+  | UploadUpdateFinishFile
+  | UploadUpdateError
+  | UploadUpdateAbort
+  | UploadUpdateFinish
+
+export type UseUploaderResult = {
+  uploadState: UploadState
+  uploadFiles: (files: File[]) => Promise<void>
+  cancelUpload: () => void
+}
+
+export const useUploader = (uploadFile: (file: File, opts: { signal: AbortSignal }) => Promise<void>): UseUploaderResult => {
+  const [state, dispatch] = useReducer<Reducer<UploadState, UploadUpdate>, null>((state, update) => {
     switch (update.action) {
       // Calculate how many files and how many bytes we are working with
       case 'start':
@@ -31,7 +86,7 @@ export const useUploader = () => {
           active: true,
           files: update.files,
           totalFiles: update.files.length,
-          totalBytes: _.reduce((total, file) => total += file.size, 0, update.files)
+          totalBytes: update.files.reduce((total, file) => total + file.size, 0),
         }
 
       case 'startFile':
@@ -45,13 +100,13 @@ export const useUploader = () => {
         return {
           ...state,
           uploadedBytes: state.uploadedBytes + update.file.size,
-          completedFiles: Utils.append(update.file, state.completedFiles)
+          completedFiles: [...state.completedFiles, update.file]
         }
 
       case 'error':
         return {
           ...state,
-          errors: Utils.append(update.error, state.errors)
+          errors: [...state.errors, update.error]
         }
 
       case 'abort':
@@ -74,7 +129,7 @@ export const useUploader = () => {
 
   const { signal, abort } = useCancelable()
 
-  const uploadFiles = useCallback(async ({ googleProject, bucketName, prefix, files }) => {
+  const uploadFiles = useCallback(async (files: File[]) => {
     const uploadCancelled = new Promise((_resolve, reject) => {
       signal.addEventListener('abort', () => reject())
     })
@@ -82,14 +137,16 @@ export const useUploader = () => {
     dispatch({ action: 'start', files })
     for (const [index, file] of Utils.toIndexPairs(files)) {
       try {
-        signal.throwIfAborted()
+        if (signal.aborted) {
+          throw signal.reason
+        }
 
         dispatch({ action: 'startFile', file, fileNum: index })
         // If the upload request is cancelled, the withCancellation wrapper in Ajax.js swallows the
         // AbortError and returns a Promise that never resolves. Thus, this Promise.race is needed
         // to avoid hanging indefinitely while awaiting a cancelled upload request.
         await Promise.race([
-          Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file),
+          uploadFile(file, { signal }),
           uploadCancelled
         ])
         dispatch({ action: 'finishFile', file })
@@ -105,12 +162,17 @@ export const useUploader = () => {
     if (!signal.aborted) {
       dispatch({ action: 'finish' })
     }
-  }, [signal])
+
+    // useCancelable will call abort when unmounted. After files are uploaded,
+    // we no longer care about that method of cancellation. Catch here to
+    // avoid an unhandled promise rejection.
+    uploadCancelled.catch(() => {})
+  }, [signal, uploadFile])
 
   return {
     uploadState: state,
     // Only one upload can be active at a time.
-    uploadFiles: state.active ? _.noop : uploadFiles,
+    uploadFiles: state.active ? () => { throw Error('Upload in progress') } : uploadFiles,
     cancelUpload: abort
   }
 }
