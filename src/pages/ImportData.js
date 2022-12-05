@@ -76,7 +76,7 @@ const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
   ])
 }
 
-export const ImportData = () => {
+const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
   const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer, tdrmanifest, catalogDatasetId, tdrSyncPermissions } } = Nav.useRoute()

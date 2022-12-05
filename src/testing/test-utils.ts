@@ -7,6 +7,7 @@
 export const asMockedFn = <T extends (...args: any[]) => any>(fn: T): jest.MockedFunction<T> => {
   return fn as jest.MockedFunction<T>
 }
+
 export type PromiseController<T> = {
   resolve: (value: T) => void
   reject: (reason: unknown) => void
