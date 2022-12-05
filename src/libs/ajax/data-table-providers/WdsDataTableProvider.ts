@@ -79,13 +79,19 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, signal: AbortSignal) {
     this.workspaceId = workspaceId
+    Ajax(signal).Apps.getV2(workspaceId).then(apps => {
+      this.wdsUrl = this.getWdsUrl(apps)
+    })
   }
 
   providerName: string = 'WDS'
 
   workspaceId: string
+
+  //TODO: Initialize to prevent ts error.  Is there a better way?
+  wdsUrl: string = ''
 
   features: DataTableFeatures = {
     supportsTsvDownload: false,
@@ -115,6 +121,22 @@ export class WdsDataTableProvider implements DataTableProvider {
         () => 'Upload selected data'
       )
     }
+  }
+
+  //TODO: define a type, fix date type and comparison
+  private getWdsUrl = (apps: { cloudProvider: string; status: string; proxyUrls: { wds: string}; appName: string; appType: string; auditInfo: {createdDate: number} }[]): string => {
+    //TODO better logic
+    let candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+    if (candidates.length === 0) {
+      //panic
+    }
+    if (candidates.length > 1) {
+      candidates = candidates.filter(app => app.appName === 'wdsApp')
+    }
+    if (candidates.length > 1) {
+      candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    }
+    return candidates[0].proxyUrls.wds
   }
 
   private maybeTransformRelation = (val: unknown): unknown => {
@@ -174,7 +196,7 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(this.workspaceId, entityType,
+      .getRecords(this.wdsUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -186,14 +208,14 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   deleteTable = (entityType: string): Promise<Response> => {
-    return Ajax().WorkspaceData.deleteTable(this.workspaceId, entityType)
+    return Ajax().WorkspaceData.deleteTable(this.wdsUrl, this.workspaceId, entityType)
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
+    return Ajax(signal).WorkspaceData.downloadTsv(this.wdsUrl, this.workspaceId, entityType)
   }
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+    return Ajax().WorkspaceData.uploadTsv(this.wdsUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }
