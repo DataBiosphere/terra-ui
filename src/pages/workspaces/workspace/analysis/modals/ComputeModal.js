@@ -867,22 +867,24 @@ export const ComputeModalBase = ({
       id => h(div, {}, [
         div({ style: { margin: '0.5rem 0' } }, [
           label({ htmlFor: id, style: { ...computeStyles.label } }, ['Creation Timeout Limit']),
-          h(InfoBox, { style: { marginLeft: '0.5rem' } }, ['Custom and legacy images may need extra time on create. Enter a value between 10 and 45 minutes.'])
+          h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+            'Custom and Legacy image creation may take longer than the default 10 minute timeout window. ' +
+            'To avoid an error, you may enter a value between 10 and 45 minutes.'
+          ])
         ]),
         div({ style: { display: 'grid', alignItems: 'center', gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
-                  min: 10,
-                  max: 45,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: timeoutInMinutes,
-                  placeholder: '10',
-                  onChange: value => setTimeoutInMinutes(value),
-                  'aria-label': 'Minutes of processing before failure'
-                }),
-                span('Minutes')
-              ]
-          )
+              min: 10,
+              max: 45,
+              isClearable: false,
+              onlyInteger: true,
+              value: timeoutInMinutes,
+              placeholder: '10',
+              onChange: value => setTimeoutInMinutes(value),
+              'aria-label': 'Minutes of processing before failure'
+            }),
+            span('Minutes')
+        ])
       ])
     ])
   }

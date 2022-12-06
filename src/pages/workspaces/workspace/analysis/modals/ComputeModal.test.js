@@ -756,6 +756,9 @@ describe('ComputeModal', () => {
       const customImageUri = 'us'
       await fireEvent.change(imageInput, { target: { value: customImageUri } })
 
+      const customImageTimeoutLimit = await screen.findByText('Creation Timeout Limit')
+      expect(customImageTimeoutLimit).toBeInTheDocument()
+
       const nextButton = await screen.findByText('Next')
       verifyEnabled(nextButton)
       await userEvent.click(nextButton)
