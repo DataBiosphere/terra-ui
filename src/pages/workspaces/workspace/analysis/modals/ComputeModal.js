@@ -32,7 +32,7 @@ import {
   getDefaultMachineType, getIsRuntimeBusy, getPersistentDiskCostMonthly, getValidGpuOptions, getValidGpuTypesForZone,
   isAutopauseEnabled, pdTypes, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { getToolForImage, getToolFromRuntime, runtimeTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolForImage, getToolFromRuntime, runtimeTools, terraSupportedRuntimeImageIds, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -192,6 +192,7 @@ export const ComputeModalBase = ({
   const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
+  const [timeoutInMinutes, setTimeoutInMinutes] = useState(undefined)
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
@@ -219,6 +220,10 @@ export const ComputeModalBase = ({
   const isPersistentDisk = shouldUsePersistentDisk(runtimeType, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
+  const supportedImages = _.flow(
+    _.filter(({ id }) => terraSupportedRuntimeImageIds.includes(id)),
+    _.map(({ image }) => image)
+  )(leoImages)
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
   // The memory sizes below are the minimum required to launch Terra-supported GCP runtimes, based on experimentation.
   const minRequiredMemory = isDataproc(runtimeType) ? 7.5 : 3.75 // in GB
@@ -857,6 +862,31 @@ export const ComputeModalBase = ({
     )
   }
 
+  const renderCustomTimeoutInMinutes = () => {
+    return h(IdContainer, [
+      id => h(div, {}, [
+        div({ style: { margin: '0.5rem 0' } }, [
+          label({ htmlFor: id, style: { ...computeStyles.label } }, ['Creation Timeout Limit']),
+          h(InfoBox, { style: { marginLeft: '0.5rem' } }, ['Custom and legacy images may need extra time on create. Enter a value between 10 and 45 minutes.'])
+        ]),
+        div({ style: { display: 'grid', alignItems: 'center', gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
+          h(NumberInput, {
+                  min: 10,
+                  max: 45,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: timeoutInMinutes,
+                  placeholder: '10',
+                  onChange: value => setTimeoutInMinutes(value), //updateComputeConfig('autopauseThreshold'),
+                  'aria-label': 'Minutes of processing before failure'
+                }),
+                span('Minutes')
+              ]
+          )
+      ])
+    ])
+  }
+
   const renderApplicationConfigurationSection = () => {
     return div({ style: computeStyles.whiteBoxContainer }, [
       h(IdContainer, [
@@ -910,7 +940,8 @@ export const ComputeModalBase = ({
             ])
           ])
         }]
-      )
+      ),
+      selectedLeoImage && !supportedImages.includes(selectedLeoImage) ? renderCustomTimeoutInMinutes() : []
     ])
   }
 
@@ -1543,6 +1574,8 @@ export const ComputeModalBase = ({
           [Utils.DEFAULT, () => runtimeTypes.gceVm]
         )
         setSelectedLeoImage(value)
+        //TODO: Is this the best way to "un-set"?
+        setTimeoutInMinutes(supportedImages.includes(value) ? undefined : timeoutInMinutes)
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))

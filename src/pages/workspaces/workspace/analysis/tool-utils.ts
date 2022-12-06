@@ -45,6 +45,10 @@ export interface AppTool extends Tool {
   appType: string
 }
 
+export const terraSupportedRuntimeImageIds: string[] = [
+  'terra-jupyter-bioconductor', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'RStudio'
+]
+
 const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as Extension[], imageIds: ['RStudio'], defaultImageId: 'RStudio', defaultExt: 'Rmd' as Extension }
 
 const Jupyter: RuntimeTool = {
