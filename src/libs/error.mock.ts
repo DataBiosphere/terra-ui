@@ -4,7 +4,8 @@ import _ from 'lodash/fp'
  * Allows observation of when an error occurs via `errorWatcher`, i.e.:
  *     expect(errorWatcher).toHaveBeenCalledTimes(1)
  *     expect(errorWatcher).toHaveBeenCalledWith('my error message', expect.anything())
- * You must use `jest.resetMocks` in `beforeEach` to clear the errorWatcher between tests
+ * The errorWatcher call counts and information will be cleared in between tests,
+ * thanks to Jest being configured to auto-clear mock between tests at the project level.
  */
 export const errorWatcher = jest.fn()
 
