@@ -23,6 +23,7 @@ export interface RecordTypeSchema {
   name: string
   count: number
   attributes: AttributeSchema[]
+  primaryKey: string
 }
 
 export interface SearchRequest {
@@ -32,7 +33,7 @@ export interface SearchRequest {
   sortAttribute?: string
 }
 
-type RecordAttributes = Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
+export type RecordAttributes = Record<string, unknown> // truly "unknown" here; the backend Java representation is Map<String, Object>
 
 interface RecordResponse {
   id: string
@@ -55,7 +56,10 @@ export interface TsvUploadResponse {
 export const wdsToEntityServiceMetadata = (wdsSchema: RecordTypeSchema[]): EntityMetadata => {
   const keyedSchema: Record<string, RecordTypeSchema> = _.keyBy(x => x.name, wdsSchema)
   return _.mapValues(typeDef => {
-    return { count: typeDef.count, attributeNames: _.map(attr => attr.name, typeDef.attributes), idName: 'sys_name' }
+    // exclude the primary-key attribute from the list of attributes. The data table reads
+    // the primary-key attribute from the "idName" property.
+    const attrs = _.filter(attr => attr.name !== typeDef.primaryKey, typeDef.attributes)
+    return { count: typeDef.count, attributeNames: _.map(attr => attr.name, attrs), idName: typeDef.primaryKey }
   }, keyedSchema)
 }
 
@@ -136,20 +140,24 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   // transforms a WDS array to Entity Service array format
-  private transformAttributes = (attributes: RecordAttributes): RecordAttributes => {
-    return _.mapValues(val => {
+  protected transformAttributes = (attributes: RecordAttributes, primaryKey: string): RecordAttributes => {
+    // the pickBy here excludes the primary-key attribute from the attribute map. The data table reads
+    // the primary-key attribute name from the idName of entity metadata, and its value from the entity name.
+    // if we included the primary-key attribute in the attribute map, the data table would show a duplicate column.
+    return _.pickBy((_v, k) => k !== primaryKey, _.mapValues(val => {
       return _.isArray(val) ? this.toEntityServiceArray(val) : this.maybeTransformRelation(val)
-    }, attributes)
+    }, attributes))
   }
 
-  protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions): EntityQueryResponse => {
+  protected transformPage = (wdsPage: RecordQueryResponse, recordType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): EntityQueryResponse => {
     // translate WDS to Entity Service
     const filteredCount = wdsPage.totalRecords
     const unfilteredCount = wdsPage.totalRecords
+    const primaryKey = !!metadata[recordType] ? metadata[recordType].idName : '(unknown column)' // for safety; recordType should always be present
     const results = _.map(rec => {
       return {
         entityType: recordType,
-        attributes: this.transformAttributes(rec.attributes),
+        attributes: this.transformAttributes(rec.attributes, primaryKey),
         name: rec.id
       }
     }, wdsPage.records)
@@ -172,7 +180,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     }
   }
 
-  getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions): Promise<EntityQueryResponse> => {
+  getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
       .getRecords(this.workspaceId, entityType,
         _.merge({
@@ -182,7 +190,7 @@ export class WdsDataTableProvider implements DataTableProvider {
         },
         queryOptions.sortField === 'name' ? {} : { sortAttribute: queryOptions.sortField }
         ))
-    return this.transformPage(wdsPage, entityType, queryOptions)
+    return this.transformPage(wdsPage, entityType, queryOptions, metadata)
   }
 
   deleteTable = (entityType: string): Promise<Response> => {

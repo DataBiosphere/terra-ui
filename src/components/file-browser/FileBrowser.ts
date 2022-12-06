@@ -6,6 +6,7 @@ import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import UriViewer from 'src/components/UriViewer'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 interface FileBrowserProps {
@@ -23,6 +24,9 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   useEffect(() => {
     setSelectedFiles({})
   }, [path])
+
+  const editWorkspaceError = Utils.editWorkspaceError(workspace)
+  const canEditWorkspace = !editWorkspaceError
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
@@ -83,6 +87,8 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
           })
         ]),
         h(FilesInDirectory, {
+          editDisabled: !canEditWorkspace,
+          editDisabledReason: editWorkspaceError,
           provider,
           path,
           rootLabel: 'Workspace bucket',
