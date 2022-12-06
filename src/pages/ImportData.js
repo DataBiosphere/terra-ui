@@ -127,8 +127,8 @@ const ImportData = () => {
     )(async () => {
       const templates = await Ajax().FirecloudBucket.getTemplateWorkspaces()
       setAllTemplates(templates)
-      const numProjects = await Ajax().Billing.listProjects().length
-      setUserHasBillingProjects(numProjects > 0)
+      const projects = await Ajax().Billing.listProjects()
+      setUserHasBillingProjects(projects.length > 0)
     })
     loadTemplateWorkspaces()
   })
