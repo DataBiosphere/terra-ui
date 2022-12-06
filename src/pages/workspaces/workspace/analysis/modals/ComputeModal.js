@@ -877,7 +877,7 @@ export const ComputeModalBase = ({
                   onlyInteger: true,
                   value: timeoutInMinutes,
                   placeholder: '10',
-                  onChange: value => setTimeoutInMinutes(value), //updateComputeConfig('autopauseThreshold'),
+                  onChange: value => setTimeoutInMinutes(value),
                   'aria-label': 'Minutes of processing before failure'
                 }),
                 span('Minutes')
