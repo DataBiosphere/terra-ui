@@ -315,7 +315,6 @@ const ImportData = () => {
             return h(Fragment, [
               h2({ style: styles.title }, ['Destination of the prepared data']),
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
-              div({ style: { fontWeight: '600', marginTop: '1.5rem', fontSize: '1rem', lineHeight: '1.5' } }, ['Stay in Terra and combine it with other data you have and use Terra tools for analyses']),
               !userHasBillingProjects && h(linkAccountPrompt),
               !!filteredTemplates.length && h(ChoiceButton, {
                 onClick: () => setMode('template'),
