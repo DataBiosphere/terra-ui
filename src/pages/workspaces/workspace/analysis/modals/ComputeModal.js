@@ -329,11 +329,11 @@ export const ComputeModalBase = ({
         }
 
         const createRuntimeConfig = { ...runtimeConfig, ...diskConfig }
-
         await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
           runtimeConfig: createRuntimeConfig,
           autopauseThreshold: computeConfig.autopauseThreshold,
           toolDockerImage: desiredRuntime.toolDockerImage,
+          timeoutInMinutes,
           labels: {
             saturnWorkspaceNamespace: namespace,
             saturnWorkspaceName: name
