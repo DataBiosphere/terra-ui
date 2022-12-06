@@ -41,6 +41,7 @@ export class EntityServiceDataTableProvider implements DataTableProvider {
     needsTypeInput: false,
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
     dataImportSupportLink: 'https://support.terra.bio/hc/en-us/articles/360059242671',
+    dataTableSupportLink: 'https://support.terra.bio/hc/en-us/articles/360025758392',
     textImportPlaceholder: 'entity:participant_id(tab)column1(tab)column2...',
     invalidFormatWarning: 'Invalid format: Data does not start with entity or membership definition.',
     isInvalid: (options: InvalidTsvOptions): boolean => {

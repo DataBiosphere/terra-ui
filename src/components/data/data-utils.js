@@ -376,7 +376,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       }, [
         div(
           ['Choose the data import option below. ',
-            h(Link, {
+            dataProvider.tsvFeatures.dataTableSupportLink && h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),

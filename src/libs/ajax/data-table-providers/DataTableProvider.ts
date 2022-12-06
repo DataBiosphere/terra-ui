@@ -117,6 +117,7 @@ export interface TSVFeatures {
   needsTypeInput: boolean
   sampleTSVLink: string
   dataImportSupportLink: string
+  dataTableSupportLink: string
   invalidFormatWarning: string
   textImportPlaceholder: string
   isInvalid: IsInvalidTsvFn

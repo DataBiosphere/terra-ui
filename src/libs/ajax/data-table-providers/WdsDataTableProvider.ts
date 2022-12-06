@@ -106,6 +106,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     needsTypeInput: true,
     sampleTSVLink: 'https://azurefeaturedworkspace.blob.core.windows.net/featuredworkspacedata/template_data_table_Azure.txt',
     dataImportSupportLink: '',
+    dataTableSupportLink: '',
     textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (options: InvalidTsvOptions): boolean => {
