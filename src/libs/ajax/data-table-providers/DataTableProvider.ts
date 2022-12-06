@@ -118,6 +118,7 @@ export interface TSVFeatures {
   sampleTSVLink: string
   dataImportSupportLink: string
   invalidFormatWarning: string
+  textImportPlaceholder: string
   isInvalid: IsInvalidTsvFn
   disabled: IsTsvUploadButtonDisabledFn
   tooltip: TsvUploadButtonTooltipFn

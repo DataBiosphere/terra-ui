@@ -445,7 +445,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           h(PasteOnlyInput, {
             'aria-label': 'Paste text data here',
             readOnly: !!fileContents,
-            placeholder: 'entity:participant_id(tab)column1(tab)column2...',
+            placeholder: dataProvider.tsvFeatures.textImportPlaceholder,
             onPaste: pastedText => {
               setFile(new File([pastedText], 'upload.tsv'))
               setFileContents(pastedText)
