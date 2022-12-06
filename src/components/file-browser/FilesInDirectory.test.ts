@@ -224,7 +224,7 @@ describe('FilesInDirectory', () => {
       onClickFile: jest.fn()
     }))
 
-    const fileInput = document.querySelector('input[type="file"]')! as HTMLElement
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
 
     const file = new File(['somecontent'], 'example.txt')
 
