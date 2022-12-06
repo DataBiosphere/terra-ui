@@ -105,6 +105,7 @@ export class WdsDataTableProvider implements DataTableProvider {
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
+    dataImportSupportLink: '',
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (options: InvalidTsvOptions): boolean => {
       return options.fileImportModeMatches && !options.sysNamePresent && options.filePresent

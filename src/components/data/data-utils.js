@@ -527,7 +527,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               })
             }, ['sample_template.tsv '])
           ]),
-          div({ style: { marginTop: '1rem' } }, [
+          dataProvider.tsvFeatures.dataImportSupportLink && div({ style: { marginTop: '1rem' } }, [
             icon('pop-out', { style: { size: 14, marginRight: '0.5rem' } }),
             'Terra Support: ',
             h(Link, {
