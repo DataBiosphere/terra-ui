@@ -7,6 +7,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-long.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -53,7 +54,7 @@ export const CloudEnvironmentModal = ({
   const resetView = () => setViewMode(undefined)
 
   const renderComputeModal = tool => h(ComputeModalBase, {
-    isOpen: viewMode === toolLabels.Jupyter || viewMode === toolLabels.RStudio,
+    isOpen: viewMode === toolLabels.Jupyter || viewMode === toolLabels.RStudio || viewMode === toolLabels.JupyterLab,
     workspace,
     tool,
     currentRuntime,
@@ -251,7 +252,7 @@ export const CloudEnvironmentModal = ({
     [toolLabels.Galaxy, () => galaxyLogo],
     [toolLabels.RStudio, () => rstudioBioLogo],
     [toolLabels.Cromwell, () => cromwellImg],
-    [toolLabels.JupyterLab, () => jupyterLogo])
+    [toolLabels.JupyterLab, () => jupyterLabLogo])
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
     [isAppToolLabel(toolLabel), () => !canCompute || busy || (toolLabel === toolLabels.Galaxy && isCurrentGalaxyDiskDetaching(apps)) || getIsAppBusy(currentApp(toolLabel))],
@@ -310,6 +311,18 @@ export const CloudEnvironmentModal = ({
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: appTools.Cromwell.appType })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
+      [toolLabels.JupyterLab, () => {
+        return {
+          ...baseProps,
+          href: Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel }),
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'contextBar', source: toolLabel, application: toolLabel, workspaceName, namespace })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
@@ -386,6 +399,7 @@ export const CloudEnvironmentModal = ({
     [toolLabels.RStudio, () => renderComputeModal(toolLabels.RStudio)],
     [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
     [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)],
+    [toolLabels.JupyterLab, () => renderComputeModal(toolLabels.JupyterLab)],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

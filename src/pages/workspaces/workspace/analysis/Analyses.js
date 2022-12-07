@@ -14,12 +14,14 @@ import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigg
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -186,7 +188,7 @@ const AnalysisCard = ({
   const toolIconSrc = Utils.switchCase(application,
     [toolLabels.Jupyter, () => jupyterLogo],
     [toolLabels.RStudio, () => rstudioSquareLogo],
-    [toolLabels.JupyterLab, () => jupyterLogo]
+    [toolLabels.JupyterLab, () => jupyterLabLogo]
   )
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
@@ -268,7 +270,7 @@ const Analyses = _.flow(
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: isFeaturePreviewEnabled('jupyterlab-gcp') ? toolLabels.JupyterLab : toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
     const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: toolLabels.RStudio, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
@@ -345,7 +347,7 @@ const Analyses = _.flow(
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
-      img({ src: jupyterLogo, style: { height: 120, width: 80 }, alt: 'Jupyter' }),
+      img({ src: isFeaturePreviewEnabled('jupyterlab-gcp') ? jupyterLabLogo : jupyterLogo, style: { height: 60, width: 60 }, alt: 'Jupyter' }),
       img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
       img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
     ])

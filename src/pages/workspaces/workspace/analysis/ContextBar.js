@@ -19,6 +19,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-project-logo-square.png'
+import jupyterLabLogo from 'src/images/jupyter-lab-logo-square.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
@@ -62,7 +63,7 @@ export const ContextBar = ({
   const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeTool = currentRuntime?.labels?.tool
-  const isTerminalEnabled = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
+  const isTerminalEnabled = (currentRuntimeTool === toolLabels.Jupyter || currentRuntimeTool === toolLabels.JupyterLab) && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
   const isAzureWorkspace = !!workspace.azureContext
@@ -72,7 +73,7 @@ export const ContextBar = ({
     [toolLabels.Galaxy, () => img({ src: galaxyLogo, style: { height: 40, width: 40 }, alt: '' })],
     [toolLabels.Cromwell, () => img({ src: cromwellImg, style: { width: 45 }, alt: '' })],
     [toolLabels.RStudio, () => img({ src: rstudioSquareLogo, style: { height: 45, width: 45 }, alt: '' })],
-    [toolLabels.JupyterLab, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })]
+    [toolLabels.JupyterLab, () => img({ src: jupyterLabLogo, style: { height: 45, width: 45 }, alt: '' })]
   )
 
   const getColorForStatus = status => Utils.cond(

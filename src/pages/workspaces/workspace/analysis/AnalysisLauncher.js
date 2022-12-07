@@ -309,7 +309,7 @@ const PreviewHeader = ({
       [runtimeStatus === 'Stopped', () => h(HeaderButton, {
         onClick: () => startAndRefresh(refreshRuntimes, runtime)
       }, openMenuIcon)],
-      [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+      [_.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter && currentRuntimeTool === toolLabels.JupyterLab,
         () => h(HeaderButton, {
           onClick: () => {
             Ajax().Metrics.captureEvent(Events.analysisLaunch,
@@ -335,7 +335,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in Azure or GCP
       [(currentRuntimeTool === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
@@ -570,6 +570,7 @@ const AnalysisEditorFrame = ({
         .fileSyncing(googleProject, runtimeName)
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(toolLabel))
 
+      //maybe update for gcp juplab
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'

@@ -8,6 +8,7 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
+import jupyterLabLogoLong from 'src/images/jupyter-lab-logo-long.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -106,6 +107,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const getGCPEnvironmentView = () => Utils.switchCase(currentTool,
       [toolLabels.Jupyter, renderComputeModal],
+      [toolLabels.JupyterLab, renderComputeModal],
       [toolLabels.RStudio, renderComputeModal],
       [toolLabels.Galaxy, () => renderAppModal(GalaxyModalBase, toolLabels.Galaxy)],
       [toolLabels.Cromwell, () => renderAppModal(CromwellModalBase, toolLabels.Cromwell)]
@@ -116,7 +118,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
-      isOpen: currentTool === toolLabels.Jupyter || currentTool === toolLabels.RStudio,
+      isOpen: currentTool === toolLabels.Jupyter || currentTool === toolLabels.RStudio || currentTool === toolLabels.JupyterLab,
       location,
       workspace,
       tool: currentTool,
@@ -170,7 +172,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const toolImages = {
       Jupyter: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
       RStudio: img({ src: rstudioBioLogo, alt: 'Create new R file', style: _.merge(styles.image, { width: 207 }) }),
-      JupyterLab: img({ src: jupyterLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
+      JupyterLab: img({ src: jupyterLabLogoLong, alt: 'Create new notebook', style: _.merge(styles.image, { width: 111 }) }),
       Galaxy: img({ src: galaxyLogo, alt: 'Create new Galaxy app', style: _.merge(styles.image, { width: 139 }) }),
       Cromwell: img({ src: cromwellImg, alt: 'Create new Cromwell app', style: styles.image })
     }

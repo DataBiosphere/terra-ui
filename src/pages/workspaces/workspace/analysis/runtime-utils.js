@@ -6,6 +6,7 @@ import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { allAppTypes, appTools, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
@@ -283,8 +284,13 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
+//export const convertToJupyterLab = _.flow(isFeaturePreviewEnabled('jupyterlab-gcp') ? _.set('labels.tool', 'JupyterLab') : _.identity)
+
 // Status note: undefined means still loading and no runtime
-export const getCurrentRuntime = runtimes => !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
+export const getCurrentRuntime = runtimes => {
+  const currentRuntime = !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
+  return isFeaturePreviewEnabled('jupyterlab-gcp') ? !currentRuntime ? undefined : _.set('labels.tool', 'JupyterLab', currentRuntime) : currentRuntime
+}
 
 const getCurrentAppExcludingStatuses = (appType, statuses) => _.flow(
   _.filter({ appType }),

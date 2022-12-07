@@ -60,12 +60,12 @@ const Jupyter: RuntimeTool = {
 
 const JupyterLab: RuntimeTool = {
   label: toolLabels.JupyterLab,
-  isNotebook: true,
   ext: ['ipynb' as Extension],
+  isNotebook: true,
+  imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
+  defaultImageId: 'terra-jupyter-gatk',
   isLaunchUnsupported: false,
-  defaultExt: 'ipynb' as Extension,
-  imageIds: [],
-  defaultImageId: '',
+  defaultExt: 'ipynb' as Extension
 }
 
 const Galaxy: AppTool = { label: toolLabels.Galaxy, appType: 'GALAXY' }
@@ -82,7 +82,7 @@ export const runtimeTools: Record<RuntimeToolLabel, RuntimeTool> = {
   Jupyter,
   // azure should be changed in backend to be a same as jupyter
   // we should use analysis file's cloud provider to determine azure/other logic for jupyter
-  JupyterLab,
+  JupyterLab
 }
 
 export const tools: Record<ToolLabel, Tool> = {
@@ -96,7 +96,8 @@ export const tools: Record<ToolLabel, Tool> = {
 export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   GCP: [
     Jupyter,
-    RStudio
+    RStudio,
+    JupyterLab
   ],
   AZURE: [
     JupyterLab
