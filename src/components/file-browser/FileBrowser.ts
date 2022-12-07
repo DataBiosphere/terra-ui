@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
@@ -6,6 +6,7 @@ import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import UriViewer from 'src/components/UriViewer'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 interface FileBrowserProps {
@@ -18,6 +19,14 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   const [path, setPath] = useState('')
 
   const [focusedFile, setFocusedFile] = useState<FileBrowserFile | null>(null)
+
+  const [selectedFiles, setSelectedFiles] = useState<{ [path: string]: FileBrowserFile }>({})
+  useEffect(() => {
+    setSelectedFiles({})
+  }, [path])
+
+  const editWorkspaceError = Utils.editWorkspaceError(workspace)
+  const canEditWorkspace = !editWorkspaceError
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
@@ -78,9 +87,13 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
           })
         ]),
         h(FilesInDirectory, {
+          editDisabled: !canEditWorkspace,
+          editDisabledReason: editWorkspaceError,
           provider,
           path,
           rootLabel: 'Workspace bucket',
+          selectedFiles,
+          setSelectedFiles,
           onClickFile: setFocusedFile
         })
       ])

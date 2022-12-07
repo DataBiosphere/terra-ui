@@ -1,7 +1,7 @@
 import { Ajax } from 'src/libs/ajax'
 import { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
-import { GCSItem, GCSListObjectsResponse } from 'src/libs/ajax/GoogleStorage'
+import { GCSItem, GCSListObjectsResponse, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import * as Utils from 'src/libs/utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
@@ -140,5 +140,39 @@ describe('GCSFileBrowserProvider', () => {
     expect(secondResponse.items).toEqual(expectedSecondPageDirectories)
     expect(secondResponse.hasNextPage).toBe(false)
     expect(numGCSRequestsAfterSecondResponse).toBe(3)
+  })
+
+  it('uploads a file', async () => {
+    // Arrange
+    const upload = jest.fn(() => Promise.resolve())
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: { upload } as Partial<GoogleStorageContract>
+    }) as ReturnType<typeof Ajax>)
+
+    const testFile = new File(['somecontent'], 'example.txt', { type: 'text/text' })
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    await provider.uploadFileToDirectory('path/to/directory/', testFile)
+
+    // Assert
+    expect(upload).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/directory/', testFile)
+  })
+
+  it('deletes files', async () => {
+    // Arrange
+    const del = jest.fn(() => Promise.resolve())
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: { delete: del } as Partial<GoogleStorageContract>
+    }) as ReturnType<typeof Ajax>)
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    await provider.deleteFile('path/to/file.txt')
+
+    // Assert
+    expect(del).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/file.txt')
   })
 })

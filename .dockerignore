@@ -1,0 +1,11 @@
+# yarn "unplugged" packages
+.yarn/unplugged
+
+# Build output
+build
+
+# Jest coverage report
+coverage
+
+# Build tool caches
+node_modules

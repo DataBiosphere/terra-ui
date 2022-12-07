@@ -8,6 +8,7 @@ import LeaveResourceModal from 'src/components/LeaveResourceModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { locationTypes } from 'src/components/region-common'
 import { TabBar } from 'src/components/tabBars'
+import TitleBar from 'src/components/TitleBar'
 import TopBar from 'src/components/TopBar'
 import { updateRecentlyViewedWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -64,6 +65,19 @@ const WorkspacePermissionNotice = ({ workspace }) => {
   ])
 }
 
+const AzureWarning = () => {
+  const warningMessage = 'It is a violation of US Federal Policy to store any Unclassified Confidential Information (ie FISMA, FIPS-199, etc.) in ' +
+    'this platform at this time. Do not put this data in this platform unless you are explicitly authorized to by the manager of the Dataset or ' +
+    'you have your own agreements in place.'
+
+  return h(TitleBar, {
+    title: div({ role: 'alert', style: { display: 'flex', alignItems: 'center', margin: '1rem' } }, [
+      icon('warning-standard', { size: 32, style: { color: colors.danger(), marginRight: '0.5rem' } }),
+      span({ style: { color: colors.dark(), fontSize: 14 } }, [warningMessage])
+    ]), style: { backgroundColor: colors.accent(0.25) }
+  })
+}
+
 const WorkspaceTabs = ({
   namespace, name, workspace, isGoogleWorkspace, activeTab, refresh,
   setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, setShowLockWorkspaceModal, setLeavingWorkspace
@@ -71,7 +85,7 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !isGoogleWorkspace
+  const isAzureWorkspace = !!workspace?.azureContext
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -101,7 +115,8 @@ const WorkspaceTabs = ({
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
         workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
-    ])
+    ]),
+    isAzureWorkspace && h(AzureWarning)
   ])
 }
 

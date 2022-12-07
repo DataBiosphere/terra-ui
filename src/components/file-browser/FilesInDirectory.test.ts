@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { div, h } from 'react-hyperscript-helpers'
 import { useFilesInDirectory } from 'src/components/file-browser/file-browser-hooks'
@@ -57,6 +57,8 @@ describe('FilesInDirectory', () => {
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
       path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
       onClickFile: jest.fn()
     }))
 
@@ -90,6 +92,8 @@ describe('FilesInDirectory', () => {
     render(h(FilesInDirectory, {
       provider: mockFileBrowserProvider,
       path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
       onClickFile: jest.fn()
     }))
 
@@ -119,6 +123,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
@@ -162,6 +168,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
@@ -179,6 +187,8 @@ describe('FilesInDirectory', () => {
       render(h(FilesInDirectory, {
         provider: mockFileBrowserProvider,
         path: 'path/to/directory/',
+        selectedFiles: {},
+        setSelectedFiles: () => {},
         onClickFile: jest.fn()
       }))
 
@@ -187,5 +197,41 @@ describe('FilesInDirectory', () => {
       await user.click(loadAllPagesButton)
       expect(loadAllRemainingItems).toHaveBeenCalled()
     })
+  })
+
+  it('uploads files', async () => {
+    // Arrange
+    const user = userEvent.setup()
+
+    const uploadFileToDirectory = jest.fn(() => Promise.resolve())
+    const mockProvider = { uploadFileToDirectory } as Partial<FileBrowserProvider> as FileBrowserProvider
+
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Ready', files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult)
+
+    render(h(FilesInDirectory, {
+      provider: mockProvider,
+      path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
+      onClickFile: jest.fn()
+    }))
+
+    const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!
+
+    const file = new File(['somecontent'], 'example.txt')
+
+    // Act
+    await act(() => user.upload(fileInput, [file]))
+
+    // Assert
+    expect(uploadFileToDirectory).toHaveBeenCalledWith('path/to/directory/', file)
   })
 })

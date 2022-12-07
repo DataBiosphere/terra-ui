@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 import { IdContainer } from './IdContainer'
 
 
-export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+export const Checkbox = ({ checked, onChange, disabled = false, ...props }) => {
   useLabelAssert('Checkbox', { ...props, allowId: true })
   return h(Interactive, _.merge({
     as: 'span',
