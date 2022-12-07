@@ -40,5 +40,6 @@ const testPreviewDrsUriFn = _.flow(
 
 registerTest({
   name: 'preview-drs-uri',
-  fn: testPreviewDrsUriFn
+  fn: testPreviewDrsUriFn,
+  targetEnvironments: [],
 })
