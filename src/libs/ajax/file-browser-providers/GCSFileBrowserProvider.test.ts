@@ -142,6 +142,24 @@ describe('GCSFileBrowserProvider', () => {
     expect(numGCSRequestsAfterSecondResponse).toBe(3)
   })
 
+  it('uploads a file', async () => {
+    // Arrange
+    const upload = jest.fn(() => Promise.resolve())
+    asMockedFn(Ajax).mockImplementation(() => ({
+      Buckets: { upload } as Partial<GoogleStorageContract>
+    }) as ReturnType<typeof Ajax>)
+
+    const testFile = new File(['somecontent'], 'example.txt', { type: 'text/text' })
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    await provider.uploadFileToDirectory('path/to/directory/', testFile)
+
+    // Assert
+    expect(upload).toHaveBeenCalledWith('test-project', 'test-bucket', 'path/to/directory/', testFile)
+  })
+
   it('deletes files', async () => {
     // Arrange
     const del = jest.fn(() => Promise.resolve())

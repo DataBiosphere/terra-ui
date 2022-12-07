@@ -52,6 +52,7 @@ describe('FilesMenu', () => {
       render(h(FilesMenu, {
         provider: mockProvider,
         selectedFiles,
+        onClickUpload: () => {},
         onDeleteFiles,
       }))
 
