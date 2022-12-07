@@ -85,6 +85,7 @@ const getRelationParts = (val: unknown): string[] => {
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string, signal: AbortSignal) {
     this.workspaceId = workspaceId
+    // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}?
     Ajax(signal).Apps.getV2(workspaceId).then(apps => {
       this.wdsUrl = this.getWdsUrl(apps)
     })
@@ -128,6 +129,7 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   //TODO: define a type, fix date type and comparison
+
   private getWdsUrl = (apps: { cloudProvider: string; status: string; proxyUrls: { wds: string}; appName: string; appType: string; auditInfo: {createdDate: number} }[]): string => {
     //TODO better logic
     let candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
