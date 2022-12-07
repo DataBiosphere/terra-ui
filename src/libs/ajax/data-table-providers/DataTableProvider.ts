@@ -68,14 +68,14 @@ export type InvalidTsvOptions = {
 
 export type TsvUploadButtonDisabledOptions = {
   filePresent: boolean
-  isInvalid: boolean
+  isInvalid?: boolean
   uploading: boolean
   recordTypePresent: boolean
 }
 
 export type TsvUploadButtonTooltipOptions = {
   filePresent: boolean
-  isInvalid: boolean
+  isInvalid?: boolean
   recordTypePresent: boolean
 }
 

@@ -546,32 +546,14 @@ describe('WdsDataTableProvider', () => {
       })
     })
   })
-  describe('isInvalid', () => {
-    const provider = new TestableWdsProvider(uuid)
-    it('TSV is present with correct mode selected in UI', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true })).toBeFalsy()
-    })
-
-    it('TSV is present; however, a different mode (e.g. the `Text Import` tab) is selected', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: true })).toBeTruthy()
-    })
-
-    it('Data is provided for an upload mode that does not require a file to be uploaded (e.g. the `Text Import` tab)', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: false })).toBeFalsy()
-    })
-
-    it('TSV is not present and any upload type is being used', () => {
-      expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: false, match: false, filePresent: false })).toBeFalsy()
-    })
-  })
 
   describe('disabled', () => {
     const provider = new TestableWdsProvider(uuid)
     it.each([
-      [{ filePresent: false, isInvalid: false, uploading: false, recordTypePresent: true }, true],
-      [{ filePresent: true, isInvalid: true, uploading: false, recordTypePresent: true }, true],
-      [{ filePresent: true, isInvalid: false, uploading: true, recordTypePresent: true }, true],
-      [{ filePresent: true, isInvalid: false, uploading: false, recordTypePresent: false }, true]
+      [{ filePresent: false, uploading: false, recordTypePresent: true }, true],
+      [{ filePresent: true, uploading: false, recordTypePresent: true }, true],
+      [{ filePresent: true, uploading: true, recordTypePresent: true }, true],
+      [{ filePresent: true, uploading: false, recordTypePresent: false }, true]
     ])('Upload button is disabled', (conditions: TsvUploadButtonDisabledOptions, result: boolean) => {
       expect(provider.tsvFeatures.disabled(conditions)).toEqual(result)
     })
