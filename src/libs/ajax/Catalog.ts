@@ -2,66 +2,36 @@ import * as _ from 'lodash/fp'
 import { authOpts, fetchCatalog, jsonBody } from 'src/libs/ajax/ajax-common'
 
 
-interface DatasetTableListEntry {
+export interface DatasetTableListEntry {
   name: string
   hasData?: boolean
 }
 
-interface DatasetTableListResponse {
+export interface DatasetTableListResponse {
   tables: DatasetTableListEntry[]
 }
 
-interface Column {
+export interface Column {
   name?: string
 }
 
-interface DatasetTableResponse {
+export interface DatasetTableResponse {
   columns: Column[]
   rows: any[]
 }
 
-
-type DataUsePermission =
-    'DUO:0000007' |
-    'DUO:0000042' |
-    'DUO:0000006' |
-    'DUO:0000011' |
-    'DUO:0000004'
-
-type CloudRegion =
-    'southamerica-west1' |
-    'us-central1' |
-    'us-east1' |
-    'us-east4' |
-    'us-west1' |
-    'us-west4' |
-    'europe-north1' |
-    'europe-west1' |
-    'europe-west4' |
-    'asia-east1' |
-    'asia-southeast1'
-
-type CloudResource =
-    'bigquery' |
-    'firestore' |
-    'bucket'
-
-type CloudPlatform =
-    'gcp' |
-    'azure'
-
-type AccessLevel =
+export type AccessLevel =
     'owner' |
     'reader' |
     'discoverer' |
     'no_access'
 
-interface Publication {
+export interface Publication {
   'dct:title'?: string
   'dcat:accessURL'?: string
 }
 
-interface DataCollection {
+export interface DataCollection {
   'dct:identifier'?: string
   'dct:title'?: string
   'dct:description'?: string
@@ -71,41 +41,41 @@ interface DataCollection {
   'dct:modified'?: string
 }
 
-interface GeneratedBy {
+export interface GeneratedBy {
   'TerraCore:hasAssayCategory'?: string[]
   'TerraCore:hasDataModality'?: string[]
 }
 
-interface StorageObject {
-  region?: CloudRegion
-  cloudResource?: CloudResource
-  cloudPlatform?: CloudPlatform
+export interface StorageObject {
+  region?: string
+  cloudResource?: string
+  cloudPlatform?: string
 }
 
-interface Counts {
+export interface Counts {
   donors?: number
   samples?: number
   files?: number
 }
 
-interface FileTypeCounts {
+export interface FileTypeCounts {
   'TerraCore:hasFileFormat'?: string
   byteSize: number
   count: number
 }
 
-interface Samples {
+export interface Samples {
   disease?: string[]
   species?: string[]
 }
 
-interface Contributor {
+export interface Contributor {
   name: string
   email: string
   additionalInformation: any
 }
 
-interface DatasetResponse {
+export interface DatasetResponse {
   'TerraCore:id'?: string
   'dct:title': string
   'dct:description': string
@@ -114,7 +84,7 @@ interface DatasetResponse {
   'dct:modified'?: string
   'dcat:accessURL': string
   'requestAccessURL'?: string
-  'TerraDCAT_ap:hasDataUsePermission'?: DataUsePermission
+  'TerraDCAT_ap:hasDataUsePermission'?: string
   'TerraDCAT_ap:hasOriginalPublication'?: Publication
   'TerraDCAT_ap:hasPublication'?: Publication[]
   'TerraDCAT_ap:hasDataCollection': DataCollection[]
@@ -136,21 +106,21 @@ interface DatasetResponse {
   phsId: string
 }
 
-interface DatasetListResponse {
+export interface DatasetListResponse {
   response: DatasetResponse[]
 }
 
-interface GetDatasetPreviewTableRequest {
+export interface GetDatasetPreviewTableRequest {
   id: string
   tableName: string
 }
 
-interface ExportDatasetRequest {
+export interface ExportDatasetRequest {
   id: string
   workspaceId: string
 }
 
-export const Catalog = signal => ({
+export const Catalog = (signal?: AbortSignal) => ({
   getDatasets: async (): Promise<DatasetListResponse> => {
     const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
     return res.json()
