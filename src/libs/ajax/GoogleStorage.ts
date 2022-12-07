@@ -206,15 +206,15 @@ export const GoogleStorage = (signal?: AbortSignal) => ({
     return { items, prefixes }
   },
 
-  delete: async (googleProject, bucket, name) => {
-    return fetchBuckets(
+  delete: async (googleProject: string, bucket: string, name: string): Promise<void> => {
+    await fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
       _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
     )
   },
 
-  upload: async (googleProject, bucket, prefix, file) => {
-    return fetchBuckets(
+  upload: async (googleProject: string, bucket: string, prefix: string, file: File): Promise<void> => {
+    await fetchBuckets(
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
       _.merge(authOpts(await saToken(googleProject)), {
         signal, method: 'POST', body: file,
