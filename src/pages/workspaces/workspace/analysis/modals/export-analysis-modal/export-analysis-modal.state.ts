@@ -2,11 +2,11 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { AnalysisProvider } from 'src/libs/ajax/analysis-providers/AnalysisProvider'
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
 import { useMetricsEvent } from 'src/libs/ajax/metrics/useMetrics'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
 import { useCancellation } from 'src/libs/react-utils'
 import LoadedState from 'src/libs/type-utils/LoadedState'
-import { returnsPromise } from 'src/libs/type-utils/type-helpers'
 import { WorkspaceInfo, WorkspaceWrapper } from 'src/libs/workspace-utils'
 import {
   AnalysisFile,
@@ -29,73 +29,39 @@ export const useAnalysesExportState = (sourceWorkspace: WorkspaceWrapper, printN
   const captureEvent = useMetricsEvent()
   const signal = useCancellation()
   const workspaces: WorkspaceWrapper[] = useWorkspaces().workspaces
-  const [selectedWorkspace, setSelectedWorkspace] = useState<WorkspaceWrapper | null>(null)
-  const [existingAnalysisNames, setExistingAnalysisNames] = useState<LoadedAnalysisNames>({
-    status: 'None'
-  })
-  const [pendingCopy, setPendingCopy] = useState<LoadedState<true, unknown>>({
-    status: 'None'
-  })
+  const [selectedWorkspace] = useState<WorkspaceWrapper | null>(null)
+  const [existingAnalysisNames, setExistingAnalysisNames] = useLoadedData<string[]>()
+  const [pendingCopy, setPendingCopy] = useLoadedData<true>()
 
   const doSelectWorkspace = async (workspaceId: string): Promise<void> => {
-    setExistingAnalysisNames({
-      status: 'Loading',
-      state: null
-    })
-    const foundWorkspaceWrapper = _.find({ workspace: { workspaceId } }, workspaces)
-    if (foundWorkspaceWrapper === undefined) {
-      setExistingAnalysisNames({
-        status: 'Error',
-        state: null,
-        error: Error('Selected Workspace does not exist')
-      })
-      return
-    }
-    const chosenWorkspace = foundWorkspaceWrapper.workspace
-    try {
+    await setExistingAnalysisNames(async () => {
+      const foundWorkspaceWrapper = _.find({ workspace: { workspaceId } }, workspaces)
+      if (foundWorkspaceWrapper === undefined) {
+        throw (Error('Selected Workspace does not exist'))
+      }
+      const chosenWorkspace = foundWorkspaceWrapper.workspace
+
       const selectedAnalyses: AnalysisFile[] = await AnalysisProvider.listAnalyses(chosenWorkspace, signal)
-      setExistingAnalysisNames({
-        status: 'Ready',
-        state: _.map(({ name }) => getDisplayName(name), selectedAnalyses)
-      })
-      setSelectedWorkspace(foundWorkspaceWrapper)
-    } catch (err) {
-      setExistingAnalysisNames({
-        status: 'Error',
-        state: null,
-        error: returnsPromise((err as Response).text) ?
-          Error(await (err as Response).text()) :
-          err
-      })
-    }
+      const names = _.map(({ name }) => getDisplayName(name), selectedAnalyses)
+      return names
+    })
   }
 
   const doCopy = async (newName: string): Promise<void> => {
-    setPendingCopy(({ status: 'Loading', state: null }))
-    try {
+    await setPendingCopy(async () => {
       if (selectedWorkspace === null) {
-        setPendingCopy({ status: 'Error', state: null, error: Error('No workspace selected') })
-        return
+        throw (Error('No workspace selected'))
       }
       await AnalysisProvider.copyAnalysis(
         sourceWorkspace.workspace, printName, toolLabel, selectedWorkspace.workspace, newName, signal
       )
-      setPendingCopy({ status: 'Ready', state: true })
-
       captureEvent(Events.notebookCopy, {
         oldName: printName,
         newName,
         ...extractCrossWorkspaceDetails(sourceWorkspace, selectedWorkspace)
       })
-    } catch (err) {
-      setPendingCopy({
-        status: 'Error',
-        state: null,
-        error: returnsPromise((err as Response).text) ?
-          Error(await (err as Response).text()) :
-          err
-      })
-    }
+      return true
+    })
   }
 
   return ({
