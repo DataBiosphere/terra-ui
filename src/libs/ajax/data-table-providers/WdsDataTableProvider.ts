@@ -107,7 +107,7 @@ export class WdsDataTableProvider implements DataTableProvider {
     sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
     isInvalid: (): boolean => {
       // WDS does not have any restrictions on what can be uploaded, as entity_id
-      // as  is not required like in Entity Service for GCP.
+      // is not required like in Entity Service for GCP.
       return false
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
