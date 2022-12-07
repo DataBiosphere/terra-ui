@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Link, topSpinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, topSpinnerOverlay } from 'src/components/common'
 import { DeleteFilesConfirmationModal } from 'src/components/file-browser/DeleteFilesConfirmationModal'
 import { icon } from 'src/components/icons'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
@@ -15,6 +15,7 @@ interface FilesMenuProps {
   disabledReason?: string
   provider: FileBrowserProvider
   selectedFiles: { [path: string]: FileBrowserFile }
+  onClickUpload: () => void
   onDeleteFiles: () => void
 }
 
@@ -24,6 +25,7 @@ export const FilesMenu = (props: FilesMenuProps) => {
     disabledReason = 'Unable to edit files',
     provider,
     selectedFiles,
+    onClickUpload,
     onDeleteFiles,
   } = props
 
@@ -43,6 +45,18 @@ export const FilesMenu = (props: FilesMenuProps) => {
       backgroundColor: colors.light(0.4),
     },
   }, [
+    h(ButtonPrimary, {
+      disabled,
+      tooltip: disabled ? disabledReason : undefined,
+      style: { padding: '0.5rem', marginRight: '0.5rem' },
+      onClick: onClickUpload
+    }, [icon('upload-cloud', {
+      // @ts-expect-error
+      style: {
+        marginRight: '1ch',
+      },
+    }), ' Upload']),
+
     h(Link, {
       disabled: disabled || !hasSelectedFiles,
       tooltip: Utils.cond(
