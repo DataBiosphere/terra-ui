@@ -28,9 +28,7 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import {
-  findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash
-} from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { findPotentialNotebookLockers, getExtension, getFileName, notebookLockHash } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AnalysisDuplicator } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
 import { AnalysisModal } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisModal'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/analysis/modals/ExportAnalysisModal'
@@ -85,7 +83,8 @@ const AnalysisCard = ({
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
-  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName: getFileName(name) })
+  const analysisName = getFileName(name)
+  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name: workspaceName, analysisName })
   const toolLabel = getToolFromFileExtension(name)
 
   const currentRuntimeTool = getToolFromRuntime(currentRuntime)
@@ -267,9 +266,9 @@ const Analyses = _.flow(
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
-    //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
-    const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: toolLabels.RStudio, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
+    //we map the `toolLabel` corresponding header label, which simplifies the table sorting code
+    const enhancedNotebooks = _.map(_.set('application', tools.Jupyter.label), notebooks)
+    const enhancedRmd = _.map(_.set('application', tools.RStudio.label), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
@@ -277,7 +276,8 @@ const Analyses = _.flow(
 
   const loadAzureAnalyses = async () => {
     const analyses = await Ajax(signal).AzureStorage.listNotebooks(workspaceId)
-    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, analyses)))
+    const enhancedAnalyses = _.map(_.set('application', tools.JupyterLab.label), analyses)
+    setAnalyses(_.reverse(_.sortBy(tableFields.lastModified, enhancedAnalyses)))
   }
 
   const refreshAnalyses = _.flow(
@@ -469,8 +469,10 @@ const Analyses = _.flow(
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
-          toolLabel: getToolFromFileExtension(renamingAnalysisName), googleProject, workspaceId,
-          namespace, workspaceName, bucketName, destroyOld: true,
+          toolLabel: getToolFromFileExtension(renamingAnalysisName),
+          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          destroyOld: true,
+          fromLauncher: false,
           onDismiss: () => setRenamingAnalysisName(undefined),
           onSuccess: () => {
             setRenamingAnalysisName(undefined)
@@ -479,8 +481,10 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
-          toolLabel: getToolFromFileExtension(copyingAnalysisName), googleProject, workspaceId,
-          namespace, workspaceName, bucketName, destroyOld: false,
+          toolLabel: getToolFromFileExtension(copyingAnalysisName),
+          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          destroyOld: false,
+          fromLauncher: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
           onSuccess: () => {
             setCopyingAnalysisName(undefined)
