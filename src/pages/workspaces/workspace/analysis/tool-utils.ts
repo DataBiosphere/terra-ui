@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { CloudProviderType } from 'src/libs/ajax/ajax-common'
 import { isCromwellAppVisible } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
+import { CloudProviderType } from 'src/libs/workspace-utils'
 import { Extension, getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
 
 
@@ -30,7 +30,6 @@ export const isAppToolLabel = (x: ToolLabel): x is AppToolLabel => x in appToolL
 export interface Tool {
   label: ToolLabel
   isHidden?: boolean
-  isNotebook?: boolean
   isLaunchUnsupported?: boolean
   isPauseUnsupported?: boolean
 }
@@ -51,7 +50,6 @@ const RStudio: RuntimeTool = { label: toolLabels.RStudio, ext: ['Rmd', 'R'] as E
 const Jupyter: RuntimeTool = {
   label: toolLabels.Jupyter,
   ext: ['ipynb' as Extension],
-  isNotebook: true,
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
   defaultImageId: 'terra-jupyter-gatk',
   isLaunchUnsupported: true,
@@ -60,7 +58,6 @@ const Jupyter: RuntimeTool = {
 
 const JupyterLab: RuntimeTool = {
   label: toolLabels.JupyterLab,
-  isNotebook: true,
   ext: ['ipynb' as Extension],
   isLaunchUnsupported: false,
   defaultExt: 'ipynb' as Extension,
@@ -146,6 +143,7 @@ const extensionToToolMap: Partial<Record<Extension, RuntimeToolLabel>> = (() => 
 })()
 
 export const getToolForImage = (image: string): ToolLabel | undefined => _.find(tool => _.includes(image, tool.imageIds), runtimeTools)?.label
+
 export const getToolFromFileExtension = (fileName: Extension): ToolLabel | undefined => extensionToToolMap[getExtension(fileName)]
 
 // TODO: runtime type

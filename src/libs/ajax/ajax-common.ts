@@ -5,15 +5,6 @@ import { ajaxOverridesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-export type CloudProviderType = 'AZURE' | 'GCP'
-export const cloudProviderTypes: Record<CloudProviderType, CloudProviderType> = {
-  AZURE: 'AZURE',
-  GCP: 'GCP'
-}
-export const isCloudProvider = (x: unknown): x is CloudProviderType => {
-  return x as string in cloudProviderTypes
-}
-
 export const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 export const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 export const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
@@ -112,7 +103,6 @@ const withErrorRejection = wrappedFetch => async (...args) => {
     throw res
   }
 }
-
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
