@@ -509,7 +509,6 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  // const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, signal)
 
   const loadEntityMetadata = async () => {
     try {
@@ -549,7 +548,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema('TODO')])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -564,13 +563,14 @@ const WorkspaceData = _.flow(
     }
   }
 
+  // TODO: Update
   const loadWdsSchema = async () => {
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
-        setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, signal))
+        setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, 'aaronkanzer-12-07', signal))
         setWdsSchema([])
         setWdsSchemaError(undefined)
-        const apps = await Ajax(signal).Apps.getV2(workspaceId)
+        const apps = await Ajax(signal).Apps.getV2ProxyUrl(workspaceId)
         //TODO use url from wdsdatatableprovider
         const wdsUrl = apps[0].proxyUrls.wds
         const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(workspaceId, wdsUrl)

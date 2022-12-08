@@ -83,11 +83,10 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, signal: AbortSignal) {
+  constructor(workspaceId: string, appName: string, signal: AbortSignal) {
     this.workspaceId = workspaceId
-    // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}?
-    Ajax(signal).Apps.getV2(workspaceId).then(apps => {
-      this.wdsUrl = this.getWdsUrl(apps)
+    Ajax(signal).Apps.getV2ProxyUrl(workspaceId).then(appInformation => {
+      this.wdsUrl = appInformation.proxyUrls.wdsUrl
     })
   }
 
@@ -129,21 +128,21 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   //TODO: define a type, fix date type and comparison
-
-  private getWdsUrl = (apps: { cloudProvider: string; status: string; proxyUrls: { wds: string}; appName: string; appType: string; auditInfo: {createdDate: number} }[]): string => {
-    //TODO better logic
-    let candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-    if (candidates.length === 0) {
-      //panic
-    }
-    if (candidates.length > 1) {
-      candidates = candidates.filter(app => app.appName === 'wdsApp')
-    }
-    if (candidates.length > 1) {
-      candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-    }
-    return candidates[0].proxyUrls.wds
-  }
+  // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}? -- see similar comment in constructor
+  // private getWdsUrl = (apps: { cloudProvider: string; status: string; proxyUrls: { wds: string}; appName: string; appType: string; auditInfo: {createdDate: number} }[]): string => {
+  //   //TODO better logic
+  //   let candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  //   if (candidates.length === 0) {
+  //     //panic
+  //   }
+  //   if (candidates.length > 1) {
+  //     candidates = candidates.filter(app => app.appName === 'wdsApp')
+  //   }
+  //   if (candidates.length > 1) {
+  //     candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+  //   }
+  //   return candidates[0].proxyUrls.wds
+  // }
 
   private maybeTransformRelation = (val: unknown): unknown => {
     const relationParts = getRelationParts(val)
