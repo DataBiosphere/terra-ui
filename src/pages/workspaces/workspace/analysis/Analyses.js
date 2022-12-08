@@ -2,11 +2,11 @@ import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, spinnerOverlay, Switch } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -21,7 +21,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
+import { isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -367,6 +367,31 @@ const Analyses = _.flow(
     span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
   ])
 
+  const previewJupyterLabMessage = div({
+    style: _.merge(
+      Style.elements.card.container,
+      { backgroundColor: colors.success(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
+  }, [
+    icon('talk-bubble', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
+    'JupyterLab is now available in this workspace as a beta feature. Read more about this feature, or fill out our survey',
+    div({ style: { display: 'flex', flexDirection: 'column' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        div({
+          style: { display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
+        }, [
+          h(Switch, {
+            id,
+            checked: isFeaturePreviewEnabled('jupyterlab-gcp'),
+            onLabel: '', offLabel: '',
+            width: 40, height: 20,
+            onChange: () => toggleFeaturePreview('jupyterlab-gcp', !isFeaturePreviewEnabled('jupyterlab-gcp'))
+          }),
+          label({ htmlFor: id, style: { fontWeight: 'bold', marginLeft: 10 } }, [`${isFeaturePreviewEnabled('jupyterlab-gcp') ? 'Disable JupyterLab' : 'Enable JupyterLab'}`])
+        ])
+      ])])
+    ])
+  ])
+
   // Render helpers
   const renderAnalyses = () => {
     const { field, direction } = sortOrder
@@ -391,6 +416,7 @@ const Analyses = _.flow(
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
+      isFeaturePreviewEnabled('jupyterlab-gcp') && previewJupyterLabMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
