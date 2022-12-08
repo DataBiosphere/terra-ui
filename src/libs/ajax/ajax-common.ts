@@ -201,8 +201,6 @@ export const fetchEcm = _.flow(
 
 export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
-// TODO: Switch references to fetchWDS instead of fetchOK
-export const fetchWDS = root => _.flow(withUrlPrefix(`${root}/`),
+export const fetchWDS = wdsProxyUrlRoot => _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`),
   withRetryAfterReloadingExpiredAuthToken,
-  withAppIdentifier
 )(fetchOk)

@@ -30,6 +30,8 @@ const recordType: string = 'item'
 
 const testAppName: string = 'Appy McAppyFace'
 
+const testProxyUrl: string = 'https://lzced5d128aea78ac24a9b5e0d893a01d72c47912cb29a7304.servicebus.windows.net/super-cool-proxy-url/wds'
+
 const queryOptions: EntityQueryOptions = {
   pageNumber: 2,
   itemsPerPage: 50,
@@ -145,7 +147,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformAttributes', () => {
     it('excludes the primary key from the resultant attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       const input: RecordAttributes = {
         something: 123,
@@ -169,7 +171,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('is resilient if the primary key does not exist in input attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       const input: RecordAttributes = {
         something: 123,
@@ -194,7 +196,7 @@ describe('WdsDataTableProvider', () => {
   describe('transformPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -282,7 +284,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures array attributes', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -350,7 +352,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('restructures relation URIs, both scalar and array', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -426,7 +428,7 @@ describe('WdsDataTableProvider', () => {
     })
     it('handles mixed arrays that contain some relation URIs and some strings', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       // example response from WDS, copy-pasted from a WDS swagger call
       const wdsPage: RecordQueryResponse = {
@@ -500,7 +502,7 @@ describe('WdsDataTableProvider', () => {
   describe('getPage', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
       const signal = new AbortController().signal
 
       const metadata: EntityMetadata = {
@@ -522,7 +524,7 @@ describe('WdsDataTableProvider', () => {
   describe('deleteTable', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
 
       // Act
       return provider.deleteTable(recordType).then(actual => {
@@ -535,7 +537,7 @@ describe('WdsDataTableProvider', () => {
   describe('downloadTsv', () => {
     it('restructures a WDS response', () => {
       // Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
       const signal = new AbortController().signal
 
       // Act
@@ -549,7 +551,7 @@ describe('WdsDataTableProvider', () => {
     })
   })
   describe('isInvalid', () => {
-    const provider = new TestableWdsProvider(uuid, testAppName)
+    const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
     it('TSV is valid', () => {
       expect(provider.tsvFeatures.isInvalid({ fileImportModeMatches: true, match: false, filePresent: true, sysNamePresent: false })).toBeTruthy()
     })
@@ -564,7 +566,7 @@ describe('WdsDataTableProvider', () => {
   })
 
   describe('disabled', () => {
-    const provider = new TestableWdsProvider(uuid, testAppName)
+    const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
     it.each([
       [{ filePresent: false, isInvalid: false, uploading: false, recordTypePresent: true }, true],
       [{ filePresent: true, isInvalid: true, uploading: false, recordTypePresent: true }, true],
@@ -581,7 +583,7 @@ describe('WdsDataTableProvider', () => {
   })
 
   describe('tooltip', () => {
-    const provider = new TestableWdsProvider(uuid, testAppName)
+    const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
     it('Tooltip -- needs record type', () => {
       const actual = provider.tsvFeatures.tooltip({ filePresent: true, isInvalid: false, recordTypePresent: false })
       expect(actual).toBe('Please enter record type')
@@ -601,7 +603,7 @@ describe('WdsDataTableProvider', () => {
   describe('uploadTsv', () => {
     it('uploads a TSV', () => {
       // ====== Arrange
-      const provider = new TestableWdsProvider(uuid, testAppName)
+      const provider = new TestableWdsProvider(uuid, testAppName,  testProxyUrl)
       const tsvFile = new File([''], 'testFile.tsv')
       // ====== Act
       return provider.uploadTsv({ recordType, file: tsvFile, workspaceId: uuid, name: '', deleteEmptyValues: false, namespace: '', useFireCloudDataModel: false }).then(actual => {

@@ -509,7 +509,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, wdsProxyUrl)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name, wdsProxyUrl)
 
   const loadEntityMetadata = async () => {
     try {
@@ -549,7 +549,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = async () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
+  const loadMetadata = async () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchemaAndUrl()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -564,7 +564,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadWdsSchema = async () => {
+  const loadWdsSchemaAndUrl = async () => {
     await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
       // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
       if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {

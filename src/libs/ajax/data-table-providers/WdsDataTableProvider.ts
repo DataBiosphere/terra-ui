@@ -83,10 +83,10 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, appName: string, proxyUrl?: string) {
+  constructor(workspaceId: string, appName: string, proxyUrl: string) {
     this.workspaceId = workspaceId
-    this.proxyUrl = appName
-    // this.proxyUrl = proxyUrl
+    this.appName = appName
+    this.proxyUrl = proxyUrl
   }
 
   appName: string
@@ -97,7 +97,6 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   workspaceId: string
 
-  wdsUrl: string
 
   features: DataTableFeatures = {
     supportsTsvDownload: false,
@@ -206,10 +205,6 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    // await Ajax(signal).Apps.getV2AppInfo(this.workspaceId).then(apps => {
-    //   // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
-    //   this.wdsUrl = apps[0].proxyUrls.wds
-    // })
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
       .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
@@ -223,14 +218,14 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   deleteTable = (entityType: string): Promise<Response> => {
-    return Ajax().WorkspaceData.deleteTable(this.wdsUrl, this.workspaceId, entityType)
+    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceData.downloadTsv(this.wdsUrl, this.workspaceId, entityType)
+    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
   }
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    return Ajax().WorkspaceData.uploadTsv(this.wdsUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }
