@@ -93,7 +93,7 @@ const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
       displayName: 'Terra.bio'
     }),
     div({ style: { flexGrow: 1 } }),
-    div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
+    div({ style: { fontWeight: 600, fontSize: '10px' } }, [
       `Copyright ©${buildTimestamp.getFullYear()}`
     ])
   ])
