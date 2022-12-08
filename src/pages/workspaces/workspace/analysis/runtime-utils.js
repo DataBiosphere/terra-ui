@@ -284,8 +284,6 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-//export const convertToJupyterLab = _.flow(isFeaturePreviewEnabled('jupyterlab-gcp') ? _.set('labels.tool', 'JupyterLab') : _.identity)
-
 // Status note: undefined means still loading and no runtime
 export const getCurrentRuntime = runtimes => {
   const currentRuntime = !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || undefined)
