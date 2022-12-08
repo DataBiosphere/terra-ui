@@ -21,7 +21,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { isFeaturePreviewEnabled, toggleFeaturePreview } from 'src/libs/feature-previews'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -246,6 +246,8 @@ const Analyses = _.flow(
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
+  const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -270,7 +272,7 @@ const Analyses = _.flow(
     const rAnalyses = _.filter(({ name }) => _.includes(getExtension(name), tools.RStudio.ext), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: isFeaturePreviewEnabled('jupyterlab-gcp') ? toolLabels.JupyterLab : toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: enableJupyterLabGCP ? toolLabels.JupyterLab : toolLabels.Jupyter, lastModified: new Date(notebook.updated).getTime() }), notebooks)
     const enhancedRmd = _.map(rAnalysis => _.merge(rAnalysis, { application: toolLabels.RStudio, lastModified: new Date(rAnalysis.updated).getTime() }), rAnalyses)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
@@ -347,7 +349,7 @@ const Analyses = _.flow(
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
-      img({ src: isFeaturePreviewEnabled('jupyterlab-gcp') ? jupyterLabLogo : jupyterLogo, style: { height: 60, width: 60 }, alt: 'Jupyter' }),
+      img({ src: enableJupyterLabGCP ? jupyterLabLogo : jupyterLogo, style: { height: 60, width: 60 }, alt: 'Jupyter' }),
       img({ src: rstudioBioLogo, style: { width: 400 }, alt: 'RStudio Bioconductor' }),
       img({ src: galaxyLogo, style: { height: 60, width: 208 }, alt: 'Galaxy' })
     ])
@@ -373,20 +375,24 @@ const Analyses = _.flow(
       { backgroundColor: colors.success(0.15), flexDirection: 'none', justifyContent: 'start', alignItems: 'center' })
   }, [
     icon('talk-bubble', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
-    'JupyterLab is now available in this workspace as a beta feature. Read more about this feature, or fill out our survey',
+    'JupyterLab is now available in this workspace as a beta feature. Please read more about JupyterLab in Terra, and fill out our survey to help us improve the JupyterLab experience.',
     div({ style: { display: 'flex', flexDirection: 'column' } }, [
       h(IdContainer, [id => h(Fragment, [
         div({
-          style: { display: 'flex', flexDirection: 'row', alignItems: 'center', marginTop: 6 }
+          style: { display: 'flex', flexDirection: 'row', alignItems: 'center' }
         }, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem' } }, 'Enable JupyterLab'),
           h(Switch, {
             id,
-            checked: isFeaturePreviewEnabled('jupyterlab-gcp'),
+            checked: enableJupyterLabGCP,
             onLabel: '', offLabel: '',
             width: 40, height: 20,
-            onChange: () => toggleFeaturePreview('jupyterlab-gcp', !isFeaturePreviewEnabled('jupyterlab-gcp'))
-          }),
-          label({ htmlFor: id, style: { fontWeight: 'bold', marginLeft: 10 } }, [`${isFeaturePreviewEnabled('jupyterlab-gcp') ? 'Disable JupyterLab' : 'Enable JupyterLab'}`])
+            onChange: () => {
+              setLocalPref(persistenceId, !enableJupyterLabGCP)
+              setEnableJupyterLabGCP(!enableJupyterLabGCP)
+              refreshAnalyses()
+            }
+          })
         ])
       ])])
     ])
