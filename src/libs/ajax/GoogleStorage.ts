@@ -85,7 +85,6 @@ const getServiceAccountToken: (googleProject: string, token: string) => Promise<
 
 export const saToken = (googleProject: string): Promise<string> => getServiceAccountToken(googleProject, getUser().token)
 
-// Add types to this via the `|` operator, i.e. `export type GCSMetadata = AnalysisFileMetadata | myMetadataType`
 export type GCSMetadata = { [key: string]: string }
 
 // https://cloud.google.com/storage/docs/json_api/v1/objects/list

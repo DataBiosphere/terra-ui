@@ -37,20 +37,20 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
 })
 
 describe('file-utils', () => {
-  beforeEach(() => {
-    workspaceStore.reset()
-    const googleStorageMock: Partial<GoogleStorageContract> = ({
-      listAnalyses: jest.fn(() => Promise.resolve([]))
-    })
-    asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
-
-    const azureStorageMock: Partial<AzureStorageContract> = ({
-      listNotebooks: jest.fn(() => Promise.resolve([]))
-    })
-    asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
-  })
-
   describe('useAnalysisFiles', () => {
+    beforeEach(() => {
+      workspaceStore.reset()
+      const googleStorageMock: Partial<GoogleStorageContract> = ({
+        listAnalyses: jest.fn(() => Promise.resolve([]))
+      })
+      asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
+
+      const azureStorageMock: Partial<AzureStorageContract> = ({
+        listNotebooks: jest.fn(() => Promise.resolve([]))
+      })
+      asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
+    })
+
     it('returns the correct files', async () => {
       // Arrange
       const fileList: AnalysisFile[] = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
