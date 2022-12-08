@@ -247,7 +247,7 @@ const Analyses = _.flow(
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
   const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
-  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId))
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -384,12 +384,12 @@ const Analyses = _.flow(
           label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem' } }, 'Enable JupyterLab'),
           h(Switch, {
             id,
-            checked: enableJupyterLabGCP,
+            checked: !enableJupyterLabGCP,
             onLabel: '', offLabel: '',
             width: 40, height: 20,
-            onChange: () => {
-              setLocalPref(persistenceId, !enableJupyterLabGCP)
-              setEnableJupyterLabGCP(!enableJupyterLabGCP)
+            onChange: value => {
+              setEnableJupyterLabGCP(!value)
+              setLocalPref(persistenceId, !value)
               refreshAnalyses()
             }
           })
@@ -422,7 +422,7 @@ const Analyses = _.flow(
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
-      isFeaturePreviewEnabled('jupyterlab-gcp') && previewJupyterLabMessage,
+      isFeaturePreviewEnabled('jupyterlab-gcp') && !_.isEmpty(analyses) && previewJupyterLabMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
