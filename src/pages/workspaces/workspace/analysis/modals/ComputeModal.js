@@ -192,7 +192,7 @@ export const ComputeModalBase = ({
   const [simplifiedForm, setSimplifiedForm] = useState(!currentRuntimeDetails)
   const [leoImages, setLeoImages] = useState([])
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
-  const [timeoutInMinutes, setTimeoutInMinutes] = useState(undefined)
+  const [timeoutInMinutes, setTimeoutInMinutes] = useState(null)
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [runtimeType, setRuntimeType] = useState(runtimeTypes.gceVm)
@@ -1576,8 +1576,7 @@ export const ComputeModalBase = ({
           [Utils.DEFAULT, () => runtimeTypes.gceVm]
         )
         setSelectedLeoImage(value)
-        //TODO: Is this the best way to "un-set"?
-        setTimeoutInMinutes(supportedImages.includes(value) ? undefined : timeoutInMinutes)
+        setTimeoutInMinutes(supportedImages.includes(value) ? null : timeoutInMinutes)
         setCustomEnvImage('')
         setRuntimeType(newRuntimeType)
         updateComputeConfig('componentGatewayEnabled', isDataproc(newRuntimeType))

@@ -756,8 +756,7 @@ describe('ComputeModal', () => {
       const customImageUri = 'us'
       await fireEvent.change(imageInput, { target: { value: customImageUri } })
 
-      const customImageTimeoutLimit = await screen.findByText('Creation Timeout Limit')
-      expect(customImageTimeoutLimit).toBeInTheDocument()
+      await screen.findByText('Creation Timeout Limit')
 
       const nextButton = await screen.findByText('Next')
       verifyEnabled(nextButton)
@@ -844,3 +843,13 @@ describe('ComputeModal', () => {
     }))
   })
 })
+
+// TODO: Write a test that does the following:
+// Render default compute modal
+// Verify timeoutInMinutes not in document
+// Select Legacy Image
+// Verify timeoutInMinutes is in document
+// Change value of timeoutInMinutes
+// Select default Image
+// Verify timeoutInMinutes is now null
+// Verify timeoutInMinutes no longer in document
