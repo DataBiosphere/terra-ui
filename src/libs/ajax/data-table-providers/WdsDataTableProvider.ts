@@ -83,11 +83,17 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, appName: string) {
+  constructor(workspaceId: string, appName: string, proxyUrl?: string) {
     this.workspaceId = workspaceId
+    this.proxyUrl = appName
+    // this.proxyUrl = proxyUrl
   }
 
+  appName: string
+
   providerName: string = 'WDS'
+
+  proxyUrl: string
 
   workspaceId: string
 
@@ -200,12 +206,12 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    await Ajax(signal).Apps.getV2AppInfo(this.workspaceId).then(apps => {
-      // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
-      this.wdsUrl = apps[0].proxyUrls.wds
-    })
+    // await Ajax(signal).Apps.getV2AppInfo(this.workspaceId).then(apps => {
+    //   // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
+    //   this.wdsUrl = apps[0].proxyUrls.wds
+    // })
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(this.wdsUrl, this.workspaceId, entityType,
+      .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,

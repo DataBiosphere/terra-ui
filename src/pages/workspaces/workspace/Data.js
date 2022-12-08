@@ -498,6 +498,7 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+  const [wdsProxyUrl, setWdsProxyUrl] = useState('')
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -508,7 +509,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, wdsProxyUrl)
 
   const loadEntityMetadata = async () => {
     try {
@@ -548,7 +549,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), !isGoogleWorkspace && loadWdsSchema()])
+  const loadMetadata = async () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -564,16 +565,20 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchema = async () => {
-    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
-      try {
-        setWdsSchema([])
-        setWdsSchemaError(undefined)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsDataTableProvider.wdsUrl, workspaceId)
-        setWdsSchema(wdsSchema)
-      } catch (error) {
-        setWdsSchemaError(error)
+    await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
+      // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
+      if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
+        try {
+          setWdsProxyUrl(apps[0].proxyUrls.wds)
+          setWdsSchema([])
+          setWdsSchemaError(undefined)
+          const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(apps[0].proxyUrls.wds, workspaceId)
+          setWdsSchema(wdsSchema)
+        } catch (error) {
+          setWdsSchemaError(error)
+        }
       }
-    }
+    })
   }
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
@@ -620,7 +625,7 @@ const WorkspaceData = _.flow(
 
   // Lifecycle
   useOnMount(() => {
-    loadMetadata()
+      loadMetadata()
   })
 
   useEffect(() => {

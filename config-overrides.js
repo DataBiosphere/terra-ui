@@ -15,9 +15,9 @@ module.exports = {
         }
       ]),
       addWebpackPlugin(new CspHtmlWebpackPlugin({
-        // Per our security policy, 'script-src' cannot contain any of the options containing 'unsafe', e.g. 'unsafe-inline'
         'script-src': [
           '\'self\'',
+          '\'unsafe-eval\'',
           'https://fast.appcues.com', // secondary script loaded by appcues
           'https://us.jsagent.tcell.insight.rapid7.com', // secondary script loaded by tcell
           'https://cdnjs.cloudflare.com' // libraries loaded by notebook preview
