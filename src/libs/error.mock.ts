@@ -18,7 +18,6 @@ export const mockWithErrorReportingInModal = _.curry((title, onDismiss, fn) => {
       return await fn()
     } catch (error) {
       errorWatcher(title, error)
-    } finally {
       onDismiss()
     }
   }
