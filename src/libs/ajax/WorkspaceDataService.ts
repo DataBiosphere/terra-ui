@@ -16,7 +16,7 @@ export const WorkspaceData = signal => ({
   },
   getRecords: async (root: string, instanceId: string, recordType: string, parameters: SearchRequest): Promise<RecordQueryResponse> => {
     // const res = await fetchWDS("www.temp.com")(`${instanceId}/search/v0.2/${recordType}`,
-    const res = await fetchOk(`https://lzced5d128aea78ac24a9b5e0d893a01d72c47912cb29a7304.servicebus.windows.net/aaronkanzer-12-07/wds/6e8f8d2a-f7ac-4927-9f86-7a43f8255735/search/v0.2/${recordType}`,
+    const res = await fetchOk(`${root}/6e8f8d2a-f7ac-4927-9f86-7a43f8255735/search/v0.2/${recordType}`,
       _.mergeAll([authOpts(), jsonBody(parameters), { signal, method: 'POST' }]))
     return res.json()
   },

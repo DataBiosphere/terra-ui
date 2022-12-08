@@ -548,7 +548,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), !isGoogleWorkspace && loadWdsSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -568,7 +568,7 @@ const WorkspaceData = _.flow(
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsDataTableProvider.tempWdsUrl, workspaceId)
+        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsDataTableProvider.wdsUrl, workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
         setWdsSchemaError(error)
