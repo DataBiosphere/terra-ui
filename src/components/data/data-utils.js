@@ -381,7 +381,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸  ', span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay), ' (Terra-managed).'])]),
-        dataProvider.tsvFeatures.needsTypeInput && h(Fragment, [
+        dataProvider.tsvFeatures.needsTypeInput && div({ style: { paddingTop: '0.1rem', paddingBottom: '2rem' } }, [
           h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
           h(ValidatedInput, {
             inputProps: {
