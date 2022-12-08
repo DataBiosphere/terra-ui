@@ -78,5 +78,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 registerTest({
   name: 'run-workflow-on-snapshot',
   fn: testRunWorkflowOnSnapshotFn,
-  timeout: 20 * 60 * 1000
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: [],
 })

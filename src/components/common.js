@@ -12,9 +12,8 @@ import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
 import scienceBackground from 'src/images/science-background.jpg'
-import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
+import { isRadX } from 'src/libs/brand-utils'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
@@ -49,13 +48,6 @@ export const backgroundLogo = img({
   alt: '',
   style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
-
-export const methodLink = config => {
-  const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
-  return sourceRepo === 'agora' ?
-    `${getConfig().firecloudUrlRoot}/?return=${getEnabledBrand().queryName}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
-    `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
-}
 
 export const FocusTrapper = ({ children, onBreakout, ...props }) => {
   return h(FocusLock, {
