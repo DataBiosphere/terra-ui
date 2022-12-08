@@ -52,6 +52,7 @@ const Jupyter: RuntimeTool = {
   label: toolLabels.Jupyter,
   ext: ['ipynb' as Extension],
   isNotebook: true,
+  //   isHidden: isFeaturePreviewEnabled('jupyterlab-gcp'),
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
   defaultImageId: 'terra-jupyter-gatk',
   isLaunchUnsupported: true,
@@ -62,6 +63,7 @@ const JupyterLab: RuntimeTool = {
   label: toolLabels.JupyterLab,
   ext: ['ipynb' as Extension],
   isNotebook: true,
+  //   isHidden: !isFeaturePreviewEnabled('jupyterlab-gcp'),
   imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'],
   defaultImageId: 'terra-jupyter-gatk',
   isLaunchUnsupported: false,
@@ -96,8 +98,8 @@ export const tools: Record<ToolLabel, Tool> = {
 export const cloudRuntimeTools: Record<CloudProviderType, RuntimeTool[]> = {
   GCP: [
     Jupyter,
-    RStudio,
-    JupyterLab
+    JupyterLab,
+    RStudio
   ],
   AZURE: [
     JupyterLab

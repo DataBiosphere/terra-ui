@@ -551,10 +551,12 @@ const AnalysisEditorFrame = ({
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => `${name}/edit`],
+    [toolLabels.JupyterLab, () => `${name}/edit`],
     [toolLabels.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => `${name}/safe`],
+    [toolLabels.JupyterLab, () => `${name}/safe`],
     [toolLabels.RStudio, () => '']
   )
 
@@ -570,7 +572,7 @@ const AnalysisEditorFrame = ({
         .fileSyncing(googleProject, runtimeName)
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, getPatternFromRuntimeTool(toolLabel))
 
-      //maybe update for gcp juplab
+      //Note that only Jupyter supports notebook locking. JupyterLab should support it one day but that is out of scope for MVP
       if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
         notify('error', 'Unable to Edit Analysis', {
           message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'

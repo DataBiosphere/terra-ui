@@ -245,7 +245,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
     const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
-      h2({ style: { fontWeight: 600, marginBottom: 0 } }, [`Create a new ${getArtifactLabel(currentTool)}`]),
+      h2({ style: { fontWeight: 600, marginBottom: 0 } }, [`Create 2a new ${getArtifactLabel(currentTool)}`]),
       renderCreateAnalysisBody(currentTool)
     ])
 
