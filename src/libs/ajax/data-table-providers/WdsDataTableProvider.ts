@@ -83,9 +83,9 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, appName: string, signal: AbortSignal) {
+  constructor(workspaceId: string, appName: string) {
     this.workspaceId = workspaceId
-    Ajax(signal).Apps.getV2ProxyUrl(workspaceId).then(apps => {
+    Ajax().Apps.getV2AppInfo(workspaceId).then(apps => {
       this.tempWdsUrl = apps[0].proxyUrls.wds
     })
   }

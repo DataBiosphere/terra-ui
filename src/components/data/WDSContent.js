@@ -20,7 +20,6 @@ const WDSContent = ({
   const [refreshKey] = useState(0)
 
   // Render
-  // const dataProvider = new WdsDataTableProvider(workspaceId)
   const entityMetadata = wdsToEntityServiceMetadata(wdsSchema)
 
   return h(Fragment, [

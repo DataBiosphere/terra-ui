@@ -498,7 +498,6 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
-  const [wdsDataTableProvider, setWdsDataTableProvider] = useState(null)
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -509,6 +508,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name, signal)
 
   const loadEntityMetadata = async () => {
     try {
@@ -567,10 +567,10 @@ const WorkspaceData = _.flow(
   const loadWdsSchema = async () => {
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
-        // setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, 'aaronkanzer-12-07', signal))
+        console.log(wdsDataTableProvider)
         setWdsSchema([])
         setWdsSchemaError(undefined)
-        const apps = await Ajax(signal).Apps.getV2ProxyUrl(workspaceId)
+        const apps = await Ajax().Apps.getV2AppInfo(workspaceId)
         const wdsUrl = apps[0].proxyUrls.wds
         const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsUrl, workspaceId)
         console.log(wdsDataTableProvider)
@@ -629,8 +629,7 @@ const WorkspaceData = _.flow(
   })
 
   useEffect(() => {
-    console.log(name)
-    setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, name, signal))
+    console.log(wdsDataTableProvider)
     StateHistory.update({ entityMetadata, selectedData, snapshotDetails })
   }, [entityMetadata, selectedData, snapshotDetails])
 
