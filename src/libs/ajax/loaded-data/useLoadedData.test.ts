@@ -25,13 +25,15 @@ describe('useLoadedData hook', () => {
     const hookRender = renderHook(() => useLoadedData<TestData>())
     const hookResult1: UseLoadedDataResult<TestData> = hookRender.result.current
     const updateData = hookResult1[1]
-    void updateData(async (): Promise<TestData> => {
-      await delay(100)
-      const dataResult: TestData = {
-        propA: 'abc',
-        propB: 123
-      }
-      return dataResult
+    act(() => {
+      void updateData(async (): Promise<TestData> => {
+        await delay(100)
+        const dataResult: TestData = {
+          propA: 'abc',
+          propB: 123
+        }
+        return dataResult
+      })
     })
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current
     await hookRender.waitForNextUpdate()
@@ -60,9 +62,11 @@ describe('useLoadedData hook', () => {
     const updateData = hookResult1[1]
 
     // Act
-    void updateData(async (): Promise<TestData> => {
-      await delay(100)
-      throw Error('BOOM!')
+    act(() => {
+      void updateData(async (): Promise<TestData> => {
+        await delay(100)
+        throw Error('BOOM!')
+      })
     })
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current
     await hookRender.waitForNextUpdate()
@@ -89,17 +93,19 @@ describe('useLoadedData hook', () => {
     const updateData = hookResult1[1]
 
     // Act
-    void updateData(async (): Promise<TestData> => {
-      await delay(100)
-      const mockFetchResponse: Partial<Response> = {
-        status: 500,
-        statusText: 'Server Error',
-        text: async (): Promise<string> => {
-          await delay(100)
-          return 'BOOM!'
+    act(() => {
+      void updateData(async (): Promise<TestData> => {
+        await delay(100)
+        const mockFetchResponse: Partial<Response> = {
+          status: 500,
+          statusText: 'Server Error',
+          text: async (): Promise<string> => {
+            await delay(100)
+            return 'BOOM!'
+          }
         }
-      }
-      throw mockFetchResponse
+        throw mockFetchResponse
+      })
     })
     const hookResult2: UseLoadedDataResult<TestData> = hookRender.result.current
     await hookRender.waitForNextUpdate()
