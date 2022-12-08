@@ -85,8 +85,8 @@ const getRelationParts = (val: unknown): string[] => {
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(workspaceId: string, appName: string, signal: AbortSignal) {
     this.workspaceId = workspaceId
-    Ajax(signal).Apps.getV2ProxyUrl(workspaceId).then(appInformation => {
-      this.wdsUrl = appInformation.proxyUrls.wdsUrl
+    Ajax(signal).Apps.getV2ProxyUrl(workspaceId).then(apps => {
+      this.tempWdsUrl = apps[0].proxyUrls.wds
     })
   }
 
@@ -96,6 +96,8 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   //TODO: Initialize to prevent ts error.  Is there a better way?
   wdsUrl: string = ''
+
+  tempWdsUrl: string = ''
 
   features: DataTableFeatures = {
     supportsTsvDownload: false,
@@ -205,7 +207,7 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(this.wdsUrl, this.workspaceId, entityType,
+      .getRecords(this.tempWdsUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -225,6 +227,6 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    return Ajax().WorkspaceData.uploadTsv(this.wdsUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+    return Ajax().WorkspaceData.uploadTsv(this.tempWdsUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

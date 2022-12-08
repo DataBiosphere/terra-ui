@@ -548,7 +548,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema('TODO')])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -567,13 +567,13 @@ const WorkspaceData = _.flow(
   const loadWdsSchema = async () => {
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
-        setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, 'aaronkanzer-12-07', signal))
+        // setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, 'aaronkanzer-12-07', signal))
         setWdsSchema([])
         setWdsSchemaError(undefined)
         const apps = await Ajax(signal).Apps.getV2ProxyUrl(workspaceId)
-        //TODO use url from wdsdatatableprovider
         const wdsUrl = apps[0].proxyUrls.wds
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(workspaceId, wdsUrl)
+        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsUrl, workspaceId)
+        console.log(wdsDataTableProvider)
         setWdsSchema(wdsSchema)
       } catch (error) {
         setWdsSchemaError(error)
@@ -629,6 +629,8 @@ const WorkspaceData = _.flow(
   })
 
   useEffect(() => {
+    console.log(name)
+    setWdsDataTableProvider(new WdsDataTableProvider(workspaceId, name, signal))
     StateHistory.update({ entityMetadata, selectedData, snapshotDetails })
   }, [entityMetadata, selectedData, snapshotDetails])
 
