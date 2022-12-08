@@ -37,6 +37,7 @@ export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'ari
  * @param {string} shape - see {@link https://fontawesome.com/icons?d=gallery}
  * @param {object} [props]
  * @param {number} [props.size] The size of the icon
+ * @param {object} [props.style] The icon style
  * @param {string} [props.aria-label] An optional accessible label to apply to the icon.
  *    If not specified 'aria-hidden' will be set to true.
  */
