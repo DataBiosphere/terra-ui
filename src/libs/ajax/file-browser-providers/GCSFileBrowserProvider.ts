@@ -100,6 +100,9 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
       prefix: path,
       signal
     }),
+    uploadFileToDirectory: (directoryPath, file) => {
+      return Ajax().Buckets.upload(project, bucket, directoryPath, file)
+    },
     deleteFile: async (path: string): Promise<void> => {
       await Ajax().Buckets.delete(project, bucket, path)
     },

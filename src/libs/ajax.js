@@ -127,6 +127,11 @@ const User = signal => ({
     }
   },
 
+  getPrivacyPolicy: async () => {
+    const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }))
+    return response.text()
+  },
+
   // If you are making changes to the Support Request Modal, make sure you test the following:
   // 1. Submit a ticket via Terra while signed in and signed out
   // 2. Check the tickets are generated on Zendesk
