@@ -508,7 +508,7 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name, signal)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name)
 
   const loadEntityMetadata = async () => {
     try {
@@ -563,17 +563,12 @@ const WorkspaceData = _.flow(
     }
   }
 
-  // TODO: Update
   const loadWdsSchema = async () => {
     if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
       try {
-        console.log(wdsDataTableProvider)
         setWdsSchema([])
         setWdsSchemaError(undefined)
-        const apps = await Ajax().Apps.getV2AppInfo(workspaceId)
-        const wdsUrl = apps[0].proxyUrls.wds
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsUrl, workspaceId)
-        console.log(wdsDataTableProvider)
+        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(wdsDataTableProvider.tempWdsUrl, workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
         setWdsSchemaError(error)
@@ -629,7 +624,6 @@ const WorkspaceData = _.flow(
   })
 
   useEffect(() => {
-    console.log(wdsDataTableProvider)
     StateHistory.update({ entityMetadata, selectedData, snapshotDetails })
   }, [entityMetadata, selectedData, snapshotDetails])
 

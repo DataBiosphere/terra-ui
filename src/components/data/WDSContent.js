@@ -11,10 +11,9 @@ const WDSContent = ({
   workspace: {
     workspace: { namespace, name, googleProject }
   },
-  dataProvider,
   recordType,
-  wdsSchema
-
+  wdsSchema,
+  dataProvider
 }) => {
   // State
   const [refreshKey] = useState(0)
