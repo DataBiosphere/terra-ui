@@ -118,7 +118,6 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
-            public: cloneWorkspace.public,
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
             fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
             toWorkspaceName: workspace.name, toWorkspaceNamespace: workspace.namespace

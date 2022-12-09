@@ -13,6 +13,17 @@ import {
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
+type SasInfo = {
+  url: string
+  token: string
+}
+
+type StorageDetails = {
+  location: string
+  storageContainerName: string
+  sas: SasInfo
+}
+
 interface AzureFileRaw {
   name: string
   lastModified: string
@@ -21,8 +32,8 @@ interface AzureFileRaw {
 
 const encodeAzureAnalysisName = (name: string): string => encodeURIComponent(`analyses/${name}`)
 
-export const AzureStorage = signal => ({
-  sasToken: async (workspaceId, containerId) => {
+export const AzureStorage = (signal?: AbortSignal) => ({
+  sasToken: async (workspaceId: string, containerId: string): Promise<SasInfo> => {
     // sas token expires after 8 hours
     const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
       _.merge(authOpts(), { signal, method: 'POST' }))
@@ -30,7 +41,7 @@ export const AzureStorage = signal => ({
     return tokenResponse.json()
   },
 
-  details: async (workspaceId = {}) => {
+  details: async (workspaceId: string): Promise<StorageDetails> => {
     const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
       _.merge(authOpts(), { signal })
     )
