@@ -112,7 +112,7 @@ const Showcase = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
-      fullList, sidebarSections,
+      fullList, sidebarSections, nameField: 'name',
       searchType: 'Featured Workspaces',
       listView: filteredList => {
         return _.map(workspace => {

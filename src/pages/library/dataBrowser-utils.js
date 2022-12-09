@@ -56,6 +56,12 @@ export const isDatarepoSnapshot = dataset => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
+export const renderConsortium = dataset => _.flow(
+  _.map(dataCollection => dataCollection['dct:title']),
+  _.join(', ')
+)(dataset['TerraDCAT_ap:hasDataCollection'])
+
+
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
     _.replace(/,+/g, ' '),
@@ -96,7 +102,6 @@ const normalizeDataset = dataset => {
   return {
     ...dataset,
     // TODO: Consortium should show all consortiums, not just the first
-    project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], dataset),
     lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
     dataReleasePolicy,
