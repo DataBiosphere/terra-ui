@@ -4,9 +4,9 @@ import {
 } from 'src/pages/library/DataBrowser'
 
 
-const settings = [{ name: 'Consortium', key: 'project', visible: true },
+const settings = [{ name: 'Consortiums', key: 'consortiums', visible: true },
   { name: 'Species', key: 'species', visible: false }]
-const cols = ['project']
+const cols = ['consortiums']
 
 describe('DataBrowser', () => {
   it('converts selected columns to settings', () => {
