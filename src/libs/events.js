@@ -59,7 +59,6 @@ const eventsList = {
   featurePreviewToggle: 'featurePreview:toggle',
   // Note: "external" refers to the common Job Manager deployment, not a Job Manager bundled in CromwellApp
   jobManagerOpenExternal: 'job-manager:open-external',
-  notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',

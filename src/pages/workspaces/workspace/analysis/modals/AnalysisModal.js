@@ -11,7 +11,6 @@ import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
-import { cloudProviderTypes } from 'src/libs/ajax/ajax-common'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -19,7 +18,7 @@ import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { getFileName } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/AzureComputeModal'
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
@@ -274,7 +273,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           })
         ])]),
         Utils.cond(
-          [currentToolObj?.isNotebook, () => h(IdContainer,
+          [isJupyterLab || isJupyter, () => h(IdContainer,
             [id => h(Fragment, [
               h(FormLabel, { htmlFor: id, required: true }, ['Language']),
               h(Select, {
@@ -317,7 +316,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
             onClick: async () => {
               try {
                 const contents = Utils.cond(
-                  [currentToolObj?.isNotebook, () => JSON.stringify(notebookData[notebookKernel])],
+                  [isJupyterLab || isJupyter, () => JSON.stringify(notebookData[notebookKernel])],
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 !!googleProject ?

@@ -376,12 +376,12 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       }, [
         div(
           ['Choose the data import option below. ',
-            h(Link, {
+            dataProvider.tsvFeatures.dataTableSupportLink && h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
             p(['Data will be saved in location: 🇺🇸  ', span({ style: { fontWeight: 'bold' } }, regionLabelToDisplay), ' (Terra-managed).'])]),
-        dataProvider.tsvFeatures.needsTypeInput && h(Fragment, [
+        dataProvider.tsvFeatures.needsTypeInput && div({ style: { paddingTop: '0.1rem', paddingBottom: '2rem' } }, [
           h(FormLabel, { htmlFor: 'add-table-name' }, ['Table name']),
           h(ValidatedInput, {
             inputProps: {
@@ -445,7 +445,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           h(PasteOnlyInput, {
             'aria-label': 'Paste text data here',
             readOnly: !!fileContents,
-            placeholder: 'entity:participant_id(tab)column1(tab)column2...',
+            placeholder: dataProvider.tsvFeatures.textImportPlaceholder,
             onPaste: pastedText => {
               setFile(new File([pastedText], 'upload.tsv'))
               setFileContents(pastedText)
@@ -527,7 +527,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               })
             }, ['sample_template.tsv '])
           ]),
-          div({ style: { marginTop: '1rem' } }, [
+          dataProvider.tsvFeatures.dataImportSupportLink && div({ style: { marginTop: '1rem' } }, [
             icon('pop-out', { style: { size: 14, marginRight: '0.5rem' } }),
             'Terra Support: ',
             h(Link, {
