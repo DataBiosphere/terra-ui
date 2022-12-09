@@ -54,7 +54,7 @@ const extractCatalogFilters = dataCatalog => {
     name: 'Consortium',
     labels: getUnique('dct:title', _.flow(
       _.flatMap(dataset => dataset['TerraDCAT_ap:hasDataCollection']),
-      _.compact,
+      _.compact
     )(dataCatalog))
   }, {
     name: 'Data use policy',
