@@ -509,6 +509,8 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
+
+  // TODO: 'name' does not currently match with the appName required for getting proxyUrl from Leo for WDS
   const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name, wdsProxyUrl)
 
   const loadEntityMetadata = async () => {
