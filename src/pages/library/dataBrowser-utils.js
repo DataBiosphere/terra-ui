@@ -56,10 +56,7 @@ export const isDatarepoSnapshot = dataset => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const renderConsortium = dataset => _.flow(
-  _.map(dataCollection => dataCollection['dct:title']),
-  _.join(', ')
-)(dataset['TerraDCAT_ap:hasDataCollection'])
+export const getConsortiumsFromDataset = dataset => _.map(dataCollection => dataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])
 
 
 const normalizeDataset = dataset => {
