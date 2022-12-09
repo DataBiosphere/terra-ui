@@ -115,7 +115,7 @@ const extractTags = dataset => {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
       dataset.access,
-      dataset.project,
+      _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection']),
       dataset.samples?.genus,
       dataset.samples?.disease,
       dataset.dataType,
