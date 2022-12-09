@@ -8,10 +8,10 @@ import { v4 as uuid } from 'uuid'
 
 
 const defaultGoogleWorkspaceNamespace = 'test-ws'
+const defaultAzureWorkspaceNamespace = 'test-azure-ws'
 
 //this is important, so the test impl can diverge
 export const testDefaultLocation = defaultLocation
-
 
 export const defaultImage = {
   id: 'terra-jupyter-gatk',
@@ -105,11 +105,31 @@ export const imageDocs = [
 ]
 
 export const defaultGoogleWorkspace = {
-  cloudPlatform: 'Gcp',
   workspace: {
-    bucketName: 'test-bucket', googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
-    name: `${defaultGoogleWorkspaceNamespace}_ws`, namespace: defaultGoogleWorkspaceNamespace
-  }
+    cloudPlatform: 'Gcp',
+    bucketName: 'test-bucket',
+    googleProject: `${defaultGoogleWorkspaceNamespace}-project`,
+    name: `${defaultGoogleWorkspaceNamespace}_ws`,
+    namespace: defaultGoogleWorkspaceNamespace,
+    workspaceId: 'testGoogleWorkspaceId'
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true
+}
+
+export const defaultAzureWorkspace = {
+  workspace: {
+    cloudPlatform: 'Azure',
+    googleProject: '',
+    bucketName: '',
+    name: `${defaultAzureWorkspaceNamespace}Ws`,
+    namespace: defaultAzureWorkspaceNamespace,
+    workspaceId: 'testAzureWorkspaceId'
+  },
+  accessLevel: 'OWNER',
+  canShare: true,
+  canCompute: true
 }
 
 export const defaultTestDisk = {
