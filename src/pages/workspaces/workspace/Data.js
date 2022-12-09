@@ -549,7 +549,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = async () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchemaAndUrl()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchemaAndUrl()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -569,16 +569,30 @@ const WorkspaceData = _.flow(
       // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
       if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
         try {
-          setWdsProxyUrl(apps[0].proxyUrls.wds)
           setWdsSchema([])
           setWdsSchemaError(undefined)
-          const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(apps[0].proxyUrls.wds, workspaceId)
+          const url = await getWdsUrl(apps)
+          setWdsProxyUrl(url)
+          const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
           setWdsSchema(wdsSchema)
         } catch (error) {
           setWdsSchemaError(error)
         }
       }
     })
+  }
+
+  // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}?
+  const getWdsUrl = apps => {
+    // TODO: determine appropriate logic
+    const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+    if (candidates.length === 0) {
+      //TODO: panic
+    }
+    if (candidates.length > 1) {
+      candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    }
+    return candidates[0].proxyUrls.wds
   }
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
@@ -625,7 +639,7 @@ const WorkspaceData = _.flow(
 
   // Lifecycle
   useOnMount(() => {
-      loadMetadata()
+    loadMetadata()
   })
 
   useEffect(() => {
@@ -773,6 +787,8 @@ const WorkspaceData = _.flow(
                 wdsSchemaError && h(NoDataPlaceholder, {
                   message: 'Data tables are unavailable.'
                 }),
+                // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
+                // so `No tables have been uploaded.` briefly renders
                 !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
                   message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',

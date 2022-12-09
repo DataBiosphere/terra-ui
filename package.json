@@ -65,7 +65,7 @@
   "scripts": {
     "analyze": "yarn build && source-map-explorer 'build/static/js/*.js' --gzip",
     "build": "env $(yarn setenv) react-app-rewired build && rm build/config.json",
-    "lint": "eslint --fix --max-warnings=1000 .",
+    "lint": "eslint --fix --max-warnings=0 .",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
@@ -140,7 +140,7 @@
   },
   "lint-staged": {
     "**/*.{js,ts}": [
-      "yarn eslint --max-warnings=1000"
+      "yarn eslint --max-warnings=0"
     ]
   }
 }

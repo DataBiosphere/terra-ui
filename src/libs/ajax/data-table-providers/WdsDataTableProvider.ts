@@ -131,23 +131,6 @@ export class WdsDataTableProvider implements DataTableProvider {
     }
   }
 
-  //TODO: define a type, fix date type and comparison
-  // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}? -- see similar comment in constructor
-  // private getWdsUrl = (apps: { cloudProvider: string; status: string; proxyUrls: { wds: string}; appName: string; appType: string; auditInfo: {createdDate: number} }[]): string => {
-  //   //TODO better logic
-  //   let candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-  //   if (candidates.length === 0) {
-  //     //panic
-  //   }
-  //   if (candidates.length > 1) {
-  //     candidates = candidates.filter(app => app.appName === 'wdsApp')
-  //   }
-  //   if (candidates.length > 1) {
-  //     candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-  //   }
-  //   return candidates[0].proxyUrls.wds
-  // }
-
   private maybeTransformRelation = (val: unknown): unknown => {
     const relationParts = getRelationParts(val)
     return relationParts.length ? { entityType: relationParts[0], entityName: relationParts[1] } : val
@@ -208,6 +191,7 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
+    // TODO: this.proxyUrl isn't present yet since getPage is called before WdsDataTableProvider is fully constructed
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
       .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
