@@ -120,6 +120,13 @@ export interface ExportDatasetRequest {
   workspaceId: string
 }
 
+export interface CatalogContract {
+  getDatasets: () => Promise<DatasetTableResponse>
+  getDatasetTables: (id: string) => Promise<DatasetTableListResponse>
+  getDatasetPreviewTable: (request: GetDatasetPreviewTableRequest) => Promise<DatasetTableResponse>
+  exportDataset: (request: ExportDatasetRequest) => Promise<Response>
+}
+
 const catalogGet = async <T>(url: string, signal: AbortSignal | undefined): Promise<T> => {
   const res = await fetchCatalog(url, _.merge(authOpts(), { signal }))
   return res.json()
@@ -129,11 +136,9 @@ const catalogPost = async (url: string, signal: AbortSignal | undefined, jsonBod
   return await fetchCatalog(url, _.mergeAll([authOpts(), jsonBody(jsonBodyArg), { signal, method: 'POST' }]))
 }
 
-export const Catalog = (signal?: AbortSignal) => ({
+export const Catalog = (signal?: AbortSignal): CatalogContract => ({
   getDatasets: (): Promise<DatasetTableResponse> => catalogGet('v1/datasets', signal),
   getDatasetTables: (id: string): Promise<DatasetTableListResponse> => catalogGet(`v1/datasets/${id}/tables`, signal),
   getDatasetPreviewTable: ({ id, tableName }: GetDatasetPreviewTableRequest): Promise<DatasetTableResponse> => catalogGet(`v1/datasets/${id}/tables/${tableName}`, signal),
   exportDataset: ({ id, workspaceId }: ExportDatasetRequest): Promise<Response> => catalogPost(`v1/datasets/${id}/export`, signal, { workspaceId })
 })
-
-export type CatalogContract = ReturnType<typeof Catalog>
