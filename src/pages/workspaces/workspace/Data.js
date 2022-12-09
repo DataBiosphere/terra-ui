@@ -571,7 +571,7 @@ const WorkspaceData = _.flow(
         try {
           setWdsSchema([])
           setWdsSchemaError(undefined)
-          const url = await getWdsUrl(apps)
+          const url = getWdsUrl(apps)
           setWdsProxyUrl(url)
           const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
           setWdsSchema(wdsSchema)
@@ -1069,7 +1069,7 @@ const WorkspaceData = _.flow(
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
-          [workspaceDataTypes.wds, () => wdsDataTableProvider && h(WDSContent, {
+          [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsProxyUrl && h(WDSContent, {
             key: refreshKey,
             workspaceUUID: workspaceId,
             workspace,

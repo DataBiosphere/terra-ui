@@ -97,7 +97,6 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   workspaceId: string
 
-
   features: DataTableFeatures = {
     supportsTsvDownload: false,
     supportsTsvAjaxDownload: true,
@@ -191,7 +190,6 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
-    // TODO: this.proxyUrl isn't present yet since getPage is called before WdsDataTableProvider is fully constructed
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
       .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
