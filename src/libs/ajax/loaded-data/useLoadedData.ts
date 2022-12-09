@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import LoadedState from 'src/libs/type-utils/LoadedState'
-import { isPromiseReturn } from 'src/libs/type-utils/type-helpers'
+import { isFetchResponse } from 'src/libs/type-utils/type-helpers'
 
 /**
  * The Tuple returned by useLoadedData custom helper hook
@@ -47,8 +47,8 @@ export const useLoadedData = <T>(): UseLoadedDataResult<T> => {
         state: result
       })
     } catch (err: unknown) {
-      const error = isPromiseReturn((err as Response).text) ?
-        Error(await (err as Response).text()) :
+      const error = isFetchResponse(err) ?
+        Error(await err.text()) :
         err
       setLoadedData({
         status: 'Error',
