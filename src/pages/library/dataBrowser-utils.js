@@ -101,7 +101,6 @@ const normalizeDataset = dataset => {
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    // TODO: Consortium should show all consortiums, not just the first
     lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
     dataReleasePolicy,
