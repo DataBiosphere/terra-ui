@@ -30,8 +30,8 @@ const styles = {
   }
 }
 
-const getUnique = (mapMethod, data) => _.flow(
-  _.flatMap(mapMethod),
+const getUnique = (mapper, data) => _.flow(
+  _.flatMap(mapper),
   _.compact,
   _.uniq,
   _.sortBy(_.toLower)
@@ -55,7 +55,7 @@ const extractCatalogFilters = dataCatalog => {
     labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
-    labels: getUnique(dataset => dataset.dataReleasePolicy.policy, dataCatalog),
+    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
     labelRenderer: rawPolicy => {
       const { label, desc } = datasetReleasePolicies[rawPolicy] || datasetReleasePolicies.releasepolicy_other
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
@@ -65,22 +65,19 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Data modality',
-    labels: getUnique(dataset => dataset.dataModality, dataCatalog)
+    labels: getUnique('dataModality', dataCatalog)
   }, {
     name: 'Data type',
-    labels: getUnique(dataset => dataset.dataType, dataCatalog)
+    labels: getUnique('dataType', dataCatalog)
   }, {
     name: 'File type',
-    labels: getUnique(dataset => dataset['dcat:mediaType'], _.flow(
-      _.flatMap('files'),
-      _.compact
-    )(dataCatalog))
+    labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
   }, {
     name: 'Disease',
-    labels: getUnique(dataset => dataset.samples?.disease, dataCatalog)
+    labels: getUnique('samples.disease', dataCatalog)
   }, {
     name: 'Species',
-    labels: getUnique(dataset => dataset.samples?.genus, dataCatalog)
+    labels: getUnique('samples.genus', dataCatalog)
   }]
 }
 
@@ -91,9 +88,9 @@ const allColumns = {
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
   dataModality: { title: 'Data Modality', contents: row => _.join(', ', row.dataModality) },
   lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
-  dataType: { title: 'Data type', contents: row => _.join(', ', getUnique(row => row.dataType, { row })) },
-  fileType: { title: 'File type', contents: row => _.join(', ', getUnique(row => row['dcat:mediaType'], row['files'])) },
-  species: { title: 'Species', contents: row => _.join(', ', getUnique(row => row.samples?.genus, { row })) }
+  dataType: { title: 'Data type', contents: row => _.join(', ', getUnique('dataType', { row })) },
+  fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
+  species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
 
 // Columns are stored as a list of column key names in `cols` below. The column settings that the ColumnSelector dialog uses contains
