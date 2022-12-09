@@ -104,10 +104,14 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
-    sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
+    sampleTSVLink: 'https://azurefeaturedworkspace.blob.core.windows.net/featuredworkspacedata/template_data_table_Azure.txt',
+    dataImportSupportLink: '',
+    dataTableSupportLink: '',
+    textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
+    invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
     isInvalid: (): boolean => {
-      // WDS does not have any restrictions on what can be uploaded, as entity_id
-      // is not required like in Entity Service for GCP.
+    // WDS does not have any restrictions on what can be uploaded, as entity_id
+    // is not required like in Entity Service for GCP.
       return false
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
