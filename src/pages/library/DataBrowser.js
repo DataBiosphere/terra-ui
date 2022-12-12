@@ -10,7 +10,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { datasetAccessTypes, datasetReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, datasetReleasePolicies, getConsortiumsFromDataset, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -30,8 +30,8 @@ const styles = {
   }
 }
 
-const getUnique = (prop, data) => _.flow(
-  _.flatMap(prop),
+const getUnique = (mapper, data) => _.flow(
+  _.flatMap(mapper),
   _.compact,
   _.uniq,
   _.sortBy(_.toLower)
@@ -52,7 +52,7 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Consortium',
-    labels: getUnique('project', dataCatalog)
+    labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
     labels: getUnique('dataReleasePolicy.policy', dataCatalog),
@@ -84,7 +84,7 @@ const extractCatalogFilters = dataCatalog => {
 // All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
   // A column is a key, title and a function that produces the table contents for that column, given a row.
-  project: { title: 'Consortium', contents: row => row.project },
+  consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumsFromDataset(row)) },
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
   dataModality: { title: 'Data Modality', contents: row => _.join(', ', row.dataModality) },
   lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
@@ -191,7 +191,7 @@ export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
-  const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
+  const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 

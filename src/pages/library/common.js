@@ -44,10 +44,10 @@ const styles = {
   })
 }
 
-const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
+const groupByFeaturedTags = (list, sidebarSections) => _.flow(
   _.flatMap(s => _.map(_.toLower, s.labels)),
   _.uniq,
-  _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
+  _.map(tag => [tag, _.filter(listItem => _.includes(tag, listItem.tags?.items), list)]),
   _.fromPairs
 )(sidebarSections)
 
