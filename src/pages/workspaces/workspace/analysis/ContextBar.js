@@ -28,6 +28,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref } from 'src/libs/prefs'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
@@ -62,7 +63,9 @@ export const ContextBar = ({
 
   const computeRegion = getRegionInfo(location, locationType).computeRegion
   const currentRuntime = getCurrentRuntime(runtimes)
-  const currentRuntimeTool = currentRuntime?.labels?.tool
+  const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
+  const currentRuntimeTool = (enableJupyterLabGCP && currentRuntime?.labels?.tool === toolLabels.Jupyter) ? toolLabels.JupyterLab : currentRuntime?.labels?.tool
   const isTerminalEnabled = (currentRuntimeTool === toolLabels.Jupyter || currentRuntimeTool === toolLabels.JupyterLab) && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
@@ -83,6 +86,8 @@ export const ContextBar = ({
     [Utils.DEFAULT, () => colors.warning()])
 
   const currentApp = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
+
+  console.log(currentRuntimeTool)
 
   const getIconForTool = (toolLabel, status) => {
     const app = currentApp(toolLabel)

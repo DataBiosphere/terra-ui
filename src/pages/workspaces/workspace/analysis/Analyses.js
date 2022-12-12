@@ -5,10 +5,10 @@ import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { withViewToggle } from 'src/components/CardsListToggle'
 import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, spinnerOverlay, Switch } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -384,8 +384,6 @@ const Analyses = _.flow(
     div({ style: { display: 'flex' } }, [
       icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
       'JupyterLab is now available in this workspace as a beta feature. Please ',
-      h(Link, { href: '', ...Utils.newTabLinkProps }, 'read more about JupyterLab in Terra'),
-      ' and ',
       h(Link, {
         onClick: () => setFeedbackShowing(true)
       }, ['fill out our survey']),
@@ -435,12 +433,12 @@ const Analyses = _.flow(
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
-      feedbackShowing && h(DataBrowserFeedbackModal, {
+      feedbackShowing && h(FeaturePreviewFeedbackModal, {
         onDismiss: () => setFeedbackShowing(false),
         onSuccess: () => {
           setFeedbackShowing(false)
         },
-        primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
+        primaryQuestion: 'Please tell us about your experience using JupyterLab',
         sourcePage: 'Analyses List'
       }),
       //Show the JupyterLab preview message only for GCP workspaces, because it's already the default for Azure workspaces
