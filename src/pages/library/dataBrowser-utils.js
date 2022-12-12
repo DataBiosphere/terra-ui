@@ -111,7 +111,7 @@ const extractTags = dataset => {
       dataset.dataType,
       dataset.dataModality,
       _.map('dcat:mediaType', dataset.files),
-      getDatasetReleasePoliciesDisplayInformation(dataset['TerraDCAT_ap:hasDataUsePermission']).label
+      dataset['TerraDCAT_ap:hasDataUsePermission']
     ])
   }
 }

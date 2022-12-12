@@ -12,7 +12,6 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getConsortiumsFromDataset,
-  getDatasetReleasePoliciesDisplayInformation,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -59,7 +58,7 @@ const extractCatalogFilters = dataCatalog => {
     labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
-    labels: getUnique(dataset => getDatasetReleasePoliciesDisplayInformation(dataset['TerraDCAT_ap:hasDataUsePermission']).label, dataCatalog),
+    labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
     labelRenderer: rawPolicy => {
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
         h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: rawPolicy })
