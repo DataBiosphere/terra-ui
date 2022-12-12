@@ -21,6 +21,13 @@ const featurePreviewsConfig = [
     feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent('Feedback on WDS UI')}`
   },
   {
+    id: 'jupyterlab-gcp',
+    title: 'JupyterLab on GCP',
+    description: 'Enabling this feature will allow you to launch notebooks using JupyterLab in GCP workspaces.',
+    groups: ['preview-jupyterlab-gcp'],
+    feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on JupyterLab (GCP)')}`
+  },
+  {
     id: 'workspace-files',
     title: 'Workspace Files Browser',
     description: 'Enabling this feature will allow you to use the new workspace files browser.',

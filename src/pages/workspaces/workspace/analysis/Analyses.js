@@ -2,12 +2,13 @@ import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, Clickable, DeleteConfirmationModal, HeaderRenderer, IdContainer, Link, PageBox, spinnerOverlay, Switch } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
@@ -20,6 +21,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
@@ -243,6 +245,9 @@ const Analyses = _.flow(
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
+  const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
+  const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -342,6 +347,10 @@ const Analyses = _.flow(
     StateHistory.update({ analyses, sortOrder, filter })
   }, [analyses, sortOrder, filter])
 
+  useEffect(() => {
+    setLocalPref(persistenceId, enableJupyterLabGCP)
+  }, [enableJupyterLabGCP, persistenceId])
+
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
     div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', alignItems: 'center', columnGap: '5rem' } }, _.dropRight(!!googleProject ? 0 : 2, [
@@ -363,6 +372,39 @@ const Analyses = _.flow(
     icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '1rem' } }),
     'Copying 1 or more interactive analysis files from another workspace.',
     span({ style: { fontWeight: 'bold', marginLeft: '0.5ch' } }, ['This may take a few minutes.'])
+  ])
+
+  const previewJupyterLabMessage = div({
+    style: _.merge(
+      Style.elements.card.container,
+      { backgroundColor: colors.success(0.15), flexDirection: 'none', justifyContent: 'space-between', whiteSpace: 'pre-wrap', alignItems: 'center' })
+  }, [
+    div({ style: { display: 'flex' } }, [
+      icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
+      'JupyterLab is now available in this workspace as a beta feature. Please ',
+      h(Link, {
+        onClick: () => setFeedbackShowing(true)
+      }, ['fill out our survey']),
+      ' to help us improve the JupyterLab experience.'
+    ]),
+    div({ style: { display: 'flex' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        div({
+          style: { display: 'flex', alignItems: 'center' }
+        }, [
+          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem' } }, 'Enable JupyterLab'),
+          h(Switch, {
+            id,
+            checked: enableJupyterLabGCP,
+            onLabel: '', offLabel: '',
+            width: 40, height: 20,
+            onChange: value => {
+              setEnableJupyterLabGCP(value)
+            }
+          })
+        ])
+      ])])
+    ])
   ])
 
   // Render helpers
@@ -389,6 +431,17 @@ const Analyses = _.flow(
       }
     }, [
       activeFileTransfers && activeFileTransferMessage,
+      feedbackShowing && h(FeaturePreviewFeedbackModal, {
+        onDismiss: () => setFeedbackShowing(false),
+        onSuccess: () => {
+          setFeedbackShowing(false)
+        },
+        primaryQuestion: 'Please tell us about your experience using JupyterLab',
+        sourcePage: 'Analyses List'
+      }),
+      //Show the JupyterLab preview message only for GCP workspaces, because it's already the default for Azure workspaces
+      //It's currently hidden behind a feature preview flag until the supporting documentation/blog post are ready
+      isFeaturePreviewEnabled('jupyterlab-gcp') && !_.isEmpty(analyses) && !!googleProject && previewJupyterLabMessage,
       Utils.cond(
         [_.isEmpty(analyses), () => noAnalysisBanner],
         [!_.isEmpty(analyses) && _.isEmpty(renderedAnalyses), () => {
