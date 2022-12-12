@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
-import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as AzureLogo } from 'src/images/azure-new.svg'
 import planet from 'src/images/register-planet.svg'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
@@ -49,6 +49,9 @@ const AzurePreview = () => {
       color: colors.dark(0.8),
       fontSize: '1.8rem',
       fontWeight: 500
+    },
+    button: {
+      textTransform: 'none'
     }
   }
 
@@ -69,11 +72,10 @@ const AzurePreview = () => {
       backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
     }
   }, [
-    div({ style: styles.centered }, [
-      terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
-      div({ style: { borderLeft: `1px solid ${colors.dark()}` } }, [
-        h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 80, marginLeft: '1rem' } })
-      ]),
+    div({ style: styles.header }, [
+      terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 25 }),
+      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 100, borderLeft: `1px solid ${colors.dark()}` } }),
+      'Azure'
     ]),
     div({ style: { ...styles.header, marginTop: '3rem' } },
       'Preview Environment'),
@@ -93,11 +95,11 @@ const AzurePreview = () => {
     ],
     div({ style: { ...styles.centered, marginTop: '2rem' } }, [
       isAlphaAzureUser ?
-        h(ButtonPrimary, { onClick: dismiss }, 'Proceed to Terra on Azure Preview') :
-        h(ButtonPrimary, { onClick: signOut }, 'Close')
+        h(ButtonPrimary, { onClick: dismiss, style: styles.button }, 'Proceed to Terra on Azure Preview') :
+        h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Close')
     ]),
     isAlphaAzureUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
-      h(ButtonOutline, { onClick: signOut }, 'Cancel')
+      h(ButtonOutline, { onClick: signOut, style: styles.button }, 'Cancel')
     ]) : undefined
   ])
 }
