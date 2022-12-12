@@ -8,10 +8,10 @@ import { signOut } from 'src/libs/auth'
 import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportErrorAndRethrow } from 'src/libs/error'
+import { withErrorIgnoring } from 'src/libs/error'
 import { terraLogoMaker } from 'src/libs/logos'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { authStore } from 'src/libs/state'
+import { azurePreviewStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -21,12 +21,12 @@ const AzurePreview = () => {
   const signal = useCancellation()
 
   // Helpers
-  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
+  const loadAlphaAzureMember = withErrorIgnoring(async () => {
     setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
   })
 
   const dismiss = () => {
-    authStore.update(state => ({ ...state, seenAzurePreviewScreen: true }))
+    azurePreviewStore.set(true)
   }
 
   const styles = {

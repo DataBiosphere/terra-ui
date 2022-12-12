@@ -13,7 +13,7 @@ import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notific
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
 import {
-  asyncImportJobStore, authStore, azureCookieReadyStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
+  asyncImportJobStore, authStore, azureCookieReadyStore, azurePreviewStore, cookieReadyStore, getUser, requesterPaysProjectStore, userStatus, workspacesStore, workspaceStore
 } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -66,6 +66,7 @@ export const signOut = () => {
   cookieReadyStore.reset()
   azureCookieReadyStore.reset()
   getSessionStorage().clear()
+  azurePreviewStore.set(false)
   const auth = getAuthInstance()
   revokeTokens()
     .finally(() => auth.removeUser())
@@ -225,7 +226,6 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
-      seenAzurePreviewScreen: isSignedIn ? state.seenAzurePreviewScreen : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
