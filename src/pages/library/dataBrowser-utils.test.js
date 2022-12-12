@@ -1,7 +1,9 @@
+import { render } from '@testing-library/react'
+import { h } from 'react-hyperscript-helpers'
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {
-  datarepoSnapshotUrlFragment, datasetAccessTypes, datasetReleasePolicies, filterAndNormalizeDatasets, getDataReleasePolicyFromDataset,
+  datarepoSnapshotUrlFragment, datasetAccessTypes, DatasetReleasePolicyDisplayInformation, filterAndNormalizeDatasets,
   workspaceUrlFragment
 } from 'src/pages/library/dataBrowser-utils'
 
@@ -28,17 +30,18 @@ describe('dataBrowser-utils', () => {
     expect(normalizedDatasets[1].access).not.toBe(datasetAccessTypes.EXTERNAL)
   })
 
-  it('finds the correct data use policy if it exists', () => {
-    const normalizedDatasets = filterAndNormalizeDatasets([{ 'TerraDCAT_ap:hasDataUsePermission': 'DUO:0000007' }])
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).desc).toBe(datasetReleasePolicies['DUO:0000007'].desc)
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).label).toBe(datasetReleasePolicies['DUO:0000007'].label)
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).policy).toBe('DUO:0000007')
+  it('finds the correct data use policy to display if it exists', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'DUO:0000007' }))
+    expect(getByText('Disease specific research')).toBeTruthy()
   })
 
-  it('uses other as the data use policy if our map doesn\'t contain it or is undefined', () => {
-    const normalizedDatasets = filterAndNormalizeDatasets([{ 'TerraDCAT_ap:hasDataUsePermission': undefined }, { 'TerraDCAT_ap:hasDataUsePermission': 'DUO:1234567' }])
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).desc).toBe(datasetReleasePolicies.unknownReleasePolicy.desc)
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).label).toBe(datasetReleasePolicies.unknownReleasePolicy.label)
-    expect(getDataReleasePolicyFromDataset(normalizedDatasets[0]).policy).toBe(datasetReleasePolicies.unknownReleasePolicy.policy)
+  it('uses unspecified as the data use policy if undefined', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: undefined }))
+    expect(getByText('Unspecified')).toBeTruthy()
+  })
+
+  it('uses given data use policy as the data use policy if unknown', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'Something else' }))
+    expect(getByText('Something else')).toBeTruthy()
   })
 })

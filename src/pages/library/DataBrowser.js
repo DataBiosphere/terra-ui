@@ -11,7 +11,9 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, datasetReleasePolicies, getConsortiumsFromDataset, getDataReleasePolicyFromDataset, useDataCatalog
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getConsortiumsFromDataset,
+  getDatasetReleasePoliciesDisplayInformation,
+  useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -57,12 +59,10 @@ const extractCatalogFilters = dataCatalog => {
     labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
-    labels: getUnique(dataset => getDataReleasePolicyFromDataset(dataset).policy, dataCatalog),
+    labels: getUnique(dataset => getDatasetReleasePoliciesDisplayInformation(dataset['TerraDCAT_ap:hasDataUsePermission']).label, dataCatalog),
     labelRenderer: rawPolicy => {
-      const { label, desc } = datasetReleasePolicies[rawPolicy] || datasetReleasePolicies.unknownReleasePolicy
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        label,
-        rawPolicy !== datasetReleasePolicies.unknownReleasePolicy.policy && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: rawPolicy })
       ])]
     }
   }, {

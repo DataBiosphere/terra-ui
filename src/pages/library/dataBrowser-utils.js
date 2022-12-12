@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
@@ -20,14 +21,25 @@ export const uiMessaging = {
   unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
 }
 
-export const datasetReleasePolicies = {
-  'DUO:0000007': { label: 'DS', desc: 'disease specific research' },
-  'DUO:0000042': { label: 'GRU', desc: 'General research use' },
-  'DUO:0000006': { label: 'HMB', desc: 'Health or medical or biomedical research' },
-  'DUO:0000011': { label: 'POA', desc: 'Population origins or ancestry research only' },
-  'DUO:0000004': { label: 'NRES', desc: 'No restriction' },
-  // This case can handle null policies, or one that has been added to the schema enum that we don't yet handle
-  unknownReleasePolicy: { policy: 'Unknown', label: 'Unknown', desc: 'No provided dataset release policy or not yet handled in the web interface' }
+export const getDatasetReleasePoliciesDisplayInformation = dataUsePermission => {
+  return Utils.switchCase(
+    dataUsePermission,
+    ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
+    ['DUO:0000042', () => ({ label: 'GRU', description: 'General research use' })],
+    ['DUO:0000006', () => ({ label: 'HMB', description: 'Health or medical or biomedical research' })],
+    ['DUO:0000011', () => ({ label: 'POA', description: 'Population origins or ancestry research only' })],
+    ['DUO:0000004', () => ({ label: 'NRES', description: 'No restriction' })],
+    [undefined, () => ({ label: 'Unspecified', description: 'No specified dataset release policy' })],
+    [Utils.DEFAULT, () => ({ label: dataUsePermission })]
+  )
+}
+
+export const DatasetReleasePolicyDisplayInformation = ({ dataUsePermission }) => {
+  const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
+  return h(Fragment, [
+    label,
+    description && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [description])
+  ])
 }
 
 export const isExternal = dataset => Utils.cond(
@@ -48,14 +60,6 @@ export const isDatarepoSnapshot = dataset => {
 }
 
 export const getConsortiumsFromDataset = dataset => _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
-
-
-export const getDataReleasePolicyFromDataset = dataset => _.has(dataset['TerraDCAT_ap:hasDataUsePermission'], datasetReleasePolicies) ?
-  {
-    ...datasetReleasePolicies[dataset['TerraDCAT_ap:hasDataUsePermission']],
-    policy: dataset['TerraDCAT_ap:hasDataUsePermission']
-  } :
-  datasetReleasePolicies.unknownReleasePolicy
 
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
@@ -95,6 +99,7 @@ const normalizeDataset = dataset => {
   }
 }
 
+// These are used to match against by the filter
 const extractTags = dataset => {
   return {
     itemsType: 'AttributeValue',
@@ -106,7 +111,7 @@ const extractTags = dataset => {
       dataset.dataType,
       dataset.dataModality,
       _.map('dcat:mediaType', dataset.files),
-      getDataReleasePolicyFromDataset(dataset).policy
+      getDatasetReleasePoliciesDisplayInformation(dataset['TerraDCAT_ap:hasDataUsePermission']).label
     ])
   }
 }
