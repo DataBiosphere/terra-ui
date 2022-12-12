@@ -83,13 +83,10 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string, appName: string, proxyUrl: string) {
+  constructor(workspaceId: string, proxyUrl: string) {
     this.workspaceId = workspaceId
-    this.appName = appName
     this.proxyUrl = proxyUrl
   }
-
-  appName: string
 
   providerName: string = 'WDS'
 

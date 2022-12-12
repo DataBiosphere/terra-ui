@@ -510,8 +510,7 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  // TODO: 'name' does not currently match with the appName required for getting proxyUrl from Leo for WDS
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, name, wdsProxyUrl)
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, wdsProxyUrl)
 
   const loadEntityMetadata = async () => {
     try {
@@ -567,9 +566,8 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchemaAndUrl = async () => {
-    await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
-      // TODO: Update to pull specifically from /api/apps/v2/{workspaceId}/{appName}
-      if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
+    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd && isAzureWorkspace) {
+      await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
         try {
           setWdsSchema([])
           setWdsSchemaError(undefined)
@@ -580,18 +578,25 @@ const WorkspaceData = _.flow(
         } catch (error) {
           setWdsSchemaError(error)
         }
-      }
-    })
+      })
+    }
   }
 
-  // TODO: Do we have the appName here yet? If so, we could just call /api/apps/v2/{workspaceId}/{appName}?
   const getWdsUrl = apps => {
-    // TODO: determine appropriate logic
+    // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
+    // this handles the case where the user has explicitly shut down the app
+    const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
+    if (namedApp.length === 1) {
+      return namedApp[0].proxyUrls.wds
+    }
+    // if we didn't find the expected app 'cbas-wds-default', go hunting:
     const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
     if (candidates.length === 0) {
-      //TODO: panic
+      // no app deployed yet
+      return ''
     }
     if (candidates.length > 1) {
+      // multiple apps found; use the earliest-created one
       candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
     }
     return candidates[0].proxyUrls.wds
@@ -1071,7 +1076,7 @@ const WorkspaceData = _.flow(
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
-          [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsProxyUrl && h(WDSContent, {
+          [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsProxyUrl && wdsSchema && h(WDSContent, {
             key: refreshKey,
             workspaceUUID: workspaceId,
             workspace,
