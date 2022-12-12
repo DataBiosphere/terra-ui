@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
-import * as AzureBeta from 'src/pages/AzureBeta'
+import * as AzurePreview from 'src/pages/AzurePreview'
 import * as Projects from 'src/pages/billing/List'
 import * as Environments from 'src/pages/Environments'
 import * as FeaturePreviews from 'src/pages/FeaturePreviews'
@@ -79,7 +79,7 @@ const routes = _.flatten([
   Upload.navPaths,
   FeaturePreviews.navPaths,
   WorkspaceFiles.navPaths,
-  AzureBeta.navPaths,
+  AzurePreview.navPaths,
   NotFound.navPaths // must be last
 ])
 

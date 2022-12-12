@@ -1,14 +1,21 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
-import { icon } from 'src/components/icons'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import planet from 'src/images/register-planet.svg'
+import { signOut } from 'src/libs/auth'
 import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 import { terraLogoMaker } from 'src/libs/logos'
+import { authStore } from 'src/libs/state'
 
 
-const AzureBeta = () => {
+const AzurePreview = () => {
+  const isOnAllowList = true
+
+  const dismiss = () => {
+    authStore.update(state => ({ ...state, seenAzurePreviewScreen: true }))
+  }
+
   return div({
     role: 'main',
     style: {
@@ -26,38 +33,34 @@ const AzureBeta = () => {
     ]),
     div({
       style: {
-        marginTop: '4rem', color: colors.dark(0.6),
+        marginTop: '4rem', color: colors.dark(0.9),
         fontSize: '1.5rem', fontWeight: 500
       }
-    }, [
-      icon('warning-standard', { style: { color: colors.warning(), height: '1.5rem', width: '1.5rem', marginRight: '0.5rem', marginTop: '0.25rem' } }),
-      'Beta Test Environment'
-    ]),
+    }, 'Preview Environment'),
     div({ style: { marginTop: '3rem', display: 'flex' } },
-      'This is a beta version of the Terra on Azure platform.',
+      'This is an invite-only limited version of the Terra on Azure platform. The public offering of Terra on Azure is expected in early 2023.'
     ),
-    div({ style: { marginTop: '3rem', display: 'flex' } },
-      'The official release is expected to come soon in 2023.',
+    isOnAllowList ? [] : div({ style: { marginTop: '3rem', display: 'flex' } },
+      'If you are not in the Terra on Azure Preview Program and would like to join, contact support@terra.bio.',
     ),
-    div({ style: { marginTop: '3rem', display: 'flex' } },
-      'If you are not in the beta test program, please log in using Google.',
-    ),
-    div({ style: { marginTop: '3rem' } }, [
-      h(ButtonPrimary,
-        'Proceed to beta environment'
-      ),
-      h(ButtonSecondary, { style: { marginLeft: '1rem' } }, 'Cancel')
-    ])
+    div({ style: { marginTop: '3rem' } },
+      isOnAllowList ? [
+        h(ButtonPrimary, { onClick: dismiss }, 'Proceed to Terra on Azure Preview'),
+        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel')
+      ] : [
+        h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Close')
+      ]
+    )
   ])
 }
-export default AzureBeta
+export default AzurePreview
 
 export const navPaths = [
   {
-    name: 'azure-beta',
-    path: '/azure-beta',
-    component: AzureBeta,
+    name: 'azure-preview',
+    path: '/azure-preview',
+    component: AzurePreview,
     public: true,
-    title: 'Terra on Azure Beta'
+    title: 'Terra on Azure Preview'
   }
 ]

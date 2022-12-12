@@ -5,6 +5,7 @@ import { useRoute } from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, userStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import AzurePreview from 'src/pages/AzurePreview'
 import { Disabled } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'
 import SignIn from 'src/pages/SignIn'
@@ -13,12 +14,17 @@ import TermsOfService from 'src/pages/TermsOfService'
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
-  const { isSignedIn, registrationStatus, acceptedTos, profile } = useStore(authStore)
+  const { isSignedIn, registrationStatus, acceptedTos, profile, user, seenAzurePreviewScreen } = useStore(authStore)
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
+
+  const isAzureIdp = () => {
+    return user.idp && user.idp.startsWith('https://login.microsoftonline.com')
+  }
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
+    [seenAzurePreviewScreen === undefined && isAzureIdp(), () => h(AzurePreview)],
     [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === userStatus.unregistered, () => h(Register)],
     [acceptedTos === undefined && !isPublic, authspinner],

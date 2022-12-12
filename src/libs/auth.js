@@ -221,6 +221,7 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
+      seenAzurePreviewScreen: isSignedIn ? state.seenAzurePreviewScreen : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -230,7 +231,8 @@ export const processUser = (user, isSignInEvent) => {
           name: profile.name,
           givenName: profile.givenName,
           familyName: profile.familyName,
-          imageUrl: profile.picture
+          imageUrl: profile.picture,
+          idp: profile.idp
         } : {})
       }
     }
