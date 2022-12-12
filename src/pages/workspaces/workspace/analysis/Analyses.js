@@ -245,8 +245,8 @@ const Analyses = _.flow(
   const [deletingAnalysisName, setDeletingAnalysisName] = useState(undefined)
   const [exportingAnalysisName, setExportingAnalysisName] = useState(undefined)
   const [sortOrder, setSortOrder] = useState(() => getLocalPref(KEY_ANALYSES_SORT_ORDER) || defaultSort.value)
-  const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
-  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
+  const enableJupyterLabPersistenceId = `${namespace}/${workspaceName}/enableJupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
@@ -348,8 +348,8 @@ const Analyses = _.flow(
   }, [analyses, sortOrder, filter])
 
   useEffect(() => {
-    setLocalPref(persistenceId, enableJupyterLabGCP)
-  }, [enableJupyterLabGCP, persistenceId])
+    setLocalPref(enableJupyterLabPersistenceId, enableJupyterLabGCP)
+  }, [enableJupyterLabGCP, enableJupyterLabPersistenceId])
 
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),

@@ -259,8 +259,8 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
   const currentRuntimeTool = getToolFromRuntime(runtime)
-  const persistenceId = `${namespace}/${name}/jupyterLabGCP`
-  const [enableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
+  const enableJupyterLabPersistenceId = `${namespace}/${name}/enableJupyterLabGCP`
+  const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
