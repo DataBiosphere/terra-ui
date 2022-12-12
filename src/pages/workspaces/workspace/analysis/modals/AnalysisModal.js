@@ -17,6 +17,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
+import { getLocalPref } from 'src/libs/prefs'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -30,7 +31,7 @@ import {
   analysisNameInput, analysisNameValidator, baseRmd, notebookData
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
 import {
-  getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
+  cloudProviders, getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { cloudAppTools, cloudRuntimeTools, getAppType, getToolFromFileExtension, getToolFromRuntime, isAppToolLabel, runtimeTools, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
@@ -43,7 +44,7 @@ const environmentMode = Symbol('environment')
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onError, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshAnalyses,
-    analyses, workspace, persistentDisks, location, workspace: { workspace: { workspaceId, googleProject, bucketName } }
+    analyses, workspace, persistentDisks, location, workspace: { workspace: { workspaceId, googleProject, bucketName, namespace, name: workspaceName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const cloudProvider = getCloudProviderFromWorkspace(workspace)
@@ -53,6 +54,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const [currentToolObj, setCurrentToolObj] = useState(undefined)
     const [fileExt, setFileExt] = useState('')
     const currentTool = currentToolObj?.label
+
+    const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
+    const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
@@ -156,7 +160,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       hover: { backgroundColor: colors.accent(0.3) }
     }
 
-    const availableRuntimeTools = cloudRuntimeTools[cloudProvider]
+    const availableRuntimeTools = _.remove(tool => !enableJupyterLabGCP && cloudProvider === cloudProviders.gcp.label && tool.label === toolLabels.JupyterLab)(cloudRuntimeTools[cloudProvider])
     const availableAppTools = cloudAppTools[cloudProvider]
 
     const currentApps = {

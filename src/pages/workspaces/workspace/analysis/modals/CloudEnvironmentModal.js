@@ -16,6 +16,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref } from 'src/libs/prefs'
 import { useStore } from 'src/libs/react-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -26,7 +27,7 @@ import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modal
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
+  cloudProviders, getComputeStatusForDisplay, getConvertedRuntimeStatus, getCostDisplayForDisk, getCostDisplayForTool,
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, getIsAppBusy, getIsRuntimeBusy, getRuntimeForTool,
   isCurrentGalaxyDiskDetaching
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -48,6 +49,8 @@ export const CloudEnvironmentModal = ({
   const cloudProvider = getCloudProviderFromWorkspace(workspace)
   const cookieReady = useStore(cookieReadyStore)
   const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
+  const persistenceId = `${namespace}/${workspaceName}/jupyterLabGCP`
+  const [enableJupyterLabGCP, setEnableJupyterLabGCP] = useState(() => getLocalPref(persistenceId) || false)
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
@@ -85,8 +88,10 @@ export const CloudEnvironmentModal = ({
     onError: onDismiss
   })
 
+  //Convoluted due to differing cloud implementations, but only show JupyterLab for GCP if it's enabled for the specific workspace
+  const toolsToDisplay = _.remove(tool => !enableJupyterLabGCP && cloudProvider === cloudProviders.gcp.label && tool.label === toolLabels.JupyterLab)(getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace)))
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
-    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : getToolsToDisplayForCloudProvider(getCloudProviderFromWorkspace(workspace))) //TODO: We should have access to cloudProvider string.
+    _.map(tool => renderToolButtons(tool.label))(filterForTool ? [tools[filterForTool]] : toolsToDisplay) //TODO: We should have access to cloudProvider string.
   )
 
   const toolPanelStyles = {
