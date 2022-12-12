@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import planet from 'src/images/register-planet.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -12,6 +12,7 @@ import { reportErrorAndRethrow } from 'src/libs/error'
 import { terraLogoMaker } from 'src/libs/logos'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
+import * as Utils from 'src/libs/utils'
 
 
 const AzurePreview = () => {
@@ -28,6 +29,31 @@ const AzurePreview = () => {
     authStore.update(state => ({ ...state, seenAzurePreviewScreen: true }))
   }
 
+  const styles = {
+    centered: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center'
+    },
+    paragraph: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: 16,
+      lineHeight: 1.5
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      color: colors.dark(0.8),
+      fontSize: '1.8rem',
+      fontWeight: 500
+    }
+  }
+
+  const supportEmail = 'support@terra.bio'
+
   // Lifecycle
   useOnMount(() => {
     loadAlphaAzureMember()
@@ -43,34 +69,39 @@ const AzurePreview = () => {
       backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
     }
   }, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
+    div({ style: styles.centered }, [
       terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
       div({ style: { borderLeft: `1px solid ${colors.dark()}` } }, [
         h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 80, marginLeft: '1rem' } })
       ]),
     ]),
-    div({
-      style: {
-        marginTop: '4rem', color: colors.dark(0.9),
-        fontSize: '1.5rem', fontWeight: 500
-      }
-    }, 'Preview Environment'),
-    div({ style: { marginTop: '3rem', display: 'flex' } },
-      'This is an invite-only limited version of the Terra on Azure platform. The public offering of Terra on Azure is expected in early 2023.'
-    ),
-    isAlphaAzureUser ? [] : div({ style: { marginTop: '3rem', display: 'flex' } },
-      'If you are not in the Terra on Azure Preview Program and would like to join, contact support@terra.bio.',
-    ),
-    div({ style: { marginTop: '3rem' } },
-      isAlphaAzureUser ? [
-        h(ButtonPrimary, { onClick: dismiss }, 'Proceed to Terra on Azure Preview'),
-        h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel')
-      ] : [
-        h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Close')
-      ]
-    )
+    div({ style: { ...styles.header, marginTop: '3rem' } },
+      'Preview Environment'),
+    div({ style: { ...styles.paragraph, marginTop: '1rem' } },
+      'This is an invite-only limited version of the Terra on Azure platform.'),
+    div({ style: { ...styles.paragraph } },
+      'The public offering of Terra on Azure is expected in early 2023.'),
+
+    isAlphaAzureUser ? undefined : [
+      div({ style: { ...styles.paragraph, marginTop: '1rem' } },
+        'If you are not in the Terra on Azure Preview Program'),
+      div({ style: { ...styles.paragraph } }, [
+        'and would like to join, contact ',
+        h(Link, { style: { marginLeft: '0.3rem' }, href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps }, supportEmail),
+        '.'
+      ])
+    ],
+    div({ style: { ...styles.centered, marginTop: '2rem' } }, [
+      isAlphaAzureUser ?
+        h(ButtonPrimary, { onClick: dismiss }, 'Proceed to Terra on Azure Preview') :
+        h(ButtonPrimary, { onClick: signOut }, 'Close')
+    ]),
+    isAlphaAzureUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
+      h(ButtonOutline, { onClick: signOut }, 'Cancel')
+    ]) : undefined
   ])
 }
+
 export default AzurePreview
 
 export const navPaths = [
