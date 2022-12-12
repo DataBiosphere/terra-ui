@@ -21,6 +21,7 @@ export const uiMessaging = {
   unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
 }
 
+// This list is generated from the schema enum
 export const getDatasetReleasePoliciesDisplayInformation = dataUsePermission => {
   return Utils.switchCase(
     dataUsePermission,
