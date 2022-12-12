@@ -21,22 +21,13 @@ export const uiMessaging = {
 }
 
 export const datasetReleasePolicies = {
-  'TerraCore:NoRestriction': { label: 'NRES', desc: 'No restrictions' },
-  'TerraCore:GeneralResearchUse': { label: 'GRU', desc: 'General research use' },
-  'TerraCore:NPOA': { label: 'NPOA', desc: 'No population origins or ancestry research' },
-  'TerraCore:NMDS': { label: 'NMDS', desc: 'No general methods research' },
-  'TerraCore:GSO': { label: 'GSO', desc: 'Genetic studies only' },
-  'TerraCore:CC': { label: 'CC', desc: 'Clinical care use' },
-  'TerraCore:PUB': { label: 'PUB', desc: 'Publication required' },
-  'TerraCore:COL': { label: 'COL', desc: 'Collaboration required' },
-  'TerraCore:IRB': { label: 'IRB', desc: 'Ethics approval required' },
-  'TerraCore:GS': { label: 'GS', desc: 'Geographical restriction' },
-  'TerraCore:MOR': { label: 'MOR', desc: 'Publication moratorium' },
-  'TerraCore:RT': { label: 'RT', desc: 'Return to database/resource' },
-  'TerraCore:NCU': { label: 'NCU', desc: 'Non commercial use only' },
-  'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
-  'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
-  releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
+  'DUO:0000007': { label: 'DS', desc: 'disease specific research' },
+  'DUO:0000042': { label: 'GRU', desc: 'General research use' },
+  'DUO:0000006': { label: 'HMB', desc: 'Health or medical or biomedical research' },
+  'DUO:0000011': { label: 'POA', desc: 'Population origins or ancestry research only' },
+  'DUO:0000004': { label: 'NRES', desc: 'No restriction' },
+  // This case can handle null policies, or one that has been added to the schema enum that we don't yet handle
+  unknownReleasePolicy: { policy: 'Unknown', label: 'Unknown', desc: 'No provided dataset release policy or not yet handled in the web interface' }
 }
 
 export const isExternal = dataset => Utils.cond(
@@ -58,6 +49,13 @@ export const isDatarepoSnapshot = dataset => {
 
 export const getConsortiumsFromDataset = dataset => _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
 
+
+export const getDataReleasePolicyFromDataset = dataset => _.has(dataset['TerraDCAT_ap:hasDataUsePermission'], datasetReleasePolicies) ?
+  {
+    ...datasetReleasePolicies[dataset['TerraDCAT_ap:hasDataUsePermission']],
+    policy: dataset['TerraDCAT_ap:hasDataUsePermission']
+  } :
+  datasetReleasePolicies.unknownReleasePolicy
 
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
@@ -82,25 +80,15 @@ const normalizeDataset = dataset => {
     _.uniqBy(_.toLower)
   )(dataset['prov:wasGeneratedBy'])
 
-  const dataReleasePolicy = _.has(dataset['TerraDCAT_ap:hasDataUsePermission'], datasetReleasePolicies) ?
-    { ...datasetReleasePolicies[dataset['TerraDCAT_ap:hasDataUsePermission']], policy: dataset['TerraDCAT_ap:hasDataUsePermission'] } :
-    {
-      ...datasetReleasePolicies.releasepolicy_other,
-      desc: _.flow(
-        _.replace('TerraCore:', ''),
-        _.startCase
-      )(dataset['TerraDCAT_ap:hasDataUsePermission'])
-    }
-
   const access = Utils.cond(
     [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
     [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
+    lowerName: _.toLower(dataset['dct:title']),
+    lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
-    dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
     access
@@ -118,7 +106,7 @@ const extractTags = dataset => {
       dataset.dataType,
       dataset.dataModality,
       _.map('dcat:mediaType', dataset.files),
-      dataset.dataReleasePolicy.policy
+      getDataReleasePolicyFromDataset(dataset).policy
     ])
   }
 }
