@@ -56,7 +56,7 @@ export const isDatarepoSnapshot = dataset => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const getConsortiumsFromDataset = dataset => _.map(dataCollection => dataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])
+export const getConsortiumsFromDataset = dataset => _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
 
 
 const normalizeDataset = dataset => {
@@ -112,7 +112,7 @@ const extractTags = dataset => {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
       dataset.access,
-      _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection']),
+      getConsortiumsFromDataset(dataset),
       dataset.samples?.genus,
       dataset.samples?.disease,
       dataset.dataType,
