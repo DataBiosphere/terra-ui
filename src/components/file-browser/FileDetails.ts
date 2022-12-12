@@ -1,5 +1,6 @@
 import filesize from 'filesize'
-import { dd, div, dl, dt } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { dd, div, dl, dt, h } from 'react-hyperscript-helpers'
 import { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 
 
@@ -10,10 +11,7 @@ interface FileDetailsProps {
 export const FileDetails = (props: FileDetailsProps) => {
   const { file } = props
 
-  return div({
-    style: {
-    }
-  }, [
+  return h(Fragment, [
     dl([
       div({ style: { marginBottom: '0.5rem' } }, [
         dt({ style: { marginBottom: '0.25rem', fontWeight: 500 } }, ['Last modified']),
