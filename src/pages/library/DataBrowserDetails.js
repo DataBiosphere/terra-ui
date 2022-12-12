@@ -3,6 +3,7 @@ import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -21,7 +22,6 @@ import { commonStyles } from 'src/pages/library/common'
 import {
   datasetAccessTypes, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -277,7 +277,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           ])
         ])
     ]),
-    feedbackShowing && h(DataBrowserFeedbackModal, {
+    feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => setFeedbackShowing(false),
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',

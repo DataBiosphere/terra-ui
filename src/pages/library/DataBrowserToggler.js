@@ -1,9 +1,9 @@
 import { Fragment, useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
 import { IdContainer, Link, Switch } from 'src/components/common'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 
 
 export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
@@ -46,7 +46,7 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         ['Let us know!'])
       ])
     ]),
-    feedbackShowing && h(DataBrowserFeedbackModal, {
+    feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
         setFeedbackShowing(false)
