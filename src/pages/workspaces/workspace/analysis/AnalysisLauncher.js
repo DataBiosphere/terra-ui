@@ -313,7 +313,7 @@ const PreviewHeader = ({
       }, openMenuIcon)],
       //This is a special case for JupyterLab on GCP. Under the hood, the app running on the runtime is Jupyter, but
       //we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
-      //any notebooks. We also need to keep the edit mode directory in line wit what Jupyter uses, because users
+      //any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
       //can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
       [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
