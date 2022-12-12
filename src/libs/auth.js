@@ -53,6 +53,10 @@ const isGoogleAuthority = () => {
   return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint)
 }
 
+export const isAzureIdp = () => {
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp)
+}
+
 const getAuthInstance = () => {
   return authStore.get().authContext
 }

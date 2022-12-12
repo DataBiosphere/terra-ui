@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
+import { isAzureIdp } from 'src/libs/auth'
 import { useRoute } from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, userStatus } from 'src/libs/state'
@@ -14,12 +15,8 @@ import TermsOfService from 'src/pages/TermsOfService'
 
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
-  const { isSignedIn, registrationStatus, acceptedTos, profile, user, seenAzurePreviewScreen } = useStore(authStore)
+  const { isSignedIn, registrationStatus, acceptedTos, profile, seenAzurePreviewScreen } = useStore(authStore)
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
-
-  const isAzureIdp = () => {
-    return user.idp && user.idp.startsWith('https://login.microsoftonline.com')
-  }
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],

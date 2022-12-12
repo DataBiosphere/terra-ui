@@ -1,21 +1,39 @@
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import planet from 'src/images/register-planet.svg'
+import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import { reportErrorAndRethrow } from 'src/libs/error'
 import { terraLogoMaker } from 'src/libs/logos'
+import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { authStore } from 'src/libs/state'
 
 
 const AzurePreview = () => {
-  const isOnAllowList = true
+  // State
+  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
+  const signal = useCancellation()
+
+  // Helpers
+  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
+    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
+  })
 
   const dismiss = () => {
     authStore.update(state => ({ ...state, seenAzurePreviewScreen: true }))
   }
 
+  // Lifecycle
+  useOnMount(() => {
+    loadAlphaAzureMember()
+  })
+
+  // Render
   return div({
     role: 'main',
     style: {
@@ -40,11 +58,11 @@ const AzurePreview = () => {
     div({ style: { marginTop: '3rem', display: 'flex' } },
       'This is an invite-only limited version of the Terra on Azure platform. The public offering of Terra on Azure is expected in early 2023.'
     ),
-    isOnAllowList ? [] : div({ style: { marginTop: '3rem', display: 'flex' } },
+    isAlphaAzureUser ? [] : div({ style: { marginTop: '3rem', display: 'flex' } },
       'If you are not in the Terra on Azure Preview Program and would like to join, contact support@terra.bio.',
     ),
     div({ style: { marginTop: '3rem' } },
-      isOnAllowList ? [
+      isAlphaAzureUser ? [
         h(ButtonPrimary, { onClick: dismiss }, 'Proceed to Terra on Azure Preview'),
         h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: signOut }, 'Cancel')
       ] : [
