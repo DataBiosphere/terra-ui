@@ -280,6 +280,11 @@ export const SidebarComponent = ({ dataObj, id }) => {
     feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => setFeedbackShowing(false),
+      featureName: 'Data Catalog',
+      formId: '1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
+      feedbackId: 'entry.477992521',
+      contactEmailId: 'entry.82175827',
+      sourcePageId: 'entry.367682225',
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
       sourcePage: 'Catalog Details'
     }),

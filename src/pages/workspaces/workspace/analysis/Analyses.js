@@ -436,6 +436,11 @@ const Analyses = _.flow(
         onSuccess: () => {
           setFeedbackShowing(false)
         },
+        featureName: 'JupyterLab',
+        formId: '1FAIpQLScgSqTwp6e2AaVcwkd8mcgseijUjBmRqT7DIyQNjdwz8IT-EA',
+        feedbackId: 'entry.760196566',
+        contactEmailId: 'entry.11317098',
+        sourcePageId: 'entry.1141779347',
         primaryQuestion: 'Please tell us about your experience using JupyterLab',
         sourcePage: 'Analyses List'
       }),

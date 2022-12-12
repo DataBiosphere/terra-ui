@@ -51,6 +51,11 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
       onSuccess: () => {
         setFeedbackShowing(false)
       },
+      featureName: 'Data Catalog',
+      formId: '1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
+      feedbackId: 'entry.477992521',
+      contactEmailId: 'entry.82175827',
+      sourcePageId: 'entry.367682225',
       primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
       sourcePage: 'Catalog List'
     })
