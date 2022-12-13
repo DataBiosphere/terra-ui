@@ -32,7 +32,6 @@ const AzurePreview = () => {
   const styles = {
     centered: {
       display: 'flex',
-      marginTop: '1rem',
       justifyContent: 'center',
       alignItems: 'center'
     },
@@ -85,14 +84,14 @@ const AzurePreview = () => {
 
     isAlphaAzureUser ? undefined : [
       div({ style: styles.centered }, [
-        div({ style: { ...styles.paragraph } }, [
+        p({ style: styles.paragraph }, [
           'You are not currently part of the Terra on Azure Preview Program. If you are interested in joining the program, or think there may be an error, please contact ',
           h(Link, { href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps }, supportEmail),
           '.'
         ])
       ])
     ],
-    div({ style: { ...styles.centered, marginTop: '2rem' } }, [
+    div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
       isAlphaAzureUser ?
         h(ButtonPrimary, { onClick: dismiss, style: styles.button }, 'Proceed to Terra on Azure Preview') :
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Log Out')
