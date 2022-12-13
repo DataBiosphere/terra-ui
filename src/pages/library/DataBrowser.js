@@ -10,7 +10,10 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { datasetAccessTypes, datasetReleasePolicies, getConsortiumsFromDataset, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import {
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getConsortiumsFromDataset,
+  useDataCatalog
+} from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -55,12 +58,10 @@ const extractCatalogFilters = dataCatalog => {
     labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
-    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
+    labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
     labelRenderer: rawPolicy => {
-      const { label, desc } = datasetReleasePolicies[rawPolicy] || datasetReleasePolicies.releasepolicy_other
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        label ? label : rawPolicy,
-        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: rawPolicy })
       ])]
     }
   }, {
