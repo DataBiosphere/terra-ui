@@ -98,7 +98,6 @@ const normalizeDataset = dataset => {
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
     dataReleasePolicy,
     contacts, curators, contributorNames,

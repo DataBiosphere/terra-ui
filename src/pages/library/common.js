@@ -323,8 +323,8 @@ const sendSearchEvent = term => Ajax().Metrics.captureEvent(`${Events.catalogFil
 const debounceSearchEvent = _.debounce(5000, sendSearchEvent)
 
 export const SearchAndFilterComponent = ({
-  fullList, sidebarSections, customSort, searchType,
-  titleField = 'name', descField = 'description', idField = 'lowerName', listView
+  fullList, sidebarSections, customSort, searchType, getLowerName, getLowerDescription,
+  titleField = 'name', descField = 'description', idField = 'name', listView
 }) => {
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
@@ -355,7 +355,7 @@ export const SearchAndFilterComponent = ({
   )
 
   const filteredData = useMemo(() => {
-    const filterByText = _.filter(({ lowerName, lowerDescription }) => _.includes(_.toLower(searchFilter), `${lowerName} ${lowerDescription}`))
+    const filterByText = _.filter(item => _.includes(_.toLower(searchFilter), `${getLowerName(item)} ${getLowerDescription(item)}`))
 
     const filterBySections = listData => {
       if (_.isEmpty(selectedSections)) {
@@ -405,7 +405,7 @@ export const SearchAndFilterComponent = ({
         _.fromPairs
       )(selectedTags)
     }
-  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField])
+  }, [fullList, searchFilter, customSort, sort, listDataByTag, selectedTags, selectedSections, sidebarSections, idField, getLowerName, getLowerDescription])
 
   const navigateToFilterAndSelection = ({ filter = searchFilter, tags = selectedTags } = {}) => {
     const newSearch = qs.stringify({
@@ -470,7 +470,7 @@ export const SearchAndFilterComponent = ({
             placeholder: 'Search Name or Description',
             itemToString: v => v[titleField],
             onChange: onSearchChange,
-            suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
+            suggestionFilter: _.curry((needle, listItem) => _.includes(_.toLower(needle), `${getLowerName(listItem)} ${getLowerDescription(listItem)}`)),
             renderSuggestion: suggestion => {
               return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
                 _.flow(
