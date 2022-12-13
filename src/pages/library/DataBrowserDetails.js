@@ -19,7 +19,7 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+  datasetAccessTypes, getAssayCategoryListFromDataset, getDataModalityListFromDataset, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -204,12 +204,12 @@ export const SidebarComponent = ({ dataObj, id }) => {
           div([_.getOr(0, 'counts.samples', dataObj).toLocaleString()])
         ]),
         div([
-          h3({ style: styles.headers }, ['Data Modality']),
-          div([_.join(', ', dataObj.dataModality)])
+          h3({ style: styles.headers }, ['Data modality']),
+          div([_.join(', ', getDataModalityListFromDataset(dataObj))])
         ]),
         div([
-          h3({ style: styles.headers }, ['Data type']),
-          div([_.join(', ', dataObj.dataType)])
+          h3({ style: styles.headers }, ['Assay category']),
+          div([_.join(', ', getAssayCategoryListFromDataset(dataObj))])
         ]),
         div([
           h3({ style: styles.headers }, ['File counts']),

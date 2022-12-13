@@ -59,6 +59,23 @@ export const isDatarepoSnapshot = dataset => {
 export const getConsortiumsFromDataset = dataset => _.map(dataCollection => dataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])
 
 
+export const getDataModalityListFromDataset = dataset => _.flow(
+  _.flatMap('TerraCore:hasDataModality'),
+  _.sortBy(_.toLower),
+  _.compact,
+  _.map(_.replace('TerraCoreValueSets:', '')),
+  _.uniqBy(_.toLower)
+)(dataset['prov:wasGeneratedBy'])
+
+
+export const getAssayCategoryListFromDataset = dataset => _.flow(
+  _.flatMap('TerraCore:hasAssayCategory'),
+  _.sortBy(_.toLower),
+  _.compact,
+  _.uniqBy(_.toLower)
+)(dataset['prov:wasGeneratedBy'])
+
+
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
     _.replace(/,+/g, ' '),
@@ -68,19 +85,6 @@ const normalizeDataset = dataset => {
   const [curators, rawContributors] = _.partition({ projectRole: 'data curator' }, contributors)
   const contacts = _.filter('correspondingContributor', contributors)
   const contributorNames = _.map('contactName', rawContributors)
-
-  const dataType = _.flow(
-    _.flatMap('TerraCore:hasAssayCategory'),
-    _.compact,
-    _.uniqBy(_.toLower)
-  )(dataset['prov:wasGeneratedBy'])
-
-  const dataModality = _.flow(
-    _.flatMap('TerraCore:hasDataModality'),
-    _.compact,
-    _.map(_.replace('TerraCoreValueSets:', '')),
-    _.uniqBy(_.toLower)
-  )(dataset['prov:wasGeneratedBy'])
 
   const dataReleasePolicy = _.has(dataset['TerraDCAT_ap:hasDataUsePermission'], datasetReleasePolicies) ?
     { ...datasetReleasePolicies[dataset['TerraDCAT_ap:hasDataUsePermission']], policy: dataset['TerraDCAT_ap:hasDataUsePermission'] } :
@@ -102,7 +106,6 @@ const normalizeDataset = dataset => {
     lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
     dataReleasePolicy,
     contacts, curators, contributorNames,
-    dataType, dataModality,
     access
   }
 }
@@ -115,8 +118,8 @@ const extractTags = dataset => {
       _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection']),
       dataset.samples?.genus,
       dataset.samples?.disease,
-      dataset.dataType,
-      dataset.dataModality,
+      getAssayCategoryListFromDataset(dataset),
+      getDataModalityListFromDataset(dataset),
       _.map('dcat:mediaType', dataset.files),
       dataset.dataReleasePolicy.policy
     ])
