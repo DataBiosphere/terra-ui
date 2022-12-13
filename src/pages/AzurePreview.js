@@ -21,14 +21,6 @@ const AzurePreview = () => {
   const signal = useCancellation()
 
   // Helpers
-  const loadAlphaAzureMember = withErrorIgnoring(async () => {
-    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
-  })
-
-  const dismiss = () => {
-    azurePreviewStore.set(true)
-  }
-
   const styles = {
     centered: {
       display: 'flex',
@@ -56,6 +48,17 @@ const AzurePreview = () => {
   }
 
   const supportEmail = 'support@terra.bio'
+
+  const dismiss = () => {
+    azurePreviewStore.set(true)
+  }
+
+  // Use a Sam group to determine if a user is an Azure Preview user.
+  // This is problematic when the user needs to register/accept ToS, since that's a prerequisite
+  // for checking Sam group membership. TOAZ-301 is open to change this to a B2C check instead of Sam.
+  const loadAlphaAzureMember = withErrorIgnoring(async () => {
+    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
+  })
 
   // Lifecycle
   useOnMount(() => {
