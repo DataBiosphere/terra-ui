@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import { ReactComponent as AzureLogo } from 'src/images/azure-new.svg'
 import planet from 'src/images/register-planet.svg'
@@ -32,18 +32,19 @@ const AzurePreview = () => {
   const styles = {
     centered: {
       display: 'flex',
+      marginTop: '1rem',
       justifyContent: 'center',
       alignItems: 'center'
     },
     paragraph: {
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      textAlign: 'center',
       fontSize: 16,
-      lineHeight: 1.5
+      lineHeight: 1.5,
+      maxWidth: 535
     },
     header: {
       display: 'flex',
+      marginTop: '3rem',
       justifyContent: 'center',
       alignItems: 'center',
       color: colors.dark(0.8),
@@ -72,34 +73,32 @@ const AzurePreview = () => {
       backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0px bottom -600px'
     }
   }, [
-    div({ style: styles.header }, [
+    div({ style: styles.centered }, [
       terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 25 }),
-      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 100, borderLeft: `1px solid ${colors.dark()}` } }),
-      'Azure'
+      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 100, borderLeft: `1px solid ${colors.dark()}` } })
     ]),
-    div({ style: { ...styles.header, marginTop: '3rem' } },
-      'Preview Environment'),
-    div({ style: { ...styles.paragraph, marginTop: '1rem' } },
-      'This is an invite-only limited version of the Terra on Azure platform.'),
-    div({ style: { ...styles.paragraph } },
-      'The public offering of Terra on Azure is expected in early 2023.'),
+    h1({ style: styles.header }, 'Azure Preview Environment'),
+    div({ style: styles.centered }, [
+      p({ style: styles.paragraph },
+        'This is an invite-only limited version of the Terra on Azure platform. The public offering of Terra on Azure is expected in early 2023.')
+    ]),
 
     isAlphaAzureUser ? undefined : [
-      div({ style: { ...styles.paragraph, marginTop: '1rem' } },
-        'If you are not in the Terra on Azure Preview Program'),
-      div({ style: { ...styles.paragraph } }, [
-        'and would like to join, contact ',
-        h(Link, { style: { marginLeft: '0.3rem' }, href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps }, supportEmail),
-        '.'
+      div({ style: styles.centered }, [
+        div({ style: { ...styles.paragraph } }, [
+          'You are not currently part of the Terra on Azure Preview Program. If you are interested in joining the program, or think there may be an error, please contact ',
+          h(Link, { href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps }, supportEmail),
+          '.'
+        ])
       ])
     ],
     div({ style: { ...styles.centered, marginTop: '2rem' } }, [
       isAlphaAzureUser ?
         h(ButtonPrimary, { onClick: dismiss, style: styles.button }, 'Proceed to Terra on Azure Preview') :
-        h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Close')
+        h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Log Out')
     ]),
     isAlphaAzureUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
-      h(ButtonOutline, { onClick: signOut, style: styles.button }, 'Cancel')
+      h(ButtonOutline, { onClick: signOut, style: styles.button }, 'Log Out')
     ]) : undefined
   ])
 }

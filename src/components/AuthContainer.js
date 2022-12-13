@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
-import { isAzureIdp } from 'src/libs/auth'
+import { isAzureUser } from 'src/libs/auth'
 import { useRoute } from 'src/libs/nav'
 import { useStore } from 'src/libs/react-utils'
 import { authStore, azurePreviewStore, userStatus } from 'src/libs/state'
@@ -22,7 +22,7 @@ const AuthContainer = ({ children }) => {
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
-    [seenAzurePreview === false && isAzureIdp(), () => h(AzurePreview)],
+    [seenAzurePreview === false && isAzureUser(), () => h(AzurePreview)],
     [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === userStatus.unregistered, () => h(Register)],
     [acceptedTos === undefined && !isPublic, authspinner],

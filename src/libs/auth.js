@@ -1,5 +1,4 @@
 import { parseJSON } from 'date-fns/fp'
-import jwtDecode from 'jwt-decode'
 import _ from 'lodash/fp'
 import { UserManager, WebStorageStateStore } from 'oidc-client-ts'
 import { cookiesAcceptedKey } from 'src/components/CookieWarning'
@@ -51,10 +50,6 @@ export const getOidcConfig = () => {
 
 const isGoogleAuthority = () => {
   return _.startsWith('https://accounts.google.com', authStore.get().oidcConfig.authorityEndpoint)
-}
-
-export const isAzureIdp = () => {
-  return _.startsWith('https://login.microsoftonline.com', getUser().idp)
 }
 
 const getAuthInstance = () => {
@@ -189,11 +184,7 @@ export const bucketBrowserUrl = id => {
 }
 
 export const isAzureUser = () => {
-  try {
-    return jwtDecode(authStore.get().user.token)['idp'].startsWith('https://login.microsoftonline.com/')
-  } catch {
-    return false
-  }
+  return _.startsWith('https://login.microsoftonline.com', getUser().idp)
 }
 
 export const processUser = (user, isSignInEvent) => {
