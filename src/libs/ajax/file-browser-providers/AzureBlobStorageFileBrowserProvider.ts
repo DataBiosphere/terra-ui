@@ -115,6 +115,7 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
 
           const blobUrl = new URL(sasUrl)
           blobUrl.pathname += `/${name}`
+          blobUrl.search = ''
 
           return {
             path: name,
