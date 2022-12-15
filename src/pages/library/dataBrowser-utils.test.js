@@ -1,7 +1,10 @@
+import { render } from '@testing-library/react'
+import { h } from 'react-hyperscript-helpers'
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {
-  datarepoSnapshotUrlFragment, datasetAccessTypes, filterAndNormalizeDatasets, workspaceUrlFragment
+  datarepoSnapshotUrlFragment, datasetAccessTypes, DatasetReleasePolicyDisplayInformation, filterAndNormalizeDatasets,
+  workspaceUrlFragment
 } from 'src/pages/library/dataBrowser-utils'
 
 
@@ -25,5 +28,20 @@ describe('dataBrowser-utils', () => {
     )
     expect(normalizedDatasets[0].access).not.toBe(datasetAccessTypes.EXTERNAL)
     expect(normalizedDatasets[1].access).not.toBe(datasetAccessTypes.EXTERNAL)
+  })
+
+  it('finds the correct data use policy to display if it exists', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'DUO:0000007' }))
+    expect(getByText('Disease specific research')).toBeTruthy()
+  })
+
+  it('uses unspecified as the data use policy if undefined', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: undefined }))
+    expect(getByText('Unspecified')).toBeTruthy()
+  })
+
+  it('uses given data use policy as the data use policy if unknown', () => {
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'Something else' }))
+    expect(getByText('Something else')).toBeTruthy()
   })
 })

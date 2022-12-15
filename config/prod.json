@@ -28,5 +28,6 @@
   "alphaAzureGroup": "alpha-azure-feature-group",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
-  "terraDockerImageBucket": "terra-docker-image-documentation-prod"
+  "terraDockerImageBucket": "terra-docker-image-documentation-prod",
+  "b2cBillingPolicy": "b2c_1a_signup_signin_billing_prod"
 }
