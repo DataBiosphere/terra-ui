@@ -95,8 +95,7 @@ const Showcase = () => {
       // Also pre-compute lower name and description.
       const featuredWorkspaces = _.map(workspace => ({
         ...workspace,
-        tags: _.update(['items'], _.map(_.toLower), workspace.tags),
-        lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description)
+        tags: _.update(['items'], _.map(_.toLower), workspace.tags)
       }), showcase)
 
       setFullList(featuredWorkspaces)
@@ -114,6 +113,8 @@ const Showcase = () => {
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
       searchType: 'Featured Workspaces',
+      getLowerName: workspace => _.toLower(workspace.name),
+      getLowerDescription: workspace => _.toLower(workspace.description),
       listView: filteredList => {
         return _.map(workspace => {
           const { namespace, name } = workspace

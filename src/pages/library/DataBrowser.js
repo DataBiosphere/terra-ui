@@ -198,6 +198,7 @@ export const Browser = () => {
 
   return h(Fragment, [
     h(SearchAndFilterComponent, {
+      getLowerName: dataset => _.toLower(dataset['dct:title']), getLowerDescription: dataset => _.toLower(dataset['dct:description']),
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets',
