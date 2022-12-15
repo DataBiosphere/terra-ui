@@ -5,9 +5,6 @@ import ReactDOM from 'react-dom'
 const axe = require('@axe-core/react')
 
 
-console.log('axe accessibility checking is running, and this can negatively impact UI performance') // eslint-disable-line no-console
-console.log('to disable: window.configOverridesStore.set({ isAxeEnabled: false })') // eslint-disable-line no-console
-
 const config = {
   tags: ['wcag2a', 'wcag2aa'],
   rules: [
