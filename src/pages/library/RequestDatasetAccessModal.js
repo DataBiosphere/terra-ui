@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label, span, strong, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -75,12 +75,9 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
         ]),
         tbody(
-          _.map(({ 'dct:title': title, access, id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+          _.map(({ 'dct:title': title, access, id }) => tr({ key: id, style: { height: '2rem' } }, [
             td({ style: { paddingRight: 20 } }, [
-              title,
-              div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
-                _.map(({ email }) => email && h(Link, { key: email, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
-              ])
+              title
             ]),
             td([
               Utils.switchCase(access,

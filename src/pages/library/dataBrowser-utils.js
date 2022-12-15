@@ -82,22 +82,12 @@ export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Dat
 
 
 const normalizeDataset = dataset => {
-  const contributors = _.map(_.update('contactName', _.flow(
-    _.replace(/,+/g, ' '),
-    _.replace(/(^|\s)[A-Z](?=\s|$)/g, '$&.')
-  )), dataset.contributors)
-
-  const [curators, rawContributors] = _.partition({ projectRole: 'data curator' }, contributors)
-  const contacts = _.filter('correspondingContributor', contributors)
-  const contributorNames = _.map('contactName', rawContributors)
-
   const access = Utils.cond(
     [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
     [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    contacts, curators, contributorNames,
     access
   }
 }
