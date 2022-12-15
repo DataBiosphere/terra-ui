@@ -83,11 +83,14 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
-  constructor(workspaceId: string) {
+  constructor(workspaceId: string, proxyUrl: string) {
     this.workspaceId = workspaceId
+    this.proxyUrl = proxyUrl
   }
 
   providerName: string = 'WDS'
+
+  proxyUrl: string
 
   workspaceId: string
 
@@ -187,7 +190,7 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   getPage = async (signal: AbortSignal, entityType: string, queryOptions: EntityQueryOptions, metadata: EntityMetadata): Promise<EntityQueryResponse> => {
     const wdsPage: RecordQueryResponse = await Ajax(signal).WorkspaceData
-      .getRecords(this.workspaceId, entityType,
+      .getRecords(this.proxyUrl, this.workspaceId, entityType,
         _.merge({
           offset: (queryOptions.pageNumber - 1) * queryOptions.itemsPerPage,
           limit: queryOptions.itemsPerPage,
@@ -199,14 +202,14 @@ export class WdsDataTableProvider implements DataTableProvider {
   }
 
   deleteTable = (entityType: string): Promise<Response> => {
-    return Ajax().WorkspaceData.deleteTable(this.workspaceId, entityType)
+    return Ajax().WorkspaceData.deleteTable(this.proxyUrl, this.workspaceId, entityType)
   }
 
   downloadTsv = (signal: AbortSignal, entityType: string): Promise<Blob> => {
-    return Ajax(signal).WorkspaceData.downloadTsv(this.workspaceId, entityType)
+    return Ajax(signal).WorkspaceData.downloadTsv(this.proxyUrl, this.workspaceId, entityType)
   }
 
   uploadTsv = (uploadParams: UploadParameters): Promise<TsvUploadResponse> => {
-    return Ajax().WorkspaceData.uploadTsv(uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
+    return Ajax().WorkspaceData.uploadTsv(this.proxyUrl, uploadParams.workspaceId, uploadParams.recordType, uploadParams.file)
   }
 }

@@ -11,7 +11,8 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getAssayCategoryListFromDataset, getConsortiumsFromDataset, getDataModalityListFromDataset,
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumsFromDataset,
+  getDataModalityListFromDataset,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -88,7 +89,7 @@ const allColumns = {
   consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumsFromDataset(row)) },
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
   dataModality: { title: 'Data Modality', contents: row => _.join(', ', getDataModalityListFromDataset(row)) },
-  lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
+  lastUpdated: { title: 'Last Updated', contents: row => formatDatasetTime(row['dct:modified']) },
   assayCategory: { title: 'Assay Category', contents: row => _.join(', ', getAssayCategoryListFromDataset(row)) },
   fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }

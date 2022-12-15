@@ -78,6 +78,8 @@ export const getAssayCategoryListFromDataset = dataset => _.flow(
   _.uniqBy(_.toLower)
 )(dataset['prov:wasGeneratedBy'])
 
+export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Date(time)) : null
+
 
 const normalizeDataset = dataset => {
   const contributors = _.map(_.update('contactName', _.flow(
@@ -95,7 +97,6 @@ const normalizeDataset = dataset => {
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
     contacts, curators, contributorNames,
     access
   }

@@ -191,4 +191,6 @@ export const fetchEcm = _.flow(
 
 export const fetchGoogleForms = withUrlPrefix('https://docs.google.com/forms/u/0/d/e/', fetchOk)
 
-export const fetchWDS = _.flow(withUrlPrefix(`${getConfig().wdsUrlRoot}/`), withAppIdentifier)(fetchOk)
+export const fetchWDS = wdsProxyUrlRoot => _.flow(withUrlPrefix(`${wdsProxyUrlRoot}/`),
+  withRetryAfterReloadingExpiredAuthToken,
+)(fetchOk)
