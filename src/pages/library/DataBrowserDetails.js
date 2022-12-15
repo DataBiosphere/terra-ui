@@ -19,7 +19,8 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getAssayCategoryListFromDataset, getDataModalityListFromDataset, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -52,7 +53,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
-        dataObj['dct:modified'] && Utils.makeStandardDate(dataObj['dct:modified'])
+        formatDatasetTime(dataObj['dct:modified'])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
