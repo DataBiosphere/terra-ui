@@ -33,5 +33,13 @@ export const WorkspaceData = signal => ({
     formData.set('records', file)
     const res = await fetchWDS(root)(`${instanceId}/tsv/v0.2/${recordType}`, _.mergeAll([authOpts(), { body: formData, signal, method: 'POST' }]))
     return res.json()
-  }
+  },
+  getVersion: async (root: string): Promise<any> => {
+    const res = await fetchWDS(root)('version', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+  getStatus: async (root: string): Promise<any> => {
+    const res = await fetchWDS(root)('status', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
 })

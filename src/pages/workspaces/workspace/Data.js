@@ -19,6 +19,7 @@ import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import RenameTableModal from 'src/components/data/RenameTableModal'
 import { useSavedColumnSettings } from 'src/components/data/SavedColumnSettings'
 import WDSContent from 'src/components/data/WDSContent'
+import { WdsTroubleshooter } from 'src/components/data/WdsTroubleshooter'
 import { icon, spinner } from 'src/components/icons'
 import { ConfirmedSearchInput, DelayedSearchInput } from 'src/components/input'
 import Interactive from 'src/components/Interactive'
@@ -488,6 +489,7 @@ const WorkspaceData = _.flow(
   const [wdsSchema, setWdsSchema] = useState(() => StateHistory.get().wdsSchema)
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
+  const [troubleshootingWds, setTroubleshootingWds] = useState(false)
   const [uploadingFile, setUploadingFile] = useState(false)
   const [uploadingWDSFile, setUploadingWDSFile] = useState(false)
   const [entityMetadataError, setEntityMetadataError] = useState()
@@ -787,13 +789,26 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
+            troubleshootingWds && h(WdsTroubleshooter, {
+              onDismiss: () => setTroubleshootingWds(false),
+              workspaceId
+            }),
             isFeaturePreviewEnabled('workspace-data-service') && isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [
                 wdsSchemaError && h(NoDataPlaceholder, {
-                  message: 'Data tables are unavailable.'
+                  message: 'Data tables are unavailable.',
+                  buttonText: 'Troubleshoot',
+                  onAdd: () => setTroubleshootingWds(true)
                 }),
+                // TODO: debugging only; remove this vvvvv
+                h(NoDataPlaceholder, {
+                  message: '',
+                  buttonText: 'Troubleshoot',
+                  onAdd: () => setTroubleshootingWds(true)
+                }),
+                // TODO: debugging only; remove this ^^^^^
                 // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
                 // so `No tables have been uploaded.` briefly renders
                 !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
