@@ -15,8 +15,7 @@ const config = {
       id: 'color-contrast',
       excludeHidden: true
     }
-  ],
-  disableDeduplicate: true
+  ]
 }
 
 axe(React, ReactDOM, 1000, config)
