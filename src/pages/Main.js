@@ -1,5 +1,6 @@
 import 'src/libs/routes'
 
+import { lazy, Suspense } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import { AuthProvider } from 'react-oidc-context'
@@ -15,10 +16,13 @@ import IdleStatusMonitor from 'src/components/IdleStatusMonitor'
 import ImportStatus from 'src/components/ImportStatus'
 import SupportRequest from 'src/components/SupportRequest'
 import { getOidcConfig } from 'src/libs/auth'
+import { isAxeEnabled } from 'src/libs/config'
 import { PageViewReporter } from 'src/libs/events'
 import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/libs/nav'
 import { AuthenticatedCookieSetter } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 
+
+const AxeCore = lazy(() => import('src/components/AxeCore'))
 
 const Main = () => {
   return h(LocationProvider, [
@@ -40,7 +44,8 @@ const Main = () => {
     ]),
     h(PageViewReporter),
     h(SupportRequest),
-    h(ConfigOverridesWarning)
+    h(ConfigOverridesWarning),
+    isAxeEnabled() && h(Suspense, { fallback: null }, [h(AxeCore)])
   ])
 }
 
