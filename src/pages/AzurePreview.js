@@ -76,8 +76,8 @@ const AzurePreview = () => {
     }
   }, [
     div({ style: styles.centered }, [
-      terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 25 }),
-      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { height: 90, borderLeft: `1px solid ${colors.dark()}` } })
+      terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
+      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 20, height: 90, borderLeft: `1px solid ${colors.dark()}` } })
     ]),
     h1({ style: styles.header }, 'Terra on Azure Preview Environment'),
     div({ style: styles.centered }, [
