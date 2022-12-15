@@ -3,8 +3,7 @@ import { div, h, p } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { HeroWrapper } from 'src/components/HeroWrapper'
 import SignInButton from 'src/components/SignInButton'
-import { getEnabledBrand, isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/brand-utils'
-import colors from 'src/libs/colors'
+import { isAnvil, isBioDataCatalyst, isElwazi, isFirecloud } from 'src/libs/brand-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -20,14 +19,10 @@ const styles = {
 }
 
 const SignIn = () => {
-  const brand = getEnabledBrand()
-
   return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
-      div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
-      div({ style: { fontSize: 36, marginBottom: '2rem' } }, [`${brand.name} requires a Google Account.`]),
       div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
-        `Once you have signed in and completed the user profile registration step, you can start using ${brand.signInName}.`
+        'If you are a new user or returning user, click log-in to continue.'
       ]),
       h(SignInButton),
       !isAnvil() && !isElwazi() && div({ style: styles.warningNoticeContainer }, [
