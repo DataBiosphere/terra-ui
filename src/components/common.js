@@ -1,7 +1,6 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import FocusLock from 'react-focus-lock'
 import { b, div, h, img, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common/buttons'
 import Clickable from 'src/components/common/Clickable'
@@ -20,6 +19,7 @@ import * as Utils from 'src/libs/utils'
 
 export * from 'src/components/common/buttons'
 export * from 'src/components/common/Checkbox'
+export * from 'src/components/common/FocusTrapper'
 export * from 'src/components/common/IdContainer'
 export * from 'src/components/common/RadioButton'
 export * from 'src/components/common/Select'
@@ -48,22 +48,6 @@ export const backgroundLogo = img({
   alt: '',
   style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
 })
-
-export const FocusTrapper = ({ children, onBreakout, ...props }) => {
-  return h(FocusLock, {
-    returnFocus: true,
-    lockProps: _.merge({
-      tabIndex: 0,
-      style: { outline: 'none' },
-      onKeyDown: e => {
-        if (e.key === 'Escape') {
-          onBreakout()
-          e.stopPropagation()
-        }
-      }
-    }, props)
-  }, [children])
-}
 
 export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   const [copied, setCopied] = useState(false)
