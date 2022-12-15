@@ -22,7 +22,7 @@ const SignIn = () => {
   return h(HeroWrapper, { showMenu: false, showDocLink: true }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 16, lineHeight: 1.5, marginBottom: '2rem' } }, [
-        'If you are a new user or returning user, click log-in to continue.'
+        'If you are a new user or returning user, click log in to continue.'
       ]),
       h(SignInButton),
       !isAnvil() && !isElwazi() && div({ style: styles.warningNoticeContainer }, [
