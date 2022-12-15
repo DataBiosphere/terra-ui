@@ -11,7 +11,7 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getConsortiumsFromDataset,
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getAssayCategoryListFromDataset, getConsortiumsFromDataset, getDataModalityListFromDataset,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -66,10 +66,10 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Data modality',
-    labels: getUnique('dataModality', dataCatalog)
+    labels: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
   }, {
-    name: 'Data type',
-    labels: getUnique('dataType', dataCatalog)
+    name: 'Assay Category',
+    labels: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
   }, {
     name: 'File type',
     labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
@@ -87,9 +87,9 @@ const allColumns = {
   // A column is a key, title and a function that produces the table contents for that column, given a row.
   consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumsFromDataset(row)) },
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
-  dataModality: { title: 'Data Modality', contents: row => _.join(', ', row.dataModality) },
+  dataModality: { title: 'Data Modality', contents: row => _.join(', ', getDataModalityListFromDataset(row)) },
   lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
-  dataType: { title: 'Data type', contents: row => _.join(', ', getUnique('dataType', { row })) },
+  assayCategory: { title: 'Assay Category', contents: row => _.join(', ', getAssayCategoryListFromDataset(row)) },
   fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
