@@ -12,3 +12,7 @@ export const getConfig = () => {
  * Flags for hidden features
  */
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
+export const isAxeEnabled = () => {
+  const storedValue = getConfig().isAxeEnabled
+  return _.isUndefined(storedValue) ? process.env.NODE_ENV === 'development' : storedValue
+}
