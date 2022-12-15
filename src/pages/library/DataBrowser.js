@@ -10,7 +10,11 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { datasetAccessTypes, datasetReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import {
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumsFromDataset,
+  getDataModalityListFromDataset,
+  useDataCatalog
+} from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -30,8 +34,8 @@ const styles = {
   }
 }
 
-const getUnique = (prop, data) => _.flow(
-  _.flatMap(prop),
+const getUnique = (mapper, data) => _.flow(
+  _.flatMap(mapper),
   _.compact,
   _.uniq,
   _.sortBy(_.toLower)
@@ -52,23 +56,21 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Consortium',
-    labels: getUnique('project', dataCatalog)
+    labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
-    labels: getUnique('dataReleasePolicy.policy', dataCatalog),
+    labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
     labelRenderer: rawPolicy => {
-      const { label, desc } = datasetReleasePolicies[rawPolicy] || datasetReleasePolicies.releasepolicy_other
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        label ? label : rawPolicy,
-        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: rawPolicy })
       ])]
     }
   }, {
     name: 'Data modality',
-    labels: getUnique('dataModality', dataCatalog)
+    labels: getUnique(dataset => getDataModalityListFromDataset(dataset), dataCatalog)
   }, {
-    name: 'Data type',
-    labels: getUnique('dataType', dataCatalog)
+    name: 'Assay Category',
+    labels: getUnique(dataset => getAssayCategoryListFromDataset(dataset), dataCatalog)
   }, {
     name: 'File type',
     labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
@@ -84,11 +86,11 @@ const extractCatalogFilters = dataCatalog => {
 // All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
   // A column is a key, title and a function that produces the table contents for that column, given a row.
-  project: { title: 'Consortium', contents: row => row.project },
+  consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumsFromDataset(row)) },
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
-  dataModality: { title: 'Data Modality', contents: row => _.join(', ', row.dataModality) },
-  lastUpdated: { title: 'Last Updated', contents: row => row.lastUpdated ? Utils.makeStandardDate(row.lastUpdated) : null },
-  dataType: { title: 'Data type', contents: row => _.join(', ', getUnique('dataType', { row })) },
+  dataModality: { title: 'Data Modality', contents: row => _.join(', ', getDataModalityListFromDataset(row)) },
+  lastUpdated: { title: 'Last Updated', contents: row => formatDatasetTime(row['dct:modified']) },
+  assayCategory: { title: 'Assay Category', contents: row => _.join(', ', getAssayCategoryListFromDataset(row)) },
   fileType: { title: 'File type', contents: row => _.join(', ', getUnique('dcat:mediaType', row['files'])) },
   species: { title: 'Species', contents: row => _.join(', ', getUnique('samples.genus', { row })) }
 }
@@ -191,12 +193,13 @@ export const Browser = () => {
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
-  const [cols, setCols] = useState(['project', 'subjects', 'dataModality', 'lastUpdated'])
+  const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [
     h(SearchAndFilterComponent, {
+      getLowerName: dataset => _.toLower(dataset['dct:title']), getLowerDescription: dataset => _.toLower(dataset['dct:description']),
       fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets',

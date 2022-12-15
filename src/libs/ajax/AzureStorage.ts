@@ -2,14 +2,38 @@ import _ from 'lodash/fp'
 import { authOpts, fetchOk, fetchWorkspaceManager } from 'src/libs/ajax/ajax-common'
 import { getConfig } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
-import { getExtension } from 'src/pages/workspaces/workspace/analysis/file-utils'
+import { cloudProviderTypes } from 'src/libs/workspace-utils'
+import {
+  AbsolutePath,
+  AnalysisFile,
+  AnalysisFileMetadata,
+  getDisplayName,
+  getExtension, getFileName
+} from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
-const encodeAzureAnalysisName = name => encodeURIComponent(`analyses/${name}`)
+type SasInfo = {
+  url: string
+  token: string
+}
 
-export const AzureStorage = signal => ({
-  sasToken: async (workspaceId, containerId) => {
+type StorageDetails = {
+  location: string
+  storageContainerName: string
+  sas: SasInfo
+}
+
+interface AzureFileRaw {
+  name: string
+  lastModified: string
+  metadata?: AnalysisFileMetadata
+}
+
+const encodeAzureAnalysisName = (name: string): string => encodeURIComponent(`analyses/${name}`)
+
+export const AzureStorage = (signal?: AbortSignal) => ({
+  sasToken: async (workspaceId: string, containerId: string): Promise<SasInfo> => {
     // sas token expires after 8 hours
     const tokenResponse = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources/controlled/azure/storageContainer/${containerId}/getSasToken?sasExpirationDuration=28800`,
       _.merge(authOpts(), { signal, method: 'POST' }))
@@ -17,7 +41,7 @@ export const AzureStorage = signal => ({
     return tokenResponse.json()
   },
 
-  details: async (workspaceId = {}) => {
+  details: async (workspaceId: string): Promise<StorageDetails> => {
     const res = await fetchWorkspaceManager(`workspaces/v1/${workspaceId}/resources?stewardship=CONTROLLED&limit=1000`,
       _.merge(authOpts(), { signal })
     )
@@ -37,7 +61,7 @@ export const AzureStorage = signal => ({
     }
   },
 
-  listFiles: async (workspaceId, suffixFilter = '') => {
+  listFiles: async (workspaceId: string, suffixFilter: string = ''): Promise<AzureFileRaw[]> => {
     if (!workspaceId) {
       return []
     }
@@ -55,24 +79,30 @@ export const AzureStorage = signal => ({
     const xml = new window.DOMParser().parseFromString(text, 'text/xml')
     const blobs = _.map(
       blob => ({
-        name: _.head(blob.getElementsByTagName('Name')).textContent,
-        lastModified: new Date(
-          _.head(blob.getElementsByTagName('Last-Modified')).textContent
-        ).getTime()
+        name: _.head(blob.getElementsByTagName('Name'))?.textContent,
+        lastModified: _.head(blob.getElementsByTagName('Last-Modified'))?.textContent
       }),
       xml.getElementsByTagName('Blob')
-    )
+    ) as AzureFileRaw[]
 
     const filteredBlobs = _.filter(blob => _.endsWith(suffixFilter, blob.name), blobs)
     return filteredBlobs
   },
 
-  listNotebooks: async workspaceId => {
+  listNotebooks: async (workspaceId: string): Promise<AnalysisFile[]> => {
     const notebooks = await AzureStorage(signal).listFiles(workspaceId, '.ipynb')
-    return _.map(notebook => ({ ...notebook, application: toolLabels.JupyterLab }), notebooks)
+    return _.map(notebook => ({
+      lastModified: new Date(notebook.lastModified).getTime(),
+      name: notebook.name as AbsolutePath,
+      ext: getExtension(notebook.name),
+      displayName: getDisplayName(notebook.name),
+      fileName: getFileName(notebook.name),
+      tool: toolLabels.Jupyter,
+      cloudProvider: cloudProviderTypes.AZURE
+    }), notebooks)
   },
 
-  blob: (workspaceId, blobName) => {
+  blob: (workspaceId: string, blobName: string) => {
     const calhounPath = 'api/convert'
 
     const getObject = async () => {
@@ -141,3 +171,5 @@ export const AzureStorage = signal => ({
     }
   }
 })
+
+export type AzureStorageContract = ReturnType<typeof AzureStorage>

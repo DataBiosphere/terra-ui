@@ -6,7 +6,7 @@ import {
   DataTableProvider,
   EntityMetadata,
   EntityQueryOptions,
-  EntityQueryResponse, InvalidTsvOptions, TSVFeatures, TsvUploadButtonDisabledOptions,
+  EntityQueryResponse, TSVFeatures, TsvUploadButtonDisabledOptions,
   TsvUploadButtonTooltipOptions,
   UploadParameters
 } from 'src/libs/ajax/data-table-providers/DataTableProvider'
@@ -104,18 +104,23 @@ export class WdsDataTableProvider implements DataTableProvider {
 
   tsvFeatures: TSVFeatures = {
     needsTypeInput: true,
-    sampleTSVLink: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/template_sample-wds-table.tsv', //TODO: This location may need to change
+    sampleTSVLink: 'https://azurefeaturedworkspace.blob.core.windows.net/featuredworkspacedata/template_data_table_Azure.txt',
+    dataImportSupportLink: '',
+    dataTableSupportLink: '',
+    textImportPlaceholder: 'idcolumn(tab)column1(tab)column2...',
     invalidFormatWarning: 'Invalid format: Data does not include sys_name column.',
-    isInvalid: (options: InvalidTsvOptions): boolean => {
-      return options.fileImportModeMatches && !options.sysNamePresent && options.filePresent
+    isInvalid: (): boolean => {
+    // WDS does not have any restrictions on what can be uploaded, as entity_id
+    // is not required like in Entity Service for GCP.
+      return false
     },
     disabled: (options: TsvUploadButtonDisabledOptions): boolean => {
-      return !options.filePresent || options.isInvalid || options.uploading || !options.recordTypePresent
+      return !options.filePresent || options.uploading || !options.recordTypePresent
     },
     tooltip: (options: TsvUploadButtonTooltipOptions): string => {
       return Utils.cond(
         [!options.recordTypePresent, () => 'Please enter record type'],
-        [!options.filePresent || options.isInvalid, () => 'Please select valid data to upload'],
+        [!options.filePresent, () => 'Please select valid data to upload'],
         () => 'Upload selected data'
       )
     }

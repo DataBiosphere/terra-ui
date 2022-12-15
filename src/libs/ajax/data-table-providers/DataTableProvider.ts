@@ -64,19 +64,18 @@ export type InvalidTsvOptions = {
   fileImportModeMatches: boolean
   filePresent: boolean
   match: boolean
-  sysNamePresent: boolean
 }
 
 export type TsvUploadButtonDisabledOptions = {
   filePresent: boolean
-  isInvalid: boolean
+  isInvalid?: boolean
   uploading: boolean
   recordTypePresent: boolean
 }
 
 export type TsvUploadButtonTooltipOptions = {
   filePresent: boolean
-  isInvalid: boolean
+  isInvalid?: boolean
   recordTypePresent: boolean
 }
 
@@ -116,7 +115,10 @@ export interface DataTableFeatures {
 export interface TSVFeatures {
   needsTypeInput: boolean
   sampleTSVLink: string
-  invalidFormatWarning: string
+  dataImportSupportLink: string
+  dataTableSupportLink: string
+  invalidFormatWarning?: string
+  textImportPlaceholder: string
   isInvalid: IsInvalidTsvFn
   disabled: IsTsvUploadButtonDisabledFn
   tooltip: TsvUploadButtonTooltipFn

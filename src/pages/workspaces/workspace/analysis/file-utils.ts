@@ -1,8 +1,17 @@
 import _ from 'lodash/fp'
+import { useEffect, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { CloudProviderType } from 'src/libs/ajax/ajax-common'
+import { withErrorReporting } from 'src/libs/error'
+import { useCancellation, useStore } from 'src/libs/react-utils'
+import { workspaceStore } from 'src/libs/state'
+import { LoadingState, ReadyState } from 'src/libs/type-utils/LoadedState'
 import { NominalType } from 'src/libs/type-utils/type-helpers'
 import * as Utils from 'src/libs/utils'
+import {
+  CloudProviderType,
+  isGoogleWorkspaceInfo,
+  WorkspaceWrapper
+} from 'src/libs/workspace-utils'
 import { runtimeTools, ToolLabel, toolToExtensionMap } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
 
@@ -36,15 +45,36 @@ export interface AnalysisFile {
   lastModified: number
   tool: ToolLabel
   cloudProvider: CloudProviderType
+  // We only populate this for google files to handle file syncing
+  // If there is a differentiation for Azure, we should add sub-types
   metadata?: AnalysisFileMetadata
 }
 
-export const analysisFilesStore = Utils.atom()
-
 export interface AnalysisFileStore {
-  analyses: AnalysisFile[]
-  refresh: unknown //TODO: How can we better type this
-  loading: boolean
+  refresh: () => Promise<void>
+  loadedState: LoadingState<AnalysisFile[]> | ReadyState<AnalysisFile[]>
+}
+
+export const useAnalysisFiles = (): AnalysisFileStore => {
+  const signal = useCancellation()
+  const [loading, setLoading] = useState(false)
+  const workspace: WorkspaceWrapper = useStore(workspaceStore)
+  const [analyses, setAnalyses] = useState<AnalysisFile[]>([])
+  const refresh: () => Promise<void> = _.flow(
+    // @ts-expect-error
+    withErrorReporting('Error loading analysis files'),
+    Utils.withBusyState(setLoading)
+  )(async (): Promise<void> => {
+    const workspaceInfo = workspace.workspace
+    const existingAnalyses: AnalysisFile[] = isGoogleWorkspaceInfo(workspaceInfo) ?
+      await Ajax(signal).Buckets.listAnalyses(workspaceInfo.googleProject, workspaceInfo.bucketName) :
+      await Ajax(signal).AzureStorage.listNotebooks(workspaceInfo.workspaceId)
+    setAnalyses(existingAnalyses)
+  }) as () => Promise<void>
+  useEffect(() => {
+    refresh()
+  }, [workspace]) // eslint-disable-line react-hooks/exhaustive-deps
+  return { refresh, loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses } }
 }
 
 export const notebookLockHash = (bucketName: string, email: string): Promise<string> => Utils.sha256(`${bucketName}:${email}`)
