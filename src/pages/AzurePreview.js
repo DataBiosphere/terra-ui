@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { div, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
-import { ReactComponent as AzureLogo } from 'src/images/ms-azure.svg'
 import planet from 'src/images/register-planet.svg'
+import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-on-azure.svg'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
-import { brands } from 'src/libs/brands'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
-import { terraLogoMaker } from 'src/libs/logos'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { azurePreviewStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -76,8 +74,7 @@ const AzurePreview = () => {
     }
   }, [
     div({ style: styles.centered }, [
-      terraLogoMaker(brands.terra.logos.color, { height: 100, marginRight: 20 }),
-      h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { marginLeft: 20, height: 90, borderLeft: `1px solid ${colors.dark()}` } })
+      h(TerraOnAzureLogo, { title: 'Terra on Azure', role: 'img' })
     ]),
     h1({ style: styles.header }, 'Terra on Azure Preview Environment'),
     div({ style: styles.centered }, [
@@ -89,7 +86,7 @@ const AzurePreview = () => {
       div({ style: styles.centered }, [
         p({ style: styles.paragraph }, [
           'You are not currently part of the Terra on Azure Preview Program. If you are interested in joining the program, please contact ',
-          h(Link, { href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps }, supportEmail),
+          h(Link, { href: `mailto:${supportEmail}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, supportEmail),
           '.'
         ])
       ])

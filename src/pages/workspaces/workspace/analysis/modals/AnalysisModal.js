@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, Select, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Select } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -24,6 +24,7 @@ import { AzureComputeModalBase } from 'src/pages/workspaces/workspace/analysis/m
 import { ComputeModalBase } from 'src/pages/workspaces/workspace/analysis/modals/ComputeModal'
 import { CromwellModalBase } from 'src/pages/workspaces/workspace/analysis/modals/CromwellModal'
 import { GalaxyModalBase } from 'src/pages/workspaces/workspace/analysis/modals/GalaxyModal'
+import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import {
   analysisNameInput, analysisNameValidator, baseRmd, notebookData
 } from 'src/pages/workspaces/workspace/analysis/notebook-utils'
