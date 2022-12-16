@@ -161,7 +161,11 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 h(DelayedAutocompleteTextArea, {
                   autosize: true,
                   spellCheck: false,
-                  placeholder: optional ? 'Optional' : 'Required',
+                  placeholder: Utils.cond(
+                    [which === 'outputs', () => undefined],
+                    [optional, () => 'Optional'],
+                    () => 'Required'
+                  ),
                   value,
                   style: isFile ? { paddingRight: '2rem' } : undefined,
                   onChange: v => onChange(name, v),
