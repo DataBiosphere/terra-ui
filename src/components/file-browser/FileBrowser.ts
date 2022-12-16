@@ -107,7 +107,7 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
       title: basename(focusedFile.path),
       onDismiss: () => setFocusedFile(null),
     }, [
-      h(FileDetails, { file: focusedFile })
+      h(FileDetails, { file: focusedFile, provider })
     ]),
   ])
 }
