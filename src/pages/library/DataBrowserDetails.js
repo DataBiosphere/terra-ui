@@ -35,14 +35,6 @@ const styles = {
   cloudIconProps: { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 }
 
-export const ContactCard = ({ contactName, institution, email }) => {
-  return div({ key: contactName, style: { marginBottom: 30 } }, [
-    contactName,
-    institution && div({ style: { marginTop: 5 } }, [institution]),
-    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
-  ])
-}
-
 const MetadataDetailsComponent = ({ dataObj, name }) => {
   return h(Fragment, [
     h2({ className: 'sr-only' }, [` ${name} Metadata`]),
@@ -72,16 +64,19 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
         )
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Contact']),
-        _.map(ContactCard, dataObj.contacts)
+        h3({ style: styles.headers }, ['Owner']),
+        dataObj['TerraDCAT_ap:hasOwner']
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Data curator']),
-        _.map(ContactCard, dataObj.curators)
+        h3({ style: styles.headers }, ['Custodians']),
+        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj['TerraDCAT_ap:hasCustodian'])])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contributors']),
-        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj.contributorNames)])
+        _.map(({ name, email }) => !!email ?
+          h(Link, { key: _.uniqueId(`${name}-${email}-`), href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [name]) :
+          div({ key: _.uniqueId(`${name}-${email}-`), style: { marginTop: 5 } }, [name]),
+        dataObj.contributors)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Region']),
