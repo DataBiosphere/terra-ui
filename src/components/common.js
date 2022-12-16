@@ -1,12 +1,11 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import Clickable from 'src/components/common/Clickable'
 import Link from 'src/components/common/Link'
 import { icon } from 'src/components/icons'
 import { MiniSortable } from 'src/components/table'
-import scienceBackground from 'src/images/science-background.jpg'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
@@ -22,12 +21,6 @@ export * from 'src/components/common/spinners'
 export * from 'src/components/common/Switch'
 export { Clickable, Link }
 
-
-export const backgroundLogo = img({
-  src: scienceBackground,
-  alt: '',
-  style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
-})
 
 export const ClipboardButton = ({ text, onClick, children, ...props }) => {
   const [copied, setCopied] = useState(false)

@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { div, h, h1, img } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -42,7 +43,11 @@ const TermsOfServicePage = () => {
   }
 
   return div({ role: 'main', style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
-    backgroundLogo,
+    img({
+      src: scienceBackground,
+      alt: '',
+      style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
+    }),
     div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, maxHeight: '100%', padding: '2rem', boxShadow: Style.standardShadow } }, [
       h1({ style: { color: colors.dark(), fontSize: 38, fontWeight: 400 } }, ['Terra Terms of Service']),
       needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
