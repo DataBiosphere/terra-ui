@@ -1016,6 +1016,17 @@ const WorkflowView = _.flow(
       const { modifiedConfig: prevModifiedConfig } = prevState
       return { modifiedConfig: _.set(key, {}, prevModifiedConfig) }
     })
+
+    const { workspace } = this.props
+    const { modifiedConfig } = this.state
+    const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+    Ajax().Metrics.captureEvent(Events.workflowClearIO, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      inputsOrOutputs: key,
+      methodVersion,
+      sourceRepo,
+      methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+    })
   }
 
   renderWDL() {
