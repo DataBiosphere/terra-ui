@@ -66,6 +66,7 @@ const eventsList = {
   removeBillingAccount: 'billing:project:account:remove',
   resourceLeave: 'resource:leave',
   userRegister: 'user:register',
+  workflowClearIO: 'workflow:clearIO',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
   workflowRerun: 'workflow:rerun',
