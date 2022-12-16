@@ -87,7 +87,7 @@ const AzurePreview = () => {
       div({ style: styles.centered }, [
         p({ style: styles.paragraph }, [
           'You are not currently part of the Terra on Azure Preview Program. If you are interested in joining the program, please contact ',
-          h(Link, { href: `mailto:${supportEmail}?subject=${supportSubject}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, supportEmail),
+          h(Link, { href: `mailto:${supportEmail}?subject=${encodeURIComponent(supportSubject)}`, ...Utils.newTabLinkProps, style: { textDecoration: 'underline' } }, supportEmail),
           '.'
         ])
       ])
