@@ -37,7 +37,7 @@ describe('useFileDownloadUrl', () => {
     const result = hookReturnRef.current
 
     // Assert
-    expect(mockProvider.getDownloadUrlForFile).toHaveBeenCalledWith('path/to/example.txt')
+    expect(mockProvider.getDownloadUrlForFile).toHaveBeenCalledWith('path/to/example.txt', { signal: expect.any(AbortSignal) })
     expect(result).toEqual({ status: 'Loading', state: null })
   })
 
