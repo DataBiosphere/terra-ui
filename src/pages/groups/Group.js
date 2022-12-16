@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import {
   AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal
 } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
+import { PageBox, PageBoxVariants } from 'src/components/PageBox'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'

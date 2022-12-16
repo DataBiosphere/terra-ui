@@ -5,13 +5,14 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import {
-  ButtonPrimary, Checkbox, ClipboardButton, IdContainer, LabeledCheckbox, Link, PageBox, PageBoxVariants, spinnerOverlay
+  ButtonPrimary, Checkbox, ClipboardButton, IdContainer, LabeledCheckbox, Link, spinnerOverlay
 } from 'src/components/common'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { PageBox, PageBoxVariants } from 'src/components/PageBox'
 import { InfoBox } from 'src/components/PopupTrigger'
 import ProfilePicture from 'src/components/ProfilePicture'
 import { SimpleTabBar } from 'src/components/tabBars'
