@@ -1011,6 +1011,24 @@ const WorkflowView = _.flow(
     }
   }
 
+  clear(key) {
+    this.setState(prevState => {
+      const { modifiedConfig: prevModifiedConfig } = prevState
+      return { modifiedConfig: _.set(key, {}, prevModifiedConfig) }
+    })
+
+    const { workspace } = this.props
+    const { modifiedConfig } = this.state
+    const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+    Ajax().Metrics.captureEvent(Events.workflowClearIO, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      inputsOrOutputs: key,
+      methodVersion,
+      sourceRepo,
+      methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+    })
+  }
+
   renderWDL() {
     const { wdl } = this.state
     return div({ style: styles.tabContents }, [
@@ -1079,6 +1097,10 @@ const WorkflowView = _.flow(
         isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { style: linkStyle, onClick: openUploader }, ['upload json'])
+        ]),
+        isEditable && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+          h(Link, { style: linkStyle, onClick: () => this.clear(key) }, [`Clear ${key}`])
         ]),
         h(DelayedSearchInput, {
           'aria-label': `Search ${key}`,
