@@ -363,7 +363,7 @@ const PassportLinker = ({ queryParams: { state, code } = {}, provider, prettyNam
 const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const ExternalIdentitiesTab = ({ queryParams }) => {
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     h(NihLink, { nihToken: queryParams?.['nih-username-token'] }),
     _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders),
     !!getConfig().externalCredsUrlRoot && h(PassportLinker, { queryParams, provider: 'ras', prettyName: 'RAS' })
@@ -422,7 +422,7 @@ const NotificationSettingsTab = ({ setSaving }) => {
   const [prefsData] = _.over(_.pickBy)((_v, k) => _.startsWith('notifications/', k), authStore.get().profile)
 
 
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: Style.cardList.toolbarContainer }, [
       h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
         'Account Notifications',
@@ -533,7 +533,7 @@ const PersonalInfoTab = ({ setSaving }) => {
   const required = { presence: { allowEmpty: false } }
   const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
 
-  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+  return h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
     div({ style: styles.header.line }, [
       div({ style: { position: 'relative' } }, [
         h(ProfilePicture, { size: 48 }),

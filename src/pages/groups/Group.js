@@ -85,7 +85,7 @@ const GroupDetails = ({ groupName }) => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.light }, [
       div({ style: Style.cardList.toolbarContainer }, [
         h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
