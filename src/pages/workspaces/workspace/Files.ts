@@ -5,6 +5,7 @@ import FileBrowser from 'src/components/file-browser/FileBrowser'
 import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
 import { forwardRefWithName } from 'src/libs/react-utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 import { useMemo } from 'use-memo-one'
 
@@ -20,7 +21,7 @@ export const Files = _.flow(
 )(({ workspace }, _ref) => {
   const fileBrowserProvider = useMemo(
     () => {
-      if (workspace.azureContext) {
+      if (isAzureWorkspace(workspace)) {
         const { workspaceId } = workspace.workspace
         return AzureBlobStorageFileBrowserProvider({ workspaceId })
       } else {
