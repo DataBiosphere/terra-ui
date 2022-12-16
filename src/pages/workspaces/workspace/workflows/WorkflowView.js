@@ -1122,7 +1122,6 @@ const WorkflowView = _.flow(
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
             Ajax().Metrics.captureEvent(Events.workflowUseDefaultOutputs, {
               ...extractWorkspaceDetails(workspace.workspace),
-              inputsOrOutputs: key,
               methodVersion,
               sourceRepo,
               methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
