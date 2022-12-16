@@ -184,6 +184,17 @@ describe('AzureBlobStorageFileBrowserProvider', () => {
     })
   })
 
+  it('returns a download URL that includes SAS token', async () => {
+    // Arrange
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' })
+
+    // Act
+    const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt')
+
+    // Assert
+    expect(downloadUrl).toBe('https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/example.txt?tokenPlaceholder=value')
+  })
+
   it('uploads a file', async () => {
     // Arrange
     asMockedFn(fetchOk).mockResolvedValue(new Response())
