@@ -384,6 +384,7 @@ const Analyses = _.flow(
       icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
       'JupyterLab is now available in this workspace as a beta feature. Please ',
       h(Link, {
+        style: { color: colors.accent(1.25) },
         onClick: () => setFeedbackShowing(true)
       }, ['fill out our survey']),
       ' to help us improve the JupyterLab experience.'
