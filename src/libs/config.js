@@ -29,5 +29,5 @@ export const isAxeEnabled = () => {
       console.log('to enable: window.configOverridesStore.set({ isAxeEnabled: true })') // eslint-disable-line no-console
     }
   }
-  return _.isUndefined(storedValue) || storedValue // temporary, testing in prod
+  return isDev ? (_.isUndefined(storedValue) || storedValue) : false
 }
