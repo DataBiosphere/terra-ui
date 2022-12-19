@@ -81,23 +81,17 @@ export const getAssayCategoryListFromDataset = dataset => _.flow(
 export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
 
-const normalizeDataset = dataset => {
-  const access = Utils.cond(
-    [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
-    [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
-    () => datasetAccessTypes.CONTROLLED)
-  return {
-    ...dataset,
-    access
-  }
-}
+export const getDatasetAccessType = dataset => Utils.cond(
+  [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
+  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
+  () => datasetAccessTypes.CONTROLLED)
 
 // These are used to match against by the filter
 const extractTags = dataset => {
   return {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
-      dataset.access,
+      getDatasetAccessType(dataset),
       getConsortiumsFromDataset(dataset),
       dataset.samples?.genus,
       dataset.samples?.disease,
@@ -109,14 +103,13 @@ const extractTags = dataset => {
   }
 }
 
-export const filterAndNormalizeDatasets = (datasets, dataCollectionsToInclude) => {
+export const filterDatasetsAndApplyTags = (datasets, dataCollectionsToInclude) => {
   const filteredDatasets = _.filter(dataCollectionsToInclude ?
     dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
   datasets)
   return _.map(dataset => {
-    const normalizedDataset = normalizeDataset(dataset)
-    return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
+    return _.set(['tags'], extractTags(dataset), dataset)
   }, filteredDatasets)
 }
 
@@ -131,7 +124,7 @@ export const useDataCatalog = () => {
   )(async () => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
-    const normList = filterAndNormalizeDatasets(datasets, dataCollectionsToInclude)
+    const normList = filterDatasetsAndApplyTags(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })

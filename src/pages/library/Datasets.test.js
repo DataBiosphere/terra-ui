@@ -4,7 +4,7 @@ import { getEnabledBrand, isRadX } from 'src/libs/brand-utils'
 import { brands } from 'src/libs/brands'
 import * as Nav from 'src/libs/nav'
 import { dataCatalogStore } from 'src/libs/state'
-import { filterAndNormalizeDatasets } from 'src/pages/library/dataBrowser-utils'
+import { filterDatasetsAndApplyTags } from 'src/pages/library/dataBrowser-utils'
 import { Datasets } from 'src/pages/library/Datasets'
 
 
@@ -45,7 +45,7 @@ describe('Datasets', () => {
 
   it('only shows RadX datasets when in RadX', () => {
     getEnabledBrand.mockReturnValue(brands.radX)
-    const displayedDatasets = filterAndNormalizeDatasets(
+    const displayedDatasets = filterDatasetsAndApplyTags(
       [{ 'dct:title': 'radx-up', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'RADx-UP' }] }, { 'dct:title': 'not-radx' }],
       brands.radX.catalogDataCollectionsToInclude
     )
@@ -55,7 +55,7 @@ describe('Datasets', () => {
 
   it('shows all datasets in terra', () => {
     getEnabledBrand.mockReturnValue(brands.terra)
-    expect(filterAndNormalizeDatasets(
+    expect(filterDatasetsAndApplyTags(
       [{ 'dct:title': 'radx-up', 'TerraDCAT_ap:hasDataCollection': [{ 'dct:title': 'RADx-UP' }] }, { 'dct:title': 'not-radx' }],
       brands.terra.catalogDataCollectionsToInclude
     ).length).toBe(2)

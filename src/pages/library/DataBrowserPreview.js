@@ -14,7 +14,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { datasetAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, getDatasetAccessType, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -121,12 +121,13 @@ const DataBrowserPreview = ({ id }) => {
       setPreviewRows(newPreviewRows)
     })
 
-    if (!!tables && !!selectedTable && dataset?.access === datasetAccessTypes.GRANTED) {
+    if (!!tables && !!selectedTable && access === datasetAccessTypes.GRANTED) {
       loadTable()
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const dataset = _.find({ id }, dataCatalog)
+  const access = getDatasetAccessType(dataset)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -143,7 +144,7 @@ const DataBrowserPreview = ({ id }) => {
             icon('times', { size: 30 })
           ])
         ]),
-        dataset.access === datasetAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
+        access === datasetAccessTypes.CONTROLLED && div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
           h(RequestDatasetAccessModal, {
             datasets: [dataset],
             onDismiss: () => {
@@ -151,7 +152,7 @@ const DataBrowserPreview = ({ id }) => {
             }
           })
         ]),
-        dataset.access === datasetAccessTypes.GRANTED && h(GroupedSelect, {
+        access === datasetAccessTypes.GRANTED && h(GroupedSelect, {
           'aria-label': 'data type',
           styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
           isSearchable: true,

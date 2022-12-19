@@ -20,6 +20,7 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  getDatasetAccessType,
   isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
@@ -102,7 +103,7 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    dataObj.access === datasetAccessTypes.EXTERNAL && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+    getDatasetAccessType(dataObj) === datasetAccessTypes.EXTERNAL && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
       'This data is hosted and managed externally from Terra. ',
       h(Link, {
         style: { ...linkStyle, marginLeft: 10 },
@@ -119,13 +120,14 @@ const MainContent = ({ dataObj }) => {
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
-  const { access, requestAccessURL } = dataObj
+  const { requestAccessURL } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
   const [snapshotExportJobId, setSnapshotExportJobId] = useState()
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
+  const access = getDatasetAccessType(dataObj)
 
 
   const importDataToWorkspace = dataset => {
@@ -234,9 +236,9 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && dataObj.access !== datasetAccessTypes.GRANTED,
+            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && access !== datasetAccessTypes.GRANTED,
             tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+              access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
               uiMessaging.unsupportedDatasetTypeTooltip('preview'),
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
@@ -253,9 +255,9 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
+            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
             tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
+              access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
               uiMessaging.unsupportedDatasetTypeTooltip('preparing for analysis'),
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
