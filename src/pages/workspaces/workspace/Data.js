@@ -671,7 +671,7 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      isGoogleWorkspace && div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+      div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
         div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
