@@ -1,9 +1,11 @@
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
+import { basename } from 'src/components/file-browser/file-browser-utils'
+import { FileDetails } from 'src/components/file-browser/FileDetails'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
-import UriViewer from 'src/components/UriViewer'
+import Modal from 'src/components/Modal'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -99,11 +101,14 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
       ])
     ]),
 
-    focusedFile && h(UriViewer, {
-      workspace,
-      uri: focusedFile.url,
-      onDismiss: () => setFocusedFile(null)
-    })
+    focusedFile && h(Modal, {
+      'aria-label': 'File details',
+      showCancel: false,
+      title: basename(focusedFile.path),
+      onDismiss: () => setFocusedFile(null),
+    }, [
+      h(FileDetails, { file: focusedFile, provider })
+    ]),
   ])
 }
 

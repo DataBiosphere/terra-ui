@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -16,6 +16,7 @@ import colors from 'src/libs/colors'
 import { withErrorReportingInModal } from 'src/libs/error'
 import { useOnMount } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { WarningTitle } from 'src/pages/workspaces/workspace/analysis/modals/WarningTitle'
 import {
   computeStyles, getCurrentRuntime, getIsRuntimeBusy
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'

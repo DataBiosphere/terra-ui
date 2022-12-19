@@ -65,7 +65,6 @@ export const ContextBar = ({
   const isTerminalEnabled = currentRuntimeTool === toolLabels.Jupyter && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
-  const isAzureWorkspace = !!workspace.azureContext
 
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => img({ src: jupyterLogo, style: { height: 45, width: 45 }, alt: '' })],
@@ -221,7 +220,7 @@ export const ContextBar = ({
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]),
-        isFeaturePreviewEnabled('workspace-files') && !isAzureWorkspace && h(Clickable, {
+        isFeaturePreviewEnabled('workspace-files') && h(Clickable, {
           style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
           hover: contextBarStyles.hover,
           'data-testid': 'workspace-files-link',

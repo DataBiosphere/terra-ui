@@ -20,7 +20,8 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
-  datasetAccessTypes, isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
@@ -34,26 +35,17 @@ const styles = {
   cloudIconProps: { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 }
 
-export const ContactCard = ({ contactName, institution, email }) => {
-  return div({ key: contactName, style: { marginBottom: 30 } }, [
-    contactName,
-    institution && div({ style: { marginTop: 5 } }, [institution]),
-    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
-  ])
-}
-
 const MetadataDetailsComponent = ({ dataObj, name }) => {
   return h(Fragment, [
     h2({ className: 'sr-only' }, [` ${name} Metadata`]),
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        dataObj.dataReleasePolicy.label,
-        dataObj.dataReleasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [dataObj.dataReleasePolicy.desc])
+        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: dataObj['TerraDCAT_ap:hasDataUsePermission'] })
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
-        dataObj['dct:modified'] && Utils.makeStandardDate(dataObj['dct:modified'])
+        formatDatasetTime(dataObj['dct:modified'])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
@@ -72,16 +64,19 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
         )
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Contact']),
-        _.map(ContactCard, dataObj.contacts)
+        h3({ style: styles.headers }, ['Owner']),
+        dataObj['TerraDCAT_ap:hasOwner']
       ]),
       div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Data curator']),
-        _.map(ContactCard, dataObj.curators)
+        h3({ style: styles.headers }, ['Custodians']),
+        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj['TerraDCAT_ap:hasCustodian'])])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contributors']),
-        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', dataObj.contributorNames)])
+        _.map(({ name, email }) => !!email ?
+          h(Link, { key: _.uniqueId(`${name}-${email}-`), href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [name]) :
+          div({ key: _.uniqueId(`${name}-${email}-`), style: { marginTop: 5 } }, [name]),
+        dataObj.contributors)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Region']),
@@ -204,12 +199,12 @@ export const SidebarComponent = ({ dataObj, id }) => {
           div([_.getOr(0, 'counts.samples', dataObj).toLocaleString()])
         ]),
         div([
-          h3({ style: styles.headers }, ['Data Modality']),
-          div([_.join(', ', dataObj.dataModality)])
+          h3({ style: styles.headers }, ['Data modality']),
+          div([_.join(', ', getDataModalityListFromDataset(dataObj))])
         ]),
         div([
-          h3({ style: styles.headers }, ['Data type']),
-          div([_.join(', ', dataObj.dataType)])
+          h3({ style: styles.headers }, ['Assay category']),
+          div([_.join(', ', getAssayCategoryListFromDataset(dataObj))])
         ]),
         div([
           h3({ style: styles.headers }, ['File counts']),
