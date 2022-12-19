@@ -14,7 +14,7 @@ export const getConfig = () => {
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled
-  const isDev = false // temporary-- testing running in prod for a second
+  const isDev = process.env.NODE_ENV === 'development'
   // It would be nice to be able to enable this on PR sites (production) if the feature flag is enabled,
   // but unfortunately axe-core only works on page refreshes in that environment.
   if (!isDev && !!storedValue) {
@@ -29,5 +29,5 @@ export const isAxeEnabled = () => {
       console.log('to enable: window.configOverridesStore.set({ isAxeEnabled: true })') // eslint-disable-line no-console
     }
   }
-  return isDev ? (_.isUndefined(storedValue) || storedValue) : false
+  return _.isUndefined(storedValue) || storedValue // temporary, testing in prod
 }
