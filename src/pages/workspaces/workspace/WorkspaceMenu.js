@@ -5,6 +5,7 @@ import { icon } from 'src/components/icons'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { useWorkspaceDetails } from 'src/components/workspace-utils'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 
 
 // In `workspaceInfo`, specify either `name and namespace` to fetch the Workspace details,
@@ -37,13 +38,13 @@ const WorkspaceMenu = ({
 }
 
 const DynamicWorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete, onLock, onLeave }) => {
-  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'azureContext', 'canShare', 'workspace.isLocked'])
+  const { workspace } = useWorkspaceDetails({ namespace, name }, ['accessLevel', 'canShare', 'workspace.cloudPlatform', 'workspace.isLocked'])
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.azureContext
+  const azureWorkspace = isAzureWorkspace(workspace)
   return WorkspaceMenuContent({
-    canShare, isAzureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded: !!workspace
+    canShare, isAzureWorkspace: azureWorkspace, isLocked, isOwner, onClone, onShare, onLock, onLeave, onDelete, workspaceLoaded: !!workspace
   })
 }
 

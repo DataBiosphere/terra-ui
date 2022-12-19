@@ -24,6 +24,7 @@ import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { differenceFromNowInSeconds } from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { ContextBar } from 'src/pages/workspaces/workspace/analysis/ContextBar'
 import { analysisTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
@@ -84,7 +85,7 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
-  const isAzureWorkspace = !!workspace?.azureContext
+  const azureWorkspace = !!workspace && isAzureWorkspace(workspace)
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -112,10 +113,10 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { canShare, isAzureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
+        workspaceInfo: { canShare, azureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
       })
     ]),
-    isAzureWorkspace && h(AzureWarning)
+    azureWorkspace && h(AzureWarning)
   ])
 }
 
@@ -337,16 +338,16 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 
     const { runtimes, refreshRuntimes, persistentDisks, appDataDisks } = useCloudEnvironmentPolling(googleProject, workspace)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
-    const isGoogleWorkspace = !!googleProject
-    const isAzureWorkspace = !!azureContext
     // The following if statements are necessary to support the context bar properly loading runtimes for google/azure
     // Note that the refreshApps function currently is not supported for azure
-    if (googleProject !== prevGoogleProject && isGoogleWorkspace) {
-      refreshRuntimes()
-      refreshApps()
-    }
-    if (azureContext !== prevAzureContext && isAzureWorkspace) {
-      refreshRuntimes(true)
+    if (!!workspace) {
+      if (googleProject !== prevGoogleProject && isGoogleWorkspace(workspace)) {
+        refreshRuntimes()
+        refreshApps()
+      }
+      if (azureContext !== prevAzureContext && isAzureWorkspace(workspace)) {
+        refreshRuntimes(true)
+      }
     }
 
     const loadBucketLocation = async (googleProject, bucketName) => {
@@ -363,7 +364,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       try {
         const workspace = await Ajax(signal).Workspaces.workspace(namespace, name).details([
           'accessLevel', 'azureContext', 'canCompute', 'canShare', 'owners',
-          'workspace', 'workspace.attributes', 'workspace.authorizationDomain',
+          'workspace', 'workspace.attributes', 'workspace.authorizationDomain', 'workspace.cloudPlatform',
           'workspace.isLocked', 'workspace.workspaceId', 'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
