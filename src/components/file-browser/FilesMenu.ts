@@ -51,7 +51,6 @@ export const FilesMenu = (props: FilesMenuProps) => {
       style: { padding: '0.5rem', marginRight: '0.5rem' },
       onClick: onClickUpload
     }, [icon('upload-cloud', {
-      // @ts-expect-error
       style: {
         marginRight: '1ch',
       },

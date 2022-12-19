@@ -183,4 +183,3 @@ declare module 'react-hyperscript-helpers' {
   export const text: HtmlHelper<'text'>
   export const tspan: HtmlHelper<'tspan'>
 }
-
