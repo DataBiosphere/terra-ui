@@ -128,10 +128,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
   const access = getDatasetAccessType(dataObj)
-  const supportedFeatureTooltipMessage = access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip
-  const actionTooltip = message => (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-    supportedFeatureTooltipMessage : uiMessaging.unsupportedDatasetTypeTooltip(message)
-
+  const actionTooltip = access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip
 
   const importDataToWorkspace = dataset => {
     Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -239,8 +236,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && access !== datasetAccessTypes.GRANTED,
-            tooltip: actionTooltip('preview'),
+            disabled: access !== datasetAccessTypes.GRANTED,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -256,8 +253,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
-            tooltip: actionTooltip('preparing for analysis'),
+            disabled: access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               importDataToWorkspace(dataObj)

@@ -103,7 +103,7 @@ const extractTags = dataset => {
   }
 }
 
-export const filterDatasetsAndApplyTags = (datasets, dataCollectionsToInclude) => {
+export const prepareDatasetsForDisplay = (datasets, dataCollectionsToInclude) => {
   const filteredDatasets = _.filter(dataCollectionsToInclude ?
     dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
@@ -124,7 +124,7 @@ export const useDataCatalog = () => {
   )(async () => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
-    const normList = filterDatasetsAndApplyTags(datasets, dataCollectionsToInclude)
+    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })

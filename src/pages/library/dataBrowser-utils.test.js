@@ -3,8 +3,8 @@ import { h } from 'react-hyperscript-helpers'
 import { brands } from 'src/libs/brands'
 import { dataCatalogStore } from 'src/libs/state'
 import {
-  datarepoSnapshotUrlFragment, datasetAccessTypes, DatasetReleasePolicyDisplayInformation, filterDatasetsAndApplyTags, getDatasetAccessType,
-  workspaceUrlFragment
+  datarepoSnapshotUrlFragment, datasetAccessTypes, DatasetReleasePolicyDisplayInformation, getDatasetAccessType,
+  prepareDatasetsForDisplay, workspaceUrlFragment
 } from 'src/pages/library/dataBrowser-utils'
 
 
@@ -14,7 +14,7 @@ beforeEach(() => {
 
 describe('dataBrowser-utils', () => {
   it('sets external datasets to accessLevel external', () => {
-    const normalizedDatasets = filterDatasetsAndApplyTags(
+    const normalizedDatasets = prepareDatasetsForDisplay(
       [{ 'dcat:accessURL': 'any-url.com' }],
       brands.terra.catalogDataCollectionsToInclude
     )
@@ -22,7 +22,7 @@ describe('dataBrowser-utils', () => {
   })
 
   it('doesn\'t set non external datasets to accessLevel external', () => {
-    const normalizedDatasets = filterDatasetsAndApplyTags(
+    const normalizedDatasets = prepareDatasetsForDisplay(
       [{ 'dcat:accessURL': `any-url.com${workspaceUrlFragment}a/b` }, { 'dcat:accessURL': `any-url.com${datarepoSnapshotUrlFragment}` }],
       brands.terra.catalogDataCollectionsToInclude
     )
