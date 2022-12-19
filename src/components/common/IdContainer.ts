@@ -9,24 +9,20 @@ export const IdContainer = ({ children }) => {
   return children(id)
 }
 
-export type UniqueIdFn = (prefix: string) => string
-
 /**
- * returns a helper function that accepts a prefix to append to an id that is unique
- * for the consuming component.
+ * returns a durable unique id that will not chance between component render cycles.
  * @example
  * // inside a react component:
- * const unique = useUniqueIdFn()
+ * const thingOneId = useUniqueId('thing-one')
+ * const otherId = useUniqueId()
  * //...
- * div({ id: unique('my-thing-one') }, [...],
- * div({ id: unique('my-thing-two') }, [...]
+ * div({ id: thingOneId }, [...],
+ * div({ id: otherId }, [...]
  * // will produce ids:
- * // my-thing-one-123UniqueToken123
- * // my-thing-two-123UniqueToken123
+ * // thing-one-123
+ * // element-124
  */
-export const useUniqueIdFn = (): UniqueIdFn => {
+export const useUniqueId = (prefix: string = 'element'): string => {
   const uniqueId: string = useMemo(() => _.uniqueId(''), [])
-  return ((prefix: string): string => {
-    return `${prefix}-${uniqueId}`
-  })
+  return `${prefix}-${uniqueId}`
 }

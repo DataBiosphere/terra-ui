@@ -1,41 +1,50 @@
 import { renderHook } from '@testing-library/react-hooks'
+import _ from 'lodash/fp'
+import { asMockedFn } from 'src/testing/test-utils'
 
-import { useUniqueIdFn } from './IdContainer'
+import { useUniqueId } from './IdContainer'
 
 
 type LodashExports = typeof import('lodash/fp')
 jest.mock('lodash/fp', (): LodashExports => {
   const actual = jest.requireActual<LodashExports>('lodash/fp')
 
-  let uniqueSeed = 123
-
   return ({
     ...actual,
-    uniqueId: () => {
-      const result = uniqueSeed
-      uniqueSeed++
-      return result.toString(10)
-    }
+    uniqueId: jest.fn()
   })
 })
 
-describe('useUniqueIdFn', () => {
-  it('returns function to use for unique Id', () => {
-    // Arrange
-    const getMyId = renderHook(useUniqueIdFn).result.current
-    const getMyId2 = renderHook(useUniqueIdFn).result.current
+beforeEach(() => {
+  let uniqueSeed = 123
+  asMockedFn(_.uniqueId).mockImplementation(() => {
+    const result = uniqueSeed
+    uniqueSeed++
+    return result.toString(10)
+  })
+})
 
+
+describe('useUniqueId', () => {
+  it('returns a unique Id, prefixed or default', () => {
     // Act
-    const buttonAId = getMyId('button-a')
-    const buttonBId = getMyId('button-b')
-    const otherId = getMyId2('other')
+    const namedId = renderHook(useUniqueId, { initialProps: 'button-a' }).result.current
+    const defaultId = renderHook(useUniqueId).result.current
 
     // Assert
-    // id can be reused within a component and will be same seed
-    expect(buttonAId).toBe('button-a-123')
-    expect(buttonBId).toBe('button-b-123')
+    expect(namedId).toBe('button-a-123')
+    expect(defaultId).toBe('element-124')
+  })
 
-    // but 2nd hook usage can give different seed if needed
-    expect(otherId).toBe('other-124')
+  it('returns a durable unique Id, not changing with re-renders', () => {
+    // Act
+    const hook = renderHook(useUniqueId, { initialProps: 'button-a' })
+    const result1 = hook.result.current
+    hook.rerender('button-a')
+    const result2 = hook.result.current
+
+    // Assert
+    expect(result1).toBe('button-a-123')
+    expect(result2).toBe('button-a-123')
   })
 })
