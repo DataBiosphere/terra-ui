@@ -100,6 +100,14 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
       prefix: path,
       signal
     }),
+    getDownloadUrlForFile: async (path, { signal } = {}) => {
+      const { url } = await Ajax(signal).DrsUriResolver.getSignedUrl({
+        bucket,
+        object: path,
+        dataObjectUri: undefined,
+      })
+      return url
+    },
     uploadFileToDirectory: (directoryPath, file) => {
       return Ajax().Buckets.upload(project, bucket, directoryPath, file)
     },

@@ -142,6 +142,28 @@ describe('GCSFileBrowserProvider', () => {
     expect(numGCSRequestsAfterSecondResponse).toBe(3)
   })
 
+  it('gets a signed URL for downloads', async () => {
+    // Arrange
+    const getSignedUrl = jest.fn(() => Promise.resolve({ url: 'signedUrl' }))
+    asMockedFn(Ajax).mockImplementation(() => {
+      return {
+        DrsUriResolver: { getSignedUrl } as Partial<ReturnType<typeof Ajax>['DrsUriResolver']>
+      } as ReturnType<typeof Ajax>
+    })
+
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    const downloadUrl = await provider.getDownloadUrlForFile('path/to/example.txt')
+
+    // Assert
+    expect(getSignedUrl).toHaveBeenCalledWith(expect.objectContaining({
+      bucket: 'test-bucket',
+      object: 'path/to/example.txt',
+    }))
+    expect(downloadUrl).toBe('signedUrl')
+  })
+
   it('uploads a file', async () => {
     // Arrange
     const upload = jest.fn(() => Promise.resolve())

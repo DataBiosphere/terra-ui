@@ -2,8 +2,10 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import FileBrowser from 'src/components/file-browser/FileBrowser'
+import AzureBlobStorageFileBrowserProvider from 'src/libs/ajax/file-browser-providers/AzureBlobStorageFileBrowserProvider'
 import GCSFileBrowserProvider from 'src/libs/ajax/file-browser-providers/GCSFileBrowserProvider'
 import { forwardRefWithName } from 'src/libs/react-utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 import { useMemo } from 'use-memo-one'
 
@@ -17,11 +19,17 @@ export const Files = _.flow(
     topBarContent: null
   })
 )(({ workspace }, _ref) => {
-  const { bucketName, googleProject } = workspace.workspace
-
   const fileBrowserProvider = useMemo(
-    () => GCSFileBrowserProvider({ bucket: bucketName, project: googleProject }),
-    [bucketName, googleProject]
+    () => {
+      if (isAzureWorkspace(workspace)) {
+        const { workspaceId } = workspace.workspace
+        return AzureBlobStorageFileBrowserProvider({ workspaceId })
+      } else {
+        const { bucketName, googleProject } = workspace.workspace
+        return GCSFileBrowserProvider({ bucket: bucketName, project: googleProject })
+      }
+    },
+    [workspace]
   )
 
   return div({
