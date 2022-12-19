@@ -14,7 +14,7 @@ export const getConfig = () => {
 export const isCromwellAppVisible = () => getConfig().isCromwellAppVisible
 export const isAxeEnabled = () => {
   const storedValue = getConfig().isAxeEnabled
-  const isDev = process.env.NODE_ENV !== 'development' // temporary-- testing running in prod for a second
+  const isDev = false // temporary-- testing running in prod for a second
   // It would be nice to be able to enable this on PR sites (production) if the feature flag is enabled,
   // but unfortunately axe-core only works on page refreshes in that environment.
   if (!isDev && !!storedValue) {
