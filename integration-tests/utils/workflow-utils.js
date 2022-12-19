@@ -10,7 +10,7 @@ const launchWorkflowAndWaitForSuccess = async page => {
   // TODO: Aaron -- this takes too long to return
   await Promise.all([
     page.waitForNavigation(
-      { waitUntil: 'domcontentloaded' }
+      { timeout: 0 }
     ),
     click(page, clickable({ text: 'Launch' }))
   ])

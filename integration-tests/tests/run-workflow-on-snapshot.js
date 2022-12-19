@@ -22,6 +22,10 @@ const withDataRepoCheck = test => async options => {
   }
 }
 
+// const withGoogleBigQueryPermissionCheck = test => async options => {
+//
+// }
+
 const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
