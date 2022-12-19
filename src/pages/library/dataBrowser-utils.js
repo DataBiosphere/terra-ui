@@ -1,12 +1,17 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { ButtonOutline } from 'src/components/common/buttons'
+import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { commonStyles } from 'src/pages/library/common'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const datasetAccessTypes = {
@@ -85,6 +90,45 @@ export const getDatasetAccessType = dataset => Utils.cond(
   [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
   [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
   () => datasetAccessTypes.CONTROLLED)
+
+export const DatasetAccess = ({ dataset }) => {
+  const { requestingAccess, setRequestingAccess } = useState()
+  const access = getDatasetAccessType(dataset)
+  const { requestAccessURL } = dataset
+  return h(Fragment, [
+    Utils.cond(
+      [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        href: requestAccessURL, target: '_blank'
+      }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+      [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        onClick: () => {
+          setRequestingAccess()
+          Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+            id: dataset.id,
+            title: dataset['dct:title']
+          })
+        }
+      }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex' } }, [
+        icon('lock'),
+        div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
+      ])],
+      [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        href: dataset['dcat:accessURL'], target: '_blank'
+      }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
+      [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex' } }, [
+        icon('unlock'),
+        div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
+      ])]),
+    !!requestingAccess && h(RequestDatasetAccessModal, {
+      datasets: [dataset],
+      onDismiss: () => setRequestingAccess()
+    })
+  ])
+}
 
 // These are used to match against by the filter
 const extractTags = dataset => {
