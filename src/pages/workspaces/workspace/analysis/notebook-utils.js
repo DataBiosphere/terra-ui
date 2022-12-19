@@ -17,8 +17,8 @@ export const analysisNameValidator = existing => ({
   format: {
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
     message: h(Fragment, [
-      div('Name can\'t contain these characters:'),
-      div({ style: { margin: '0.5rem 1rem' } }, ['@ # $ % * + = ? , [ ] : ; / \\ '])
+      div({ key: 'message' }, ['Name can\'t contain these characters:']),
+      div({ key: 'characters', style: { margin: '0.5rem 1rem' } }, ['@ # $ % * + = ? , [ ] : ; / \\ '])
     ])
   },
   exclusion: {
