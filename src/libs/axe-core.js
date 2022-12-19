@@ -17,10 +17,3 @@ const config = {
 
 axe(React, ReactDOM, 1000, config)
 
-const AxeCore = () => {
-  // Return null because this component doesn't actually render anything.
-  // It exists purely for initializing axe-core.
-  return null
-}
-
-export default AxeCore
