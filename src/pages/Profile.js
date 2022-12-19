@@ -3,10 +3,9 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, p, span } from 'react-hyperscript-helpers'
+import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
-import {
-  ButtonPrimary, Checkbox, ClipboardButton, IdContainer, LabeledCheckbox, Link, spinnerOverlay
-} from 'src/components/common'
+import { ButtonPrimary, Checkbox, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/external-account-links'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
