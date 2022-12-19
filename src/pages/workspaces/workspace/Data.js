@@ -566,7 +566,7 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchemaAndUrl = async () => {
-    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd && isAzureWorkspace) {
+    if (!getConfig().isProd && isAzureWorkspace) {
       await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
         try {
           setWdsSchema([])
@@ -671,7 +671,7 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      (isGoogleWorkspace || isFeaturePreviewEnabled('workspace-data-service')) && div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
+      isGoogleWorkspace && div({ style: { ...styles.sidebarContainer, width: sidebarWidth } }, [
         div({
           style: {
             display: 'flex', padding: '1rem 1.5rem',
@@ -787,7 +787,7 @@ const WorkspaceData = _.flow(
                 ])
               }, sortedEntityPairs)
             ]),
-            isFeaturePreviewEnabled('workspace-data-service') && isAzureWorkspace && h(DataTypeSection, {
+            isAzureWorkspace && h(DataTypeSection, {
               title: 'Tables'
             }, [
               [
