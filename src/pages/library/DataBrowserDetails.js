@@ -21,7 +21,7 @@ import { commonStyles } from 'src/pages/library/common'
 import {
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
   getDatasetAccessType,
-  isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
+  isDatarepoSnapshot, isExternal, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -103,7 +103,7 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    getDatasetAccessType(dataObj) === datasetAccessTypes.EXTERNAL && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+    isExternal(dataObj) && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
       'This data is hosted and managed externally from Terra. ',
       h(Link, {
         style: { ...linkStyle, marginLeft: 10 },
