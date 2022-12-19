@@ -7,11 +7,8 @@ const launchWorkflowAndWaitForSuccess = async page => {
   // If general ajax logging is disabled, uncomment the following to debug the sporadically failing
   // checkBucketAccess call.
   // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
-  // TODO: Aaron -- this takes too long to return
   await Promise.all([
-    page.waitForNavigation(
-      { timeout: 0 }
-    ),
+    page.waitForNavigation(),
     click(page, clickable({ text: 'Launch' }))
   ])
   // stopLoggingPageAjaxResponses()

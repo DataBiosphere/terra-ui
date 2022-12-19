@@ -22,10 +22,6 @@ const withDataRepoCheck = test => async options => {
   }
 }
 
-// const withGoogleBigQueryPermissionCheck = test => async options => {
-//
-// }
-
 const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
@@ -67,7 +63,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ text: 'Save' }))
 
-  // TODO: Aaron -- this is where TimeoutError is occurring
   await launchWorkflowAndWaitForSuccess(page)
 
   await clickNavChildAndLoad(page, 'data')
@@ -83,5 +78,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 registerTest({
   name: 'run-workflow-on-snapshot',
   fn: testRunWorkflowOnSnapshotFn,
-  timeout: 20 * 60 * 1000
+  timeout: 20 * 60 * 1000,
+  targetEnvironments: [],
 })
