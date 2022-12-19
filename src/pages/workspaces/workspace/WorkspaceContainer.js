@@ -85,7 +85,7 @@ const WorkspaceTabs = ({
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isLocked = workspace?.workspace.isLocked
-  const azureWorkspace = !!workspace && isAzureWorkspace(workspace)
+  const workspaceLoaded = !!workspace
 
   const onClone = () => setCloningWorkspace(true)
   const onDelete = () => setDeletingWorkspace(true)
@@ -113,10 +113,10 @@ const WorkspaceTabs = ({
       h(WorkspaceMenu, {
         iconSize: 27, popupLocation: 'bottom',
         callbacks: { onClone, onShare, onLock, onDelete, onLeave },
-        workspaceInfo: { canShare, azureWorkspace, isLocked, isOwner, workspaceLoaded: !!workspace }
+        workspaceInfo: { canShare, isLocked, isOwner, workspaceLoaded }
       })
     ]),
-    azureWorkspace && h(AzureWarning)
+    workspaceLoaded && isAzureWorkspace(workspace) && h(AzureWarning)
   ])
 }
 
