@@ -3,7 +3,7 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -32,6 +32,7 @@ import DeleteWorkflowConfirmationModal from 'src/pages/workspaces/workspace/work
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
+import { methodLink } from 'src/pages/workspaces/workspace/workflows/methodLink'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -1010,6 +1011,24 @@ const WorkflowView = _.flow(
     }
   }
 
+  clear(key) {
+    this.setState(prevState => {
+      const { modifiedConfig: prevModifiedConfig } = prevState
+      return { modifiedConfig: _.set(key, {}, prevModifiedConfig) }
+    })
+
+    const { workspace } = this.props
+    const { modifiedConfig } = this.state
+    const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+    Ajax().Metrics.captureEvent(Events.workflowClearIO, {
+      ...extractWorkspaceDetails(workspace.workspace),
+      inputsOrOutputs: key,
+      methodVersion,
+      sourceRepo,
+      methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+    })
+  }
+
   renderWDL() {
     const { wdl } = this.state
     return div({ style: styles.tabContents }, [
@@ -1078,6 +1097,10 @@ const WorkflowView = _.flow(
         isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { style: linkStyle, onClick: openUploader }, ['upload json'])
+        ]),
+        isEditable && h(Fragment, [
+          div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+          h(Link, { style: linkStyle, onClick: () => this.clear(key) }, [`Clear ${key}`])
         ]),
         h(DelayedSearchInput, {
           'aria-label': `Search ${key}`,

@@ -16,6 +16,7 @@ export interface FileBrowserDirectory {
 interface FileBrowserProvider {
   getDirectoriesInDirectory(path: string, options?: { signal?: AbortSignal }): Promise<IncrementalResponse<FileBrowserDirectory>>
   getFilesInDirectory(path: string, options?: { signal?: AbortSignal }): Promise<IncrementalResponse<FileBrowserFile>>
+  getDownloadUrlForFile(path: string, options?: { signal?: AbortSignal }): Promise<string>
 
   uploadFileToDirectory(directoryPath: string, file: File): Promise<void>
   deleteFile(path: string): Promise<void>

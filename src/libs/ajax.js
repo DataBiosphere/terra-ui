@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import {
-  appIdentifier, authOpts, fetchAgora, fetchBond, fetchCatalog,
-  fetchDataRepo, fetchDockstore,
+  appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
   fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
@@ -10,6 +9,7 @@ import {
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
 import { Billing } from 'src/libs/ajax/Billing'
+import { Catalog } from 'src/libs/ajax/Catalog'
 import { Disks } from 'src/libs/ajax/Disks'
 import { GoogleStorage } from 'src/libs/ajax/GoogleStorage'
 import { Metrics } from 'src/libs/ajax/Metrics'
@@ -125,6 +125,11 @@ const User = signal => ({
         throw error
       }
     }
+  },
+
+  getPrivacyPolicy: async () => {
+    const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }))
+    return response.text()
   },
 
   // If you are making changes to the Support Request Modal, make sure you test the following:
@@ -814,24 +819,6 @@ const Workspaces = signal => ({
         return res.json()
       }
     }
-  }
-})
-
-const Catalog = signal => ({
-  getDatasets: async () => {
-    const res = await fetchCatalog('v1/datasets', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-  getDatasetTables: async id => {
-    const res = await fetchCatalog(`v1/datasets/${id}/tables`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-  getDatasetPreviewTable: async ({ id, tableName }) => {
-    const res = await fetchCatalog(`v1/datasets/${id}/tables/${tableName}`, _.merge(authOpts(), { signal }))
-    return res.json()
-  },
-  exportDataset: async ({ id, workspaceId }) => {
-    return await fetchCatalog(`v1/datasets/${id}/export`, _.mergeAll([authOpts(), jsonBody({ workspaceId }), { signal, method: 'POST' }]))
   }
 })
 

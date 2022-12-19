@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
@@ -20,23 +21,26 @@ export const uiMessaging = {
   unsupportedDatasetTypeTooltip: action => `The Data Catalog currently does not support ${action} for this dataset.`
 }
 
-export const datasetReleasePolicies = {
-  'TerraCore:NoRestriction': { label: 'NRES', desc: 'No restrictions' },
-  'TerraCore:GeneralResearchUse': { label: 'GRU', desc: 'General research use' },
-  'TerraCore:NPOA': { label: 'NPOA', desc: 'No population origins or ancestry research' },
-  'TerraCore:NMDS': { label: 'NMDS', desc: 'No general methods research' },
-  'TerraCore:GSO': { label: 'GSO', desc: 'Genetic studies only' },
-  'TerraCore:CC': { label: 'CC', desc: 'Clinical care use' },
-  'TerraCore:PUB': { label: 'PUB', desc: 'Publication required' },
-  'TerraCore:COL': { label: 'COL', desc: 'Collaboration required' },
-  'TerraCore:IRB': { label: 'IRB', desc: 'Ethics approval required' },
-  'TerraCore:GS': { label: 'GS', desc: 'Geographical restriction' },
-  'TerraCore:MOR': { label: 'MOR', desc: 'Publication moratorium' },
-  'TerraCore:RT': { label: 'RT', desc: 'Return to database/resource' },
-  'TerraCore:NCU': { label: 'NCU', desc: 'Non commercial use only' },
-  'TerraCore:NPC': { label: 'NPC', desc: 'Not-for-profit use only' },
-  'TerraCore:NPC2': { label: 'NPC2', desc: 'Not-for-profit, non-commercial use only' },
-  releasepolicy_other: { policy: 'SnapshotReleasePolicy_Other', label: 'Other', desc: 'Misc release policies' }
+// This list is generated from the schema enum
+export const getDatasetReleasePoliciesDisplayInformation = dataUsePermission => {
+  return Utils.switchCase(
+    dataUsePermission,
+    ['DUO:0000007', () => ({ label: 'DS', description: 'Disease specific research' })],
+    ['DUO:0000042', () => ({ label: 'GRU', description: 'General research use' })],
+    ['DUO:0000006', () => ({ label: 'HMB', description: 'Health or medical or biomedical research' })],
+    ['DUO:0000011', () => ({ label: 'POA', description: 'Population origins or ancestry research only' })],
+    ['DUO:0000004', () => ({ label: 'NRES', description: 'No restriction' })],
+    [undefined, () => ({ label: 'Unspecified', description: 'No specified dataset release policy' })],
+    [Utils.DEFAULT, () => ({ label: dataUsePermission })]
+  )
+}
+
+export const DatasetReleasePolicyDisplayInformation = ({ dataUsePermission }) => {
+  const { label, description } = getDatasetReleasePoliciesDisplayInformation(dataUsePermission)
+  return h(Fragment, [
+    label,
+    description && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [description])
+  ])
 }
 
 export const isExternal = dataset => Utils.cond(
@@ -56,68 +60,51 @@ export const isDatarepoSnapshot = dataset => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
+export const getConsortiumsFromDataset = dataset => _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
+
+export const getDataModalityListFromDataset = dataset => _.flow(
+  _.flatMap('TerraCore:hasDataModality'),
+  _.sortBy(_.toLower),
+  _.compact,
+  _.map(_.replace('TerraCoreValueSets:', '')),
+  _.uniqBy(_.toLower)
+)(dataset['prov:wasGeneratedBy'])
+
+
+export const getAssayCategoryListFromDataset = dataset => _.flow(
+  _.flatMap('TerraCore:hasAssayCategory'),
+  _.sortBy(_.toLower),
+  _.compact,
+  _.uniqBy(_.toLower)
+)(dataset['prov:wasGeneratedBy'])
+
+export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Date(time)) : null
+
+
 const normalizeDataset = dataset => {
-  const contributors = _.map(_.update('contactName', _.flow(
-    _.replace(/,+/g, ' '),
-    _.replace(/(^|\s)[A-Z](?=\s|$)/g, '$&.')
-  )), dataset.contributors)
-
-  const [curators, rawContributors] = _.partition({ projectRole: 'data curator' }, contributors)
-  const contacts = _.filter('correspondingContributor', contributors)
-  const contributorNames = _.map('contactName', rawContributors)
-
-  const dataType = _.flow(
-    _.flatMap('TerraCore:hasAssayCategory'),
-    _.compact,
-    _.uniqBy(_.toLower)
-  )(dataset['prov:wasGeneratedBy'])
-
-  const dataModality = _.flow(
-    _.flatMap('TerraCore:hasDataModality'),
-    _.compact,
-    _.map(_.replace('TerraCoreValueSets:', '')),
-    _.uniqBy(_.toLower)
-  )(dataset['prov:wasGeneratedBy'])
-
-  const dataReleasePolicy = _.has(dataset['TerraDCAT_ap:hasDataUsePermission'], datasetReleasePolicies) ?
-    { ...datasetReleasePolicies[dataset['TerraDCAT_ap:hasDataUsePermission']], policy: dataset['TerraDCAT_ap:hasDataUsePermission'] } :
-    {
-      ...datasetReleasePolicies.releasepolicy_other,
-      desc: _.flow(
-        _.replace('TerraCore:', ''),
-        _.startCase
-      )(dataset['TerraDCAT_ap:hasDataUsePermission'])
-    }
-
   const access = Utils.cond(
     [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
     [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
     () => datasetAccessTypes.CONTROLLED)
   return {
     ...dataset,
-    // TODO: Consortium should show all consortiums, not just the first
-    project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], dataset),
-    lowerName: _.toLower(dataset['dct:title']), lowerDescription: _.toLower(dataset['dct:description']),
-    lastUpdated: !!dataset['dct:modified'] && new Date(dataset['dct:modified']),
-    dataReleasePolicy,
-    contacts, curators, contributorNames,
-    dataType, dataModality,
     access
   }
 }
 
+// These are used to match against by the filter
 const extractTags = dataset => {
   return {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
       dataset.access,
-      dataset.project,
+      getConsortiumsFromDataset(dataset),
       dataset.samples?.genus,
       dataset.samples?.disease,
-      dataset.dataType,
-      dataset.dataModality,
+      getAssayCategoryListFromDataset(dataset),
+      getDataModalityListFromDataset(dataset),
       _.map('dcat:mediaType', dataset.files),
-      dataset.dataReleasePolicy.policy
+      dataset['TerraDCAT_ap:hasDataUsePermission']
     ])
   }
 }

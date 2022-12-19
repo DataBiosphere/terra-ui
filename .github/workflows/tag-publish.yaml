@@ -32,6 +32,8 @@ env:
 jobs:
   tag-push-job:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -83,8 +85,18 @@ jobs:
           username: 'oauth2accesstoken'
           password: '${{ steps.auth.outputs.access_token }}'
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
       - name: Build image
-        run: "docker build -t ${{ steps.image-name.outputs.tagged }} ."
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          load: true
+          tags: |
+            ${{ steps.image-name.outputs.tagged }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run Trivy vulnerability scanner
         # From https://github.com/broadinstitute/dsp-appsec-trivy-action
@@ -104,11 +116,12 @@ jobs:
             "${{ steps.image-name.outputs.tagged }}" \
             "${{ steps.image-name.outputs.name }}:latest"
 
-      - name: Deploy to Terra Dev environment
-        uses: broadinstitute/repository-dispatch@master
-        if: github.event_name != 'pull_request'
-        with:
-          token: ${{ secrets.BROADBOT_TOKEN }}
-          repository: broadinstitute/terra-helmfile
-          event-type: update-service
-          client-payload: '{"service": "terraui", "version": "${{ steps.tag.outputs.tag }}", "dev_only": false}'
+  report-to-sherlock:
+    uses: broadinstitute/sherlock/.github/workflows/client-report-app-version.yaml@main
+    needs: tag-push-job
+    with:
+      chart-name: "terraui"
+      new-version: ${{ needs.tag-push-job.outputs.tag }}
+    permissions:
+      contents: "read"
+      id-token: "write"

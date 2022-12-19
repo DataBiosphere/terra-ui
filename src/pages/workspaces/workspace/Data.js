@@ -498,6 +498,7 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+  const [wdsProxyUrl, setWdsProxyUrl] = useState('')
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -508,7 +509,8 @@ const WorkspaceData = _.flow(
   const asyncImportJobs = useStore(asyncImportJobStore)
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId)
+
+  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, wdsProxyUrl)
 
   const loadEntityMetadata = async () => {
     try {
@@ -548,7 +550,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchemaAndUrl()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -563,17 +565,41 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadWdsSchema = async () => {
-    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd) {
-      try {
-        setWdsSchema([])
-        setWdsSchemaError(undefined)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(workspaceId)
-        setWdsSchema(wdsSchema)
-      } catch (error) {
-        setWdsSchemaError(error)
-      }
+  const loadWdsSchemaAndUrl = async () => {
+    if (isFeaturePreviewEnabled('workspace-data-service') && !getConfig().isProd && isAzureWorkspace) {
+      await Ajax(signal).Apps.getV2AppInfo(workspaceId).then(async apps => {
+        try {
+          setWdsSchema([])
+          setWdsSchemaError(undefined)
+          const url = getWdsUrl(apps)
+          setWdsProxyUrl(url)
+          const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+          setWdsSchema(wdsSchema)
+        } catch (error) {
+          setWdsSchemaError(error)
+        }
+      })
     }
+  }
+
+  const getWdsUrl = apps => {
+    // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
+    // this handles the case where the user has explicitly shut down the app
+    const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
+    if (namedApp.length === 1) {
+      return namedApp[0].proxyUrls.wds
+    }
+    // if we didn't find the expected app 'cbas-wds-default', go hunting:
+    const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+    if (candidates.length === 0) {
+      // no app deployed yet
+      return ''
+    }
+    if (candidates.length > 1) {
+      // multiple apps found; use the earliest-created one
+      candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+    }
+    return candidates[0].proxyUrls.wds
   }
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
@@ -768,6 +794,8 @@ const WorkspaceData = _.flow(
                 wdsSchemaError && h(NoDataPlaceholder, {
                   message: 'Data tables are unavailable.'
                 }),
+                // TODO: Logic needs to slightly change here -- there is a delay when wdsSchema is updated
+                // so `No tables have been uploaded.` briefly renders
                 !wdsSchemaError && _.isEmpty(wdsSchema) && h(NoDataPlaceholder, {
                   message: 'No tables have been uploaded.',
                   buttonText: 'Upload TSV',
@@ -1048,10 +1076,11 @@ const WorkspaceData = _.flow(
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
-          [workspaceDataTypes.wds, () => h(WDSContent, {
+          [workspaceDataTypes.wds, () => wdsDataTableProvider && wdsProxyUrl && wdsSchema && h(WDSContent, {
             key: refreshKey,
             workspaceUUID: workspaceId,
             workspace,
+            dataProvider: wdsDataTableProvider,
             recordType: selectedData.entityType,
             wdsSchema
           })]

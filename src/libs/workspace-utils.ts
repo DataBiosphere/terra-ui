@@ -1,5 +1,12 @@
-import { CloudProviderType, cloudProviderTypes } from './ajax/ajax-common'
 
+export type CloudProviderType = 'AZURE' | 'GCP'
+export const cloudProviderTypes: Record<CloudProviderType, CloudProviderType> = {
+  AZURE: 'AZURE',
+  GCP: 'GCP'
+}
+export const isCloudProvider = (x: unknown): x is CloudProviderType => {
+  return x as string in cloudProviderTypes
+}
 
 export interface BaseWorkspaceInfo {
   namespace: string
@@ -17,6 +24,7 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 }
 
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo
+
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
   return !!((workspace as GoogleWorkspaceInfo).googleProject)
 }
