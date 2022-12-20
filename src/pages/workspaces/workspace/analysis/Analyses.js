@@ -22,6 +22,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -402,6 +403,7 @@ const Analyses = _.flow(
             width: 40, height: 20,
             onChange: value => {
               setEnableJupyterLabGCP(value)
+              Ajax().Metrics.captureEvent(Events.analysisToggleJupyterLabGCP, { ...extractWorkspaceDetails(workspace.workspace), enabled: value })
             }
           })
         ])
