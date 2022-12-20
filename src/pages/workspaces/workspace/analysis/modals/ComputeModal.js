@@ -874,6 +874,7 @@ export const ComputeModalBase = ({
         ]),
         div({ style: { display: 'grid', alignItems: 'center', gridGap: '0.7rem', gridTemplateColumns: '4.5rem 9.5rem', marginTop: '0.75rem' } }, [
           h(NumberInput, {
+              id,
               min: 10,
               max: 45,
               isClearable: false,

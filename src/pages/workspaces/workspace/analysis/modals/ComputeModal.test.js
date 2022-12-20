@@ -842,6 +842,131 @@ describe('ComputeModal', () => {
       })
     }))
   })
+
+  it('correctly renders and updates timeoutInMinutes', async () => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+      await render(h(ComputeModalBase, defaultModalProps))
+
+      // Act
+      await userEvent.click(screen.getByText('Customize'))
+      const selectMenu = await screen.getByLabelText('Application configuration')
+      await userEvent.click(selectMenu)
+      const selectOption = await screen.findByText(/Legacy GATK:/)
+      await userEvent.click(selectOption)
+
+      await screen.findByText('Creation Timeout Limit')
+      const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+      await fireEvent.change(timeoutInput, { target: { value: 20 } })
+
+      //Assert
+      expect(timeoutInput.value).toBe('20')
+
+      //Act
+      await userEvent.click(selectMenu)
+      const selectOption2 = await screen.findByText(defaultImage.label)
+      await userEvent.click(selectOption2)
+      // Assert
+      expect(timeoutInput).not.toBeVisible()
+    })
+  })
+
+  it('correctly sends timeoutInMinutes to create', async () => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+      await render(h(ComputeModalBase, defaultModalProps))
+
+      // Act
+      await act(async () => {
+        await userEvent.click(screen.getByText('Customize'))
+        const selectMenu = await screen.getByLabelText('Application configuration')
+        await userEvent.click(selectMenu)
+        const selectOption = await screen.findByText(/Legacy GATK:/)
+        await userEvent.click(selectOption)
+
+        await screen.findByText('Creation Timeout Limit')
+        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+        await fireEvent.change(timeoutInput, { target: { value: 20 } })
+      })
+
+      // Act
+      await act(async () => {
+        const create = screen.getByText('Create')
+        await userEvent.click(create)
+      })
+
+      // Assert
+      expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+        timeoutInMinutes: 20
+      }))
+    })
+  })
+
+  it('correctly sends null timeoutInMinutes to runtime create', async () => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+      await act(async () => {
+        await render(h(ComputeModalBase, defaultModalProps))
+
+        await userEvent.click(screen.getByText('Customize'))
+        const selectMenu = await screen.getByLabelText('Application configuration')
+        await userEvent.click(selectMenu)
+        const selectOption = await screen.findByText(/Legacy GATK:/)
+        await userEvent.click(selectOption)
+
+        await screen.findByText('Creation Timeout Limit')
+        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+        await fireEvent.change(timeoutInput, { target: { value: 20 } })
+        await userEvent.click(selectMenu)
+        const selectOption2 = await screen.findByText(defaultImage.label)
+        await userEvent.click(selectOption2)
+      })
+
+      // Act
+      await act(async () => {
+        const create = screen.getByText('Create')
+        await userEvent.click(create)
+      })
+
+      // Assert
+      expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+        timeoutInMinutes: null
+      }))
+    })
+  })
 })
 
 // TODO: Write a test that does the following:
