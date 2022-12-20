@@ -6,6 +6,8 @@ describe('isAxeEnabled', () => {
 
   beforeAll(() => {
     env = process.env.NODE_ENV
+
+    jest.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterAll(() => {
