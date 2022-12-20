@@ -2,6 +2,7 @@ import '@testing-library/jest-dom'
 
 import { render, screen } from '@testing-library/react'
 import { div, h } from 'react-hyperscript-helpers'
+import { DownloadFileCommand } from 'src/components/file-browser/DownloadFileCommand'
 import { DownloadFileLink } from 'src/components/file-browser/DownloadFileLink'
 import { FileDetails } from 'src/components/file-browser/FileDetails'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
@@ -13,8 +14,14 @@ jest.mock('src/components/file-browser/DownloadFileLink', () => ({
   DownloadFileLink: jest.fn(),
 }))
 
+jest.mock('src/components/file-browser/DownloadFileCommand', () => ({
+  ...jest.requireActual('src/components/file-browser/DownloadFileCommand'),
+  DownloadFileCommand: jest.fn(),
+}))
+
 beforeAll(() => {
   asMockedFn(DownloadFileLink).mockImplementation(() => div(['Download file']))
+  asMockedFn(DownloadFileCommand).mockImplementation(() => div(['Download command']))
 })
 
 describe('FileDetails', () => {
@@ -48,5 +55,13 @@ describe('FileDetails', () => {
 
     // Assert
     screen.getByText('Download file')
+  })
+
+  it('renders download command', () => {
+    // Act
+    render(h(FileDetails, { file, provider: mockProvider }))
+
+    // Assert
+    screen.getByText('Download command')
   })
 })
