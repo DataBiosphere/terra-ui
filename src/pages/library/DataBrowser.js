@@ -12,7 +12,7 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumsFromDataset,
-  getDataModalityListFromDataset,
+  getDataModalityListFromDataset, getDatasetAccessType,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -133,7 +133,8 @@ const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList,
     useHover: false,
     underRowKey: 'underRow',
     rows: _.map(datum => {
-      const { requestAccessURL, access } = datum
+      const { requestAccessURL } = datum
+      const access = getDatasetAccessType(datum)
       return {
         name: h(Link,
           {
