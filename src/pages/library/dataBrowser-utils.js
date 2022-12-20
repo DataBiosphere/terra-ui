@@ -98,11 +98,11 @@ export const DatasetAccess = ({ dataset }) => {
   return h(Fragment, [
     Utils.cond(
       [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        style: { height: 34, textTransform: 'none', padding: '.5rem' },
         href: requestAccessURL, target: '_blank'
       }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
       [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        style: { height: 34, textTransform: 'none', padding: '.5rem' },
         onClick: () => {
           setRequestingAccess()
           Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
@@ -111,15 +111,15 @@ export const DatasetAccess = ({ dataset }) => {
           })
         }
       }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex' } }, [
+      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
         icon('lock'),
         div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
       ])],
       [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
-        style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
+        style: { height: 34, textTransform: 'none', padding: '.5rem' },
         href: dataset['dcat:accessURL'], target: '_blank'
       }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
-      [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex' } }, [
+      [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [
         icon('unlock'),
         div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
       ])]),
