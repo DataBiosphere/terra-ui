@@ -103,7 +103,7 @@ const somePersistentDiskRequiresMigration = (workspaces, disks) => {
     _.mapValues(_.flow(_.groupBy('name'), _.mapValues(_.head)))
   )(workspaces)
 
-  return workspaces && _.flip(_.some)(disks, ({ googleProject, labels }) => {
+  return !_.isEmpty(workspaces) && _.flip(_.some)(disks, ({ googleProject, labels }) => {
     return workspacesByNsAndName[labels.saturnWorkspaceNamespace]?.[labels.saturnWorkspaceName]?.googleProject !== googleProject
   })
 }
