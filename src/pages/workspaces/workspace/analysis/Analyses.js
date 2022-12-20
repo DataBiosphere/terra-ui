@@ -378,9 +378,9 @@ const Analyses = _.flow(
   const previewJupyterLabMessage = div({
     style: _.merge(
       Style.elements.card.container,
-      { backgroundColor: colors.success(0.15), flexDirection: 'none', justifyContent: 'space-between', whiteSpace: 'pre-wrap', alignItems: 'center' })
+      { backgroundColor: colors.success(0.15), flexDirection: 'none', alignItems: 'center' })
   }, [
-    div({ style: { display: 'flex' } }, [
+    div({ style: { display: 'flex', flexWrap: 'wrap', whiteSpace: 'pre-wrap', alignItems: 'center' } }, [
       icon('talk-bubble', { size: 19, style: { color: colors.warning(), marginRight: '1rem' } }),
       'JupyterLab is now available in this workspace as a beta feature. Please ',
       h(Link, {
@@ -394,7 +394,7 @@ const Analyses = _.flow(
         div({
           style: { display: 'flex', alignItems: 'center' }
         }, [
-          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem' } }, 'Enable JupyterLab'),
+          label({ htmlFor: id, style: { fontWeight: 'bold', margin: '0 0.5rem', whiteSpace: 'nowrap' } }, 'Enable JupyterLab'),
           h(Switch, {
             id,
             checked: enableJupyterLabGCP,
