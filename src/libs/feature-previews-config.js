@@ -14,13 +14,6 @@ const featurePreviewsConfig = [
     feedbackUrl: `mailto:dsp-sue@broadinstitute.org?subject=${encodeURIComponent('Feedback on data table provenance')}`
   },
   {
-    id: 'workspace-data-service',
-    title: 'Workspace Data Service (WDS) on Azure',
-    description: 'Enabling this feature will enable WDS-powered data tables.',
-    groups: ['preview-wds-on-azure'],
-    feedbackUrl: `mailto:dsp-analysis-journeys@broadinstitute.org?subject=${encodeURIComponent('Feedback on WDS UI')}`
-  },
-  {
     id: 'jupyterlab-gcp',
     title: 'JupyterLab on GCP',
     description: 'Enabling this feature will allow you to launch notebooks using JupyterLab in GCP workspaces.',

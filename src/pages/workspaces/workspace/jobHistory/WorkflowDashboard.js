@@ -3,8 +3,9 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { ClipboardButton } from 'src/components/ClipboardButton'
 import Collapse from 'src/components/Collapse'
-import { ClipboardButton, Link } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
   collapseCromwellStatus, collapseStatus, makeSection, makeStatusLine, statusType, workflowDetailsBreadcrumbSubtitle

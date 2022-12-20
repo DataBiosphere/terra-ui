@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
-import {
-  ButtonOutline, ButtonPrimary, ClipboardButton, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
-} from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -43,6 +42,7 @@ const titleId = 'cloud-compute-modal-title'
 const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
+const anVILRStudioImage = 'https://github.com/anvilproject/anvil-docker/tree/master/anvil-rstudio-bioconductor'
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 
 // Distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
@@ -866,7 +866,7 @@ export const ComputeModalBase = ({
               'The software application + programming languages + packages used when you create your cloud environment. '
             ])
           ]),
-          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool !== toolLabels.RStudio })])
+          div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: tool === toolLabels.Jupyter || tool === toolLabels.RStudio })])
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
@@ -889,8 +889,15 @@ export const ComputeModalBase = ({
               ])
             ]),
             div([
-              'Custom environments ', b(['must ']), 'be based off one of the ',
-              h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
+              'Custom environments ', b(['must ']), 'be based off ',
+              Utils.switchCase(tool, [
+                toolLabels.RStudio, () => ['the ', h(Link,
+                  { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]
+                ], [
+                toolLabels.Jupyter, () => ['one of the ', h(Link,
+                  { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])]
+                ]
+              )
             ])
           ])
         }],
@@ -1228,8 +1235,12 @@ export const ComputeModalBase = ({
       div({ style: { lineHeight: 1.5 } }, [
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
-          'Please make sure that it was created by you or someone you trust, using one of our ',
-          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.']),
+          'Please make sure that it was created by you or someone you trust using ',
+          Utils.switchCase(tool, [
+            toolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
+          ], [
+            toolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
+          ]),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),

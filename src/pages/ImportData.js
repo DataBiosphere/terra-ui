@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, img, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, wdlIcon } from 'src/components/icons'
@@ -10,6 +10,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
+import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -205,7 +206,11 @@ const ImportData = () => {
   return h(FooterWrapper, [
     h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
-      backgroundLogo,
+      img({
+        src: scienceBackground,
+        alt: '',
+        style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
+      }),
       div({ style: styles.card }, [
         h2({ style: styles.title }, [header]),
         !_.isEmpty(snapshots) ?

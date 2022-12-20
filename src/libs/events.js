@@ -71,6 +71,8 @@ const eventsList = {
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
   workflowRerun: 'workflow:rerun',
+  workflowUploadIO: 'workflow:uploadIO',
+  workflowUseDefaultOutputs: 'workflow:useDefaultOutputs',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataAddColumn: 'workspace:data:addColumn',
