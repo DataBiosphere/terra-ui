@@ -7,6 +7,8 @@ describe('isAxeEnabled', () => {
   beforeAll(() => {
     env = process.env.NODE_ENV
 
+    // isAxeEnabled logs a notice and instructions for developers.
+    // Those should not be shown in test output.
     jest.spyOn(console, 'log').mockImplementation(() => {})
   })
 
