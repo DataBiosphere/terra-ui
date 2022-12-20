@@ -193,8 +193,7 @@ export const UnboundDiskNotification = props => {
 }
 
 const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
-  console.assert(isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
-
+  console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
   const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState(false)
