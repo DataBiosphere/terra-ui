@@ -907,8 +907,8 @@ describe('ComputeModal', () => {
         await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
-        const selectOption = await screen.findByText('Custom Environment')
-        await userEvent.click(selectOption)
+        const customImageSelect = await screen.findByText('Custom Environment')
+        await userEvent.click(customImageSelect)
 
         await screen.findByText('Creation Timeout Limit')
         const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
@@ -944,7 +944,7 @@ describe('ComputeModal', () => {
   it.each([
     { runtimeTool: runtimeTools.Jupyter, imageLabel: defaultImage.label },
     { runtimeTool: runtimeTools.RStudio, imageLabel: defaultRImage.label }
-  ])('sends null timeout in minutes for tool $runtimeTool.label', async ({ runtimeTool, imageLabel }) => {
+  ])('sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field', async ({ runtimeTool, imageLabel }) => {
     await act(async () => {
       // Arrange
       const createFunc = jest.fn()
@@ -966,15 +966,17 @@ describe('ComputeModal', () => {
         await userEvent.click(screen.getByText('Customize'))
         const selectMenu = await screen.getByLabelText('Application configuration')
         await userEvent.click(selectMenu)
-        const selectOption = await screen.findByText('Custom Environment')
-        await userEvent.click(selectOption)
+        const customImageSelect = await screen.findByText('Custom Environment')
+        await userEvent.click(customImageSelect)
 
         await screen.findByText('Creation Timeout Limit')
         const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+        // Set the field to an arbitrary value
         await fireEvent.change(timeoutInput, { target: { value: 20 } })
         await userEvent.click(selectMenu)
-        const selectOption2 = await screen.findByText(imageLabel)
-        await userEvent.click(selectOption2)
+        const supportedImageSelect = await screen.findByText(imageLabel)
+        // Clear timeoutInput by selecting
+        await userEvent.click(supportedImageSelect)
       })
 
       // Act
@@ -985,6 +987,8 @@ describe('ComputeModal', () => {
 
       // Assert
       expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+        // Verify that timeoutInMinutes is actually cleared by selecting
+        // a supported image.
         timeoutInMinutes: null
       }))
     })
