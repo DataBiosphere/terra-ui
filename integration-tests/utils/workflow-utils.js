@@ -1,20 +1,17 @@
 const pRetry = require('p-retry')
 const { click, clickable, findInGrid } = require('./integration-utils')
+const { enablePageLogging } = require('./integration-utils')
 
 
 const launchWorkflowAndWaitForSuccess = async page => {
   await click(page, clickable({ text: 'Run analysis' }))
   // If general ajax logging is disabled, uncomment the following to debug the sporadically failing
   // checkBucketAccess call.
-  // const stopLoggingPageAjaxResponses = logPageAjaxResponses(page)
+  enablePageLogging(page)
   // TODO: Aaron -- this takes too long to return
   await Promise.all([
-    page.waitForNavigation(
-      { timeout: 0 }
-    ),
     click(page, clickable({ text: 'Launch' }))
   ])
-  // stopLoggingPageAjaxResponses()
 
   // If this table doesn't exists, something is wrong. Fail test now.
   await page.waitForXPath('//*[@role="table" and @aria-label="submission details"]', { visible: true })
