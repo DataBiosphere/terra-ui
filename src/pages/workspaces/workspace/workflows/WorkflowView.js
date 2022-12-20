@@ -1002,6 +1002,17 @@ const WorkflowView = _.flow(
           modifiedConfig: _.update(key, _.assign(_, _.pick(existing, updates)), modifiedConfig)
         }
       })
+
+      const { workspace } = this.props
+      const { modifiedConfig } = this.state
+      const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+      Ajax().Metrics.captureEvent(Events.workflowUploadIO, {
+        ...extractWorkspaceDetails(workspace.workspace),
+        inputsOrOutputs: key,
+        methodVersion,
+        sourceRepo,
+        methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+      })
     } catch (error) {
       if (error instanceof SyntaxError) {
         reportError('Error processing file', 'This json file is not formatted correctly.')
@@ -1119,13 +1130,25 @@ const WorkflowView = _.flow(
           errors,
           onBrowse: name => this.setState({ variableSelected: name }),
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
-          onSetDefaults: () => this.setState(oldState => {
-            return _.set(
-              ['modifiedConfig', 'outputs'],
-              _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
-              oldState
-            )
-          }),
+          onSetDefaults: () => {
+            this.setState(oldState => {
+              return _.set(
+                ['modifiedConfig', 'outputs'],
+                _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
+                oldState
+              )
+            })
+
+            const { workspace } = this.props
+            const { modifiedConfig } = this.state
+            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+            Ajax().Metrics.captureEvent(Events.workflowUseDefaultOutputs, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              methodVersion,
+              sourceRepo,
+              methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+            })
+          },
           suggestions,
           availableSnapshots
         })
