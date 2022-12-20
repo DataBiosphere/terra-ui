@@ -292,7 +292,8 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
             url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
-            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest
+            snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest,
+            tdrSyncPermissions: true
           })
         }) : onFailure()
       }],
