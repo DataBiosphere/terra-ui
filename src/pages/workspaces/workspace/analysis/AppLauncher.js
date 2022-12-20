@@ -170,7 +170,7 @@ const ApplicationLauncher = _.flow(
       //user may toggle back and forth between them. In order to keep notebooks tidy and in a predictable location on
       //disk, we mirror the localBaseDirectory used by edit mode for Jupyter.
       //Once Jupyter is phased out in favor of JupyterLab for GCP, the localBaseDirectory can be '' for all cases
-      const localBaseDirectory = !!googleProject ? `${workspaceName}/edit` : ''
+      const localBaseDirectory = !!googleProject && application === toolLabels.JupyterLab ? `${workspaceName}/edit` : ''
 
       const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`
