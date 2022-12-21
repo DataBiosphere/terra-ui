@@ -293,7 +293,7 @@ const SnapshotExportModal = ({ jobId, dataset, onDismiss, onFailure }) => {
           search: qs.stringify({
             url: getConfig().dataRepoUrlRoot, format: 'tdrexport', referrer: 'data-catalog',
             snapshotId: dataset['dct:identifier'], snapshotName: dataset['dct:title'], tdrmanifest: jobResultManifest,
-            tdrSyncPermissions: true
+            tdrSyncPermissions: false
           })
         }) : onFailure()
       }],
