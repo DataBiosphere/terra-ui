@@ -37,7 +37,6 @@ const analysisMode = Symbol('artifact')
 const environmentMode = Symbol('environment')
 
 export interface AnalysisModalProps {
-
   isOpen: boolean
   workspace: BaseWorkspace
   location: any
@@ -45,29 +44,22 @@ export interface AnalysisModalProps {
   onError: () => void
   onSuccess: () => void
   openUploader: () => void
-
   runtimes: any
   apps: AppTool
-
   appDataDisks: any
   persistentDisks: any
-
   uploadFiles: () => void
 }
 
-//TODO: useAnalysisFiles()
-// This will replace refreshAnalyses, analyses,
-
-
 export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onError, onSuccess, //Modal actions
-    runtimes, apps, // ToolStore - useToolStore()
+    isOpen, onDismiss, onError, onSuccess,
+    runtimes, apps,
     appDataDisks, persistentDisks,
-    uploadFiles, //TODO add to useAnalysisFiles
-    openUploader, //File/Modal action? Keep out of useAnalysisFiles
+    uploadFiles,
+    openUploader,
     workspace,
-    location//, workspace: { workspace: { workspaceId, googleProject, bucketName }
+    location
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -142,7 +134,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
-      // isOpen: currentTool === toolLabels.Jupyter || currentTool === toolLabels.RStudio,
       location,
       workspace: workspace.workspace,
       tool: currentTool,
@@ -154,7 +145,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     })
 
     const renderAzureModal = () => h(AzureComputeModalBase, {
-      // isOpen: currentTool === toolLabels.JupyterLab,
       workspace: {
         workspace: workspace.workspace
       },
@@ -247,7 +237,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         onDropRejected: () => reportError('Not a valid analysis file',
           `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
-          //TODO: How do we make this more elegant?
           let tool
           if (isGoogleWorkspaceInfo(workspace.workspace)) {
             const toolLabel = getToolFromFileExtension(files.pop().path)
@@ -257,7 +246,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           } else {
             tool = runtimeTools.JupyterLab
           }
-          // tool = !!isGoogleWorkspaceInfo(workspace.workspace) ? tools[getToolFromFileExtension(files.pop().path)] : runtimeTools.JupyterLab
           setCurrentToolObj(tool)
           currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeTool !== tool ?
             onSuccess() :
@@ -375,9 +363,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 isGoogleWorkspaceInfo(workspace.workspace) ?
                   await Ajax().Buckets.analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, fullAnalysisName, toolLabel).create(contents) :
                   await Ajax().AzureStorage.blob(workspace.workspace.workspaceId, fullAnalysisName).create(contents)
-                //TODO: Add create to useAnalysisFiles
                 await refresh()
-                // await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
+                // @ts-expect-error
+                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
