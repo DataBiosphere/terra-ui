@@ -796,6 +796,10 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
   ])])
 }
 
+export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
+  div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
+])
+
 export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) => {
   const [dragAmount, setDragAmount] = useState(undefined)
   const [lastX, setLastX] = useState(undefined)
