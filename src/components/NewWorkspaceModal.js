@@ -112,7 +112,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
         copyFilesWithPrefix: 'notebooks/',
-        ...(!!bucketLocation && { bucketLocation })
+        ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
