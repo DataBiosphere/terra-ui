@@ -511,7 +511,8 @@ const Analyses = _.flow(
           analyses,
           apps,
           refreshApps,
-          uploadFiles, openUploader,
+          uploadFiles,
+          openUploader,
           location,
           onDismiss: () => {
             setCreating(false)

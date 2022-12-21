@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import React, { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Select, useUniqueIdFn } from 'src/components/common'
+import { ButtonPrimary, Clickable, Select, useUniqueId } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -82,7 +82,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
-    const uniqueId = useUniqueIdFn()
 
     const { loadedState: { state: analyses }, refresh }: AnalysisFileStore = useAnalysisFiles()
 
@@ -266,7 +265,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           uploadFiles()
         }
       },
-      //@ts-expect-error
+      // @ts-expect-error
       [() => h(Clickable, {
         onClick: () => {
           onSuccess()
@@ -301,11 +300,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       renderCreateAnalysisBody(currentTool)
     ])
 
+    const analysisNameInputId = useUniqueId('analysis-name-input')
+    const nameSelectId = useUniqueId('select-language')
+    const fileTypeSelect = useUniqueId('select-file-type')
+
     const renderCreateAnalysisBody = toolLabel => {
       const isJupyter = toolLabel === toolLabels.Jupyter
       const isRStudio = toolLabel === toolLabels.RStudio
       const isJupyterLab = toolLabel === toolLabels.JupyterLab
-
       const errors = validate(
         { analysisName: `${analysisName}.${fileExt}`, notebookKernel },
         {
@@ -315,40 +317,40 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
       )
       return div({ style: { display: 'flex', flexDirection: 'column' } }, [
         h(Fragment, [
-          h(FormLabel, { htmlFor: uniqueId('analysis-name-input'), required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
+          h(FormLabel, { htmlFor: analysisNameInputId, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
           analysisNameInput({
             error: Utils.summarizeErrors(prevAnalysisName !== analysisName && errors?.analysisName),
             inputProps: {
-              id: uniqueId('analysis-name-input'), value: analysisName,
+              id: analysisNameInputId, value: analysisName,
               onChange: v => {
                 setAnalysisName(v)
               }
             }
           })
         ]),
-        [isJupyterLab || isJupyter,
+        (isJupyterLab || isJupyter) &&
           h(Fragment, [
-            h(FormLabel, { htmlFor: uniqueId('select-language'), required: true }, ['Language']),
+            h(FormLabel, { htmlFor: nameSelectId, required: true }, ['Language']),
             h(Select, {
-              id: uniqueId('select-language'), isSearchable: true,
+              id: nameSelectId, isSearchable: true,
               placeholder: 'Select a language',
               getOptionLabel: ({ value }) => _.startCase(value),
               value: notebookKernel,
               onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
               options: ['python3', 'r']
             })
-          ])],
-        [isRStudio, () => h(Fragment, [
-          h(FormLabel, { htmlFor: uniqueId('select-file-type'), required: true }, ['File Type']),
+          ]),
+        isRStudio && h(Fragment, [
+          h(FormLabel, { htmlFor: fileTypeSelect, required: true }, ['File Type']),
           h(Select, {
-            id: uniqueId('select-file-type'), isSearchable: true,
+            id: fileTypeSelect, isSearchable: true,
             value: fileExt,
             onChange: v => {
               setFileExt(v.value)
             },
             options: toolExtensionDisplay.RStudio as ExtensionDisplay[]
           })
-        ])],
+        ]),
         (isJupyterLab || isRStudio || isJupyter) &&
         currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeTool !== toolLabel &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
