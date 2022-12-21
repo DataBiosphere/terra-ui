@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -19,7 +19,9 @@ import { useCancellation, usePollingEffect } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
 import {
+  DatasetAccess,
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getDataModalityListFromDataset,
+  getDatasetAccessType,
   isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
 import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
@@ -102,16 +104,6 @@ const MainContent = ({ dataObj }) => {
         workspaceName
       ])
     ]),
-    dataObj.access === datasetAccessTypes.EXTERNAL && div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-      'This data is hosted and managed externally from Terra. ',
-      h(Link, {
-        style: { ...linkStyle, marginLeft: 10 },
-        href: accessURL, target: '_blank'
-      }, [
-        'Go to external data site',
-        icon('pop-out', { size: 18, style: { marginLeft: 10, color: styles.access.controlled } })
-      ])
-    ]),
     dataObj['dct:description'],
     h(MetadataDetailsComponent, { dataObj })
   ])
@@ -119,14 +111,14 @@ const MainContent = ({ dataObj }) => {
 
 
 export const SidebarComponent = ({ dataObj, id }) => {
-  const { access, requestAccessURL } = dataObj
   const [showRequestAccessModal, setShowRequestAccessModal] = useState(false)
   const [feedbackShowing, setFeedbackShowing] = useState(false)
   const [datasetNotSupportedForExport, setDatasetNotSupportedForExport] = useState(false)
   const [snapshotExportJobId, setSnapshotExportJobId] = useState()
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
-
+  const access = getDatasetAccessType(dataObj)
+  const actionTooltip = access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip
 
   const importDataToWorkspace = dataset => {
     Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -160,34 +152,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
       div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
         div([
           h3(['Access type']),
-          div([
-            Utils.cond(
-              [access === datasetAccessTypes.EXTERNAL, () => div({ style: { fontSize: 12 } }, ['Managed Externally'])],
-              [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                href: requestAccessURL, target: '_blank'
-              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-              [access === datasetAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
-                style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-                onClick: () => {
-                  setShowRequestAccessModal(true)
-                  Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                    id: dataObj.id,
-                    title: dataObj['dct:title']
-                  })
-                }
-              }, [
-                icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
-                'Request Access'
-              ])],
-              [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
-                icon('unlock', { size: 18, style: { marginRight: 10 } }),
-                'Pending Access'
-              ])],
-              [Utils.DEFAULT, () => div({ style: { color: styles.access.granted } }, [
-                icon('unlock', { size: 18, style: { marginRight: 10 } }),
-                'Granted Access'
-              ])])
+          div({ style: { display: 'flex', alignItems: 'flex-start' } }, [
+            h(DatasetAccess, { dataset: dataObj }),
           ])
         ]),
         div([
@@ -234,10 +200,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && dataObj.access !== datasetAccessTypes.GRANTED,
-            tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
-              uiMessaging.unsupportedDatasetTypeTooltip('preview'),
+            disabled: access !== datasetAccessTypes.GRANTED,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
@@ -253,10 +217,8 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) && (dataObj.access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling),
-            tooltip: (isWorkspace(dataObj) || isDatarepoSnapshot(dataObj)) ?
-              dataObj.access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip :
-              uiMessaging.unsupportedDatasetTypeTooltip('preparing for analysis'),
+            disabled: access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling,
+            tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
               importDataToWorkspace(dataObj)

@@ -1,21 +1,20 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonOutline, Link, spinnerOverlay } from 'src/components/common'
+import { Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ColumnSelector, MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
+  DatasetAccess,
   datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumsFromDataset,
   getDataModalityListFromDataset,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
@@ -112,7 +111,7 @@ export const convertColsToSettings = cols => _.flow(
   })
 )(allColumns)
 
-const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList }) => {
+const DataBrowserTableComponent = ({ sort, setSort, cols, setCols, filteredList }) => {
   return div({ style: { position: 'relative', margin: '0 15px' } }, [h(SimpleTable, {
     'aria-label': 'dataset list',
     columns: [
@@ -133,7 +132,6 @@ const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList,
     useHover: false,
     underRowKey: 'underRow',
     rows: _.map(datum => {
-      const { requestAccessURL, access } = datum
       return {
         name: h(Link,
           {
@@ -150,33 +148,7 @@ const DataBrowserTableComponent = ({ sort, setSort, setRequestDatasetAccessList,
         ..._.reduce((reduced, columnKey) => { return { ...reduced, [columnKey]: allColumns[columnKey].contents(datum) } }, {}, cols),
         underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
           div({ style: { display: 'flex', alignItems: 'center' } }, [
-            Utils.cond(
-              [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                href: requestAccessURL, target: '_blank'
-              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-              [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
-                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                onClick: () => {
-                  setRequestDatasetAccessList([datum])
-                  Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
-                    id: datum.id,
-                    title: datum['dct:title']
-                  })
-                }
-              }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-              [access === datasetAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
-                icon('lock'),
-                div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
-              ])],
-              [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
-                style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
-                href: datum['dcat:accessURL'], target: '_blank'
-              }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
-              [Utils.DEFAULT, () => div({ style: { color: styles.access.granted, display: 'flex' } }, [
-                icon('unlock'),
-                div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Granted Access'])
-              ])])
+            h(DatasetAccess, { dataset: datum })
           ])
         ])
       }
@@ -194,7 +166,6 @@ export const Browser = () => {
   // This state contains the current set of visible columns, in the order that they appear.
   // Note that the Dataset Name column isn't customizable and is always shown first.
   const [cols, setCols] = useState(['consortiums', 'subjects', 'dataModality', 'lastUpdated'])
-  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
   const { dataCatalog, loading } = useDataCatalog()
 
   return h(Fragment, [
@@ -206,11 +177,7 @@ export const Browser = () => {
       titleField: 'dct:title',
       descField: 'dct:description',
       idField: 'id',
-      listView: filteredList => DataBrowserTableComponent({ sort, setSort, setRequestDatasetAccessList, cols, setCols, filteredList })
-    }),
-    !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
-      datasets: requestDatasetAccessList,
-      onDismiss: () => setRequestDatasetAccessList()
+      listView: filteredList => DataBrowserTableComponent({ sort, setSort, cols, setCols, filteredList })
     }),
     loading && spinnerOverlay
   ])

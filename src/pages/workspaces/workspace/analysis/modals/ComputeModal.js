@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
-import {
-  ButtonOutline, ButtonPrimary, ClipboardButton, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay
-} from 'src/components/common'
+import { ClipboardButton } from 'src/components/ClipboardButton'
+import { ButtonOutline, ButtonPrimary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'

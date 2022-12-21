@@ -1,12 +1,17 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { ButtonOutline } from 'src/components/common/buttons'
+import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { commonStyles } from 'src/pages/library/common'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const datasetAccessTypes = {
@@ -81,15 +86,53 @@ export const getAssayCategoryListFromDataset = dataset => _.flow(
 export const formatDatasetTime = time => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
 
-const normalizeDataset = dataset => {
-  const access = Utils.cond(
-    [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
-    [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
-    () => datasetAccessTypes.CONTROLLED)
-  return {
-    ...dataset,
-    access
-  }
+export const getDatasetAccessType = dataset => Utils.cond(
+  [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
+  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
+  () => datasetAccessTypes.CONTROLLED)
+
+export const DatasetAccess = ({ dataset }) => {
+  const { requestingAccess, setRequestingAccess } = useState()
+  const access = getDatasetAccessType(dataset)
+  const { requestAccessURL } = dataset
+  const buttonStyle = { height: 34, textTransform: 'none', padding: '.5rem' }
+  const textStyle = { paddingLeft: 10, paddingTop: 4, fontSize: 12 }
+
+  return h(Fragment, [
+    Utils.cond(
+      [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => {
+        return h(ButtonOutline, {
+          style: buttonStyle,
+          href: requestAccessURL, target: '_blank'
+        }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])
+      }],
+      [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+        style: buttonStyle,
+        onClick: () => {
+          setRequestingAccess()
+          Ajax().Metrics.captureEvent(`${Events.catalogRequestAccess}:popUp`, {
+            id: dataset.id,
+            title: dataset['dct:title']
+          })
+        }
+      }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
+      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
+        icon('lock'),
+        div({ style: textStyle }, ['Pending Access'])
+      ])],
+      [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+        style: buttonStyle,
+        href: dataset['dcat:accessURL'], target: '_blank'
+      }, [div({ style: { fontSize: 12 } }, ['Externally managed']), icon('pop-out', { style: { marginLeft: 10 }, size: 16 })])],
+      [Utils.DEFAULT, () => div({ style: { color: commonStyles.access.granted, display: 'flex', alignItems: 'center' } }, [
+        icon('unlock'),
+        div({ style: textStyle }, ['Granted Access'])
+      ])]),
+    !!requestingAccess && h(RequestDatasetAccessModal, {
+      datasets: [dataset],
+      onDismiss: () => setRequestingAccess()
+    })
+  ])
 }
 
 // These are used to match against by the filter
@@ -97,7 +140,7 @@ const extractTags = dataset => {
   return {
     itemsType: 'AttributeValue',
     items: _.flow(_.flatten, _.toLower)([
-      dataset.access,
+      getDatasetAccessType(dataset),
       getConsortiumsFromDataset(dataset),
       dataset.samples?.genus,
       dataset.samples?.disease,
@@ -109,14 +152,13 @@ const extractTags = dataset => {
   }
 }
 
-export const filterAndNormalizeDatasets = (datasets, dataCollectionsToInclude) => {
+export const prepareDatasetsForDisplay = (datasets, dataCollectionsToInclude) => {
   const filteredDatasets = _.filter(dataCollectionsToInclude ?
     dataset => _.intersection(dataCollectionsToInclude, _.map('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])).length > 0 :
     _.constant(true),
   datasets)
   return _.map(dataset => {
-    const normalizedDataset = normalizeDataset(dataset)
-    return _.set(['tags'], extractTags(normalizedDataset), normalizedDataset)
+    return _.set(['tags'], extractTags(dataset), dataset)
   }, filteredDatasets)
 }
 
@@ -131,7 +173,7 @@ export const useDataCatalog = () => {
   )(async () => {
     const { result: datasets } = await Ajax(signal).Catalog.getDatasets()
     const dataCollectionsToInclude = getEnabledBrand().catalogDataCollectionsToInclude
-    const normList = filterAndNormalizeDatasets(datasets, dataCollectionsToInclude)
+    const normList = prepareDatasetsForDisplay(datasets, dataCollectionsToInclude)
 
     dataCatalogStore.set(normList)
   })

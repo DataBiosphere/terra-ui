@@ -195,6 +195,17 @@ describe('AzureBlobStorageFileBrowserProvider', () => {
     expect(downloadUrl).toBe('https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/example.txt?tokenPlaceholder=value')
   })
 
+  it('returns an azcopy download command', async () => {
+    // Arrange
+    const provider = AzureBlobStorageFileBrowserProvider({ workspaceId: 'test-workspace' })
+
+    // Act
+    const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt')
+
+    // Assert
+    expect(downloadCommand).toBe('azcopy copy \'https://terra-ui-test.blob.core.windows.net/test-storage-container/path/to/example.txt?tokenPlaceholder=value\' .')
+  })
+
   it('uploads a file', async () => {
     // Arrange
     asMockedFn(fetchOk).mockResolvedValue(new Response())

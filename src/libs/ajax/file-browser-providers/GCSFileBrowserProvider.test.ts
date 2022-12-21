@@ -164,6 +164,17 @@ describe('GCSFileBrowserProvider', () => {
     expect(downloadUrl).toBe('signedUrl')
   })
 
+  it('returns a gsutil download command', async () => {
+    // Arrange
+    const provider = GCSFileBrowserProvider({ bucket: 'test-bucket', project: 'test-project' })
+
+    // Act
+    const downloadCommand = await provider.getDownloadCommandForFile('path/to/example.txt')
+
+    // Assert
+    expect(downloadCommand).toBe('gsutil cp gs://test-bucket/path/to/example.txt .')
+  })
+
   it('uploads a file', async () => {
     // Arrange
     const upload = jest.fn(() => Promise.resolve())
