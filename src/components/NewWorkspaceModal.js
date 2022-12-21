@@ -161,18 +161,22 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = project => {
+  const isAzureBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.azure.label)
+
+  const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
+
+  const isCloudProviderBillingProject = (project, cloudProvider) => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    return project?.cloudPlatform === cloudProviders.azure.label
+    return project?.cloudPlatform === cloudProvider
   }
 
   const isBillingProjectApplicable = project => {
     // Only support cloning a workspace to the same cloud environment.
     return Utils.cond(
       [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
-      [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => !isAzureBillingProject(project)],
+      [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
       [Utils.DEFAULT, () => true]
     )
   }
@@ -260,7 +264,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Bucket location',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
@@ -327,7 +331,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: setDescription
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Authorization domain',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
