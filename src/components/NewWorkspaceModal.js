@@ -14,7 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportErrorAndRethrow, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
@@ -118,16 +118,16 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
+          // Cross-cloud cloning is not supported.
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
-            fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
-            toWorkspaceName: workspace.name, toWorkspaceNamespace: workspace.namespace
+            ...extractCrossWorkspaceDetails(cloneWorkspace, { workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform }) })
           })
           return workspace
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          Ajax().Metrics.captureEvent(Events.workspaceCreate, { workspaceName: workspace.name, workspaceNamespace: workspace.namespace })
+          Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(_.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })))
           return workspace
         }))
     } catch (error) {
@@ -165,15 +165,18 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
 
   const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
 
-  const isCloudProviderBillingProject = (project, cloudProvider) => {
+  const isCloudProviderBillingProject = (project, cloudProvider) => getProjectCloudPlatform(project) === cloudProvider
+
+  const getProjectCloudPlatform = project => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    return project?.cloudPlatform === cloudProvider
+    return project?.cloudPlatform
   }
 
   const isBillingProjectApplicable = project => {
-    // Only support cloning a workspace to the same cloud environment.
+    // Only support cloning a workspace to the same cloud environment. If this changes, also update
+    // the Events.workspaceClone event data.
     return Utils.cond(
       [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
       [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],

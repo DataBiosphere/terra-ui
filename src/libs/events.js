@@ -98,6 +98,7 @@ const eventsList = {
   workspaceDataRenameTable: 'workspace:data:rename-table',
   workspaceDataDeleteTable: 'workspace:data:deleteTable',
   workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceOpenFromRecentlyViewed: 'workspace:open-from-recently-viewed',
   workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceShareWithSupport: 'workspace:shareWithSupport',
@@ -106,18 +107,36 @@ const eventsList = {
   workspaceStar: 'workspace:star'
 }
 
+/**
+ * Extracts name, namespace, and cloudPlatform (if present) from an object. The object can either have these
+ * as top-level properties (such as would be returned from parseNav), or nested within a workspace object
+ * (such as would be returned from the ajax workspace details API).
+ */
 export const extractWorkspaceDetails = workspaceObject => {
-  const { name, namespace } = workspaceObject
-  return { workspaceName: name, workspaceNamespace: namespace }
+  // A "workspace" as returned from the workspace list or details API method has as "workspace" object within it
+  // containing the workspace details.
+  const workspaceDetails = 'workspace' in workspaceObject ? workspaceObject.workspace : workspaceObject
+  const { name, namespace, cloudPlatform } = workspaceDetails
+  const data = { workspaceName: name, workspaceNamespace: namespace }
+  // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
+  return _.isUndefined(cloudPlatform) ? data : _.merge(data, { workspaceCloudPlatform: _.toUpper(cloudPlatform) })
 }
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
-  return {
+  let data = {
     fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
     fromWorkspaceName: fromWorkspace.workspace.name,
     toWorkspaceNamespace: toWorkspace.workspace.namespace,
     toWorkspaceName: toWorkspace.workspace.name
   }
+  // Not all Analysis usages pass `cloudPlatform`.
+  if (!_.isUndefined(fromWorkspace.workspace.cloudPlatform)) {
+    data = _.merge(data, { fromWorkspaceCloudPlatform: _.toUpper(fromWorkspace.workspace.cloudPlatform) })
+  }
+  if (!_.isUndefined(toWorkspace.workspace.cloudPlatform)) {
+    data = _.merge(data, { toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform) })
+  }
+  return data
 }
 
 export const extractBillingDetails = billingProject => {

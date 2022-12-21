@@ -25,7 +25,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
@@ -257,7 +257,7 @@ export const WorkspaceList = () => {
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
             const {
-              accessLevel, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
+              accessLevel, workspace, workspace: { workspaceId, namespace, name, workspaceVersion, attributes: { description } }
             } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
             const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
@@ -273,7 +273,7 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
-                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
+                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, extractWorkspaceDetails(workspace))
                   },
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
