@@ -203,6 +203,23 @@ const clickNavChildAndLoad = async (page, tab) => {
   ])
 }
 
+const setGcpAjaxMockValues = async (page, namespace, name) => {
+  return await page.evaluate((namespace, name) => {
+    const storageCostEstimateUrl = new RegExp(`api/workspaces/${namespace}/${name}/storageCostEstimate(.*)`, 'g')
+
+    window.ajaxOverridesStore.set([
+      {
+        filter: { url: storageCostEstimateUrl },
+        fn: window.ajaxOverrideUtils.makeSuccess({ estimate: 'Fake Estimate', lastUpdated: Date.now() })
+      },
+      {
+        filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
+        fn: window.ajaxOverrideUtils.makeSuccess({})
+      }
+    ])
+  }, namespace, name)
+}
+
 const viewWorkspaceDashboard = async (page, token, workspaceName) => {
   // Sign in to handle unexpected NPS survey popup and Loading Terra... spinner
   await signIntoTerra(page, { token })
@@ -227,6 +244,7 @@ module.exports = {
   navigateToDataCatalog,
   enableDataCatalog,
   overrideConfig,
+  setGcpAjaxMockValues,
   testWorkspaceNamePrefix,
   testWorkspaceName: getTestWorkspaceName,
   withWorkspace,

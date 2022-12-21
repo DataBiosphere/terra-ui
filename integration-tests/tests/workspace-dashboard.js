@@ -1,6 +1,6 @@
 // This test is owned by the Workspaces Team.
 const _ = require('lodash/fp')
-const { viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
+const { setGcpAjaxMockValues, viewWorkspaceDashboard, withWorkspace } = require('../utils/integration-helpers')
 const {
   assertNavChildNotFound, assertTextNotFound, click, clickable, findText, gotoPage, navChild, verifyAccessibility
 } = require('../utils/integration-utils')
@@ -41,23 +41,6 @@ const workspaceDashboardPage = (testPage, token, workspaceName) => {
       await testPage.waitForXPath(`//*[@role='alert']/*[contains(text(), "${azureWarning}")]`, { visible: true })
     },
   }
-}
-
-const setGcpAjaxMockValues = async (testPage, namespace, name) => {
-  return await testPage.evaluate((namespace, name) => {
-    const storageCostEstimateUrl = new RegExp(`api/workspaces/${namespace}/${name}/storageCostEstimate(.*)`, 'g')
-
-    window.ajaxOverridesStore.set([
-      {
-        filter: { url: storageCostEstimateUrl },
-        fn: window.ajaxOverrideUtils.makeSuccess({ estimate: 'Fake Estimate', lastUpdated: Date.now() })
-      },
-      {
-        filter: { url: /storage\/v1\/b(.*)/ }, // Bucket location response
-        fn: window.ajaxOverrideUtils.makeSuccess({})
-      }
-    ])
-  }, namespace, name)
 }
 
 const testGoogleWorkspace = _.flow(
