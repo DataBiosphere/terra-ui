@@ -665,12 +665,19 @@ describe('ComputeModal', () => {
   })
 
   //custom on image select with a [valid, invalid] custom image should function
-  it('custom Environment pane should behave correctly with an invalid image URI', async () => {
+  it.each([
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
+  ])('custom Environment pane should behave correctly with an invalid image URI', async ({ tool }) => {
     // Arrange
     const createFunc = jest.fn()
+    const disk = getDisk()
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+
 
     const runtimeFunc = jest.fn(() => ({
-      details: jest.fn(),
+      details: () => runtime,
       create: createFunc
     }))
     Ajax.mockImplementation(() => ({
@@ -680,7 +687,7 @@ describe('ComputeModal', () => {
       },
       Disks: {
         disk: () => ({
-          details: jest.fn()
+          details: () => disk
         })
       }
     }))
@@ -707,12 +714,19 @@ describe('ComputeModal', () => {
   })
 
   //custom on image select with a [valid, invalid] custom image should function
-  it('custom Environment pane should work with a valid image URI ', async () => {
+  it.each([
+    { tool: runtimeTools.Jupyter },
+    { tool: runtimeTools.RStudio }
+  ])('custom Environment pane should work with a valid image URI ', async ({ tool }) => {
     // Arrange
     const createFunc = jest.fn()
+    const disk = getDisk()
+    const runtimeProps = { runtimeConfig: getJupyterRuntimeConfig({ diskId: disk.id, tool }) }
+    const runtime = getGoogleRuntime(runtimeProps)
+
 
     const runtimeFunc = jest.fn(() => ({
-      details: jest.fn(),
+      details: () => runtime,
       create: createFunc
     }))
     Ajax.mockImplementation(() => ({
@@ -722,7 +736,7 @@ describe('ComputeModal', () => {
       },
       Disks: {
         disk: () => ({
-          details: jest.fn()
+          details: () => disk
         })
       }
     }))

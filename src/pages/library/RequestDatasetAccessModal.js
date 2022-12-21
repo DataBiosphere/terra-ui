@@ -9,7 +9,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
-import { datasetAccessTypes } from 'src/pages/library/dataBrowser-utils'
+import { datasetAccessTypes, getDatasetAccessType } from 'src/pages/library/dataBrowser-utils'
 
 
 const sendCopyEnabled = false
@@ -75,13 +75,13 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
         ]),
         tbody(
-          _.map(({ 'dct:title': title, access, id }) => tr({ key: id, style: { height: '2rem' } }, [
+          _.map(dataset => tr({ key: dataset.id, style: { height: '2rem' } }, [
             td({ style: { paddingRight: 20 } }, [
-              title
+              dataset['dct:title']
             ]),
             td([
-              Utils.switchCase(access,
-                [datasetAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title, id, setShowWipModal })],
+              Utils.switchCase(getDatasetAccessType(dataset),
+                [datasetAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title: dataset['dct:title'], id: dataset.id, setShowWipModal })],
                 [datasetAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
                 [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
               )
