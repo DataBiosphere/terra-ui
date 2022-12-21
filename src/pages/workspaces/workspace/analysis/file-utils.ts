@@ -52,6 +52,8 @@ export interface AnalysisFile {
 
 export interface AnalysisFileStore {
   refresh: () => Promise<void>
+  create: (fullAnalysisName: String, toolLabel: ToolLabel, contents: String) => Promise<void>
+  // status: String
   loadedState: LoadingState<AnalysisFile[]> | ReadyState<AnalysisFile[]>
 }
 
@@ -71,10 +73,22 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
       await Ajax(signal).AzureStorage.listNotebooks(workspaceInfo.workspaceId)
     setAnalyses(existingAnalyses)
   }) as () => Promise<void>
+
+  const create: (fullAnalysisName: any, toolLabel: ToolLabel, contents: any) => Promise<void> = _.flow(
+    // @ts-expect-error
+    withErrorReporting('Error creating analysis files'),
+    Utils.withBusyState(setLoading)
+  )(async (fullAnalysisName: any, toolLabel: ToolLabel, contents: any): Promise<void> => {
+    const workspaceInfo = workspace.workspace
+    isGoogleWorkspaceInfo(workspaceInfo) ?
+      await Ajax().Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, fullAnalysisName, toolLabel).create(contents) :
+      await Ajax().AzureStorage.blob(workspaceInfo.workspaceId, fullAnalysisName).create(contents)
+  }) as () => Promise<void>
+
   useEffect(() => {
     refresh()
   }, [workspace]) // eslint-disable-line react-hooks/exhaustive-deps
-  return { refresh, loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses } }
+  return { refresh, create, loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses } }
 }
 
 export const notebookLockHash = (bucketName: string, email: string): Promise<string> => Utils.sha256(`${bucketName}:${email}`)

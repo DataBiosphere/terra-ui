@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import React, { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Select, useUniqueId } from 'src/components/common'
+import { ButtonPrimary, Clickable, Select, spinnerOverlay, useUniqueId } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -13,6 +13,7 @@ import rstudioBioLogo from 'src/images/r-bio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -40,14 +41,14 @@ export interface AnalysisModalProps {
   isOpen: boolean
   workspace: BaseWorkspace
   location: any
-  onDismiss: () => void
-  onError: () => void
-  onSuccess: () => void
-  openUploader: () => void
   runtimes: any
   apps: AppTool
   appDataDisks: any
   persistentDisks: any
+  onDismiss: () => void
+  onError: () => void
+  onSuccess: () => void
+  openUploader: () => void
   uploadFiles: () => void
 }
 
@@ -55,11 +56,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onError, onSuccess,
     runtimes, apps,
-    appDataDisks, persistentDisks,
+    appDataDisks,
+    persistentDisks,
     uploadFiles,
     openUploader,
     workspace,
-    location
+    location,
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -69,14 +71,14 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const [currentToolObj, setCurrentToolObj] = useState<Tool>()
     const [fileExt, setFileExt] = useState('')
     const currentTool = currentToolObj?.label
+    const [busy, setBusy] = useState(false)
 
     const currentRuntime: any = getCurrentRuntime(runtimes)
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
-    const { loadedState: { state: analyses }, refresh }: AnalysisFileStore = useAnalysisFiles()
-
+    const { loadedState: { state: analyses }, refresh, create }: AnalysisFileStore = useAnalysisFiles()
     const resetView = () => {
       setViewMode(undefined)
       setAnalysisName('')
@@ -135,7 +137,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const renderComputeModal = () => h(ComputeModalBase, {
       location,
-      workspace: workspace.workspace,
+      workspace,
       tool: currentTool,
       currentRuntime,
       currentDisk,
@@ -352,29 +354,31 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
-            disabled: errors,
+            disabled: busy || errors,
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
+                setBusy(true)
                 const contents = Utils.cond(
                   [isJupyterLab || isJupyter, () => JSON.stringify(notebookData[notebookKernel])],
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
-                isGoogleWorkspaceInfo(workspace.workspace) ?
-                  await Ajax().Buckets.analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, fullAnalysisName, toolLabel).create(contents) :
-                  await Ajax().AzureStorage.blob(workspace.workspace.workspaceId, fullAnalysisName).create(contents)
+                await create(fullAnalysisName, toolLabel, contents)
                 await refresh()
                 // @ts-expect-error
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
+                setBusy(false)
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
                 await reportError('Error creating analysis', error)
                 onError()
               }
+              setBusy(false)
             }
           }, ['Create Analysis'])
-        ])
+        ]),
+        busy && spinnerOverlay
       ])
     }
 
