@@ -80,7 +80,6 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
         await uploadFiles(files)
         reload()
       }
-      // @ts-expect-error
     }, [({ openUploader }) => h(Fragment, [
       h(FilesMenu, {
         disabled: editDisabled,
