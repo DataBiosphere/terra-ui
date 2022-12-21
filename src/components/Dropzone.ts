@@ -9,7 +9,7 @@ import { div, input } from 'react-hyperscript-helpers'
 
 type DropzoneState = Omit<ReactDropzoneState, 'getInputProps' | 'getRootProps' | 'open'> & {
   dragging: boolean
-  openUploader: () => void
+  openUploader: ReactDropzoneState['open']
 }
 
 type DropzoneProps = ReactDropzoneOptions & {
