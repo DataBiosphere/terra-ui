@@ -36,7 +36,13 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   if (!snapshotId) {
     return
   }
+
+  // https://jade.datarepo-dev.broadinstitute.org
   // IMPORT SNAPSHOT
+  console.log(123123123)
+  console.log(snapshotId)
+  console.log(snapshotName)
+  console.log(123123123123)
   const testUrl = `${testUrlRoot}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
   await signIntoTerra(page, { token, testUrl })
 
