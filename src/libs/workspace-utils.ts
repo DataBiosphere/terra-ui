@@ -26,7 +26,8 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo
 
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
-  return workspace.cloudPlatform === 'Gcp'
+  // `cloudPlatform` is not being extracted in all Analyses usages.
+  return !!((workspace as GoogleWorkspaceInfo).googleProject)
 }
 
 export interface BaseWorkspace {
