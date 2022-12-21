@@ -19,7 +19,7 @@ export const DownloadFileCommand = (props: DownloadFileCommandProps) => {
 
   return h(Fragment, [
     p({ style: { marginBottom: '0.5rem', fontWeight: 500 } }, [
-      'Terminal download command:',
+      'Terminal download command',
       // @ts-expect-error
       status === 'Loading' && spinner({ size: 12, style: { color: '#000', marginLeft: '1ch' } }),
     ]),
