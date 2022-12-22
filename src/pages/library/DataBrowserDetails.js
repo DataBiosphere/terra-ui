@@ -3,6 +3,7 @@ import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -24,7 +25,6 @@ import {
   getDatasetAccessType,
   isDatarepoSnapshot, isWorkspace, uiMessaging, useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -234,9 +234,14 @@ export const SidebarComponent = ({ dataObj, id }) => {
           ])
         ])
     ]),
-    feedbackShowing && h(DataBrowserFeedbackModal, {
+    feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => setFeedbackShowing(false),
+      featureName: 'Data Catalog',
+      formId: '1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
+      feedbackId: 'entry.477992521',
+      contactEmailId: 'entry.82175827',
+      sourcePageId: 'entry.367682225',
       primaryQuestion: 'Is there anything missing or that you would like to see in this dataset view?',
       sourcePage: 'Catalog Details'
     }),
