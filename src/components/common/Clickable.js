@@ -6,7 +6,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { forwardRefWithName, useLabelAssert } from 'src/libs/react-utils'
 
 
-const Clickable = forwardRefWithName('Clickable',
+export const Clickable = forwardRefWithName('Clickable',
   ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
     const child = h(Interactive, {
       'aria-disabled': !!disabled,
@@ -40,5 +40,3 @@ const Clickable = forwardRefWithName('Clickable',
       return child
     }
   })
-
-export default Clickable

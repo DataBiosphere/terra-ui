@@ -6,6 +6,4 @@ type LinkProps<T extends keyof JSX.IntrinsicElements> = {
   baseColor?: () => string
 } & ClickableProps<T>
 
-declare const Link: <T extends keyof JSX.IntrinsicElements = 'a'>(props: LinkProps<T>) => JSX.Element
-
-export default Link
+export const Link: <T extends keyof JSX.IntrinsicElements = 'a'>(props: LinkProps<T>) => JSX.Element

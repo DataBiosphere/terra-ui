@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import Clickable from 'src/components/common/Clickable'
+import { Clickable } from 'src/components/common/Clickable'
 import colors from 'src/libs/colors'
 import { forwardRefWithName } from 'src/libs/react-utils'
 
 
-const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
+export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
     style: {
@@ -17,5 +17,3 @@ const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColo
     disabled
   }, props), [children])
 })
-
-export default Link
