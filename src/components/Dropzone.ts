@@ -1,9 +1,24 @@
-import { useState } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { CSSProperties, useState } from 'react'
+import {
+  DropzoneOptions as ReactDropzoneOptions,
+  DropzoneState as ReactDropzoneState,
+  useDropzone,
+} from 'react-dropzone'
 import { div, input } from 'react-hyperscript-helpers'
 
 
-const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {}, activeStyle = {}, children, ...props }) => {
+type DropzoneState = Omit<ReactDropzoneState, 'getInputProps' | 'getRootProps' | 'open'> & {
+  dragging: boolean
+  openUploader: ReactDropzoneState['open']
+}
+
+type DropzoneProps = ReactDropzoneOptions & {
+  activeStyle?: CSSProperties
+  children: (state: DropzoneState) => JSX.Element
+  style?: CSSProperties
+}
+
+const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {}, activeStyle = {}, children, ...props }: DropzoneProps) => {
   // dropzone's built-in dragging status doesn't seem to work if there's anything rendered over the root div
   const [dragging, setDragging] = useState(false)
 
