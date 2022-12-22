@@ -400,7 +400,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, {
-            billingProject: billingProjectName, cloudPlatform: cloudProviders.gcp.label
+            billingProjectName, billingProjectCloudPlatform: cloudProviders.gcp.label
           })
           setCreatingBillingProject(null)
           loadProjects()
@@ -410,7 +410,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, {
-            billingProject: billingProjectName, cloudPlatform: cloudProviders.azure.label
+            billingProjectName, billingProjectCloudPlatform: cloudProviders.azure.label
           })
           setCreatingBillingProject(null)
           loadProjects()
@@ -437,7 +437,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           billingAccounts,
           onSuccess: billingProjectName => {
             Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, {
-              billingProject: billingProjectName, cloudPlatform: cloudProviders.gcp.label
+              billingProjectName, billingProjectCloudPlatform: cloudProviders.gcp.label
             })
             setCreatingBillingProject(null)
             loadProjects()
