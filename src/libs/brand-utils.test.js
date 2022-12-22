@@ -38,7 +38,6 @@ describe('isBrand', () => {
   it.each([
     ['dev'],
     ['alpha'],
-    ['perf'],
     ['staging']
   ])('returns true if hostname matches %s subdomain of brand hostname', tier => {
     // Arrange
