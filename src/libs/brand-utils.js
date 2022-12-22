@@ -23,10 +23,10 @@ export const getEnabledBrand = () => {
   const forcedBrand = getConfig().brand
 
   if (!!forcedBrand && _.includes(forcedBrand, _.keys(brands))) {
-    return forcedBrand
+    return brands[forcedBrand]
   } else {
-    const brandKey = _.findKey(brand => isBrand(brand.hostName), brands)
-    return brandKey ?? brands.terra
+    const brandFromHostName = _.findKey(brand => isBrand(brand.hostName), brands)
+    return brands[brandFromHostName] ?? brands.terra
   }
 }
 
