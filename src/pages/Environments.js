@@ -322,7 +322,7 @@ const Environments = () => {
 
     const startTimeForLeoCallsEpochMs = Date.now()
 
-    const listArgs = shouldFilterByCreator ? { creator: currentUser, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
+    const listArgs = shouldFilterByCreator ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.listV2(listArgs),
       Ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
@@ -520,7 +520,7 @@ const Environments = () => {
 
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
-    
+
     const shouldShowPauseButton =
       Utils.cond(
         [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
