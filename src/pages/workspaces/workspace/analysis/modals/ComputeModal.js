@@ -890,7 +890,7 @@ export const ComputeModalBase = ({
             ]),
             div([
               'Custom environments ', b(['must ']), 'be based off ',
-              Utils.switchCase(tool, [
+              ...Utils.switchCase(tool, [
                 toolLabels.RStudio, () => ['the ', h(Link,
                   { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image'])]
                 ], [
@@ -1236,7 +1236,7 @@ export const ComputeModalBase = ({
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
           'Please make sure that it was created by you or someone you trust using ',
-          Utils.switchCase(tool, [
+          ...Utils.switchCase(tool, [
             toolLabels.RStudio, () => ['our base ', h(Link, { href: anVILRStudioImage, ...Utils.newTabLinkProps }, ['AnVIL RStudio image.'])]
           ], [
             toolLabels.Jupyter, () => ['one of our ', h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])]
