@@ -42,6 +42,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   console.log(123123123)
   console.log(snapshotId)
   console.log(snapshotName)
+  console.log(dataRepoUrlRoot)
+  console.log(testUrlRoot)
   console.log(123123123123)
   const testUrl = `${testUrlRoot}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`
   await signIntoTerra(page, { token, testUrl })
