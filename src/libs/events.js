@@ -119,6 +119,7 @@ export const extractWorkspaceDetails = workspaceObject => {
   const { name, namespace, cloudPlatform } = workspaceDetails
   const data = { workspaceName: name, workspaceNamespace: namespace }
   // When workspace details are obtained from the nav path, the cloudPlatform will not be available.
+  // Uppercase cloud platform because we mix camelcase and uppercase depending on which server API it came from (rawls/workspace vs. leo).
   return _.isUndefined(cloudPlatform) ? data : _.merge(data, { workspaceCloudPlatform: _.toUpper(cloudPlatform) })
 }
 

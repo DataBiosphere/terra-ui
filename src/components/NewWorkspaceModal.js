@@ -121,14 +121,18 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
             ...extractCrossWorkspaceDetails(cloneWorkspace, {
-              workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform }) // Cross-cloud cloning is not supported.
+              // Clone response does not include cloudPlatform, cross-cloud cloning is not supported.
+              workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform })
             })
           })
           return workspace
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(_.merge(workspace, { cloudPlatform: getProjectCloudPlatform() })))
+          Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
+            // Create response does not include cloudPlatform.
+            _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
+          )
           return workspace
         }))
     } catch (error) {
