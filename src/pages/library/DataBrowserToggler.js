@@ -1,9 +1,9 @@
 import { Fragment, useState } from 'react'
 import { div, h, label, strong } from 'react-hyperscript-helpers'
 import { IdContainer, Link, Switch } from 'src/components/common'
+import { FeaturePreviewFeedbackModal } from 'src/components/FeaturePreviewFeedbackModal'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
-import { DataBrowserFeedbackModal } from 'src/pages/library/DataBrowserFeedbackModal'
 
 
 export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
@@ -46,11 +46,16 @@ export const DataBrowserPreviewToggler = ({ onChange, catalogShowing }) => {
         ['Let us know!'])
       ])
     ]),
-    feedbackShowing && h(DataBrowserFeedbackModal, {
+    feedbackShowing && h(FeaturePreviewFeedbackModal, {
       onDismiss: () => setFeedbackShowing(false),
       onSuccess: () => {
         setFeedbackShowing(false)
       },
+      featureName: 'Data Catalog',
+      formId: '1FAIpQLSevEVLKiLNACAsti8k2U8EVKGHmQ4pJ8_643MfdY2lZEIusyw',
+      feedbackId: 'entry.477992521',
+      contactEmailId: 'entry.82175827',
+      sourcePageId: 'entry.367682225',
       primaryQuestion: 'Please tell us about your experience with the new Data Catalog',
       sourcePage: 'Catalog List'
     })
