@@ -1063,7 +1063,7 @@ const WorkflowView = _.flow(
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
 
     const suggestions = [
-      ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
+      ...(!selectedTableName && !modifiedConfig.dataReferenceName && modifiedConfig.rootEntityType) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
       ...getWorkflowInputSuggestionsForAttributesOfSetMembers(selectedEntities, selectionMetadata),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
