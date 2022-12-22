@@ -25,6 +25,7 @@ const eventsList = {
   billingProjectGoToWorkspace: 'billing:project:workspace:navigate',
   billingProjectOpenFromList: 'billing:project:open-from-list',
   billingProjectSelectTab: 'billing:project:tab',
+  billingChangeAccount: 'billing:project:account:update',
   billingCreationStep1: 'billing:creation:step1:gcpConsoleClicked',
   billingCreationStep2BillingAccountNoAccess: 'billing:creation:step2:billingAccountNoAccess',
   billingCreationStep2HaveBillingAccount: 'billing:creation:step2:haveBillingAccount',
@@ -37,7 +38,7 @@ const eventsList = {
   billingCreationGCPBillingAccountSelected: 'billing:creation:gcpBillingAccountSelected',
   billingCreationGCPBillingProjectCreated: 'billing:creation:gcpBillingProjectCreated',
   billingCreationAzureBillingProjectCreated: 'billing:creation:azureBillingProjectCreated',
-  changeBillingAccount: 'billing:project:account:update',
+  billingRemoveAccount: 'billing:project:account:remove',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
@@ -64,7 +65,6 @@ const eventsList = {
   notebookCopy: 'notebook:copy',
   notificationToggle: 'notification:toggle',
   pageView: 'page:view',
-  removeBillingAccount: 'billing:project:account:remove',
   resourceLeave: 'resource:leave',
   userRegister: 'user:register',
   workflowClearIO: 'workflow:clearIO',
@@ -118,6 +118,13 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
     fromWorkspaceName: fromWorkspace.workspace.name,
     toWorkspaceNamespace: toWorkspace.workspace.namespace,
     toWorkspaceName: toWorkspace.workspace.name
+  }
+}
+
+export const extractBillingDetails = billingProject => {
+  return {
+    billingProjectName: billingProject.projectName,
+    billingProjectCloudPlatform: _.toUpper(billingProject.cloudPlatform) // Should already be uppercase, but enforce for consistency.
   }
 }
 
