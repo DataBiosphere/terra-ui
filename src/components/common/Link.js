@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common/Clickable'
 import colors from 'src/libs/colors'
 import { forwardRefWithName } from 'src/libs/react-utils'
+
+import { Clickable } from './Clickable'
 
 
 export const Link = forwardRefWithName('Link', ({ disabled, variant, children, baseColor = colors.accent, ...props }, ref) => {

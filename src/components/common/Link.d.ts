@@ -1,4 +1,4 @@
-import type { ClickableProps } from 'src/components/common/Clickable'
+import type { ClickableProps } from './Clickable'
 
 
 type LinkProps<T extends keyof JSX.IntrinsicElements> = {
