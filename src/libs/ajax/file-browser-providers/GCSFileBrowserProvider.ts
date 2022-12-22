@@ -108,6 +108,9 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
       })
       return url
     },
+    getDownloadCommandForFile: path => {
+      return Promise.resolve(`gsutil cp gs://${bucket}/${path} .`)
+    },
     uploadFileToDirectory: (directoryPath, file) => {
       return Ajax().Buckets.upload(project, bucket, directoryPath, file)
     },

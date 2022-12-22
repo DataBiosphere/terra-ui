@@ -42,6 +42,38 @@ const styles = {
 
 const activeTab = 'datasets'
 
+const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
+  [datasetAccessTypes.CONTROLLED, () => div({
+    style: {
+      display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px',
+      width: 'fit-content', margin: 'auto'
+    }
+  }, [
+    h(RequestDatasetAccessModal, {
+      datasets: [dataset],
+      onDismiss: () => {
+        Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
+      }
+    })
+  ])],
+  [datasetAccessTypes.GRANTED, () => h(GroupedSelect, {
+    'aria-label': 'data type',
+    styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
+    isSearchable: true,
+    isClearable: false,
+    value: selectedTable,
+    getOptionLabel: ({ value }) => div({ style: { color: colors.dark(1) } }, [_.startCase(value)]),
+    formatGroupLabel: ({ label }) => {
+      return !!label && div({
+        style: { marginTop: 5, paddingTop: 15, borderTop: `1px solid ${colors.dark(0.5)}`, color: colors.dark(0.8) }
+      }, [label])
+    },
+    onChange: ({ value }) => setSelectedTable(value),
+    options: selectOptions
+  })],
+  [Utils.DEFAULT, undefined])
+
+
 const DataBrowserPreview = ({ id }) => {
   const signal = useCancellation()
   const [loading, setLoading] = useState(false)
@@ -144,31 +176,7 @@ const DataBrowserPreview = ({ id }) => {
             icon('times', { size: 30 })
           ])
         ]),
-        Utils.switchCase(access,
-          [datasetAccessTypes.CONTROLLED, () => div({ style: { display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px', width: 'fit-content', margin: 'auto' } }, [
-            h(RequestDatasetAccessModal, {
-              datasets: [dataset],
-              onDismiss: () => {
-                Nav.goToPath('library-details', { id: Nav.getCurrentRoute().params.id })
-              }
-            })
-          ])],
-          [datasetAccessTypes.GRANTED, () => h(GroupedSelect, {
-            'aria-label': 'data type',
-            styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
-            isSearchable: true,
-            isClearable: false,
-            value: selectedTable,
-            getOptionLabel: ({ value }) => div({ style: { color: colors.dark(1) } }, [_.startCase(value)]),
-            formatGroupLabel: ({ label }) => {
-              return !!label && div({
-                style: { marginTop: 5, paddingTop: 15, borderTop: `1px solid ${colors.dark(0.5)}`, color: colors.dark(0.8) }
-              }, [label])
-            },
-            onChange: ({ value }) => setSelectedTable(value),
-            options: selectOptions
-          })],
-          [Utils.DEFAULT, undefined]),
+        h(DatasetPreviewSelector, { access, dataset, selectedTable, setSelectedTable, selectOptions }),
         loading ?
           centeredSpinner() :
           div({ style: { position: 'relative', padding: '0 15px' } }, [
