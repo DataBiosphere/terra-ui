@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { brands } from 'src/libs/brands'
+import { brands, defaultBrand } from 'src/libs/brands'
 import { getConfig } from 'src/libs/config'
 
 
@@ -24,10 +24,11 @@ export const getEnabledBrand = () => {
 
   if (!!forcedBrand && _.includes(forcedBrand, _.keys(brands))) {
     return brands[forcedBrand]
-  } else {
-    const brandFromHostName = _.findKey(brand => isBrand(brand.hostName), brands)
-    return brands[brandFromHostName] ?? brands.terra
   }
+
+  const brandFromHostName = _.findKey(isBrand, brands)
+
+  return brands[brandFromHostName] ?? defaultBrand
 }
 
 export const pickBrandLogo = (color = false) => {
