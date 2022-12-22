@@ -59,7 +59,7 @@ describe('brand-utils', () => {
     const enabledBrand = getEnabledBrand()
 
     // Assert
-    expect(enabledBrand).toBe(brands.rareX)
+    expect(enabledBrand).toEqual(brands.rareX)
   })
 
   it('getEnabledBrand returns brand based on hostname when an invalid brand is forced', () => {
@@ -71,7 +71,7 @@ describe('brand-utils', () => {
     const enabledBrand = getEnabledBrand()
 
     // Assert
-    expect(enabledBrand).toBe(brands.anvil)
+    expect(enabledBrand).toEqual(brands.anvil)
   })
 
   it('getEnabledBrand returns default brand when hostname-based brand is invalid', () => {
@@ -82,6 +82,6 @@ describe('brand-utils', () => {
     const enabledBrand = getEnabledBrand()
 
     // Assert
-    expect(enabledBrand).toBe(defaultBrand)
+    expect(enabledBrand).toEqual(defaultBrand)
   })
 })
