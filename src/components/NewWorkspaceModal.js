@@ -118,10 +118,11 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         [cloneWorkspace, async () => {
           const workspace = await Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body)
           const featuredList = await Ajax().FirecloudBucket.getFeaturedWorkspaces()
-          // Cross-cloud cloning is not supported.
           Ajax().Metrics.captureEvent(Events.workspaceClone, {
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
-            ...extractCrossWorkspaceDetails(cloneWorkspace, { workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform }) })
+            ...extractCrossWorkspaceDetails(cloneWorkspace, {
+              workspace: _.merge(workspace, { cloudPlatform: cloneWorkspace.workspace.cloudPlatform }) // Cross-cloud cloning is not supported.
+            })
           })
           return workspace
         }],

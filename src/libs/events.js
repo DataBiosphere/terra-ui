@@ -123,20 +123,14 @@ export const extractWorkspaceDetails = workspaceObject => {
 }
 
 export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
-  let data = {
+  return {
     fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
     fromWorkspaceName: fromWorkspace.workspace.name,
+    fromWorkspaceCloudPlatform: _.toUpper(fromWorkspace.workspace.cloudPlatform),
     toWorkspaceNamespace: toWorkspace.workspace.namespace,
-    toWorkspaceName: toWorkspace.workspace.name
+    toWorkspaceName: toWorkspace.workspace.name,
+    toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform)
   }
-  // Not all Analysis usages pass `cloudPlatform`.
-  if (!_.isUndefined(fromWorkspace.workspace.cloudPlatform)) {
-    data = _.merge(data, { fromWorkspaceCloudPlatform: _.toUpper(fromWorkspace.workspace.cloudPlatform) })
-  }
-  if (!_.isUndefined(toWorkspace.workspace.cloudPlatform)) {
-    data = _.merge(data, { toWorkspaceCloudPlatform: _.toUpper(toWorkspace.workspace.cloudPlatform) })
-  }
-  return data
 }
 
 export const extractBillingDetails = billingProject => {
