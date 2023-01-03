@@ -1,15 +1,17 @@
 import { render } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { axe } from 'jest-axe'
+import React from 'react'
 import { act } from 'react-dom/test-utils'
 import { h } from 'react-hyperscript-helpers'
 import Alerts from 'src/components/Alerts'
+import { locationTypes } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import { forwardRefWithName } from 'src/libs/react-utils'
-import { WorkspaceData } from 'src/pages/workspaces/workspace/Data'
-import React from 'react';
 import { authStore } from 'src/libs/state'
+import { defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { WorkspaceNotifications } from 'src/pages/workspaces/workspace/Dashboard'
+import { WorkspaceData } from 'src/pages/workspaces/workspace/Data'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -62,15 +64,31 @@ describe('Data', () => {
   // }
 
   it('this is a fun test', () => {
-    const wrapWorkspaceParams = {"activeTab":"job history","title":"Job History"}
-    const childUseRefSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null });
-    const controllerUseRefSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null });
-    const useOnMountUseEffectSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null });
-    const accessErrorUseStateSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false]);
-    const accessNotificationIdSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null });
-    const UseStoreUseStateSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false]);
-    const useStoreUseEffectSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null });
+    const wrapWorkspaceParams = { activeTab: 'job history', title: 'Job History' }
+    const childUseRefSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const controllerUseRefSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const useOnMountUseEffectSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null })
+    const accessErrorUseStateSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false])
+    const accessNotificationIdSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const useStoreUseStateSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false])
+    const useStoreUseEffectSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null })
+    const setLoadingWorkspaceSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false])
+    const setGoogleProjectSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false])
+    const setAzureContextSpy = jest.spyOn(React, 'useState').mockReturnValueOnce([false, false])
+    const setBucketLocationSpy = jest.spyOn(React, 'useState').mockReturnValueOnce(
+      [{
+        defaultLocation,
+        locationType: locationTypes.default
+      }, false]
+    )
+    const usePreviousRefSpy = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const usePreviousEffectSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null })
+    const usePreviousRefSpy2 = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const usePreviousEffectSpy2 = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null })
+    const useCancellation2 = jest.spyOn(React, 'useRef').mockReturnValueOnce({ current: null })
+    const useOnMountSpy = jest.spyOn(React, 'useEffect').mockReturnValueOnce({ current: null })
     const x = WorkspaceData(testWorkspaceDataProps)
+
     // console.log(render(y))
     expect(1).toBe(1)
   })
