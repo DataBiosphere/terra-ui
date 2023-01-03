@@ -22,7 +22,7 @@ export const isTerra = () => getEnabledBrand() === brands.terra
 export const getEnabledBrand = () => {
   const forcedBrand = getConfig().brand
 
-  if (!!forcedBrand && _.includes(forcedBrand, _.keys(brands))) {
+  if (!!forcedBrand && _.has(forcedBrand, brands)) {
     return brands[forcedBrand]
   }
 
