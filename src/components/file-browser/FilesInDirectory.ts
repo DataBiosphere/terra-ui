@@ -6,10 +6,12 @@ import { useFilesInDirectory } from 'src/components/file-browser/file-browser-ho
 import { basename } from 'src/components/file-browser/file-browser-utils'
 import { FilesMenu } from 'src/components/file-browser/FilesMenu'
 import FilesTable from 'src/components/file-browser/FilesTable'
+import { NoticeForPath } from 'src/components/file-browser/NoticeForPath'
 import { icon } from 'src/components/icons'
 import { UploadProgressModal } from 'src/components/ProgressBar'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
 import { useUploader } from 'src/libs/uploads'
 import * as Utils from 'src/libs/utils'
 
@@ -91,6 +93,13 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
           setSelectedFiles({})
           reload()
         },
+      }),
+
+      h(NoticeForPath, {
+        notices: {
+          [`${dataTableVersionsPathRoot}/`]: 'Files in this folder are managed via data table versioning.'
+        },
+        path
       }),
 
       span({
