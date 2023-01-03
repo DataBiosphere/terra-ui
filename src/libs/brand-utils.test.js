@@ -59,7 +59,7 @@ describe('brand-utils', () => {
     const enabledBrand = getEnabledBrand()
 
     // Assert
-    expect(enabledBrand).toEqual(brands.rareX)
+    expect(enabledBrand).toBe(brands.rareX) // preferring vs. 'toEqual' to verify referential equality
   })
 
   it('getEnabledBrand returns brand based on hostname when an invalid brand is forced', () => {
