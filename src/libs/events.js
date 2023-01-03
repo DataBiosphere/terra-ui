@@ -36,8 +36,7 @@ const eventsList = {
   billingCreationContactTerraSupport: 'billing:creation:contactTerraSupport',
   billingCreationGCPProjectNameEntered: 'billing:creation:gcpProjectNameEntered',
   billingCreationGCPBillingAccountSelected: 'billing:creation:gcpBillingAccountSelected',
-  billingCreationGCPBillingProjectCreated: 'billing:creation:gcpBillingProjectCreated',
-  billingCreationAzureBillingProjectCreated: 'billing:creation:azureBillingProjectCreated',
+  billingCreationBillingProjectCreated: 'billing:creation:billingProjectCreated',
   billingRemoveAccount: 'billing:project:account:remove',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
@@ -124,7 +123,7 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
 export const extractBillingDetails = billingProject => {
   return {
     billingProjectName: billingProject.projectName,
-    billingProjectCloudPlatform: _.toUpper(billingProject.cloudPlatform) // Should already be uppercase, but enforce for consistency.
+    cloudPlatform: _.toUpper(billingProject.cloudPlatform) // Should already be uppercase, but enforce for consistency.
   }
 }
 

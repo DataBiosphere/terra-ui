@@ -399,8 +399,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, {
-            billingProjectName, billingProjectCloudPlatform: cloudProviders.gcp.label
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.gcp.label
           })
           setCreatingBillingProject(null)
           loadProjects()
@@ -409,8 +409,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, {
-            billingProjectName, billingProjectCloudPlatform: cloudProviders.azure.label
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.azure.label
           })
           setCreatingBillingProject(null)
           loadProjects()
@@ -436,8 +436,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
-            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, {
-              billingProjectName, billingProjectCloudPlatform: cloudProviders.gcp.label
+            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+              billingProjectName, cloudPlatform: cloudProviders.gcp.label
             })
             setCreatingBillingProject(null)
             loadProjects()
