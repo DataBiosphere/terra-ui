@@ -28,7 +28,7 @@ const azureWorkspace = {
 describe('extractWorkspaceDetails', () => {
   it('Handles properties at top level, converts cloudPlatform to upper case', () => {
     expect(extractWorkspaceDetails({ name: 'wsName', namespace: 'wsNamespace', cloudPlatform: 'wsCloudPlatform' })).toEqual(
-      { workspaceName: 'wsName', workspaceNamespace: 'wsNamespace', workspaceCloudPlatform: 'WSCLOUDPLATFORM' }
+      { workspaceName: 'wsName', workspaceNamespace: 'wsNamespace', cloudPlatform: 'WSCLOUDPLATFORM' }
     )
   })
 
@@ -40,7 +40,7 @@ describe('extractWorkspaceDetails', () => {
 
   it('Handles nested workspace details (like from workspace object)', () => {
     expect(extractWorkspaceDetails(gcpWorkspace)).toEqual(
-      { workspaceName: 'wsName', workspaceNamespace: 'wsNamespace', workspaceCloudPlatform: 'GCP' }
+      { workspaceName: 'wsName', workspaceNamespace: 'wsNamespace', cloudPlatform: 'GCP' }
     )
   })
 })
