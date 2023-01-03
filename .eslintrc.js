@@ -117,6 +117,9 @@ module.exports = {
     'import/named': 'warn',
     'import/newline-after-import': ['warn', { 'count': 2 }],
     'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
+    'import/no-internal-modules': ['warn', {
+      'forbid': ['src/components/common/*']
+    }],
     'import/no-unresolved': 'warn',
 
     'no-debugger': 'warn'

@@ -259,6 +259,8 @@ const PreviewHeader = ({
   const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const isAzureWorkspace = !!workspace.azureContext
   const currentRuntimeTool = getToolFromRuntime(runtime)
+  const enableJupyterLabPersistenceId = `${namespace}/${name}/enableJupyterLabGCP`
+  const [enableJupyterLabGCP] = useState(() => getLocalPref(enableJupyterLabPersistenceId) || false)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
@@ -294,6 +296,8 @@ const PreviewHeader = ({
 
   const editModeButton = h(HeaderButton, { onClick: () => chooseMode('edit') }, openMenuIcon)
 
+  const isJupyterLabGCP = (currentFileToolLabel === toolLabels.Jupyter) && enableJupyterLabGCP
+
   return h(ApplicationHeader, {
     label: 'PREVIEW (READ-ONLY)',
     labelBgColor: colors.dark(0.2)
@@ -307,6 +311,18 @@ const PreviewHeader = ({
       [runtimeStatus === 'Stopped', () => h(HeaderButton, {
         onClick: () => startAndRefresh(refreshRuntimes, runtime)
       }, openMenuIcon)],
+      //This is a special case for JupyterLab on GCP. Under the hood, the app running on the runtime is Jupyter, but
+      //we instead proxy to JupyterLab. For JupyterLab GCP, it's important to disable playground mode and not lock
+      //any notebooks. We also need to keep the edit mode directory in line with what Jupyter uses, because users
+      //can easily switch back and forth. This prevents users from having notebooks scattered across multiple directories.
+      [isJupyterLabGCP && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
+        () => h(HeaderButton, {
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.analysisLaunch,
+              { origin: 'analysisLauncher', source: toolLabels.JupyterLab, application: toolLabels.JupyterLab, workspaceName: name, namespace })
+            Nav.goToPath(appLauncherTabName, { namespace, name, application: toolLabels.JupyterLab })
+          }
+        }, openMenuIcon)],
       [isAzureWorkspace && _.includes(runtimeStatus, usableStatuses) && currentFileToolLabel === toolLabels.Jupyter,
         () => h(HeaderButton, {
           onClick: () => {
@@ -333,7 +349,7 @@ const PreviewHeader = ({
           }
         },
         openMenuIcon)],
-      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to jupyter apps in azure
+      // Jupyter is slightly different since it interacts with editMode and playground mode flags as well. This is not applicable to JupyterLab in either cloud
       [(currentRuntimeTool === toolLabels.Jupyter && !mode) || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
           [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
@@ -550,10 +566,12 @@ const AnalysisEditorFrame = ({
 
   const localBaseDirectory = Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => `${name}/edit`],
+    [toolLabels.JupyterLab, () => `${name}/edit`],
     [toolLabels.RStudio, () => ''])
 
   const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
     [toolLabels.Jupyter, () => `${name}/safe`],
+    [toolLabels.JupyterLab, () => `${name}/safe`],
     [toolLabels.RStudio, () => '']
   )
 

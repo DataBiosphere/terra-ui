@@ -1,10 +1,15 @@
 import _ from 'lodash/fp'
-import { useMemo, useState } from 'react'
+import { ReactElement, useMemo, useState } from 'react'
+
+
+type IdContainerProps = {
+  children: (id: string) => ReactElement<any, any> | null
+}
 
 /**
  * DEPRECATED - should switch to useUniqueIdFn pattern
  */
-export const IdContainer = ({ children }) => {
+export const IdContainer = ({ children }: IdContainerProps) => {
   const [id] = useState(() => _.uniqueId('element-'))
   return children(id)
 }

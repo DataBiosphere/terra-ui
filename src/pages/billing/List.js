@@ -16,7 +16,7 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, reportErrorAndRethrow } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractBillingDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as StateHistory from 'src/libs/state-history'
@@ -115,7 +115,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   ])
 }
 
-const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, loadProjects, isActive }) => {
+const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
   const cloudContextIcon =
     div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
       Utils.switchCase(cloudPlatform,
@@ -123,17 +123,15 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
         [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
     ])
 
-  const selectableProject = ({ projectName }, isActive) => h(Clickable, {
+  const selectableProject = () => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
-      billingProjectName: projectName
-    }),
+    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(project)),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
   }, [cloudContextIcon, projectName])
 
-  const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
+  const unselectableProject = () => {
     const iconAndTooltip =
       isCreatingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
@@ -157,8 +155,8 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
 
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
-      selectableProject(project, isActive) :
-      unselectableProject(project, isActive, isOwner)
+      selectableProject() :
+      unselectableProject()
   ])
 }
 
@@ -401,7 +399,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.gcp.label
+          })
           setCreatingBillingProject(null)
           loadProjects()
         }
@@ -409,7 +409,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, { billingProject: billingProjectName })
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.azure.label
+          })
           setCreatingBillingProject(null)
           loadProjects()
         },
@@ -434,7 +436,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
-            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
+            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+              billingProjectName, cloudPlatform: cloudProviders.gcp.label
+            })
             setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({

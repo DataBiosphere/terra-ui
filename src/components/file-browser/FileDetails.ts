@@ -1,6 +1,7 @@
 import filesize from 'filesize'
 import { Fragment } from 'react'
 import { dd, div, dl, dt, h } from 'react-hyperscript-helpers'
+import { DownloadFileCommand } from 'src/components/file-browser/DownloadFileCommand'
 import { DownloadFileLink } from 'src/components/file-browser/DownloadFileLink'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 
@@ -28,6 +29,7 @@ export const FileDetails = (props: FileDetailsProps) => {
         dd({ style: { marginLeft: '0.5rem' } }, [filesize(file.size)]),
       ]),
     ]),
-    h(DownloadFileLink, { file, provider })
+    h(DownloadFileLink, { file, provider }),
+    h(DownloadFileCommand, { file, provider }),
   ])
 }
