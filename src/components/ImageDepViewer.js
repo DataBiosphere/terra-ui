@@ -4,6 +4,7 @@ import { div, h, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
 import { Select } from 'src/components/common'
 import { fetchOk } from 'src/libs/ajax/ajax-common'
 import { withErrorReporting } from 'src/libs/error'
+import { useCancellation } from 'src/libs/react-utils'
 
 
 export const ImageDepViewer = ({ packageLink }) => {
@@ -12,9 +13,10 @@ export const ImageDepViewer = ({ packageLink }) => {
   const toolsList = _.flow(_.map('tool'), _.uniq, _.sortBy(v => v === 'tools' ? 1 : 0))
   const tools = toolsList(packages)
 
+  const signal = useCancellation()
   useEffect(() => {
     const loadPackages = withErrorReporting('Error loading packages', async () => {
-      const res = await fetchOk(packageLink)
+      const res = await fetchOk(packageLink, { signal })
       const data = await res.json()
       const newPackages = _.flatMap(([tool, packages]) => {
         return _.map(([name, version]) => {
