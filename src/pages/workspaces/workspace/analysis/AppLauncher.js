@@ -166,7 +166,11 @@ const ApplicationLauncher = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('Error setting up analysis file syncing')
     )(async () => {
-      const localBaseDirectory = ''
+      //The special case here is because for GCP, Jupyter and JupyterLab can both be run on the same runtime and a
+      //user may toggle back and forth between them. In order to keep notebooks tidy and in a predictable location on
+      //disk, we mirror the localBaseDirectory used by edit mode for Jupyter.
+      //Once Jupyter is phased out in favor of JupyterLab for GCP, the localBaseDirectory can be '' for all cases
+      const localBaseDirectory = !!googleProject && application === toolLabels.JupyterLab ? `${workspaceName}/edit` : ''
 
       const { storageContainerName: azureStorageContainer } = !!azureContext ? await Ajax(signal).AzureStorage.details(workspaceId) : {}
       const cloudStorageDirectory = !!azureContext ? `${azureStorageContainer}/analyses` : `gs://${bucketName}/notebooks`

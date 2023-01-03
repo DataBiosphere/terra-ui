@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary } from 'src/components/common/buttons'
-import { IdContainer } from 'src/components/common/IdContainer'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+
+import { ButtonPrimary } from './buttons'
+import { IdContainer } from './IdContainer'
 
 
 export const DeleteConfirmationModal = ({
