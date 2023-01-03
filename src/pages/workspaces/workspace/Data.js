@@ -472,7 +472,7 @@ const DataTableFeaturePreviewFeedbackBanner = () => {
 
 const workspaceDataTypes = Utils.enumify(['entities', 'entitiesVersion', 'snapshot', 'referenceData', 'localVariables', 'bucketObjects', 'wds'])
 
-const WorkspaceData = _.flow(
+export const WorkspaceData = _.flow(
   forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
@@ -511,7 +511,6 @@ const WorkspaceData = _.flow(
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
   const wdsDataTableProvider = new WdsDataTableProvider(workspaceId, wdsProxyUrl)
-
   const loadEntityMetadata = async () => {
     try {
       setEntityMetadata(undefined)
