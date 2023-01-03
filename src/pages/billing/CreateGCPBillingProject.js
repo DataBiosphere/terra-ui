@@ -30,8 +30,10 @@ const CreateGCPBillingProject = ({
           placeholder: 'Enter a name',
           onChange: v => {
             setBillingProjectName(v)
+            if (!billingProjectNameTouched) {
+              Ajax().Metrics.captureEvent(Events.billingCreationGCPProjectNameEntered)
+            }
             setBillingProjectNameTouched(true)
-            Ajax().Metrics.captureEvent(Events.billingCreationGCPProjectNameEntered)
           },
           disabled
         },
