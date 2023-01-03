@@ -6,7 +6,7 @@ import { h } from 'react-hyperscript-helpers'
 import { cloudServices } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import {
-  defaultGoogleWorkspace, defaultImage, defaultTestDisk, getDisk,
+  defaultGoogleWorkspace, defaultImage, defaultRImage, defaultTestDisk, getDisk,
   getGoogleRuntime, getJupyterRuntimeConfig, hailImage,
   imageDocs, testDefaultLocation
 } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
@@ -756,6 +756,8 @@ describe('ComputeModal', () => {
       const customImageUri = 'us'
       await fireEvent.change(imageInput, { target: { value: customImageUri } })
 
+      await screen.findByText('Creation Timeout Limit')
+
       const nextButton = await screen.findByText('Next')
       verifyEnabled(nextButton)
       await userEvent.click(nextButton)
@@ -839,5 +841,156 @@ describe('ComputeModal', () => {
         gpuConfig: { gpuType: defaultGpuType, numOfGpus: defaultNumGpus }
       })
     }))
+  })
+
+  it('correctly renders and updates timeoutInMinutes', async () => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+      await render(h(ComputeModalBase, defaultModalProps))
+
+      // Act
+      await userEvent.click(screen.getByText('Customize'))
+      const selectMenu = await screen.getByLabelText('Application configuration')
+      await userEvent.click(selectMenu)
+      const selectOption = await screen.findByText(/Legacy GATK:/)
+      await userEvent.click(selectOption)
+
+      await screen.findByText('Creation Timeout Limit')
+      const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+      await fireEvent.change(timeoutInput, { target: { value: 20 } })
+
+      //Assert
+      expect(timeoutInput.value).toBe('20')
+
+      //Act
+      await userEvent.click(selectMenu)
+      const selectOption2 = await screen.findByText(defaultImage.label)
+      await userEvent.click(selectOption2)
+      // Assert
+      expect(timeoutInput).not.toBeVisible()
+    })
+  })
+
+  it.each([
+    { runtimeTool: runtimeTools.Jupyter },
+    { runtimeTool: runtimeTools.RStudio }
+  ])('correctly sends timeoutInMinutes to create for tool $runtimeTool.label', async ({ runtimeTool }) => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+
+      // Act
+      await act(async () => {
+        await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
+
+        await userEvent.click(screen.getByText('Customize'))
+        const selectMenu = await screen.getByLabelText('Application configuration')
+        await userEvent.click(selectMenu)
+        const customImageSelect = await screen.findByText('Custom Environment')
+        await userEvent.click(customImageSelect)
+
+        await screen.findByText('Creation Timeout Limit')
+        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+
+        const imageInput = await screen.getByLabelText('Container image')
+        expect(imageInput).toBeInTheDocument()
+        const customImageUri = 'us'
+        await fireEvent.change(imageInput, { target: { value: customImageUri } })
+
+        await fireEvent.change(timeoutInput, { target: { value: 20 } })
+        await userEvent.click(selectMenu)
+      })
+
+      // Act
+      await act(async () => {
+        const nextButton = await screen.findByText('Next')
+        verifyEnabled(nextButton)
+        await userEvent.click(nextButton)
+        const unverifiedDockerWarningHeader = await screen.findByText('Unverified Docker image')
+
+        expect(unverifiedDockerWarningHeader).toBeInTheDocument()
+        const createButton = await screen.findByText('Create')
+        await userEvent.click(createButton)
+      })
+
+      // Assert
+      expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+        timeoutInMinutes: 20
+      }))
+    })
+  })
+
+  it.each([
+    { runtimeTool: runtimeTools.Jupyter, imageLabel: defaultImage.label },
+    { runtimeTool: runtimeTools.RStudio, imageLabel: defaultRImage.label }
+  ])('sends null timeout in minutes  for tool $runtimeTool.label after setting and clearing the field', async ({ runtimeTool, imageLabel }) => {
+    await act(async () => {
+      // Arrange
+      const createFunc = jest.fn()
+      const runtimeFunc = jest.fn(() => ({
+        create: createFunc,
+        details: jest.fn()
+      }))
+      Ajax.mockImplementation(() => ({
+        ...defaultAjaxImpl,
+        Runtimes: {
+          runtime: runtimeFunc
+        }
+      }))
+
+      // Act
+      await act(async () => {
+        await render(h(ComputeModalBase, { ...defaultModalProps, tool: runtimeTool.label }))
+
+        await userEvent.click(screen.getByText('Customize'))
+        const selectMenu = await screen.getByLabelText('Application configuration')
+        await userEvent.click(selectMenu)
+        const customImageSelect = await screen.findByText('Custom Environment')
+        await userEvent.click(customImageSelect)
+
+        await screen.findByText('Creation Timeout Limit')
+        const timeoutInput = await screen.getByLabelText('Creation Timeout Limit')
+        // Set the field to an arbitrary value
+        await fireEvent.change(timeoutInput, { target: { value: 20 } })
+        await userEvent.click(selectMenu)
+        const supportedImageSelect = await screen.findByText(imageLabel)
+        // Clear timeoutInput by selecting
+        await userEvent.click(supportedImageSelect)
+      })
+
+      // Act
+      await act(async () => {
+        const create = screen.getByText('Create')
+        await userEvent.click(create)
+      })
+
+      // Assert
+      expect(createFunc).toHaveBeenCalledWith(expect.objectContaining({
+        // Verify that timeoutInMinutes is actually cleared by selecting
+        // a supported image.
+        timeoutInMinutes: null
+      }))
+    })
   })
 })
