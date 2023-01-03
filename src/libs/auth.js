@@ -227,7 +227,8 @@ export const processUser = (user, isSignInEvent) => {
           givenName: profile.givenName,
           familyName: profile.familyName,
           imageUrl: profile.picture,
-          idp: profile.idp
+          idp: profile.idp,
+          allowAppAccess: profile.allowAppAccess
         } : {})
       }
     }

@@ -1,23 +1,15 @@
-import { useState } from 'react'
 import { div, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
-import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring } from 'src/libs/error'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { azurePreviewStore } from 'src/libs/state'
+import { azurePreviewStore, getUser } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const AzurePreview = () => {
-  // State
-  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
-  const signal = useCancellation()
-
   // Helpers
   const styles = {
     centered: {
@@ -53,17 +45,7 @@ const AzurePreview = () => {
     azurePreviewStore.set(true)
   }
 
-  // Use a Sam group to determine if a user is an Azure Preview user.
-  // This is problematic when the user needs to register/accept ToS, since that's a prerequisite
-  // for checking Sam group membership. TOAZ-301 is open to change this to a B2C check instead of Sam.
-  const loadAlphaAzureMember = withErrorIgnoring(async () => {
-    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
-  })
-
-  // Lifecycle
-  useOnMount(() => {
-    loadAlphaAzureMember()
-  })
+  const isAlphaAzureUser = !getConfig().isProd || getUser().allowAppAccess === 'true'
 
   // Render
   return div({
