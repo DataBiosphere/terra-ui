@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonOutline } from 'src/components/common/buttons'
+import { ButtonOutline } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { getEnabledBrand } from 'src/libs/brand-utils'
