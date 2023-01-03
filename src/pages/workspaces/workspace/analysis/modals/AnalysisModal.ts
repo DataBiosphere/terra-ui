@@ -50,6 +50,8 @@ export interface AnalysisModalProps {
   onSuccess: () => void
   openUploader: () => void
   uploadFiles: () => void
+  //TODO: Temporary until Analyses implements useAnalysisFiles
+  refreshAnalyses: () => void
 }
 
 export const AnalysisModal = withDisplayName('AnalysisModal')(
@@ -62,6 +64,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     openUploader,
     workspace,
     location,
+    refreshAnalyses
   }: AnalysisModalProps) => {
     const [viewMode, setViewMode] = useState<any>()
     const cloudPlatform = workspace.workspace.cloudPlatform.toUpperCase()
@@ -71,14 +74,18 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     const [currentToolObj, setCurrentToolObj] = useState<Tool>()
     const [fileExt, setFileExt] = useState('')
     const currentTool = currentToolObj?.label
-    const [busy, setBusy] = useState(false)
 
     const currentRuntime: any = getCurrentRuntime(runtimes)
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
     const currentRuntimeTool = getToolFromRuntime(currentRuntime)
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
-    const { loadedState: { state: analyses }, refresh, create }: AnalysisFileStore = useAnalysisFiles()
+    //TODO: Bring in as props from Analyses
+    const { loadedState, create, pendingCreate }: AnalysisFileStore = useAnalysisFiles()
+
+    const analyses = loadedState.status !== 'None' ? loadedState.state : null
+    const status = loadedState.status
+
     const resetView = () => {
       setViewMode(undefined)
       setAnalysisName('')
@@ -255,7 +262,6 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           uploadFiles()
         }
       },
-      // @ts-expect-error
       [() => h(Clickable, {
         onClick: () => {
           onSuccess()
@@ -354,31 +360,33 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
-            disabled: busy || errors,
+            //TODO: See spinner overlay comment. Change to pendingCreate || errors.
+            disabled: status === 'Loading' || pendingCreate || errors,
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
-                setBusy(true)
                 const contents = Utils.cond(
                   [isJupyterLab || isJupyter, () => JSON.stringify(notebookData[notebookKernel])],
                   [isRStudio, () => baseRmd])
                 const fullAnalysisName = `${analysisName}.${fileExt}`
                 await create(fullAnalysisName, toolLabel, contents)
-                await refresh()
+                //TODO: Temporary, once Analyses.js uses store, refreshAnalyses will be deprecated in favor of refresh() within the create function
+                await refreshAnalyses()
                 // @ts-expect-error
                 await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
-                setBusy(false)
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
                 await reportError('Error creating analysis', error)
                 onError()
               }
-              setBusy(false)
             }
           }, ['Create Analysis'])
         ]),
-        busy && spinnerOverlay
+        //TODO: Once Analyses.js is converted to implement useAnalysisFiles and refresh is called within create,
+        //change next line to pendingCreate && spinnerOverlay
+        //Currently this will be close enough to the desired functionality.
+        (status === 'Loading' || pendingCreate) && spinnerOverlay
       ])
     }
 
