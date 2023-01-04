@@ -498,6 +498,7 @@ const WorkspaceData = _.flow(
   const [crossTableResultCounts, setCrossTableResultCounts] = useState({})
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
+  const [proxyUrlLoaded, setProxyUrlLoaded] = useState(false)
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -570,6 +571,7 @@ const WorkspaceData = _.flow(
         setWdsSchema([])
         setWdsSchemaError(undefined)
         const url = await wdsDataTableProvider.proxyUrlPromise
+        setProxyUrlLoaded(!!url)
         const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
@@ -1052,7 +1054,7 @@ const WorkspaceData = _.flow(
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
-          [workspaceDataTypes.wds, async () => wdsDataTableProvider && (await wdsDataTableProvider.proxyUrlPromise) && wdsSchema && h(WDSContent, {
+          [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && wdsSchema && h(WDSContent, {
             key: refreshKey,
             workspaceUUID: workspaceId,
             workspace,

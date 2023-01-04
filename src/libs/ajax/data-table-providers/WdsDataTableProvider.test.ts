@@ -9,7 +9,7 @@ import {
   EntityQueryResponse,
   TsvUploadButtonDisabledOptions
 } from './DataTableProvider'
-import { RecordAttributes, RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
+import { getWdsUrl, RecordAttributes, RecordQueryResponse, RecordTypeSchema, SearchRequest, WdsDataTableProvider, wdsToEntityServiceMetadata } from './WdsDataTableProvider'
 
 
 jest.mock('src/libs/ajax')
@@ -30,6 +30,9 @@ class TestableWdsProvider extends WdsDataTableProvider {
 const recordType: string = 'item'
 
 const testProxyUrl: string = 'https://lzsomeTestUrl.servicebus.windows.net/super-cool-proxy-url/wds'
+const testProxyUrlResponse: Array<Object> = [
+  { appType: 'CROMWELL', appName: 'cbas-wds-default', proxyUrls: { wds: testProxyUrl } }
+]
 
 const queryOptions: EntityQueryOptions = {
   pageNumber: 2,
@@ -45,6 +48,7 @@ const queryOptions: EntityQueryOptions = {
 type WorkspaceDataContract = ReturnType<typeof WorkspaceData>
 type AjaxContract = ReturnType<typeof Ajax>
 type AppsContract = ReturnType<typeof Apps>
+
 
 describe('WdsDataTableProvider', () => {
   const getRecordsMockImpl: WorkspaceDataContract['getRecords'] = (_root: string, _instanceId: string, _recordType: string, _parameters: SearchRequest) => {
@@ -131,9 +135,7 @@ describe('WdsDataTableProvider', () => {
   }
 
   const getV2AppInfoMockImpl: AppsContract['getV2AppInfo'] = (_workspaceId: string) => {
-    return Promise.resolve([
-      { appType: 'CROMWELL', appName: 'cbas-wds-default', proxyUrls: { wds: testProxyUrl } }
-    ])
+    return Promise.resolve(testProxyUrlResponse)
   }
 
   let getRecords: jest.MockedFunction<WorkspaceDataContract['getRecords']>
@@ -695,5 +697,23 @@ describe('transformMetadata', () => {
     }
 
     expect(actual).toStrictEqual(expected)
+  })
+})
+
+describe('getWdsUrl', () => {
+  it('properly extracts the proxy Url from the leo response', () => {
+    expect(getWdsUrl(testProxyUrlResponse)).toBe(testProxyUrl)
+  })
+  it('locate the Url when the app name is different and is running', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'CROMWELL', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe(testProxyUrl)
+  })
+  it('return empty string when app not found', () => {
+    const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
+      { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
+    ]
+    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 })
