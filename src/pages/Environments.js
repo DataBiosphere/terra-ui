@@ -464,7 +464,8 @@ const Environments = () => {
   }
 
   const renderWorkspaceForRuntimes = runtime => {
-    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = runtime
+    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } = {} } = runtime
+    //TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
       doesUserHaveDuplicateRuntimes(getCreatorForRuntime(runtime), runtimesByProject[googleProject]) &&
       !_.includes(status, ['Deleting', 'Error'])
@@ -492,13 +493,13 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, auditInfo: { creator }, workspace: { workspaceId, googleProject } } = app
+    const { appName, diskName, auditInfo: { creator } = {}, workspace: { workspaceId, googleProject } = {} } = app
     const disk = _.find({ name: diskName }, disks)
     return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
-    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId }, auditInfo: { creator }, workspace } = runtime
+    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId } = {}, auditInfo: { creator } = {}, workspace } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
     return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspace?.workspaceId)
   }
