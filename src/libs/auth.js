@@ -222,7 +222,7 @@ export const processUser = (user, isSignInEvent) => {
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
       // A user is an Azure preview user if they are a member of the Sam group _or_ they have the `azurePreviewUser` claim set from B2C.
       // Only enforce the Azure preview allow-list on prod.
-      isAzurePreviewUser: isSignedIn ? !getConfig().isProd || state.isAzurePreviewUser || profile.azurePreviewUser : undefined,
+      isAzurePreviewUser: isSignedIn ? !getConfig().isProd || state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
