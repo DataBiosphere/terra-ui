@@ -1,7 +1,7 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { DraggableCore } from 'react-draggable'
 import { div, form, h, h3, input, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -510,7 +510,7 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = new WdsDataTableProvider(workspaceId)
+  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
 
   const loadEntityMetadata = async () => {
     try {
