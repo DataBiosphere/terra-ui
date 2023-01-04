@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
-import Link from 'src/components/common/Link'
+import { Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'

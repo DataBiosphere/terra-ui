@@ -4,20 +4,20 @@ import * as qs from 'qs'
 import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { absoluteSpinnerOverlay, ButtonPrimary, HeaderRenderer, IdContainer, Link, Select } from 'src/components/common'
+import { absoluteSpinnerOverlay, ButtonPrimary, IdContainer, Link, Select } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
-import { ariaSort } from 'src/components/table'
+import { ariaSort, HeaderRenderer } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractBillingDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { memoWithName, useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
@@ -103,8 +103,8 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
-                billingProjectName: namespace,
-                workspaceName: name
+                workspaceName: name,
+                ...extractBillingDetails(billingProject)
               })
             }
           }, [name])
@@ -122,8 +122,8 @@ const WorkspaceCard = memoWithName('WorkspaceCard', ({ workspace, billingProject
             style: { display: 'flex', alignItems: 'center' },
             onClick: () => {
               Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
-                billingProjectName: namespace,
-                workspaceName: name
+                workspaceName: name,
+                ...extractBillingDetails(billingProject)
               })
               onExpand()
             }
@@ -261,10 +261,10 @@ const GcpBillingAccountControls = ({
     reportErrorAndRethrow('Error updating billing account'),
     Utils.withBusyState(setUpdating)
   )(newAccountName => {
-    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
+    Ajax().Metrics.captureEvent(Events.billingChangeAccount, {
       oldName: billingProject.billingAccount,
       newName: newAccountName,
-      billingProjectName: billingProject.projectName
+      ...extractBillingDetails(billingProject)
     })
     return Ajax(signal).Billing.changeBillingAccount({
       billingProjectName: billingProject.projectName,
@@ -276,9 +276,7 @@ const GcpBillingAccountControls = ({
     reportErrorAndRethrow('Error removing billing account'),
     Utils.withBusyState(setUpdating)
   )(() => {
-    Ajax().Metrics.captureEvent(Events.removeBillingAccount, {
-      billingProject: billingProject.projectName
-    })
+    Ajax().Metrics.captureEvent(Events.billingRemoveAccount, extractBillingDetails(billingProject))
     return Ajax(signal).Billing.removeBillingAccount({
       billingProjectName: billingProject.projectName
     })
@@ -810,7 +808,7 @@ const ProjectDetail = ({ authorizeAndLoadAccounts, billingAccounts, billingProje
       h(SimpleTabBar, {
         'aria-label': 'project details',
         metricsPrefix: Events.billingProjectSelectTab,
-        metricsData: { billingProjectName: billingProject.projectName },
+        metricsData: extractBillingDetails(billingProject),
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,

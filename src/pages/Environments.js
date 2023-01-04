@@ -1,6 +1,6 @@
 import { differenceInDays } from 'date-fns'
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, h2, p, span, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -18,15 +18,16 @@ import colors from 'src/libs/colors'
 import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useGetter, useOnMount, usePollingEffect } from 'src/libs/react-utils'
+import { useCancellation, useGetter } from 'src/libs/react-utils'
 import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
-  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCurrentRuntime, getDiskAppType, getGalaxyComputeCost, getPersistentDiskCostMonthly,
-  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes, workspaceHasMultipleApps,
+  defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType, getGalaxyComputeCost,
+  getPersistentDiskCostMonthly,
+  getRegionFromZone, getRuntimeCost, isApp, isComputePausable, isGcpContext, isResourceDeletable, mapToPdTypes,
   workspaceHasMultipleDisks
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
@@ -308,28 +309,29 @@ const Environments = () => {
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
-  const [shouldFilterRuntimesByCreator, setShouldFilterRuntimesByCreator] = useState(true)
   const [migrateDisk, setMigrateDisk] = useState()
+  const [shouldFilterByCreator, setShouldFilterByCreator] = useState(true)
+
+  const currentUser = getUser().email
 
   const refreshData = Utils.withBusyState(setLoading, async () => {
     await refreshWorkspaces()
-    const creator = getUser().email
 
     const workspaces = getWorkspaces()
     const getWorkspace = (namespace, name) => _.get(`${namespace}.${name}`, workspaces)
 
     const startTimeForLeoCallsEpochMs = Date.now()
+
+    const listArgs = shouldFilterByCreator ? { role: 'creator', includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } : { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }
     const [newRuntimes, newDisks, newApps] = await Promise.all([
-      Ajax(signal).Runtimes.listV2(shouldFilterRuntimesByCreator ?
-        { creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' } :
-        { includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' }),
-      Ajax(signal).Disks.list({ creator, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
-      Ajax(signal).Apps.listWithoutProject({ creator, includeLabels: 'saturnWorkspaceNamespace,saturnWorkspaceName' })
+      Ajax(signal).Runtimes.listV2(listArgs),
+      Ajax(signal).Disks.list({ ...listArgs, includeLabels: 'saturnApplication,saturnWorkspaceNamespace,saturnWorkspaceName' }),
+      Ajax(signal).Apps.listWithoutProject(listArgs)
     ])
     const endTimeForLeoCallsEpochMs = Date.now()
 
     const leoCallTimeTotalMs = endTimeForLeoCallsEpochMs - startTimeForLeoCallsEpochMs
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs })
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDetailsLoad, { leoCallTimeMs: leoCallTimeTotalMs, totalCallTimeMs: leoCallTimeTotalMs, runtimes: newRuntimes.length, disks: newDisks.length, apps: newApps.length })
 
     const cloudObjectNeedsMigration = (cloudContext, status, workspace) => status === 'Ready' &&
       isGcpContext(cloudContext) && cloudContext.cloudResource !== workspace?.googleProject
@@ -364,8 +366,7 @@ const Environments = () => {
       setDeleteAppId(undefined)
     }
   })
-
-  const loadData = withErrorReporting('Error loading cloud environments', refreshData)
+  const loadData = withErrorIgnoring(refreshData)
 
   const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
     const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
@@ -376,8 +377,13 @@ const Environments = () => {
     await loadData()
   })
 
-  useOnMount(() => { loadData() })
-  usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
+  useEffect(() => {
+    loadData()
+    const interval = setInterval(refreshData, 30000)
+    return () => {
+      clearInterval(interval)
+    }
+  }, [shouldFilterByCreator]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getCloudProvider = cloudEnvironment => Utils.cond(
     //TODO: AKS vs GKE apps
@@ -428,7 +434,6 @@ const Environments = () => {
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
-  const appsByProject = _.groupBy('googleProject', apps)
 
   const numDisksRequiringMigration = _.countBy('requiresMigration', disks).true
 
@@ -451,16 +456,26 @@ const Environments = () => {
   // created, workspace namespace (a.k.a billing project) value used to equal the google project.
   // Therefore we use google project if the namespace label is not defined.
   const renderWorkspaceForApps = app => {
-    const { appType, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = app
-    const multipleApps = workspaceHasMultipleApps(appsByProject[googleProject], appType)
-    return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, appType, multipleApps)
+    const { appType, cloudContext: { cloudResource }, labels: { saturnWorkspaceNamespace, saturnWorkspaceName } } = app
+    // Here, we use the saturnWorkspaceNamespace label if its defined, otherwise use cloudResource for older runtimes
+    const resolvedSaturnWorkspaceNamespace = saturnWorkspaceNamespace ? saturnWorkspaceNamespace : cloudResource
+    return getWorkspaceCell(resolvedSaturnWorkspaceNamespace, saturnWorkspaceName, appType, false)
   }
 
   const renderWorkspaceForRuntimes = runtime => {
     const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = runtime
-    const shouldWarn = !_.includes(status, ['Deleting', 'Error']) &&
-      getCurrentRuntime(runtimesByProject[googleProject]) !== runtime
+    const shouldWarn =
+      doesUserHaveDuplicateRuntimes(getCreatorForRuntime(runtime), runtimesByProject[googleProject]) &&
+      !_.includes(status, ['Deleting', 'Error'])
     return getWorkspaceCell(saturnWorkspaceNamespace, saturnWorkspaceName, null, shouldWarn)
+  }
+
+  const doesUserHaveDuplicateRuntimes = (user, runtimes) => {
+    const runtimesForUser = _.flow(
+      _.map(getCreatorForRuntime),
+      _.filter(!_.eq(user))
+    )(runtimes)
+    return runtimesForUser.length > 1
   }
 
   const getDetailsPopup = (cloudEnvName, billingId, disk, creator, workspaceId) => {
@@ -469,7 +484,7 @@ const Environments = () => {
         div([strong(['Name: ']), cloudEnvName]),
         div([strong(['Billing ID: ']), billingId]),
         workspaceId && div([strong(['Workspace ID: ']), workspaceId]),
-        !shouldFilterRuntimesByCreator && div([strong(['Creator: ']), creator]),
+        !shouldFilterByCreator && div([strong(['Creator: ']), creator]),
         !!disk && div([strong(['Persistent Disk: ']), disk.name])
       ])
     }, [h(Link, ['view'])])
@@ -508,9 +523,11 @@ const Environments = () => {
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
 
-    const shouldShowPauseButton = isApp(compute) ?
-      !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported :
-      isPauseSupported(getToolFromRuntime(compute))
+    const shouldShowPauseButton =
+      Utils.cond(
+        [isApp(compute) && !_.find(tool => tool.appType && tool.appType === compute.appType)(appTools)?.isPauseUnsupported, () => true],
+        [isPauseSupported(getToolFromRuntime(compute)) && currentUser === getCreatorForRuntime(compute), () => true],
+        () => false)
 
     return shouldShowPauseButton && h(Link, {
       style: { marginRight: '1rem' },
@@ -568,8 +585,8 @@ const Environments = () => {
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       div({ style: { marginBottom: '.5rem' } }, [
-        h(LabeledCheckbox, { checked: shouldFilterRuntimesByCreator, onChange: setShouldFilterRuntimesByCreator }, [
-          span({ style: { fontWeight: 600 } }, [' Hide cloud environments you have access to but didn\'t create'])
+        h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
+          span({ style: { fontWeight: 600 } }, [' Hide resources you did not create'])
         ])
       ]),
       runtimes && h(SimpleFlexTable, {
@@ -695,14 +712,14 @@ const Environments = () => {
             field: 'workspace',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'workspace', onSort: setDiskSort }, ['Workspace']),
             cellRenderer: ({ rowIndex }) => {
-              const { status: diskStatus, googleProject, workspace } = filteredDisks[rowIndex]
+              const { status: diskStatus, googleProject, workspace, creator } = filteredDisks[rowIndex]
               const appType = getDiskAppType(filteredDisks[rowIndex])
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return !!workspace ?
                 h(Fragment, [
                   h(Link, { href: Nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
                     [workspace.name]),
-                  diskStatus !== 'Deleting' && multipleDisks &&
+                  currentUser === creator && diskStatus !== 'Deleting' && multipleDisks &&
                   h(TooltipTrigger, {
                     content: `This workspace has multiple active persistent disks${forAppText(appType)}. Only the latest one will be used.`
                   }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -714,7 +731,7 @@ const Environments = () => {
             size: { basis: 90, grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
-              const { name, id, cloudContext, workspace } = filteredDisks[rowIndex]
+              const { name, id, cloudContext, workspace, auditInfo: { creator } } = filteredDisks[rowIndex]
               const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               const app = _.find({ diskName: name }, apps)
               return h(PopupTrigger, {
@@ -722,6 +739,7 @@ const Environments = () => {
                   div([strong(['Name: ']), name]),
                   div([strong(['Billing ID: ']), cloudContext.cloudResource]),
                   workspace && div([strong(['Workspace ID: ']), workspace.workspaceId]),
+                  !shouldFilterByCreator && div([strong(['Creator: ']), creator]),
                   runtime && div([strong(['Runtime: ']), runtime.runtimeName]),
                   app && div([strong([`${_.capitalize(app.appType)}: `]), app.appName])
                 ])

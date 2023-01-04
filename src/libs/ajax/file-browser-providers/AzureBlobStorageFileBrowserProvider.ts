@@ -153,6 +153,12 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
       blobUrl.pathname += `/${path}`
       return blobUrl.href
     },
+    getDownloadCommandForFile: async path => {
+      const { sas: { url: originalSasUrl } } = await storageDetailsPromise
+      const blobUrl = new URL(originalSasUrl)
+      blobUrl.pathname += `/${path}`
+      return `azcopy copy '${blobUrl.href}' .`
+    },
     uploadFileToDirectory: async (directoryPath, file) => {
       const { sas: { url: originalSasUrl } } = await storageDetailsPromise
 

@@ -11,6 +11,7 @@ parameters:
 
 orbs:
   slack: circleci/slack@3.4.2
+  sonarcloud: sonarsource/sonarcloud@1.0.3
 
 executors:
   node:
@@ -238,8 +239,6 @@ jobs:
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
-      - store_artifacts:
-          path: coverage
       - persist_to_workspace:
           root: .
           paths:
@@ -247,6 +246,7 @@ jobs:
             - app.yaml
             - build
             - config
+      - sonarcloud/scan
   deploy-pr:
     executor: gcloud
     steps:

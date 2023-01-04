@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import colors from 'src/libs/colors'
 
-import Clickable from './Clickable'
+import { Clickable } from './Clickable'
 
 
 const buttonStyle = {
