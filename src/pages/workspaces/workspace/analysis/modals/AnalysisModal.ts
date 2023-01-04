@@ -82,10 +82,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     //TODO: Bring in as props from Analyses
     const { loadedState, create, pendingCreate }: AnalysisFileStore = useAnalysisFiles()
-
+    //TODO: When the above is done, this check below is no longer necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
-
     const resetView = () => {
       setViewMode(undefined)
       setAnalysisName('')
