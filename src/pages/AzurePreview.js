@@ -4,12 +4,15 @@ import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
-import { azurePreviewStore, getUser } from 'src/libs/state'
+import { useStore } from 'src/libs/react-utils'
+import { authStore, azurePreviewStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const AzurePreview = () => {
+  // State
+  const { isAzurePreviewUser } = useStore(authStore)
+
   // Helpers
   const styles = {
     centered: {
@@ -45,8 +48,6 @@ const AzurePreview = () => {
     azurePreviewStore.set(true)
   }
 
-  const isAlphaAzureUser = !getConfig().isProd || getUser().allowAppAccess === 'true'
-
   // Render
   return div({
     role: 'main',
@@ -66,7 +67,7 @@ const AzurePreview = () => {
         'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.')
     ]),
 
-    isAlphaAzureUser ? undefined : [
+    isAzurePreviewUser ? undefined : [
       div({ style: styles.centered }, [
         p({ style: styles.paragraph }, [
           'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please contact ',
@@ -76,11 +77,11 @@ const AzurePreview = () => {
       ])
     ],
     div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      isAlphaAzureUser ?
+      isAzurePreviewUser ?
         h(ButtonPrimary, { onClick: dismiss, style: styles.button }, 'Proceed to Terra on Microsoft Azure Preview') :
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Log Out')
     ]),
-    isAlphaAzureUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
+    isAzurePreviewUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
       h(ButtonOutline, { onClick: signOut, style: styles.button }, 'Log Out')
     ]) : undefined
   ])
