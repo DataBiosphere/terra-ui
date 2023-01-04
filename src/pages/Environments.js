@@ -61,7 +61,7 @@ const DeleteRuntimeModal = ({
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveFilesHelp),
+      !isGcpContext(cloudContext) ? h(SaveFilesHelpGalaxy) : h(SaveFilesHelp),
       p([
         'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'

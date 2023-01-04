@@ -150,16 +150,9 @@ export const SaveFilesHelpRStudio = () => {
 export const SaveFilesHelpGalaxy = () => {
   return h(Fragment, [
     p([
-      'Deleting your Cloud Environment will stop your ',
-      'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-      'for Galaxy later, which will take 8-10 minutes.'
-    ]),
-    p(['If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-      h(Link, {
-        'aria-label': 'Galaxy save help',
-        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-        ...Utils.newTabLinkProps
-      }, ['move them to the workspace bucket.'])])
+      'If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ',
+      'please move them to your workspace storage container.'
+    ])
   ])
 }
 
