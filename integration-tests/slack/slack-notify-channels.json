@@ -39,9 +39,6 @@
           "name": "run-workflow"
         },
         {
-          "name": "run-workflow-on-snapshot"
-        },
-        {
           "name": "run-catalog-workflow"
         }
       ]
@@ -109,9 +106,6 @@
       "tests": [
         {
           "name": "import-cohort-data"
-        },
-        {
-          "name": "run-workflow-on-snapshot"
         }
       ]
     }
