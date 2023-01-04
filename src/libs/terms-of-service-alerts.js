@@ -31,7 +31,7 @@ const getNewTermsOfServiceNeedsAcceptingAlert = async termsOfServiceState => {
     title: 'There is a new Terra Terms of Service.',
     message: h(Fragment, [
       h(Fragment, { key: 'customText' }, [gracePeriodText]),
-      <br/>,
+      h(Fragment, { key: 'lineBreak' }, [<br/>]),
       h(Link, { href: Nav.getLink('terms-of-service'), key: 'tosLink' }, 'Accept the new Terms of Service here.')
     ]),
     severity: 'error'

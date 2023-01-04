@@ -208,13 +208,7 @@ export const processUser = (user, isSignInEvent) => {
       isSignedIn,
       anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
       registrationStatus: isSignedIn ? state.registrationStatus : undefined,
-      termsOfService: {
-        isGracePeriodEnabled: isSignedIn ? state.termsOfService.isGracePeriodEnabled : undefined,
-        currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
-        userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
-        userAcceptedTos: isSignedIn ? state.termsOfService.userAcceptedTos : undefined,
-        userNeedsToAcceptTos: isSignedIn ? state.termsOfService.userNeedsToAcceptTos : undefined,
-      },
+      termsOfService: initializeTermsOfService(isSignedIn, state),
       profile: isSignedIn ? state.profile : {},
       nihStatus: isSignedIn ? state.nihStatus : undefined,
       fenceStatus: isSignedIn ? state.fenceStatus : {},
@@ -238,6 +232,16 @@ export const processUser = (user, isSignInEvent) => {
       }
     }
   })
+}
+
+const initializeTermsOfService = (isSignedIn, state) => {
+  return {
+    isGracePeriodEnabled: isSignedIn ? state.termsOfService.isGracePeriodEnabled : undefined,
+    currentVersion: isSignedIn ? state.termsOfService.currentVersion : undefined,
+    userAcceptedVersion: isSignedIn ? state.termsOfService.userAcceptedVersion : undefined,
+    userAcceptedTos: isSignedIn ? state.termsOfService.userAcceptedTos : undefined,
+    userNeedsToAcceptTos: isSignedIn ? state.termsOfService.userNeedsToAcceptTos : undefined,
+  }
 }
 
 export const initializeAuth = _.memoize(async () => {
@@ -313,18 +317,29 @@ authStore.subscribe(withErrorReporting('Error checking registration', async (sta
 authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     const tosDetails = await Ajax().User.getTermsOfServiceDetails()
-    const userAcceptedTos = !_.isUndefined(tosDetails.currentVersion) ?
-      tosDetails.currentVersion === tosDetails.userAcceptedVersion : undefined
-    const userNeedsToAcceptTos = !_.isUndefined(userAcceptedTos) ?
-      (!userAcceptedTos && !tosDetails.isGracePeriodEnabled) || _.isUndefined(tosDetails.userAcceptedVersion) : false
-    const termsOfService = {
-      isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
-      currentVersion: tosDetails.currentVersion,
-      userAcceptedVersion: tosDetails.userAcceptedVersion,
-      userAcceptedTos,
-      userNeedsToAcceptTos,
+    if (_.isNull(tosDetails)) {
+      const termsOfService = {
+        isGracePeriodEnabled: undefined,
+        currentVersion: undefined,
+        userAcceptedVersion: undefined,
+        userAcceptedTos: false,
+        userNeedsToAcceptTos: true,
+      }
+      authStore.update(state => ({ ...state, termsOfService }))
+    } else {
+      const userAcceptedTos = !_.isUndefined(tosDetails.currentVersion) ?
+        tosDetails.currentVersion === tosDetails.userAcceptedVersion : undefined
+      const userNeedsToAcceptTos = !_.isUndefined(userAcceptedTos) ?
+        (!userAcceptedTos && !tosDetails.isGracePeriodEnabled) || _.isUndefined(tosDetails.userAcceptedVersion) : false
+      const termsOfService = {
+        isGracePeriodEnabled: tosDetails.isGracePeriodEnabled,
+        currentVersion: tosDetails.currentVersion,
+        userAcceptedVersion: tosDetails.userAcceptedVersion,
+        userAcceptedTos,
+        userNeedsToAcceptTos,
+      }
+      authStore.update(state => ({ ...state, termsOfService }))
     }
-    authStore.update(state => ({ ...state, termsOfService }))
   }
 }))
 

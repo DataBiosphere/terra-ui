@@ -114,8 +114,16 @@ const User = signal => ({
   },
 
   getTermsOfServiceDetails: async () => {
-    const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
-    return res.json()
+    try {
+      const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404 || error.status === 403) {
+        return null
+      } else {
+        throw error
+      }
+    }
   },
 
 
