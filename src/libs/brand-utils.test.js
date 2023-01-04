@@ -54,6 +54,13 @@ describe('brand-utils', () => {
   })
 
   describe('getEnabledBrand', () => {
+    beforeAll(() => {
+      // For invalid brands, getEnabledBrand logs a notice and instructions for developers.
+      // Those should not be shown in test output.
+      jest.spyOn(console, 'log').mockImplementation(() => {})
+      jest.spyOn(console, 'warn').mockImplementation(() => {})
+    })
+
     it('returns forced brand when a valid one is set', () => {
       // Arrange
       window.configOverridesStore.set({ brand: 'rareX' })
