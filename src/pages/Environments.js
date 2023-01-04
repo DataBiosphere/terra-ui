@@ -456,8 +456,9 @@ const Environments = () => {
   // created, workspace namespace (a.k.a billing project) value used to equal the google project.
   // Therefore we use google project if the namespace label is not defined.
   const renderWorkspaceForApps = app => {
-    const { appType, googleProject, cloudContext: { cloudResource }, labels: { saturnWorkspaceName } } = app
-    const resolvedSaturnWorkspaceName = googleProject ? googleProject : cloudResource
+    const { appType, googleProject, cloudContext: { cloudResource }, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = app
+    // Here, we use the saturnWorkspaceNamespace label if its defined, otherwise the googleProject if its defined, otherwise the cloudResource
+    const resolvedSaturnWorkspaceName = saturnWorkspaceNamespace ? saturnWorkspaceNamespace : cloudResource
     return getWorkspaceCell(resolvedSaturnWorkspaceName, saturnWorkspaceName, appType, false)
   }
 
