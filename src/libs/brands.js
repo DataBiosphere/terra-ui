@@ -240,3 +240,5 @@ export const brands = {
     }
   }
 }
+
+export const defaultBrand = brands.terra
