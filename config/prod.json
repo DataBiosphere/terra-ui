@@ -25,7 +25,7 @@
     "appId": "saturnprod-VuHKy",
     "apiKey": "AQEBBAEGP2gTM2pIdJAQOIeNrm8dcTM7E4FMSmaibbMUQxNU6qy6nLPOBK8QfSvPFSsX8PQ"
   },
-  "alphaAzureGroup": "alpha-azure-feature-group",
+  "azurePreviewGroup": "alpha-azure-feature-group",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-prod.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-prod",
