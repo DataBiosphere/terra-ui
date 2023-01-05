@@ -107,7 +107,7 @@ const ImportDataOverview = ({ header, snapshots, isDataset, snapshotResponses, u
 ])
 
 // ImportDataDestination handles selecting which workspace to import to
-const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, userHasBillingProjects, isDataset, authorizationDomain, onImport, isImporting }) => {
+const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, userHasBillingProjects, importMayTakeTime, authorizationDomain, onImport, isImporting }) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [mode, setMode] = useState(workspaceId ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -125,7 +125,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
       _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
     )(_.castArray(template))
 
-  const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+  const importMayTakeTimeMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
 
   const linkAccountPrompt = () => {
     return div({}, [
@@ -148,7 +148,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
         onChange: setSelectedWorkspaceId
       })
     ])]),
-    isDataset && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [noteMessage]),
+    importMayTakeTime && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
       h(ButtonPrimary, {
@@ -161,7 +161,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
 
   const SelectTemplateWorkspace = () => h(Fragment, [
     h2({ style: styles.title }, ['Start with a template']),
-    isDataset && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [noteMessage]),
+    importMayTakeTime && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [importMayTakeTimeMessage]),
     div({
       role: 'radiogroup',
       'aria-label': 'choose a template',
@@ -239,7 +239,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
           }),
           isCreateOpen && h(NewWorkspaceModal, {
             requiredAuthDomain: authorizationDomain,
-            customMessage: isDataset && noteMessage,
+            customMessage: importMayTakeTime && importMayTakeTimeMessage,
             onDismiss: () => setIsCreateOpen(false),
             onSuccess: w => {
               setMode('existing')
@@ -256,7 +256,7 @@ const ImportDataDestination = ({ workspaceId, templateWorkspaces, template, user
       cloneWorkspace: _.find({ workspace: selectedTemplateWorkspaceKey }, workspaces),
       title: `Clone ${selectedTemplateWorkspaceKey.name} and Import Data`,
       buttonText: 'Clone and Import',
-      customMessage: isDataset && noteMessage,
+      customMessage: importMayTakeTime && importMayTakeTimeMessage,
       onDismiss: () => setIsCloneOpen(false),
       onSuccess: w => {
         setMode('existing')
@@ -410,7 +410,7 @@ const ImportData = () => {
         style: { position: 'fixed', top: 0, left: 0, zIndex: -1 }
       }),
       h(ImportDataOverview, { snapshots, snapshotResponses, url, isDataset, header }),
-      h(ImportDataDestination, { workspaceId: wid, templateWorkspaces, template, userHasBillingProjects, isDataset, authorizationDomain: ad, onImport, isImporting })
+      h(ImportDataDestination, { workspaceId: wid, templateWorkspaces, template, userHasBillingProjects, importMayTakeTime: isDataset, authorizationDomain: ad, onImport, isImporting })
     ])
   ])
 }
