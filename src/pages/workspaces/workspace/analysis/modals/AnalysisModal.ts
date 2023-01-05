@@ -10,10 +10,8 @@ import cromwellImg from 'src/images/cromwell-logo.png'
 import galaxyLogo from 'src/images/galaxy-logo.svg'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioBioLogo from 'src/images/r-bio-logo.svg'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { usePrevious, withDisplayName } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -42,7 +40,7 @@ export interface AnalysisModalProps {
   workspace: BaseWorkspace
   location: any
   runtimes: any
-  apps: AppTool
+  apps: AppTool[]
   appDataDisks: any
   persistentDisks: any
   onDismiss: () => void
@@ -50,7 +48,7 @@ export interface AnalysisModalProps {
   onSuccess: () => void
   openUploader: () => void
   uploadFiles: () => void
-  //TODO: Temporary until Analyses implements useAnalysisFiles
+  //TODO: Temporary until Analyses.js implements useAnalysisFiles
   refreshAnalyses: () => void
 }
 
@@ -371,8 +369,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
                 await create(fullAnalysisName, toolLabel, contents)
                 //TODO: Temporary, once Analyses.js uses store, refreshAnalyses will be deprecated in favor of refresh() within the create function
                 await refreshAnalyses()
-                // @ts-expect-error
-                await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
+                // //@ts-expect-error
+                // await Ajax().Metrics.captureEvent(Events.analysisCreate, { source: toolLabel, application: toolLabel, filename: fullAnalysisName })
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
               } catch (error) {
