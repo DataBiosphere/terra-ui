@@ -22,7 +22,6 @@ import {
 import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
 import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -157,7 +156,7 @@ export const WorkspaceList = () => {
     const loadPersistentDisks = withErrorIgnoring(async () => {
       setGcpPersistentDisks(_.filter(({ cloudContext }) => isGcpContext(cloudContext),
         await Ajax().Disks.list({
-          creator: getUser().email,
+          role: 'creator',
           includeLabels: ['saturnWorkspaceNamespace', 'saturnWorkspaceName'].join(',')
         })
       ))
