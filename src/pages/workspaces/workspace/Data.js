@@ -779,7 +779,7 @@ const WorkspaceData = _.flow(
                   buttonText: 'Upload TSV',
                   onAdd: () => setUploadingWDSFile(true)
                 }),
-                wdsSchema && _.map(typeDef => {
+                !_.isEmpty(wdsSchema) && _.map(typeDef => {
                   return div({ key: typeDef.name, role: 'listitem' }, [
                     h(DataTypeButton, {
                       key: typeDef.name,
@@ -1054,7 +1054,7 @@ const WorkspaceData = _.flow(
               setSelectedData({ type: workspaceDataTypes.entities, entityType: tableName })
             })
           })],
-          [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && wdsSchema && h(WDSContent, {
+          [workspaceDataTypes.wds, () => wdsDataTableProvider && proxyUrlLoaded && !_.isEmpty(wdsSchema) && h(WDSContent, {
             key: refreshKey,
             workspaceUUID: workspaceId,
             workspace,
