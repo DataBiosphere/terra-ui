@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import {
   useAnalysisFiles
@@ -10,11 +11,11 @@ import {
 import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
+import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
-const defaultModalProps: AnalysisModalProps = {
+const defaultGcpModalProps: AnalysisModalProps = {
   isOpen: true,
   workspace: defaultGoogleWorkspace,
   location: 'US',
@@ -31,7 +32,13 @@ const defaultModalProps: AnalysisModalProps = {
   refreshAnalyses: () => {}
 }
 
+const defaultAzureModalProps: AnalysisModalProps = {
+  ...defaultGcpModalProps,
+  workspace: defaultAzureWorkspace
+}
+
 jest.mock('src/libs/ajax/GoogleStorage')
+jest.mock('src/libs/ajax')
 
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn((...args) => {
@@ -50,7 +57,6 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
 
 const createFunc = jest.fn()
 
-
 describe('AnalysisModal', () => {
   beforeEach(() => {
     // Arrange
@@ -60,11 +66,34 @@ describe('AnalysisModal', () => {
       create: createFunc,
       pendingCreate: false
     }))
+
+    //@ts-expect-error
+    Ajax.mockImplementation(() => ({ Metrics: { captureEvent: jest.fn() } }))
   })
 
-  it('renders correctly by default', () => {
+  it('GCP - Renders correctly by default', () => {
     // Act
-    render(h(AnalysisModal, defaultModalProps))
+    render(h(AnalysisModal, defaultGcpModalProps))
+    // Assert
+    screen.getByText('Select an application')
+    screen.getByAltText('Create new notebook')
+    screen.getByAltText('Create new R file')
+    screen.getByAltText('Create new Galaxy app')
+  })
+
+  it('GCP - Successfully resets view.', async () => {
+    // Act
+    render(h(AnalysisModal, defaultGcpModalProps))
+
+    // Act
+    const button = screen.getByAltText('Create new notebook')
+
+    await userEvent.click(button)
+    screen.getByText('Create a new notebook')
+
+    const backButton = screen.getByLabelText('Back')
+    await userEvent.click(backButton)
+
     // Assert
     screen.getByText('Select an application')
   })
@@ -73,9 +102,9 @@ describe('AnalysisModal', () => {
     { app: 'Jupyter', buttonAltText: 'Create new notebook', expectedTitle: 'Create a new notebook' },
     { app: 'RStudio', buttonAltText: 'Create new R file', expectedTitle: 'Create a new R file' },
     { app: 'Galaxy', buttonAltText: 'Create new Galaxy app', expectedTitle: 'Galaxy Cloud Environment' }
-  ])('renders correctly and selects $app when no apps or runtimes are present.', async ({ buttonAltText, expectedTitle }) => {
+  ])('GCP - Renders correctly and selects $app when no apps or runtimes are present.', async ({ buttonAltText, expectedTitle }) => {
     // Arrange
-    render(h(AnalysisModal, defaultModalProps))
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     const button = screen.getByAltText(buttonAltText)
@@ -89,7 +118,7 @@ describe('AnalysisModal', () => {
   it.each([
     { fileType: 'Python 3' },
     { fileType: 'R' },
-  ])('Creates a new $fileType for Jupyter when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+  ])('GCP - Creates a new $fileType for Jupyter when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
     // Arrange
     const createMock = jest.fn()
     const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
@@ -100,7 +129,7 @@ describe('AnalysisModal', () => {
     })
 
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
-    render(h(AnalysisModal, defaultModalProps))
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     await act(async () => {
@@ -126,9 +155,9 @@ describe('AnalysisModal', () => {
     expect(createFunc).toHaveBeenCalled()
   })
 
-  it('Creates a new file for Jupyter when a Jupyter runtime is present and does not navigate to cloud environment page.', async () => {
+  it('GCP - Creates a new file for Jupyter when a Jupyter runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultModalProps, runtimes: [getGoogleRuntime()] }))
+    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime()] }))
 
     // Act
     await act(async () => {
@@ -157,9 +186,9 @@ describe('AnalysisModal', () => {
   it.each([
     { fileType: 'R Markdown (.Rmd)' },
     { fileType: 'R Script (.R)' }
-  ])('Creates a new $fileType for RStudio when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+  ])('GCP - Creates a new $fileType for RStudio when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
     // Arrange
-    render(h(AnalysisModal, defaultModalProps))
+    render(h(AnalysisModal, defaultGcpModalProps))
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new R file')
@@ -183,9 +212,9 @@ describe('AnalysisModal', () => {
     expect(createFunc).toHaveBeenCalled()
   })
 
-  it('Creates a new file for RStudio when an RStudio runtime is present and does not navigate to cloud environment page.', async () => {
+  it('GCP - Creates a new file for RStudio when an RStudio runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultModalProps, runtimes: [getGoogleRuntime({ tool: tools.RStudio })] }))
+    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime({ tool: tools.RStudio })] }))
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new R file')
@@ -203,9 +232,9 @@ describe('AnalysisModal', () => {
     expect(createFunc).toHaveBeenCalled()
   })
 
-  it('Renders Galaxy Environment page when no runtime exists and Galaxy is selected.', async () => {
+  it('GCP - Renders Galaxy Environment page when no runtime exists and Galaxy is selected.', async () => {
     // Arrange
-    render(h(AnalysisModal, defaultModalProps))
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     await act(async () => {
@@ -216,9 +245,9 @@ describe('AnalysisModal', () => {
     screen.getByText('Galaxy Cloud Environment')
   })
 
-  it('Renders disabled Galaxy button and tooltip when Galaxy app exists.', async () => {
+  it('GCP - Renders disabled Galaxy button and tooltip when Galaxy app exists.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultModalProps, apps: [galaxyRunning], appDataDisks: [galaxyDisk] }))
+    render(h(AnalysisModal, { ...defaultGcpModalProps, apps: [galaxyRunning], appDataDisks: [galaxyDisk] }))
 
     // Act
     const button = screen.getByAltText('Create new Galaxy app')
@@ -226,5 +255,63 @@ describe('AnalysisModal', () => {
 
     // Assert
     expect(await screen.queryAllByText('You already have a Galaxy environment').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('Azure - Renders correctly by default', () => {
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps))
+    // Assert
+    screen.getByText('Select an application')
+    screen.getByAltText('Create new notebook')
+    expect(screen.queryByAltText('Create new R file')).toBeNull()
+    expect(screen.queryByAltText('Create new Galaxy app')).toBeNull()
+  })
+
+  it('Azure - Successfully resets view.', async () => {
+    // Act
+    render(h(AnalysisModal, defaultAzureModalProps))
+
+    // Act
+    const button = screen.getByAltText('Create new notebook')
+
+    await userEvent.click(button)
+    screen.getByText('Create a new notebook')
+
+    const backButton = screen.getByLabelText('Back')
+    await userEvent.click(backButton)
+
+    // Assert
+    screen.getByText('Select an application')
+  })
+
+  it.each([
+    { fileType: 'Python 3' },
+    { fileType: 'R' },
+  ])('Azure - Creates a new $fileType for Jupyter when no runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+    // Arrange
+    render(h(AnalysisModal, defaultAzureModalProps))
+
+    // Act
+    await act(async () => {
+      const button = screen.getByAltText('Create new notebook')
+
+      await userEvent.click(button)
+
+      const fileTypeSelect = await screen.getByLabelText('Language *')
+      await userEvent.click(fileTypeSelect)
+
+      const selectOption = await screen.findAllByText(fileType)
+      await userEvent.click(selectOption[1])
+
+      const nameInput = screen.getByLabelText('Name of the notebook *')
+      await userEvent.type(nameInput, 'MyNewFile')
+
+      const createButton = await screen.findByText('Create Analysis')
+      await userEvent.click(createButton)
+    })
+
+    // Assert
+    screen.getByText('Azure Cloud Environment')
+    expect(createFunc).toHaveBeenCalled()
   })
 })
