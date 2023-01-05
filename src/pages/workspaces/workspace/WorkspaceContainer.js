@@ -247,7 +247,7 @@ const useCloudEnvironmentPolling = (googleProject, workspace) => {
       // v1 workspaces: cloud environment (runtime + disk) is used across workspaces that share the same googleProject
       // v2 workspaces: 1 cloud environment per workspace - saturnWorkspaceName == workspaceName and saturnWorkspaceNamespace == Terra Billing Project (which is no longer equivalent to googleProject)
       // TODO: after PPW migration - we should only need saturnWorkspaceName and saturnWorkspaceNamespace labels
-      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { creator: getUser().email, googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
+      const cloudEnvFilters = _.pickBy(l => !_.isUndefined(l), saturnWorkspaceVersion === 'v1' ? { role: 'creator', googleProject } : { creator: getUser().email, saturnWorkspaceName, saturnWorkspaceNamespace })
 
       // Disks.list API takes includeLabels to specify which labels to return in the response
       // Runtimes.listV2 API always returns all labels for a runtime
