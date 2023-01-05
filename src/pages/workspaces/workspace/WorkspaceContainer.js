@@ -289,7 +289,7 @@ const useAppPolling = (googleProject, workspaceName) => {
   const loadApps = async () => {
     try {
       const newApps = !!googleProject ?
-        await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) :
+        await Ajax(signal).Apps.list(googleProject, { role: 'creator', saturnWorkspaceName: workspaceName }) :
         []
       setApps(newApps)
       _.forOwn(tool => {
