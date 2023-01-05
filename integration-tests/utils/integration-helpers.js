@@ -131,8 +131,8 @@ const withBilling = test => async options => {
 }
 
 const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
-  const deletedRuntimes = await page.evaluate(async (billingProject, email) => {
-    const runtimes = await window.Ajax().Runtimes.list({ googleProject: billingProject, creator: email })
+  const deletedRuntimes = await page.evaluate(async billingProject => {
+    const runtimes = await window.Ajax().Runtimes.list({ googleProject: billingProject, role: 'creator' })
     return Promise.all(_.map(async runtime => {
       await window.Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).delete(true) // true = also delete persistent disk
       return runtime.runtimeName

@@ -14,11 +14,11 @@ import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { reportError, reportErrorAndRethrow } from 'src/libs/error'
 import Events, { extractBillingDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -49,7 +49,7 @@ const styles = {
 
 const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
 
-const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
+const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
       'aria-label': 'Create new billing project',
@@ -57,7 +57,7 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
     }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
   }
 
-  if (!isAlphaAzureUser) {
+  if (!isAzurePreviewUser) {
     return createButton(showCreateProjectModal, cloudProviders.gcp)
   } else {
     return h(MenuTrigger, {
@@ -260,7 +260,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
-  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
+  const { isAzurePreviewUser } = useStore(authStore)
 
   const signal = useCancellation()
   const interval = useRef()
@@ -270,10 +270,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
-
-  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
-    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
-  })
 
   const reloadBillingProject = _.flow(
     reportErrorAndRethrow('Error loading billing project'),
@@ -324,7 +320,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   useOnMount(() => {
     loadProjects()
     tryAuthorizeAccounts().then(loadAccounts)
-    loadAlphaAzureMember()
   })
 
   useEffect(() => {
@@ -375,7 +370,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           }
         }, [
           h2({ style: { fontSize: 16 } }, 'Billing Projects'),
-          h(CreateBillingProjectControl, { isAlphaAzureUser, showCreateProjectModal })
+          h(CreateBillingProjectControl, { isAzurePreviewUser, showCreateProjectModal })
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
@@ -406,7 +401,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === cloudProviders.azure && isAzurePreviewUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
           Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
