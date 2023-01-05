@@ -27,7 +27,7 @@
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
   },
-  "alphaAzureGroup": "alpha-azure-feature-group",
+  "azurePreviewGroup": "alpha-azure-feature-group",
   "alphaRegionalityGroup": "Alpha_Regionality_Users",
   "terraDockerVersionsFile": "terra-docker-versions-dev.json",
   "terraDockerImageBucket": "terra-docker-image-documentation-dev",

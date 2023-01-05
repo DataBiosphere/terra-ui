@@ -1,22 +1,17 @@
-import { useState } from 'react'
 import { div, h, h1, p } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, Link } from 'src/components/common'
 import planet from 'src/images/register-planet.svg'
 import { ReactComponent as TerraOnAzureLogo } from 'src/images/terra-ms-logo.svg'
-import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring } from 'src/libs/error'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
-import { azurePreviewStore } from 'src/libs/state'
+import { useStore } from 'src/libs/react-utils'
+import { authStore, azurePreviewStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const AzurePreview = () => {
   // State
-  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
-  const signal = useCancellation()
+  const { isAzurePreviewUser } = useStore(authStore)
 
   // Helpers
   const styles = {
@@ -53,18 +48,6 @@ const AzurePreview = () => {
     azurePreviewStore.set(true)
   }
 
-  // Use a Sam group to determine if a user is an Azure Preview user.
-  // This is problematic when the user needs to register/accept ToS, since that's a prerequisite
-  // for checking Sam group membership. TOAZ-301 is open to change this to a B2C check instead of Sam.
-  const loadAlphaAzureMember = withErrorIgnoring(async () => {
-    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
-  })
-
-  // Lifecycle
-  useOnMount(() => {
-    loadAlphaAzureMember()
-  })
-
   // Render
   return div({
     role: 'main',
@@ -84,7 +67,7 @@ const AzurePreview = () => {
         'This is a preview version of the Terra platform on Microsoft Azure. The public offering of Terra on Microsoft Azure is expected in early 2023.')
     ]),
 
-    isAlphaAzureUser ? undefined : [
+    isAzurePreviewUser ? undefined : [
       div({ style: styles.centered }, [
         p({ style: styles.paragraph }, [
           'You are not currently part of the Terra on Microsoft Azure Preview Program. If you are interested in joining the program, please contact ',
@@ -94,11 +77,11 @@ const AzurePreview = () => {
       ])
     ],
     div({ style: { ...styles.centered, marginTop: '1.5rem' } }, [
-      isAlphaAzureUser ?
+      isAzurePreviewUser ?
         h(ButtonPrimary, { onClick: dismiss, style: styles.button }, 'Proceed to Terra on Microsoft Azure Preview') :
         h(ButtonPrimary, { onClick: signOut, style: styles.button }, 'Log Out')
     ]),
-    isAlphaAzureUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
+    isAzurePreviewUser ? div({ style: { ...styles.centered, marginTop: '1rem' } }, [
       h(ButtonOutline, { onClick: signOut, style: styles.button }, 'Log Out')
     ]) : undefined
   ])

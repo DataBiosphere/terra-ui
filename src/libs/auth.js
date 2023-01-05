@@ -183,6 +183,9 @@ export const bucketBrowserUrl = id => {
   return `https://console.cloud.google.com/storage/browser/${id}?authuser=${getUser().email}`
 }
 
+/*
+ * Specifies whether the user has logged in via the Azure identity provider.
+ */
 export const isAzureUser = () => {
   return _.startsWith('https://login.microsoftonline.com', getUser().idp)
 }
@@ -217,6 +220,9 @@ export const processUser = (user, isSignInEvent) => {
       cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(userId, cookiesAcceptedKey) : undefined,
       isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
       hasGcpBillingScopeThroughB2C: isSignedIn ? state.hasGcpBillingScopeThroughB2C : undefined,
+      // A user is an Azure preview user if they are a member of the Sam group _or_ they have the `azurePreviewUser` claim set from B2C.
+      // Only enforce the Azure preview allow-list on prod.
+      isAzurePreviewUser: isSignedIn ? !getConfig().isProd || state.isAzurePreviewUser || profile.isAzurePreviewUser : undefined,
       user: {
         token: user?.access_token,
         scope: user?.scope,
@@ -427,3 +433,11 @@ workspaceStore.subscribe((newState, oldState) => {
     requesterPaysProjectStore.reset()
   }
 })
+
+authStore.subscribe(withErrorReporting('Error loading azure preview group membership', async (state, oldState) => {
+  if (becameRegistered(oldState, state)) {
+    const isGroupMember = await Ajax().Groups.group(getConfig().azurePreviewGroup).isMember()
+    const isAzurePreviewUser = oldState.isAzurePreviewUser || isGroupMember
+    authStore.update(state => ({ ...state, isAzurePreviewUser }))
+  }
+}))
