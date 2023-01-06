@@ -8,6 +8,7 @@ import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import Modal from 'src/components/Modal'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
 import * as Utils from 'src/libs/utils'
 
 
@@ -28,7 +29,11 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   }, [path])
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
-  const canEditWorkspace = !editWorkspaceError
+  const { editDisabled, editDisabledReason } = Utils.cond(
+    [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
+    [path.startsWith(`${dataTableVersionsPathRoot}/`), () => ({ editDisabled: true, editDisabledReason: 'This folder cannot be edited' })],
+    () => ({ editDisabled: false, editDisabledReason: undefined })
+  )
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
@@ -89,8 +94,8 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
           })
         ]),
         h(FilesInDirectory, {
-          editDisabled: !canEditWorkspace,
-          editDisabledReason: editWorkspaceError,
+          editDisabled,
+          editDisabledReason,
           provider,
           path,
           rootLabel: 'Workspace bucket',
