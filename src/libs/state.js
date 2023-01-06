@@ -8,7 +8,7 @@ export const authStore = Utils.atom({
   isSignedIn: undefined,
   anonymousId: undefined,
   registrationStatus: undefined,
-  acceptedTos: undefined,
+  termsOfService: {},
   user: {},
   profile: {},
   fenceStatus: {},
