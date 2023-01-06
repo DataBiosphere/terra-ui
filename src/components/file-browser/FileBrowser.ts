@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
 import { basename } from 'src/components/file-browser/file-browser-utils'
@@ -28,6 +28,8 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
   useEffect(() => {
     setSelectedFiles({})
   }, [path])
+
+  const onError = useCallback(() => {}, [])
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
   const { editDisabled, editDisabledReason } = Utils.cond(
@@ -68,6 +70,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
             provider,
             rootLabel,
             selectedDirectory: path,
+            onError,
             onSelectDirectory: selectedDirectoryPath => {
               setPath(selectedDirectoryPath)
             }
@@ -106,7 +109,8 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           rootLabel,
           selectedFiles,
           setSelectedFiles,
-          onClickFile: setFocusedFile
+          onClickFile: setFocusedFile,
+          onError,
         })
       ])
     ]),

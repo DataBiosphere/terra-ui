@@ -25,6 +25,7 @@ interface FilesInDirectoryProps {
   selectedFiles: { [path: string]: FileBrowserFile }
   setSelectedFiles: Dispatch<SetStateAction<{ [path: string]: FileBrowserFile }>>
   onClickFile: (file: FileBrowserFile) => void
+  onError: (error: Error) => void
 }
 
 const FilesInDirectory = (props: FilesInDirectoryProps) => {
@@ -36,7 +37,8 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
     rootLabel = 'Files',
     selectedFiles,
     setSelectedFiles,
-    onClickFile
+    onClickFile,
+    onError,
   } = props
 
   const directoryLabel = path === '' ? rootLabel : basename(path)
@@ -44,17 +46,24 @@ const FilesInDirectory = (props: FilesInDirectoryProps) => {
   const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null)
 
   const {
-    state: { status, files },
+    state,
     hasNextPage,
     loadAllRemainingItems,
     loadNextPage,
     reload,
   } = useFilesInDirectory(provider, path)
 
+  useEffect(() => {
+    if (state.status === 'Error') {
+      onError(state.error)
+    }
+  }, [state, onError])
+
   const { uploadState, uploadFiles, cancelUpload } = useUploader(file => {
     return provider.uploadFileToDirectory(path, file)
   })
 
+  const { status, files } = state
   const isLoading = status === 'Loading'
 
   useEffect(() => {

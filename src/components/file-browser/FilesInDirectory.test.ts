@@ -59,7 +59,8 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onError: () => {},
     }))
 
     // Assert
@@ -94,7 +95,8 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onError: () => {},
     }))
 
     // Assert
@@ -125,13 +127,42 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onError: () => {},
       }))
 
       // Assert
       screen.getByText(expectedMessage)
     }
   )
+
+  it('calls onError callback on errors loading files', () => {
+    // Arrange
+    const useFilesInDirectoryResult: UseFilesInDirectoryResult = {
+      state: { status: 'Error', error: new Error('Something went wrong'), files: [] },
+      hasNextPage: false,
+      loadNextPage: () => Promise.resolve(),
+      loadAllRemainingItems: () => Promise.resolve(),
+      reload: () => Promise.resolve()
+    }
+
+    asMockedFn(useFilesInDirectory).mockReturnValue(useFilesInDirectoryResult)
+
+    const onError = jest.fn()
+
+    // Act
+    render(h(FilesInDirectory, {
+      provider: mockFileBrowserProvider,
+      path: 'path/to/directory/',
+      selectedFiles: {},
+      setSelectedFiles: () => {},
+      onClickFile: jest.fn(),
+      onError,
+    }))
+
+    // Assert
+    expect(onError).toHaveBeenCalledWith(new Error('Something went wrong'))
+  })
 
   describe('when next page is available', () => {
     // Arrange
@@ -170,7 +201,8 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onError: () => {},
       }))
 
       // Assert
@@ -189,7 +221,8 @@ describe('FilesInDirectory', () => {
         path: 'path/to/directory/',
         selectedFiles: {},
         setSelectedFiles: () => {},
-        onClickFile: jest.fn()
+        onClickFile: jest.fn(),
+        onError: () => {},
       }))
 
       // Assert
@@ -221,7 +254,8 @@ describe('FilesInDirectory', () => {
       path: 'path/to/directory/',
       selectedFiles: {},
       setSelectedFiles: () => {},
-      onClickFile: jest.fn()
+      onClickFile: jest.fn(),
+      onError: () => {},
     }))
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!

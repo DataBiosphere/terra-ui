@@ -19,6 +19,7 @@ interface SubdirectoriesProps {
   rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
+  onError: (error: Error) => void
   onFinishedLoading: () => void
   onSelectDirectory: (path: string) => void
 }
@@ -43,6 +44,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
     selectedDirectory,
     setActiveDescendant,
     onFinishedLoading,
+    onError,
     onSelectDirectory
   } = props
 
@@ -51,23 +53,33 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   const loadedAlertElementRef = useRef<HTMLSpanElement | null>(null)
 
   const {
-    state: { status, directories },
+    state,
     hasNextPage,
     loadNextPage
   } = useDirectoriesInDirectory(provider, path)
+
+  const { status, directories } = state
 
   useEffect(() => {
     if (status === 'Ready' || status === 'Error') {
       onFinishedLoading()
     }
+  }, [status, onFinishedLoading])
 
+  useEffect(() => {
+    if (state.status === 'Error') {
+      onError(state.error)
+    }
+  }, [state, onError])
+
+  useEffect(() => {
     if (status === 'Ready') {
       loadedAlertElementRef.current!.innerHTML = `Loaded ${directoryLabel} subdirectories`
     }
     if (status === 'Error') {
       loadedAlertElementRef.current!.innerHTML = `Error loading ${directoryLabel} subdirectories`
     }
-  }, [directoryLabel, onFinishedLoading, status])
+  }, [directoryLabel, status])
 
   return h(Fragment, [
     span({
@@ -102,6 +114,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
           rootLabel,
           selectedDirectory,
           setActiveDescendant,
+          onError,
           onSelectDirectory
         })
       }),
@@ -153,6 +166,7 @@ interface DirectoryProps {
   rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
+  onError: (error: Error) => void
   onSelectDirectory: (path: string) => void
 }
 
@@ -166,6 +180,7 @@ export const Directory = (props: DirectoryProps) => {
     rootLabel,
     selectedDirectory,
     setActiveDescendant,
+    onError,
     onSelectDirectory
   } = props
   const isSelected = path === selectedDirectory
@@ -256,6 +271,7 @@ export const Directory = (props: DirectoryProps) => {
       rootLabel,
       selectedDirectory,
       setActiveDescendant,
+      onError,
       onFinishedLoading: () => setHasLoadedContents(true),
       onSelectDirectory
     })
@@ -266,6 +282,7 @@ interface DirectoryTreeProps {
   provider: FileBrowserProvider
   rootLabel: string
   selectedDirectory: string
+  onError: (error: Error) => void
   onSelectDirectory: (path: string) => void
 }
 
@@ -274,6 +291,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
     provider,
     rootLabel,
     selectedDirectory,
+    onError,
     onSelectDirectory
   } = props
 
@@ -375,6 +393,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
       rootLabel,
       selectedDirectory,
       setActiveDescendant,
+      onError,
       onSelectDirectory
     })
   ])
