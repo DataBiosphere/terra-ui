@@ -6,9 +6,11 @@ import { FileDetails } from 'src/components/file-browser/FileDetails'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import Modal from 'src/components/Modal'
+import RequesterPaysModal from 'src/components/RequesterPaysModal'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -22,6 +24,10 @@ interface FileBrowserProps {
 const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps) => {
   const [path, setPath] = useState('')
 
+  // refreshKey is a hack to make hooks in DirectoryTree and FilesInDirectory reload
+  // after selecting a workspace to bill requester pays request to.
+  const [refreshKey, setRefreshKey] = useState(0)
+
   const [focusedFile, setFocusedFile] = useState<FileBrowserFile | null>(null)
 
   const [selectedFiles, setSelectedFiles] = useState<{ [path: string]: FileBrowserFile }>({})
@@ -29,7 +35,12 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
     setSelectedFiles({})
   }, [path])
 
-  const onError = useCallback(() => {}, [])
+  const [showRequesterPaysModal, setShowRequesterPaysModal] = useState(false)
+  const onError = useCallback((error: Error) => {
+    if ((error as any).requesterPaysError) {
+      setShowRequesterPaysModal(true)
+    }
+  }, [])
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
   const { editDisabled, editDisabledReason } = Utils.cond(
@@ -67,6 +78,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           }
         }, [
           h(DirectoryTree, {
+            key: refreshKey,
             provider,
             rootLabel,
             selectedDirectory: path,
@@ -102,6 +114,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           })
         ]),
         h(FilesInDirectory, {
+          key: refreshKey,
           editDisabled,
           editDisabledReason,
           provider,
@@ -123,6 +136,15 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
     }, [
       h(FileDetails, { file: focusedFile, provider })
     ]),
+
+    showRequesterPaysModal && h(RequesterPaysModal, {
+      onDismiss: () => setShowRequesterPaysModal(false),
+      onSuccess: selectedGoogleProject => {
+        requesterPaysProjectStore.set(selectedGoogleProject)
+        setShowRequesterPaysModal(false)
+        setRefreshKey(k => k + 1)
+      }
+    }),
   ])
 }
 
