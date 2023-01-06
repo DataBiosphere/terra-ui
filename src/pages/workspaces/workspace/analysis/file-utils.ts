@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { useLoadedData } from 'src/libs/ajax/loaded-data/useLoadedData'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { useCancellation, useStore } from 'src/libs/react-utils'
 import { workspaceStore } from 'src/libs/state'
 import LoadedState from 'src/libs/type-utils/LoadedState'
@@ -54,7 +55,7 @@ export interface AnalysisFileStore {
   refresh: () => Promise<void>
   loadedState: LoadedState<AnalysisFile[], unknown>
   create: (fullAnalysisName: String, toolLabel: ToolLabel, contents: String) => Promise<void>
-  pendingCreate: Boolean
+  pendingCreate: LoadedState<true, unknown>
 }
 
 export const useAnalysisFiles = (): AnalysisFileStore => {
@@ -62,7 +63,8 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   const [loading, setLoading] = useState(false)
   const workspace: WorkspaceWrapper = useStore(workspaceStore)
   const [analyses, setAnalyses] = useState<AnalysisFile[]>([])
-  const [pendingCreate, setPendingCreate] = useState(false)
+  // const [pendingCreate, setPendingCreate] = useState(false)
+  const [pendingCreate, setPendingCreate] = useLoadedData<true>()
 
   const refresh: () => Promise<void> = _.flow(
     // @ts-expect-error
@@ -76,17 +78,19 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
     setAnalyses(existingAnalyses)
   }) as () => Promise<void>
 
-  const create: (fullAnalysisName: any, toolLabel: ToolLabel, contents: any) => Promise<void> = _.flow(
-    // @ts-expect-error
-    withErrorReporting('Error creating analysis files'),
-    Utils.withBusyState(setPendingCreate)
-  )(async (fullAnalysisName: any, toolLabel: ToolLabel, contents: any): Promise<void> => {
-    const workspaceInfo = workspace.workspace
-    isGoogleWorkspaceInfo(workspaceInfo) ?
-      await Ajax().Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, fullAnalysisName, toolLabel).create(contents) :
-      await Ajax().AzureStorage.blob(workspaceInfo.workspaceId, fullAnalysisName).create(contents)
-    refresh()
-  }) as () => Promise<void>
+  const create = async (fullAnalysisName: any, toolLabel: ToolLabel, contents: any): Promise<void> => {
+    await setPendingCreate(async () => {
+      const workspaceInfo = workspace.workspace
+      isGoogleWorkspaceInfo(workspaceInfo) ?
+        await Ajax().Buckets.analysis(workspaceInfo.googleProject, workspaceInfo.bucketName, fullAnalysisName, toolLabel).create(contents) :
+        await Ajax().AzureStorage.blob(workspaceInfo.workspaceId, fullAnalysisName).create(contents)
+      await refresh()
+      return true
+    })
+    if (pendingCreate.status === 'Error') {
+      reportError('Error creating Analysis file.', pendingCreate.error)
+    }
+  }
 
   useEffect(() => {
     refresh()

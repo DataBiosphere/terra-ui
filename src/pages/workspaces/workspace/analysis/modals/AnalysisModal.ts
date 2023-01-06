@@ -359,8 +359,8 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
-            //TODO: See spinner overlay comment. Change to pendingCreate || errors.
-            disabled: status === 'Loading' || pendingCreate || errors,
+            //TODO: See spinner overlay comment. Change to pendingCreate.status === 'Loading' || errors.
+            disabled: status === 'Loading' || pendingCreate.status === 'Loading' || errors,
             tooltip: Utils.summarizeErrors(errors),
             onClick: async () => {
               try {
@@ -383,9 +383,9 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           }, ['Create Analysis'])
         ]),
         //TODO: Once Analyses.js is converted to implement useAnalysisFiles and refresh is called within create,
-        //change next line to pendingCreate && spinnerOverlay
+        //change next line to pendingCreate.status === 'Loading' && spinnerOverlay
         //Currently this will be close enough to the desired functionality.
-        (status === 'Loading' || pendingCreate) && spinnerOverlay
+        (status === 'Loading' || pendingCreate.status === 'Loading') && spinnerOverlay
       ])
     }
 

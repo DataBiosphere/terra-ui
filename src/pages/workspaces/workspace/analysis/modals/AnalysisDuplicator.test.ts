@@ -89,7 +89,7 @@ describe('AnalysisDuplicator', () => {
       refresh: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
       create: () => Promise.resolve(), //TODO
-      pendingCreate: false
+      pendingCreate: { status: 'Ready', state: true }
     }))
   })
 
@@ -125,7 +125,7 @@ describe('AnalysisDuplicator', () => {
       loadedState: { state: fileList, status: 'Ready' },
       refresh: () => Promise.resolve(),
       create: () => Promise.resolve(), //TODO: Investigate test
-      pendingCreate: false
+      pendingCreate: { status: 'Ready', state: true }
     }))
 
     // Act

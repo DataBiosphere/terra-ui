@@ -5,10 +5,18 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
+import { reportError } from 'src/libs/error'
+import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
+  AbsolutePath,
+  AnalysisFile,
+  Extension,
+  getDisplayName,
+  getExtension,
+  getFileName,
   useAnalysisFiles
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AppTool, getToolFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
@@ -40,6 +48,11 @@ const defaultAzureModalProps: AnalysisModalProps = {
 jest.mock('src/libs/ajax/GoogleStorage')
 jest.mock('src/libs/ajax')
 
+jest.mock('src/libs/error', () => ({
+  ...jest.requireActual('src/libs/error'),
+  reportError: jest.fn(),
+}))
+
 jest.mock('src/libs/notifications', () => ({
   notify: jest.fn((...args) => {
     console.debug('######################### notify')/* eslint-disable-line */
@@ -51,11 +64,25 @@ jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
   const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
   return {
     ...originalModule,
+    // getExtension: jest.fn().mockImplementation((ext: Extension) => originalModule.getExtension(ext)), //() => 'ipynb' as Extension,
     useAnalysisFiles: jest.fn()
   }
 })
 
 const createFunc = jest.fn()
+
+//TODO: Put in test data
+
+const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
+  name: abs,
+  ext: '.ipynb' as Extension,
+  displayName: getDisplayName(abs),
+  fileName: getFileName(abs),
+  tool: getToolFromFileExtension(getExtension(abs)) as ToolLabel,
+  lastModified: new Date().getTime(),
+  cloudProvider
+})
+
 
 describe('AnalysisModal', () => {
   beforeEach(() => {
@@ -64,7 +91,7 @@ describe('AnalysisModal', () => {
       refresh: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
       create: createFunc,
-      pendingCreate: false
+      pendingCreate: { status: 'Ready', state: true }
     }))
 
     //@ts-expect-error
@@ -294,7 +321,6 @@ describe('AnalysisModal', () => {
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
-
       await userEvent.click(button)
 
       const fileTypeSelect = await screen.getByLabelText('Language *')
@@ -313,5 +339,61 @@ describe('AnalysisModal', () => {
     // Assert
     screen.getByText('Azure Cloud Environment')
     expect(createFunc).toHaveBeenCalled()
+  })
+
+  // ----- Work in progress ----
+
+  it('Attempts to create a file with a name that already exists', async () => {
+    // Arrange
+    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
+      loadedState: { state: fileList, status: 'Ready' },
+      refresh: () => Promise.resolve(),
+      create: () => Promise.resolve(),
+      pendingCreate: { status: 'Ready', state: true }
+    }))
+
+    render(h(AnalysisModal, defaultGcpModalProps))
+    // Act
+    await act(async () => {
+      const button = screen.getByAltText('Create new notebook')
+      await userEvent.click(button)
+
+      const nameInput = screen.getByLabelText('Name of the notebook *')
+      await userEvent.type(nameInput, fileList[0].displayName)
+    })
+
+    // Assert
+    expect(await screen.queryAllByText('Analysis name already exists').length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('Error on create', async () => {
+    // Arrange
+    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath)]
+    const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
+    asMockedFn(useAnalysisFiles).mockImplementation(() => ({
+      loadedState: { state: fileList, status: 'Ready' },
+      refresh: () => Promise.resolve(),
+      create: createMock,
+      pendingCreate: { status: 'Ready', state: true }
+    }))
+
+    render(h(AnalysisModal, defaultGcpModalProps))
+
+    // Act
+    await act(async () => {
+      const button = screen.getByAltText('Create new notebook')
+      await userEvent.click(button)
+
+      const nameInput = screen.getByLabelText('Name of the notebook *')
+      await userEvent.type(nameInput, 'My New Notebook')
+
+      const createButton = await screen.findByText('Create Analysis')
+      await userEvent.click(createButton)
+    })
+
+    // Assert
+    expect(createMock).toHaveBeenCalled()
+    expect(reportError).toHaveBeenCalled()
   })
 })
