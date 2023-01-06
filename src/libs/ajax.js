@@ -94,21 +94,6 @@ const User = signal => ({
     return res.json()
   },
 
-  getTosAccepted: async () => {
-    try {
-      const res = await fetchSam('register/user/v1/termsofservice/status', _.merge(authOpts(), { signal }))
-      return res.json()
-    } catch (error) {
-      if (error.status === 404) {
-        return null
-      } else if (error.status === 403) {
-        return false
-      } else {
-        throw error
-      }
-    }
-  },
-
   getTos: async () => {
     const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
     return response.text()
@@ -116,16 +101,31 @@ const User = signal => ({
 
   acceptTos: async () => {
     try {
-      await fetchSam(
+      const response = await fetchSam(
         'register/user/v1/termsofservice',
         _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody('app.terra.bio/#terms-of-service')])
       )
+      return response.json()
     } catch (error) {
       if (error.status !== 404) {
         throw error
       }
     }
   },
+
+  getTermsOfServiceDetails: async () => {
+    try {
+      const res = await(fetchSam('register/user/v2/self/termsOfServiceDetails', _.merge(authOpts(), { signal })))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404 || error.status === 403) {
+        return null
+      } else {
+        throw error
+      }
+    }
+  },
+
 
   getPrivacyPolicy: async () => {
     const response = await fetchSam('privacy/text', _.merge(authOpts(), { signal }))
@@ -870,6 +870,11 @@ const FirecloudBucket = signal => ({
 
   getTemplateWorkspaces: async () => {
     const res = await fetchOk(`${getConfig().firecloudBucketRoot}/template-workspaces.json`, { signal })
+    return res.json()
+  },
+
+  getTosGracePeriodText: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/tos-grace-period.json`, { signal })
     return res.json()
   }
 })
