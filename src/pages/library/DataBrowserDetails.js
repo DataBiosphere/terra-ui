@@ -177,14 +177,14 @@ export const SidebarComponent = ({ dataObj, id }) => {
           table([
             tbody([
               _.map(file => {
-                return tr({ key: `filetype_${file['dcat:mediaType']}_${file.count}` }, [
-                  td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
+                return tr({ key: `filetype_${file['TerraCore:hasFileFormat']}_${file.count}` }, [
+                  td({ style: { paddingRight: 30 } }, [file['TerraCore:hasFileFormat']]),
                   td([(file.count || 0).toLocaleString()])
                 ])
-              }, dataObj.files),
+              }, dataObj.fileAggregate),
               tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
                 td(['Total']),
-                td([_.sumBy('count', dataObj.files).toLocaleString()])
+                td([_.sumBy('count', dataObj.fileAggregate).toLocaleString()])
               ])
             ])
           ])

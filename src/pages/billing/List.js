@@ -14,11 +14,11 @@ import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { reportError, reportErrorAndRethrow } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractBillingDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
+import { useCancellation, useOnMount, useStore } from 'src/libs/react-utils'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -49,7 +49,7 @@ const styles = {
 
 const isCreatingStatus = status => _.includes(status, ['Creating', 'CreatingLandingZone'])
 
-const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal }) => {
+const CreateBillingProjectControl = ({ isAzurePreviewUser, showCreateProjectModal }) => {
   const createButton = (onClickCallback, type) => {
     return h(ButtonOutline, {
       'aria-label': 'Create new billing project',
@@ -57,7 +57,7 @@ const CreateBillingProjectControl = ({ isAlphaAzureUser, showCreateProjectModal 
     }, [span([icon('plus-circle', { style: { marginRight: '1ch' } }), 'Create'])])
   }
 
-  if (!isAlphaAzureUser) {
+  if (!isAzurePreviewUser) {
     return createButton(showCreateProjectModal, cloudProviders.gcp)
   } else {
     return h(MenuTrigger, {
@@ -115,7 +115,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
   ])
 }
 
-const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, loadProjects, isActive }) => {
+const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
   const cloudContextIcon =
     div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
       Utils.switchCase(cloudPlatform,
@@ -123,17 +123,15 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
         [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
     ])
 
-  const selectableProject = ({ projectName }, isActive) => h(Clickable, {
+  const selectableProject = () => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
-      billingProjectName: projectName
-    }),
+    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, extractBillingDetails(project)),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
   }, [cloudContextIcon, projectName])
 
-  const unselectableProject = ({ projectName, status, message }, isActive, isOwner) => {
+  const unselectableProject = () => {
     const iconAndTooltip =
       isCreatingStatus(status) ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
         status === 'Error' ? h(Fragment, [
@@ -157,8 +155,8 @@ const ProjectListItem = ({ project, project: { roles, status, cloudPlatform }, l
 
   return div({ role: 'listitem' }, [
     !_.isEmpty(viewerRoles) && status === 'Ready' ?
-      selectableProject(project, isActive) :
-      unselectableProject(project, isActive, isOwner)
+      selectableProject() :
+      unselectableProject()
   ])
 }
 
@@ -262,7 +260,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
-  const [isAlphaAzureUser, setIsAlphaAzureUser] = useState(false)
+  const { isAzurePreviewUser } = useStore(authStore)
 
   const signal = useCancellation()
   const interval = useRef()
@@ -272,10 +270,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     reportErrorAndRethrow('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
-
-  const loadAlphaAzureMember = reportErrorAndRethrow('Error loading azure alpha group membership')(async () => {
-    setIsAlphaAzureUser(await Ajax(signal).Groups.group(getConfig().alphaAzureGroup).isMember())
-  })
 
   const reloadBillingProject = _.flow(
     reportErrorAndRethrow('Error loading billing project'),
@@ -326,7 +320,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   useOnMount(() => {
     loadProjects()
     tryAuthorizeAccounts().then(loadAccounts)
-    loadAlphaAzureMember()
   })
 
   useEffect(() => {
@@ -377,7 +370,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           }
         }, [
           h2({ style: { fontSize: 16 } }, 'Billing Projects'),
-          h(CreateBillingProjectControl, { isAlphaAzureUser, showCreateProjectModal })
+          h(CreateBillingProjectControl, { isAzurePreviewUser, showCreateProjectModal })
         ]),
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
@@ -401,15 +394,19 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         loadAccounts,
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.gcp.label
+          })
           setCreatingBillingProject(null)
           loadProjects()
         }
       }),
-      creatingBillingProject === cloudProviders.azure && isAlphaAzureUser && h(CreateAzureBillingProjectModal, {
+      creatingBillingProject === cloudProviders.azure && isAzurePreviewUser && h(CreateAzureBillingProjectModal, {
         onDismiss: () => setCreatingBillingProject(null),
         onSuccess: billingProjectName => {
-          Ajax().Metrics.captureEvent(Events.billingCreationAzureBillingProjectCreated, { billingProject: billingProjectName })
+          Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+            billingProjectName, cloudPlatform: cloudProviders.azure.label
+          })
           setCreatingBillingProject(null)
           loadProjects()
         },
@@ -434,7 +431,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         [!isLoadingProjects && _.isEmpty(billingProjects) && !Auth.isAzureUser(), () => h(CreateNewBillingProjectWizard, {
           billingAccounts,
           onSuccess: billingProjectName => {
-            Ajax().Metrics.captureEvent(Events.billingCreationGCPBillingProjectCreated, { billingProject: billingProjectName })
+            Ajax().Metrics.captureEvent(Events.billingCreationBillingProjectCreated, {
+              billingProjectName, cloudPlatform: cloudProviders.gcp.label
+            })
             setCreatingBillingProject(null)
             loadProjects()
             Nav.history.push({
