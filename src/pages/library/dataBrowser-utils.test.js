@@ -18,7 +18,7 @@ describe('dataBrowser-utils', () => {
       [{ 'dcat:accessURL': 'any-url.com' }],
       brands.terra.catalogDataCollectionsToInclude
     )
-    expect(getDatasetAccessType(normalizedDatasets[0])).toBe(datasetAccessTypes.EXTERNAL)
+    expect(getDatasetAccessType(normalizedDatasets[0])).toBe(datasetAccessTypes.External)
   })
 
   it('doesn\'t set non external datasets to accessLevel external', () => {
@@ -26,8 +26,8 @@ describe('dataBrowser-utils', () => {
       [{ 'dcat:accessURL': `any-url.com${workspaceUrlFragment}a/b` }, { 'dcat:accessURL': `any-url.com${datarepoSnapshotUrlFragment}` }],
       brands.terra.catalogDataCollectionsToInclude
     )
-    expect(getDatasetAccessType(normalizedDatasets[0])).not.toBe(datasetAccessTypes.EXTERNAL)
-    expect(getDatasetAccessType(normalizedDatasets[1])).not.toBe(datasetAccessTypes.EXTERNAL)
+    expect(getDatasetAccessType(normalizedDatasets[0])).not.toBe(datasetAccessTypes.External)
+    expect(getDatasetAccessType(normalizedDatasets[1])).not.toBe(datasetAccessTypes.External)
   })
 
   it('finds the correct data use policy to display if it exists', () => {

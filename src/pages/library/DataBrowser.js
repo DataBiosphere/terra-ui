@@ -47,7 +47,7 @@ const extractCatalogFilters = dataCatalog => {
     labels: _.values(datasetAccessTypes),
     labelRenderer: accessValue => {
       const lowerKey = _.toLower(accessValue)
-      const iconKey = accessValue === datasetAccessTypes.GRANTED ? 'unlock' : 'lock'
+      const iconKey = accessValue === datasetAccessTypes.Granted ? 'unlock' : 'lock'
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
         icon(iconKey, { style: { color: styles.access[lowerKey], marginRight: 5 } }),
         div([accessValue])

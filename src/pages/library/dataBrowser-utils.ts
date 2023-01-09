@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { DatasetResponse } from 'src/libs/ajax/Catalog'
+import { DataCollection, DatasetResponse } from 'src/libs/ajax/Catalog'
 import { getEnabledBrand } from 'src/libs/brand-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -24,12 +24,18 @@ export interface Dataset extends DatasetResponse {
   tags: Tags
 }
 
+export type DatasetAccessType =
+    'Controlled' |
+    'Granted' |
+    'Pending' |
+    'External'
+
 // What do we want to do here?
-export const datasetAccessTypes = {
-  CONTROLLED: 'Controlled',
-  GRANTED: 'Granted',
-  PENDING: 'Pending',
-  EXTERNAL: 'External'
+export const datasetAccessTypes: Record<DatasetAccessType, DatasetAccessType> = {
+  Controlled: 'Controlled',
+  Granted: 'Granted',
+  Pending: 'Pending',
+  External: 'External'
 }
 
 export const uiMessaging = {
@@ -76,7 +82,10 @@ export const isDatarepoSnapshot = (dataset: DatasetResponse) => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse) => _.flatMap(hasDataCollection => hasDataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])
+export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse): string[] => _.flow(
+  _.map((hasDataCollection: DataCollection) => hasDataCollection['dct:title']),
+  _.compact
+)(dataset['TerraDCAT_ap:hasDataCollection'])
 
 export const getDataModalityListFromDataset = (dataset: DatasetResponse): string[] => _.flow(
   _.flatMap('TerraCore:hasDataModality'),
@@ -98,9 +107,9 @@ export const formatDatasetTime = (time: string | null) => !!time ? Utils.makeSta
 
 // Return type should be decided by above
 export const getDatasetAccessType = (dataset: DatasetResponse) => Utils.cond(
-  [isExternal(dataset), () => datasetAccessTypes.EXTERNAL],
-  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.GRANTED],
-  () => datasetAccessTypes.CONTROLLED)
+  [isExternal(dataset), () => datasetAccessTypes.External],
+  [dataset.accessLevel === 'reader' || dataset.accessLevel === 'owner', () => datasetAccessTypes.Granted],
+  () => datasetAccessTypes.Controlled)
 
 interface DatasetAccessProps {
   dataset: Dataset
@@ -114,13 +123,13 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
 
   return h(Fragment, [
     Utils.cond(
-      [!!requestAccessURL && access === datasetAccessTypes.CONTROLLED, () => {
+      [!!requestAccessURL && access === datasetAccessTypes.Controlled, () => {
         return h(ButtonOutline, {
           style: buttonStyle,
           href: requestAccessURL, target: '_blank'
         }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])
       }],
-      [access === datasetAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+      [access === datasetAccessTypes.Controlled, () => h(ButtonOutline, {
         style: buttonStyle,
         onClick: () => {
           setRequestingAccess(true)
@@ -131,11 +140,11 @@ export const DatasetAccess = ({ dataset }: DatasetAccessProps) => {
           })
         }
       }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
-      [access === datasetAccessTypes.PENDING, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
+      [access === datasetAccessTypes.Pending, () => div({ style: { color: commonStyles.access.pending, display: 'flex', alignItems: 'center' } }, [
         icon('lock'),
         div({ style: textStyle }, ['Pending Access'])
       ])],
-      [access === datasetAccessTypes.EXTERNAL, () => h(ButtonOutline, {
+      [access === datasetAccessTypes.External, () => h(ButtonOutline, {
         style: buttonStyle,
         href: dataset['dcat:accessURL'], target: '_blank'
       }, [
