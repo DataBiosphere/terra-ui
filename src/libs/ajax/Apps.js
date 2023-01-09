@@ -61,6 +61,16 @@ export const Apps = signal => ({
       }
     }
   },
+  createV2App: async (appName, workspaceId) => {
+    const body = {
+      'appType': 'CROMWELL'
+    }
+    console.log(appName)
+    console.log(body)
+    const res = await fetchLeo(`api/apps/v2/${workspaceId}/${appName}`,
+      _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return res.json()
+  },
   getV2AppInfo: async workspaceId => {
     const res = await fetchLeo(`api/apps/v2/${workspaceId}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))

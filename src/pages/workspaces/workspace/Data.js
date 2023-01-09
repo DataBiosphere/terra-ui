@@ -43,7 +43,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
+import { appIdentifier, authOpts, fetchLeo } from 'src/libs/ajax/ajax-common'
 
 const styles = {
   tableContainer: {
@@ -510,7 +510,7 @@ const WorkspaceData = _.flow(
 
   const entityServiceDataTableProvider = new EntityServiceDataTableProvider(namespace, name)
 
-  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(workspaceId), [workspaceId])
+  const wdsDataTableProvider = useMemo(() => new WdsDataTableProvider(name, workspaceId), [workspaceId])
 
   const loadEntityMetadata = async () => {
     try {
@@ -567,6 +567,16 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (!getConfig().isProd && isAzureWorkspace) {
+
+
+      const getLeoStatus = await function () {
+        return fetchLeo(`status`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
+      }
+      let leoStatus = getLeoStatus()
+      leoStatus.then(function(result) {
+        console.log(result) // "Some User token"
+      })
+
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
