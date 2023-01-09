@@ -52,6 +52,8 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
     () => ({ editDisabled: false, editDisabledReason: undefined })
   )
 
+  const reloadRequests = Utils.subscribable()
+
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
       div({
@@ -80,6 +82,7 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           h(DirectoryTree, {
             key: refreshKey,
             provider,
+            reloadRequests,
             rootLabel,
             selectedDirectory: path,
             onError,
@@ -125,10 +128,13 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           onClickFile: setFocusedFile,
           onCreateDirectory: (directory: FileBrowserDirectory) => {
             setPath(directory.path)
+            const parentPath = dirname(directory.path)
+            reloadRequests.next(parentPath)
           },
           onDeleteDirectory: () => {
             const parentPath = dirname(path)
             setPath(parentPath)
+            reloadRequests.next(parentPath)
           },
           onError,
         })

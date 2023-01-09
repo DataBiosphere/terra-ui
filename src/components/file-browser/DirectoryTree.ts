@@ -10,12 +10,17 @@ import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
+interface ReloadRequestSubscribable {
+  subscribe: (fn: (path: string) => void) => { unsubscribe: () => void }
+}
+
 interface SubdirectoriesProps {
   activeDescendant: string
   level: number
   parentId: string
   path: string
   provider: FileBrowserProvider
+  reloadRequests: ReloadRequestSubscribable
   rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
@@ -40,6 +45,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
     parentId,
     path,
     provider,
+    reloadRequests,
     rootLabel,
     selectedDirectory,
     setActiveDescendant,
@@ -55,7 +61,8 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
   const {
     state,
     hasNextPage,
-    loadNextPage
+    loadNextPage,
+    reload,
   } = useDirectoriesInDirectory(provider, path)
 
   const { status, directories } = state
@@ -80,6 +87,14 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
       loadedAlertElementRef.current!.innerHTML = `Error loading ${directoryLabel} subdirectories`
     }
   }, [directoryLabel, status])
+
+  useEffect(() => {
+    return reloadRequests.subscribe((pathToReload: string) => {
+      if (pathToReload === path) {
+        reload()
+      }
+    }).unsubscribe
+  }, [path, reload, reloadRequests])
 
   return h(Fragment, [
     span({
@@ -111,6 +126,7 @@ export const Subdirectories = (props: SubdirectoriesProps) => {
           level: level + 1,
           path: directory.path,
           provider,
+          reloadRequests,
           rootLabel,
           selectedDirectory,
           setActiveDescendant,
@@ -163,6 +179,7 @@ interface DirectoryProps {
   provider: FileBrowserProvider
   level: number
   path: string
+  reloadRequests: ReloadRequestSubscribable
   rootLabel: string
   selectedDirectory: string
   setActiveDescendant: Dispatch<SetStateAction<string>>
@@ -177,6 +194,7 @@ export const Directory = (props: DirectoryProps) => {
     level,
     path,
     provider,
+    reloadRequests,
     rootLabel,
     selectedDirectory,
     setActiveDescendant,
@@ -268,6 +286,7 @@ export const Directory = (props: DirectoryProps) => {
       parentId: id,
       path,
       provider,
+      reloadRequests,
       rootLabel,
       selectedDirectory,
       setActiveDescendant,
@@ -280,6 +299,7 @@ export const Directory = (props: DirectoryProps) => {
 
 interface DirectoryTreeProps {
   provider: FileBrowserProvider
+  reloadRequests: ReloadRequestSubscribable
   rootLabel: string
   selectedDirectory: string
   onError: (error: Error) => void
@@ -289,6 +309,7 @@ interface DirectoryTreeProps {
 const DirectoryTree = (props: DirectoryTreeProps) => {
   const {
     provider,
+    reloadRequests,
     rootLabel,
     selectedDirectory,
     onError,
@@ -390,6 +411,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
       id: 'node-0',
       level: 0,
       path: '',
+      reloadRequests,
       rootLabel,
       selectedDirectory,
       setActiveDescendant,
