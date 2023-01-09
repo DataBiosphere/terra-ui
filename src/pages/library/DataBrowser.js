@@ -11,7 +11,7 @@ import * as Nav from 'src/libs/nav'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import {
   DatasetAccess,
-  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumsFromDataset,
+  datasetAccessTypes, DatasetReleasePolicyDisplayInformation, formatDatasetTime, getAssayCategoryListFromDataset, getConsortiumTitlesFromDataset,
   getDataModalityListFromDataset,
   useDataCatalog
 } from 'src/pages/library/dataBrowser-utils'
@@ -55,13 +55,13 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Consortium',
-    labels: getUnique(dataset => getConsortiumsFromDataset(dataset), dataCatalog)
+    labels: getUnique(dataset => getConsortiumTitlesFromDataset(dataset), dataCatalog)
   }, {
     name: 'Data use policy',
     labels: getUnique(dataset => dataset['TerraDCAT_ap:hasDataUsePermission'], dataCatalog),
     labelRenderer: rawPolicy => {
       return [div({ key: rawPolicy, style: { display: 'flex', flexDirection: 'column' } }, [
-        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: rawPolicy })
+        h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': rawPolicy })
       ])]
     }
   }, {
@@ -85,7 +85,7 @@ const extractCatalogFilters = dataCatalog => {
 // All possible columns for the catalog's table view. The default columns shown are declared below in `Browser`.
 const allColumns = {
   // A column is a key, title and a function that produces the table contents for that column, given a row.
-  consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumsFromDataset(row)) },
+  consortiums: { title: 'Consortiums', contents: row => _.join(', ', getConsortiumTitlesFromDataset(row)) },
   subjects: { title: 'No. of Subjects', contents: row => row?.counts?.donors },
   dataModality: { title: 'Data Modality', contents: row => _.join(', ', getDataModalityListFromDataset(row)) },
   lastUpdated: { title: 'Last Updated', contents: row => formatDatasetTime(row['dct:modified']) },

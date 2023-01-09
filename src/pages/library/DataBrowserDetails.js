@@ -43,7 +43,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: dataObj['TerraDCAT_ap:hasDataUsePermission'] })
+        h(DatasetReleasePolicyDisplayInformation, dataObj)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),

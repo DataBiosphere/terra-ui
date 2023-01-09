@@ -31,17 +31,17 @@ describe('dataBrowser-utils', () => {
   })
 
   it('finds the correct data use policy to display if it exists', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'DUO:0000007' }))
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': 'DUO:0000007' }))
     expect(getByText('Disease specific research')).toBeTruthy()
   })
 
   it('uses unspecified as the data use policy if undefined', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: undefined }))
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': undefined }))
     expect(getByText('Unspecified')).toBeTruthy()
   })
 
   it('uses given data use policy as the data use policy if unknown', () => {
-    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: 'Something else' }))
+    const { getByText } = render(h(DatasetReleasePolicyDisplayInformation, { 'TerraDCAT_ap:hasDataUsePermission': 'Something else' }))
     expect(getByText('Something else')).toBeTruthy()
   })
 })
