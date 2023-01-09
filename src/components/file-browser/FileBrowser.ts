@@ -1,13 +1,13 @@
 import { Fragment, useCallback, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import DirectoryTree from 'src/components/file-browser/DirectoryTree'
-import { basename } from 'src/components/file-browser/file-browser-utils'
+import { basename, dirname } from 'src/components/file-browser/file-browser-utils'
 import { FileDetails } from 'src/components/file-browser/FileDetails'
 import FilesInDirectory from 'src/components/file-browser/FilesInDirectory'
 import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import Modal from 'src/components/Modal'
 import RequesterPaysModal from 'src/components/RequesterPaysModal'
-import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
+import FileBrowserProvider, { FileBrowserDirectory, FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
 import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
 import { requesterPaysProjectStore } from 'src/libs/state'
@@ -123,6 +123,13 @@ const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps
           selectedFiles,
           setSelectedFiles,
           onClickFile: setFocusedFile,
+          onCreateDirectory: (directory: FileBrowserDirectory) => {
+            setPath(directory.path)
+          },
+          onDeleteDirectory: () => {
+            const parentPath = dirname(path)
+            setPath(parentPath)
+          },
           onError,
         })
       ])
