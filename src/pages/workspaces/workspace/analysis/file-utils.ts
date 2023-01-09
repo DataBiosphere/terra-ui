@@ -63,7 +63,6 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
   const [loading, setLoading] = useState(false)
   const workspace: WorkspaceWrapper = useStore(workspaceStore)
   const [analyses, setAnalyses] = useState<AnalysisFile[]>([])
-  // const [pendingCreate, setPendingCreate] = useState(false)
   const [pendingCreate, setPendingCreate] = useLoadedData<true>()
 
   const refresh: () => Promise<void> = _.flow(
