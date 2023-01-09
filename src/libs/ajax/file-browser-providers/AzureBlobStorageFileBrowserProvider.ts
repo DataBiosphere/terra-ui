@@ -100,6 +100,7 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
   }
 
   return {
+    supportsEmptyDirectories: false,
     getFilesInDirectory: async (path, { signal } = {}) => {
       const { sas: { url: sasUrl } } = await storageDetailsPromise
       return getNextPage({
@@ -190,6 +191,12 @@ const AzureBlobStorageFileBrowserProvider = ({ workspaceId, pageSize = 1000 }: A
           method: 'DELETE',
         }
       )
+    },
+    createEmptyDirectory: (_directoryPath: string) => {
+      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'))
+    },
+    deleteEmptyDirectory: (_directoryPath: string) => {
+      return Promise.reject(new Error('Empty directories not supported in Azure workspaces'))
     },
   }
 }
