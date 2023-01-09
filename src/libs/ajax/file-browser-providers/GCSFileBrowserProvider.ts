@@ -47,8 +47,13 @@ const GCSFileBrowserProvider = ({ bucket, project, pageSize = 1000 }: GCSFileBro
         }
 
         const response = await Ajax(signal).Buckets.list(project, bucket, prefix, requestOptions)
+        const responseItems = (response[itemsOrPrefixes] || []).map(itemOrPrefix => mapItemOrPrefix(itemOrPrefix))
 
-        buffer = buffer.concat((response[itemsOrPrefixes] || []).map(itemOrPrefix => mapItemOrPrefix(itemOrPrefix)))
+        // Exclude folder placeholder objects.
+        // See https://cloud.google.com/storage/docs/folders for more information.
+        const responseItemsWithoutPlaceholders = responseItems.filter(fileOrDirectory => (fileOrDirectory as any).path !== prefix)
+
+        buffer = buffer.concat(responseItemsWithoutPlaceholders)
         nextPageToken = response.nextPageToken
       } while (buffer.length < pageSize && nextPageToken)
     }
