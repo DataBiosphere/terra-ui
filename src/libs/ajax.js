@@ -4,7 +4,7 @@ import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, fetchLeo, jsonBody
+  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
@@ -424,38 +424,9 @@ const Workspaces = signal => ({
     return res.json()
   },
 
-  // TODO: AJ-765 -- no code to write here, but this is the endpoint that is hit when creating a new workspace
   create: async body => {
-    let leoStatus = false;
-    let rawlsStatus = false;
-    // Throw this call in `Data` -- if first call doesn't find app, then create app, and notify user
-    const getLeoStatus = async function () {
-      return await fetchLeo(`status`, _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    }
-    const getRawlsStatus = async function() {
-      return await fetchRawls
-    }
-    leoStatus = getLeoStatus()
-    leoStatus.then(function(result) {
-      console.log(result) // "Some User token"
-    })
-
-    // Check if both leonardo and rawls have healthy status first
-    // console.log(body)
-    // console.log(appIdentifier)
-    // const leoStatusRes = await fetchLeo(`status`, _.mergeAll([authOpts(), appIdentifier, { signal }])).then(res => console.log(res.json()))
-    // console.log(leoStatusRes.json())
-    return leoStatus.json()
-    // const rawlsStatusRes = await fetchLeo(`/api/apps/v2/${workspaceId}/${appName}`)
-    // console.log(JSON.object(body))
-    // const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-    // // If first request is correct, and billing project is Azure:
-    // console.log(res.json())
-    // return res.json()
-  },
-
-  createAppV2: async (workspaceId, appName) => {
-    const res = await fetchLeo(`/api/apps/v2/${workspaceId}/${appName}`)
+    const res = await fetchRawls('workspaces', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return res.json()
   },
 
   getShareLog: async () => {

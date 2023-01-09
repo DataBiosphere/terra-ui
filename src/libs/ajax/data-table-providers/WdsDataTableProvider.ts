@@ -84,9 +84,9 @@ const getRelationParts = (val: unknown): string[] => {
 
 // Extract wds URL from Leo response. exported for testing
 export const getWdsUrl = (apps, workspaceId, appName) => {
-  console.log(appName)
-  console.log(apps)
-  if(apps == false) {
+  // If apps is currently an empty list after calling api/apps/v2/<workspaceId}> upon Leo,
+  // then we need to create an underlying Leo App first
+  if (apps === undefined || apps.length === 0) {
     return Ajax().Apps.createV2App(appName, workspaceId).then(apps => getWdsUrl(apps, workspaceId, appName))
   } else {
     // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
