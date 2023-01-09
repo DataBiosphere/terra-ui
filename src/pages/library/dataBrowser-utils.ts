@@ -59,24 +59,24 @@ export const DatasetReleasePolicyDisplayInformation = ({ 'TerraDCAT_ap:hasDataUs
   ])
 }
 
-export const isExternal = (dataset: DatasetResponse): boolean => Utils.cond(
+export const isExternal = (dataset: DatasetResponse) => Utils.cond(
   [isWorkspace(dataset), () => false],
   [isDatarepoSnapshot(dataset), () => false],
-  () => true)
+  () => true) as boolean
 
 export const workspaceUrlFragment = '/#workspaces/'
 
-export const isWorkspace = (dataset: DatasetResponse): boolean => {
+export const isWorkspace = (dataset: DatasetResponse) => {
   return _.toLower(dataset['dcat:accessURL']).includes(workspaceUrlFragment)
 }
 
 export const datarepoSnapshotUrlFragment = '/snapshots/details/'
 
-export const isDatarepoSnapshot = (dataset: DatasetResponse): boolean => {
+export const isDatarepoSnapshot = (dataset: DatasetResponse) => {
   return _.toLower(dataset['dcat:accessURL']).includes(datarepoSnapshotUrlFragment)
 }
 
-export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse): string[] => _.flatMap('dct:title', dataset['TerraDCAT_ap:hasDataCollection'])
+export const getConsortiumTitlesFromDataset = (dataset: DatasetResponse) => _.flatMap(hasDataCollection => hasDataCollection['dct:title'], dataset['TerraDCAT_ap:hasDataCollection'])
 
 export const getDataModalityListFromDataset = (dataset: DatasetResponse): string[] => _.flow(
   _.flatMap('TerraCore:hasDataModality'),
@@ -87,14 +87,14 @@ export const getDataModalityListFromDataset = (dataset: DatasetResponse): string
 )(dataset['prov:wasGeneratedBy'])
 
 
-export const getAssayCategoryListFromDataset = (dataset: DatasetResponse): string[] => _.flow(
+export const getAssayCategoryListFromDataset = (dataset: DatasetResponse) => _.flow(
   _.flatMap('TerraCore:hasAssayCategory'),
   _.sortBy(_.toLower),
   _.compact,
   _.uniqBy(_.toLower)
-)(dataset['prov:wasGeneratedBy'])
+)(dataset['prov:wasGeneratedBy']) as string[]
 
-export const formatDatasetTime = (time: string | null): string | null => !!time ? Utils.makeStandardDate(new Date(time)) : null
+export const formatDatasetTime = (time: string | null) => !!time ? Utils.makeStandardDate(new Date(time)) : null
 
 // Return type should be decided by above
 export const getDatasetAccessType = (dataset: DatasetResponse) => Utils.cond(
