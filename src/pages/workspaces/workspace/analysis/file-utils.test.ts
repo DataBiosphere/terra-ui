@@ -4,6 +4,7 @@ import { renderHook } from '@testing-library/react-hooks'
 import { act } from 'react-dom/test-utils'
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
+import { reportError } from 'src/libs/error'
 import { workspaceStore } from 'src/libs/state'
 import { ReadyState } from 'src/libs/type-utils/LoadedState'
 import {
@@ -28,6 +29,13 @@ jest.mock('src/libs/ajax/AzureStorage')
 jest.mock('src/libs/error', () => ({
   ...jest.requireActual('src/libs/error'),
   reportError: jest.fn(),
+}))
+
+jest.mock('src/libs/notifications', () => ({
+  notify: jest.fn((...args) => {
+    console.debug('######################### notify')/* eslint-disable-line */
+    console.debug({ method: 'notify', args: [...args] })/* eslint-disable-line */
+  })
 }))
 
 //TODO: test commons
@@ -130,17 +138,44 @@ describe('file-utils', () => {
       })
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
 
-      workspaceStore.set(defaultGoogleWorkspace)
-      const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
-      await waitForNextUpdate()
-
       // Act
-      act(async () => {
+      await act(async () => {
+        workspaceStore.set(defaultGoogleWorkspace)
+        const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+        await waitForNextUpdate()
         await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
       })
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
+    })
+
+    it('Fails to create a file with a GCP workspace', async () => {
+      // Arrange
+      const listAnalyses = jest.fn(() => Promise.resolve([]))
+      const create = jest.fn(() => Promise.reject(new Error('myError')))
+      const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
+        create,
+        refresh: jest.fn(() => Promise.reject(new Error('ee')))
+      }))
+      const googleStorageMock: Partial<GoogleStorageContract> = ({
+        listAnalyses,
+        analysis: analysisMock as GoogleStorageContract['analysis']
+      })
+      asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
+
+      // Act
+      await act(async () => {
+        workspaceStore.set(defaultGoogleWorkspace)
+        const hookRender1 = renderHook(() => useAnalysisFiles())
+        await hookRender1.waitForNextUpdate()
+        const hookResult2 = hookRender1.result.current
+        await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
+      })
+
+      // Assert
+      expect(create).toHaveBeenCalledWith('myContents')
+      expect(reportError).toHaveBeenCalled()
     })
 
     it('creates a file with an Azure workspace', async () => {
@@ -157,18 +192,43 @@ describe('file-utils', () => {
         blob: blobMock as AzureStorageContract['blob']
       })
       asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
-
-      workspaceStore.set(defaultAzureWorkspace)
-      const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
-      await waitForNextUpdate()
-
       // Act
-      act(async () => {
+      await act(async () => {
+        workspaceStore.set(defaultAzureWorkspace)
+        const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+        await waitForNextUpdate()
         await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
       })
 
       // Assert
       expect(create).toHaveBeenCalledWith('myContents')
     })
+  })
+
+  it('Fails to create a file with an Azure workspace', async () => {
+    // Arrange
+    const listNotebooks = jest.fn(() => Promise.resolve([]))
+    const create = jest.fn(() => Promise.reject(new Error('myError')))
+    const blobMock: Partial<AzureStorageContract['blob']> = jest.fn(() => ({
+      create
+    }))
+    const googleStorageMock: Partial<AzureStorageContract> = ({
+      listNotebooks,
+      blob: blobMock as AzureStorageContract['blob']
+    })
+    asMockedFn(AzureStorage).mockImplementation(() => googleStorageMock as AzureStorageContract)
+
+    // Act
+    await act(async () => {
+      workspaceStore.set(defaultAzureWorkspace)
+      const hookRender1 = renderHook(() => useAnalysisFiles())
+      await hookRender1.waitForNextUpdate()
+      const hookResult2 = hookRender1.result.current
+      await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
+    })
+
+    // Assert
+    expect(create).toHaveBeenCalledWith('myContents')
+    expect(reportError).toHaveBeenCalled()
   })
 })

@@ -86,14 +86,17 @@ export const useAnalysisFiles = (): AnalysisFileStore => {
       await refresh()
       return true
     })
-    if (pendingCreate.status === 'Error') {
-      reportError('Error creating Analysis file.', pendingCreate.error)
-    }
   }
 
   useEffect(() => {
     refresh()
   }, [workspace]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (pendingCreate.status === 'Error') {
+      reportError('Error creating Analysis file.', pendingCreate.error)
+    }
+  }, [pendingCreate])
   return { refresh, create, loadedState: { status: loading ? 'Loading' : 'Ready', state: analyses }, pendingCreate }
 }
 
