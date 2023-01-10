@@ -16,6 +16,7 @@ import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 import validate from 'validate.js'
 
 
@@ -123,7 +124,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
           onChange: v => setAcl(_.set([index], v)),
           disabled,
           maxAccessLevel: workspace.accessLevel,
-          isAzureWorkspace: !!workspace.azureContext
+          isAzureWorkspace: isAzureWorkspace(workspace)
         })
       ]),
       !disabled && h(Link, {

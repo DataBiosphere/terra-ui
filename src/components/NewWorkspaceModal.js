@@ -19,6 +19,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -111,7 +112,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
         copyFilesWithPrefix: 'notebooks/',
-        ...(!!bucketLocation && { bucketLocation })
+        ...(!!bucketLocation && isGoogleBillingProject() && { bucketLocation })
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
@@ -148,7 +149,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !!cloneWorkspace && !cloneWorkspace.azureContext && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && isGoogleWorkspace(cloneWorkspace) && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(({ location }) => {
         // For current phased regionality release, we only allow US or NORTHAMERICA-NORTHEAST1 (Montreal) workspace buckets.
         setBucketLocation(isSupportedBucketLocation(location) ? location : defaultLocation)
@@ -160,18 +161,22 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
-  const isAzureBillingProject = project => {
+  const isAzureBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.azure.label)
+
+  const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
+
+  const isCloudProviderBillingProject = (project, cloudProvider) => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    return project?.cloudPlatform === cloudProviders.azure.label
+    return project?.cloudPlatform === cloudProvider
   }
 
   const isBillingProjectApplicable = project => {
     // Only support cloning a workspace to the same cloud environment.
     return Utils.cond(
-      [!!cloneWorkspace && !!cloneWorkspace.azureContext, () => isAzureBillingProject(project)],
-      [!!cloneWorkspace && !cloneWorkspace.azureContext, () => !isAzureBillingProject(project)],
+      [!!cloneWorkspace && isAzureWorkspace(cloneWorkspace), () => isAzureBillingProject(project)],
+      [!!cloneWorkspace && isGoogleWorkspace(cloneWorkspace), () => isGoogleBillingProject(project)],
       [Utils.DEFAULT, () => true]
     )
   }
@@ -259,7 +264,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Bucket location',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
@@ -326,7 +331,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: setDescription
         })
       ])]),
-      !isAzureBillingProject() && h(IdContainer, [id => h(Fragment, [
+      isGoogleBillingProject() && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, [
           'Authorization domain',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
