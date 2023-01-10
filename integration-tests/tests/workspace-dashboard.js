@@ -94,6 +94,7 @@ const setAzureAjaxMockValues = async (testPage, namespace, name, workspaceDescri
     attributes: { description: workspaceDescription },
     authorizationDomain: [],
     bucketName: '',
+    cloudPlatform: 'Azure',
     createdBy: 'dummy@email.com',
     createdDate: '2022-04-12T18:12:25.912Z',
     googleProject: '',
