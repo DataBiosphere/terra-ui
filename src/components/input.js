@@ -5,7 +5,7 @@ import { div, h, input, textarea } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
+import { PopupPortal, useDynamicPosition, useWindowDimensions } from 'src/components/popup-utils'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { combineRefs, forwardRefWithName, useGetter, useInstance, useLabelAssert, useOnMount } from 'src/libs/react-utils'
@@ -18,7 +18,7 @@ const styles = {
     border: `1px solid ${colors.dark(0.55)}`, borderRadius: 4
   },
   suggestionsContainer: {
-    position: 'fixed', top: 0, left: 0,
+    position: 'fixed', left: 0,
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
     border: `1px solid ${colors.light()}`,
@@ -222,13 +222,25 @@ export const ValidatedInput = ({ inputProps, width, error }) => {
 
 const AutocompleteSuggestions = ({ target: targetId, containerProps, children }) => {
   const [target] = useDynamicPosition([{ id: targetId }])
+  const windowDimensions = useWindowDimensions()
+
+  const anchorToBottom = (windowDimensions.height - target.bottom) >= styles.suggestionsContainer.maxHeight
+  const style = anchorToBottom ? {
+    top: 0,
+    transform: `translate(${target.left}px, ${target.bottom}px)`,
+  } : {
+    bottom: 0,
+    transform: `translate(${target.left}px, -${windowDimensions.height - target.top}px)`,
+  }
+
   return h(PopupPortal, [
     div({
       ...containerProps,
       style: {
-        transform: `translate(${target.left}px, ${target.bottom}px)`, width: target.width,
+        ...styles.suggestionsContainer,
+        ...style,
         visibility: !target.width ? 'hidden' : undefined,
-        ...styles.suggestionsContainer
+        width: target.width,
       }
     }, [children])
   ])
