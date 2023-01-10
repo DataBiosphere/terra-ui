@@ -6,7 +6,7 @@ import { centeredSpinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReportingInModal } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractCrossWorkspaceDetails, extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -74,8 +74,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
           Ajax().Metrics.captureEvent(Events.notebookRename, {
             oldName: printName,
             newName,
-            workspaceName: workspaceInfo.name,
-            workspaceNamespace: workspaceInfo.namespace
+            ...extractWorkspaceDetails(workspaceInfo)
           })
         } else {
           await duplicate()
@@ -83,10 +82,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
           Ajax().Metrics.captureEvent(Events.notebookCopy, {
             oldName: printName,
             newName,
-            fromWorkspaceNamespace: workspaceInfo.namespace,
-            fromWorkspaceName: workspaceInfo.name,
-            toWorkspaceNamespace: workspaceInfo.namespace,
-            toWorkspaceName: workspaceInfo.name
+            ...extractCrossWorkspaceDetails({ workspace: workspaceInfo }, { workspace: workspaceInfo })
           })
         }
 

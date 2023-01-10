@@ -26,7 +26,7 @@ export interface GoogleWorkspaceInfo extends BaseWorkspaceInfo {
 export type WorkspaceInfo = AzureWorkspaceInfo | GoogleWorkspaceInfo
 
 export const isGoogleWorkspaceInfo = (workspace: WorkspaceInfo): workspace is GoogleWorkspaceInfo => {
-  return !!((workspace as GoogleWorkspaceInfo).googleProject)
+  return workspace.cloudPlatform === 'Gcp'
 }
 
 export interface BaseWorkspace {
@@ -45,6 +45,12 @@ export interface GoogleWorkspace extends BaseWorkspace {
 
 export type WorkspaceWrapper = GoogleWorkspace | AzureWorkspace
 
-export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWorkspace => 'azureContext' in workspace
+export const isAzureWorkspace = (workspace: BaseWorkspace): workspace is AzureWorkspace => {
+  return workspace.workspace.cloudPlatform === 'Azure'
+}
+
+export const isGoogleWorkspace = (workspace: BaseWorkspace): workspace is GoogleWorkspace => {
+  return isGoogleWorkspaceInfo(workspace.workspace)
+}
 
 export const getCloudProviderFromWorkspace = (workspace: BaseWorkspace): CloudProviderType => isAzureWorkspace(workspace) ? cloudProviderTypes.AZURE : cloudProviderTypes.GCP

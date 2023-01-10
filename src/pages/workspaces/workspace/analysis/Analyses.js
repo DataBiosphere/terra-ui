@@ -238,7 +238,7 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { workspaceId, googleProject, bucketName } },
+  name: workspaceName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { cloudPlatform, workspaceId, googleProject, bucketName } },
   analysesData: { apps, refreshApps, runtimes, refreshRuntimes, appDataDisks, persistentDisks, location },
   onRequesterPaysError
 }, _ref) => {
@@ -532,7 +532,7 @@ const Analyses = _.flow(
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(renamingAnalysisName),
           toolLabel: getToolFromFileExtension(renamingAnalysisName),
-          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: true,
           fromLauncher: false,
           onDismiss: () => setRenamingAnalysisName(undefined),
@@ -544,7 +544,7 @@ const Analyses = _.flow(
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getFileName(copyingAnalysisName),
           toolLabel: getToolFromFileExtension(copyingAnalysisName),
-          workspaceInfo: { googleProject, workspaceId, namespace, name: workspaceName, bucketName },
+          workspaceInfo: { cloudPlatform, googleProject, workspaceId, namespace, name: workspaceName, bucketName },
           destroyOld: false,
           fromLauncher: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
