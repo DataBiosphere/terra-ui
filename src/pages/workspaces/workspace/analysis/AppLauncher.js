@@ -212,9 +212,7 @@ const ApplicationLauncher = _.flow(
       // periodically check for outdated R analyses
       interval.current = !!googleProject && setInterval(findOutdatedAnalyses, 10000)
     }
-    // if (runtime) {
-    //   setBusy(false)
-    // }
+
     return () => {
       clearInterval(interval.current)
       interval.current = undefined
