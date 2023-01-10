@@ -242,7 +242,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
 // This component is responsible for generating the preview/open header bar above the iframe content
 const PreviewHeader = ({
   queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, currentFileToolLabel, workspace, setCreateOpen, refreshRuntimes,
-  workspace: { canShare, workspace: { namespace, name, bucketName, googleProject, workspaceId } }
+  workspace: { canShare, workspace: { cloudPlatform, namespace, name, bucketName, googleProject, workspaceId } }
 }) => {
   const signal = useCancellation()
   const { user: { email } } = useStore(authStore)
@@ -439,7 +439,7 @@ const PreviewHeader = ({
       printName: getFileName(analysisName),
       toolLabel: getToolFromFileExtension(analysisName),
       fromLauncher: true,
-      workspaceInfo: { name, googleProject, workspaceId, namespace, bucketName },
+      workspaceInfo: { cloudPlatform, name, googleProject, workspaceId, namespace, bucketName },
       destroyOld: false,
       onDismiss: () => setCopyingAnalysis(false),
       onSuccess: () => setCopyingAnalysis(false)
