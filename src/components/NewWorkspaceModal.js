@@ -170,11 +170,13 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
 
   const isGoogleBillingProject = project => isCloudProviderBillingProject(project, cloudProviders.gcp.label)
 
-  const isCloudProviderBillingProject = (project, cloudProvider) => {
+  const isCloudProviderBillingProject = (project, cloudProvider) => getProjectCloudPlatform(project) === cloudProvider
+
+  const getProjectCloudPlatform = project => {
     if (project === undefined) {
       project = _.find({ projectName: namespace }, billingProjects)
     }
-    return project?.cloudPlatform === cloudProvider
+    return project?.cloudPlatform
   }
 
   const isBillingProjectApplicable = project => {
