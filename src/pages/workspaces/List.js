@@ -31,7 +31,7 @@ import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderLabels, cloudProviderTypes, getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import { isGcpContext } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import { UnboundDiskNotification, V1WorkspaceNotification } from 'src/pages/workspaces/workspace/Dashboard'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -131,6 +131,7 @@ export const WorkspaceList = () => {
   // each render avoids unnecessarily recomputing the memoized filteredWorkspaces value.
   const accessLevelsFilter = query.accessLevelsFilter || EMPTY_LIST
   const projectsFilter = query.projectsFilter || undefined
+  const cloudProviderFilter = query.cloudProvider || undefined
   const submissionsFilter = query.submissionsFilter || EMPTY_LIST
   const tab = query.tab || 'myWorkspaces'
   const tagsFilter = query.tagsFilter || EMPTY_LIST
@@ -195,10 +196,11 @@ export const WorkspaceList = () => {
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
         (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
+        (_.isEmpty(cloudProviderFilter) || getCloudProviderFromWorkspace(ws) === cloudProviderFilter) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
+    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, cloudProviderFilter, submissionsFilter, tagsFilter])
 
   //Starred workspaces are always floated to the top
   const sortedWorkspaces = _.orderBy(
@@ -484,6 +486,19 @@ export const WorkspaceList = () => {
               _.uniq,
               _.sortBy(_.identity)
             )(workspaces)
+          })
+        ]),
+        div({ style: styles.filter }, [
+          h(Select, {
+            isClearable: true,
+            isMulti: false,
+            placeholder: 'Cloud provider',
+            'aria-label': 'Filter by cloud provider',
+            value: cloudProviderFilter,
+            hideSelectedOptions: true,
+            onChange: data => Nav.updateSearch({ ...query, cloudProvider: data?.value || undefined }),
+            options: _.sortBy(cloudProvider => cloudProviderLabels[cloudProvider], _.keys(cloudProviderTypes)),
+            getOptionLabel: ({ value }) => cloudProviderLabels[value]
           })
         ]),
         div({ style: { ...styles.filter, marginRight: 0 } }, [
