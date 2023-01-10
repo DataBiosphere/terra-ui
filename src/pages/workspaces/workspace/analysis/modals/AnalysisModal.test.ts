@@ -145,7 +145,7 @@ describe('AnalysisModal', () => {
   it.each([
     { fileType: 'Python 3' },
     { fileType: 'R' },
-  ])('GCP - Creates a new $fileType for Jupyter when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+  ])('GCP - Creates a new $fileType for Jupyter when no apps or runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
     const createMock = jest.fn()
     const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
@@ -213,7 +213,7 @@ describe('AnalysisModal', () => {
   it.each([
     { fileType: 'R Markdown (.Rmd)' },
     { fileType: 'R Script (.R)' }
-  ])('GCP - Creates a new $fileType for RStudio when no apps or runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+  ])('GCP - Creates a new $fileType for RStudio when no apps or runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
     render(h(AnalysisModal, defaultGcpModalProps))
     // Act
@@ -314,7 +314,7 @@ describe('AnalysisModal', () => {
   it.each([
     { fileType: 'Python 3' },
     { fileType: 'R' },
-  ])('Azure - Creates a new $fileType for Jupyter when no runtimes are present and navigates to environment creation.', async ({ fileType }) => {
+  ])('Azure - Creates a new $fileType for Jupyter when no runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
     render(h(AnalysisModal, defaultAzureModalProps))
 
