@@ -499,6 +499,7 @@ const WorkspaceData = _.flow(
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
   const [proxyUrlLoaded, setProxyUrlLoaded] = useState(false)
+  const [leoAppLaunched, setLeoAppLaunched] = useState(false)
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -550,7 +551,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsSchema()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs(), loadWdsAppAndSchema()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -565,15 +566,32 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadWdsSchema = async () => {
+  const loadWdsAppAndSchema = async () => {
     if (!getConfig().isProd && isAzureWorkspace) {
+      let isWDSAppLaunched = null
+      // First ensure that WDS is running in the background
+      // If current React state has already confirmed that a WDS app is running, no need
+      // to invoke an extra API call
+      if (!leoAppLaunched) {
+        isWDSAppLaunched = await Ajax().Apps.getV2AppInfo(workspaceId).then(
+          apps => (apps !== undefined && apps.length !== 0)
+        )
+      }
+
       try {
-        setWdsSchema([])
-        setWdsSchemaError(undefined)
-        const url = await wdsDataTableProvider.proxyUrlPromise
-        setProxyUrlLoaded(!!url)
-        const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
-        setWdsSchema(wdsSchema)
+        // Continue if either 1. React state or 2. endpoints confirm that we have a running WDS app
+        if (isWDSAppLaunched || leoAppLaunched) {
+          setLeoAppLaunched(true)
+          setWdsSchema([])
+          setWdsSchemaError(undefined)
+          const url = await wdsDataTableProvider.proxyUrlPromise
+          setProxyUrlLoaded(!!url)
+          const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
+          setWdsSchema(wdsSchema)
+        } else {
+          // TODO: AJ-761: Include UI/UX experience to let user know that WDS is launching
+          await Ajax().Apps.createV2App(wdsDataTableProvider.appName, wdsDataTableProvider.workspaceId)
+        }
       } catch (error) {
         setWdsSchemaError(error)
       }
