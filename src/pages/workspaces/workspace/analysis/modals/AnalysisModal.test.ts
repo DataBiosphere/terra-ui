@@ -341,8 +341,6 @@ describe('AnalysisModal', () => {
     expect(createFunc).toHaveBeenCalled()
   })
 
-  // ----- Work in progress ----
-
   it('Attempts to create a file with a name that already exists', async () => {
     // Arrange
     const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
