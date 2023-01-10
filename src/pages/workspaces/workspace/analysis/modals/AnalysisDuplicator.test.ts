@@ -88,7 +88,7 @@ describe('AnalysisDuplicator', () => {
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       refresh: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
-      create: () => Promise.resolve(), //TODO
+      create: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true }
     }))
   })
@@ -124,7 +124,7 @@ describe('AnalysisDuplicator', () => {
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
       refresh: () => Promise.resolve(),
-      create: () => Promise.resolve(), //TODO: Investigate test
+      create: () => Promise.resolve(),
       pendingCreate: { status: 'Ready', state: true }
     }))
 
