@@ -11,7 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import * as Style from 'src/libs/style'
@@ -207,7 +207,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     const aclEmails = _.map('email', acl)
     const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
     const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
-    const eventData = { numAdditions, workspaceName: name, workspaceNamespace: namespace }
+    const eventData = { numAdditions, ...extractWorkspaceDetails(workspace.workspace) }
 
     const aclUpdates = [
       ..._.flow(
@@ -221,7 +221,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
       await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
       !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
       if (!currentTerraSupportAccessLevel && newTerraSupportAccessLevel) {
-        Ajax().Metrics.captureEvent(Events.workspaceShareWithSupport)
+        Ajax().Metrics.captureEvent(Events.workspaceShareWithSupport, extractWorkspaceDetails(workspace.workspace))
       }
       onDismiss()
     } catch (error) {

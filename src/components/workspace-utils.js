@@ -394,7 +394,7 @@ export const WorkspaceStarControl = ({ workspace, stars, setStars, style, updati
       _.concat(refreshedStarredWorkspaceList, [workspaceId]) :
       _.without([workspaceId], refreshedStarredWorkspaceList)
     await Ajax().User.profile.setPreferences({ starredWorkspaces: _.join(',', updatedWorkspaceIds) })
-    Ajax().Metrics.captureEvent(Events.workspaceStar, { workspaceId, starred: star })
+    Ajax().Metrics.captureEvent(Events.workspaceStar, { workspaceId, starred: star, ...extractWorkspaceDetails(workspace.workspace) })
     setStars(updatedWorkspaceIds)
   })
 
@@ -469,7 +469,10 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
 
   return h(Clickable, {
     style: { ...Style.elements.card.container, maxWidth: 'calc(25% - 10px)', margin: '0 0.25rem', lineHeight: '1.5rem', flex: '0 1 calc(25% - 10px)' },
-    href: Nav.getLink('workspace-dashboard', { namespace, name })
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
+    onClick: () => {
+      Ajax().Metrics.captureEvent(Events.workspaceOpenFromRecentlyViewed, extractWorkspaceDetails(workspace.workspace))
+    },
   }, [
     div({ style: { flex: 'none' } }, [
       div({ style: { color: colors.accent(), ...Style.noWrapEllipsis, fontSize: 16, marginBottom: 7 } }, name),
