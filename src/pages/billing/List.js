@@ -116,6 +116,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
 }
 
 const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
+  // Billing projects in an error status may have UNKNOWN for the cloudPlatform.
   const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
