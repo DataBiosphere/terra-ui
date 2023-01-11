@@ -119,8 +119,8 @@ export const signIn = async (includeBillingScope = false) => {
 
 export const reloadAuthToken = (includeBillingScope = false) => {
   const args = getSigninArgs(includeBillingScope)
-  return getAuthInstance().signinSilent(args).catch((e) => {
-    console.error("An unexpected exception occurred while attempting to refresh auth credentials.")
+  return getAuthInstance().signinSilent(args).catch(e => {
+    console.error('An unexpected exception occurred while attempting to refresh auth credentials.')
     console.error(e)
     return false
   })
