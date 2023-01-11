@@ -4,11 +4,9 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { useCancellation, useOnMount } from 'src/libs/react-utils'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -21,21 +19,10 @@ const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
 ])
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
-  const [loading, setLoading] = useState(false)
-  const [workspaceList, setWorkspaceList] = useState([])
-  const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get())
-  const signal = useCancellation()
+  const { workspaces, loading } = useWorkspaces()
+  const billableWorkspaces = _.filter(workspace => workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER', workspaces)
 
-  useOnMount(() => {
-    const loadWorkspaces = _.flow(
-      Utils.withBusyState(setLoading),
-      withErrorReporting('Error loading workspaces')
-    )(async () => {
-      const workspaces = await Ajax(signal).Workspaces.list()
-      setWorkspaceList(_.filter(workspace => workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER', workspaces))
-    })
-    loadWorkspaces()
-  })
+  const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get())
 
   return Utils.cond(
     [loading, () => h(Modal, {
@@ -46,7 +33,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
     }, [
       spinnerOverlay
     ])],
-    [workspaceList.length > 0, () => h(Modal, {
+    [billableWorkspaces.length > 0, () => h(Modal, {
       title: 'Choose a workspace to bill to',
       onDismiss,
       shouldCloseOnOverlayClick: false,
@@ -70,9 +57,8 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
             _.map(({ workspace: { googleProject, namespace, name } }) => ({
               value: googleProject, label: `${namespace}/${name}`
             })),
-            _.uniq,
             _.sortBy('label')
-          )(workspaceList)
+          )(billableWorkspaces)
         }),
         requesterPaysHelpInfo
       ])])
