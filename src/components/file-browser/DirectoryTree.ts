@@ -264,6 +264,7 @@ export const Directory = (props: DirectoryProps) => {
 
 interface DirectoryTreeProps {
   provider: FileBrowserProvider
+  rootLabel: string
   selectedDirectory: string
   onSelectDirectory: (path: string) => void
 }
@@ -271,6 +272,7 @@ interface DirectoryTreeProps {
 const DirectoryTree = (props: DirectoryTreeProps) => {
   const {
     provider,
+    rootLabel,
     selectedDirectory,
     onSelectDirectory
   } = props
@@ -370,7 +372,7 @@ const DirectoryTree = (props: DirectoryTreeProps) => {
       id: 'node-0',
       level: 0,
       path: '',
-      rootLabel: 'Workspace bucket',
+      rootLabel,
       selectedDirectory,
       setActiveDescendant,
       onSelectDirectory

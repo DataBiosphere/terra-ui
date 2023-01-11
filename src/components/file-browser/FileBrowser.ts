@@ -8,16 +8,18 @@ import PathBreadcrumbs from 'src/components/file-browser/PathBreadcrumbs'
 import Modal from 'src/components/Modal'
 import FileBrowserProvider, { FileBrowserFile } from 'src/libs/ajax/file-browser-providers/FileBrowserProvider'
 import colors from 'src/libs/colors'
+import { dataTableVersionsPathRoot } from 'src/libs/data-table-versions'
 import * as Utils from 'src/libs/utils'
 
 
 interface FileBrowserProps {
   provider: FileBrowserProvider
+  rootLabel: string
   title: string
   workspace: any // TODO: Type for workspace
 }
 
-const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
+const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps) => {
   const [path, setPath] = useState('')
 
   const [focusedFile, setFocusedFile] = useState<FileBrowserFile | null>(null)
@@ -28,7 +30,14 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   }, [path])
 
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
-  const canEditWorkspace = !editWorkspaceError
+  const { editDisabled, editDisabledReason } = Utils.cond(
+    [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
+    [path.startsWith(`${dataTableVersionsPathRoot}/`), () => ({
+      editDisabled: true,
+      editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
+    })],
+    () => ({ editDisabled: false, editDisabledReason: undefined })
+  )
 
   return h(Fragment, [
     div({ style: { display: 'flex', height: '100%' } }, [
@@ -57,6 +66,7 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
         }, [
           h(DirectoryTree, {
             provider,
+            rootLabel,
             selectedDirectory: path,
             onSelectDirectory: selectedDirectoryPath => {
               setPath(selectedDirectoryPath)
@@ -84,16 +94,16 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
         }, [
           h(PathBreadcrumbs, {
             path,
-            rootLabel: 'Workspace bucket',
+            rootLabel,
             onClickPath: setPath
           })
         ]),
         h(FilesInDirectory, {
-          editDisabled: !canEditWorkspace,
-          editDisabledReason: editWorkspaceError,
+          editDisabled,
+          editDisabledReason,
           provider,
           path,
-          rootLabel: 'Workspace bucket',
+          rootLabel,
           selectedFiles,
           setSelectedFiles,
           onClickFile: setFocusedFile
