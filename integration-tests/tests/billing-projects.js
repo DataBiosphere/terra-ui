@@ -120,7 +120,7 @@ const setAjaxMockValues = async (testPage, ownedBillingProjectName, notOwnedBill
   },
   erroredProjectVisible && {
     projectName: erroredBillingProjectName,
-    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error', cloudPlatform: 'GCP'
+    billingAccount: 'billingAccounts/fake-id', invalidBillingAccount: false, roles: ['Owner'], status: 'Error', cloudPlatform: 'UNKNOWN'
   },
   {
     projectName: notOwnedBillingProjectName,
