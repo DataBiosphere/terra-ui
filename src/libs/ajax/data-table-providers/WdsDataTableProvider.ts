@@ -83,37 +83,31 @@ const getRelationParts = (val: unknown): string[] => {
 }
 
 // Extract wds URL from Leo response. exported for testing
-export const getWdsUrl = (apps, workspaceId, appName) => {
-  // If apps is currently an empty list after calling api/apps/v2/<workspaceId}> upon Leo,
-  // then we need to create an underlying Leo App first
-  if (apps === undefined || apps.length === 0) {
-    return Ajax().Apps.createV2App(appName, workspaceId).then(apps => getWdsUrl(apps, workspaceId, appName))
-  } else {
-    // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
-    // this handles the case where the user has explicitly shut down the app
-    const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
-    if (namedApp.length === 1) {
-      return namedApp[0].proxyUrls.wds
-    }
-    // if we didn't find the expected app 'cbas-wds-default', go hunting:
-    const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
-    if (candidates.length === 0) {
-      // no app deployed yet
-      return ''
-    }
-    if (candidates.length > 1) {
-      // multiple apps found; use the earliest-created one
-      candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
-    }
-    return candidates[0].proxyUrls.wds
+export const getWdsUrl = apps => {
+  // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
+  // this handles the case where the user has explicitly shut down the app
+  const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')
+  if (namedApp.length === 1) {
+    return namedApp[0].proxyUrls.wds
   }
+  // if we didn't find the expected app 'cbas-wds-default', go hunting:
+  const candidates = apps.filter(app => app.appType === 'CROMWELL' && app.status === 'RUNNING')
+  if (candidates.length === 0) {
+    // no app deployed yet
+    return ''
+  }
+  if (candidates.length > 1) {
+    // multiple apps found; use the earliest-created one
+    candidates.sort((a, b) => a.auditInfo.createdDate - b.auditInfo.createdDate)
+  }
+  return candidates[0].proxyUrls.wds
 }
 
 export class WdsDataTableProvider implements DataTableProvider {
   constructor(appName: string, workspaceId: string) {
     this.appName = appName
     this.workspaceId = workspaceId
-    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(apps => getWdsUrl(apps, workspaceId, appName))
+    this.proxyUrlPromise = Ajax().Apps.getV2AppInfo(workspaceId).then(getWdsUrl)
   }
 
   appName: string

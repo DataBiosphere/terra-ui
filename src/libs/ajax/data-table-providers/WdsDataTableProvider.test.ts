@@ -702,21 +702,19 @@ describe('transformMetadata', () => {
 })
 
 describe('getWdsUrl', () => {
-  const testAppName = 'test-app-name'
-  const testWorkspaceId = 'abc-123'
   it('properly extracts the proxy Url from the leo response', () => {
-    expect(getWdsUrl(testProxyUrlResponse, testWorkspaceId, testAppName)).toBe(testProxyUrl)
+    expect(getWdsUrl(testProxyUrlResponse)).toBe(testProxyUrl)
   })
   it('locate the Url when the app name is different and is running', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'CROMWELL', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName, testWorkspaceId, testAppName)).toBe(testProxyUrl)
+    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe(testProxyUrl)
   })
   it('return empty string when app not found', () => {
     const testProxyUrlResponseWithDifferentAppName: Array<Object> = [
       { appType: 'A_DIFFERENT_APP', appName: 'something-else', status: 'RUNNING', proxyUrls: { wds: testProxyUrl } }
     ]
-    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName, testWorkspaceId, testAppName)).toBe('')
+    expect(getWdsUrl(testProxyUrlResponseWithDifferentAppName)).toBe('')
   })
 })
