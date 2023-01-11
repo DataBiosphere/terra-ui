@@ -247,7 +247,7 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
               content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(CloudProviderIcon, { key: cloudPlatform, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
+              [h(CloudProviderIcon, { key: projectName, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount
