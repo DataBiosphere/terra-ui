@@ -21,6 +21,7 @@ import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isCloudProvider } from 'src/libs/workspace-utils'
 import CreateAzureBillingProjectModal from 'src/pages/billing/CreateAzureBillingProjectModal'
 import CreateGCPBillingProject from 'src/pages/billing/CreateGCPBillingProject'
 import CreateNewBillingProjectWizard from 'src/pages/billing/CreateNewBillingProjectWizard'
@@ -115,7 +116,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
 }
 
 const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
-  const cloudContextIcon = !!cloudPlatform && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+  const cloudContextIcon = isCloudProvider(cloudPlatform) && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
