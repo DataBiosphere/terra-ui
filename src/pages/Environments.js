@@ -23,7 +23,7 @@ import { contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import { topBarHeight } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
+import { SaveFilesHelp, SaveFilesHelpAzure, SaveFilesHelpGalaxy } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import {
   defaultComputeZone, getAppCost, getComputeStatusForDisplay, getCreatorForRuntime, getDiskAppType, getGalaxyComputeCost,
   getPersistentDiskCostMonthly,
@@ -61,11 +61,12 @@ const DeleteRuntimeModal = ({
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveFilesHelp),
       p([
         'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'
-      ])
+      ]),
+      !isGcpContext(cloudContext) ? h(SaveFilesHelpAzure) : h(SaveFilesHelp),
+
     ]),
     deleting && spinnerOverlay
   ])
@@ -463,7 +464,8 @@ const Environments = () => {
   }
 
   const renderWorkspaceForRuntimes = runtime => {
-    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } } = runtime
+    const { status, googleProject, labels: { saturnWorkspaceNamespace = googleProject, saturnWorkspaceName } = {} } = runtime
+    //TODO: Azure runtimes are not covered in this logic
     const shouldWarn =
       doesUserHaveDuplicateRuntimes(getCreatorForRuntime(runtime), runtimesByProject[googleProject]) &&
       !_.includes(status, ['Deleting', 'Error'])
@@ -491,13 +493,13 @@ const Environments = () => {
   }
 
   const renderDetailsApp = (app, disks) => {
-    const { appName, diskName, auditInfo: { creator }, workspace: { workspaceId, googleProject } } = app
+    const { appName, diskName, auditInfo: { creator }, workspace: { workspaceId, googleProject } = {} } = app
     const disk = _.find({ name: diskName }, disks)
     return getDetailsPopup(appName, googleProject, disk, creator, workspaceId)
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
-    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId }, auditInfo: { creator }, workspace } = runtime
+    const { runtimeName, cloudContext, runtimeConfig: { persistentDiskId } = {}, auditInfo: { creator }, workspace } = runtime
     const disk = _.find({ id: persistentDiskId }, disks)
     return getDetailsPopup(runtimeName, cloudContext?.cloudResource, disk, creator, workspace?.workspaceId)
   }

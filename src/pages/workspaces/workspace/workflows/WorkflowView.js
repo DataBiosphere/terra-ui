@@ -810,12 +810,17 @@ const WorkflowView = _.flow(
           div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
             // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
             span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-              span([
+              span({ style: { ...styles.checkBoxSpanMargins, marginLeft: 0 } }, [
                 h(LabeledCheckbox, {
                   disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
                   checked: useCallCache,
                   onChange: v => this.setState({ useCallCache: v })
                 }, [' Use call caching'])
+              ]),
+              h(InfoBox, [
+                'Call caching detects when a job has been run in the past so that it doesn\'t have to re-compute results. ',
+                h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps },
+                  [clickToLearnMore])
               ]),
               span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {

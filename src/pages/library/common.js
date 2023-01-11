@@ -507,7 +507,7 @@ export const SearchAndFilterComponent = ({
           })
         ])])
       ]),
-      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets'])
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All results'])
     ]),
     div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
       div({ style: { width: '19rem', flex: 'none' } }, [

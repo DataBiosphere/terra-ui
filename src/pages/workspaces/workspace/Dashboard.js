@@ -29,6 +29,7 @@ import { forwardRefWithName, useCancellation, useOnMount, useStore } from 'src/l
 import { authStore, contactUsActive, requesterPaysProjectStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import SignIn from 'src/pages/SignIn'
 import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 import { isV1Artifact, wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -192,9 +193,7 @@ export const UnboundDiskNotification = props => {
 }
 
 const BucketLocation = requesterPaysWrapper({ onDismiss: _.noop })(({ workspace }) => {
-  const isGoogleWorkspace = !!workspace?.workspace?.googleProject
-  console.assert(isGoogleWorkspace, 'BucketLocation expects a Google workspace')
-
+  console.assert(!!workspace && isGoogleWorkspace(workspace), 'BucketLocation expects a Google workspace')
   const [loading, setLoading] = useState(true)
   const [{ location, locationType }, setBucketLocation] = useState({ location: undefined, locationType: undefined })
   const [needsRequesterPaysProject, setNeedsRequesterPaysProject] = useState(false)
@@ -339,10 +338,11 @@ const WorkspaceDashboard = _.flow(
       loadAcl()
     }
 
-    if (!azureContext) {
+    if (isGoogleWorkspace(workspace)) {
       loadStorageCost()
       loadBucketSize()
-    } else {
+    }
+    if (isAzureWorkspace(workspace)) {
       loadAzureStorage()
     }
   }
@@ -478,8 +478,8 @@ const WorkspaceDashboard = _.flow(
   )
 
   const getCloudInformation = () => {
-    return !googleProject && !azureContext ? [] : [
-      dl(!!googleProject ? [
+    return !isAzureWorkspace(workspace) && !isGoogleWorkspace(workspace) ? [] : [
+      dl(isGoogleWorkspace(workspace) ? [
         h(InfoRow, { title: 'Cloud Name' }, [
           h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { height: 16 } })
         ]),
@@ -533,7 +533,7 @@ const WorkspaceDashboard = _.flow(
           })
         ])
       ]),
-      !!googleProject && h(Fragment, [
+      isGoogleWorkspace(workspace) && h(Fragment, [
         div({ style: { paddingBottom: '0.5rem' } }, [h(Link, {
           style: { margin: '1rem 0.5rem' },
           ...Utils.newTabLinkProps,
@@ -547,7 +547,7 @@ const WorkspaceDashboard = _.flow(
         }, ['Open project in Google Cloud Console', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]
         )])
       ]),
-      !googleProject && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
+      isAzureWorkspace(workspace) && div({ style: { margin: '0.5rem', fontSize: 12 } }, [
         div(['Use SAS URL in conjunction with ',
           h(Link, {
             ...Utils.newTabLinkProps, href: 'https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10',
