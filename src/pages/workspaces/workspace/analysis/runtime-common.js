@@ -163,6 +163,15 @@ export const SaveFilesHelpGalaxy = () => {
   ])
 }
 
+export const SaveFilesHelpAzure = () => {
+  return h(Fragment, [
+    p([
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+      'please move them to your workspace storage container.', // TODO: Link support article once published
+    ]),
+  ])
+}
+
 export const GalaxyWarning = () => {
   return h(Fragment, [
     p({ style: { fontWeight: 600 } }, 'Important: Please keep this tab open and logged in to Terra while using Galaxy.'),
