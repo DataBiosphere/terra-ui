@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -9,8 +10,6 @@ import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { InfoBox, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -116,12 +115,9 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
 }
 
 const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
-  const cloudContextIcon =
-    div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-      Utils.switchCase(cloudPlatform,
-        [cloudProviders.gcp.label, () => h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img' })],
-        [cloudProviders.azure.label, () => h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img' })])
-    ])
+  const cloudContextIcon = div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+    h(CloudProviderIcon, { cloudProvider: cloudPlatform })
+  ])
 
   const selectableProject = () => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.accent(1.1) : colors.accent() },

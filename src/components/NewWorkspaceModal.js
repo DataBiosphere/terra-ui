@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, strong } from 'react-hyperscript-helpers'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
@@ -8,8 +9,6 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions, availableBucketRegions, getLocationType, getRegionInfo, isLocationMultiRegion, isSupportedBucketLocation } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -19,7 +18,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { useCancellation, useOnMount, withDisplayName } from 'src/libs/react-utils'
 import * as Utils from 'src/libs/utils'
-import { isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
+import { cloudProviderLabels, isAzureWorkspace, isGoogleWorkspace } from 'src/libs/workspace-utils'
 import { cloudProviders, defaultLocation } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 import validate from 'validate.js'
 
@@ -46,23 +45,6 @@ const constraints = {
   namespace: {
     presence: true
   }
-}
-
-const getCloudPlatformTitle = cloudPlatform => {
-  return Utils.switchCase(cloudPlatform,
-    [cloudProviders.gcp.label, () => cloudProviders.gcp.iconTitle],
-    [cloudProviders.azure.label, () => cloudProviders.azure.iconTitle]
-  )
-}
-
-const cloudPlatformIcon = ({ cloudPlatform }) => {
-  const props = { title: getCloudPlatformTitle(cloudPlatform), role: 'img' }
-
-  return div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
-    Utils.switchCase(cloudPlatform,
-      [cloudProviders.gcp.label, () => h(CloudGcpLogo, props)],
-      [cloudProviders.azure.label, () => h(CloudAzureLogo, props)])
-  ])
 }
 
 const invalidBillingAccountMsg = 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'
@@ -260,12 +242,12 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 10 }) },
           options: _.map(({ projectName, invalidBillingAccount, cloudPlatform }) => ({
-            'aria-label': `${getCloudPlatformTitle(cloudPlatform)} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
+            'aria-label': `${cloudProviderLabels[cloudPlatform]} ${projectName}${ariaInvalidBillingAccountMsg(invalidBillingAccount)}`,
             label: h(TooltipTrigger, {
               content: invalidBillingAccount && invalidBillingAccountMsg, side: 'left'
             },
             [div({ style: { display: 'flex', alignItems: 'center' } },
-              [h(cloudPlatformIcon, { cloudPlatform, key: projectName }), projectName]
+              [h(CloudProviderIcon, { key: cloudPlatform, cloudProvider: cloudPlatform, style: { marginRight: '0.5rem' } }), projectName]
             )]),
             value: projectName,
             isDisabled: invalidBillingAccount
