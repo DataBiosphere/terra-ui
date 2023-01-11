@@ -230,16 +230,20 @@ const ApplicationLauncher = _.flow(
     fileOutdatedOpen && h(FileOutdatedModal, { onDismiss: () => setFileOutdatedOpen(false), bucketName }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
+        application === toolLabels.JupyterLab && div({ style: { padding: '2rem', position: 'absolute', top: 0, left: 0, zIndex: 1 } }, [
+          h(StatusMessage, {}, ['Your Virtual Machine (VM) is ready. JupyterLab will launch momentarily...'])
+        ]),
         iframe({
           src: iframeSrc,
           style: {
             border: 'none', flex: 1,
+            zIndex: 2,
             ...(application === toolLabels.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })
       ]) :
-      div({ style: { padding: '2rem' } }, [
+      div({ style: { padding: '2rem', zIndex: 0 } }, [
         !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(runtimeStatus) }, [
           Utils.cond(
             [runtimeStatus === 'Creating', () => 'Creating cloud environment. You can navigate away and return in 3-5 minutes.'],
