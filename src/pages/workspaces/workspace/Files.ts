@@ -32,13 +32,15 @@ export const Files = _.flow(
     [workspace]
   )
 
+  const rootLabel = isAzureWorkspace(workspace) ? 'Workspace cloud storage' : 'Workspace bucket'
+
   return div({
     style: {
       flex: '1 1 0',
       overflow: 'hidden'
     }
   }, [
-    h(FileBrowser, { workspace, provider: fileBrowserProvider, title: 'Files' })
+    h(FileBrowser, { workspace, provider: fileBrowserProvider, rootLabel, title: 'Files' })
   ])
 })
 

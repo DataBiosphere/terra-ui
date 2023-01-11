@@ -29,6 +29,7 @@ import { isFeaturePreviewEnabled } from 'src/libs/feature-previews'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { isAzureWorkspace } from 'src/libs/workspace-utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/analysis/modals/CloudEnvironmentModal'
 import { appLauncherTabName } from 'src/pages/workspaces/workspace/analysis/runtime-common'
 import { getCostDisplayForDisk, getCostDisplayForTool, getCurrentApp, getCurrentAppDataDisk, getCurrentPersistentDisk, getCurrentRuntime, getGalaxyComputeCost, getGalaxyDiskCost, getPersistentDiskCostHourly, getRuntimeCost } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
@@ -220,7 +221,7 @@ export const ContextBar = ({
           useTooltipAsLabel: false,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 40 }), span({ className: 'sr-only' }, ['Terminal button'])]),
-        isFeaturePreviewEnabled('workspace-files') && h(Clickable, {
+        (isAzureWorkspace(workspace) || isFeaturePreviewEnabled('workspace-files')) && h(Clickable, {
           style: { paddingLeft: '1rem', alignItems: 'center', ...contextBarStyles.contextBarButton },
           hover: contextBarStyles.hover,
           'data-testid': 'workspace-files-link',
