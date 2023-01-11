@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, strong } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -78,7 +78,14 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
   const subscriptionIdError = Utils.cond(
     [subscriptionIdTouched && !isValidSubscriptionId, () => Utils.summarizeErrors(subscriptionIdErrors?.subscriptionId)],
     [errorFetchingManagedApps, () => 'Unable to retrieve Managed Applications for that subscription'],
-    [errorFetchingManagedApps === false && managedApps.length === 0, () => 'No Terra Managed Applications exist for that subscription'],
+    [errorFetchingManagedApps === false && managedApps.length === 0, () => h(Fragment, [
+      div({ key: 'message' }, ['No Terra Managed Applications exist for that subscription. ',
+        h(Link, {
+          href: 'https://portal.azure.com/#view/Microsoft_Azure_Marketplace/MarketplaceOffersBlade/selectedMenuItemId/home',
+          ...Utils.newTabLinkProps
+        }, ['Go to the Azure Marketplace'])]),
+      ' to create a Terra Managed Application.'
+    ])],
     [Utils.DEFAULT, () => undefined]
   )
 
@@ -111,7 +118,16 @@ const CreateAzureBillingProjectModal = ({ onSuccess, onDismiss, billingProjectNa
       ])]),
       !(billingProjectNameTouched && billingProjectNameErrors) && formHint('Name must be unique and cannot be changed.'),
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Azure subscription']),
+        h(FormLabel, { htmlFor: id, required: true }, [
+          'Azure subscription',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'You can copy your Subscription ID from the Azure Portal. ',
+            h(Link, {
+              href: 'https://portal.azure.com/',
+              ...Utils.newTabLinkProps
+            }, ['Go to the Azure Portal'])
+          ])
+        ]),
         h(ValidatedInput, {
           inputProps: {
             id,
