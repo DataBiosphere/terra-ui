@@ -115,7 +115,7 @@ const BillingProjectActions = ({ project: { projectName }, loadProjects }) => {
 }
 
 const ProjectListItem = ({ project, project: { projectName, roles, status, message, cloudPlatform }, loadProjects, isActive }) => {
-  const cloudContextIcon = div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
+  const cloudContextIcon = !!cloudPlatform && div({ style: { display: 'flex', marginRight: '0.5rem' } }, [
     h(CloudProviderIcon, { cloudProvider: cloudPlatform })
   ])
 
