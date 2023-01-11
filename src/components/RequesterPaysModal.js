@@ -9,6 +9,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
+import { isGoogleWorkspace } from 'src/libs/workspace-utils'
 
 
 const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
@@ -20,7 +21,7 @@ const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const { workspaces, loading } = useWorkspaces()
-  const billableWorkspaces = _.filter(workspace => workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER', workspaces)
+  const billableWorkspaces = _.filter(workspace => isGoogleWorkspace(workspace) && (workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER'), workspaces)
 
   const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get())
 
