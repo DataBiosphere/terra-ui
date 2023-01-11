@@ -11,8 +11,8 @@
       "id": "C53JYBV9A"
     },
     {
-      "name": "dsp-interactive-analysis",
-      "id": "CA3NP1733",
+      "name": "ia-notification-test",
+      "id": "C03ATF4QXEV",
       "tests": [
         {
           "name": "run-analysis"
