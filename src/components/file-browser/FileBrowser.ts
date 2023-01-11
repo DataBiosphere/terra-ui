@@ -31,7 +31,10 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
   const editWorkspaceError = Utils.editWorkspaceError(workspace)
   const { editDisabled, editDisabledReason } = Utils.cond(
     [!!editWorkspaceError, () => ({ editDisabled: true, editDisabledReason: editWorkspaceError })],
-    [path.startsWith(`${dataTableVersionsPathRoot}/`), () => ({ editDisabled: true, editDisabledReason: 'This folder cannot be edited' })],
+    [path.startsWith(`${dataTableVersionsPathRoot}/`), () => ({
+      editDisabled: true,
+      editDisabledReason: 'This folder is managed by data table versioning and cannot be edited here.',
+    })],
     () => ({ editDisabled: false, editDisabledReason: undefined })
   )
 
