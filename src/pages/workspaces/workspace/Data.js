@@ -499,7 +499,6 @@ const WorkspaceData = _.flow(
   const [crossTableSearchInProgress, setCrossTableSearchInProgress] = useState(false)
   const [showDataTableVersionHistory, setShowDataTableVersionHistory] = useState({}) // { [entityType: string]: boolean }
   const [proxyUrlLoaded, setProxyUrlLoaded] = useState(false)
-  const [leoAppLaunched, setLeoAppLaunched] = useState(false)
 
   const { dataTableVersions, loadDataTableVersions, saveDataTableVersion, deleteDataTableVersion, importDataTableVersion } = useDataTableVersions(workspace)
 
@@ -568,20 +567,12 @@ const WorkspaceData = _.flow(
 
   const loadWdsAppAndSchema = async () => {
     if (!getConfig().isProd && isAzureWorkspace) {
-      let isWDSAppLaunched = null
       // First ensure that WDS is running in the background
-      // If current React state has already confirmed that a WDS app is running, no need
-      // to invoke an extra API call
-      if (!leoAppLaunched) {
-        isWDSAppLaunched = await Ajax().Apps.getV2AppInfo(workspaceId).then(
-          apps => (apps !== undefined && apps.length !== 0)
-        )
-      }
-
+      const isWDSAppLaunched = await Ajax().Apps.getV2AppInfo(workspaceId).then(
+        apps => (apps !== undefined && apps.length !== 0))
       try {
-        // Continue if either 1. React state or 2. endpoints confirm that we have a running WDS app
-        if (isWDSAppLaunched || leoAppLaunched) {
-          setLeoAppLaunched(true)
+        // Continue if endpoints confirm that we have a running WDS app
+        if (isWDSAppLaunched) {
           setWdsSchema([])
           setWdsSchemaError(undefined)
           const url = await wdsDataTableProvider.proxyUrlPromise
