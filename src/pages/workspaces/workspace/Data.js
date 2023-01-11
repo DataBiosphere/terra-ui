@@ -566,7 +566,7 @@ const WorkspaceData = _.flow(
   }
 
   const loadWdsSchema = async () => {
-    if (!getConfig().isProd && isAzureWorkspace) {
+    if (isAzureWorkspace) {
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
