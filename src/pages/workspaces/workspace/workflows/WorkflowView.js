@@ -818,7 +818,7 @@ const WorkflowView = _.flow(
                 }, [' Use call caching'])
               ]),
               h(InfoBox, [
-                'Call caching allows Terra\'s execution engine to detect when a job has been run in the past so that it doesn\'t have to re-compute results. ',
+                'Call caching detects when a job has been run in the past so that it doesn\'t have to re-compute results. ',
                 h(Link, { href: this.getSupportLink('360047664872'), ...Utils.newTabLinkProps },
                   [clickToLearnMore])
               ]),
