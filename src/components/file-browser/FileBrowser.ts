@@ -13,11 +13,12 @@ import * as Utils from 'src/libs/utils'
 
 interface FileBrowserProps {
   provider: FileBrowserProvider
+  rootLabel: string
   title: string
   workspace: any // TODO: Type for workspace
 }
 
-const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
+const FileBrowser = ({ provider, rootLabel, title, workspace }: FileBrowserProps) => {
   const [path, setPath] = useState('')
 
   const [focusedFile, setFocusedFile] = useState<FileBrowserFile | null>(null)
@@ -57,6 +58,7 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
         }, [
           h(DirectoryTree, {
             provider,
+            rootLabel,
             selectedDirectory: path,
             onSelectDirectory: selectedDirectoryPath => {
               setPath(selectedDirectoryPath)
@@ -84,7 +86,7 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
         }, [
           h(PathBreadcrumbs, {
             path,
-            rootLabel: 'Workspace bucket',
+            rootLabel,
             onClickPath: setPath
           })
         ]),
@@ -93,7 +95,7 @@ const FileBrowser = ({ provider, title, workspace }: FileBrowserProps) => {
           editDisabledReason: editWorkspaceError,
           provider,
           path,
-          rootLabel: 'Workspace bucket',
+          rootLabel,
           selectedFiles,
           setSelectedFiles,
           onClickFile: setFocusedFile
