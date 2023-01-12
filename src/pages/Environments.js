@@ -12,7 +12,7 @@ import { FlexTable, HeaderCell, SimpleFlexTable, Sortable, TextCell } from 'src/
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces } from 'src/components/workspace-utils'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax as terraAjax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportErrorAndRethrow, withErrorHandling, withErrorIgnoring, withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
@@ -33,6 +33,8 @@ import {
 import { AppErrorModal, RuntimeErrorModal } from 'src/pages/workspaces/workspace/analysis/RuntimeManager'
 import { appTools, getToolLabelFromRuntime, isPauseSupported } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 
+let ajax = terraAjax // replaceable to allow for usage outside of Terra UI
+const Ajax = signal => ajax(signal)
 
 const DeleteRuntimeModal = ({
   runtime: { cloudContext, googleProject, runtimeName, runtimeConfig: { persistentDiskId }, workspaceId }, onDismiss, onSuccess
@@ -283,7 +285,9 @@ const MigratePersistentDiskModal = ({ disk, workspaces, onSuccess, onDismiss, on
   ])
 }
 
-const Environments = () => {
+export const Environments = ({ajax: newAjax = undefined, nav = undefined}) => {
+  if (newAjax) { ajax = newAjax }
+  const getLink = nav ? nav.getLink : Nav.getLink
   const signal = useCancellation()
   const { workspaces, refresh: refreshWorkspaces } = _.flow(
     useWorkspaces,
@@ -445,7 +449,7 @@ const Environments = () => {
   const getWorkspaceCell = (namespace, name, appType, shouldWarn) => {
     return !!name ?
       h(Fragment, [
-        h(Link, { href: Nav.getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
+        h(Link, { href: getLink('workspace-dashboard', { namespace, name }), style: { wordBreak: 'break-word' } }, [name]),
         shouldWarn && h(TooltipTrigger, {
           content: `This workspace has multiple active cloud environments${forAppText(appType)}. Only the latest one will be used.`
         }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -582,9 +586,7 @@ const Environments = () => {
       disks).length > 1
   }
 
-  return h(FooterWrapper, [
-    h(TopBar, { title: 'Cloud Environments' }),
-    div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
+  return h(Fragment, [div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       div({ style: { marginBottom: '.5rem' } }, [
         h(LabeledCheckbox, { checked: shouldFilterByCreator, onChange: setShouldFilterByCreator }, [
@@ -719,7 +721,7 @@ const Environments = () => {
               const multipleDisks = multipleDisksError(disksByProject[googleProject], appType)
               return !!workspace ?
                 h(Fragment, [
-                  h(Link, { href: Nav.getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
+                  h(Link, { href: getLink('workspace-dashboard', workspace), style: { wordBreak: 'break-word' } },
                     [workspace.name]),
                   currentUser === creator && diskStatus !== 'Deleting' && multipleDisks &&
                   h(TooltipTrigger, {
@@ -877,11 +879,16 @@ const Environments = () => {
   ])
 }
 
+const EnvironmentsPage = () => h(FooterWrapper, [
+  h(TopBar, { title: 'Cloud Environments' }),
+  h(Environments)
+])
+
 export const navPaths = [
   {
     name: 'environments',
     path: '/clusters', // NB: This path name is a holdover from a previous naming scheme
-    component: Environments,
+    component: EnvironmentsPage,
     title: 'Cloud environments'
   }
 ]
