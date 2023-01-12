@@ -332,7 +332,7 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
   }
 }))
 
-const parseToSDetails = tosDetails => {
+export const parseToSDetails = tosDetails => {
   if (_.isNull(tosDetails)) {
     return {
       isGracePeriodEnabled: undefined,
