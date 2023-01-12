@@ -93,8 +93,8 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 
 export const AuthenticatedCookieSetter = () => {
   const { termsOfService } = useStore(authStore)
-  return (termsOfService.userAcceptedTos || termsOfService.isGracePeriodEnabled) &&
-    getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
+  return (!_.isUndefined(termsOfService.userNeedsToAcceptTos) && !termsOfService.userNeedsToAcceptTos) &&
+            getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
