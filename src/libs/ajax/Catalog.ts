@@ -107,7 +107,7 @@ export interface DatasetResponse {
 }
 
 export interface DatasetListResponse {
-  response: DatasetResponse[]
+  result: DatasetResponse[]
 }
 
 export interface GetDatasetPreviewTableRequest {
@@ -121,7 +121,7 @@ export interface ExportDatasetRequest {
 }
 
 export interface CatalogContract {
-  getDatasets: () => Promise<DatasetTableResponse>
+  getDatasets: () => Promise<DatasetListResponse>
   getDatasetTables: (id: string) => Promise<DatasetTableListResponse>
   getDatasetPreviewTable: (request: GetDatasetPreviewTableRequest) => Promise<DatasetTableResponse>
   exportDataset: (request: ExportDatasetRequest) => Promise<Response>
@@ -137,7 +137,7 @@ const catalogPost = async (url: string, signal: AbortSignal | undefined, jsonBod
 }
 
 export const Catalog = (signal?: AbortSignal): CatalogContract => ({
-  getDatasets: (): Promise<DatasetTableResponse> => catalogGet('v1/datasets', signal),
+  getDatasets: (): Promise<DatasetListResponse> => catalogGet('v1/datasets', signal),
   getDatasetTables: (id: string): Promise<DatasetTableListResponse> => catalogGet(`v1/datasets/${id}/tables`, signal),
   getDatasetPreviewTable: ({ id, tableName }: GetDatasetPreviewTableRequest): Promise<DatasetTableResponse> => catalogGet(`v1/datasets/${id}/tables/${tableName}`, signal),
   exportDataset: ({ id, workspaceId }: ExportDatasetRequest): Promise<Response> => catalogPost(`v1/datasets/${id}/export`, signal, { workspaceId })
