@@ -104,8 +104,8 @@ describe('AnalysisModal', () => {
 
   it('GCP - Successfully resets view.', async () => {
     // Arrange
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     const button = screen.getByAltText('Create new notebook')
@@ -126,8 +126,8 @@ describe('AnalysisModal', () => {
     { app: 'Galaxy', buttonAltText: 'Create new Galaxy app', expectedTitle: 'Galaxy Cloud Environment' }
   ])('GCP - Renders correctly and selects $app when no apps or runtimes are present.', async ({ buttonAltText, expectedTitle }) => {
     // Arrange
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     const button = screen.getByAltText(buttonAltText)
@@ -152,8 +152,8 @@ describe('AnalysisModal', () => {
     })
 
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     const button = screen.getByAltText('Create new notebook')
@@ -180,8 +180,8 @@ describe('AnalysisModal', () => {
 
   it('GCP - Creates a new file for Jupyter when a Jupyter runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime()] }))
     const user = userEvent.setup()
+    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime()] }))
 
     // Act
     const button = screen.getByAltText('Create new notebook')
@@ -241,8 +241,8 @@ describe('AnalysisModal', () => {
 
   it('GCP - Creates a new file for RStudio when an RStudio runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime({ tool: tools.RStudio })] }))
     const user = userEvent.setup()
+    render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime({ tool: tools.RStudio })] }))
 
     // Act
     const button = screen.getByAltText('Create new R file')
@@ -264,8 +264,8 @@ describe('AnalysisModal', () => {
 
   it('GCP - Renders Galaxy Environment page when no runtime exists and Galaxy is selected.', async () => {
     // Arrange
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     await act(async () => {
@@ -278,8 +278,8 @@ describe('AnalysisModal', () => {
 
   it('GCP - Renders disabled Galaxy button and tooltip when Galaxy app exists.', async () => {
     // Arrange
-    render(h(AnalysisModal, { ...defaultGcpModalProps, apps: [galaxyRunning], appDataDisks: [galaxyDisk] }))
     const user = userEvent.setup()
+    render(h(AnalysisModal, { ...defaultGcpModalProps, apps: [galaxyRunning], appDataDisks: [galaxyDisk] }))
 
     // Act
     const button = screen.getByAltText('Create new Galaxy app')
@@ -301,8 +301,8 @@ describe('AnalysisModal', () => {
 
   it('Azure - Successfully resets view.', async () => {
     // Act
-    render(h(AnalysisModal, defaultAzureModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultAzureModalProps))
 
     // Act
     const button = screen.getByAltText('Create new notebook')
@@ -322,8 +322,8 @@ describe('AnalysisModal', () => {
     { fileType: 'R' },
   ])('Azure - Creates a new $fileType for Jupyter when no runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
-    render(h(AnalysisModal, defaultAzureModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultAzureModalProps))
 
     // Act
     await act(async () => {
@@ -358,8 +358,9 @@ describe('AnalysisModal', () => {
       pendingCreate: { status: 'Ready', state: true }
     }))
 
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
+
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
@@ -384,8 +385,8 @@ describe('AnalysisModal', () => {
       pendingCreate: { status: 'Ready', state: true }
     }))
 
-    render(h(AnalysisModal, defaultGcpModalProps))
     const user = userEvent.setup()
+    render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
     await act(async () => {
