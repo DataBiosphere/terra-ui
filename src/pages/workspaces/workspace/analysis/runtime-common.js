@@ -10,7 +10,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
 import { useCancellation, useGetter, useOnMount, usePollingEffect, usePrevious, useStore } from 'src/libs/react-utils'
-import { authStore, azureCookieReadyStore, cookieReadyStore, userStatus } from 'src/libs/state'
+import { authStore, azureCookieReadyStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { getConvertedRuntimeStatus, usableStatuses } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
 
@@ -89,11 +89,12 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
   }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus])
 
   return null
-}z
+}
 
 export const AuthenticatedCookieSetter = () => {
-  const { registrationStatus } = useStore(authStore)
-  return _.includes(registrationStatus, [userStatus.registeredWithTos, userStatus.registeredWithoutTos]) && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
+  const { termsOfService } = useStore(authStore)
+  return (termsOfService.userAcceptedTos || termsOfService.isGracePeriodEnabled) &&
+    getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
