@@ -237,7 +237,7 @@ const ApplicationLauncher = _.flow(
         iframe({
           src: iframeSrc,
           style: {
-            border: 'none', flex: 1,
+            border: 'none', flex: 1, zIndex: 2,
             ...(application === toolLabels.terminal ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
