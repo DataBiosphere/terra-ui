@@ -81,8 +81,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
             ]),
             td([
               Utils.switchCase(getDatasetAccessType(dataset),
-                [datasetAccessTypes.CONTROLLED, () => h(RequestDatasetAccessButton, { title: dataset['dct:title'], id: dataset.id, setShowWipModal })],
-                [datasetAccessTypes.PENDING, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+                [datasetAccessTypes.Controlled, () => h(RequestDatasetAccessButton, { title: dataset['dct:title'], id: dataset.id, setShowWipModal })],
+                [datasetAccessTypes.Pending, () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
                 [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
               )
             ])
