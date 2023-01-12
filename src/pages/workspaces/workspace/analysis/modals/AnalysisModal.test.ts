@@ -16,7 +16,7 @@ import {
   getFileName,
   useAnalysisFiles
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AppTool, getToolFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime } from '../_testData/testData'
@@ -78,7 +78,7 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
   ext: '.ipynb' as Extension,
   displayName: getDisplayName(abs),
   fileName: getFileName(abs),
-  tool: getToolFromFileExtension(getExtension(abs)) as ToolLabel,
+  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
   lastModified: new Date().getTime(),
   cloudProvider
 })

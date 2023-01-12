@@ -20,7 +20,7 @@ import {
   getFileName,
   useAnalysisFiles
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { getToolFromFileExtension, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getToolLabelFromFileExtension, ToolLabel, toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -44,7 +44,7 @@ const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloud
   ext: getExtension(abs),
   displayName: getDisplayName(abs),
   fileName: getFileName(abs),
-  tool: getToolFromFileExtension(getExtension(abs)) as ToolLabel,
+  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
   lastModified: new Date().getTime(),
   cloudProvider
 })

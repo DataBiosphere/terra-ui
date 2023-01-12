@@ -29,7 +29,7 @@ import { analysisNameInput, analysisNameValidator, baseRmd, notebookData } from 
 import {
   getCurrentApp, getCurrentPersistentDisk, getCurrentRuntime, isResourceDeletable
 } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
-import { AppTool, cloudAppTools, cloudRuntimeTools, ExtensionDisplay, getAppType, getToolFromFileExtension, getToolFromRuntime, isAppToolLabel, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AppTool, cloudAppTools, cloudRuntimeTools, ExtensionDisplay, getAppType, getToolLabelFromFileExtension, getToolLabelFromRuntime, isAppToolLabel, runtimeTools, Tool, toolExtensionDisplay, toolLabels, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
 import validate from 'validate.js'
 
 
@@ -77,12 +77,12 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
 
     const currentRuntime: any = getCurrentRuntime(runtimes)
     const currentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
-    const currentRuntimeTool = getToolFromRuntime(currentRuntime)
+    const currentRuntimeToolLabel = getToolLabelFromRuntime(currentRuntime)
     const currentApp: any = toolLabel => getCurrentApp(getAppType(toolLabel))(apps)
 
-    //TODO: Bring in as props from Analyses
+    //TODO: Bring in as props from Analyses OR bring entire AnalysisFileStore from props.
     const { loadedState, create, pendingCreate }: AnalysisFileStore = useAnalysisFiles()
-    //TODO: When the above is done, this check below is no longer necessary.
+    //TODO: When the above is done, this check below may not be necessary.
     const analyses = loadedState.status !== 'None' ? loadedState.state : null
     const status = loadedState.status
     const resetView = () => {
@@ -98,7 +98,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
      */
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
       const app = currentApp(currentTool)
-      const doesCloudEnvForToolExist = !!(currentRuntimeTool === currentTool || app)
+      const doesCloudEnvForToolExist = !!(currentRuntimeToolLabel === currentTool || app)
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, onSuccess],
@@ -153,9 +153,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
     })
 
     const renderAzureModal = () => h(AzureComputeModalBase, {
-      workspace: {
-        workspace: workspace.workspace
-      },
+      workspace,
       runtimes,
       onDismiss,
       onSuccess
@@ -245,17 +243,10 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
         onDropRejected: () => reportError('Not a valid analysis file',
           `The selected file is not one of the supported types: .${runtimeTools.Jupyter.ext.join(', .')}, .${runtimeTools.RStudio.ext.join(', .')}. Ensure your file has the proper extension.`),
         onDropAccepted: files => {
-          let tool
-          if (isGoogleWorkspaceInfo(workspace.workspace)) {
-            const toolLabel = getToolFromFileExtension(files.pop().path)
-            if (toolLabel) {
-              tool = tools[toolLabel]
-            }
-          } else {
-            tool = runtimeTools.JupyterLab
-          }
+          const toolLabel = isGoogleWorkspaceInfo(workspace.workspace) ? getToolLabelFromFileExtension(files.pop().path) : toolLabels.JupyterLab
+          const tool = toolLabel ? tools[toolLabel] : undefined
           setCurrentToolObj(tool)
-          currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeTool !== tool ?
+          currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel ?
             onSuccess() :
             enterNextViewMode(tool, analysisMode)
           uploadFiles()
@@ -347,7 +338,7 @@ export const AnalysisModal = withDisplayName('AnalysisModal')(
           })
         ]),
         (isJupyterLab || isRStudio || isJupyter) &&
-        currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeTool !== toolLabel &&
+        currentRuntime && !isResourceDeletable({ resourceType: 'runtime', resource: currentRuntime }) && currentRuntimeToolLabel !== toolLabel &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
           div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, [
