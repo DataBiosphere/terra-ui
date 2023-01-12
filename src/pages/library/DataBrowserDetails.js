@@ -44,7 +44,7 @@ const MetadataDetailsComponent = ({ dataObj, name }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        h(DatasetReleasePolicyDisplayInformation, { dataUsePermission: dataObj['TerraDCAT_ap:hasDataUsePermission'] })
+        h(DatasetReleasePolicyDisplayInformation, dataObj)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -119,7 +119,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
   const [tdrSnapshotPreparePolling, setTdrSnapshotPreparePolling] = useState(false)
   const sidebarButtonWidth = 230
   const access = getDatasetAccessType(dataObj)
-  const actionTooltip = access === datasetAccessTypes.GRANTED ? '' : uiMessaging.controlledFeatureTooltip
+  const actionTooltip = access === datasetAccessTypes.Granted ? '' : uiMessaging.controlledFeatureTooltip
 
   const importDataToWorkspace = dataset => {
     Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:detailsView`, {
@@ -191,7 +191,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
           ])
         ])
       ]),
-      access === datasetAccessTypes.EXTERNAL ?
+      access === datasetAccessTypes.External ?
         h(Fragment, [
           h(ButtonPrimary, {
             style: { fontSize: 14, textTransform: 'none', height: 'unset', width: '100%', marginTop: 20 },
@@ -201,7 +201,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
         ]) :
         h(Fragment, [
           h(ButtonOutline, {
-            disabled: access !== datasetAccessTypes.GRANTED,
+            disabled: access !== datasetAccessTypes.Granted,
             tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
@@ -218,7 +218,7 @@ export const SidebarComponent = ({ dataObj, id }) => {
             ])
           ]),
           h(ButtonPrimary, {
-            disabled: access !== datasetAccessTypes.GRANTED || tdrSnapshotPreparePolling,
+            disabled: access !== datasetAccessTypes.Granted || tdrSnapshotPreparePolling,
             tooltip: actionTooltip,
             style: { fontSize: 16, textTransform: 'none', height: 'unset', width: sidebarButtonWidth, marginTop: 20 },
             onClick: () => {
