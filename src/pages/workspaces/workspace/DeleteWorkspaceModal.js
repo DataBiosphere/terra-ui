@@ -31,7 +31,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     const load = Utils.withBusyState(setLoading, async () => {
       if (isGoogleWorkspace) {
         const [currentWorkspaceAppList, { acl }, { usageInBytes }] = await Promise.all([
-          Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: name }),
+          Ajax(signal).Apps.listWithoutProject({ role: 'creator', saturnWorkspaceName: name }),
           Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
           Ajax(signal).Workspaces.workspace(namespace, name).bucketUsage()
         ])
