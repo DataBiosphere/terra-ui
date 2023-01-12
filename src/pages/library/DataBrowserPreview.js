@@ -43,7 +43,7 @@ const styles = {
 const activeTab = 'datasets'
 
 const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTable, selectOptions }) => Utils.switchCase(access,
-  [datasetAccessTypes.CONTROLLED, () => div({
+  [datasetAccessTypes.Controlled, () => div({
     style: {
       display: 'flex', flexDirection: 'row', backgroundColor: 'white', fontSize: '1.1rem', lineHeight: '1.7rem', padding: '20px 30px 25px',
       width: 'fit-content', margin: 'auto'
@@ -56,7 +56,7 @@ const DatasetPreviewSelector = ({ access, dataset, selectedTable, setSelectedTab
       }
     })
   ])],
-  [datasetAccessTypes.GRANTED, () => h(GroupedSelect, {
+  [datasetAccessTypes.Granted, () => h(GroupedSelect, {
     'aria-label': 'data type',
     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 350, marginBottom: 30 }) },
     isSearchable: true,
@@ -153,7 +153,7 @@ const DataBrowserPreview = ({ id }) => {
       setPreviewRows(newPreviewRows)
     })
 
-    if (!!tables && !!selectedTable && access === datasetAccessTypes.GRANTED) {
+    if (!!tables && !!selectedTable && access === datasetAccessTypes.Granted) {
       loadTable()
     }
   }, [selectedTable]) // eslint-disable-line react-hooks/exhaustive-deps
