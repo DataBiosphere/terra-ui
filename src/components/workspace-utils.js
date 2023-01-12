@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span } from 'react-hyperscript-helpers'
 import { ClipboardButton } from 'src/components/ClipboardButton'
+import { CloudProviderIcon } from 'src/components/CloudProviderIcon'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import DelayedRender from 'src/components/DelayedRender'
 import { icon, spinner } from 'src/components/icons'
@@ -11,8 +12,6 @@ import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ReactComponent as CloudAzureLogo } from 'src/images/cloud_azure_icon.svg'
-import { ReactComponent as CloudGcpLogo } from 'src/images/cloud_google_icon.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -25,7 +24,7 @@ import { useCancellation, useInstance, useOnMount, useStore, withDisplayName } f
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cloudProviders } from 'src/pages/workspaces/workspace/analysis/runtime-utils'
+import { getCloudProviderFromWorkspace } from 'src/libs/workspace-utils'
 import validate from 'validate.js'
 
 
@@ -463,7 +462,7 @@ export const updateRecentlyViewedWorkspaces = workspaceId => {
 }
 
 export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadingSubmissionStats, timestamp }) => {
-  const { workspace: { namespace, name, googleProject } } = workspace
+  const { workspace: { namespace, name } } = workspace
 
   const dateViewed = Utils.makeCompleteDate(new Date(parseInt(timestamp)).toString())
 
@@ -483,9 +482,7 @@ export const RecentlyViewedWorkspaceCard = ({ workspace, submissionStatus, loadi
             status: submissionStatus,
             loadingSubmissionStats
           }),
-          !!googleProject ?
-            h(CloudGcpLogo, { title: cloudProviders.gcp.iconTitle, role: 'img', style: { marginLeft: 5 } }) :
-            h(CloudAzureLogo, { title: cloudProviders.azure.iconTitle, role: 'img', style: { marginLeft: 5 } })
+          h(CloudProviderIcon, { cloudProvider: getCloudProviderFromWorkspace(workspace), style: { marginLeft: 5 } })
         ])
       ])
     ])
