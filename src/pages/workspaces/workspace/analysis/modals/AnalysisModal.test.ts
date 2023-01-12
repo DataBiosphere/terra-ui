@@ -156,21 +156,20 @@ describe('AnalysisModal', () => {
     const user = userEvent.setup()
 
     // Act
+    const button = screen.getByAltText('Create new notebook')
+    await user.click(button)
+
+    const fileTypeSelect = await screen.getByLabelText('Language *')
+    await user.click(fileTypeSelect)
+
+    const selectOption = await screen.findAllByText(fileType)
+    await user.click(selectOption[1])
+
+    const nameInput = screen.getByLabelText('Name of the notebook *')
+    await userEvent.type(nameInput, 'MyNewFile')
+
+    const createButton = await screen.findByText('Create Analysis')
     await act(async () => {
-      const button = screen.getByAltText('Create new notebook')
-
-      await user.click(button)
-
-      const fileTypeSelect = await screen.getByLabelText('Language *')
-      await user.click(fileTypeSelect)
-
-      const selectOption = await screen.findAllByText(fileType)
-      await user.click(selectOption[1])
-
-      const nameInput = screen.getByLabelText('Name of the notebook *')
-      await userEvent.type(nameInput, 'MyNewFile')
-
-      const createButton = await screen.findByText('Create Analysis')
       await user.click(createButton)
     })
 
@@ -185,21 +184,20 @@ describe('AnalysisModal', () => {
     const user = userEvent.setup()
 
     // Act
+    const button = screen.getByAltText('Create new notebook')
+    await user.click(button)
+
+    const fileTypeSelect = await screen.getByLabelText('Language *')
+    await user.click(fileTypeSelect)
+
+    const selectOption = await screen.findAllByText('Python 3')
+    await user.click(selectOption[1])
+
+    const nameInput = screen.getByLabelText('Name of the notebook *')
+    await userEvent.type(nameInput, 'MyNewFile')
+
+    const createButton = await screen.findByText('Create Analysis')
     await act(async () => {
-      const button = screen.getByAltText('Create new notebook')
-
-      await user.click(button)
-
-      const fileTypeSelect = await screen.getByLabelText('Language *')
-      await user.click(fileTypeSelect)
-
-      const selectOption = await screen.findAllByText('Python 3')
-      await user.click(selectOption[1])
-
-      const nameInput = screen.getByLabelText('Name of the notebook *')
-      await userEvent.type(nameInput, 'MyNewFile')
-
-      const createButton = await screen.findByText('Create Analysis')
       await user.click(createButton)
     })
 
@@ -217,20 +215,22 @@ describe('AnalysisModal', () => {
     render(h(AnalysisModal, defaultGcpModalProps))
 
     // Act
+    const button = screen.getByAltText('Create new R file')
+    await user.click(button)
+
+    const fileTypeSelect = await screen.getByLabelText('File Type *')
+    await user.click(fileTypeSelect)
+
+    const selectOption = await screen.findAllByText(fileType)
+    await user.click(selectOption[1])
+
+    const nameInput = screen.getByLabelText('Name of the R file *')
+    await userEvent.type(nameInput, 'MyNewFile')
+
+    const createButton = await screen.getByText('Create Analysis')
+
+
     await act(async () => {
-      const button = screen.getByAltText('Create new R file')
-      await user.click(button)
-
-      const fileTypeSelect = await screen.getByLabelText('File Type *')
-      await user.click(fileTypeSelect)
-
-      const selectOption = await screen.findAllByText(fileType)
-      await user.click(selectOption[1])
-
-      const nameInput = screen.getByLabelText('Name of the R file *')
-      await userEvent.type(nameInput, 'MyNewFile')
-
-      const createButton = await screen.getByText('Create Analysis')
       await user.click(createButton)
     })
 
@@ -252,8 +252,10 @@ describe('AnalysisModal', () => {
     await userEvent.type(nameInput, 'MyNewFile')
 
     const createButton = await screen.getByText('Create Analysis')
-    await user.click(createButton)
 
+    await act(async () => {
+      await user.click(createButton)
+    })
 
     // Assert
     expect(screen.queryByText('RStudio Cloud Environment')).toBeNull()
