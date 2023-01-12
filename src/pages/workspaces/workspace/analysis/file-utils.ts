@@ -54,7 +54,7 @@ export interface AnalysisFile {
 export interface AnalysisFileStore {
   refresh: () => Promise<void>
   loadedState: LoadedState<AnalysisFile[], unknown>
-  create: (fullAnalysisName: String, toolLabel: ToolLabel, contents: String) => Promise<void>
+  create: (fullAnalysisName: string, toolLabel: ToolLabel, contents: string) => Promise<void>
   pendingCreate: LoadedState<true, unknown>
 }
 

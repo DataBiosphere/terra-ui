@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom'
 
-import { renderHook } from '@testing-library/react-hooks'
-import { act } from 'react-dom/test-utils'
+import { act, renderHook } from '@testing-library/react-hooks'
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { reportError } from 'src/libs/error'
@@ -139,10 +138,10 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
 
       // Act
+      workspaceStore.set(defaultGoogleWorkspace)
+      const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+      await waitForNextUpdate()
       await act(async () => {
-        workspaceStore.set(defaultGoogleWorkspace)
-        const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
-        await waitForNextUpdate()
         await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
       })
 
@@ -165,11 +164,11 @@ describe('file-utils', () => {
       asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
 
       // Act
+      workspaceStore.set(defaultGoogleWorkspace)
+      const hookRender1 = renderHook(() => useAnalysisFiles())
+      await hookRender1.waitForNextUpdate()
+      const hookResult2 = hookRender1.result.current
       await act(async () => {
-        workspaceStore.set(defaultGoogleWorkspace)
-        const hookRender1 = renderHook(() => useAnalysisFiles())
-        await hookRender1.waitForNextUpdate()
-        const hookResult2 = hookRender1.result.current
         await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
       })
 
@@ -192,11 +191,11 @@ describe('file-utils', () => {
         blob: blobMock as AzureStorageContract['blob']
       })
       asMockedFn(AzureStorage).mockImplementation(() => azureStorageMock as AzureStorageContract)
+      workspaceStore.set(defaultAzureWorkspace)
+      const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
+      await waitForNextUpdate()
       // Act
       await act(async () => {
-        workspaceStore.set(defaultAzureWorkspace)
-        const { result: hookReturnRef, waitForNextUpdate } = renderHook(() => useAnalysisFiles())
-        await waitForNextUpdate()
         await hookReturnRef.current.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
       })
 
@@ -219,11 +218,11 @@ describe('file-utils', () => {
     asMockedFn(AzureStorage).mockImplementation(() => googleStorageMock as AzureStorageContract)
 
     // Act
+    workspaceStore.set(defaultAzureWorkspace)
+    const hookRender1 = renderHook(() => useAnalysisFiles())
+    await hookRender1.waitForNextUpdate()
+    const hookResult2 = hookRender1.result.current
     await act(async () => {
-      workspaceStore.set(defaultAzureWorkspace)
-      const hookRender1 = renderHook(() => useAnalysisFiles())
-      await hookRender1.waitForNextUpdate()
-      const hookResult2 = hookRender1.result.current
       await hookResult2.create('AnalysisFile', toolLabels.Jupyter, 'myContents')
     })
 

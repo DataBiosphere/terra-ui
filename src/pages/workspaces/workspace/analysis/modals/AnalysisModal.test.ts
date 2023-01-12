@@ -109,17 +109,18 @@ describe('AnalysisModal', () => {
   })
 
   it('GCP - Successfully resets view.', async () => {
-    // Act
+    // Arrange
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
 
     // Act
     const button = screen.getByAltText('Create new notebook')
 
-    await userEvent.click(button)
+    await user.click(button)
     screen.getByText('Create a new notebook')
 
     const backButton = screen.getByLabelText('Back')
-    await userEvent.click(backButton)
+    await user.click(backButton)
 
     // Assert
     screen.getByText('Select an application')
@@ -132,11 +133,12 @@ describe('AnalysisModal', () => {
   ])('GCP - Renders correctly and selects $app when no apps or runtimes are present.', async ({ buttonAltText, expectedTitle }) => {
     // Arrange
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
 
     // Act
     const button = screen.getByAltText(buttonAltText)
 
-    await userEvent.click(button)
+    await user.click(button)
 
     // Assert
     screen.getByText(expectedTitle)
@@ -157,24 +159,25 @@ describe('AnalysisModal', () => {
 
     asMockedFn(GoogleStorage).mockImplementation(() => googleStorageMock as GoogleStorageContract)
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
 
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
 
-      await userEvent.click(button)
+      await user.click(button)
 
       const fileTypeSelect = await screen.getByLabelText('Language *')
-      await userEvent.click(fileTypeSelect)
+      await user.click(fileTypeSelect)
 
       const selectOption = await screen.findAllByText(fileType)
-      await userEvent.click(selectOption[1])
+      await user.click(selectOption[1])
 
       const nameInput = screen.getByLabelText('Name of the notebook *')
       await userEvent.type(nameInput, 'MyNewFile')
 
       const createButton = await screen.findByText('Create Analysis')
-      await userEvent.click(createButton)
+      await user.click(createButton)
     })
 
     // Assert
@@ -185,24 +188,25 @@ describe('AnalysisModal', () => {
   it('GCP - Creates a new file for Jupyter when a Jupyter runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
     render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime()] }))
+    const user = userEvent.setup()
 
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
 
-      await userEvent.click(button)
+      await user.click(button)
 
       const fileTypeSelect = await screen.getByLabelText('Language *')
-      await userEvent.click(fileTypeSelect)
+      await user.click(fileTypeSelect)
 
       const selectOption = await screen.findAllByText('Python 3')
-      await userEvent.click(selectOption[1])
+      await user.click(selectOption[1])
 
       const nameInput = screen.getByLabelText('Name of the notebook *')
       await userEvent.type(nameInput, 'MyNewFile')
 
       const createButton = await screen.findByText('Create Analysis')
-      await userEvent.click(createButton)
+      await user.click(createButton)
     })
 
     // Assert
@@ -215,23 +219,25 @@ describe('AnalysisModal', () => {
     { fileType: 'R Script (.R)' }
   ])('GCP - Creates a new $fileType for RStudio when no apps or runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
+    const user = userEvent.setup()
     render(h(AnalysisModal, defaultGcpModalProps))
+
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new R file')
-      await userEvent.click(button)
+      await user.click(button)
 
       const fileTypeSelect = await screen.getByLabelText('File Type *')
-      await userEvent.click(fileTypeSelect)
+      await user.click(fileTypeSelect)
 
       const selectOption = await screen.findAllByText(fileType)
-      await userEvent.click(selectOption[1])
+      await user.click(selectOption[1])
 
       const nameInput = screen.getByLabelText('Name of the R file *')
       await userEvent.type(nameInput, 'MyNewFile')
 
       const createButton = await screen.getByText('Create Analysis')
-      await userEvent.click(createButton)
+      await user.click(createButton)
     })
 
     // Assert
@@ -242,17 +248,18 @@ describe('AnalysisModal', () => {
   it('GCP - Creates a new file for RStudio when an RStudio runtime is present and does not navigate to cloud environment page.', async () => {
     // Arrange
     render(h(AnalysisModal, { ...defaultGcpModalProps, runtimes: [getGoogleRuntime({ tool: tools.RStudio })] }))
+    const user = userEvent.setup()
+
     // Act
-    await act(async () => {
-      const button = screen.getByAltText('Create new R file')
-      await userEvent.click(button)
+    const button = screen.getByAltText('Create new R file')
+    await user.click(button)
 
-      const nameInput = screen.getByLabelText('Name of the R file *')
-      await userEvent.type(nameInput, 'MyNewFile')
+    const nameInput = screen.getByLabelText('Name of the R file *')
+    await userEvent.type(nameInput, 'MyNewFile')
 
-      const createButton = await screen.getByText('Create Analysis')
-      await userEvent.click(createButton)
-    })
+    const createButton = await screen.getByText('Create Analysis')
+    await user.click(createButton)
+
 
     // Assert
     expect(screen.queryByText('RStudio Cloud Environment')).toBeNull()
@@ -262,11 +269,12 @@ describe('AnalysisModal', () => {
   it('GCP - Renders Galaxy Environment page when no runtime exists and Galaxy is selected.', async () => {
     // Arrange
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
 
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new Galaxy app')
-      await userEvent.click(button)
+      await user.click(button)
     })
 
     screen.getByText('Galaxy Cloud Environment')
@@ -275,10 +283,11 @@ describe('AnalysisModal', () => {
   it('GCP - Renders disabled Galaxy button and tooltip when Galaxy app exists.', async () => {
     // Arrange
     render(h(AnalysisModal, { ...defaultGcpModalProps, apps: [galaxyRunning], appDataDisks: [galaxyDisk] }))
+    const user = userEvent.setup()
 
     // Act
     const button = screen.getByAltText('Create new Galaxy app')
-    await userEvent.hover(button)
+    await user.hover(button)
 
     // Assert
     expect(await screen.queryAllByText('You already have a Galaxy environment').length).toBeGreaterThanOrEqual(2)
@@ -297,15 +306,16 @@ describe('AnalysisModal', () => {
   it('Azure - Successfully resets view.', async () => {
     // Act
     render(h(AnalysisModal, defaultAzureModalProps))
+    const user = userEvent.setup()
 
     // Act
     const button = screen.getByAltText('Create new notebook')
 
-    await userEvent.click(button)
+    await user.click(button)
     screen.getByText('Create a new notebook')
 
     const backButton = screen.getByLabelText('Back')
-    await userEvent.click(backButton)
+    await user.click(backButton)
 
     // Assert
     screen.getByText('Select an application')
@@ -317,23 +327,24 @@ describe('AnalysisModal', () => {
   ])('Azure - Creates a new $fileType for Jupyter when no runtimes are present and opens environment creation modal.', async ({ fileType }) => {
     // Arrange
     render(h(AnalysisModal, defaultAzureModalProps))
+    const user = userEvent.setup()
 
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
-      await userEvent.click(button)
+      await user.click(button)
 
       const fileTypeSelect = await screen.getByLabelText('Language *')
-      await userEvent.click(fileTypeSelect)
+      await user.click(fileTypeSelect)
 
       const selectOption = await screen.findAllByText(fileType)
-      await userEvent.click(selectOption[1])
+      await user.click(selectOption[1])
 
       const nameInput = screen.getByLabelText('Name of the notebook *')
       await userEvent.type(nameInput, 'MyNewFile')
 
       const createButton = await screen.findByText('Create Analysis')
-      await userEvent.click(createButton)
+      await user.click(createButton)
     })
 
     // Assert
@@ -352,10 +363,11 @@ describe('AnalysisModal', () => {
     }))
 
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
-      await userEvent.click(button)
+      await user.click(button)
 
       const nameInput = screen.getByLabelText('Name of the notebook *')
       await userEvent.type(nameInput, fileList[0].displayName)
@@ -377,17 +389,18 @@ describe('AnalysisModal', () => {
     }))
 
     render(h(AnalysisModal, defaultGcpModalProps))
+    const user = userEvent.setup()
 
     // Act
     await act(async () => {
       const button = screen.getByAltText('Create new notebook')
-      await userEvent.click(button)
+      await user.click(button)
 
       const nameInput = screen.getByLabelText('Name of the notebook *')
       await userEvent.type(nameInput, 'My New Notebook')
 
       const createButton = await screen.findByText('Create Analysis')
-      await userEvent.click(createButton)
+      await user.click(createButton)
     })
 
     // Assert
