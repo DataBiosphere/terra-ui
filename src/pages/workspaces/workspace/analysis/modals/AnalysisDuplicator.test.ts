@@ -4,23 +4,21 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { AzureStorage, AzureStorageContract } from 'src/libs/ajax/AzureStorage'
-import {
-  GoogleStorage,
-  GoogleStorageContract
-} from 'src/libs/ajax/GoogleStorage'
+import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
 import { errorWatcher } from 'src/libs/error.mock'
-import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
-import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
-  AbsolutePath, AnalysisFile, getDisplayName, getExtension, getFileName, useAnalysisFiles
+  defaultAzureWorkspace,
+  defaultGoogleWorkspace
+} from 'src/pages/workspaces/workspace/analysis/_testData/testData'
+import {
+  AbsolutePath, getExtension
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import {
   AnalysisDuplicator,
   AnalysisDuplicatorProps
 } from 'src/pages/workspaces/workspace/analysis/modals/AnalysisDuplicator'
-import {
-  getToolLabelFromFileExtension, ToolLabel, toolLabels
-} from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile, getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import { asMockedFn } from 'src/testing/test-utils'
 
 
@@ -37,8 +35,9 @@ jest.mock('src/libs/notifications', () => ({
 jest.mock('src/libs/ajax/GoogleStorage')
 jest.mock('src/libs/ajax/AzureStorage')
 
-jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
-  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
+type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
+jest.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
   return {
     ...originalModule,
     useAnalysisFiles: jest.fn()
@@ -55,20 +54,10 @@ jest.mock('src/libs/error', () => {
   }
 })
 
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
-  name: abs,
-  ext: getExtension(abs),
-  displayName: getDisplayName(abs),
-  fileName: getFileName(abs),
-  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
-  lastModified: new Date().getTime(),
-  cloudProvider
-})
-
-const baseTestFile: AnalysisFile = getTestFile('test/file0.ipynb' as AbsolutePath)
-
 const onDismiss = jest.fn()
 const onSuccess = jest.fn()
+
+const baseTestFile: AnalysisFile = getFileFromPath('test/file0.ipynb' as AbsolutePath)
 
 const defaultModalProps: AnalysisDuplicatorProps = {
   destroyOld: false,
@@ -83,10 +72,12 @@ describe('AnalysisDuplicator', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      refresh: () => Promise.resolve(),
+      refreshFileStore: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
       create: () => Promise.resolve(),
-      pendingCreate: { status: 'Ready', state: true }
+      pendingCreate: { status: 'Ready', state: true },
+      pendingDelete: { status: 'Ready', state: true },
+      deleteFile: () => Promise.resolve()
     }))
   })
 
@@ -117,12 +108,14 @@ describe('AnalysisDuplicator', () => {
     ]
   )('rejects existing and invalid names', async ({ inputText, errorMsg }) => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
-      refresh: () => Promise.resolve(),
+      refreshFileStore: () => Promise.resolve(),
       create: () => Promise.resolve(),
-      pendingCreate: { status: 'Ready', state: true }
+      pendingCreate: { status: 'Ready', state: true },
+      pendingDelete: { status: 'Ready', state: true },
+      deleteFile: () => Promise.resolve()
     }))
 
     // Act
@@ -139,7 +132,7 @@ describe('AnalysisDuplicator', () => {
 
   it('copies for a google workspace correctly', async () => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
     const copy = jest.fn()
 
     const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
@@ -248,7 +241,7 @@ describe('AnalysisDuplicator', () => {
   it('handles an error in ajax calls correctly', async () => {
     // Arrange
     const testExceptionMessage = 'test exception msg'
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
     const renameMock = jest.fn().mockRejectedValue(new Error(testExceptionMessage))
     const analysisMock: Partial<GoogleStorageContract['analysis']> = jest.fn(() => ({
       rename: renameMock

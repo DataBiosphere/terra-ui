@@ -6,12 +6,11 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
-  AnalysisFile,
-  AnalysisFileMetadata,
   getDisplayName,
   getExtension, getFileName
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
 import { toolLabels } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 
 
 type SasInfo = {

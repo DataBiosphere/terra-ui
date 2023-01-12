@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react'
 import { isTerra } from 'src/libs/brand-utils'
 import colors, { terraSpecial } from 'src/libs/colors'
 
@@ -15,16 +16,18 @@ export const noWrapEllipsis = { whiteSpace: 'nowrap', overflow: 'hidden', textOv
 
 export const codeFont = { fontFamily: 'Courier New' }
 
+const cardStyles: Record<string, CSSProperties> = {
+  title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
+  container: {
+    display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
+    backgroundColor: 'white',
+    boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)'
+  }
+}
+
 export const elements = {
-  card: {
-    title: { color: colors.accent(), fontSize: 16, overflow: 'hidden' },
-    container: {
-      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-      borderRadius: 5, padding: '1rem', wordWrap: 'break-word',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)'
-    }
-  },
+  card: cardStyles,
   sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' },
   contextBarContainer: { flex: 'none', width: 55, backgroundColor: colors.light(), borderLeft: `1px solid ${colors.accent()}` }

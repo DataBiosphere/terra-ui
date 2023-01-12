@@ -5,21 +5,15 @@ import userEvent from '@testing-library/user-event'
 import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import { GoogleStorage, GoogleStorageContract } from 'src/libs/ajax/GoogleStorage'
-import { CloudProviderType, cloudProviderTypes } from 'src/libs/workspace-utils'
+import { reportError } from 'src/libs/error'
+import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 import {
-  AbsolutePath,
-  AnalysisFile,
-  Extension,
-  getDisplayName,
-  getExtension,
-  getFileName,
-  useAnalysisFiles
+  AbsolutePath
 } from 'src/pages/workspaces/workspace/analysis/file-utils'
-import { AppTool, getToolLabelFromFileExtension, ToolLabel, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AppTool, tools } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { getFileFromPath, useAnalysisFiles } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 import { asMockedFn } from 'src/testing/test-utils'
 
-import { reportError } from '../../../../../libs/error'
-import { defaultAzureWorkspace, defaultGoogleWorkspace, galaxyDisk, galaxyRunning, getGoogleRuntime, imageDocs } from '../_testData/testData'
 import { AnalysisModal, AnalysisModalProps } from './AnalysisModal'
 
 
@@ -36,8 +30,6 @@ const defaultGcpModalProps: AnalysisModalProps = {
   onSuccess: () => {},
   openUploader: () => {},
   uploadFiles: () => {},
-  //TODO: Temporary until Analyses.js implements useAnalysisFiles
-  refreshAnalyses: () => {}
 }
 
 const defaultAzureModalProps: AnalysisModalProps = {
@@ -57,26 +49,25 @@ jest.mock('src/libs/notifications', () => ({
   notify: jest.fn()
 }))
 
-jest.mock('src/pages/workspaces/workspace/analysis/file-utils', () => {
+type FileUtilsExports = typeof import('src/pages/workspaces/workspace/analysis/file-utils')
+jest.mock('src/pages/workspaces/workspace/analysis/file-utils', (): FileUtilsExports => {
   const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/file-utils')
   return {
     ...originalModule,
-    getExtension: jest.fn(),
+    getExtension: jest.fn()
+  }
+})
+
+type UseAnalysisFilesExport = typeof import('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
+jest.mock('src/pages/workspaces/workspace/analysis/useAnalysisFiles', (): UseAnalysisFilesExport => {
+  const originalModule = jest.requireActual('src/pages/workspaces/workspace/analysis/useAnalysisFiles')
+  return {
+    ...originalModule,
     useAnalysisFiles: jest.fn()
   }
 })
 
 const createFunc = jest.fn()
-
-const getTestFile = (abs: AbsolutePath, cloudProvider: CloudProviderType = cloudProviderTypes.GCP): AnalysisFile => ({
-  name: abs,
-  ext: '.ipynb' as Extension,
-  displayName: getDisplayName(abs),
-  fileName: getFileName(abs),
-  tool: getToolLabelFromFileExtension(getExtension(abs)) as ToolLabel,
-  lastModified: new Date().getTime(),
-  cloudProvider
-})
 
 type AjaxContract = ReturnType<typeof Ajax>
 
@@ -84,10 +75,12 @@ describe('AnalysisModal', () => {
   beforeEach(() => {
     // Arrange
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
-      refresh: () => Promise.resolve(),
+      refreshFileStore: () => Promise.resolve(),
       loadedState: { state: [], status: 'Ready' },
       create: createFunc,
-      pendingCreate: { status: 'Ready', state: true }
+      pendingCreate: { status: 'Ready', state: true },
+      pendingDelete: { status: 'Ready', state: true },
+      deleteFile: () => Promise.resolve()
     }))
 
     asMockedFn(Ajax).mockImplementation(() => ({
@@ -356,12 +349,14 @@ describe('AnalysisModal', () => {
 
   it('Attempts to create a file with a name that already exists', async () => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath), getTestFile('test/file2.ipynb' as AbsolutePath)]
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath), getFileFromPath('test/file2.ipynb' as AbsolutePath)]
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
-      refresh: () => Promise.resolve(),
+      refreshFileStore: () => Promise.resolve(),
       create: () => Promise.resolve(),
-      pendingCreate: { status: 'Ready', state: true }
+      pendingCreate: { status: 'Ready', state: true },
+      pendingDelete: { status: 'Ready', state: true },
+      deleteFile: () => Promise.resolve()
     }))
 
     const user = userEvent.setup()
@@ -382,13 +377,15 @@ describe('AnalysisModal', () => {
 
   it('Error on create', async () => {
     // Arrange
-    const fileList = [getTestFile('test/file1.ipynb' as AbsolutePath)]
+    const fileList = [getFileFromPath('test/file1.ipynb' as AbsolutePath)]
     const createMock = jest.fn().mockRejectedValue(new Error('MyTestError'))
     asMockedFn(useAnalysisFiles).mockImplementation(() => ({
       loadedState: { state: fileList, status: 'Ready' },
-      refresh: () => Promise.resolve(),
+      refreshFileStore: () => Promise.resolve(),
       create: createMock,
-      pendingCreate: { status: 'Ready', state: true }
+      pendingCreate: { status: 'Ready', state: true },
+      pendingDelete: { status: 'Ready', state: true },
+      deleteFile: () => Promise.resolve()
     }))
 
     const user = userEvent.setup()

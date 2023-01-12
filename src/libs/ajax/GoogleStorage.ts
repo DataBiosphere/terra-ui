@@ -8,8 +8,6 @@ import * as Utils from 'src/libs/utils'
 import { cloudProviderTypes } from 'src/libs/workspace-utils'
 import {
   AbsolutePath,
-  AnalysisFile,
-  AnalysisFileMetadata,
   getDisplayName,
   getExtension,
   getFileName
@@ -20,6 +18,7 @@ import {
   ToolLabel,
   toolLabels
 } from 'src/pages/workspaces/workspace/analysis/tool-utils'
+import { AnalysisFile, AnalysisFileMetadata } from 'src/pages/workspaces/workspace/analysis/useAnalysisFiles'
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing

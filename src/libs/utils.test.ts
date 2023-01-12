@@ -1,4 +1,4 @@
-import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget } from 'src/libs/utils'
+import { differenceFromNowInSeconds, formatBytes, isValidWsExportTarget, textMatch } from 'src/libs/utils'
 import { defaultAzureWorkspace, defaultGoogleWorkspace } from 'src/pages/workspaces/workspace/analysis/_testData/testData'
 
 
@@ -158,5 +158,17 @@ describe('formatBytes', () => {
 
     // Assert
     expect(result).toBe('40 B')
+  })
+})
+
+describe('textMatch', () => {
+  it.each([
+    { needle: 'success', haystack: 'success', result: true },
+    { needle: 'Succes', haystack: 'successss', result: true },
+    { needle: 'nomatch', haystack: '404', result: false }
+  ])('properly determines if the needle is in the haystack', ({ needle, haystack, result }) => {
+    // Act
+    const doesMatch = textMatch(needle, haystack)
+    expect(doesMatch).toBe(result)
   })
 })
