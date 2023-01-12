@@ -52,6 +52,13 @@ check_jq_installed() {
     fi
 }
 
+# ensure that gcloud is installed
+check_gcloud_installed() {
+    if ! gcloud --version 1>/dev/null 2>&1; then
+        abort "gcloud is required; install using brew install google-cloud-sdk"
+    fi
+}
+
 # ensure that user has appropriate permissions for app engine
 check_user_permissions() {
     FAKE_VERSION="example-invalid-version-for-permission-testing"
@@ -127,6 +134,7 @@ execute_delete() {
 check_color_support
 
 check_jq_installed
+check_gcloud_installed
 
 if [ -z "${1+:}" ]; then
     usage
