@@ -84,6 +84,14 @@ const getRelationParts = (val: unknown): string[] => {
 
 // Extract wds URL from Leo response. exported for testing
 export const getWdsUrl = apps => {
+  // TODO: AJ-761: Check for if app.status === 'PROVISIONING'
+  // An assumption is made that there is only one app, can we make this assumption?
+  const provisioningApp = apps.filter(app => app.status === 'PROVISIONING')
+  if (provisioningApp.length === 1) {
+    // app deployment still in progress
+    return 'PROVISIONING'
+  }
+
   // look explicitly for an app named 'cbas-wds-default'. If found, use it, even if it isn't running
   // this handles the case where the user has explicitly shut down the app
   const namedApp = apps.filter(app => app.appType === 'CROMWELL' && app.appName === 'cbas-wds-default')

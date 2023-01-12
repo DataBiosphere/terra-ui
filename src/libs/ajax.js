@@ -4,7 +4,7 @@ import {
   appIdentifier, authOpts, fetchAgora, fetchBond, fetchDataRepo, fetchDockstore,
   fetchDrsHub,
   fetchEcm, fetchGoogleForms,
-  fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
+  fetchLeo, fetchMartha, fetchOk, fetchOrchestration, fetchRawls, fetchRex, fetchSam, jsonBody
 } from 'src/libs/ajax/ajax-common'
 import { Apps } from 'src/libs/ajax/Apps'
 import { AzureStorage } from 'src/libs/ajax/AzureStorage'
@@ -414,6 +414,17 @@ const CromIAM = signal => ({
 
   workflowMetadata: async (workflowId, includeKey, excludeKey) => {
     const res = await fetchOrchestration(`api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+// TODO: AJ-717: Since WDS<>CBAS are coupled, this is just one endpoint -- eventually, this endpoint can be separate per app that Leo may deploy
+const Leo = signal => ({
+  create: async (appName, workspaceId) => {
+    const body = {
+      appType: 'CROMWELL'
+    }
+    const res = await fetchLeo(`api/apps/v2/${workspaceId}/${appName}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
     return res.json()
   }
 })
@@ -1038,7 +1049,8 @@ export const Ajax = signal => {
     FirecloudBucket: FirecloudBucket(signal),
     OAuth2: OAuth2(signal),
     Surveys: Surveys(signal),
-    WorkspaceData: WorkspaceData(signal)
+    WorkspaceData: WorkspaceData(signal),
+    Leo: Leo(signal)
   }
 }
 

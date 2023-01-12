@@ -111,7 +111,12 @@ const NewWorkspaceModal = withDisplayName('NewWorkspaceModal', ({
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
+          // Only invoke Leo if we are within an Azure Workspace
+          if (!workspace.googleProject) {
+            await Ajax().Leo.create(workspace.name, workspace.id)
+          }
+          // TODO: Probably should add a metric for the Leo creation too
+          await Ajax().Metrics.captureEvent(Events.workspaceCreate, extractWorkspaceDetails(
             // Create response does not include cloudPlatform.
             _.merge(workspace, { cloudPlatform: getProjectCloudPlatform() }))
           )

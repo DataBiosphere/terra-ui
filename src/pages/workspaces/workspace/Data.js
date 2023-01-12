@@ -567,11 +567,16 @@ const WorkspaceData = _.flow(
 
   const loadWdsSchema = async () => {
     if (isAzureWorkspace) {
+      // TODO: AJ-761: Logic will need to exist here to check if Leo app is past "Provisioning"
       try {
         setWdsSchema([])
         setWdsSchemaError(undefined)
         const url = await wdsDataTableProvider.proxyUrlPromise
-        setProxyUrlLoaded(!!url)
+        if (url === 'PROVISIONING') {
+          // TODO: AJ-761: Handle UI changes
+        } else {
+          setProxyUrlLoaded(!!url)
+        }
         const wdsSchema = await Ajax(signal).WorkspaceData.getSchema(url, workspaceId)
         setWdsSchema(wdsSchema)
       } catch (error) {
