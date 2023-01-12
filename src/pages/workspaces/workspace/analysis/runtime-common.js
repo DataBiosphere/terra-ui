@@ -89,11 +89,11 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
   }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus])
 
   return null
-}
+}z
 
 export const AuthenticatedCookieSetter = () => {
   const { registrationStatus } = useStore(authStore)
-  return registrationStatus === userStatus.registeredWithTos && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
+  return _.includes(registrationStatus, [userStatus.registeredWithTos, userStatus.registeredWithoutTos]) && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
